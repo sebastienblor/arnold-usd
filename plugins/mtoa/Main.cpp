@@ -656,6 +656,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    ArnoldUniverseEnd();
 
+   CMayaScene::Init();
    return returnStatus;
 }
 
@@ -818,5 +819,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    ArnoldUniverseEnd();
 
+   CMayaScene::DeInit();
    return returnStatus;
 }

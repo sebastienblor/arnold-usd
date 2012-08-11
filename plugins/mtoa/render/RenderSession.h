@@ -138,6 +138,8 @@ private:
    static void DoAddIdleRenderViewCallback(void* data);
    void ClearIdleRenderViewCallback();
 
+   static unsigned int SceneEndThread(void* data);
+
    /// This is the static method for performing a progressive render.
    /// data should be a CRenderSession pointer.
    static unsigned int ProgressiveRenderThread(void* data);

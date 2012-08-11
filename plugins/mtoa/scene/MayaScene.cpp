@@ -41,6 +41,7 @@ MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
+AtCritSec CMayaScene::s_lock;
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -53,10 +54,15 @@ CArnoldSession* CMayaScene::GetArnoldSession()
    return s_arnoldSession;
 }
 
-bool CMayaScene::IsActive()
+bool CMayaScene::IsActive(ArnoldSessionMode mode)
 {
-   return (s_arnoldSession != NULL && s_arnoldSession->IsActive())
-         && (s_renderSession != NULL && s_renderSession->IsActive());
+   if (mode != MTOA_SESSION_ANY && mode != GetSessionMode())
+      return false;
+   AiCritSecEnter(&s_lock);
+   bool active = (s_arnoldSession != NULL && s_arnoldSession->IsActive())
+         || (s_renderSession != NULL && s_renderSession->IsActive());
+   AiCritSecLeave(&s_lock);
+   return active;
 }
 
 ArnoldSessionMode CMayaScene::GetSessionMode()
@@ -167,6 +173,7 @@ MStatus CMayaScene::End()
 {
    MStatus status = MStatus::kSuccess;
 
+   AiCritSecEnter(&s_lock);
    ClearIPRCallbacks();
    if (s_renderSession != NULL)
    {
@@ -180,7 +187,7 @@ MStatus CMayaScene::End()
       delete s_arnoldSession;
       s_arnoldSession = NULL;
    }
-
+   AiCritSecLeave(&s_lock);
    return status;
 }
 

@@ -15,7 +15,8 @@ enum ArnoldSessionMode
    MTOA_SESSION_BATCH,
    MTOA_SESSION_IPR,
    MTOA_SESSION_SWATCH,
-   MTOA_SESSION_ASS
+   MTOA_SESSION_ASS,
+   MTOA_SESSION_ANY
 };
 
 enum ArnoldLightLinkMode

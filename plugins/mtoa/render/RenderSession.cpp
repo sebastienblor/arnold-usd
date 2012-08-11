@@ -212,6 +212,7 @@ void CRenderSession::InterruptRender()
       AiThreadClose(m_render_thread);
       m_render_thread = NULL;	
    }
+   m_postRenderMel = "";
 }
 
 void CRenderSession::SetResolution(const int width, const int height)
@@ -341,6 +342,12 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
    renderSession->SetRendering(false);
 
+   return ai_status;
+}
+
+unsigned int CRenderSession::SceneEndThread(void* data)
+{
+   CMayaScene::End();
    return 0;
 }
 
@@ -348,20 +355,28 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
+   int ai_status(AI_SUCCESS);
    if (renderSession->m_renderOptions.isProgressive())
-      ProgressiveRenderThread(data);
+      ai_status = ProgressiveRenderThread(data);
    else
    {
       renderSession->SetRendering(true);
-      AiRender(AI_RENDER_MODE_CAMERA);
+      ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
    // get the post-MEL before ending the MayaScene
    MString postMel = renderSession->m_postRenderMel;
-   CMayaScene::End();
+
+   // Spawn a new thread to end the scene. Otherwise, this thread will block
+   // if it was interrupted by a call to CMayaScene::End() because the GUI thread
+   // will already be waiting behind a lock inside CMayaScene::End.
+   void* thread = AiThreadCreate(CRenderSession::SceneEndThread,
+                                    NULL,
+                                    AI_PRIORITY_LOW);
+   // we don't want to manage this thread
+   AiThreadClose(thread);
    // don't echo, and do on idle
    CMayaScene::ExecuteScript(postMel, false, true);
-
    return 0;
 }
 
@@ -548,7 +563,6 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
-   m_postRenderMel = "";
    m_comp.endComputation();
    // Don't clear the callback if we're in the middle of a render.
    if (m_idle_cb != 0 || m_timer_cb != 0)
