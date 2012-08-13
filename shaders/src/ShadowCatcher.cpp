@@ -50,13 +50,6 @@ shader_evaluate
    }
    
    AtRGB backgroundColor = AiShaderEvalParamRGB(p_background_color);
-   
-   /*if (!(sg->Rt & AI_RAY_CAMERA))
-   {
-      sg->out.RGB = backgroundColor * ;
-      sg->out.RGBA.a = 1.0f;      
-      return;
-   }*/
 
    AtRGB result = AI_RGB_BLACK;
    AtRGB resultOpacity = AI_RGB_WHITE;
@@ -72,7 +65,7 @@ shader_evaluate
       result = (AI_RGB_WHITE - matte) * backgroundColor;
    }
    else
-      result = backgroundColor * AiDirectDiffuse(&sg->Nf, sg);
+      result = backgroundColor;
    
    if (AiShaderEvalParamBool(p_catch_diffuse))
    {
