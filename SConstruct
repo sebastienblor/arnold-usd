@@ -574,6 +574,7 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
               os.path.join('extension', 'PathUtils.h'),
               os.path.join('session', 'ArnoldSession.h'),
               os.path.join('session', 'SessionOptions.h'),
+              os.path.join('session', 'ArnoldLightLinks.h'),
               os.path.join('render', 'AOV.h'),
               os.path.join('translators', 'NodeTranslator.h'),
               os.path.join('translators', 'shape', 'ShapeTranslator.h')]
