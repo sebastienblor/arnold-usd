@@ -483,6 +483,26 @@ else:
                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                  duplicate = 0,
                                  exports   = 'env')
+                                 
+   def osx_hardcode_path(target, source, env):
+      cmd = ""
+      print str(target[0])
+
+      if ('mtoa_api' in str(target[0])) :
+         cmd = "install_name_tool -id @loader_path/../bin/libmtoa_api.dylib"
+      elif ('mtoa.bundle' in str(target[0])) or ('shaders' in str(target[0])):
+         cmd = " install_name_tool -add_rpath @loader_path/../bin/"
+         
+      if cmd :
+         p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
+         retcode = p.wait()
+
+      return 0
+
+   if system.os() == 'darwin':
+      env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Hardcoding paths in mtoa_api.dylib ...'))
+      env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Hardcoding paths in mtoa.bundle ...'))
+      env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Hardcoding paths in mtoa_shaders.dylib'))
 
 Depends(MTOA, MTOA_API[0])
 
