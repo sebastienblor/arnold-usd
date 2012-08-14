@@ -177,10 +177,6 @@ templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker']
-
     def setup(self):
         self.addControl("aiNormalize")  
 
@@ -194,9 +190,6 @@ class AmbientLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker']
     def setup(self):
         self.addControl("aiExposure")
         self.addControl("aiAngle")
@@ -217,9 +210,6 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -244,9 +234,6 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -278,10 +265,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
-
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")

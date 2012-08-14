@@ -5,6 +5,7 @@ import mtoa.core as core
 from mtoa.callbacks import *
 from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
+from mtoa.utils import getLightFilterClassification
 import mtoa.callbacks as callbacks
 
 def getSourcePlug(plugname, index):
@@ -116,9 +117,7 @@ class LightTemplate(AttributeTemplate):
         super(LightTemplate, self).__init__(nodeType)
 
     def validFilters(self):
-        '''override in sub-class to provide the list of filters valid for a given light type'''
-        # TODO: dynamically lookup full list of light filters
-        return ['aiLightBlocker', 'aiLightDecay']
+        return getLightFilterClassification(self.nodeType())
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
