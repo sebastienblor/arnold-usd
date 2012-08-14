@@ -450,15 +450,3 @@ def createLocator(locatorType, asLight=False):
         cmds.connectAttr('%s.instObjGroups' % lName, 'defaultLightSet.dagSetMembers', nextAvailable=True)
     return (shapeName, lName)
 
-_lightFilterNodes = {}
-def addLightFilterClassification(lights, lightFilterType):
-    for light in lights.split(" "):
-        if not light in _lightFilterNodes:
-            _lightFilterNodes[light] = [];
-        _lightFilterNodes[light].append(lightFilterType)
-    
-    
-def getLightFilterClassification(light):
-    if light in _lightFilterNodes:
-        return _lightFilterNodes[light]
-    return []

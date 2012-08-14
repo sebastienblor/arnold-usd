@@ -212,7 +212,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          const char* lights;
          if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.lights", &lights))
          {
-            MString cmd = "from mtoa.utils import addLightFilterClassification;addLightFilterClassification('" + MString(lights) + "','"+ MString(name) +"')";
+            MString cmd = "from mtoa.lightFilters import addLightFilterClassification;addLightFilterClassification('" + MString(lights) + "','"+ MString(name) +"')";
             CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
          }
       }

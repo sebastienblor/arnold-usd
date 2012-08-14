@@ -5,7 +5,7 @@ import mtoa.core as core
 from mtoa.callbacks import *
 from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
-from mtoa.utils import getLightFilterClassification
+from mtoa.lightFilters import getLightFilterClassification
 import mtoa.callbacks as callbacks
 
 def getSourcePlug(plugname, index):
