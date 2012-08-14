@@ -278,9 +278,6 @@ elif env['COMPILER'] == 'msvc':
       MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
       MSVC_FLAGS += " /Ox"     # selects maximum optimization
       
-      if system.target_arch() == 'x86':
-         MSVC_FLAGS += " /arch:SSE2" # enables use of SSE2 instructions
-      
       LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
    else:  ## Debug mode
       MSVC_FLAGS += " /Od"   # disables all optimizations
@@ -429,14 +426,14 @@ if system.os() == 'windows':
                                  srcs = [],
                                  incs = [],
                                  buildtarget = 'install',
-                                 cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
-                                            '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
-                                            '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
-                                            '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
-                                 variant = ['Debug_MSVC|Win32',
-                                            'Debug_ICC|Win32',
-                                            'Opt_MSVC|Win32',
-                                            'Opt_ICC|Win32'],
+                                 cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86_64',
+                                            '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
+                                            '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
+                                            '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
+                                 variant = ['Debug_MSVC|Win64',
+                                            'Debug_ICC|Win64',
+                                            'Opt_MSVC|Win64',
+                                            'Opt_ICC|Win64'],
                                  auto_build_solution = 0,
                                  nokeep = 1)
    
@@ -446,10 +443,10 @@ if system.os() == 'windows':
                                            os.path.join('shaders', 'src', 'mtoa_shaders') + env['MSVS']['PROJECTSUFFIX'],
                                            'install' + env['MSVS']['PROJECTSUFFIX']],  ## TODO: Find a clean way of getting these project paths
                                dependencies = [[], [], [], ['mtoa', 'mtoa_api', 'mtoa_shaders']],
-                               variant = ['Debug_MSVC|Win32',
-                                          'Debug_ICC|Win32',
-                                          'Opt_MSVC|Win32',
-                                          'Opt_ICC|Win32'])
+                               variant = ['Debug_MSVC|Win64',
+                                          'Debug_ICC|Win64',
+                                          'Opt_MSVC|Win64',
+                                          'Opt_ICC|Win64'])
 else:
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
