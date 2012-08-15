@@ -490,7 +490,7 @@ else:
 
       if ('mtoa_api' in str(target[0])) :
          cmd = "install_name_tool -id @loader_path/../bin/libmtoa_api.dylib"
-      elif ('mtoa.bundle' in str(target[0])) or ('shaders' in str(target[0])):
+      elif ('mtoa.bundle' in str(target[0])):
          cmd = " install_name_tool -add_rpath @loader_path/../bin/"
          
       if cmd :
@@ -502,7 +502,6 @@ else:
    if system.os() == 'darwin':
       env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Hardcoding paths in mtoa_api.dylib ...'))
       env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Hardcoding paths in mtoa.bundle ...'))
-      env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Hardcoding paths in mtoa_shaders.dylib'))
 
 Depends(MTOA, MTOA_API[0])
 
