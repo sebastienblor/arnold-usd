@@ -152,9 +152,10 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       if (numLinkedLights != 0)
       {
          AiNodeSetBool(shape, "use_light_group", true);
-         AtArray* lights = AiArrayAllocate(m_numArnoldLights - numLinkedLights, 1, AI_TYPE_NODE);
+         size_t numNonIgnoredLights = m_numArnoldLights - numLinkedLights;
+         AtArray* lights = AiArrayAllocate(numNonIgnoredLights, 1, AI_TYPE_NODE);
          AiNodeSetArray(shape, "light_group", lights);
-         if (m_numArnoldLights != numLinkedLights) // if the number is the same, then all of the lights are ignored
+         if (numNonIgnoredLights)
          {
             for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
             {
@@ -162,7 +163,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
                // the light is not ignored, so we can add it to the array
                std::vector<AtNode*>::iterator itEnd = m_linkedLights.begin() + numLinkedLights;
                if (std::find(m_linkedLights.begin(), itEnd, light) == itEnd)
-                  AiArraySetPtr(lights, --numLinkedLights, light); // just a trick, so no other variable is required
+                  AiArraySetPtr(lights, --numNonIgnoredLights, light);
             }
          }
       }
