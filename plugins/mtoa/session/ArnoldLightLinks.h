@@ -22,10 +22,9 @@ public:
    void ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode);
    void SetLinkingMode(int light, int shadow);
 private:
-   // Try using an MObject for this, or some other trick, instead of strings
-   // that might cause problems with specially named / grouped nodes or something
-   std::map<std::string, std::vector<AtNode*> > m_lightLinks;
-   std::map<std::string, std::vector<AtNode*> > m_shadowLinks;
+   // saving the lights here for faster access
+   std::map<std::string, AtNode*> m_arnoldLights;
+   std::vector<AtNode*> m_linkedLights;
    
    int m_lightMode;
    int m_shadowMode;

@@ -16,8 +16,7 @@
 
 void CArnoldLightLinks::ClearLightLinks()
 {
-   m_lightLinks.clear();
-   m_shadowLinks.clear();
+   m_arnoldLights.clear();
    
    m_lightMode = MTOA_LIGHTLINK_NONE;
    m_lightMode = MTOA_SHADOWLINK_NONE;
@@ -29,144 +28,44 @@ void CArnoldLightLinks::SetLinkingMode(int light, int shadow)
    m_shadowMode = shadow;
 }
 
-void ReadLinks(const MPlug& plug, std::map<std::string, std::vector<AtNode*> >& target, 
-        std::map<std::string, AtNode*>& lightMap)
-{
-   unsigned int numElements = plug.numElements();
-   for (unsigned int i = 0; i < numElements; ++i)
-   {
-      MPlug cPlug = plug.elementByLogicalIndex(i);
-      MPlugArray paLight, paObject;
-      cPlug.child(0).connectedTo(paLight, true, false);
-      cPlug.child(1).connectedTo(paObject, true, false);
-      if (paLight.length() == 0 || paObject.length() == 0)
-         continue;
-      MFnDependencyNode object(paObject[0].node());
-      MFnDependencyNode linkedLights(paLight[0].node()); // this can be a set
-      if (linkedLights.typeName() == MString("objectSet"))
-      {
-         MStatus status;
-         MFnSet objectSet(paLight[0].node());
-         MSelectionList sList;
-         objectSet.getMembers(sList, true);
-         for (unsigned int i = 0; i < sList.length(); ++i)
-         {
-            MDagPath dgPath;
-            if (!sList.getDagPath(i, dgPath))
-               continue;
-            dgPath.extendToShape();
-            MFnDependencyNode linkedLight(dgPath.node(), &status);
-            if (!status)
-               continue;
-            std::map<std::string, AtNode*>::iterator lightMapIter = lightMap.find(linkedLight.name().asChar());
-            if (lightMapIter != lightMap.end())
-               target[object.name().asChar()].push_back(lightMapIter->second);
-         }
-      }
-      else
-      {
-         std::map<std::string, AtNode*>::iterator lightMapIter = lightMap.find(linkedLights.name().asChar());
-         if (lightMapIter != lightMap.end())
-            target[object.name().asChar()].push_back(lightMapIter->second);
-      }
-   }
-}
-
-void AppendIgnores(std::map<std::string, std::vector<AtNode*> >& source,
-        std::map<std::string, std::vector<AtNode*> >& target,
-        std::vector<AtNode*> aLights)
-{
-   for (std::map<std::string, std::vector<AtNode*> >::iterator it = source.begin(); it != source.end(); ++it)
-   {
-      std::vector<AtNode*> lights;
-      for(std::vector<AtNode*>::iterator it2 = aLights.begin(); it2 != aLights.end(); ++it2)
-      {
-         if (std::find(it->second.begin(), it->second.end(), *it2) == it->second.end())
-            lights.push_back(*it2);
-      }
-      target[it->first] = lights;
-   }
-}
-
 void CArnoldLightLinks::ParseLightLinks()
 {
-   std::map<std::string, AtNode*> lightMap;
-   std::vector<AtNode*> lights;
    AtNodeIterator* niter = AiUniverseGetNodeIterator(AI_NODE_LIGHT);
    while(!AiNodeIteratorFinished(niter))
    {
       AtNode* node = AiNodeIteratorGetNext(niter);
-      lights.push_back(node);
-      lightMap[AiNodeGetName(node)] = node;
+      m_arnoldLights[AiNodeGetName(node)] = node;
    }
    AiNodeIteratorDestroy(niter);
-   
-   MItDependencyNodes nodeIter(MFn::kLightLink);
-   for (;!nodeIter.isDone(); nodeIter.next())
-   {
-      MFnDependencyNode dNode(nodeIter.item());
-      std::map<std::string, std::vector<AtNode*> > tempMap;
-      if (m_lightMode == MTOA_LIGHTLINK_MAYA)
-      {
-         ReadLinks(dNode.findPlug("link"), m_lightLinks, lightMap);               
-         ReadLinks(dNode.findPlug("ignore"), tempMap, lightMap);         
-         AppendIgnores(tempMap, m_lightLinks, lights);
-         tempMap.clear();
-      }
-      
-      if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
-      {
-         ReadLinks(dNode.findPlug("shadowLink"), m_shadowLinks, lightMap);         
-         ReadLinks(dNode.findPlug("shadowIgnore"), tempMap, lightMap);
-         AppendIgnores(tempMap, m_shadowLinks, lights);
-      }
-   }
+   const size_t numLights = m_arnoldLights.size();
+   if (numLights)
+      m_linkedLights.resize(numLights);
 }
+
+enum LightLinkMode{
+   MTOA_LIGHTLINK_LINK,
+   MTOA_LIGHTLINK_IGNORE
+};
 
 void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
 {
-   const std::string name = dNode.name().asChar();
-   if (m_lightMode == MTOA_LIGHTLINK_MAYA)
+   if (m_lightMode == MTOA_LIGHTLINK_NONE && m_shadowMode == MTOA_SHADOWLINK_NONE)
+      return;
+   MPlug messagePlug = dNode.findPlug("message");
+   static MPlugArray conns;
+   messagePlug.connectedTo(conns, false, true);
+   unsigned int numConnections = conns.length();
+   if (numConnections == 0)
+      return;
+   // there are two modes, either ignoring specific nodes
+   // or linking them, but it's always only one of them
+   LightLinkMode linkMode = MTOA_LIGHTLINK_LINK;
+   for (unsigned int i = 0; i < numConnections; ++i)
    {
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_lightLinks.find(name);      
-      
-      if (it != m_lightLinks.end())
+      MPlug conn = conns[i];
+      if (conn.node().hasFn(MFn::kLightLink))
       {
-         AtArray* lights = AiArrayAllocate(it->second.size(), 1, AI_TYPE_NODE);
-         unsigned int id = 0;
-         for (std::vector<AtNode*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2, ++id)
-            AiArraySetPtr(lights, id, *it2);         
-         AiNodeSetBool(shape, "use_light_group", true);
-         AiNodeSetArray(shape, "light_group", lights);
-         if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
-         {
-            AiNodeSetBool(shape, "use_shadow_group", true);
-            if (id == 0)
-               AiNodeSetArray(shape, "shadow_group", AiArrayAllocate(0, 1, AI_TYPE_NODE));
-            else
-               AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lights));
-         }
-      }
-      else // light is not in the list, that means nothing illuminates it!
-      {
-         AiNodeSetBool(shape, "use_light_group", true);
-         AtArray* lights = AiArrayAllocate(0, 1, AI_TYPE_NODE);
-         AiNodeSetArray(shape, "light_group", lights);
-      }
-   }
-   
-   if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
-   {
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_shadowLinks.find(name);
-   
-      if (it != m_shadowLinks.end())
-      {
-         AtArray* lights = AiArrayAllocate(it->second.size(), 1, AI_TYPE_NODE);
-         unsigned int id = 0;
-         for (std::vector<AtNode*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2, ++id)
-            AiArraySetPtr(lights, id, *it2);
-         AiNodeSetBool(shape, "use_shadow_group", true);
-         AiNodeSetArray(shape, "shadow_group", lights);
+         std::cerr << "Found lightlink node\n";
       }
    }
 }
