@@ -128,14 +128,14 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
    const std::string name = dNode.name().asChar();
    if (m_lightMode == MTOA_LIGHTLINK_MAYA)
    {
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_lightLinks.find(name);
-   
+      std::map<std::string, std::vector<AtNode*> >::iterator it = m_lightLinks.find(name);      
+      
       if (it != m_lightLinks.end())
       {
          AtArray* lights = AiArrayAllocate(it->second.size(), 1, AI_TYPE_NODE);
          unsigned int id = 0;
          for (std::vector<AtNode*>::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2, ++id)
-            AiArraySetPtr(lights, id, *it2);
+            AiArraySetPtr(lights, id, *it2);         
          AiNodeSetBool(shape, "use_light_group", true);
          AiNodeSetArray(shape, "light_group", lights);
          if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
@@ -146,6 +146,12 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
             else
                AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lights));
          }
+      }
+      else // light is not in the list, that means nothing illuminates it!
+      {
+         AiNodeSetBool(shape, "use_light_group", true);
+         AtArray* lights = AiArrayAllocate(0, 1, AI_TYPE_NODE);
+         AiNodeSetArray(shape, "light_group", lights);
       }
    }
    
