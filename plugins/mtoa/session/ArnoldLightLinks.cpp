@@ -160,7 +160,8 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
             {
                AtNode* light = it->second;
                // the light is not ignored, so we can add it to the array
-               if (std::find(m_linkedLights.begin(), m_linkedLights.begin() + numLinkedLights, light) == m_linkedLights.end())
+               std::vector<AtNode*>::iterator itEnd = m_linkedLights.begin() + numLinkedLights;
+               if (std::find(m_linkedLights.begin(), itEnd, light) == itEnd)
                   AiArraySetPtr(lights, --numLinkedLights, light); // just a trick, so no other variable is required
             }
          }
