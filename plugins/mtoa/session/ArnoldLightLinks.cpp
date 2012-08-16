@@ -20,6 +20,7 @@ void CArnoldLightLinks::ClearLightLinks()
    m_arnoldLights.clear();
    m_numArnoldLights = 0;
    m_linkedLights.clear();
+   m_linkedShadows.clear();
    
    m_lightMode = MTOA_LIGHTLINK_NONE;
    m_lightMode = MTOA_SHADOWLINK_NONE;
@@ -45,13 +46,13 @@ void CArnoldLightLinks::ParseLightLinks()
       m_linkedLights.resize(m_numArnoldLights);
 }
 
-void CArnoldLightLinks::AppendLightsToList(MFnDependencyNode& linkedLights, 
-        size_t& numLinkedLights)
+void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
+        size_t& numLinkedNodes)
 {
-   if (linkedLights.typeName() == MString("objectSet"))
+   if (linkedNodes.typeName() == MString("objectSet"))
    {
       MStatus status;
-      MFnSet objectSet(linkedLights.object());
+      MFnSet objectSet(linkedNodes.object());
       MSelectionList sList;
       objectSet.getMembers(sList, true);
       for (unsigned int i = 0; i < sList.length(); ++i)
@@ -65,43 +66,66 @@ void CArnoldLightLinks::AppendLightsToList(MFnDependencyNode& linkedLights,
             continue;
          std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(linkedLight.name().asChar());
          if (it != m_arnoldLights.end())
-            m_linkedLights[numLinkedLights++] = it->second;
+            nodeList[numLinkedNodes++] = it->second;
       }
    }
    else
    {
-      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(linkedLights.name().asChar());
+      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(linkedNodes.name().asChar());
       if (it != m_arnoldLights.end())
-         m_linkedLights[numLinkedLights++] = it->second;
+         nodeList[numLinkedNodes++] = it->second;
    }
 }
 
-void CArnoldLightLinks::HandleLightLinker(MPlug& conn, size_t& numLinkedLights, LightLinkMode& linkMode)
+void CArnoldLightLinks::HandleLightLinker(MPlug& conn, 
+        size_t& numLinkedLights, size_t& numLinkedShadows,
+        NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
 {
-      MPlug parentPlug = conn.parent();
-      const char* plugName = parentPlug.partialName(false, false, false, false, false, true).asChar();
+   MPlug parentPlug = conn.parent();
+   const char* plugName = parentPlug.partialName(false, false, false, false, false, true).asChar();
 
-      static MPlugArray conns2;
-      parentPlug.child(0).connectedTo(conns2, true, false);
+   static MPlugArray conns2;
+   parentPlug.child(0).connectedTo(conns2, true, false);
 
-      if (conns2.length() == 0)
-         return;
+   if (conns2.length() == 0)
+      return;
 
-      if ((linkMode == MTOA_LIGHTLINK_LINK) && (strncmp(plugName, "link", 4) == 0)) // linking the light
+   if (m_lightMode == MTOA_LIGHTLINK_MAYA)
+   {
+      if ((lightLinkMode == MTOA_NODELINK_LINK) && (strncmp(plugName, "link", 4) == 0)) // linking the light
       {
          // check for this being a light set
          MFnDependencyNode linkedLights(conns2[0].node());
-         AppendLightsToList(linkedLights, numLinkedLights);
+         AppendNodesToList(linkedLights, m_linkedLights, numLinkedLights);
       }
       else if (strncmp(plugName, "ignore", 6) == 0) // ignoring the light
       {
-         linkMode = MTOA_LIGHTLINK_IGNORE;
+         lightLinkMode = MTOA_NODELINK_IGNORE;
          MFnDependencyNode linkedLights(conns2[0].node());
-         AppendLightsToList(linkedLights, numLinkedLights);
+         AppendNodesToList(linkedLights, m_linkedLights, numLinkedLights);
       }
+   }
+
+   if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
+   {
+      if ((shadowLinkMode == MTOA_NODELINK_LINK) && (strncmp(plugName, "shadowLink", 10) == 0)) // linking the shadow
+      {
+         // check for this being a light set
+         MFnDependencyNode linkedShadows(conns2[0].node());
+         AppendNodesToList(linkedShadows, m_linkedShadows, numLinkedShadows);
+      }
+      else if (strncmp(plugName, "shadowIgnore", 12) == 0) // ignoring the shadow
+      {
+         shadowLinkMode = MTOA_NODELINK_IGNORE;
+         MFnDependencyNode linkedShadows(conns2[0].node());
+         AppendNodesToList(linkedShadows, m_linkedShadows, numLinkedShadows);
+      }
+   }
 }
 
-void CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, size_t& numLinkedLights, LightLinkMode& linkMode)
+void CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, 
+        size_t& numLinkedLights, size_t& numLinkedShadows, 
+        NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
 {
    MPlug messagePlug = dNode.findPlug("message");
    static MPlugArray conns;
@@ -111,9 +135,7 @@ void CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, size_t& numLinked
    {
       MPlug conn = conns[i];
       if (conn.node().hasFn(MFn::kLightLink))
-      {
-         HandleLightLinker(conn, numLinkedLights, linkMode);
-      }
+         HandleLightLinker(conn, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
    }
 }
 
@@ -125,10 +147,12 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
    // there are two modes, either ignoring specific nodes
    // or linking them, but it's always only one of them
    MStatus status;
-   LightLinkMode linkMode = MTOA_LIGHTLINK_LINK;
+   NodeLinkMode lightLinkMode = MTOA_NODELINK_LINK;
+   NodeLinkMode shadowLinkMode = MTOA_NODELINK_LINK;
    size_t numLinkedLights = 0;
+   size_t numLinkedShadows = 0;
    
-   CheckMessage(dNode, numLinkedLights, linkMode); // checking the outgoing message
+   CheckMessage(dNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); // checking the outgoing message
    // for the node
    
    MPlug instObjGroupsPlug = dNode.findPlug("instObjGroups", &status);
@@ -142,41 +166,91 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       if (conn.node().hasFn(MFn::kShadingEngine))
       {
          MFnDependencyNode shadingEngineNode(conn.node());
-         CheckMessage(shadingEngineNode, numLinkedLights, linkMode); // checking the outgoing message
+         CheckMessage(shadingEngineNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
+         // checking the outgoing message
          // for the shadingEngine
       }
    }
    
-   if (linkMode == MTOA_LIGHTLINK_IGNORE)
-   {
-      if (numLinkedLights != 0)
+   if (m_lightMode == MTOA_LIGHTLINK_MAYA)
+   {   
+      if (lightLinkMode == MTOA_NODELINK_IGNORE)
       {
-         AiNodeSetBool(shape, "use_light_group", true);
-         size_t numNonIgnoredLights = m_numArnoldLights - numLinkedLights;
-         AtArray* lights = AiArrayAllocate(numNonIgnoredLights, 1, AI_TYPE_NODE);
-         AiNodeSetArray(shape, "light_group", lights);
-         if (numNonIgnoredLights)
+         if (numLinkedLights != 0)
          {
-            for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+            AiNodeSetBool(shape, "use_light_group", true);
+            size_t numNonIgnoredLights = m_numArnoldLights - numLinkedLights;
+            AtArray* lights = AiArrayAllocate(numNonIgnoredLights, 1, AI_TYPE_NODE);
+            AiNodeSetArray(shape, "light_group", lights);
+            if (numNonIgnoredLights)
             {
-               AtNode* light = it->second;
-               // the light is not ignored, so we can add it to the array
                std::vector<AtNode*>::iterator itEnd = m_linkedLights.begin() + numLinkedLights;
-               if (std::find(m_linkedLights.begin(), itEnd, light) == itEnd)
-                  AiArraySetPtr(lights, --numNonIgnoredLights, light);
+               for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+               {
+                  AtNode* light = it->second;
+                  // the light is not ignored, so we can add it to the array                  
+                  if (std::find(m_linkedLights.begin(), itEnd, light) == itEnd)
+                     AiArraySetPtr(lights, --numNonIgnoredLights, light);
+               }
+            }
+            if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
+            {
+               AiNodeSetBool(shape, "use_shadow_group", true);
+               AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lights));
+            }
+         }
+      }
+      else
+      {
+         if (numLinkedLights != m_numArnoldLights)
+         {
+            AiNodeSetBool(shape, "use_light_group", true);
+            AtArray* lights = AiArrayAllocate(numLinkedLights, 1, AI_TYPE_NODE);
+            AiNodeSetArray(shape, "light_group", lights);
+            for (size_t i = 0; i < numLinkedLights; ++i)
+               AiArraySetPtr(lights, i, m_linkedLights[i]);
+            if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
+            {
+               AiNodeSetBool(shape, "use_shadow_group", true);
+               AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lights));
             }
          }
       }
    }
-   else
+   
+   if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
    {
-      if (numLinkedLights != m_numArnoldLights)
+      if (shadowLinkMode == MTOA_NODELINK_IGNORE)
       {
-         AiNodeSetBool(shape, "use_light_group", true);
-         AtArray* lights = AiArrayAllocate(numLinkedLights, 1, AI_TYPE_NODE);
-         AiNodeSetArray(shape, "light_group", lights);
-         for (size_t i = 0; i < numLinkedLights; ++i)
-            AiArraySetPtr(lights, i, m_linkedLights[i]);         
+         if (numLinkedShadows != 0)
+         {
+            AiNodeSetBool(shape, "use_shadow_group", true);
+            size_t numNonIgnoredShadows = m_numArnoldLights - numLinkedShadows;
+            AtArray* lights = AiArrayAllocate(numNonIgnoredShadows, 1, AI_TYPE_NODE);
+            AiNodeSetArray(shape, "shadow_group", lights);
+            if (numNonIgnoredShadows)
+            {
+               std::vector<AtNode*>::iterator itEnd = m_linkedShadows.begin() + numLinkedShadows;
+               for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+               {
+                  AtNode* light = it->second;
+                  // the light is not ignored, so we can add it to the array                  
+                  if (std::find(m_linkedShadows.begin(), itEnd, light) == itEnd)
+                     AiArraySetPtr(lights, --numNonIgnoredShadows, light);
+               }
+            }
+         }
+      }
+      else
+      {
+         if (numLinkedShadows != m_numArnoldLights)
+         {
+            AiNodeSetBool(shape, "use_shadow_group", true);
+            AtArray* lights = AiArrayAllocate(numLinkedShadows, 1, AI_TYPE_NODE);
+            AiNodeSetArray(shape, "shadow_group", lights);
+            for (size_t i = 0; i < numLinkedShadows; ++i)
+               AiArraySetPtr(lights, i, m_linkedShadows[i]);
+         }
       }
    }
 }
