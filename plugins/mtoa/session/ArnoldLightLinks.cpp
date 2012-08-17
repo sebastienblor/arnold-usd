@@ -188,7 +188,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       instObjGroupsPlug = instObjGroupsPlug.child(0, &status);
       if (status)
       {
-         instObjGroupsPlug = instObjGroupsPlug.elementByLogicalIndex(0);
+         instObjGroupsPlug = instObjGroupsPlug.elementByPhysicalIndex(0);
          instObjGroupsPlug.connectedTo(conns, false, true);
          numConnections = conns.length();
       }
