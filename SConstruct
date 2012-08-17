@@ -486,12 +486,13 @@ else:
                                  
    def osx_hardcode_path(target, source, env):
       cmd = ""
-      print str(target[0])
 
-      if ('mtoa_api' in str(target[0])) :
+      if target[0] == MTOA_API[0]:
          cmd = "install_name_tool -id @loader_path/../bin/libmtoa_api.dylib"
-      elif ('mtoa.bundle' in str(target[0])):
+      elif target[0] == MTOA[0]:
          cmd = " install_name_tool -add_rpath @loader_path/../bin/"
+      else:
+	     cmd = "install name tool -id " + str(target[0]).split('/')[-1]
          
       if cmd :
          p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
@@ -500,8 +501,10 @@ else:
       return 0
 
    if system.os() == 'darwin':
-      env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Hardcoding paths in mtoa_api.dylib ...'))
-      env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Hardcoding paths in mtoa.bundle ...'))
+      env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Adjusting paths in mtoa_api.dylib ...'))
+      env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Adjusting paths in mtoa.boundle ...'))
+      env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
+      env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
 
 Depends(MTOA, MTOA_API[0])
 
