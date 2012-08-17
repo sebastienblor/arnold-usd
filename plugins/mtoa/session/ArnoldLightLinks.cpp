@@ -112,13 +112,14 @@ void CArnoldLightLinks::HandleLightLinker(MPlug& conn,
 
    if (m_lightMode == MTOA_LIGHTLINK_MAYA)
    {
-      if ((lightLinkMode == MTOA_NODELINK_LINK) && (strncmp(plugName.c_str(), "link", 4) == 0)) // linking the light
+      if (!(lightLinkMode == MTOA_NODELINK_IGNORE && numLinkedLights > 0) && (strncmp(plugName.c_str(), "link", 4) == 0)) // linking the light
       {
          // check for this being a light set
+         lightLinkMode = MTOA_NODELINK_LINK;
          MFnDependencyNode linkedLights(conns2[0].node());
          AppendNodesToList(linkedLights, m_linkedLights, numLinkedLights);
       }
-      else if (strncmp(plugName.c_str(), "ignore", 6) == 0) // ignoring the light
+      else if (!(lightLinkMode == MTOA_NODELINK_LINK && numLinkedLights > 0) && (strncmp(plugName.c_str(), "ignore", 6) == 0))// ignoring the light
       {
          lightLinkMode = MTOA_NODELINK_IGNORE;
          MFnDependencyNode linkedLights(conns2[0].node());
@@ -128,13 +129,14 @@ void CArnoldLightLinks::HandleLightLinker(MPlug& conn,
 
    if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
    {
-      if ((shadowLinkMode == MTOA_NODELINK_LINK) && (strncmp(plugName.c_str(), "shadowLink", 10) == 0)) // linking the shadow
+      if (!(shadowLinkMode == MTOA_NODELINK_IGNORE && numLinkedShadows > 0) && (strncmp(plugName.c_str(), "shadowLink", 10) == 0)) // linking the shadow
       {
          // check for this being a light set
+         shadowLinkMode = MTOA_NODELINK_LINK;
          MFnDependencyNode linkedShadows(conns2[0].node());
          AppendNodesToList(linkedShadows, m_linkedShadows, numLinkedShadows);
       }
-      else if (strncmp(plugName.c_str(), "shadowIgnore", 12) == 0) // ignoring the shadow
+      else if (!(shadowLinkMode == MTOA_NODELINK_LINK && numLinkedShadows > 0) && (strncmp(plugName.c_str(), "shadowIgnore", 12) == 0)) // ignoring the shadow
       {
          shadowLinkMode = MTOA_NODELINK_IGNORE;
          MFnDependencyNode linkedShadows(conns2[0].node());
