@@ -56,7 +56,15 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CCurveTranslator::CreateArnoldNodes()
 {
-   // FIXME: return NULL here if node is not renderable
+   MPlug plug;
+   MFnDependencyNode fnNode(GetMayaObject());
+
+   plug = fnNode.findPlug("renderCurve");
+   if (!plug.isNull() && plug.asBool() == false)
+   {
+      return NULL;
+   }
+
    return AddArnoldNode("curves");
 }
 
