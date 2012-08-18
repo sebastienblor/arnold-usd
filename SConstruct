@@ -492,7 +492,7 @@ else:
       elif target[0] == MTOA[0]:
          cmd = " install_name_tool -add_rpath @loader_path/../bin/"
       else:
-	     cmd = "install name tool -id " + str(target[0]).split('/')[-1]
+	     cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
          
       if cmd :
          p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
