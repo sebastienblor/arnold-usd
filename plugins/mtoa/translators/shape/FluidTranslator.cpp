@@ -36,6 +36,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    MFnFluid mayaFluid(GetMayaObject());
    MFnDependencyNode mayaFluidNode(GetMayaObject());
    
+   ExportMatrix(fluid, 0);
+   
    unsigned int xRes, yRes, zRes;
    double xDim, yDim, zDim;
    
@@ -47,7 +49,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    AiNodeSetFlt(fluid, "step_size", 0.1f);
    
-   AtNode* fluid_shader = AiNode("fog"); // replace with a proper shader later
+   AtNode* fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
    AiNodeSetPtr(fluid, "shader", fluid_shader);
    
    // first getting a simple color information from the color gradient
@@ -101,6 +103,4 @@ void CFluidTranslator::Export(AtNode* fluid)
          AiNodeSetArray(fluid_shader, "colors", array);
       }
    }
-   
-   ExportMatrix(fluid, 0);
 }
