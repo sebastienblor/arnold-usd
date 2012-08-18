@@ -17,12 +17,17 @@ void CArnoldStandInGeometry::setGLFTable(MGLFunctionTable* table)
    g_GLFT = table;
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, MBoundingBox& bbox)
+CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox)
 {
-   AtMatrix matrix;
-   AiNodeGetMatrix(node, "matrix", matrix);
+   AtMatrix matrix;  
    
-   AiM4Mult(matrix, matrix, inherited_matrix);
+   if (inherit_xform)
+   {
+      AiNodeGetMatrix(node, "matrix", matrix);
+      AiM4Mult(matrix, inherited_matrix, matrix);
+   }
+   else
+      AiM4Copy(matrix, inherited_matrix);
    
    AtArray* vlist = AiNodeGetArray(node, "vlist");
    

@@ -41,7 +41,7 @@ private:
    std::vector<AtUInt> m_nidxs;
    std::vector<AtUInt> m_nsides;
 public:
-   CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, MBoundingBox& bbox);
+   CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox);
    ~CArnoldPolymeshGeometry();
 
    void DrawPolygons() const;

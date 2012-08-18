@@ -221,25 +221,22 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             {
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
-               int inherit_xform = 1;
+               bool inherit_xform = true;
                AtArray* myArray;
-               if (AiNodeIs(node, "ginstance"))
+               while(AiNodeIs(node, "ginstance"))
                {
-                  while(AiNodeIs(node, "ginstance"))
+                  AtMatrix current_matrix;
+                  AiNodeGetMatrix(node, "matrix", current_matrix);
+                  if (inherit_xform)
                   {
-                     AtMatrix current_matrix;
-                     AiNodeGetMatrix(node, "matrix", current_matrix);
-                     if (inherit_xform)
-                     {
-                        AiM4Mult(total_matrix, total_matrix, current_matrix);
-                     }
-                     inherit_xform = (int)AiNodeGetBool(node, "inherit_xform");
-                     node = (AtNode*)AiNodeGetPtr(node, "node");
+                     AiM4Mult(total_matrix, total_matrix, current_matrix);
                   }
+                  inherit_xform = AiNodeGetBool(node, "inherit_xform");
+                  node = (AtNode*)AiNodeGetPtr(node, "node");
                }
                if (AiNodeIs(node, "polymesh"))
                {
-                  geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, geom->bbox));
+                  geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox));
                }
             }
          }
