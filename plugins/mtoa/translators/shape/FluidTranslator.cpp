@@ -27,7 +27,6 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
       else
          AiArraySetFlt(array, i, cVoxel);
    }
-   AiNodeDeclare(fluid, paramName, "constant ARRAY FLOAT");
    AiNodeSetArray(fluid, paramName, array);
 }
 
@@ -52,6 +51,14 @@ void CFluidTranslator::Export(AtNode* fluid)
    AtNode* fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
    AiNodeSetPtr(fluid, "shader", fluid_shader);
    
+   AiNodeSetInt(fluid_shader, "xres", xRes);
+   AiNodeSetInt(fluid_shader, "yres", yRes);
+   AiNodeSetInt(fluid_shader, "zres", zRes);
+   
+   AiNodeSetFlt(fluid_shader, "xdim", xDim);
+   AiNodeSetFlt(fluid_shader, "ydim", yDim);
+   AiNodeSetFlt(fluid_shader, "zdim", zDim);   
+   
    // first getting a simple color information from the color gradient
    
    MRampAttribute colorRamp(mayaFluidNode.findPlug("color"));
@@ -70,7 +77,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_shader, mayaFluid.density(), "density", numVoxels);
    
-   mayaFluid.getFuelMode(fluidMethod, fluidGradient);
+   /*mayaFluid.getFuelMode(fluidMethod, fluidGradient);
    
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
@@ -102,5 +109,5 @@ void CFluidTranslator::Export(AtNode* fluid)
          AiNodeDeclare(fluid_shader, "colors", "constant ARRAY RGB");
          AiNodeSetArray(fluid_shader, "colors", array);
       }
-   }
+   }*/
 }
