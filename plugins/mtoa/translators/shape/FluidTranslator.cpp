@@ -1,6 +1,8 @@
 #include "FluidTranslator.h"
 
 #include <maya/MFnFluid.h>
+#include <maya/MRampAttribute.h>
+#include <maya/MColor.h>
 
 void CFluidTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -9,7 +11,7 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("standard");
+   return AddArnoldNode("box");
 }
 
 void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsigned int numVoxels)
@@ -32,12 +34,29 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
 void CFluidTranslator::Export(AtNode* fluid)
 {
    MFnFluid mayaFluid(GetMayaObject());
+   MFnDependencyNode mayaFluidNode(GetMayaObject());
    
    unsigned int xRes, yRes, zRes;
    double xDim, yDim, zDim;
    
    mayaFluid.getResolution(xRes, yRes, zRes);
    mayaFluid.getDimensions(xDim, yDim, zDim);
+
+   AiNodeSetPnt(fluid, "min", -0.5f * (float)xDim, -0.5f * (float)yDim, -0.5f * (float)zDim);
+   AiNodeSetPnt(fluid, "max", 0.5f * (float)xDim, 0.5f * (float)yDim, 0.5f * (float)zDim);
+   
+   AiNodeSetFlt(fluid, "step_size", 0.1f);
+   
+   AtNode* fluid_shader = AiNode("fog"); // replace with a proper shader later
+   AiNodeSetPtr(fluid, "shader", fluid_shader);
+   
+   // first getting a simple color information from the color gradient
+   
+   MRampAttribute colorRamp(mayaFluidNode.findPlug("color"));
+   MColor color;
+   colorRamp.getColorAtPosition(0.f, color);
+   
+   AiNodeSetRGB(fluid_shader, "color", (float)color.r, (float)color.g, (float)color.b);
    
    const unsigned int numVoxels = xRes * yRes * zRes;
    
@@ -47,17 +66,17 @@ void CFluidTranslator::Export(AtNode* fluid)
    mayaFluid.getDensityMode(fluidMethod, fluidGradient);
    
    if (fluidMethod != MFnFluid::kZero)
-      ExportFloatGrid(fluid, mayaFluid.density(), "density", numVoxels);
+      ExportFloatGrid(fluid_shader, mayaFluid.density(), "density", numVoxels);
    
    mayaFluid.getFuelMode(fluidMethod, fluidGradient);
    
    if (fluidMethod != MFnFluid::kZero)
-      ExportFloatGrid(fluid, mayaFluid.fuel(), "fuel", numVoxels);
+      ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
    
    mayaFluid.getTemperatureMode(fluidMethod, fluidGradient);
    
    if (fluidMethod != MFnFluid::kZero)
-      ExportFloatGrid(fluid, mayaFluid.temperature(), "temperature", numVoxels);
+      ExportFloatGrid(fluid_shader, mayaFluid.temperature(), "temperature", numVoxels);
    
    MFnFluid::ColorMethod colorMethod;
    
@@ -78,8 +97,10 @@ void CFluidTranslator::Export(AtNode* fluid)
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;
             AiArraySetRGB(array, i, cColor);
          }
-         AiNodeDeclare(fluid, "colors", "constant ARRAY RGB");
-         AiNodeSetArray(fluid, "colors", array);
+         AiNodeDeclare(fluid_shader, "colors", "constant ARRAY RGB");
+         AiNodeSetArray(fluid_shader, "colors", array);
       }
    }
+   
+   ExportMatrix(fluid, 0);
 }
