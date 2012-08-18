@@ -70,6 +70,7 @@ MObject CArnoldOptionsNode::s_log_console_verbosity;
 MObject CArnoldOptionsNode::s_log_file_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
 MObject CArnoldOptionsNode::s_texture_searchpath;
@@ -438,7 +439,11 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("None", 0);
    eAttr.addField("Fog", 1);
    eAttr.addField("Volume Scattering", 2);
+   eAttr.addField("Custom Shader", 3);
    addAttribute(s_atmosphere);
+   
+   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
+   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

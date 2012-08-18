@@ -422,7 +422,8 @@ _aovOptionsChangedCallbacks = callbacks.DeferredCallbackQueue()
 def addAOVChangedCallback(func, key=None):
     _aovOptionsChangedCallbacks.addCallback(func, key)
 
-
+def removeAOVChangedCallback(key):
+    _aovOptionsChangedCallbacks.removeCallback(key)
 
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown

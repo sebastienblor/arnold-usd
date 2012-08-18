@@ -91,7 +91,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
 
         self.beginLayout("Emission", collapse=True)
         self.addControl("emission_color", label="Color")
-        self.addControl("emission", label="Weight")
+        self.addControl("emission", label="Scale")
         self.endLayout() # End Emission Layout
 
         self.beginLayout("Caustics", collapse=True)

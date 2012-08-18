@@ -4,9 +4,6 @@ import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
 
 class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
-
     def addSwatch(self):
         self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
 

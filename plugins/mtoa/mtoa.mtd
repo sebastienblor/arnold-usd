@@ -401,6 +401,7 @@
     maya.name               STRING  "aiBarndoor"
     maya.id                 INT     0x00115C80
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
     [attr barndoor_bottom_edge]
         min                 FLOAT   0
@@ -444,6 +445,7 @@
     maya.name               STRING  "aiGobo"
     maya.id                 INT     0x00115C81
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -463,6 +465,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -484,6 +487,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight"
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0

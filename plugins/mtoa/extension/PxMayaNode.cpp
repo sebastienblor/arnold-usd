@@ -203,7 +203,19 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       // classification metadata
       const char* classificationMtd;
       if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classificationMtd))
+      {
          classificationMtd = CLASSIFY_SHADER.asChar();
+      }
+      
+      if(strcmp("light/filter", classificationMtd) == 0)
+      {
+         const char* lights;
+         if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.lights", &lights))
+         {
+            MString cmd = "from mtoa.lightFilters import addLightFilterClassification;addLightFilterClassification('" + MString(lights) + "','"+ MString(name) +"')";
+            CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
+         }
+      }
       // should we use swatch to preview this node
       bool doSwatch;
       if (!AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch))
