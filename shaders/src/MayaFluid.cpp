@@ -89,6 +89,20 @@ node_update
    }
    else
       AiMsgWarning("[aiMayaFluid] The density arrays length is not the same as the voxel count! %i : %i", densityArray->nelements, numVoxels);
+   
+   AtArray* matrixArray = AiNodeGetArray(node, "matrix");
+   
+   if (matrixArray->nelements != 0)
+   { // only using the first matrix atm
+      AiArrayGetMtx(matrixArray, 0, data->worldMatrix);
+      AiM4Invert(data->inverseWorldMatrix, data->worldMatrix);
+   }
+   else
+   {
+      AiM4Identity(data->worldMatrix);
+      AiM4Identity(data->inverseWorldMatrix);
+      AiMsgWarning("[aiMayaFluid] The matrix array is empty!");
+   }
 }
 
 node_finish
@@ -103,10 +117,24 @@ node_finish
 
 shader_evaluate
 {
+   AtVector lRo;
+   AiM4PointByMatrixMult(&lRo, sg->Minv, &sg->Ro);
+   AtVector lRd;
+   AiM4VectorByMatrixMult(&lRd, sg->Minv, &sg->Rd);
+   float lRl = 1.0f * AiV3Length(lRd);
+   lRd *= lRl;
+   lRl = lRl * sg->Rl;
+   float step_size = 0.1f;
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      sg->out_opacity = AI_RGB_WHITE;
+      sg->out.RGB = sg->Ci;
       return;
    }
+   
+   for (float l = 0.f; l < lRl; l += step_size)
+   {
+      AtVector cPt = lRo + lRd * l;
+   }
+   
    sg->out.RGB = AiShaderEvalParamRGB(p_color);
 }
