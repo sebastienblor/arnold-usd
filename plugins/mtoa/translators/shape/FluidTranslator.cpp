@@ -36,6 +36,19 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
    AiNodeSetArray(fluid, paramName, array);
 }
 
+void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
+{
+   MRampAttribute ramp(plug);
+   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_FLOAT);
+   for (int i = 0; i < samplingResolution; ++i)
+   {
+      float v;
+      ramp.getValueAtPosition((float)i / (float)(samplingResolution - 1), v);
+      AiArraySetFlt(array, i, v);
+   }
+   AiNodeSetArray(node, paramName, array);
+}
+
 void CFluidTranslator::Export(AtNode* fluid)
 {
    MFnFluid mayaFluid(GetMayaObject());
@@ -63,6 +76,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);
+   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient", 1024);
    
    AiNodeSetInt(fluid_shader, "xres", xRes);
    AiNodeSetInt(fluid_shader, "yres", yRes);

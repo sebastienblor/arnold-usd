@@ -30,6 +30,8 @@ node_parameters
    AtArray* emptyMatrixArray = AiArrayAllocate(0, 1, AI_TYPE_MATRIX);
    AiParameterArray("matrix", emptyMatrixArray);
    
+   AiParameterArray("opacity_gradient", AiArrayCopy(emptyFloatArray));
+   
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -71,6 +73,9 @@ struct MayaFluidData{
    bool singleTemperature;
    bool singleColors;
    
+   int opacityGradientResolution;
+   float* opacityGradient;
+   
    AtMatrix worldMatrix;
    AtMatrix inverseWorldMatrix;
 };
@@ -81,6 +86,24 @@ node_initialize
    AiNodeSetLocalData(node, data);
    
    memset(data, sizeof(MayaFluidData), 0); // setting all of the values to zero
+}
+
+void ReadFloatArray(AtNode* node, const char* name, float*& oParam, int& oParamResolution)
+{
+   AtArray* array = AiNodeGetArray(node, name);
+   
+   if (array->nelements)
+   {
+      oParamResolution = (int)array->nelements;
+      oParam = (float*)AiMalloc(sizeof(float) * oParamResolution);
+      for (int i = 0; i < oParamResolution; ++i)
+         oParam[i] = AiArrayGetFlt(array, i);
+   }
+   else
+   {
+      oParamResolution = 0;
+      oParam = 0;
+   }
 }
 
 void ReadFloatArray(AtNode* node, const char* name, int numVoxels, float*& oParam, bool& oParamBool)
@@ -150,7 +173,9 @@ node_update
    ReadFloatArray(node, "density", numVoxels, data->density, data->singleDensity);
    ReadFloatArray(node, "fuel", numVoxels, data->fuel, data->singleFuel);
    ReadFloatArray(node, "temperature", numVoxels, data->temperature, data->singleTemperature);
-   ReadRGBArray(node, "colors", numVoxels, data->colors, data->singleColors);   
+   ReadRGBArray(node, "colors", numVoxels, data->colors, data->singleColors);
+   
+   ReadFloatArray(node, "opacity_gradient", data->opacityGradient, data->opacityGradientResolution);
    
    AtArray* matrixArray = AiNodeGetArray(node, "matrix");
    
@@ -182,6 +207,9 @@ node_finish
    
    if (data->colors)
       AiFree(data->colors);
+   
+   if (data->opacityGradient)
+      AiFree(data->opacityGradient);
    
    AiFree(data);
 }
@@ -253,10 +281,24 @@ shader_evaluate
       cPt.x = CLAMP(cPt.x / data->xdim, 0.f, 1.f);
       cPt.y = CLAMP(cPt.y / data->ydim, 0.f, 1.f);
       cPt.z = CLAMP(cPt.z / data->zdim, 0.f, 1.f);
-
-      float density = 0.f;
-      GetFilteredValue(data, cPt, data->density, density);
-      float tr = 1.f - density * stepSize;
+      
+      float opacity = 0.f;
+      if (true) // check the source later
+      {
+         float density = 0.f;
+         GetFilteredValue(data, cPt, data->density, density);
+         opacity = density;
+         if (data->opacityGradientResolution)
+         {
+            float p = opacity * (float)data->opacityGradientResolution;
+            float pf = floorf(p);
+            int b = CLAMP((int)pf, 0, data->opacityGradientResolution - 1);
+            int e = MIN(b + 1, data->opacityGradientResolution - 1);
+            pf = p - pf;
+            opacity = LERP(pf, data->opacityGradient[b], data->opacityGradient[e]);
+         }
+      }
+      float tr = 1.f - opacity * stepSize;
       transparency *= tr;
       if (transparency < AI_EPSILON)
          break;
