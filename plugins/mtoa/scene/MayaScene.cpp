@@ -1,4 +1,3 @@
-#include "platform/Platform.h"
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
@@ -41,7 +40,7 @@ MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
-AtCritSec CMayaScene::s_lock;
+AtCritSec CMayaScene::s_lock = NULL;
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -325,6 +324,10 @@ MStatus CMayaScene::UpdateIPR()
 
    return status;
 }
+
+void CMayaScene::Init() {AiCritSecInit((void**)&s_lock);}
+
+void CMayaScene::DeInit()  {AiCritSecClose((void**)&s_lock);}
 
 // Private Methods
 

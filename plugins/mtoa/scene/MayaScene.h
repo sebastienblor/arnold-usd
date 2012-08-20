@@ -78,9 +78,8 @@ public:
 
    static MStatus UpdateIPR();
 
-   static void Init() {AiCritSecInit(&s_lock);};
-
-   static void DeInit()  {AiCritSecClose(&s_lock);};
+   static void Init();
+   static void DeInit();
 
 private:
 
