@@ -198,12 +198,21 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
    for (unsigned int i = 0; i < numConnections; ++i)
    {      
       MPlug conn = conns[i];
-      if (conn.node().hasFn(MFn::kShadingEngine))
+      MObject outObject = conn.node();
+      if (outObject.hasFn(MFn::kShadingEngine))
       {
-         MFnDependencyNode shadingEngineNode(conn.node());
+         MFnDependencyNode shadingEngineNode(outObject);
          CheckMessage(shadingEngineNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
          // checking the outgoing message
          // for the shadingEngine
+      }
+      else
+      {
+         MFnDependencyNode outObjectNode(outObject);
+         if (outObjectNode.typeName() == MString("objectSet"))
+            CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
+         // checking the outgoing message
+         // if it's an objectSet (this is for standins)
       }
    }
    
