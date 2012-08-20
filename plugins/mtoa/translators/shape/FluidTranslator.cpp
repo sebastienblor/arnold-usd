@@ -6,7 +6,13 @@
 
 void CFluidTranslator::NodeInitializer(CAbTranslator context)
 {
+   CExtensionAttrHelper helper = CExtensionAttrHelper("fluidShape");
    
+   CAttrData data;
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiStepSize";
+   data.shortName = "ai_step_size";
+   helper.MakeInputFloat(data);   
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -46,12 +52,17 @@ void CFluidTranslator::Export(AtNode* fluid)
    AiNodeSetPnt(fluid, "min", -0.5f * (float)xDim, -0.5f * (float)yDim, -0.5f * (float)zDim);
    AiNodeSetPnt(fluid, "max", 0.5f * (float)xDim, 0.5f * (float)yDim, 0.5f * (float)zDim);
    
-   AiNodeSetFlt(fluid, "step_size", 0.1f);
+   float stepSize = 0.1f;
+   MPlug plug = mayaFluidNode.findPlug("aiStepSize");
+   if (!plug.isNull())
+      stepSize = plug.asFloat();
+   AiNodeSetFlt(fluid, "step_size", stepSize);
    
    AtNode* fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
    AiNodeSetPtr(fluid, "shader", fluid_shader);
    
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+   AiNodeSetFlt(fluid_shader, "step_size", stepSize);
    
    AiNodeSetInt(fluid_shader, "xres", xRes);
    AiNodeSetInt(fluid_shader, "yres", yRes);
