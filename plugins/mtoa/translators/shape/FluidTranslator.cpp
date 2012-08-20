@@ -49,6 +49,20 @@ void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName, int sa
    AiNodeSetArray(node, paramName, array);
 }
 
+void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
+{
+   MRampAttribute ramp(plug);
+   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_RGB);
+   for (int i = 0; i < samplingResolution; ++i)
+   {
+      MColor v;
+      ramp.getColorAtPosition((float)i / (float)(samplingResolution - 1), v);
+      AtRGB rgb = {(float)v.r, (float)v.g, (float)v.b};
+      AiArraySetRGB(array, i, rgb);
+   }
+   AiNodeSetArray(node, paramName, array);
+}
+
 void CFluidTranslator::Export(AtNode* fluid)
 {
    MFnFluid mayaFluid(GetMayaObject());
@@ -76,7 +90,17 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);
-   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient", 1024);
+   ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);
+   AiNodeSetInt(fluid_shader, "color_gradient_type", mayaFluidNode.findPlug("colorInput").asShort());
+   AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
+   
+   ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid_shader, "incandescence_gradient", 1024);
+   AiNodeSetInt(fluid_shader, "incandescence_gradient_type", mayaFluidNode.findPlug("incandescenceInput").asShort());
+   AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());
+   
+   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient", 1024);   
+   AiNodeSetInt(fluid_shader, "opacity_gradient_type", mayaFluidNode.findPlug("opacityInput").asShort());
+   AiNodeSetFlt(fluid_shader, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias").asFloat());
    
    AiNodeSetInt(fluid_shader, "xres", xRes);
    AiNodeSetInt(fluid_shader, "yres", yRes);

@@ -5,6 +5,20 @@
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
+enum GradientType{
+   GT_CONSTANT = 0,
+   GT_X_GRADIENT,
+   GT_Y_GRADIENT,
+   GT_Z_GRADIENT,
+   GT_CENTER_GRADIENT,
+   GT_DENSITY,
+   GT_TEMPERATURE,
+   GT_FUEL,
+   GT_PRESSURE,
+   GT_SPEED,
+   GT_DENSITY_AND_FUEL
+};
+
 node_parameters
 {
    AiParameterRGB("color", 1.f, 1.f, 1.f);
@@ -19,18 +33,29 @@ node_parameters
    AiParameterFlt("ydim", 0.f);
    AiParameterFlt("zdim", 0.f);
    
-   AtArray* emptyFloatArray = AiArrayAllocate(0, 1, AI_TYPE_FLOAT);
-   AiParameterArray("density", emptyFloatArray);
-   AiParameterArray("fuel", AiArrayCopy(emptyFloatArray));
-   AiParameterArray("temperature", AiArrayCopy(emptyFloatArray));
+   AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    
-   AtArray* emptyColorArray = AiArrayAllocate(0, 1, AI_TYPE_RGB);
-   AiParameterArray("colors", emptyColorArray);
+   AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    
-   AtArray* emptyMatrixArray = AiArrayAllocate(0, 1, AI_TYPE_MATRIX);
-   AiParameterArray("matrix", emptyMatrixArray);
+   AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
    
-   AiParameterArray("opacity_gradient", AiArrayCopy(emptyFloatArray));
+   static const char* gradientTypes[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
+      "Center Gradient", "Density", "Temperature", "Fuel", "Pressure", "Speed",
+      "Density And Fuel", 0};
+   
+   AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypes);
+   AiParameterArray("color_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterFlt("color_gradient_input_bias", 0.0f);
+   
+   AiParameterEnum("incandescence_gradient_type", GT_TEMPERATURE, gradientTypes);
+   AiParameterArray("incandescence_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterFlt("incandescence_gradient_input_bias", 0.0f);
+   
+   AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypes);
+   AiParameterArray("opacity_gradient", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterFlt("opacity_gradient_input_bias", 0.0f);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -54,7 +79,19 @@ enum MayaFluidParams{
    p_temperature,   
    p_colors,
    
-   p_matrix
+   p_matrix,
+   
+   p_color_gradient_type,
+   p_color_gradient,
+   p_color_gradient_input_bias,
+   
+   p_incandescence_gradient_type,
+   p_incandescence_gradient,
+   p_incandescence_gradient_input_bias,
+   
+   p_opacity_gradient_type,
+   p_opacity_gradient,
+   p_opacity_gradient_input_bias,
 };
 
 
@@ -73,6 +110,15 @@ struct MayaFluidData{
    bool singleTemperature;
    bool singleColors;
    
+   int colorGradientType;
+   int colorGradientResolution;
+   AtRGB* colorGradient;
+   
+   int incandescenceGradientType;
+   int incandescenceGradientResolution;
+   AtRGB* incandescenceGradient;
+   
+   int opacityGradientType;
    int opacityGradientResolution;
    float* opacityGradient;
    
@@ -88,7 +134,7 @@ node_initialize
    memset(data, sizeof(MayaFluidData), 0); // setting all of the values to zero
 }
 
-void ReadFloatArray(AtNode* node, const char* name, float*& oParam, int& oParamResolution)
+void ReadFloatGradient(AtNode* node, const char* name, float*& oParam, int& oParamResolution)
 {
    AtArray* array = AiNodeGetArray(node, name);
    
@@ -125,6 +171,24 @@ void ReadFloatArray(AtNode* node, const char* name, int numVoxels, float*& oPara
    }
    else
       oParam = 0;
+}
+
+void ReadRGBGradient(AtNode* node, const char* name, AtRGB*& oParam, int& oParamResolution)
+{
+   AtArray* array = AiNodeGetArray(node, name);
+   
+   if (array->nelements)
+   {
+      oParamResolution = (int)array->nelements;
+      oParam = (AtRGB*)AiMalloc(sizeof(AtRGB) * oParamResolution);
+      for (int i = 0; i < oParamResolution; ++i)
+         oParam[i] = AiArrayGetRGB(array, i);
+   }
+   else
+   {
+      oParamResolution = 0;
+      oParam = 0;
+   }
 }
 
 void ReadRGBArray(AtNode* node, const char* name, int numVoxels, AtRGB*& oParam, bool oParamBool)
@@ -175,7 +239,12 @@ node_update
    ReadFloatArray(node, "temperature", numVoxels, data->temperature, data->singleTemperature);
    ReadRGBArray(node, "colors", numVoxels, data->colors, data->singleColors);
    
-   ReadFloatArray(node, "opacity_gradient", data->opacityGradient, data->opacityGradientResolution);
+   data->colorGradientType = AiNodeGetInt(node, "color_gradient_type");
+   ReadRGBGradient(node, "color_gradient", data->colorGradient, data->colorGradientResolution);
+   data->incandescenceGradientType = AiNodeGetInt(node, "incandescence_gradient_type");
+   ReadRGBGradient(node, "incandescence_gradient", data->incandescenceGradient, data->incandescenceGradientResolution);
+   data->opacityGradientType = AiNodeGetInt(node, "opacity_gradient_type");
+   ReadFloatGradient(node, "opacity_gradient", data->opacityGradient, data->opacityGradientResolution);
    
    AtArray* matrixArray = AiNodeGetArray(node, "matrix");
    
@@ -215,7 +284,7 @@ node_finish
 }
 
 template<typename T>
-void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oParam)
+void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oParam) // simple linear interpolation
 {
    float fcx = lPt.x * (float)data->xres;
    float fcy = lPt.y * (float)data->yres;
