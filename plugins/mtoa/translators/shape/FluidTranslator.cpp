@@ -79,7 +79,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_shader, mayaFluid.density(), "density", numVoxels);
    
-   /*mayaFluid.getFuelMode(fluidMethod, fluidGradient);
+   mayaFluid.getFuelMode(fluidMethod, fluidGradient);
    
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
@@ -108,8 +108,7 @@ void CFluidTranslator::Export(AtNode* fluid)
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;
             AiArraySetRGB(array, i, cColor);
          }
-         AiNodeDeclare(fluid_shader, "colors", "constant ARRAY RGB");
          AiNodeSetArray(fluid_shader, "colors", array);
       }
-   }*/
+   }
 }

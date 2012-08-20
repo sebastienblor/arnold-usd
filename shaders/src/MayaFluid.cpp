@@ -18,6 +18,11 @@ node_parameters
    
    AtArray* emptyFloatArray = AiArrayAllocate(0, 1, AI_TYPE_FLOAT);
    AiParameterArray("density", emptyFloatArray);
+   AiParameterArray("fuel", AiArrayCopy(emptyFloatArray));
+   AiParameterArray("temperature", AiArrayCopy(emptyFloatArray));
+   
+   AtArray* emptyColorArray = AiArrayAllocate(0, 1, AI_TYPE_RGB);
+   AiParameterArray("colors", emptyColorArray);
    
    AtArray* emptyMatrixArray = AiArrayAllocate(0, 1, AI_TYPE_MATRIX);
    AiParameterArray("matrix", emptyMatrixArray);
@@ -39,7 +44,12 @@ enum MayaFluidParams{
    p_ydim,
    p_zdim,
    
-   p_density
+   p_density,
+   p_fuel,
+   p_temperature,   
+   p_colors,
+   
+   p_matrix
 };
 
 
@@ -48,6 +58,14 @@ struct MayaFluidData{
    float xdim, ydim, zdim;
    
    float* density; // at first only supporting grids
+   float* fuel;
+   float* temperature;
+   AtRGB* colors;
+   
+   bool singleDensity;
+   bool singleFuel;
+   bool singleTemperature;
+   bool singleColors;
    
    AtMatrix worldMatrix;
    AtMatrix inverseWorldMatrix;
@@ -59,6 +77,48 @@ node_initialize
    AiNodeSetLocalData(node, data);
    
    memset(data, sizeof(MayaFluidData), 0); // setting all of the values to zero
+}
+
+void ReadFloatArray(AtNode* node, const char* name, int numVoxels, float*& oParam, bool& oParamBool)
+{
+   AtArray* array = AiNodeGetArray(node, name);
+   
+   if (array->nelements == numVoxels)
+   {
+      oParamBool = false;
+      oParam = (float*)AiMalloc(sizeof(float) * numVoxels);
+      for (int i = 0; i < numVoxels; ++i)
+         oParam[i] = AiArrayGetFlt(array, i);
+   }
+   else if (array->nelements == 1) // only one value
+   {
+      oParamBool = true;
+      oParam = (float*)AiMalloc(sizeof(float));
+      oParam[0] = AiArrayGetFlt(array, 0);
+   }
+   else
+      oParam = 0;
+}
+
+void ReadRGBArray(AtNode* node, const char* name, int numVoxels, AtRGB*& oParam, bool oParamBool)
+{
+   AtArray* array = AiNodeGetArray(node, name);
+   
+   if (array->nelements == numVoxels)
+   {
+      oParamBool = false;
+      oParam = (AtRGB*)AiMalloc(sizeof(AtRGB) * numVoxels);
+      for (int i = 0; i < numVoxels; ++i)
+         oParam[i] = AiArrayGetRGB(array, i);
+   }
+   else if (array->nelements == 1) // only one value
+   {
+      oParamBool = true;
+      oParam = (AtRGB*)AiMalloc(sizeof(AtRGB));
+      oParam[0] = AiArrayGetRGB(array, 0);
+   }
+   else
+      oParam = 0;
 }
 
 node_update
@@ -81,16 +141,10 @@ node_update
    data->ydim = AiNodeGetFlt(node, "ydim");
    data->zdim = AiNodeGetFlt(node, "zdim");
    
-   AtArray* densityArray = AiNodeGetArray(node, "density");
-   
-   if (densityArray->nelements == numVoxels)
-   {
-      data->density = (float*)AiMalloc(sizeof(float) * numVoxels);
-      for (int i = 0; i < numVoxels; ++i)
-         data->density[i] = AiArrayGetFlt(densityArray, i);
-   }
-   else
-      AiMsgWarning("[aiMayaFluid] The density arrays length is not the same as the voxel count! %i : %i", densityArray->nelements, numVoxels);
+   ReadFloatArray(node, "density", numVoxels, data->density, data->singleDensity);
+   ReadFloatArray(node, "fuel", numVoxels, data->fuel, data->singleFuel);
+   ReadFloatArray(node, "temperature", numVoxels, data->temperature, data->singleTemperature);
+   ReadRGBArray(node, "colors", numVoxels, data->colors, data->singleColors);   
    
    AtArray* matrixArray = AiNodeGetArray(node, "matrix");
    
@@ -113,6 +167,15 @@ node_finish
    
    if (data->density)
       AiFree(data->density);
+   
+   if (data->fuel)
+      AiFree(data->fuel);
+   
+   if (data->temperature)
+      AiFree(data->temperature);
+   
+   if (data->colors)
+      AiFree(data->colors);
    
    AiFree(data);
 }
