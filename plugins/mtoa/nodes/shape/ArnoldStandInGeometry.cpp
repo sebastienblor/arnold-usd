@@ -24,7 +24,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
    if (inherit_xform)
    {
       AiNodeGetMatrix(node, "matrix", matrix);
-      AiM4Mult(matrix, inherited_matrix, matrix);
+      AiM4Mult(matrix, matrix, inherited_matrix);
    }
    else
       AiM4Copy(matrix, inherited_matrix);
