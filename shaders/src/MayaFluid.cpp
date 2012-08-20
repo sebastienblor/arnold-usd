@@ -87,7 +87,7 @@ void ReadFloatArray(AtNode* node, const char* name, int numVoxels, float*& oPara
 {
    AtArray* array = AiNodeGetArray(node, name);
    
-   if (array->nelements == numVoxels)
+   if ((int)array->nelements == numVoxels)
    {
       oParamBool = false;
       oParam = (float*)AiMalloc(sizeof(float) * numVoxels);
@@ -108,7 +108,7 @@ void ReadRGBArray(AtNode* node, const char* name, int numVoxels, AtRGB*& oParam,
 {
    AtArray* array = AiNodeGetArray(node, name);
    
-   if (array->nelements == numVoxels)
+   if ((int)array->nelements == numVoxels)
    {
       oParamBool = false;
       oParam = (AtRGB*)AiMalloc(sizeof(AtRGB) * numVoxels);
@@ -219,9 +219,9 @@ void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oP
    int c111 = hcx + hcy * data->xres + hcz * xmy;
    
    oParam = (iParam[c000] * npcx * npcy + iParam[c110] * pcx * pcy +
-           iParam[c100] * pcx * npcy + iParam[c010] * npcx * pcx) * npcz +
+           iParam[c100] * pcx * npcy + iParam[c010] * npcx * pcy) * npcz +
            (iParam[c001] * npcx * npcy + iParam[c111] * pcx * pcy +
-           iParam[c101] * pcx * npcy + iParam[c011] * npcx * pcx) * pcz;
+           iParam[c101] * pcx * npcy + iParam[c011] * npcx * pcy) * pcz;
 }
 
 shader_evaluate
