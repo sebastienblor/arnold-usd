@@ -193,13 +193,13 @@ void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oP
    float fcy = lPt.y * (float)data->yres;
    float fcz = lPt.z * (float)data->zres;
    
-   int hcx = CLAMP((int)ceilf(fcx), 0, data->xres - 1);
-   int hcy = CLAMP((int)ceilf(fcy), 0, data->yres - 1);
-   int hcz = CLAMP((int)ceilf(fcz), 0, data->zres - 1);
+   int lcx = CLAMP((int)floorf(fcx), 0, data->xres - 1);
+   int lcy = CLAMP((int)floorf(fcy), 0, data->yres - 1);
+   int lcz = CLAMP((int)floorf(fcz), 0, data->zres - 1);
    
-   int lcx = MAX(hcx - 1, 0);
-   int lcy = MAX(hcy - 1, 0);
-   int lcz = MAX(hcz - 1, 0);
+   int hcx = MIN(lcx + 1, data->xres - 1);
+   int hcy = MIN(lcy + 1, data->yres - 1);
+   int hcz = MIN(lcz + 1, data->zres - 1);
    
    float pcx = fcx - (float)lcx;
    float pcy = fcy - (float)lcy;
