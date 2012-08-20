@@ -51,6 +51,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    AtNode* fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
    AiNodeSetPtr(fluid, "shader", fluid_shader);
    
+   AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+   
    AiNodeSetInt(fluid_shader, "xres", xRes);
    AiNodeSetInt(fluid_shader, "yres", yRes);
    AiNodeSetInt(fluid_shader, "zres", zRes);

@@ -1,5 +1,7 @@
 #include <ai.h>
 
+#include <memory.h>
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 node_parameters
@@ -95,7 +97,7 @@ node_update
    if (matrixArray->nelements != 0)
    { // only using the first matrix atm
       AiArrayGetMtx(matrixArray, 0, data->worldMatrix);
-      AiM4Invert(data->inverseWorldMatrix, data->worldMatrix);
+      AiM4Invert(data->worldMatrix, data->inverseWorldMatrix);
    }
    else
    {
@@ -117,24 +119,46 @@ node_finish
 
 shader_evaluate
 {
+   MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
+   
    AtVector lRo;
-   AiM4PointByMatrixMult(&lRo, sg->Minv, &sg->Ro);
+   AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
    AtVector lRd;
-   AiM4VectorByMatrixMult(&lRd, sg->Minv, &sg->Rd);
-   float lRl = 1.0f * AiV3Length(lRd);
+   AiM4VectorByMatrixMult(&lRd, data->inverseWorldMatrix, &sg->Rd);
+   float lRl = 1.0f / AiV3Length(lRd);
    lRd *= lRl;
    lRl = lRl * sg->Rl;
-   float step_size = 0.1f;
-   if (sg->Rt & AI_RAY_SHADOW)
-   {
-      sg->out.RGB = sg->Ci;
-      return;
-   }
+   float step_size = 0.1f;   
+   
+   float transparency = 1.f;
    
    for (float l = 0.f; l < lRl; l += step_size)
    {
       AtVector cPt = lRo + lRd * l;
+      cPt.x += data->xdim / 2;
+      cPt.y += data->ydim / 2;
+      cPt.z += data->zdim / 2;
+      cPt.x = CLAMP(cPt.x / data->xdim, 0.f, 1.f);
+      cPt.y = CLAMP(cPt.y / data->ydim, 0.f, 1.f);
+      cPt.z = CLAMP(cPt.z / data->zdim, 0.f, 1.f);
+      
+      int cx = CLAMP((int)(cPt.x * (float)data->xres), 0, data->xres - 1);
+      int cy = CLAMP((int)(cPt.y * (float)data->yres), 0, data->yres - 1);
+      int cz = CLAMP((int)(cPt.z * (float)data->zres), 0, data->zres - 1);
+      
+      int c = cx + cy * data->xres + cz * data->xres * data->yres;
+      float tr = 1.f - data->density[c] * step_size;
+      
+      transparency *= tr;
+      if (transparency < AI_EPSILON)
+         break;
    }
    
-   sg->out.RGB = AiShaderEvalParamRGB(p_color);
+   if (sg->Rt & AI_RAY_SHADOW)
+   {
+      sg->out.RGB = transparency * sg->Ci;
+      return;
+   }
+   
+   sg->out.RGB = AiShaderEvalParamRGB(p_color) * (1.f - transparency) + sg->Ci * transparency;
 }
