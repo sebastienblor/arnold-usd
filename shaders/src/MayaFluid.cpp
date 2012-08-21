@@ -376,6 +376,23 @@ shader_evaluate
    
    float transparency = 1.f;
    
+   if (sg->Rt & AI_RAY_SHADOW) // only access the opacity here
+   {
+      for (float l = 0.f; l < lRl; l += stepSize)
+      {
+         AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
+
+         float opacity = GetOpacity(data, lPt);
+         float tr = 1.f - opacity * stepSize;
+         transparency *= tr;
+         if (transparency < AI_EPSILON)
+            break;
+      }
+      
+      sg->out.RGB = transparency * sg->Ci;
+      return;
+   }
+   
    for (float l = 0.f; l < lRl; l += stepSize)
    {
       AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
@@ -385,12 +402,6 @@ shader_evaluate
       transparency *= tr;
       if (transparency < AI_EPSILON)
          break;
-   }
-   
-   if (sg->Rt & AI_RAY_SHADOW)
-   {
-      sg->out.RGB = transparency * sg->Ci;
-      return;
    }
    
    sg->out.RGB = AiShaderEvalParamRGB(p_color) * (1.f - transparency) + sg->Ci * transparency;
