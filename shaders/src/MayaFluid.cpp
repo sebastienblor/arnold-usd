@@ -356,6 +356,11 @@ float GetOpacity(MayaFluidData* data, const AtVector& lPt)
    return opacity;
 }
 
+AtRGB GetColor(MayaFluidData*, const AtVector& lPt, int gradientType, int gradientResolution, AtRGB* gradient) // for color and incandescence
+{
+   return AI_RGB_BLACK;
+}
+
 shader_evaluate
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
@@ -393,16 +398,21 @@ shader_evaluate
       return;
    }
    
+   AtRGB color = AI_RGB_BLACK;
+   AtRGB incandescence = AI_RGB_BLACK;
+   
    for (float l = 0.f; l < lRl; l += stepSize)
    {
       AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
       
-      float opacity = GetOpacity(data, lPt);
-      float tr = 1.f - opacity * stepSize;
+      float opacity = GetOpacity(data, lPt) * stepSize;      
+      float tr = 1.f - opacity;
       transparency *= tr;
+      color += GetColor(data, lPt, data->colorGradientType, data->colorGradientResolution, data->colorGradient) * stepSize * transparency;
+      incandescence += GetColor(data, lPt, data->incandescenceGradientType, data->incandescenceGradientResolution, data->incandescenceGradient) * stepSize;
       if (transparency < AI_EPSILON)
          break;
    }
    
-   sg->out.RGB = AiShaderEvalParamRGB(p_color) * (1.f - transparency) + sg->Ci * transparency;
+   sg->out.RGB = incandescence + color + sg->Ci * transparency;
 }
