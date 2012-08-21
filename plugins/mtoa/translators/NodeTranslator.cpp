@@ -965,30 +965,56 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             // point? vector? rgb?
             if (pAttr.isArray())
             {
-               AtVector vec;
-               static const char* declString[] = {"constant ARRAY VECTOR",
-                                                  "uniform VECTOR",
-                                                  "varying VECTOR"};
-               
-               static const char* declStringRGB[] = {"constant ARRAY RGB",
+               if (usedAsColor)
+               {
+                  static const char* declString[] = {"constant ARRAY RGB",
                                        "uniform RGB",
                                        "varying RGB"};
-               
-               if (AiNodeDeclare(anode, aname, usedAsColor ? declStringRGB[attributeDeclaration] : declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
                   {
-                     MFnNumericData data(pAttr[i].asMObject());
-                     data.getData3Float(vec.x, vec.y, vec.z);
-                     AiArraySetVec(ary, i, vec);
+                     AtRGB rgb;
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGB);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        MFnNumericData data(pAttr[i].asMObject());
+                        data.getData3Float(rgb.r, rgb.g, rgb.b);
+                        AiArraySetRGB(ary, i, rgb);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
                   }
-                  AiNodeSetArray(anode, aname, ary);
+               }
+               else
+               {
+                  static const char* declString[] = {"constant ARRAY VECTOR",
+                                                  "uniform VECTOR",
+                                                  "varying VECTOR"};
+                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  {
+                     AtVector vec;
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        MFnNumericData data(pAttr[i].asMObject());
+                        data.getData3Float(vec.x, vec.y, vec.z);
+                        AiArraySetVec(ary, i, vec);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
                }
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant VECTOR"))
+               if (usedAsColor)
+               {
+                  if (AiNodeDeclare(anode, aname, "constant RGB"))
+                  {
+                     AtRGB rgb;
+                     MFnNumericData data(pAttr.asMObject());
+                     data.getData3Float(rgb.r, rgb.g, rgb.b);
+                     AiNodeSetRGB(anode, aname, rgb.r, rgb.b, rgb.g);
+                  }                  
+               }
+               else if (AiNodeDeclare(anode, aname, "constant VECTOR"))
                {
                   AtVector vec;
                   MFnNumericData data(pAttr.asMObject());
@@ -1127,49 +1153,90 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnData::kPointArray:
             if (!pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY POINT",
-                                       "uniform POINT",
-                                       "varying POINT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (usedAsColor)
                {
-                  AtPoint pnt;
-                  MFnPointArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
-                  for (unsigned int i=0; i<data.length(); ++i)
+                  static const char* declString[] = {"constant ARRAY RGB",
+                                       "uniform RGB",
+                                       "varying RGB"};
+                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
                   {
-                     pnt.x = static_cast<float>(data[i].x);
-                     pnt.y = static_cast<float>(data[i].y);
-                     pnt.z = static_cast<float>(data[i].z);
-                     AiArraySetPnt(ary, i, pnt);
+                     AtRGB rgb;
+                     MFnVectorArrayData data(pAttr.asMObject());
+                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_RGB);
+                     for (unsigned int i=0; i<data.length(); ++i)
+                     {
+                        rgb.r = static_cast<float>(data[i].x);
+                        rgb.g = static_cast<float>(data[i].y);
+                        rgb.b = static_cast<float>(data[i].z);
+                        AiArraySetRGB(ary, i, rgb);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
                   }
-                  AiNodeSetArray(anode, aname, ary);
+               }
+               else
+               {
+                  static const char* declString[] = {"constant ARRAY POINT",
+                                          "uniform POINT",
+                                          "varying POINT"};
+                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  {
+                     AtPoint pnt;
+                     MFnPointArrayData data(pAttr.asMObject());
+                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
+                     for (unsigned int i=0; i<data.length(); ++i)
+                     {
+                        pnt.x = static_cast<float>(data[i].x);
+                        pnt.y = static_cast<float>(data[i].y);
+                        pnt.z = static_cast<float>(data[i].z);
+                        AiArraySetPnt(ary, i, pnt);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
                }
             }
             break;
          case MFnData::kVectorArray:
             if (!pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY VECTOR",
-                                       "uniform VECTOR",
-                                       "varying VECTOR"};
-               
-               static const char* declStringRGB[] = {"constant ARRAY RGB",
+               if (usedAsColor)
+               {
+                  static const char* declString[] = {"constant ARRAY RGB",
                                        "uniform RGB",
                                        "varying RGB"};
-               
-               if (AiNodeDeclare(anode, aname, usedAsColor ? declStringRGB[attributeDeclaration] : declString[attributeDeclaration]))
-               {
-                  AtVector vec;
-                  MFnVectorArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
-                  for (unsigned int i=0; i<data.length(); ++i)
+                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
                   {
-                     vec.x = static_cast<float>(data[i].x);
-                     vec.y = static_cast<float>(data[i].y);
-                     vec.z = static_cast<float>(data[i].z);
-                     AiArraySetVec(ary, i, vec);
+                     AtRGB rgb;
+                     MFnVectorArrayData data(pAttr.asMObject());
+                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_RGB);
+                     for (unsigned int i=0; i<data.length(); ++i)
+                     {
+                        rgb.r = static_cast<float>(data[i].x);
+                        rgb.g = static_cast<float>(data[i].y);
+                        rgb.b = static_cast<float>(data[i].z);
+                        AiArraySetRGB(ary, i, rgb);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
                   }
-                  AiNodeSetArray(anode, aname, ary);
+               }
+               else
+               {
+                  static const char* declString[] = {"constant ARRAY VECTOR",
+                                       "uniform VECTOR",
+                                       "varying VECTOR"};
+                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  {
+                     AtVector vec;
+                     MFnVectorArrayData data(pAttr.asMObject());
+                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
+                     for (unsigned int i=0; i<data.length(); ++i)
+                     {
+                        vec.x = static_cast<float>(data[i].x);
+                        vec.y = static_cast<float>(data[i].y);
+                        vec.z = static_cast<float>(data[i].z);
+                        AiArraySetVec(ary, i, vec);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
                }
             }
             break;
