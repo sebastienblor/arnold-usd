@@ -97,6 +97,7 @@ enum MayaFluidParams{
 template<typename T>
 struct GradientDescription{
    T* data;
+   float inputBias;
    int type;
    int resolution;
    
@@ -245,10 +246,13 @@ node_update
    ReadArray(node, "colors", numVoxels, data->colors);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
+   data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
    ReadGradient(node, "color_gradient", data->colorGradient);
    data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");
+   data->incandescenceGradient.inputBias = AiNodeGetFlt(node, "incandescence_gradient_input_bias");
    ReadGradient(node, "incandescence_gradient", data->incandescenceGradient);
    data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");
+   data->opacityGradient.inputBias = AiNodeGetFlt(node, "opacity_gradient_input_bias");
    ReadGradient(node, "opacity_gradient", data->opacityGradient);
 
    AtArray* matrixArray = AiNodeGetArray(node, "matrix");
@@ -356,13 +360,13 @@ T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gra
    switch (gradient.type)
    {
       case GT_CONSTANT:
-         return GetGradientValue(gradient, 0.f);
+         return GetGradientValue(gradient, 1.f);
       case GT_DENSITY:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density));
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density) + gradient.inputBias);
       case GT_TEMPERATURE:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature));
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature) + gradient.inputBias);
       case GT_FUEL:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel));
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel) + gradient.inputBias);
       default:
          return GetDefaultValue<T>();
    }
