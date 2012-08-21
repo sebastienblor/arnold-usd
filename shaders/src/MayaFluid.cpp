@@ -283,9 +283,31 @@ node_finish
    AiFree(data);
 }
 
-template<typename T>
-void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oParam) // simple linear interpolation
+template <typename T>
+T GetDefaultValue()
 {
+   return 0;
+}
+
+template <>
+float GetDefaultValue<float>()
+{
+   return 0.f;
+}
+
+template <>
+AtRGB GetDefaultValue<AtRGB>()
+{
+   return AI_RGB_BLACK;
+}
+
+template<typename T>
+T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, bool single, T* iParam) // simple linear interpolation
+{
+   if (iParam == 0)
+      return GetDefaultValue<T>();
+   if (single)
+      return *iParam;   
    float fcx = lPt.x * (float)data->xres;
    float fcy = lPt.y * (float)data->yres;
    float fcz = lPt.z * (float)data->zres;
@@ -315,15 +337,17 @@ void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oP
    int c101 = hcx + lcy * data->xres + hcz * xmy;
    int c111 = hcx + hcy * data->xres + hcz * xmy;
    
-   oParam = (iParam[c000] * npcx * npcy + iParam[c110] * pcx * pcy +
+   return (iParam[c000] * npcx * npcy + iParam[c110] * pcx * pcy +
            iParam[c100] * pcx * npcy + iParam[c010] * npcx * pcy) * npcz +
            (iParam[c001] * npcx * npcy + iParam[c111] * pcx * pcy +
-           iParam[c101] * pcx * npcy + iParam[c011] * npcx * pcy) * pcz;
+           iParam[c101] * pcx * npcy + iParam[c011] * npcx * pcy) * pcz;   
 }
 
 template <typename T>
 T GetGradientValue(const T* gradient, int gradientResolution, const float& v)
 {
+   if (gradientResolution == 0)
+      return GetDefaultValue<T>();
    float p = v * gradientResolution;
    float pf = floorf(p);
    int b = CLAMP((int)pf, 0, gradientResolution - 1);
@@ -348,17 +372,28 @@ float GetOpacity(MayaFluidData* data, const AtVector& lPt)
 {
    float opacity = 0.f;
    if (true) // check the source later
-   {
-      float density = 0.f;
-      GetFilteredValue(data, lPt, data->density, density);
-      opacity = GetGradientValue(data->opacityGradient, data->opacityGradientResolution, density);
+   {      
+      opacity = GetGradientValue(data->opacityGradient, data->opacityGradientResolution, 
+              GetFilteredValue(data, lPt, data->singleDensity, data->density));
    }
    return opacity;
 }
 
-AtRGB GetColor(MayaFluidData*, const AtVector& lPt, int gradientType, int gradientResolution, AtRGB* gradient) // for color and incandescence
+AtRGB GetColor(MayaFluidData* data, const AtVector& lPt, int gradientType, int gradientResolution, AtRGB* gradient) // for color and incandescence
 {
-   return AI_RGB_BLACK;
+   switch(gradientType)
+   {
+      case GT_CONSTANT:
+         return GetGradientValue(gradient, gradientResolution, 0.f);
+      case GT_DENSITY:
+         return GetGradientValue(gradient, gradientResolution, GetFilteredValue(data, lPt, data->singleDensity, data->density));
+      case GT_TEMPERATURE:
+         return GetGradientValue(gradient, gradientResolution, GetFilteredValue(data, lPt, data->singleTemperature, data->temperature));
+      case GT_FUEL:
+         return GetGradientValue(gradient, gradientResolution, GetFilteredValue(data, lPt, data->singleFuel, data->fuel));
+      default:
+         return AI_RGB_BLACK;
+   }
 }
 
 shader_evaluate
@@ -406,10 +441,10 @@ shader_evaluate
       AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
       
       float opacity = GetOpacity(data, lPt) * stepSize;      
-      float tr = 1.f - opacity;
+      float tr = 1.f - opacity;      
+      color += GetColor(data, lPt, data->colorGradientType, data->colorGradientResolution, data->colorGradient) * opacity * transparency;
+      incandescence += GetColor(data, lPt, data->incandescenceGradientType, data->incandescenceGradientResolution, data->incandescenceGradient) * opacity;
       transparency *= tr;
-      color += GetColor(data, lPt, data->colorGradientType, data->colorGradientResolution, data->colorGradient) * stepSize * transparency;
-      incandescence += GetColor(data, lPt, data->incandescenceGradientType, data->incandescenceGradientResolution, data->incandescenceGradient) * stepSize;
       if (transparency < AI_EPSILON)
          break;
    }
