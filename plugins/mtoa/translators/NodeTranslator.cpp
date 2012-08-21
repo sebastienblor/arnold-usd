@@ -826,8 +826,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       MPlug pAttr(object, oAttr);
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {
-         MFnNumericAttribute nattr(oAttr);
-         switch (nattr.unitType())
+         MFnNumericAttribute nAttr(oAttr);
+         bool usedAsColor = nAttr.isUsedAsColor();
+         switch (nAttr.unitType())
          {
          case MFnNumericData::kBoolean:
             if (pAttr.isArray())
@@ -968,7 +969,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                static const char* declString[] = {"constant ARRAY VECTOR",
                                                   "uniform VECTOR",
                                                   "varying VECTOR"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               
+               static const char* declStringRGB[] = {"constant ARRAY RGB",
+                                       "uniform RGB",
+                                       "varying RGB"};
+               
+               if (AiNodeDeclare(anode, aname, usedAsColor ? declStringRGB[attributeDeclaration] : declString[attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -1036,8 +1042,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       }
       else if (oAttr.hasFn(MFn::kTypedAttribute))
       {
-         MFnTypedAttribute tattr(oAttr);
-         switch (tattr.attrType())
+         MFnTypedAttribute tAttr(oAttr);
+         const bool usedAsColor = tAttr.isUsedAsColor();
+         switch (tAttr.attrType())
          {
          case MFnData::kString:
             if (pAttr.isArray())
@@ -1145,7 +1152,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                static const char* declString[] = {"constant ARRAY VECTOR",
                                        "uniform VECTOR",
                                        "varying VECTOR"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               
+               static const char* declStringRGB[] = {"constant ARRAY RGB",
+                                       "uniform RGB",
+                                       "varying RGB"};
+               
+               if (AiNodeDeclare(anode, aname, usedAsColor ? declStringRGB[attributeDeclaration] : declString[attributeDeclaration]))
                {
                   AtVector vec;
                   MFnVectorArrayData data(pAttr.asMObject());
