@@ -94,6 +94,12 @@ enum MayaFluidParams{
    p_opacity_gradient_input_bias,
 };
 
+template<typename T>
+struct GradientDescription{
+   int type;
+   int resolution;
+   T* data;
+};
 
 struct MayaFluidData{
    int xres, yres, zres;
@@ -110,17 +116,9 @@ struct MayaFluidData{
    bool singleTemperature;
    bool singleColors;
    
-   int colorGradientType;
-   int colorGradientResolution;
-   AtRGB* colorGradient;
-   
-   int incandescenceGradientType;
-   int incandescenceGradientResolution;
-   AtRGB* incandescenceGradient;
-   
-   int opacityGradientType;
-   int opacityGradientResolution;
-   float* opacityGradient;
+   GradientDescription<AtRGB> colorGradient;
+   GradientDescription<AtRGB> incandescenceGradient;
+   GradientDescription<float> opacityGradient;  
    
    AtMatrix worldMatrix;
    AtMatrix inverseWorldMatrix;
@@ -134,21 +132,58 @@ node_initialize
    memset(data, sizeof(MayaFluidData), 0); // setting all of the values to zero
 }
 
-void ReadFloatGradient(AtNode* node, const char* name, float*& oParam, int& oParamResolution)
+template <typename T>
+T GetDefaultValue()
+{
+   return 0;
+}
+
+template <>
+float GetDefaultValue<float>()
+{
+   return 0.f;
+}
+
+template <>
+AtRGB GetDefaultValue<AtRGB>()
+{
+   return AI_RGB_BLACK;
+}
+
+template <typename T>
+T ReadFromArray(AtArray* array, int element)
+{
+   return GetDefaultValue<T>();
+}
+
+template <>
+float ReadFromArray(AtArray* array, int element)
+{
+   return AiArrayGetFlt(array, element);
+}
+
+template <>
+AtRGB ReadFromArray(AtArray* array, int element)
+{
+   return AiArrayGetRGB(array, element);
+}
+
+template <typename T>
+void ReadGradient(AtNode* node, const char* name, GradientDescription<T>& gradient)
 {
    AtArray* array = AiNodeGetArray(node, name);
-   
+    
    if (array->nelements)
    {
-      oParamResolution = (int)array->nelements;
-      oParam = (float*)AiMalloc(sizeof(float) * oParamResolution);
-      for (int i = 0; i < oParamResolution; ++i)
-         oParam[i] = AiArrayGetFlt(array, i);
+      gradient.resolution = (int)array->nelements;
+      gradient.data = (T*)AiMalloc(sizeof(T) * gradient.resolution);
+      for (int i = 0; i < gradient.resolution; ++i)
+         gradient.data[i] = ReadFromArray<T>(array, i);
    }
    else
    {
-      oParamResolution = 0;
-      oParam = 0;
+      gradient.resolution = 0;
+      gradient.data = 0;
    }
 }
 
@@ -171,24 +206,6 @@ void ReadFloatArray(AtNode* node, const char* name, int numVoxels, float*& oPara
    }
    else
       oParam = 0;
-}
-
-void ReadRGBGradient(AtNode* node, const char* name, AtRGB*& oParam, int& oParamResolution)
-{
-   AtArray* array = AiNodeGetArray(node, name);
-   
-   if (array->nelements)
-   {
-      oParamResolution = (int)array->nelements;
-      oParam = (AtRGB*)AiMalloc(sizeof(AtRGB) * oParamResolution);
-      for (int i = 0; i < oParamResolution; ++i)
-         oParam[i] = AiArrayGetRGB(array, i);
-   }
-   else
-   {
-      oParamResolution = 0;
-      oParam = 0;
-   }
 }
 
 void ReadRGBArray(AtNode* node, const char* name, int numVoxels, AtRGB*& oParam, bool oParamBool)
@@ -239,13 +256,13 @@ node_update
    ReadFloatArray(node, "temperature", numVoxels, data->temperature, data->singleTemperature);
    ReadRGBArray(node, "colors", numVoxels, data->colors, data->singleColors);
    
-   data->colorGradientType = AiNodeGetInt(node, "color_gradient_type");
-   ReadRGBGradient(node, "color_gradient", data->colorGradient, data->colorGradientResolution);
-   data->incandescenceGradientType = AiNodeGetInt(node, "incandescence_gradient_type");
-   ReadRGBGradient(node, "incandescence_gradient", data->incandescenceGradient, data->incandescenceGradientResolution);
-   data->opacityGradientType = AiNodeGetInt(node, "opacity_gradient_type");
-   ReadFloatGradient(node, "opacity_gradient", data->opacityGradient, data->opacityGradientResolution);
-   
+   data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
+   ReadGradient(node, "color_gradient", data->colorGradient);
+   data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");
+   ReadGradient(node, "incandescence_gradient", data->incandescenceGradient);
+   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");
+   ReadGradient(node, "opacity_gradient", data->opacityGradient);
+
    AtArray* matrixArray = AiNodeGetArray(node, "matrix");
    
    if (matrixArray->nelements != 0)
@@ -277,28 +294,7 @@ node_finish
    if (data->colors)
       AiFree(data->colors);
    
-   if (data->opacityGradient)
-      AiFree(data->opacityGradient);
-   
    AiFree(data);
-}
-
-template <typename T>
-T GetDefaultValue()
-{
-   return 0;
-}
-
-template <>
-float GetDefaultValue<float>()
-{
-   return 0.f;
-}
-
-template <>
-AtRGB GetDefaultValue<AtRGB>()
-{
-   return AI_RGB_BLACK;
 }
 
 template<typename T>
@@ -373,7 +369,7 @@ float GetOpacity(MayaFluidData* data, const AtVector& lPt)
    float opacity = 0.f;
    if (true) // check the source later
    {      
-      opacity = GetGradientValue(data->opacityGradient, data->opacityGradientResolution, 
+      opacity = GetGradientValue(data->opacityGradient.data, data->opacityGradient.resolution, 
               GetFilteredValue(data, lPt, data->singleDensity, data->density));
    }
    return opacity;
@@ -442,8 +438,8 @@ shader_evaluate
       
       float opacity = GetOpacity(data, lPt) * stepSize;      
       float tr = 1.f - opacity;      
-      color += GetColor(data, lPt, data->colorGradientType, data->colorGradientResolution, data->colorGradient) * opacity * transparency;
-      incandescence += GetColor(data, lPt, data->incandescenceGradientType, data->incandescenceGradientResolution, data->incandescenceGradient) * opacity;
+      color += GetColor(data, lPt, data->colorGradient.type, data->colorGradient.resolution, data->colorGradient.data) * opacity * transparency;
+      incandescence += GetColor(data, lPt, data->incandescenceGradient.type, data->incandescenceGradient.resolution, data->incandescenceGradient.data) * opacity;
       transparency *= tr;
       if (transparency < AI_EPSILON)
          break;
