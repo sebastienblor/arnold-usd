@@ -96,9 +96,19 @@ enum MayaFluidParams{
 
 template<typename T>
 struct GradientDescription{
+   T* data;
    int type;
    int resolution;
+   
+   void release() {if(data) AiFree(data);}
+};
+
+template<typename T>
+struct ArrayDescription{
    T* data;
+   bool single;
+   
+   void release() {if(data) AiFree(data);}   
 };
 
 struct MayaFluidData{
@@ -106,15 +116,10 @@ struct MayaFluidData{
    float xdim, ydim, zdim;
    float stepSize;
    
-   float* density; // at first only supporting grids
-   float* fuel;
-   float* temperature;
-   AtRGB* colors;
-   
-   bool singleDensity;
-   bool singleFuel;
-   bool singleTemperature;
-   bool singleColors;
+   ArrayDescription<float> density;
+   ArrayDescription<float> fuel;
+   ArrayDescription<float> temperature;
+   ArrayDescription<AtRGB> colors;
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
@@ -187,46 +192,29 @@ void ReadGradient(AtNode* node, const char* name, GradientDescription<T>& gradie
    }
 }
 
-void ReadFloatArray(AtNode* node, const char* name, int numVoxels, float*& oParam, bool& oParamBool)
+template <typename T>
+void ReadArray(AtNode* node, const char* name, int numVoxels, ArrayDescription<T>& arrayDesc)
 {
    AtArray* array = AiNodeGetArray(node, name);
    
    if ((int)array->nelements == numVoxels)
    {
-      oParamBool = false;
-      oParam = (float*)AiMalloc(sizeof(float) * numVoxels);
+      arrayDesc.single = false;
+      arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
       for (int i = 0; i < numVoxels; ++i)
-         oParam[i] = AiArrayGetFlt(array, i);
+         arrayDesc.data[i] = ReadFromArray<T>(array, i);
    }
    else if (array->nelements == 1) // only one value
    {
-      oParamBool = true;
-      oParam = (float*)AiMalloc(sizeof(float));
-      oParam[0] = AiArrayGetFlt(array, 0);
+      arrayDesc.single = true;
+      arrayDesc.data = (T*)AiMalloc(sizeof(T));
+      *arrayDesc.data = ReadFromArray<T>(array, 0);
    }
    else
-      oParam = 0;
-}
-
-void ReadRGBArray(AtNode* node, const char* name, int numVoxels, AtRGB*& oParam, bool oParamBool)
-{
-   AtArray* array = AiNodeGetArray(node, name);
-   
-   if ((int)array->nelements == numVoxels)
    {
-      oParamBool = false;
-      oParam = (AtRGB*)AiMalloc(sizeof(AtRGB) * numVoxels);
-      for (int i = 0; i < numVoxels; ++i)
-         oParam[i] = AiArrayGetRGB(array, i);
+      arrayDesc.single = false;
+      arrayDesc.data = 0;
    }
-   else if (array->nelements == 1) // only one value
-   {
-      oParamBool = true;
-      oParam = (AtRGB*)AiMalloc(sizeof(AtRGB));
-      oParam[0] = AiArrayGetRGB(array, 0);
-   }
-   else
-      oParam = 0;
 }
 
 node_update
@@ -251,10 +239,10 @@ node_update
    data->ydim = AiNodeGetFlt(node, "ydim");
    data->zdim = AiNodeGetFlt(node, "zdim");
    
-   ReadFloatArray(node, "density", numVoxels, data->density, data->singleDensity);
-   ReadFloatArray(node, "fuel", numVoxels, data->fuel, data->singleFuel);
-   ReadFloatArray(node, "temperature", numVoxels, data->temperature, data->singleTemperature);
-   ReadRGBArray(node, "colors", numVoxels, data->colors, data->singleColors);
+   ReadArray(node, "density", numVoxels, data->density);
+   ReadArray(node, "fuel", numVoxels, data->fuel);
+   ReadArray(node, "temperature", numVoxels, data->temperature);
+   ReadArray(node, "colors", numVoxels, data->colors);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
    ReadGradient(node, "color_gradient", data->colorGradient);
@@ -282,28 +270,25 @@ node_finish
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
-   if (data->density)
-      AiFree(data->density);
+   data->density.release();
+   data->fuel.release();
+   data->temperature.release();
+   data->colors.release();
    
-   if (data->fuel)
-      AiFree(data->fuel);
-   
-   if (data->temperature)
-      AiFree(data->temperature);
-   
-   if (data->colors)
-      AiFree(data->colors);
+   data->colorGradient.release();
+   data->incandescenceGradient.release();
+   data->opacityGradient.release();
    
    AiFree(data);
 }
 
 template<typename T>
-T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, bool single, T* iParam) // simple linear interpolation
+T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
 {
-   if (iParam == 0)
+   if (arrayDesc.data == 0)
       return GetDefaultValue<T>();
-   if (single)
-      return *iParam;   
+   if (arrayDesc.single)
+      return *arrayDesc.data;   
    float fcx = lPt.x * (float)data->xres;
    float fcy = lPt.y * (float)data->yres;
    float fcz = lPt.z * (float)data->zres;
@@ -333,23 +318,24 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, bool single, T* iPa
    int c101 = hcx + lcy * data->xres + hcz * xmy;
    int c111 = hcx + hcy * data->xres + hcz * xmy;
    
-   return (iParam[c000] * npcx * npcy + iParam[c110] * pcx * pcy +
-           iParam[c100] * pcx * npcy + iParam[c010] * npcx * pcy) * npcz +
-           (iParam[c001] * npcx * npcy + iParam[c111] * pcx * pcy +
-           iParam[c101] * pcx * npcy + iParam[c011] * npcx * pcy) * pcz;   
+   // TODO : rearrange the multiplications to save some code
+   return (arrayDesc.data[c000] * npcx * npcy + arrayDesc.data[c110] * pcx * pcy +
+           arrayDesc.data[c100] * pcx * npcy + arrayDesc.data[c010] * npcx * pcy) * npcz +
+           (arrayDesc.data[c001] * npcx * npcy + arrayDesc.data[c111] * pcx * pcy +
+           arrayDesc.data[c101] * pcx * npcy + arrayDesc.data[c011] * npcx * pcy) * pcz;   
 }
 
 template <typename T>
-T GetGradientValue(const T* gradient, int gradientResolution, const float& v)
+T GetGradientValue(const GradientDescription<T>& gradient, const float& v)
 {
-   if (gradientResolution == 0)
+   if (gradient.resolution == 0)
       return GetDefaultValue<T>();
-   float p = v * gradientResolution;
+   float p = v * gradient.resolution;
    float pf = floorf(p);
-   int b = CLAMP((int)pf, 0, gradientResolution - 1);
-   int e = MIN(b + 1, gradientResolution - 1);
+   int b = CLAMP((int)pf, 0, gradient.resolution - 1);
+   int e = MIN(b + 1, gradient.resolution - 1);
    pf = p - pf;
-   return gradient[b] * (1.f - pf) + gradient[e] * pf;
+   return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
 
 AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
@@ -364,31 +350,21 @@ AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
    return lPt;
 }
 
-float GetOpacity(MayaFluidData* data, const AtVector& lPt)
+template <typename T>
+T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gradient)
 {
-   float opacity = 0.f;
-   if (true) // check the source later
-   {      
-      opacity = GetGradientValue(data->opacityGradient.data, data->opacityGradient.resolution, 
-              GetFilteredValue(data, lPt, data->singleDensity, data->density));
-   }
-   return opacity;
-}
-
-AtRGB GetColor(MayaFluidData* data, const AtVector& lPt, int gradientType, int gradientResolution, AtRGB* gradient) // for color and incandescence
-{
-   switch(gradientType)
+   switch (gradient.type)
    {
       case GT_CONSTANT:
-         return GetGradientValue(gradient, gradientResolution, 0.f);
+         return GetGradientValue(gradient, 0.f);
       case GT_DENSITY:
-         return GetGradientValue(gradient, gradientResolution, GetFilteredValue(data, lPt, data->singleDensity, data->density));
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density));
       case GT_TEMPERATURE:
-         return GetGradientValue(gradient, gradientResolution, GetFilteredValue(data, lPt, data->singleTemperature, data->temperature));
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature));
       case GT_FUEL:
-         return GetGradientValue(gradient, gradientResolution, GetFilteredValue(data, lPt, data->singleFuel, data->fuel));
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel));
       default:
-         return AI_RGB_BLACK;
+         return GetDefaultValue<T>();
    }
 }
 
@@ -418,8 +394,8 @@ shader_evaluate
       {
          AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
 
-         float opacity = GetOpacity(data, lPt);
-         float tr = 1.f - opacity * stepSize;
+         float opacity = GetValue(data, lPt, data->opacityGradient) * stepSize;
+         float tr = 1.f - opacity;
          transparency *= tr;
          if (transparency < AI_EPSILON)
             break;
@@ -436,10 +412,10 @@ shader_evaluate
    {
       AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
       
-      float opacity = GetOpacity(data, lPt) * stepSize;      
+      float opacity = GetValue(data, lPt, data->opacityGradient) * stepSize;      
       float tr = 1.f - opacity;      
-      color += GetColor(data, lPt, data->colorGradient.type, data->colorGradient.resolution, data->colorGradient.data) * opacity * transparency;
-      incandescence += GetColor(data, lPt, data->incandescenceGradient.type, data->incandescenceGradient.resolution, data->incandescenceGradient.data) * opacity;
+      color += GetValue(data, lPt, data->colorGradient) * opacity * transparency;
+      incandescence += GetValue(data, lPt, data->incandescenceGradient) * opacity;
       transparency *= tr;
       if (transparency < AI_EPSILON)
          break;
