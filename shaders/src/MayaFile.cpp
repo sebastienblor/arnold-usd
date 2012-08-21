@@ -601,8 +601,9 @@ shader_evaluate
                   // default dimension
                   int* ptr = (int*)token->extra;
                   int dim = *ptr;
-                  int row = static_cast<int>(floorf(inV));
-                  int col = static_cast<int>(floorf(inU));
+                  
+                  int row = static_cast<int>(outV <= 0 ? floorf(outV) : ceilf(outV) - 1);
+         	      int col = static_cast<int>(outU <= 0 ? floorf(outU) : ceilf(outU) - 1);
                   
                   int mariCode = ((row * dim) + col) + 1001;
 
@@ -614,6 +615,10 @@ shader_evaluate
                   idata->processPath[sg->tid][pos + token->position+1] = (mariCode%10) + '0';
                   mariCode /= 10;
                   idata->processPath[sg->tid][pos + token->position+0] = (mariCode%10) + '0';
+                  
+                  sg->u = fmod(outU, 1.f);
+                  sg->v = fmod(outV, 1.f);
+                  
                   break;
                }
                case TILE:

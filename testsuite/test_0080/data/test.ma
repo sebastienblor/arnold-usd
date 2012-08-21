@@ -1,17 +1,16 @@
-//Maya ASCII 2013 scene
+//Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Fri, Jun 15, 2012 03:53:02 PM
+//Last modified: Mon, Aug 13, 2012 04:35:51 PM
 //Codeset: UTF-8
-requires maya "2013";
-requires "mtoa" "0.16.0";
-requires "Mayatomr" "2013.0 - 3.10.1.4 ";
+requires maya "2011";
+requires "mtoa" "0.19.0.dev";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
-fileInfo "product" "Maya 2013";
-fileInfo "version" "2013 x64";
-fileInfo "cutIdentifier" "201202220216-825135";
-fileInfo "osv" "Linux 2.6.32-220.el6.x86_64 #1 SMP Tue Dec 6 19:48:22 GMT 2011 x86_64";
+fileInfo "product" "Maya 2011";
+fileInfo "version" "2011 x64";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 3.5.0-2.fc17.x86_64 #1 SMP Mon Jul 30 14:48:59 UTC 2012 x86_64";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
 	setAttr ".t" -type "double3" 37.119640579063123 18.800573518498791 0 ;
@@ -19,6 +18,35 @@ createNode transform -s -n "persp";
 	setAttr ".rp" -type "double3" -3.5804692544161291e-15 -7.1054273576010019e-15 -1.4210854715202004e-14 ;
 	setAttr ".rpt" -type "double3" -8.7783779362275568e-15 1.1498476670238775e-14 9.4020555375448207e-16 ;
 createNode camera -s -n "perspShape" -p "persp";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
+		1000000000 -smx 360 -at "float";
+	addAttr -ci true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 -max 1000000000 
+		-smx 180 -at "float";
+	addAttr -ci true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 20 -smn 
+		0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 -max 40 
+		-at "long";
+	addAttr -ci true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
+		-at "float";
+	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
+	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999979;
 	setAttr ".coi" 35.912953652186026;
@@ -27,12 +55,41 @@ createNode camera -s -n "perspShape" -p "persp";
 	setAttr ".man" -type "string" "persp_mask";
 	setAttr ".tp" -type "double3" 3.529134343177768 5.7733093735849303e-16 2.6000673943571693 ;
 	setAttr ".hc" -type "string" "viewSet -p %camera";
-	setAttr ".ai_translator" -type "string" "perspective";
+	setAttr -k on ".ai_translator" -type "string" "perspective";
 createNode transform -s -n "top";
 	setAttr ".v" no;
 	setAttr ".t" -type "double3" 0 100.1 0 ;
 	setAttr ".r" -type "double3" -89.999999999999986 0 0 ;
 createNode camera -s -n "topShape" -p "top";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
+		1000000000 -smx 360 -at "float";
+	addAttr -ci true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 -max 1000000000 
+		-smx 180 -at "float";
+	addAttr -ci true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 20 -smn 
+		0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 -max 40 
+		-at "long";
+	addAttr -ci true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
+		-at "float";
+	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
+	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
 	setAttr -k off ".v" no;
 	setAttr ".rnd" no;
 	setAttr ".coi" 100.1;
@@ -42,11 +99,40 @@ createNode camera -s -n "topShape" -p "top";
 	setAttr ".man" -type "string" "top_mask";
 	setAttr ".hc" -type "string" "viewSet -t %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
 createNode transform -s -n "front";
 	setAttr ".v" no;
 	setAttr ".t" -type "double3" 0 0 100.1 ;
 createNode camera -s -n "frontShape" -p "front";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
+		1000000000 -smx 360 -at "float";
+	addAttr -ci true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 -max 1000000000 
+		-smx 180 -at "float";
+	addAttr -ci true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 20 -smn 
+		0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 -max 40 
+		-at "long";
+	addAttr -ci true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
+		-at "float";
+	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
+	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
 	setAttr -k off ".v" no;
 	setAttr ".rnd" no;
 	setAttr ".coi" 100.1;
@@ -56,12 +142,41 @@ createNode camera -s -n "frontShape" -p "front";
 	setAttr ".man" -type "string" "front_mask";
 	setAttr ".hc" -type "string" "viewSet -f %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
 createNode transform -s -n "side";
 	setAttr ".v" no;
 	setAttr ".t" -type "double3" 100.1 1.6871751536864319 12.910557697774426 ;
 	setAttr ".r" -type "double3" 0 89.999999999999986 0 ;
 createNode camera -s -n "sideShape" -p "side";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
+		1000000000 -smx 360 -at "float";
+	addAttr -ci true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 -max 1000000000 
+		-smx 180 -at "float";
+	addAttr -ci true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 20 -smn 
+		0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 -max 40 
+		-at "long";
+	addAttr -ci true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
+		-at "float";
+	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
+	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
 	setAttr -k off ".v" no;
 	setAttr ".rnd" no;
 	setAttr ".coi" 100.1;
@@ -71,7 +186,7 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".man" -type "string" "side_mask";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
 createNode transform -n "transform1";
 createNode transform -n "transform2";
 createNode transform -n "transform3";
@@ -133,6 +248,44 @@ createNode transform -n "transform58";
 createNode transform -n "pSphere1";
 	setAttr ".t" -type "double3" -0.020665766309299727 6.3190084466120737 0.27269214094604877 ;
 createNode mesh -n "pSphereShape1" -p "pSphere1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
 	setAttr -k off ".v";
 	setAttr ".vir" yes;
 	setAttr ".vif" yes;
@@ -147,6 +300,29 @@ createNode transform -n "areaLight1";
 	setAttr ".r" -type "double3" -39.102499646476851 0 0 ;
 	setAttr ".s" -type "double3" 7.0384758451015959 4.5113817886091603 7.0384758451015959 ;
 createNode areaLight -n "areaLightShape1" -p "areaLight1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_shadow_density" -ln "aiShadowDensity" -dv 1 -min 0 -max 
+		1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min 0 -smx 10 -at "float";
+	addAttr -ci true -sn "ai_samples" -ln "aiSamples" -dv 1 -min 1 -max 100 -at "long";
+	addAttr -ci true -sn "ai_normalize" -ln "aiNormalize" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_bounce_factor" -ln "aiBounceFactor" -dv 1 -min 0 -smx 20 
+		-at "float";
+	addAttr -ci true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 -at "long";
+	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -uac -sn "ai_shadow_color" -ln "aiShadowColor" -at "float3" -nc 
+		3;
+	addAttr -ci true -sn "ai_shadow_colorr" -ln "aiShadowColorR" -at "float" -p "aiShadowColor";
+	addAttr -ci true -sn "ai_shadow_colorg" -ln "aiShadowColorG" -at "float" -p "aiShadowColor";
+	addAttr -ci true -sn "ai_shadow_colorb" -ln "aiShadowColorB" -at "float" -p "aiShadowColor";
+	addAttr -ci true -sn "ai_decay_type" -ln "aiDecayType" -dv 1 -min 0 -max 1 -en "constant:quadratic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_resolution" -ln "aiResolution" -dv 512 -at "long";
+	addAttr -ci true -sn "ai_affect_volumetrics" -ln "aiAffectVolumetrics" -dv 1 -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_cast_volumetric_shadows" -ln "aiCastVolumetricShadows" 
+		-dv 1 -min 0 -max 1 -at "bool";
 	setAttr -k off ".v";
 	setAttr ".in" 500;
 	setAttr ".de" 2;
@@ -849,6 +1025,48 @@ createNode transform -n "transform753";
 createNode transform -n "transform754";
 createNode transform -n "pPlane1";
 createNode mesh -n "pPlaneShape1" -p "pPlane1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
 	setAttr -k off ".v";
 	setAttr ".vir" yes;
 	setAttr ".vif" yes;
@@ -1033,8 +1251,8 @@ createNode transform -n "transform926";
 createNode transform -n "transform927";
 createNode transform -n "transform928";
 createNode lightLinker -s -n "lightLinker1";
-	setAttr -s 5 ".lnk";
-	setAttr -s 5 ".slnk";
+	setAttr -s 6 ".lnk";
+	setAttr -s 6 ".slnk";
 createNode displayLayerManager -n "layerManager";
 createNode displayLayer -n "defaultLayer";
 createNode renderLayerManager -n "renderLayerManager";
@@ -1397,1242 +1615,9389 @@ createNode script -n "uiConfigurationScriptNode";
 	setAttr ".b" -type "string" (
 		"// Maya Mel UI Configuration File.\n//\n//  This script is machine generated.  Edit at your own risk.\n//\n//\n\nglobal string $gMainPane;\nif (`paneLayout -exists $gMainPane`) {\n\n\tglobal int $gUseScenePanelConfig;\n\tint    $useSceneConfig = $gUseScenePanelConfig;\n\tint    $menusOkayInPanels = `optionVar -q allowMenusInPanels`;\tint    $nVisPanes = `paneLayout -q -nvp $gMainPane`;\n\tint    $nPanes = 0;\n\tstring $editorName;\n\tstring $panelName;\n\tstring $itemFilterName;\n\tstring $panelConfig;\n\n\t//\n\t//  get current state of the UI\n\t//\n\tsceneUIReplacement -update $gMainPane;\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Top View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"top\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n"
 		+ "                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n"
-		+ "                -objectFilterShowInHUD 1\n                -isFiltered 0\n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n"
-		+ "                -imagePlane 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -motionTrails 1\n                -clipGhosts 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"top\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n"
-		+ "            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -objectFilterShowInHUD 1\n            -isFiltered 0\n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n"
-		+ "            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -imagePlane 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n"
-		+ "            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -motionTrails 1\n            -clipGhosts 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Side View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"side\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n"
-		+ "                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -objectFilterShowInHUD 1\n                -isFiltered 0\n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n"
-		+ "                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -imagePlane 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n"
-		+ "                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -motionTrails 1\n                -clipGhosts 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"side\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n"
-		+ "            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -objectFilterShowInHUD 1\n            -isFiltered 0\n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n"
-		+ "            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -imagePlane 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n"
-		+ "            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -motionTrails 1\n            -clipGhosts 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Front View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"front\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n"
-		+ "                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -objectFilterShowInHUD 1\n                -isFiltered 0\n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n"
-		+ "                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -imagePlane 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n"
-		+ "                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -motionTrails 1\n                -clipGhosts 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"front\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n"
-		+ "            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -objectFilterShowInHUD 1\n            -isFiltered 0\n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n"
-		+ "            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -imagePlane 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n"
-		+ "            -motionTrails 1\n            -clipGhosts 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Persp View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n"
-		+ "                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -objectFilterShowInHUD 1\n                -isFiltered 0\n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n"
-		+ "                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -imagePlane 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n"
-		+ "                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -motionTrails 1\n                -clipGhosts 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"persp\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n"
-		+ "            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -objectFilterShowInHUD 1\n            -isFiltered 0\n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n"
-		+ "            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -imagePlane 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -motionTrails 1\n            -clipGhosts 1\n            -shadows 0\n            $editorName;\n"
-		+ "modelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"Outliner\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `outlinerPanel -unParent -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            outlinerEditor -e \n                -docTag \"isolOutln_fromSeln\" \n                -showShapes 1\n                -showReferenceNodes 1\n                -showReferenceMembers 1\n                -showAttributes 0\n                -showConnected 0\n                -showAnimCurvesOnly 0\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 1\n                -showPublishedAsConnected 0\n                -showContainerContents 1\n"
-		+ "                -ignoreDagHierarchy 0\n                -expandConnections 0\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 0\n                -highlightActive 1\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"defaultSetFilter\" \n                -showSetMembers 1\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n"
-		+ "                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                -mapMotionTrails 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -docTag \"isolOutln_fromSeln\" \n            -showShapes 1\n            -showReferenceNodes 1\n            -showReferenceMembers 1\n            -showAttributes 0\n            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 0\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n"
-		+ "            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n            -autoSelectNewObjects 0\n            -doNotSelectNewObjects 0\n            -dropIsParent 1\n            -transmitFilters 0\n            -setFilter \"defaultSetFilter\" \n            -showSetMembers 1\n            -allowMultiSelection 1\n            -alwaysToggleSelect 0\n            -directSelect 0\n            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            -mapMotionTrails 0\n"
-		+ "            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\toutlinerPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"graphEditor\" (localizedPanelLabel(\"Graph Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"graphEditor\" -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showReferenceNodes 0\n                -showReferenceMembers 0\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n"
-		+ "                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n"
-		+ "                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                -mapMotionTrails 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n"
-		+ "                -preSelectionHighlight 0\n                -constrainDrag 0\n                -classicMode 1\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showReferenceNodes 0\n                -showReferenceMembers 0\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n"
-		+ "                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n"
-		+ "                -showPinIcons 1\n                -mapMotionTrails 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                -classicMode 1\n                $editorName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dopeSheetPanel\" (localizedPanelLabel(\"Dope Sheet\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dopeSheetPanel\" -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showReferenceNodes 0\n                -showReferenceMembers 0\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n"
-		+ "                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n"
-		+ "                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                -mapMotionTrails 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n"
-		+ "                -showReferenceNodes 0\n                -showReferenceMembers 0\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n"
-		+ "                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                -mapMotionTrails 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n"
+		+ "                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n"
+		+ "                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"top\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n"
+		+ "            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n"
+		+ "            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n"
+		+ "            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Side View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"side\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n"
+		+ "                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n"
+		+ "                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n"
+		+ "                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"side\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n"
+		+ "            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n"
+		+ "            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Front View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n"
+		+ "            modelEditor -e \n                -camera \"front\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n"
+		+ "                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n"
+		+ "                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"front\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n"
+		+ "            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n"
+		+ "            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n"
+		+ "            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Persp View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n"
+		+ "                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n"
+		+ "                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n"
+		+ "                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"persp\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n"
+		+ "            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n"
+		+ "            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"Outliner\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `outlinerPanel -unParent -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            outlinerEditor -e \n                -docTag \"isolOutln_fromSeln\" \n                -showShapes 1\n                -showAttributes 0\n                -showConnected 0\n                -showAnimCurvesOnly 0\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 1\n                -showPublishedAsConnected 0\n                -showContainerContents 1\n                -ignoreDagHierarchy 0\n                -expandConnections 0\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 0\n                -highlightActive 1\n"
+		+ "                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"defaultSetFilter\" \n                -showSetMembers 1\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -docTag \"isolOutln_fromSeln\" \n            -showShapes 1\n            -showAttributes 0\n            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 0\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n            -autoSelectNewObjects 0\n            -doNotSelectNewObjects 0\n            -dropIsParent 1\n            -transmitFilters 0\n            -setFilter \"defaultSetFilter\" \n            -showSetMembers 1\n            -allowMultiSelection 1\n"
+		+ "            -alwaysToggleSelect 0\n            -directSelect 0\n            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"graphEditor\" (localizedPanelLabel(\"Graph Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"graphEditor\" -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n"
+		+ "                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n"
+		+ "                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n"
+		+ "                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n"
+		+ "                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n"
+		+ "                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n"
+		+ "                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dopeSheetPanel\" (localizedPanelLabel(\"Dope Sheet\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dopeSheetPanel\" -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n"
+		+ "                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n"
+		+ "                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n"
+		+ "                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n"
 		+ "                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"clipEditorPanel\" (localizedPanelLabel(\"Trax Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"clipEditorPanel\" -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n"
 		+ "                -manageSequencer 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"sequenceEditorPanel\" (localizedPanelLabel(\"Camera Sequencer\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"sequenceEditorPanel\" -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels `;\n"
 		+ "\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n"
 		+ "\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperGraphPanel\" (localizedPanelLabel(\"Hypergraph Hierarchy\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperGraphPanel\" -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n"
-		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range -1 -1 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n"
-		+ "                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range -1 -1 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperShadePanel\" (localizedPanelLabel(\"Hypershade\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperShadePanel\" -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"visorPanel\" (localizedPanelLabel(\"Visor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"visorPanel\" -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"nodeEditorPanel\" (localizedPanelLabel(\"Node Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"nodeEditorPanel\" -l (localizedPanelLabel(\"Node Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"NodeEditorEd\");\n            nodeEditor -e \n                -allAttributes 0\n"
-		+ "                -allNodes 0\n                -autoSizeNodes 1\n                -createNodeCommand \"nodeEdCreateNodeCommand\" \n                -ignoreAssets 1\n                -additiveGraphingMode 0\n                -settingsChangedCallback \"nodeEdSyncControls\" \n                -traversalDepthLimit -1\n                -keyPressCommand \"nodeEdKeyPressCommand\" \n                -popupMenuScript \"nodeEdBuildPanelMenus\" \n                -island 0\n                -showShapes 1\n                -showSGShapes 0\n                -showTransforms 1\n                -syncedSelection 1\n                -extendToShapes 1\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Node Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"NodeEditorEd\");\n            nodeEditor -e \n                -allAttributes 0\n                -allNodes 0\n                -autoSizeNodes 1\n                -createNodeCommand \"nodeEdCreateNodeCommand\" \n                -ignoreAssets 1\n"
-		+ "                -additiveGraphingMode 0\n                -settingsChangedCallback \"nodeEdSyncControls\" \n                -traversalDepthLimit -1\n                -keyPressCommand \"nodeEdKeyPressCommand\" \n                -popupMenuScript \"nodeEdBuildPanelMenus\" \n                -island 0\n                -showShapes 1\n                -showSGShapes 0\n                -showTransforms 1\n                -syncedSelection 1\n                -extendToShapes 1\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"createNodePanel\" (localizedPanelLabel(\"Create Node\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"createNodePanel\" -l (localizedPanelLabel(\"Create Node\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Create Node\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n"
-		+ "\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"polyTexturePlacementPanel\" (localizedPanelLabel(\"UV Texture Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"polyTexturePlacementPanel\" -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"referenceEditorPanel\" (localizedPanelLabel(\"Reference Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"referenceEditorPanel\" -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"componentEditorPanel\" (localizedPanelLabel(\"Component Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"componentEditorPanel\" -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynPaintScriptedPanelType\" (localizedPanelLabel(\"Paint Effects\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynPaintScriptedPanelType\" -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"scriptEditorPanel\" (localizedPanelLabel(\"Script Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"scriptEditorPanel\" -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"Stereo\" (localizedPanelLabel(\"Stereo\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"Stereo\" -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels `;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n"
-		+ "                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n"
-		+ "                -objectFilterShowInHUD 1\n                -isFiltered 0\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n"
-		+ "                -imagePlane 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -motionTrails 1\n                -clipGhosts 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels  $panelName;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n"
-		+ "                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n"
-		+ "                -maxConstantTransparency 1\n                -objectFilterShowInHUD 1\n                -isFiltered 0\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n"
-		+ "                -hulls 1\n                -grid 1\n                -imagePlane 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -motionTrails 1\n                -clipGhosts 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\tif ($useSceneConfig) {\n        string $configName = `getPanel -cwl (localizedPanelLabel(\"Current Layout\"))`;\n        if (\"\" != $configName) {\n"
-		+ "\t\t\tpanelConfiguration -edit -label (localizedPanelLabel(\"Current Layout\")) \n\t\t\t\t-defaultImage \"\"\n\t\t\t\t-image \"\"\n\t\t\t\t-sc false\n\t\t\t\t-configString \"global string $gMainPane; paneLayout -e -cn \\\"single\\\" -ps 1 100 100 $gMainPane;\"\n\t\t\t\t-removeAllPanels\n\t\t\t\t-ap false\n\t\t\t\t\t(localizedPanelLabel(\"Persp View\")) \n\t\t\t\t\t\"modelPanel\"\n"
-		+ "\t\t\t\t\t\"$panelName = `modelPanel -unParent -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels `;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -objectFilterShowInHUD 1\\n    -isFiltered 0\\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -imagePlane 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -motionTrails 1\\n    -clipGhosts 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
-		+ "\t\t\t\t\t\"modelPanel -edit -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels  $panelName;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -objectFilterShowInHUD 1\\n    -isFiltered 0\\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -imagePlane 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -motionTrails 1\\n    -clipGhosts 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
+		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n"
+		+ "                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperShadePanel\" (localizedPanelLabel(\"Hypershade\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperShadePanel\" -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"visorPanel\" (localizedPanelLabel(\"Visor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"visorPanel\" -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"polyTexturePlacementPanel\" (localizedPanelLabel(\"UV Texture Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"polyTexturePlacementPanel\" -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"referenceEditorPanel\" (localizedPanelLabel(\"Reference Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"referenceEditorPanel\" -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"componentEditorPanel\" (localizedPanelLabel(\"Component Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"componentEditorPanel\" -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynPaintScriptedPanelType\" (localizedPanelLabel(\"Paint Effects\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynPaintScriptedPanelType\" -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"scriptEditorPanel\" (localizedPanelLabel(\"Script Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"scriptEditorPanel\" -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"Stereo\" (localizedPanelLabel(\"Stereo\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"Stereo\" -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels `;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n"
+		+ "                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n"
+		+ "                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                -displayMode \"centerEye\" \n"
+		+ "                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels  $panelName;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n"
+		+ "                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n"
+		+ "                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\tif ($useSceneConfig) {\n        string $configName = `getPanel -cwl (localizedPanelLabel(\"Current Layout\"))`;\n        if (\"\" != $configName) {\n\t\t\tpanelConfiguration -edit -label (localizedPanelLabel(\"Current Layout\")) \n\t\t\t\t-defaultImage \"\"\n\t\t\t\t-image \"\"\n\t\t\t\t-sc false\n\t\t\t\t-configString \"global string $gMainPane; paneLayout -e -cn \\\"single\\\" -ps 1 100 100 $gMainPane;\"\n\t\t\t\t-removeAllPanels\n\t\t\t\t-ap false\n\t\t\t\t\t(localizedPanelLabel(\"Persp View\")) \n\t\t\t\t\t\"modelPanel\"\n"
+		+ "\t\t\t\t\t\"$panelName = `modelPanel -unParent -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels `;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
+		+ "\t\t\t\t\t\"modelPanel -edit -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels  $panelName;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
 		+ "\t\t\t\t$configName;\n\n            setNamedPanelLayout (localizedPanelLabel(\"Current Layout\"));\n        }\n\n        panelHistory -e -clear mainPanelHistory;\n        setFocus `paneLayout -q -p1 $gMainPane`;\n        sceneUIReplacement -deleteRemaining;\n        sceneUIReplacement -clear;\n\t}\n\n\ngrid -spacing 5 -size 12 -divisions 5 -displayAxes yes -displayGridLines yes -displayDivisionLines yes -displayPerspectiveLabels no -displayOrthographicLabels no -displayAxesBold yes -perspectiveLabelPosition axis -orthographicLabelPosition edge;\nviewManip -drawCompass 0 -compassAngle 0 -frontParameters \"\" -homeParameters \"\" -selectionLockParameters \"\";\n}\n");
 	setAttr ".st" 3;
 createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".b" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
 	setAttr ".st" 6;
 createNode shadingEngine -n "aiStandard1SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo1";
 createNode polySphere -n "polySphere1";
 	setAttr ".r" 6.3190084466120737;
 createNode aiAOVFilter -n "aiAOVFilter290";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter289";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter288";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter287";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter286";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter285";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter284";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter283";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter282";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter281";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter280";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter279";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter278";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter277";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter276";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter275";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter274";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter273";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter272";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter271";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter270";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter269";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter268";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter267";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter266";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter265";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter264";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter263";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter262";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter261";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter260";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter259";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter258";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter257";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter256";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter255";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter254";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter253";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter252";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter251";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter250";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter249";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter248";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter247";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter246";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter245";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter244";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter243";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter242";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter241";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter240";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter239";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter238";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter237";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter236";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter235";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter234";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter233";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter232";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter231";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter230";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter229";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter228";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter227";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter226";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter225";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter224";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter223";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter222";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter221";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter220";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter219";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter218";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter217";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter216";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter215";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter214";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter213";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter212";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter211";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter210";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter209";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter208";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter207";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter206";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter205";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter204";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter203";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter202";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter201";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter200";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter199";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter198";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter197";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter196";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter195";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter194";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter193";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter192";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter191";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter190";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter189";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter188";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter187";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter186";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter185";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter184";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter183";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter182";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter181";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter180";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter179";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter178";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter177";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter176";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter175";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter174";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter173";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter172";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter171";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter170";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter169";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter168";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter167";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter166";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter165";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter164";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter163";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter162";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter161";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter160";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter159";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter158";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter157";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter156";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter155";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter154";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter153";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter152";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter151";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter150";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter149";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter148";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter147";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter146";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter145";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter144";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter143";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter142";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter141";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter140";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter139";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter138";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter137";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter136";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter135";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter134";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter133";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter132";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter131";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter130";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter129";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter128";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter127";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter126";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter125";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter124";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter123";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter122";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter121";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter120";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter119";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter118";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter117";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter116";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter115";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter114";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter113";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter112";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter111";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter110";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter109";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter108";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter107";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter106";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter105";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter104";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter103";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter102";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter101";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter100";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter99";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter98";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter97";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter96";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter95";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter94";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter93";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter92";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter91";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter90";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter89";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter88";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter87";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter86";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter85";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter84";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter83";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter82";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter81";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter80";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter79";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter78";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter77";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter76";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter75";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter74";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter73";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter72";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter71";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter70";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter69";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter68";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter67";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter66";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter65";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter64";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter63";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter62";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter61";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter60";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter59";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter58";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter57";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter56";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter55";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter54";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter53";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter52";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter51";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter50";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter49";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter48";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter47";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter46";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter45";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter44";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter43";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter42";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter41";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter40";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter39";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter38";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter37";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter36";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter35";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter34";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter33";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter32";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter31";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter30";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter29";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter28";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter27";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter26";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter25";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter24";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter23";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter22";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter21";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter20";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter19";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter18";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter17";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter16";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter15";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter14";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter13";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter12";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter11";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter10";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter9";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter8";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter7";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter6";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter5";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter4";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter3";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter2";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -n "aiAOVFilter1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
+	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -sn "minimum" -ln "minimum" -at "float";
+	addAttr -ci true -sn "maximum" -ln "maximum" -dv 1 -at "float";
+	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVDriver -n "aiAOVDriver290";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver289";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver288";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver287";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver286";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver285";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver284";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver283";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver282";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver281";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver280";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver279";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver278";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver277";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver276";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver275";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver274";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver273";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver272";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver271";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver270";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver269";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver268";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver267";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver266";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver265";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver264";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver263";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver262";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver261";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver260";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver259";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver258";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver257";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver256";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver255";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver254";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver253";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver252";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver251";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver250";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver249";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver248";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver247";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver246";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver245";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver244";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver243";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver242";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver241";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver240";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver239";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver238";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver237";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver236";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver235";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver234";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver233";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver232";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver231";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver230";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver229";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver228";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver227";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver226";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver225";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver224";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver223";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver222";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver221";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver220";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver219";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver218";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver217";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver216";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver215";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver214";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver213";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver212";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver211";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver210";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver209";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver208";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver207";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver206";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver205";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver204";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver203";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver202";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver201";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver200";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver199";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver198";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver197";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver196";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver195";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver194";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver193";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver192";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver191";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver190";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver189";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver188";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver187";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver186";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver185";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver184";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver183";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver182";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver181";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver180";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver179";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver178";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver177";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver176";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver175";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver174";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver173";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver172";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver171";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver170";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver169";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver168";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver167";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver166";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver165";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver164";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver163";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver162";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver161";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver160";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver159";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver158";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver157";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver156";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver155";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver154";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver153";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver152";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver151";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver150";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver149";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver148";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver147";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver146";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver145";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver144";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver143";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver142";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver141";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver140";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver139";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver138";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver137";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver136";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver135";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver134";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver133";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver132";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver131";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver130";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver129";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver128";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver127";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver126";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver125";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver124";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver123";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver122";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver121";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver120";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver119";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver118";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver117";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver116";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver115";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver114";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver113";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver112";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver111";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver110";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver109";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver108";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver107";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver106";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver105";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver104";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver103";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver102";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver101";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver100";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver99";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver98";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver97";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver96";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver95";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver94";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver93";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver92";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver91";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver90";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver89";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver88";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver87";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver86";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver85";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver84";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver83";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver82";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver81";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver80";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver79";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver78";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver77";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver76";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver75";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver74";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver73";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver72";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver71";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver70";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver69";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver68";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver67";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver66";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver65";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver64";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver63";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver62";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver61";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver60";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver59";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver58";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver57";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver56";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver55";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver54";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver53";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver52";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver51";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver50";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver49";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver48";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver47";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver46";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver45";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver44";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver43";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver42";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver41";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver40";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver39";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver38";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver37";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver36";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver35";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver34";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver33";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver32";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver31";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver30";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver29";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver28";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver27";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver26";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver25";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver24";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver23";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver22";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver21";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver20";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver19";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver18";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver17";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver16";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver15";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver14";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver13";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver12";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver11";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver10";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver9";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver8";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver7";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver6";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver5";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver4";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver3";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver2";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -n "aiAOVDriver1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "exr";
 createNode aiAOVDriver -s -n "defaultArnoldDriver";
-	setAttr ".tiled" no;
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
+	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+		-smx 5 -at "float";
+	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
+	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
+		-at "enum";
+	addAttr -ci true -sn "tiff_compression" -ln "tiffCompression" -dv 1 -min 0 -max 
+		4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
+		-at "enum";
+	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "tif";
+	setAttr ".tiled" no;
 createNode polyPlane -n "polyPlane1";
 	setAttr ".w" 24;
 	setAttr ".h" 24;
@@ -2640,19 +11005,34 @@ createNode polyPlane -n "polyPlane1";
 	setAttr ".sh" 1;
 	setAttr ".cuv" 2;
 createNode aiShadowCatcher -n "aiShadowCatcher1";
-	setAttr ".shadowColor" -type "float3" 1 1 1 ;
-	setAttr ".enableTransparency" yes;
-createNode aiUtility -n "aiUtility1";
-	setAttr ".shade_mode" 2;
 createNode shadingEngine -n "aiUtility1SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo2";
-createNode aiStandard -n "aiStandard2";
 createNode shadingEngine -n "aiStandard2SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo3";
+createNode aiStandard -n "aiStandard2";
+createNode shadingEngine -n "aiShadowCatcher1SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo4";
+createNode checker -n "checker1";
+createNode place2dTexture -n "place2dTexture1";
+	setAttr ".re" -type "float2" 4 4 ;
 select -ne :time1;
 	setAttr -av -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -2665,7 +11045,7 @@ select -ne :renderPartition;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 5 ".st";
+	setAttr -s 6 ".st";
 	setAttr -cb on ".an";
 	setAttr -cb on ".pt";
 select -ne :initialShadingGroup;
@@ -2717,7 +11097,8 @@ select -ne :defaultShaderList1;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 5 ".s";
+	setAttr -s 4 ".s";
+select -ne :defaultTextureList1;
 select -ne :lightList1;
 select -ne :postProcessList1;
 	setAttr -k on ".cch";
@@ -2725,7 +11106,7 @@ select -ne :postProcessList1;
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
 	setAttr -s 2 ".p";
-select -ne :defaultRenderingList1;
+select -ne :defaultRenderUtilityList1;
 select -ne :renderGlobalsList1;
 	setAttr -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -2897,34 +11278,40 @@ relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightS
 relationship "link" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiUtility1SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiShadowCatcher1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiUtility1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiShadowCatcher1SG.message" ":defaultLightSet.message";
 connectAttr "layerManager.dli[0]" "defaultLayer.id";
 connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
 connectAttr ":defaultArnoldDriver.msg" ":defaultArnoldRenderOptions.drvr";
 connectAttr "aiStandard1SG.msg" "materialInfo1.sg";
-connectAttr "aiShadowCatcher1.out" "aiUtility1.color";
-connectAttr "aiUtility1.out" "aiUtility1SG.ss";
-connectAttr "pPlaneShape1.iog" "aiUtility1SG.dsm" -na;
+connectAttr "checker1.oc" "aiShadowCatcher1.backgroundColor";
 connectAttr "aiUtility1SG.msg" "materialInfo2.sg";
-connectAttr "aiUtility1.msg" "materialInfo2.m";
-connectAttr "aiUtility1.msg" "materialInfo2.t" -na;
 connectAttr "aiStandard2.out" "aiStandard2SG.ss";
 connectAttr "pSphereShape1.iog" "aiStandard2SG.dsm" -na;
 connectAttr "aiStandard2SG.msg" "materialInfo3.sg";
 connectAttr "aiStandard2.msg" "materialInfo3.m";
 connectAttr "aiStandard2.msg" "materialInfo3.t" -na;
+connectAttr "aiShadowCatcher1.out" "aiShadowCatcher1SG.ss";
+connectAttr "pPlaneShape1.iog" "aiShadowCatcher1SG.dsm" -na;
+connectAttr "aiShadowCatcher1SG.msg" "materialInfo4.sg";
+connectAttr "aiShadowCatcher1.msg" "materialInfo4.m";
+connectAttr "aiShadowCatcher1.msg" "materialInfo4.t" -na;
+connectAttr "place2dTexture1.o" "checker1.uv";
+connectAttr "place2dTexture1.ofs" "checker1.fs";
 connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
 connectAttr "aiUtility1SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard2SG.pa" ":renderPartition.st" -na;
+connectAttr "aiShadowCatcher1SG.pa" ":renderPartition.st" -na;
 connectAttr "aiShadowCatcher1.msg" ":defaultShaderList1.s" -na;
-connectAttr "aiUtility1.msg" ":defaultShaderList1.s" -na;
 connectAttr "aiStandard2.msg" ":defaultShaderList1.s" -na;
+connectAttr "checker1.msg" ":defaultTextureList1.tx" -na;
 connectAttr "areaLightShape1.ltd" ":lightList1.l" -na;
-connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
+connectAttr "place2dTexture1.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "areaLight1.iog" ":defaultLightSet.dsm" -na;
 // End of test.ma

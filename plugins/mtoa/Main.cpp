@@ -138,7 +138,8 @@ namespace // <anonymous>
                                    CArnoldLightBlockerNode::id,
                                    CArnoldLightBlockerNode::creator,
                                    CArnoldLightBlockerNode::initialize,
-                                   MPxNode::kLocatorNode);
+                                   MPxNode::kLocatorNode,
+                                   &LIGHT_FILTER_WITH_SWATCH);
       
       CHECK_MSTATUS(status);
 

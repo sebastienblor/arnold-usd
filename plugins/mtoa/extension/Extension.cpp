@@ -6,6 +6,8 @@
 #define MNoVersionString
 #define MNoPluginEntry
 
+#include <string>
+
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -926,7 +928,9 @@ MStringArray CExtension::FindLibraries(const MString &path,
             MString ext = entry.substringW(nchars-next, nchars);
             if (entry.substringW(0,0) != "." && ext == libext)
             {
-               files.append(dir + DIRSEP + entry);
+               std::string filePath = (dir + DIRSEP + entry).asChar();
+               std::replace(filePath.begin(), filePath.end(), '\\','/');
+               files.append(filePath.c_str());
                if (MStatus::kNotFound == status) status = MStatus::kSuccess;
             }
          }
