@@ -321,6 +321,41 @@ void GetFilteredValue(MayaFluidData* data, const AtVector& lPt, T* iParam, T& oP
            iParam[c101] * pcx * npcy + iParam[c011] * npcx * pcy) * pcz;
 }
 
+template <typename T>
+T GetGradientValue(const T* gradient, int gradientResolution, const float& v)
+{
+   float p = v * gradientResolution;
+   float pf = floorf(p);
+   int b = CLAMP((int)pf, 0, gradientResolution - 1);
+   int e = MIN(b + 1, gradientResolution - 1);
+   pf = p - pf;
+   return gradient[b] * (1.f - pf) + gradient[e] * pf;
+}
+
+AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
+{
+   AtVector lPt;
+   lPt.x = cPt.x + data->xdim / 2;
+   lPt.y = cPt.y + data->ydim / 2;
+   lPt.z = cPt.z + data->zdim / 2;
+   lPt.x = CLAMP(lPt.x / data->xdim, 0.f, 1.f);
+   lPt.y = CLAMP(lPt.y / data->ydim, 0.f, 1.f);
+   lPt.z = CLAMP(lPt.z / data->zdim, 0.f, 1.f);
+   return lPt;
+}
+
+float GetOpacity(MayaFluidData* data, const AtVector& lPt)
+{
+   float opacity = 0.f;
+   if (true) // check the source later
+   {
+      float density = 0.f;
+      GetFilteredValue(data, lPt, data->density, density);
+      opacity = GetGradientValue(data->opacityGradient, data->opacityGradientResolution, density);
+   }
+   return opacity;
+}
+
 shader_evaluate
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
@@ -343,30 +378,9 @@ shader_evaluate
    
    for (float l = 0.f; l < lRl; l += stepSize)
    {
-      AtVector cPt = lRo + lRd * l;
-      cPt.x += data->xdim / 2;
-      cPt.y += data->ydim / 2;
-      cPt.z += data->zdim / 2;
-      cPt.x = CLAMP(cPt.x / data->xdim, 0.f, 1.f);
-      cPt.y = CLAMP(cPt.y / data->ydim, 0.f, 1.f);
-      cPt.z = CLAMP(cPt.z / data->zdim, 0.f, 1.f);
+      AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
       
-      float opacity = 0.f;
-      if (true) // check the source later
-      {
-         float density = 0.f;
-         GetFilteredValue(data, cPt, data->density, density);
-         opacity = density;
-         if (data->opacityGradientResolution)
-         {
-            float p = opacity * (float)data->opacityGradientResolution;
-            float pf = floorf(p);
-            int b = CLAMP((int)pf, 0, data->opacityGradientResolution - 1);
-            int e = MIN(b + 1, data->opacityGradientResolution - 1);
-            pf = p - pf;
-            opacity = LERP(pf, data->opacityGradient[b], data->opacityGradient[e]);
-         }
-      }
+      float opacity = GetOpacity(data, lPt);
       float tr = 1.f - opacity * stepSize;
       transparency *= tr;
       if (transparency < AI_EPSILON)
