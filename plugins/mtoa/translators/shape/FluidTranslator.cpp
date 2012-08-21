@@ -138,6 +138,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (fluidMethod != MFnFluid::kZero)
       ExportFloatGrid(fluid_shader, mayaFluid.temperature(), "temperature", numVoxels);
    
+   ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
+   
    MFnFluid::ColorMethod colorMethod;
    
    mayaFluid.getColorMode(colorMethod);

@@ -36,6 +36,7 @@ node_parameters
    AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    
@@ -76,7 +77,8 @@ enum MayaFluidParams{
    
    p_density,
    p_fuel,
-   p_temperature,   
+   p_temperature,
+   p_pressure,
    p_colors,
    
    p_matrix,
@@ -120,6 +122,7 @@ struct MayaFluidData{
    ArrayDescription<float> density;
    ArrayDescription<float> fuel;
    ArrayDescription<float> temperature;
+   ArrayDescription<float> pressure;
    ArrayDescription<AtRGB> colors;
    
    GradientDescription<AtRGB> colorGradient;
@@ -243,6 +246,7 @@ node_update
    ReadArray(node, "density", numVoxels, data->density);
    ReadArray(node, "fuel", numVoxels, data->fuel);
    ReadArray(node, "temperature", numVoxels, data->temperature);
+   ReadArray(node, "pressure", numVoxels, data->pressure);
    ReadArray(node, "colors", numVoxels, data->colors);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
@@ -357,16 +361,27 @@ AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
 template <typename T>
 T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gradient)
 {
+   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    switch (gradient.type)
    {
       case GT_CONSTANT:
-         return GetGradientValue(gradient, 1.f);
+         return GetGradientValue(gradient, 1.f + gradient.inputBias);
+      case GT_X_GRADIENT:
+         return GetGradientValue(gradient, 1.f - lPt.x + gradient.inputBias);
+      case GT_Y_GRADIENT:
+         return GetGradientValue(gradient, 1.f - lPt.y + gradient.inputBias);
+      case GT_Z_GRADIENT:
+         return GetGradientValue(gradient, 1.f - lPt.z + gradient.inputBias);
+      case GT_CENTER_GRADIENT:
+         return GetGradientValue(gradient, 1.0f - AiV3Length(lPt - middlePoint) + gradient.inputBias);
       case GT_DENSITY:
          return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density) + gradient.inputBias);
       case GT_TEMPERATURE:
          return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature) + gradient.inputBias);
       case GT_FUEL:
          return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel) + gradient.inputBias);
+      case GT_PRESSURE:
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->pressure) + gradient.inputBias);
       default:
          return GetDefaultValue<T>();
    }
