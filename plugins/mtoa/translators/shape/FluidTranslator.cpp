@@ -120,6 +120,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    const unsigned int numVoxels = xRes * yRes * zRes;
    
+   // support for gradient mode
+   
    MFnFluid::FluidMethod fluidMethod;
    MFnFluid::FluidGradient fluidGradient;
    
@@ -139,6 +141,27 @@ void CFluidTranslator::Export(AtNode* fluid)
       ExportFloatGrid(fluid_shader, mayaFluid.temperature(), "temperature", numVoxels);
    
    ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
+   
+   mayaFluid.getVelocityMode(fluidMethod, fluidGradient);
+   
+   if (fluidMethod != MFnFluid::kZero)
+   {
+      float* x; float* y; float* z;
+      mayaFluid.getVelocity(x, y, z);
+      if (x != 0 && y != 0 && z != 0)
+      {
+         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
+         for (unsigned int i = 0; i < numVoxels; ++i)
+         {
+            AtVector cVector = {x[i], y[i], z[i]};
+            cVector.x = cVector.x < AI_EPSILON ? 0.f : cVector.x;
+            cVector.y = cVector.y < AI_EPSILON ? 0.f : cVector.y;
+            cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
+            AiArraySetVec(array, i, cVector);
+         }
+         AiNodeSetArray(fluid_shader, "velocity", array);
+      }
+   }
    
    MFnFluid::ColorMethod colorMethod;
    

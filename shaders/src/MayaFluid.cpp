@@ -38,6 +38,8 @@ node_parameters
    AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    
+   AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
+   
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    
    AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
@@ -123,6 +125,7 @@ struct MayaFluidData{
    ArrayDescription<float> fuel;
    ArrayDescription<float> temperature;
    ArrayDescription<float> pressure;
+   ArrayDescription<AtVector> velocity;
    ArrayDescription<AtRGB> colors;
    
    GradientDescription<AtRGB> colorGradient;
@@ -159,6 +162,12 @@ AtRGB GetDefaultValue<AtRGB>()
    return AI_RGB_BLACK;
 }
 
+template <>
+AtVector GetDefaultValue<AtVector>()
+{
+   return AI_V3_ZERO;
+}
+
 template <typename T>
 T ReadFromArray(AtArray* array, int element)
 {
@@ -175,6 +184,12 @@ template <>
 AtRGB ReadFromArray(AtArray* array, int element)
 {
    return AiArrayGetRGB(array, element);
+}
+
+template <>
+AtVector ReadFromArray(AtArray* array, int element)
+{
+   return AiArrayGetVec(array, element);
 }
 
 template <typename T>
@@ -247,6 +262,7 @@ node_update
    ReadArray(node, "fuel", numVoxels, data->fuel);
    ReadArray(node, "temperature", numVoxels, data->temperature);
    ReadArray(node, "pressure", numVoxels, data->pressure);
+   ReadArray(node, "velocity", numVoxels, data->velocity);
    ReadArray(node, "colors", numVoxels, data->colors);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
@@ -382,6 +398,8 @@ T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gra
          return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel) + gradient.inputBias);
       case GT_PRESSURE:
          return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->pressure) + gradient.inputBias);
+      case GT_SPEED:
+         return GetGradientValue(gradient, AiV3Length(GetFilteredValue(data, lPt, data->velocity)) + gradient.inputBias);
       default:
          return GetDefaultValue<T>();
    }
