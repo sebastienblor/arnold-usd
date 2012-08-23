@@ -319,7 +319,7 @@ class MayaTestRunner(object):
                self.total_running_time += result
        else:
            manager = multiprocessing.Manager()
-           self.pool = multiprocessing.Pool(test_env['TEST_THREADS'])
+           self.pool = multiprocessing.Pool(int(test_env['TEST_THREADS']))
            try:
                self._setup_sig_handler()
            except ValueError:
