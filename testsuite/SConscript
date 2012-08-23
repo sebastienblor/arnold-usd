@@ -352,7 +352,7 @@ class MayaTestRunner(object):
            try:
               while 1:
                   # timeout seconds per job
-                  self.total_running_time += results.next(timeout=60)
+                  self.total_running_time += results.next(timeout=600)
            except StopIteration:
                self.pool.close()
                self.pool.join()
