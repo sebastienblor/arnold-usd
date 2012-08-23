@@ -179,9 +179,9 @@ driver_write_bucket
 
                AiColorGamma(&rgb, s_outputDriverData.gamma);
 
-               pixel->r = rgb.r * 255;
-               pixel->g = rgb.g * 255;
-               pixel->b = rgb.b * 255;
+               pixel->r = rgb.r;
+               pixel->g = rgb.g;
+               pixel->b = rgb.b;
                pixel->a = 0;
             }
          }
