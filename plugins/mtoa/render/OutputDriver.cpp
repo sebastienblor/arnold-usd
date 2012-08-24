@@ -368,13 +368,15 @@ void RenderBegin()
                                                 right,
                                                 bottom,
                                                 top,
-                                                true, // don't clear buffer on region renders
+                                                // keep current image (true) or clear (false):
+                                                s_outputDriverData.isProgressive,
                                                 true);
    }
    else
    {
       status = MRenderView::startRender(s_outputDriverData.imageWidth,
                                         s_outputDriverData.imageHeight,
+                                        // keep current image (true) or clear (false):
                                         s_outputDriverData.isProgressive,
                                         true);
    }
