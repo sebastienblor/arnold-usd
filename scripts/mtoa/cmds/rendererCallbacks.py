@@ -26,7 +26,10 @@ def aiBuildRenderNodeTreeListerContentCallback(renderNodeTreeLister, postCommand
     filterClassArray = filterString
     createArnoldNodesTreeLister_Content(renderNodeTreeLister, postCommand, filterClassArray)
 
-    
+def aiProvideClassificationStringsForFilteredTreeListerCallback(classification) :
+    return "rendernode/arnold/shader/surface"
+
+
 # Add the callbacks
 
 cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
@@ -61,4 +64,8 @@ cmds.callbacks(addCallback=aiCreateRenderNodePluginChangeCallback,
 
 cmds.callbacks(addCallback=templates.loadArnoldTemplate,
                hook="AETemplateCustomContent",
+               owner="arnold")
+
+cmds.callbacks(addCallback=aiProvideClassificationStringsForFilteredTreeListerCallback,
+               hook="provideClassificationStringsForFilteredTreeLister",
                owner="arnold")

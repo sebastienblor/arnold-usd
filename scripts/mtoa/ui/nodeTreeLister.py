@@ -115,7 +115,7 @@ def createNodeCallback(runtimeClassification, postCommand, nodeType):
 
     node = unicode(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
     if postCommand:
-        postCommand = postCommand.replace('%node', node).replace('%type', nodeType)
+        postCommand = postCommand.replace('%node', node).replace('%type', nodeType).replace(r'\"','"')
         pm.mel.eval(postCommand)
     return node
 
