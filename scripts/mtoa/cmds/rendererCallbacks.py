@@ -29,6 +29,11 @@ def aiBuildRenderNodeTreeListerContentCallback(renderNodeTreeLister, postCommand
 def aiProvideClassificationStringsForFilteredTreeListerCallback(classification) :
     return "rendernode/arnold/shader/surface"
 
+def aiNodeCanBeUsedAsMaterialCallback(nodeId, nodeOwner ) :
+    if nodeOwner == "Arnold":
+        return 1
+    else:
+        return 0
 
 # Add the callbacks
 
@@ -68,4 +73,8 @@ cmds.callbacks(addCallback=templates.loadArnoldTemplate,
 
 cmds.callbacks(addCallback=aiProvideClassificationStringsForFilteredTreeListerCallback,
                hook="provideClassificationStringsForFilteredTreeLister",
+               owner="arnold")
+
+cmds.callbacks(addCallback=aiNodeCanBeUsedAsMaterialCallback,
+               hook="nodeCanBeUsedAsMaterial",
                owner="arnold")
