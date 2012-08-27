@@ -564,9 +564,10 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles]
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
 # install mtoa version specific scritps (myst be done after to allow overwriting)
-versionfiles = find_files_recursive(os.path.join('scripts', maya_version), ['.py', '.mel'])
-env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version, x) for x in versionfiles],
-              [os.path.join('scripts', maya_version, x) for x in versionfiles])
+maya_version_base = maya_version[0:4]
+versionfiles = find_files_recursive(os.path.join('scripts', maya_version_base), ['.py', '.mel'])
+env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base, x) for x in versionfiles],
+              [os.path.join('scripts', maya_version_base, x) for x in versionfiles])
 
 # install Arnold python bindings
 arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
