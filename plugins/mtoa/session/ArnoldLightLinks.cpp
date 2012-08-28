@@ -63,7 +63,7 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::v
          MDagPath dgPath;
          if (!sList.getDagPath(i, dgPath))
             continue;
-         dgPath.extendToShape();
+         dgPath.extendToShapeDirectlyBelow(0);
          MFnDependencyNode linkedLight(dgPath.node(), &status);
          if (!status)
             continue;
