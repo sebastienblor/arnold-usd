@@ -26,6 +26,8 @@ private:
       MTOA_NODELINK_LINK,
       MTOA_NODELINK_IGNORE
    };
+   
+   const std::vector<AtNode*>& GetObjectsFromObjectSet(MFnDependencyNode& objectSet);
 
    void AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
         size_t& numLinkedNodes);
@@ -37,6 +39,7 @@ private:
       NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
    // saving the lights here for faster access
    std::map<std::string, AtNode*> m_arnoldLights;
+   std::map<std::string, std::vector<AtNode*> > m_cachedObjectSets;
    size_t m_numArnoldLights;
    
    std::vector<AtNode*> m_linkedLights;
