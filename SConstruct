@@ -50,7 +50,7 @@ vars.AddVariables(
       PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
       PathVariable('SHCXX', 'Path to C++ (gcc) compiler used for generating shared-library objects', None),
                   
-      BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', False),
+      BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
       EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
       ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
