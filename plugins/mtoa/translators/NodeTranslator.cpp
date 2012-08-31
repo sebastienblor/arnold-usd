@@ -809,7 +809,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       aname += 5;
       if (strncmp(aname, "constant_", 9) == 0)
          aname += 9;
-      if (strncmp(aname, "uniform_", 8) == 0)
+      else if (strncmp(aname, "uniform_", 8) == 0)
       {
          attributeDeclaration = DECLARATION_UNIFORM;
          aname += 8;
