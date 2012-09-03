@@ -833,7 +833,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       {
          MFnNumericAttribute nAttr(oAttr);
          bool usedAsColor = nAttr.isUsedAsColor();
-         switch (nAttr.unitType())
+         bool isDouble = false;
+         MFnNumericData::Type unitType = nAttr.unitType();
+         switch (unitType)
          {
          case MFnNumericData::kBoolean:
             if (pAttr.isArray())
@@ -967,7 +969,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             break;
          case MFnNumericData::k3Float:
          case MFnNumericData::k3Double:
-            // point? vector? rgb?
+            isDouble = unitType == MFnNumericData::k3Double;
             if (pAttr.isArray())
             {
                if (usedAsColor)
@@ -978,11 +980,20 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
                   {
                      AtRGB rgb;
+                     MVector drgb;
                      AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGB);
                      for (unsigned int i=0; i<pAttr.numElements(); ++i)
                      {
                         MFnNumericData data(pAttr[i].asMObject());
-                        data.getData3Float(rgb.r, rgb.g, rgb.b);
+                        if (isDouble)
+                        {
+                           data.getData3Double(drgb.x, drgb.y, drgb.z);
+                           rgb.r = (float)drgb.x;
+                           rgb.g = (float)drgb.y;
+                           rgb.b = (float)drgb.z;
+                        }
+                        else
+                           data.getData3Float(rgb.r, rgb.g, rgb.b);
                         AiArraySetRGB(ary, i, rgb);
                      }
                      AiNodeSetArray(anode, aname, ary);
@@ -996,11 +1007,20 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
                   {
                      AtVector vec;
+                     MVector dvec;
                      AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
                      for (unsigned int i=0; i<pAttr.numElements(); ++i)
                      {
                         MFnNumericData data(pAttr[i].asMObject());
-                        data.getData3Float(vec.x, vec.y, vec.z);
+                        if (isDouble)
+                        {
+                           data.getData3Double(dvec.x, dvec.y, dvec.z);
+                           vec.x = (float)dvec.x;
+                           vec.y = (float)dvec.y;
+                           vec.z = (float)dvec.z;
+                        }
+                        else
+                           data.getData3Float(vec.x, vec.y, vec.z);
                         AiArraySetVec(ary, i, vec);
                      }
                      AiNodeSetArray(anode, aname, ary);
@@ -1015,7 +1035,16 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   {
                      AtRGB rgb;
                      MFnNumericData data(pAttr.asMObject());
-                     data.getData3Float(rgb.r, rgb.g, rgb.b);
+                     if (isDouble)
+                     {
+                        MVector drgb;
+                        data.getData3Double(drgb.x, drgb.y, drgb.z);
+                        rgb.r = (float)drgb.x;
+                        rgb.g = (float)drgb.y;
+                        rgb.b = (float)drgb.z;
+                     }
+                     else
+                        data.getData3Float(rgb.r, rgb.g, rgb.b);
                      AiNodeSetRGB(anode, aname, rgb.r, rgb.b, rgb.g);
                   }                  
                }
@@ -1023,7 +1052,16 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                {
                   AtVector vec;
                   MFnNumericData data(pAttr.asMObject());
-                  data.getData3Float(vec.x, vec.y, vec.z);
+                  if (isDouble)
+                  {
+                     MVector dvec;
+                     data.getData3Double(dvec.x, dvec.y, dvec.z);
+                     vec.x = (float)dvec.x;
+                     vec.y = (float)dvec.y;
+                     vec.z = (float)dvec.z;
+                  }
+                  else
+                     data.getData3Float(vec.x, vec.y, vec.z);
                   AiNodeSetVec(anode, aname, vec.x, vec.y, vec.z);
                }
             }
