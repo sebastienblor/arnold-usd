@@ -775,10 +775,30 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 }
 
 enum EAttributeDeclarationType{
-   DECLARATION_CONSTANT = 0,
-   DECLARATION_UNIFORM = 1,
-   DECLARATION_VARYING = 2
+   DECLARATION_CONSTANT = 1,
+   DECLARATION_UNIFORM = 2,
+   DECLARATION_VARYING = 3
 };
+
+static const char* declStrings[][4] = {
+   {"constant BYTE", "constant ARRAY BYTE", "uniform BYTE", "varying BYTE"}, // AI_TYPE_BYTE
+   {"constant INT", "constant ARRAY INT", "uniform INT", "varying INT"}, // AI_TYPE_INT
+   {"constant UINT", "constant ARRAY UINT", "uniform UINT", "varying UINT"}, // AI_TYPE_UINT
+   {"constant BOOLEAN", "constant ARRAY BOOLEAN", "uniform BOOLEAN", "varying BOOLEAN"}, // AI_TYPE_BOOLEAN
+   {"constant FLOAT", "constant ARRAY FLOAT", "uniform FLOAT", "varying FLOAT"}, // AI_TYPE_FLOAT
+   {"constant RGB", "constant ARRAY RGB", "uniform RGB", "varying RGB"}, // AI_TYPE_RGB
+   {"constant RGBA", "constant ARRAY RGBA", "uniform RGBA", "varying RGBA"}, // AI_TYPE_RGBA
+   {"constant VECTOR", "constant ARRAY VECTOR", "uniform VECTOR", "varying VECTOR"}, // AI_TYPE_VECTOR
+   {"constant POINT", "constant ARRAY POINT", "uniform POINT", "varying POINT"}, // AI_TYPE_POINT
+   {"constant POINT2", "constant ARRAY POINT2", "uniform POINT2", "varying POINT2"}, // AI_TYPE_POINT2
+   {"constant STRING", "constant ARRAY STRING", "uniform STRING", "varying STRING"}, // AI_TYPE_STRING
+   {"constant POINTER", "constant ARRAY POINTER", "uniform POINTER", "varying POINTER"}, // AI_TYPE_POINTER
+   {"constant NODE", "constant ARRAY NODE", "uniform NODE", "varying NODE"}, // AI_TYPE_NODE
+   {"constant ARRAY", "constant ARRAY ARRAY", "uniform ARRAY", "varying ARRAY"}, // AI_TYPE_ARRAY
+   {"constant MATRIX", "constant ARRAY MATRIX", "uniform MATRIX", "varying MATRIX"}, // AI_TYPE_MATRIX
+   {"constant ENUM", "constant ARRAY ENUM", "uniform ENUM", "varying ENUM"} // AI_TYPE_ENUM
+};
+
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
@@ -840,10 +860,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnNumericData::kBoolean:
             if (pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY BOOL",
-                                                  "uniform BOOL",
-                                                  "varying BOOL"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BOOLEAN][attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BOOLEAN);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -855,7 +872,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant BOOL"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BOOLEAN][0]))
                {
                   AiNodeSetBool(anode, aname, pAttr.asBool());
                }
@@ -865,10 +882,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnNumericData::kChar:
             if (pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY BYTE",
-                                                  "uniform BYTE",
-                                                  "varying BYTE"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BYTE][attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BYTE);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -880,7 +894,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant BYTE"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BYTE][0]))
                {
                   AiNodeSetByte(anode, aname, pAttr.asChar());
                }
@@ -890,10 +904,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnNumericData::kLong:
             if (pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY INT",
-                                                  "uniform INT",
-                                                  "varying INT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_INT][attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_INT);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -905,7 +916,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant INT"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_INT][0]))
                {
                   AiNodeSetInt(anode, aname, pAttr.asInt());
                }
@@ -915,10 +926,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnNumericData::kDouble:
             if (pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY FLOAT",
-                                                  "uniform FLOAT",
-                                                  "varying FLOAT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_FLOAT][attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_FLOAT);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -930,7 +938,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant FLOAT"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_FLOAT][0]))
                {
                   AiNodeSetFlt(anode, aname, pAttr.asFloat());
                }
@@ -941,10 +949,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             if (pAttr.isArray())
             {
                AtPoint2 pnt2;
-               static const char* declString[] = {"constant ARRAY POINT2",
-                                                  "uniform POINT2",
-                                                  "varying POINT2"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_POINT2][attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_POINT2);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -958,7 +963,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant POINT2"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_POINT2][0]))
                {
                   AtPoint2 pnt2;
                   MFnNumericData data(pAttr.asMObject());
@@ -974,10 +979,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             {
                if (usedAsColor)
                {
-                  static const char* declString[] = {"constant ARRAY RGB",
-                                       "uniform RGB",
-                                       "varying RGB"};
-                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][attributeDeclaration]))
                   {
                      AtRGB rgb;
                      MVector drgb;
@@ -1001,10 +1003,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                }
                else
                {
-                  static const char* declString[] = {"constant ARRAY VECTOR",
-                                                  "uniform VECTOR",
-                                                  "varying VECTOR"};
-                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_VECTOR][attributeDeclaration]))
                   {
                      AtVector vec;
                      MVector dvec;
@@ -1031,7 +1030,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             {
                if (usedAsColor)
                {
-                  if (AiNodeDeclare(anode, aname, "constant RGB"))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][0]))
                   {
                      AtRGB rgb;
                      MFnNumericData data(pAttr.asMObject());
@@ -1048,7 +1047,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                      AiNodeSetRGB(anode, aname, rgb.r, rgb.b, rgb.g);
                   }                  
                }
-               else if (AiNodeDeclare(anode, aname, "constant VECTOR"))
+               else if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_VECTOR][0]))
                {
                   AtVector vec;
                   MFnNumericData data(pAttr.asMObject());
@@ -1070,10 +1069,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             // rgba? homogeneous point?
             if (pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY RGBA",
-                                                  "uniform RGBA",
-                                                  "varying RGBA"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGBA][attributeDeclaration]))
                {
                   AtRGBA rgba;
                   double r, g, b, a;
@@ -1093,7 +1089,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant RGBA"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGBA][0]))
                {
                   double r, g, b, a;
                   MFnNumericData data(pAttr.asMObject());
@@ -1118,10 +1114,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnData::kString:
             if (pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY STRING",
-                                                  "uniform STRING",
-                                                  "varying STRING"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_STRING][attributeDeclaration]))
                {
                   AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_STRING);
                   for (unsigned int i=0; i<pAttr.numElements(); ++i)
@@ -1133,7 +1126,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             }
             else
             {
-               if (AiNodeDeclare(anode, aname, "constant STRING"))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_STRING][0]))
                {
                   AiNodeSetStr(anode, aname, pAttr.asString().asChar());
                }
@@ -1142,10 +1135,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnData::kStringArray:
             if (!pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY STRING",
-                                                  "uniform STRING",
-                                                  "varying STRING"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_STRING][attributeDeclaration]))
                {
                   MFnStringArrayData data(pAttr.asMObject());
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_STRING);
@@ -1160,10 +1150,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnData::kDoubleArray:
             if (!pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY FLOAT",
-                                                  "uniform FLOAT",
-                                                  "varying FLOAT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_FLOAT][attributeDeclaration]))
                {
                   MFnDoubleArrayData data(pAttr.asMObject());
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_FLOAT);
@@ -1178,10 +1165,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          case MFnData::kIntArray:
             if (!pAttr.isArray())
             {
-               static const char* declString[] = {"constant ARRAY INT",
-                                       "uniform INT",
-                                       "varying INT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_INT][attributeDeclaration]))
                {
                   MFnIntArrayData data(pAttr.asMObject());
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_INT);
@@ -1198,10 +1182,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             {
                if (usedAsColor)
                {
-                  static const char* declString[] = {"constant ARRAY RGB",
-                                       "uniform RGB",
-                                       "varying RGB"};
-                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][attributeDeclaration]))
                   {
                      AtRGB rgb;
                      MFnVectorArrayData data(pAttr.asMObject());
@@ -1218,10 +1199,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                }
                else
                {
-                  static const char* declString[] = {"constant ARRAY POINT",
-                                          "uniform POINT",
-                                          "varying POINT"};
-                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_POINT][attributeDeclaration]))
                   {
                      AtPoint pnt;
                      MFnPointArrayData data(pAttr.asMObject());
@@ -1243,10 +1221,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             {
                if (usedAsColor)
                {
-                  static const char* declString[] = {"constant ARRAY RGB",
-                                       "uniform RGB",
-                                       "varying RGB"};
-                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][attributeDeclaration]))
                   {
                      AtRGB rgb;
                      MFnVectorArrayData data(pAttr.asMObject());
@@ -1263,10 +1238,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                }
                else
                {
-                  static const char* declString[] = {"constant ARRAY VECTOR",
-                                       "uniform VECTOR",
-                                       "varying VECTOR"};
-                  if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
+                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_VECTOR][attributeDeclaration]))
                   {
                      AtVector vec;
                      MFnVectorArrayData data(pAttr.asMObject());
