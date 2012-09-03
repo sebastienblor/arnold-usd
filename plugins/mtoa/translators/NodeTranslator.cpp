@@ -794,6 +794,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       if (fnDepNode.attributeClass(oAttr) == MFnDependencyNode::kNormalAttr)
          continue; // we don`t need to check normal attributes,
       // they should be exported by the translator
+      
+      MPlug pAttr(object, oAttr);
+      if (!pAttr.parent().isNull())
+         continue;      
+      // we only need to export the compound attribute, not the compounds itself
+      // after the string comparisons, or before them? probably this one is faster
 
       MFnAttribute fnAttr(oAttr);      
       // The indexW in the MString is very slow!
@@ -822,8 +828,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       else
          AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_!");
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
-         continue;
-      MPlug pAttr(object, oAttr);
+         continue;      
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {
          MFnNumericAttribute nAttr(oAttr);
