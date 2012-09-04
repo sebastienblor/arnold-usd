@@ -784,7 +784,7 @@ static const char* declStrings[][4] = {
    {"constant BYTE", "constant ARRAY BYTE", "uniform BYTE", "varying BYTE"}, // AI_TYPE_BYTE
    {"constant INT", "constant ARRAY INT", "uniform INT", "varying INT"}, // AI_TYPE_INT
    {"constant UINT", "constant ARRAY UINT", "uniform UINT", "varying UINT"}, // AI_TYPE_UINT
-   {"constant BOOLEAN", "constant ARRAY BOOLEAN", "uniform BOOLEAN", "varying BOOLEAN"}, // AI_TYPE_BOOLEAN
+   {"constant BOOL", "constant ARRAY BOOL", "uniform BOOL", "varying BOOL"}, // AI_TYPE_BOOLEAN
    {"constant FLOAT", "constant ARRAY FLOAT", "uniform FLOAT", "varying FLOAT"}, // AI_TYPE_FLOAT
    {"constant RGB", "constant ARRAY RGB", "uniform RGB", "varying RGB"}, // AI_TYPE_RGB
    {"constant RGBA", "constant ARRAY RGBA", "uniform RGBA", "varying RGBA"}, // AI_TYPE_RGBA
@@ -792,13 +792,237 @@ static const char* declStrings[][4] = {
    {"constant POINT", "constant ARRAY POINT", "uniform POINT", "varying POINT"}, // AI_TYPE_POINT
    {"constant POINT2", "constant ARRAY POINT2", "uniform POINT2", "varying POINT2"}, // AI_TYPE_POINT2
    {"constant STRING", "constant ARRAY STRING", "uniform STRING", "varying STRING"}, // AI_TYPE_STRING
-   {"constant POINTER", "constant ARRAY POINTER", "uniform POINTER", "varying POINTER"}, // AI_TYPE_POINTER
-   {"constant NODE", "constant ARRAY NODE", "uniform NODE", "varying NODE"}, // AI_TYPE_NODE
-   {"constant ARRAY", "constant ARRAY ARRAY", "uniform ARRAY", "varying ARRAY"}, // AI_TYPE_ARRAY
-   {"constant MATRIX", "constant ARRAY MATRIX", "uniform MATRIX", "varying MATRIX"}, // AI_TYPE_MATRIX
-   {"constant ENUM", "constant ARRAY ENUM", "uniform ENUM", "varying ENUM"} // AI_TYPE_ENUM
 };
 
+template <signed ATTR>
+void TExportArrayAttribute(AtArray* arr, MPlug& plug, unsigned int element) { }
+
+template <>
+void TExportArrayAttribute<AI_TYPE_BYTE>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetByte(arr, element, plug[element].asChar());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_INT>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetInt(arr, element, plug[element].asInt());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_BOOLEAN>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetBool(arr, element, plug[element].asBool());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_FLOAT>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetFlt(arr, element, plug[element].asFloat());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_RGB>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtRGB rgb = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AiArraySetRGB(arr, element, rgb);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_RGBA>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtRGBA rgba = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat(), p.child(3).asFloat()};
+   AiArraySetRGBA(arr, element, rgba);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_VECTOR>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtVector vec = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AiArraySetVec(arr, element, vec);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_POINT>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtPoint pnt = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AiArraySetPnt(arr, element, pnt);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_POINT2>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtPoint2 pnt2 = {p.child(0).asFloat(), p.child(1).asFloat()};
+   AiArraySetPnt2(arr, element, pnt2);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_STRING>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetStr(arr, element, plug[element].asString().asChar());
+}
+
+template <signed ATTR>
+void TExportAttribute(AtNode* node, MPlug& plug, const char* attrName) { }
+
+template <>
+void TExportAttribute<AI_TYPE_BYTE>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetByte(node, attrName, plug.asChar());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_INT>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetInt(node, attrName, plug.asInt());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_BOOLEAN>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetBool(node, attrName, plug.asBool());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_FLOAT>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetFlt(node, attrName, plug.asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_RGB>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetRGB(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_RGBA>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetRGBA(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_VECTOR>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetVec(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_POINT>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetPnt(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_POINT2>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetPnt2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetStr(node, attrName, plug.asString().asChar());
+}
+
+template <signed ATTR>
+void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+{
+   if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+   {
+      const unsigned int numElements = plug.numElements();
+      AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
+      for (unsigned int i = 0; i < numElements; ++i)
+         TExportArrayAttribute<ATTR>(arr, plug, i);
+      AiNodeSetArray(node, attrName, arr);
+   }
+}
+
+template <signed ATTR>
+void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+{
+   if (plug.isArray())
+      TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
+   else
+   {
+      if (AiNodeDeclare(node, attrName, declStrings[ATTR][0]))
+         TExportAttribute<ATTR>(node, plug, attrName);
+   }
+}
+
+template <signed ATTR, typename T>
+void TExportUserAttributeData(AtArray* array, T& data, unsigned int element)
+{
+   
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(AtArray* array, MFnStringArrayData& data, unsigned int element)
+{
+   AiArraySetStr(array, element, data[element].asChar());
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_FLOAT, MFnDoubleArrayData>(AtArray* array, MFnDoubleArrayData& data, unsigned int element)
+{
+   AiArraySetFlt(array, element, (float)data[element]);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(AtArray* array, MFnIntArrayData& data, unsigned int element)
+{
+   AiArraySetInt(array, element, data[element]);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
+{
+   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetVec(array, element, vec);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
+{
+   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetRGB(array, element, rgb);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
+{
+   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetVec(array, element, vec);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
+{
+   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetRGB(array, element, rgb);
+}
+
+template <signed ATTR, typename T>
+void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+{
+   if (!plug.isArray())
+   {
+      if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+      {
+         T data(plug.asMObject());
+         const unsigned int length = data.length();
+         AtArray* arr = AiArrayAllocate(length, 1, ATTR);
+         for (unsigned int i = 0; i < length; ++i)
+            TExportUserAttributeData<ATTR, T>(arr, data, i);
+         AiNodeSetArray(node, attrName, arr);
+      }
+   }
+}
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
@@ -852,251 +1076,37 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {
          MFnNumericAttribute nAttr(oAttr);
-         bool usedAsColor = nAttr.isUsedAsColor();
-         bool isDouble = false;
          MFnNumericData::Type unitType = nAttr.unitType();
          switch (unitType)
          {
          case MFnNumericData::kBoolean:
-            if (pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BOOLEAN][attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BOOLEAN);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetBool(ary, i, pAttr[i].asBool());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BOOLEAN][0]))
-               {
-                  AiNodeSetBool(anode, aname, pAttr.asBool());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_BOOLEAN>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::kByte:
          case MFnNumericData::kChar:
-            if (pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BYTE][attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BYTE);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetBool(ary, i, pAttr[i].asBool());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_BYTE][0]))
-               {
-                  AiNodeSetByte(anode, aname, pAttr.asChar());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_BYTE>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::kShort:
          case MFnNumericData::kLong:
-            if (pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_INT][attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_INT);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetInt(ary, i, pAttr[i].asInt());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_INT][0]))
-               {
-                  AiNodeSetInt(anode, aname, pAttr.asInt());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_INT>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::kFloat:
          case MFnNumericData::kDouble:
-            if (pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_FLOAT][attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_FLOAT);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetFlt(ary, i, pAttr[i].asFloat());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_FLOAT][0]))
-               {
-                  AiNodeSetFlt(anode, aname, pAttr.asFloat());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_FLOAT>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k2Float:
          case MFnNumericData::k2Double:
-            if (pAttr.isArray())
-            {
-               AtPoint2 pnt2;
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_POINT2][attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_POINT2);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     MFnNumericData data(pAttr[i].asMObject());
-                     data.getData2Float(pnt2.x, pnt2.y);
-                     AiArraySetPnt2(ary, i, pnt2);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_POINT2][0]))
-               {
-                  AtPoint2 pnt2;
-                  MFnNumericData data(pAttr.asMObject());
-                  data.getData2Float(pnt2.x, pnt2.y);
-                  AiNodeSetPnt2(anode, aname, pnt2.x, pnt2.y);
-               }
-            }
+            TExportUserAttribute<AI_TYPE_POINT2>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k3Float:
          case MFnNumericData::k3Double:
-            isDouble = unitType == MFnNumericData::k3Double;
-            if (pAttr.isArray())
-            {
-               if (usedAsColor)
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][attributeDeclaration]))
-                  {
-                     AtRGB rgb;
-                     MVector drgb;
-                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGB);
-                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                     {
-                        MFnNumericData data(pAttr[i].asMObject());
-                        if (isDouble)
-                        {
-                           data.getData3Double(drgb.x, drgb.y, drgb.z);
-                           rgb.r = (float)drgb.x;
-                           rgb.g = (float)drgb.y;
-                           rgb.b = (float)drgb.z;
-                        }
-                        else
-                           data.getData3Float(rgb.r, rgb.g, rgb.b);
-                        AiArraySetRGB(ary, i, rgb);
-                     }
-                     AiNodeSetArray(anode, aname, ary);
-                  }
-               }
-               else
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_VECTOR][attributeDeclaration]))
-                  {
-                     AtVector vec;
-                     MVector dvec;
-                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
-                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                     {
-                        MFnNumericData data(pAttr[i].asMObject());
-                        if (isDouble)
-                        {
-                           data.getData3Double(dvec.x, dvec.y, dvec.z);
-                           vec.x = (float)dvec.x;
-                           vec.y = (float)dvec.y;
-                           vec.z = (float)dvec.z;
-                        }
-                        else
-                           data.getData3Float(vec.x, vec.y, vec.z);
-                        AiArraySetVec(ary, i, vec);
-                     }
-                     AiNodeSetArray(anode, aname, ary);
-                  }
-               }
-            }
+            if (nAttr.isUsedAsColor())
+               TExportUserAttribute<AI_TYPE_RGB>(anode, pAttr, aname, attributeDeclaration);
             else
-            {
-               if (usedAsColor)
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][0]))
-                  {
-                     AtRGB rgb;
-                     MFnNumericData data(pAttr.asMObject());
-                     if (isDouble)
-                     {
-                        MVector drgb;
-                        data.getData3Double(drgb.x, drgb.y, drgb.z);
-                        rgb.r = (float)drgb.x;
-                        rgb.g = (float)drgb.y;
-                        rgb.b = (float)drgb.z;
-                     }
-                     else
-                        data.getData3Float(rgb.r, rgb.g, rgb.b);
-                     AiNodeSetRGB(anode, aname, rgb.r, rgb.b, rgb.g);
-                  }                  
-               }
-               else if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_VECTOR][0]))
-               {
-                  AtVector vec;
-                  MFnNumericData data(pAttr.asMObject());
-                  if (isDouble)
-                  {
-                     MVector dvec;
-                     data.getData3Double(dvec.x, dvec.y, dvec.z);
-                     vec.x = (float)dvec.x;
-                     vec.y = (float)dvec.y;
-                     vec.z = (float)dvec.z;
-                  }
-                  else
-                     data.getData3Float(vec.x, vec.y, vec.z);
-                  AiNodeSetVec(anode, aname, vec.x, vec.y, vec.z);
-               }
-            }
+               TExportUserAttribute<AI_TYPE_VECTOR>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k4Double:
-            // rgba? homogeneous point?
-            if (pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGBA][attributeDeclaration]))
-               {
-                  AtRGBA rgba;
-                  double r, g, b, a;
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGBA);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     MFnNumericData data(pAttr[i].asMObject());
-                     data.getData4Double(r, g, b, a);
-                     rgba.r = static_cast<float>(r);
-                     rgba.g = static_cast<float>(g);
-                     rgba.b = static_cast<float>(b);
-                     rgba.a = static_cast<float>(a);
-                     AiArraySetRGBA(ary, i, rgba);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGBA][0]))
-               {
-                  double r, g, b, a;
-                  MFnNumericData data(pAttr.asMObject());
-                  data.getData4Double(r, g, b, a);
-                  AiNodeSetRGBA(anode, aname, static_cast<float>(r), static_cast<float>(g), static_cast<float>(b), static_cast<float>(a));
-               }
-            }
+            TExportUserAttribute<AI_TYPE_RGBA>(anode, pAttr, aname, attributeDeclaration);
             break;
          default:
             // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
@@ -1112,148 +1122,28 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          switch (tAttr.attrType())
          {
          case MFnData::kString:
-            if (pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_STRING][attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_STRING);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetStr(ary, i, pAttr[i].asString().asChar());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_STRING][0]))
-               {
-                  AiNodeSetStr(anode, aname, pAttr.asString().asChar());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_STRING>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kStringArray:
-            if (!pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_STRING][attributeDeclaration]))
-               {
-                  MFnStringArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_STRING);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     AiArraySetStr(ary, i, data[i].asChar());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kDoubleArray:
-            if (!pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_FLOAT][attributeDeclaration]))
-               {
-                  MFnDoubleArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_FLOAT);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     AiArraySetFlt(ary, i, static_cast<float>(data[i]));
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            TExportUserAttributeData<AI_TYPE_FLOAT, MFnDoubleArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kIntArray:
-            if (!pAttr.isArray())
-            {
-               if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_INT][attributeDeclaration]))
-               {
-                  MFnIntArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_INT);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     AiArraySetInt(ary, i, data[i]);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kPointArray:
-            if (!pAttr.isArray())
-            {
-               if (usedAsColor)
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][attributeDeclaration]))
-                  {
-                     AtRGB rgb;
-                     MFnVectorArrayData data(pAttr.asMObject());
-                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_RGB);
-                     for (unsigned int i=0; i<data.length(); ++i)
-                     {
-                        rgb.r = static_cast<float>(data[i].x);
-                        rgb.g = static_cast<float>(data[i].y);
-                        rgb.b = static_cast<float>(data[i].z);
-                        AiArraySetRGB(ary, i, rgb);
-                     }
-                     AiNodeSetArray(anode, aname, ary);
-                  }
-               }
-               else
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_POINT][attributeDeclaration]))
-                  {
-                     AtPoint pnt;
-                     MFnPointArrayData data(pAttr.asMObject());
-                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
-                     for (unsigned int i=0; i<data.length(); ++i)
-                     {
-                        pnt.x = static_cast<float>(data[i].x);
-                        pnt.y = static_cast<float>(data[i].y);
-                        pnt.z = static_cast<float>(data[i].z);
-                        AiArraySetPnt(ary, i, pnt);
-                     }
-                     AiNodeSetArray(anode, aname, ary);
-                  }
-               }
-            }
+            if (usedAsColor)
+               TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(anode, pAttr, aname, attributeDeclaration);
+            else
+               TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kVectorArray:
-            if (!pAttr.isArray())
-            {
-               if (usedAsColor)
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_RGB][attributeDeclaration]))
-                  {
-                     AtRGB rgb;
-                     MFnVectorArrayData data(pAttr.asMObject());
-                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_RGB);
-                     for (unsigned int i=0; i<data.length(); ++i)
-                     {
-                        rgb.r = static_cast<float>(data[i].x);
-                        rgb.g = static_cast<float>(data[i].y);
-                        rgb.b = static_cast<float>(data[i].z);
-                        AiArraySetRGB(ary, i, rgb);
-                     }
-                     AiNodeSetArray(anode, aname, ary);
-                  }
-               }
-               else
-               {
-                  if (AiNodeDeclare(anode, aname, declStrings[AI_TYPE_VECTOR][attributeDeclaration]))
-                  {
-                     AtVector vec;
-                     MFnVectorArrayData data(pAttr.asMObject());
-                     AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
-                     for (unsigned int i=0; i<data.length(); ++i)
-                     {
-                        vec.x = static_cast<float>(data[i].x);
-                        vec.y = static_cast<float>(data[i].y);
-                        vec.z = static_cast<float>(data[i].z);
-                        AiArraySetVec(ary, i, vec);
-                     }
-                     AiNodeSetArray(anode, aname, ary);
-                  }
-               }
-            }
+            if (usedAsColor)
+               TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(anode, pAttr, aname, attributeDeclaration);
+            else
+               TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          default:
             // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
