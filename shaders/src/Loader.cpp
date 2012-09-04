@@ -603,7 +603,7 @@ node_loader
       
    case 74:
       node->methods     = SocketDriverMtd;
-      node->name        = "socketDriver";
+      node->name        = "driver_socket";
       node->node_type   = AI_NODE_DRIVER;
       break;
 
