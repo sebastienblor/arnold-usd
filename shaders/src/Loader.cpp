@@ -77,6 +77,7 @@ extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
 extern AtNodeMethods* MeshLightMaterialMtd;
+extern AtNodeMethods* SocketDriverMtd;
 
 node_loader
 {
@@ -598,7 +599,13 @@ node_loader
       node->output_type = AI_TYPE_RGBA;
       node->name        = "meshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
-      break;         
+      break;
+      
+   case 74:
+      node->methods     = SocketDriverMtd;
+      node->name        = "socketDriver";
+      node->node_type   = AI_NODE_DRIVER;
+      break;
 
    default:
       return false;
