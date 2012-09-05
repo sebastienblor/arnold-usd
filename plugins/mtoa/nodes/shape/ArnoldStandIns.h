@@ -25,7 +25,7 @@ public:
    MString filename;
    MString geomLoaded;
    int mode;
-   float frame;
+   int frame;
    float frameOffset;
    bool useFrameExtension;
    bool useSubFrame;
