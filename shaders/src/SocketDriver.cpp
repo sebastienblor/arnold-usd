@@ -33,7 +33,7 @@ struct SocketDriverData{
 node_initialize
 {
    SocketDriverData* data = new SocketDriverData;
-   AiDriverInitialize(node, false, data);
+   AiDriverInitialize(node, true, data);
 }
 
 node_update
