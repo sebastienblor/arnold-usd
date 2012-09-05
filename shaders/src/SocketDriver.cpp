@@ -18,6 +18,7 @@ node_parameters
 struct SocketDriverData{
    int socketFd;
    std::map<std::string, int> aovMap;
+   AtCritSec critSec;
    
    static void* operator new(size_t size)
    {
@@ -142,6 +143,8 @@ driver_open
       SendSocket(socketFd, outputNameLength);
       SendSocket(socketFd, outputName, outputNameLength);
    }
+   
+   AiCritSecInit(&data->critSec);
 }
 
 driver_prepare_bucket
@@ -156,6 +159,8 @@ driver_write_bucket
    const char* outputName;
    int pixelType;
    const void* bucketData;
+   
+   AiCritSecEnter(&data->critSec);
    
    while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, &bucketData))
    {
@@ -172,6 +177,8 @@ driver_write_bucket
       int pixelSize = pixelType == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA);
       SendSocket(data->socketFd, bucketData, pixelSize * bucket_size_x * bucket_size_y);
    }
+   
+   AiCritSecLeave(&data->critSec);
 }
 
 driver_close
@@ -179,6 +186,7 @@ driver_close
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
    if (data->socketFd != -1)
       close(data->socketFd);
+   AiCritSecClose(&data->critSec);
 }
 
 node_finish
