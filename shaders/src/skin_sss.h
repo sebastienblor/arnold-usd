@@ -521,6 +521,7 @@ public:
 enum SSSParams {
    p_diffuse_color,
    p_diffuse_weight,
+   p_diffuse_roughness,
    p_sss_weight,
    p_shallow_scatter_color,
    p_shallow_scatter_weight,
@@ -564,6 +565,7 @@ class CSSSParams
 public:
    AtColor diffuse_color;
    float diffuse_weight;
+   float roughness;
    float sss_weight;
    AtColor shallow_scatter_color;
    float shallow_scatter_weight;
