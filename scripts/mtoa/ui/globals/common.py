@@ -31,6 +31,7 @@ import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
+import mtoa.aovs as aovs
 
 if pm.mel.getApplicationVersionAsFloat() >= 2011:
     from maya.app.stereo import stereoCameraRig
@@ -162,7 +163,9 @@ def createArnoldTargetFilePreview():
                  "defaultResolution.dotsPerInch",
                  "defaultResolution.imageSizeUnits",
                  "defaultResolution.pixelDensityUnits",
-                 "defaultRenderGlobals.renderVersion"]
+                 "defaultRenderGlobals.renderVersion",
+                 "defaultArnoldRenderOptions.aovMode",
+                 "defaultArnoldDriver.mergeAOVs"]
 
     # Now we establish scriptJobs to invoke the procedure which updates the
     # target file preview when any of the above attributes change.
@@ -190,7 +193,7 @@ def updateArnoldTargetFilePreview(*args):
 
     oldParent = pm.setParent(query=True)
 
-    if pm.mel.eval('isDisplayingAllRendererTabs'):
+    if pm.mel.isDisplayingAllRendererTabs():
         renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
     else:
         renderer = utils.currentRenderer()
@@ -200,34 +203,53 @@ def updateArnoldTargetFilePreview(*args):
         pm.setParent(tabLayout)
 
     #
-    # Update the Path portion of the preview.
-    #
-
-    # get the project's image directory
-    #
-    imgDir = pm.workspace("images", q=True, fileRuleEntry=True)
-    fullPath = pm.workspace(expandName=imgDir)
-    pathLabel = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewPath")
-    path = pm.format(pathLabel, s=fullPath)
-    pm.text('exampleText0', edit=True, label=path)
-
-    #
     # Update the File Name portion of the preview.
     #
 
     title1 = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewFileName")
     title2 = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewTo")
-    # TODO: DEFINE FIELDS FOR SW RENDER
-    if pm.mel.getApplicationVersionAsFloat() >= 2011:
-        first, last = pm.renderSettings(firstImageName=True,
-                                        lastImageName=True,
-                                        leaveUnmatchedTokens=True)
+
+    kwargs = {}
+    tokens = {}
+    try:
+        prefix = pm.getAttr('defaultRenderGlobals.imageFilePrefix')
+    except:
+        pass
     else:
-        first, last = pm.renderSettings(firstImageName=True,
-                                        lastImageName=True)
+        if prefix:
+            kwargs['path'] = prefix
+
+    kwargs['createDirectory'] = False
+    kwargs['leaveUnmatchedTokens'] = True
+    aovsEnabled = pm.getAttr('defaultArnoldRenderOptions.aovMode') and aovs.getAOVs(enabled=True, exclude=['beauty', 'RGBA', 'RGB'])
+    if aovsEnabled:
+        tokens['RenderPass'] = '<RenderPass>'
+    kwargs['strictAOVs'] = not (aovsEnabled and not pm.getAttr('defaultArnoldDriver.mergeAOVs'))
+    tokens['Frame'] = pm.getAttr('defaultRenderGlobals.startFrame')
+    first = utils.getFileName('relative', tokens, **kwargs)
+
+    if os.path.isabs(first):
+        # the entered path is absolute so there is no prepended path
+        pm.text('exampleText0', edit=True, label='')
+    else:
+        #
+        # Update the Path portion of the preview.
+        #
+    
+        # get the project's image directory
+        #
+        imgDir = pm.workspace("images", q=True, fileRuleEntry=True)
+        fullPath = pm.workspace(expandName=imgDir)
+        pathLabel = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewPath")
+        path = pm.format(pathLabel, s=fullPath)
+        pm.text('exampleText0', edit=True, label=path)
 
     pm.text('exampleArnoldText1', edit=True, label=pm.format(title1, s=first))
-    if last:
+    settings = pm.api.MCommonRenderSettingsData()
+    pm.api.MRenderUtil.getCommonRenderSettings(settings)
+    if settings.isAnimated():
+        tokens['Frame'] = pm.getAttr('defaultRenderGlobals.endFrame')
+        last = utils.getFileName('relative', tokens, **kwargs)
         pm.text('exampleArnoldText2', edit=True, label=pm.format(title2, s=last))
     else:
         pm.text('exampleArnoldText2', edit=True, label="")
@@ -973,6 +995,7 @@ def updateArnoldCameraControl(*args):
 
     pm.setParent(oldParent)
 
+    updateArnoldTargetFilePreview()
 
 def updateArnoldFrameNumberControls(*args):
 

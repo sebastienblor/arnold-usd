@@ -466,15 +466,19 @@ MStatus CArnoldSession::UpdateLightLinks()
    // TODO : turn off light linking option if we detect here that all lights
    // "illuminate by default" ?
 
-   MStatus status = MStatus::kSuccess;
+   MStatus status = MStatus::kSuccess;   
+   m_arnoldLightLinks.ClearLightLinks();
 
    if (m_numLights > 0)
-   {
+   {      
+      m_arnoldLightLinks.SetLinkingMode(m_sessionOptions.GetLightLinkMode(), 
+           m_sessionOptions.GetShadowLinkMode());
       if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
             || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
       {
          // Default values except last. We set componentSupport = false
-         status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
+         //status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
+         m_arnoldLightLinks.ParseLightLinks();
       }
 
       if (MS::kSuccess == status)
@@ -1040,10 +1044,15 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, MDGContext &ctx
    return MTOA_EXPORT_ACCEPTED;
 }
 
+void CArnoldSession::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
+{
+   m_arnoldLightLinks.ExportLightLinking(shape, dNode);
+}
+
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, NULL));
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)

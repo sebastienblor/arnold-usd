@@ -59,6 +59,7 @@ MObject CArnoldOptionsNode::s_shutter_offset;
 MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
+MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
@@ -69,11 +70,13 @@ MObject CArnoldOptionsNode::s_log_console_verbosity;
 MObject CArnoldOptionsNode::s_log_file_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
 MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
 MObject CArnoldOptionsNode::s_shader_searchpath;
+MObject CArnoldOptionsNode::s_user_options;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -207,7 +210,12 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_diffuse_samples");
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
+   s_attributes.MakeInput("sss_bssrdf_samples");
    s_attributes.MakeInput("sss_sample_factor");
+   
+   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_enable_raytraced_SSS);
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -383,6 +391,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_mis");
+   s_attributes.MakeInput("ignore_dof");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
@@ -430,7 +439,11 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("None", 0);
    eAttr.addField("Fog", 1);
    eAttr.addField("Volume Scattering", 2);
+   eAttr.addField("Custom Shader", 3);
    addAttribute(s_atmosphere);
+   
+   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
+   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);
@@ -467,6 +480,10 @@ MStatus CArnoldOptionsNode::initialize()
    s_filter = mAttr.create("filter", "filt");
    mAttr.setKeyable(false);
    addAttribute(s_filter);
+   
+   s_user_options = tAttr.create("aiUserOptions", "ai_user_options", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_user_options);
 
    return MS::kSuccess;
 }

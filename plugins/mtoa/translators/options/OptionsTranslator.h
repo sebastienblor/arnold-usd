@@ -7,7 +7,7 @@ struct CAOVOutput
 {
    AtNode* driver;
    AtNode* filter;
-   bool splitAOVs; // whether or not to split AOVs
+   bool mergeAOVs; // whether or not to split AOVs
    bool singleLayer;
    MString prefix;
 };
@@ -64,7 +64,7 @@ protected:
    inline AtNode * CreateDisplayDriver(MString& prefix, bool& singleLayer);
    unsigned int GetDriversAndFilters(const CAOV& aov,
                                      std::vector<CAOVOutput>& outputs);
-   AtNode* ExportDriver(const MPlug& driverPlug, MString& prefix, bool& splitAOVs, bool& singleLayer);
+   AtNode* ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
 protected:

@@ -259,6 +259,13 @@ void CMeshLightTranslator::Export(AtNode* light)
    MStatus status;
    
    MFnDependencyNode fnDepNode(m_dagPath.node());
+   
+   AiNodeSetInt(light, "decay_type", FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(),
+           FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   
    MPlug plug = fnDepNode.findPlug("inputMesh");
    MObject meshObject;
    plug.getValue(meshObject);
@@ -272,83 +279,90 @@ void CMeshLightTranslator::Export(AtNode* light)
       return;
    
    MString nodeName = AiNodeGetName(light);
-   MString shaderName = nodeName;
-   nodeName += "_mesh";   
-   AtNode* meshNode = AiNode("polymesh");
-   AiNodeSetStr(meshNode, "name", nodeName.asChar());
-   
-   const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-   std::cerr << "Motion step : " << GetMotionStep() << std::endl;
-   AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
-   for (int i = 0; i < m_numVertices; ++i)
-      AiArraySetVec(vlist, i, vertices[i]);
-   
-   AiNodeSetArray(meshNode, "vlist", vlist);
-
-   const int numPolygons = mesh.numPolygons();
-   AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
-
-   unsigned int numIndices = 0;
-
-   for(int i = 0; i < numPolygons; ++i)
+   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
+   if (meshNode == 0)
    {
-      int vertexCount = mesh.polygonVertexCount(i);
-      numIndices += (unsigned int)vertexCount;
-      AiArraySetUInt(nsides, i, vertexCount);
+      meshNode = AiNode("polymesh");
+      AiNodeSetStr(meshNode, "name", (nodeName + MString("_mesh")).asChar());
+   
+      const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+      AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
+      for (int i = 0; i < m_numVertices; ++i)
+         AiArraySetVec(vlist, i, vertices[i]);
+
+      AiNodeSetArray(meshNode, "vlist", vlist);
+
+      const int numPolygons = mesh.numPolygons();
+      AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
+
+      unsigned int numIndices = 0;
+
+      for(int i = 0; i < numPolygons; ++i)
+      {
+         int vertexCount = mesh.polygonVertexCount(i);
+         numIndices += (unsigned int)vertexCount;
+         AiArraySetUInt(nsides, i, vertexCount);
+      }
+
+      AiNodeSetArray(meshNode, "nsides", nsides);
+
+      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+
+      for(int i = 0, id = 0; i < numPolygons; ++i)
+      {
+         MIntArray vidx;
+         int vertexCount = AiArrayGetUInt(nsides, i);
+         mesh.getPolygonVertices(i, vidx);
+         for (int j = 0; j < vertexCount; ++j)
+            AiArraySetUInt(vidxs, id++, vidx[j]);  
+      }
+      AiNodeSetArray(meshNode, "vidxs", vidxs);
+
+      AiNodeSetPtr(light, "mesh", meshNode);
+      AiNodeSetPtr(meshNode, "shader", 0);
    }
-
-   AiNodeSetArray(meshNode, "nsides", nsides);
-
-   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
-
-   for(int i = 0, id = 0; i < numPolygons; ++i)
-   {
-      MIntArray vidx;
-      int vertexCount = AiArrayGetUInt(nsides, i);
-      mesh.getPolygonVertices(i, vidx);
-      for (int j = 0; j < vertexCount; ++j)
-         AiArraySetUInt(vidxs, id++, vidx[j]);  
-   }
-   AiNodeSetArray(meshNode, "vidxs", vidxs);
-
-   AiNodeSetPtr(light, "mesh", meshNode);
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
-   {
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | AI_RAY_REFLECTED | AI_RAY_REFRACTED);
-      shaderName += "_shader";
-      AtNode* shaderNode = AiNode("meshLightMaterial");
+   {      
+      AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
+      AtNode* shaderNode = (AtNode*)AiNodeGetPtr(meshNode, "shader");
+      if (shaderNode == 0)
+      {
+         shaderNode = AiNode("meshLightMaterial");
+         AiNodeSetStr(shaderNode, "name", (nodeName + MString("_shader")).asChar());
+         AiNodeSetPtr(meshNode, "shader", shaderNode);
+      }
       AtRGB color = AiNodeGetRGB(light, "color");
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
       AiColorGamma(&color, light_gamma);
       color = color * AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));
-      AiNodeSetStr(shaderNode, "name", shaderName.asChar());
-      AiNodeSetPtr(meshNode, "shader", shaderNode);
+         powf(2.f, AiNodeGetFlt(light, "exposure"));      
       
       // if normalize is set to false, we need to multiply
       // the color with the surface area
       // doing a very simple triangulation, good for
       // approximating the Arnold one
-      if (AiNodeGetInt(light, "normalize"))
+      if (AiNodeGetBool(light, "normalize"))
       {
+         const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+         const int numPolygons = mesh.numPolygons();
          double surfaceArea = 0.f;
-         for (int i = 0, id = 0; i < numPolygons; ++i)
+         for (int i = 0; i < numPolygons; ++i)
          {
-            const int vertexCount = AiArrayGetUInt(nsides, i);
+            MIntArray vidx;
+            mesh.getPolygonVertices(i, vidx);
+            const int vertexCount = vidx.length();
             if (vertexCount)
             {
-               const AtVector p0 = vertices[AiArrayGetUInt(vidxs, id)];
+               const AtVector p0 = vertices[vidx[0]];
                for (int j = 1; j < vertexCount - 1; ++j)
                {
-                  const int id1 = id + j;
-                  const AtVector p1 = vertices[AiArrayGetUInt(vidxs, id1)];
-                  const AtVector p2 = vertices[AiArrayGetUInt(vidxs, id1 + 1)];
+                  const AtVector p1 = vertices[vidx[j]];
+                  const AtVector p2 = vertices[vidx[j + 1]];
                   surfaceArea += CalculateTriangleArea(p0, p1, p2);
                }
             }
-            id += vertexCount;
          }
          color = color / (float)surfaceArea;
       }

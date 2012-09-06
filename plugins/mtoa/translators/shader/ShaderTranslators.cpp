@@ -112,21 +112,21 @@ void CLambertTranslator::Export(AtNode* shader)
    }
 
    // Normal camera
+   
    plug = FindMayaPlug("normalCamera");
-   if (!plug.isNull())
+
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
    {
-      // For IPR unlink first
-      if (AiNodeIsLinked(shader, "@before")) AiNodeUnlink(shader, "@before");
-      plug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode* bump = ExportNode(connections[0]);
+
+      if (bump != NULL)
       {
-         AtNode* inNode = ExportNode(connections[0]);
-         if (inNode != NULL)
-         {
-            AiNodeLink(inNode, "@before", shader);
-         }
+         AiNodeLink(shader, "shader", bump);
+         SetArnoldRootNode(bump);
       }
    }
+   
 }
 
 // File
@@ -205,6 +205,7 @@ void CFileTranslator::Export(AtNode* shader)
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
 
+   ProcessParameter(shader, "mipBias", AI_TYPE_INT);
 
    ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
    ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
@@ -213,6 +214,12 @@ void CFileTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+}
+
+void CFileTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "MayaFile");
+   helper.MakeInput("mipBias");
 }
 
 // Bump2d
@@ -773,42 +780,85 @@ AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   MPlug attr, elem, color, alpha, blendMode, isVisible;
+   MPlugArray connections;
+   MObject colorSrc, alphaSrc;
+   bool colorConnectedToAlpha;
+   char aiAttr[64];
+   
+   MFnDependencyNode fnNode(GetMayaObject());
 
-   MPlug inputs, elemt, col, alph, mode, vis;
-   inputs = FindMayaPlug("inputs");
-   MObject ocolor = GetMayaObjectAttribute("color");
-   MObject oalpha = GetMayaObjectAttribute("alpha");
-   MObject omode = GetMayaObjectAttribute("blendMode");
-   MObject ovisible = GetMayaObjectAttribute("isVisible");
-   unsigned int numElements = inputs.numElements();
-
-   // Init shader array parameters
-
-   AtArray* color = InitArrayParameter(AI_TYPE_RGB, numElements);
-   AtArray* alpha = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-   AtArray* blendMode = InitArrayParameter(AI_TYPE_INT, numElements);
-   AtArray* visible = InitArrayParameter(AI_TYPE_BOOLEAN, numElements);
-
-   // Loop on input entries
-
-   for (unsigned int i=0; i<numElements; ++i)
+   attr = fnNode.findPlug("inputs");
+   unsigned int numElements = attr.numElements();
+   if (numElements > 16)
    {
-      elemt = inputs.elementByPhysicalIndex(i);
-      col = elemt.child(ocolor);
-      alph = elemt.child(oalpha);
-      mode = elemt.child(omode);
-      vis = elemt.child(ovisible);
-
-      ProcessArrayParameterElement(shader, color, "color", col, AI_TYPE_RGB, i);
-      ProcessArrayParameterElement(shader, alpha, "alpha", alph, AI_TYPE_FLOAT, i);
-      ProcessArrayParameterElement(shader, blendMode, "blendMode", mode, AI_TYPE_INT, i);
-      ProcessArrayParameterElement(shader, visible, "visible", vis, AI_TYPE_BOOLEAN, i);
+      AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 16 inputs, only the first 16 will be handled", GetTranslatorName().asChar());
+      numElements = 16;
    }
-   SetArrayParameter(shader, "color", color);
-   SetArrayParameter(shader, "alpha", alpha);
-   SetArrayParameter(shader, "blendMode", blendMode);
-   SetArrayParameter(shader, "visible", visible);
+
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   
+   MObject colorAttr = fnNode.attribute("color");
+   MObject alphaAttr = fnNode.attribute("alpha");
+   MObject blendModeAttr = fnNode.attribute("blendMode");
+   MObject isVisibleAttr = fnNode.attribute("isVisible");
+
+   for (unsigned int i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      color = elem.child(colorAttr);
+      alpha = elem.child(alphaAttr);
+      blendMode = elem.child(blendModeAttr);
+      isVisible = elem.child(isVisibleAttr);
+
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
+
+      // Alpha connection is only handled when 
+      // The input in color and alpha is the same
+
+      colorSrc = MObject::kNullObj;
+      alphaSrc = MObject::kNullObj;
+
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
+
+      connections.clear();
+      alpha.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         alphaSrc = connections[0].node();
+
+      if (alphaSrc.isNull())
+         colorConnectedToAlpha = false;
+      else
+         colorConnectedToAlpha = (colorSrc == alphaSrc);
+
+      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
+      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
+
+      if (!colorConnectedToAlpha && alphaSrc.isNull())
+      {
+         // Export alpha value when it's not connected
+
+         sprintf(aiAttr, "alpha%u", i);
+         AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
+      }
+      else
+      {
+         sprintf(aiAttr, "alpha%u", i);
+         ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, alpha);
+      }
+
+      sprintf(aiAttr, "blendMode%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_ENUM, blendMode);
+
+      sprintf(aiAttr, "visible%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_BOOLEAN, isVisible);
+   }
 }
 
 // LayeredShader
@@ -972,4 +1022,25 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
+}
+
+void CMayaBlinnTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   
+   ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularRollOff");
+   ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
+   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   
+   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("standard"));
 }

@@ -50,6 +50,7 @@ enum MayaFileParams
    p_rotate,
    p_filename,
    p_noise,
+   p_mip_bias,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -93,6 +94,7 @@ node_parameters
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
+   AiParameterINT("mipBias", 0);
    AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -376,20 +378,14 @@ shader_evaluate
 
    if (noise.x > 0.0f)
    {
-      AtPoint uv;
-      uv.x = inU * 16;
-      uv.y = inV * 16;
-      uv.z = 0.0f;
-      outU += noise.x * AiPerlin3(uv);
+      AtVector2 uv = {inU * 16, inV * 16};
+      outU += noise.x * AiPerlin2(uv);
    }
 
    if (noise.y > 0.0f)
    {
-      AtPoint uv;
-      uv.x = (1 - inU) * 16;
-      uv.y = (1 - inV) * 16;
-      uv.z = 0.0f;
-      outV += noise.y * AiPerlin3(uv);
+      AtVector2 uv = {(1 - inU) * 16, (1 - inV) * 16};
+      outV += noise.y * AiPerlin2(uv);
    }
 
    // for frame, rotate first then translate
@@ -520,7 +516,9 @@ shader_evaluate
       // do texture lookup
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
-      // setup filter?
+      texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
+      if (sg->Rt & AI_RAY_DIFFUSE)
+         texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
       if (idata->ntokens > 0)
       {
@@ -603,8 +601,9 @@ shader_evaluate
                   // default dimension
                   int* ptr = (int*)token->extra;
                   int dim = *ptr;
-                  int row = static_cast<int>(floorf(inV));
-                  int col = static_cast<int>(floorf(inU));
+                  
+                  int row = static_cast<int>(outV <= 0 ? floorf(outV) : ceilf(outV) - 1);
+         	      int col = static_cast<int>(outU <= 0 ? floorf(outU) : ceilf(outU) - 1);
                   
                   int mariCode = ((row * dim) + col) + 1001;
 
@@ -616,6 +615,10 @@ shader_evaluate
                   idata->processPath[sg->tid][pos + token->position+1] = (mariCode%10) + '0';
                   mariCode /= 10;
                   idata->processPath[sg->tid][pos + token->position+0] = (mariCode%10) + '0';
+                  
+                  sg->u = fmod(outU, 1.f);
+                  sg->v = fmod(outV, 1.f);
+                  
                   break;
                }
                case TILE:

@@ -1,0 +1,5 @@
+In skin_sss shader, "Sample only SSS in GI rays" and "Sample only SSS in Glossy rays" options calculates a wrong color
+
+In skin_sss shader, "Sample only SSS in GI rays" and "Sample only SSS in Glossy rays" options calculates a wrong color (Ticket #950)
+
+author: pedro.gomez

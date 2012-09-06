@@ -88,7 +88,7 @@ void COptionsTranslator::ExportAOVs()
    CAOVOutput displayOutput;
    displayOutput.driver = CreateDisplayDriver(displayOutput.prefix, singleLayerDisplay);
    displayOutput.filter = defaultFilter;
-   displayOutput.splitAOVs = false;  // FIXME: get a proper value
+   displayOutput.mergeAOVs = false;  // FIXME: get a proper value
 
    // loop through AOVs
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
@@ -109,7 +109,7 @@ void COptionsTranslator::ExportAOVs()
       {
          // add default driver
          CAOVOutput output;
-         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.splitAOVs, output.singleLayer);
+         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer);
          output.filter = defaultFilter;
          aovData.outputs.push_back(output);
 
@@ -181,7 +181,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                // No override provided, use globals default
                path = defaultRenderGlobalsData.name;
 
-            bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && output.splitAOVs);
+            bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
 
             MString filename = getFileName( pathType,
                                             fileFrameNumber,
@@ -279,7 +279,7 @@ void COptionsTranslator::CreateFileDirectory(const MString &filename) const
    }
 }
 
-AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& splitAOVs, bool& singleLayer)
+AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer)
 {
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
@@ -306,9 +306,9 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
    singleLayer = false;
    AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
    if (!singleLayer)
-      splitAOVs = fnNode.findPlug("splitAOVs").asBool();
+      mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
    else
-      splitAOVs = false;
+      mergeAOVs = false;
    prefix = fnNode.findPlug("prefix").asString();
    return driver;
 }
@@ -348,7 +348,7 @@ unsigned int COptionsTranslator::GetDriversAndFilters(const CAOV& aov,
          continue;
 
       // Driver
-      output.driver = ExportDriver(outputsPlug[i].child(0), output.prefix, output.splitAOVs, output.singleLayer);
+      output.driver = ExportDriver(outputsPlug[i].child(0), output.prefix, output.mergeAOVs, output.singleLayer);
       if (output.driver == NULL)
          continue;
 
@@ -460,6 +460,13 @@ void COptionsTranslator::Export(AtNode *options)
                AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
          }
+         else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
+         {
+            if (FindMayaPlug("enable_raytraced_SSS").asBool())
+               ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+            else
+               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+         }
          else
          {
             // Process parameter automatically
@@ -530,8 +537,18 @@ void COptionsTranslator::Export(AtNode *options)
          AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
       }
       break;
+      
+   case 3:
+      shader = FindMayaPlug("atmosphereShader");
+      shader.connectedTo(conns, true, false);
+      if (conns.length())
+         AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+      break;
    }
 
+   // frame number
+   AiNodeDeclare(options, "frame", "constant FLOAT");
+   AiNodeSetFlt(options, "frame", (AtFloat)GetExportFrame());
 }
 
 void COptionsTranslator::Update(AtNode *options)

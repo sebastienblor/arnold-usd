@@ -3,6 +3,8 @@
 
 #include "attributes/AttrHelper.h"
 
+#include "ArnoldStandInGeometry.h"
+
 #include <maya/MPxNode.h>
 #include <maya/MString.h>
 #include <maya/MPxSurfaceShape.h>
@@ -12,20 +14,18 @@
 
 #include <vector>
 
-using std::vector;
-
-
 // Geometry class
 class CArnoldStandInGeom
 {
 public:
    CArnoldStandInGeom();
+   ~CArnoldStandInGeom();
    MString dso;
    MString data;
    MString filename;
    MString geomLoaded;
    int mode;
-   float frame;
+   int frame;
    float frameOffset;
    bool useFrameExtension;
    bool useSubFrame;
@@ -35,7 +35,8 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   vector<vector<vector<AtPoint> > > faceList;
+   //std::vector<std::vector<std::vector<AtPoint> > > faceList;
+   std::vector<CArnoldStandInGeometry*> m_geometryList;
    int dList;
    int updateView;
    int updateBBox;

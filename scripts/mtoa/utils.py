@@ -25,6 +25,11 @@ def prettify(s):
     "convert from '_fooBar_Spangle22poop1' to 'Foo Bar Spangle22 Poop1'"
     return ' '.join([capitalize(x) for x in re.findall('[a-zA-Z][a-z]*[0-9]*',s)])
 
+def toMayaStyle(s):
+    "convert from this_style to thisStyle"
+    parts = s.split('_')
+    return ''.join([parts[0]] + [capitalize(x) for x in parts[1:]])
+
 def groupn(iterable, n):
     '''
     group a flat list into tuples of length n
@@ -153,7 +158,7 @@ def safeDelete(node):
     else:
         cmds.delete(str(node))
 
-def _substitute(parts, tokens, allOrNothing=False):
+def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
     result = []
     for i, tok in enumerate(parts):
         if even(i):
@@ -161,7 +166,12 @@ def _substitute(parts, tokens, allOrNothing=False):
                 result.append(tokens[tok])
             except KeyError:
                 if allOrNothing:
-                    return ''
+                    if leaveUnmatchedTokens:
+                        return '<%s>' % tok
+                    else:
+                        return ''
+                elif leaveUnmatchedTokens:
+                        result.append('<%s>' % tok)
                 else:
                     result.append('')
         else:
@@ -206,17 +216,13 @@ def registeredTokens():
     global _tokenNames
     return _tokenNames[:]
 
-def expandFileTokens(path, tokens, customOnly=False):
+def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
     """
     path : str
         unexpanded path, containing tokens of the form <MyToken>
     
     tokens : dict or str
         dictionary of the form {'MyToken' : value} or space separated string of form 'MyToken=value'
-    
-    customOnly : bool
-        if True, standard tokens filled by Maya are left unexpanded so that
-        the result can be passed to MCommonRenderSettingsData.getFileName()
 
     This is a token expansion system based on Maya's, but with several improvements.
     In addition to standard tokens of the form <MyToken>, it also supports
@@ -236,11 +242,6 @@ def expandFileTokens(path, tokens, customOnly=False):
     """
     if isinstance(tokens, basestring):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
-    if customOnly:
-        newTokens = tokens.copy()
-        for tok in ['Scene', 'RenderLayer', 'Camera', 'Extension', 'Version']:
-            newTokens[tok] = '<%s>' % tok
-        tokens = newTokens
 
     grp_reg = re.compile('\[([^\]]+)\]')
     tok_reg = re.compile('<([a-zA-Z]+)>')
@@ -248,13 +249,14 @@ def expandFileTokens(path, tokens, customOnly=False):
     for i, grp in enumerate(grp_reg.split(path)):
         parts = tok_reg.split(grp)
         if even(i):
-            result.append(_substitute(parts, tokens, allOrNothing=True))
+            result.append(_substitute(parts, tokens, allOrNothing=True, leaveUnmatchedTokens=leaveUnmatchedTokens))
         else:
-            result.append(_substitute(parts, tokens, allOrNothing=False))
+            result.append(_substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=leaveUnmatchedTokens))
     return ''.join(result)
 
 def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
-                 createDirectory=True, isSequence=None, **kwargs):
+                 createDirectory=False, isSequence=None, leaveUnmatchedTokens=False,
+                 catchErrors=True, **kwargs):
     """
     A more generic replacement for MCommonRenderSettingsData.getImageName() that also works for types other
     than images.
@@ -300,12 +302,23 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     
     isSequence : bool or None
             specify whether the path generated should include a frame number. If None, use the render globals
+    
+    leaveUnmatchedTokens : bool
+            whether unmatched tokens should be left unexpanded or removed
+    
+    catchErrors : bool
+            if False, errors raised by a token will not be caught and will abort the entire function
+
     """
     # convert tokens to dictionary
     if isinstance(tokens, basestring):
         tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
-    kwargs.update(dict(frame=frame, fileType=fileType, createDirectory=createDirectory, isSequence=isSequence))
+    kwargs.update(dict(frame=frame,
+                       fileType=fileType,
+                       createDirectory=createDirectory,
+                       isSequence=isSequence,
+                       leaveUnmatchedTokens=leaveUnmatchedTokens))
 
     # get info from globals
     # NOTE: there is a bug in the wrapper of this class that prevents us from retrieving the
@@ -343,6 +356,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         if settings.renumberFrames:
             byFrame = settings.renumberBy/settings.frameBy
             frame = frame * byFrame - (settings.frameStart.value()-settings.renumberStart) - (byFrame-1.0)
+        tokens['Frame'] = frame
+    if 'Frame' in tokens and isinstance(tokens['Frame'], (float, int)):
+        frame = tokens['Frame']
         frame = str(int(round(frame)))
         # add padding
         frame = ((settings.framePadding -len(frame)) * '0') + frame
@@ -353,13 +369,16 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         try:
             res = cb(path, tokens, **kwargs)
         except Exception, err:
-            print "Callback %s.%s failed: %s" % (cb.__module__, cb.__name__, err)
+            if catchErrors:
+                print "Callback %s.%s failed: %s" % (cb.__module__, cb.__name__, err)
+            else:
+                raise
         else:
             if res is not None:
                 path = res
 
     #print path, tokens
-    partialPath = expandFileTokens(path, tokens)
+    partialPath = expandFileTokens(path, tokens, leaveUnmatchedTokens=leaveUnmatchedTokens)
     if pathType in [pm.api.MCommonRenderSettingsData.kRelativePath, 'relative']:
         return partialPath
 
@@ -429,5 +448,5 @@ def createLocator(locatorType, asLight=False):
     pm.createNode(locatorType, name=shapeName, parent=lNode)       
     if asLight:
         cmds.connectAttr('%s.instObjGroups' % lName, 'defaultLightSet.dagSetMembers', nextAvailable=True)
-    return shapeName       
+    return (shapeName, lName)
 

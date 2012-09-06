@@ -76,6 +76,8 @@ public:
    static MObject s_motion_steps;
    static MObject s_motion_frames;
    
+   static MObject s_enable_raytraced_SSS;
+   
    static MObject s_use_existing_tiled_textures;
 
    static MObject s_output_ass_filename;
@@ -89,6 +91,7 @@ public:
 
    static MObject s_background;
    static MObject s_atmosphere;
+   static MObject s_atmosphereShader;
 
    static MObject s_displayAOV;
 
@@ -97,6 +100,8 @@ public:
    static MObject s_texture_searchpath;
    static MObject s_procedural_searchpath;
    static MObject s_shader_searchpath;
+   
+   static MObject s_user_options;
 
 };  // class CArnoldOptionsNode
 

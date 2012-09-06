@@ -267,7 +267,7 @@ public:
    CScalarToColorParams()
    {
       input = 0.5f;
-      input = 1.0f;
+      alpha = 1.0f;
    }
 };
 
@@ -297,7 +297,7 @@ public:
 
    CScalarMultiplyParams()
    {
-      input2 = 0.5f;
+      input1 = 0.5f;
       input2 = 1.0f;
    }
 };
@@ -328,7 +328,7 @@ public:
 
    CScalarAddParams()
    {
-      input2 = 0.0f;
+      input1 = 0.0f;
       input2 = 0.0f;
    }
 };
@@ -521,6 +521,7 @@ public:
 enum SSSParams {
    p_diffuse_color,
    p_diffuse_weight,
+   p_diffuse_roughness,
    p_sss_weight,
    p_shallow_scatter_color,
    p_shallow_scatter_weight,
@@ -564,6 +565,7 @@ class CSSSParams
 public:
    AtColor diffuse_color;
    float diffuse_weight;
+   float roughness;
    float sss_weight;
    AtColor shallow_scatter_color;
    float shallow_scatter_weight;
@@ -672,18 +674,11 @@ public:
                    Multiply_DeepSSS,
                    Multiply_Shallow_Radius, 
                    Multiply_Mid_Radius, 
-                   Multiply_Deep_Radius,
-                   Multiply_By_Global_SSS_Weight, 
-                   Multiply_By_Global_SSS_Radius, 
-                   Divide_By_Three;
-   CScalarAdd      Add_Diffuse_Shallow_Weights, 
-                   Add_Scatter_Weight, Add_Deep_Weight,
-                   Add_Shallow_Mid_Radius, Add_Deep_Radius;
+                   Multiply_Deep_Radius;
    CColorsScreen   Screen;
    CColorClip      Clip_Diffuse_Primary_Specular, 
                    Clip_Secondary_Specular, 
                    Clip_Shallow, Clip_Mid, Clip_Deep;
-   CColorsDivide   Divide_By_Four;
    CColorsAdd      Standards_Add, 
                    Colors_Add;
    // the four channel storers. The other aovs (primarySpecular, directDiffuse, 

@@ -5,6 +5,7 @@ import mtoa.core as core
 from mtoa.callbacks import *
 from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
+from mtoa.lightFilters import getLightFilterClassification
 import mtoa.callbacks as callbacks
 
 def getSourcePlug(plugname, index):
@@ -116,9 +117,7 @@ class LightTemplate(AttributeTemplate):
         super(LightTemplate, self).__init__(nodeType)
 
     def validFilters(self):
-        '''override in sub-class to provide the list of filters valid for a given light type'''
-        # TODO: dynamically lookup full list of light filters
-        return ['aiLightBlocker', 'aiLightDecay']
+        return getLightFilterClassification(self.nodeType())
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
@@ -127,6 +126,8 @@ class LightTemplate(AttributeTemplate):
         self.addSeparator()
 
         self.lightFiltersLayout()
+        
+        self.addControl("aiUserOptions", "User Options")
 
     def lightFiltersLayout(self):
         self.beginLayout("Light Filters", collapse=False)
@@ -174,7 +175,7 @@ class LightTemplate(AttributeTemplate):
         This callback is triggered when the filter menu changes.  The filter menu contains a list of 
         filter types, and of existing filter nodes.
         """
-        if not name:
+        if not name or name == '<Add Filter>':
             # selected a menu divider. reset
             self.updateAddMenu()
             return
@@ -229,6 +230,7 @@ class LightTemplate(AttributeTemplate):
                 #pm.delete(filter)
 
         self.lightFiltersUpdateList()
+        self.updateAddMenu()
 
     def getConnectedLightFilters(self):
         nfilters = getConnectedCount(self.nodeAttr('aiFilters'))
@@ -301,7 +303,7 @@ class LightTemplate(AttributeTemplate):
                        columnOffset2=(2, 2))
 
         pm.button('lf_add_button', label="Add", c=Callback(self.addLightFilterWin))
-        pm.button('lf_remove_button', label="Remove", c=Callback(self.removeLightFilter))
+        pm.button('lf_remove_button', label="Disconnect", c=Callback(self.removeLightFilter))
         # implicit end of row layout
         pm.setParent('..') # back to column layout
         pm.setParent('..') # back to row layout

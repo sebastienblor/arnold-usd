@@ -61,7 +61,8 @@ def _makeNodeAddedCB(nodeType):
                 func(obj)
             else:
                 func(node)
-    pm._factories.addMayaType(nodeType)
+    if pm.mel.getApplicationVersionAsFloat() > 2011 and not pm.about(batch=True):
+        pm._factories.addMayaType(nodeType)
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
@@ -311,7 +312,7 @@ class CallbackQueue(object):
         self._callbackQueue[key] = (func, passArgs)
 
     def removeCallback(self, key):
-        self._callbackQueu.pop(key)
+        self._callbackQueue.pop(key)
 
     def clearCallbacks(self):
         self._callbackQueue = {}

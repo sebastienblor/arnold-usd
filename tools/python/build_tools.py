@@ -182,7 +182,7 @@ def get_maya_version(path):
       if line.startswith('#define'):
          tokens = line.split()
          if tokens[1] == 'MAYA_API_VERSION':
-            return tokens[2][:-2]
+            return tokens[2][:]
    f.close()
 
 def get_latest_revision():

@@ -16,6 +16,7 @@ This makes it easy to extend the built-in functionality within your override.  F
     mtoa.hooks.getDefaultAOVs = getDefaultAOVs
 """
 import os
+from posixpath import join
 
 def setupFilter(filter, aovName=None):
     """
@@ -106,7 +107,7 @@ def fileTokenRenderPass(path, tokens, **kwargs):
     import pymel.core as pm
     if not kwargs.get('strictAOVs', False) and '<RenderPass>' not in path and 'RenderPass' in tokens:
         if not os.path.isabs(path):
-            path = '<RenderPass>/' + path
+            path = join('<RenderPass>', path)
         else:
             pm.cmds.warning('[mtoa] Multiple render passes (AOVs) exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
     return path
@@ -114,32 +115,37 @@ _fileTokenRenderPass = fileTokenRenderPass
 
 def fileTokenCamera(path, tokens, **kwargs):
     import pymel.core as pm
-    if '<Camera>' in path:
-        if 'Camera' not in tokens:
-            raise ValueError("You must provide a value for Camera token")
-    elif len([c for c in pm.ls(type='camera') if c.renderable.get()]) > 1:
-        if not os.path.isabs(path):
-            path = '<Camera>/' + path
-            if 'Camera' not in tokens:
-                raise ValueError("You must provide a value for Camera token")
-        else:
+    renderable = [c for c in pm.ls(type='camera') if c.renderable.get()]
+    if '<Camera>' not in path and len(renderable) > 1:
+        if os.path.isabs(path):
             pm.cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
+        else:
+            path = join('<Camera>', path)
+
+    if '<Camera>' in path and 'Camera' not in tokens:
+        if len(renderable) > 1:
+            if not kwargs['leaveUnmatchedTokens']:
+                raise ValueError("[mtoa] Multiple renderable cameras: you must provide a value for <Camera> token")
+        elif len(renderable) == 1:
+            tokens['Camera'] = renderable[0].getParent().name()
+        else:
+            if not kwargs['leaveUnmatchedTokens']:
+                raise ValueError("[mtoa] No renderable cameras: you must provide a value for <Camera> token")
     return path
 _fileTokenCamera = fileTokenCamera
 
 def fileTokenRenderLayer(path, tokens, **kwargs):
     import pymel.core as pm
-    if '<RenderLayer>' in path:
-        if 'RenderLayer' not in tokens:
-            tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
-    elif len(pm.ls('*', type='renderLayer')) > 1: # the '*' ensures that we only find layers in the empty namespace
-        if not os.path.isabs(path):
-            path = '<RenderLayer>/' + path
-            if 'RenderLayer' not in tokens:
-                tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
-        else:
+    layers = pm.cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)
+    if '<RenderLayer>' not in path and len(layers) > 1:
+        if os.path.isabs(path):
             pm.cmds.warning('[mtoa] Multiple renderable render layers exist, but output path is absolute and without <RenderLayer> token: "%s"' % path)
+        else:
+            path = join('<RenderLayer>', path)
 
+    if '<RenderLayer>' in path and 'RenderLayer' not in tokens:
+        tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+    
     if tokens.get('RenderLayer', None) == 'defaultRenderLayer':
         tokens['RenderLayer'] = 'masterLayer'
     return path

@@ -21,7 +21,7 @@ public:
    static MTypeId id;
 
    // Attributes
-   static MObject s_split_aovs;
+   static MObject s_mergeAOVs;
    static MObject s_driver;
    static MObject s_prefix;
 

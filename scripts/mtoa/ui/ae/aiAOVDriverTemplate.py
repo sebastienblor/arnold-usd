@@ -19,7 +19,7 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
 
         self.beginLayout("Advanced Output", collapse=False)
         self.addControl('prefix', label="Override Path Prefix")
-        self.addControl('splitAOVs', label="Split AOVs")
+        self.addControl('mergeAOVs', label="Merge AOVs")
         self.endLayout()
 
         # include/call base class/node attributes

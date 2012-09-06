@@ -25,6 +25,8 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
         
 templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
 
@@ -74,6 +76,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
+        self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()
@@ -82,14 +85,37 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
-def HairSystemTemplateCCU1(attrName):
-    cmds.columnLayout()
-    cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
-
-def HairSystemTemplateCCU2(attrName):
-    cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
-
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
+    def shaderCreate(self, attrName):
+        cmds.columnLayout()
+        cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
+        cmds.setParent('..')
+
+    def shaderUpdate(self, attrName):
+        cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
+
+    def minPixelCreate(self, attrName):
+        cmds.columnLayout()
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setParent('..')
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before HairTemplateMinPixelWidth exists
+            pass
+
     def setup(self):
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
@@ -100,17 +126,57 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair", label="Override Hair")
-        pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU1, HairSystemTemplateCCU2, "aiHairShader")
+        self.addCustom("aiHairShader", self.shaderCreate, self.shaderUpdate)
         self.addSeparator()
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
-        self.addControl("aiMode", label="Mode")
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
-class AmbientLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker']
+class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
+    def minPixelCreate(self, attrName):
+        cmds.columnLayout()
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setParent('..')
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
 
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before NurbsCurveTemplateMinPixelWidth exists
+            pass
+            
+    def setup(self):
+        #pm.mel.eval('AEaddRampControl("widthProfile")')
+        #pm.mel.eval('AEaddRampControl("colorTable")')
+        self.addControl("renderCurve")
+        self.addControl("curveWidth")
+        self.addControl("sampleRate")
+        self.addControl("aiCurveShader")
+        self.addSeparator()
+        self.addControl("primaryVisibility")
+        self.addControl("castsShadows")
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
+
+
+class AmbientLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.addControl("aiNormalize")  
 
@@ -124,9 +190,6 @@ class AmbientLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker']
     def setup(self):
         self.addControl("aiExposure")
         self.addControl("aiAngle")
@@ -147,9 +210,6 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -174,9 +234,6 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -208,10 +265,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
-
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -282,6 +335,8 @@ class PerspCameraTemplate(CameraTemplate):
         self.addDOFAttributes()
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
 templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
@@ -290,6 +345,8 @@ templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspect
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
 templates.registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
@@ -301,6 +358,8 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiFov')
         self.addControl('aiAutocrop')
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
 templates.registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
@@ -311,6 +370,8 @@ class CylCameraTemplate(CameraTemplate):
         self.addControl('aiHorizontalFov')
         self.addControl('aiVerticalFov')
         self.addControl('aiProjective')
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
@@ -318,6 +379,8 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 class SphericalCameraTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(SphericalCameraTemplate, "camera", "spherical")
 templates.registerTranslatorUI(SphericalCameraTemplate, "stereoRigCamera", "spherical")

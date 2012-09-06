@@ -274,7 +274,7 @@ class AOVInterface(object):
             node = pm.createNode('aiAOVFilter', skipSelect=True)
             node.aiTranslator.set(filter)
             filterAttr = node.attr('message')
-            from . import hooks
+            import mtoa.hooks as hooks
             hooks.setupFilter(filter, aovName)
         else:
             filterAttr = 'defaultArnoldFilter.message'
@@ -422,7 +422,8 @@ _aovOptionsChangedCallbacks = callbacks.DeferredCallbackQueue()
 def addAOVChangedCallback(func, key=None):
     _aovOptionsChangedCallbacks.addCallback(func, key)
 
-
+def removeAOVChangedCallback(key):
+    _aovOptionsChangedCallbacks.removeCallback(key)
 
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown

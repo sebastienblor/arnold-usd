@@ -43,6 +43,9 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
     
+    cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("aiUserOptions", addControl=True, label="User Options")
+    
     cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
@@ -55,7 +58,6 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate(beginLayout="Viewport", collapse=True)
 
     cmds.editorTemplate("skyRadius", addControl=True, label="Sky Radius")
-
     cmds.editorTemplate(endLayout=True)
 
     # Do not show extra attributes

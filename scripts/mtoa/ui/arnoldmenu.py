@@ -19,13 +19,20 @@ def doExportOptionsStandin():
 def doCreateMeshLight():
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
-        print 'No transform is selected!'
+        cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
         return
-    shs = cmds.listRelatives(sls, type='mesh')
-    if len(shs) == 0:
-        print 'The selected transform has no meshes'
+    shs = cmds.listRelatives(sls[0], type='mesh')
+    if shs is None:
+        cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
         return
-    lShape = mutils.createLocator('aiAreaLight', asLight=True)
+    elif len(shs) == 0:
+        cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
+        return
+    ll = mutils.createLocator('aiAreaLight', asLight=True)
+    lShape = ll[0]
+    lLocator = ll[1]
+    wm = cmds.xform(sls[0], query=True, matrix=True, worldSpace=True)
+    cmds.xform(lLocator, worldSpace=True, matrix=wm)
     cmds.connectAttr('%s.outMesh' % shs[0], '%s.inputMesh' % lShape, force=True)
     cmds.setAttr('%s.aiTranslator' % lShape, 'mesh', type='string')
    

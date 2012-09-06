@@ -211,22 +211,26 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
       }
 
       MString depNodeSkyColorName(fileTexture.name() + ".outColor");
-
-
-      MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
-
+      
       if (m_colorData != NULL)
          delete[] m_colorData;
-      m_colorData = new char[numSamples * 4];
-      int alpha = 255;
-      for(unsigned int i = 0; (i < colors.length()); i++)
+      m_colorData = NULL;
+      
+      if (MS::kSuccess == MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, 
+              numSamples, false, false, cameraMat, 
+              NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps))
       {
-         MFloatVector fv = colors[i];
-         fv *= 255;
-         m_colorData[(i * 4) + 0] = static_cast<char>(static_cast<int>(fv.x));
-         m_colorData[(i * 4) + 1] = static_cast<char>(static_cast<int>(fv.y));
-         m_colorData[(i * 4) + 2] = static_cast<char>(static_cast<int>(fv.z));
-         m_colorData[(i * 4) + 3] = static_cast<char>(static_cast<int>(alpha));
+         m_colorData = new unsigned char[numSamples * 4];
+         int alpha = 255;
+         for(unsigned int i = 0; (i < colors.length()); i++)
+         {
+            MFloatVector fv = colors[i];
+            fv *= 255;
+            m_colorData[(i * 4) + 0] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.x), 0, 255));
+            m_colorData[(i * 4) + 1] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.y), 0, 255));
+            m_colorData[(i * 4) + 2] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.z), 0, 255));
+            m_colorData[(i * 4) + 3] = static_cast<unsigned char>(alpha);
+         }
       }
    }
    m_goSample = false;
@@ -318,37 +322,41 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             MPlug plugColor = fn.findPlug(s_color);
             SampleSN(plugColor);
          }
-
-         // check the number of samples
-         int numSampleBase = NumSampleBase();
-
-         glGenTextures(1, &texture);
-         glBindTexture(GL_TEXTURE_2D, texture);
-         glEnable(GL_TEXTURE_2D);
-         glTexImage2D(GL_TEXTURE_2D, 0, 4, numSampleBase, numSampleBase , 0, GL_RGBA, GL_UNSIGNED_BYTE, m_colorData);
-         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-         float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
-         glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
-         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-         glPolygonMode(GL_BACK, GL_FILL);
-
-         // Our Custom Sphere
-         MPlug formatPlug  = fn.findPlug(s_format);
-         int format;
-         formatPlug.getValue(format);
-         DrawUVSphere(radius, divisions*4, divisions*4, format);
-
-         if (facing == 2)
+         
+         if (m_colorData != NULL)
          {
-            // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
+            // check the number of samples
+            int numSampleBase = NumSampleBase();
+
+            glGenTextures(1, &texture);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glEnable(GL_TEXTURE_2D);
+            glTexImage2D(GL_TEXTURE_2D, 0, 4, numSampleBase, numSampleBase , 0, GL_RGBA, GL_UNSIGNED_BYTE, m_colorData);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
+            glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
+            glPolygonMode(GL_BACK, GL_FILL);
+
+            // Our Custom Sphere
+            MPlug formatPlug  = fn.findPlug(s_format);
+            int format;
+            formatPlug.getValue(format);
             DrawUVSphere(radius, divisions*4, divisions*4, format);
-            glCullFace(GL_FRONT);
+
+            if (facing == 2)
+            {
+               // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
+               DrawUVSphere(radius, divisions*4, divisions*4, format);
+               glCullFace(GL_FRONT);
+            }
+            glDisable(GL_TEXTURE_2D);
+            glDeleteTextures(1, &texture);
          }
-         glDisable(GL_TEXTURE_2D);
       }
       // else, there is a plain colour
       else
@@ -390,7 +398,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    glDisable(GL_BLEND);
 
    gluDeleteQuadric(quadratic);
-   glDeleteTextures(1, &texture);
 }
 
 MBoundingBox CSphereLocator::boundingBox() const

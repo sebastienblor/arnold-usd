@@ -17,6 +17,7 @@
 #include <maya/MFnMatrixAttribute.h>
 #include <maya/MFnMessageAttribute.h>
 #include <maya/MFnCompoundAttribute.h>
+#include <maya/MRampAttribute.h>
 #include <maya/MStringArray.h>
 
 #include <maya/MTypes.h>
@@ -135,18 +136,21 @@ class DLLEXPORT CBaseAttrHelper
 {
 
 public:
-   CBaseAttrHelper(const AtNodeEntry* nodeEntry=NULL, const MString& prefix="") :
-      m_nodeEntry(nodeEntry),
+   CBaseAttrHelper(const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="") :
+      m_nodeEntry(arnoldNodeEntry),
       m_attrNum(0),
       m_prefix(prefix)
    {
       ReadPrefixMetadata();
    }
-   CBaseAttrHelper(const char* nodeEntryName, const MString& prefix="") :
-      m_nodeEntry(AiNodeEntryLookUp(nodeEntryName)),
+   CBaseAttrHelper(const MString& arnoldNodeEntryName, const MString& prefix="") :
+      m_nodeEntry(AiNodeEntryLookUp(arnoldNodeEntryName.asChar())),
       m_attrNum(0),
       m_prefix(prefix)
    {
+      if (arnoldNodeEntryName.length() && m_nodeEntry == NULL)
+         AiMsgWarning("[mtoa.attr] CBaseAttrHelper passed unknown Arnold node type \"%s\"",
+                      arnoldNodeEntryName.asChar());
       ReadPrefixMetadata();
    }
    virtual ~CBaseAttrHelper() {};
@@ -176,6 +180,10 @@ public:
    virtual void MakeInputEnum(CAttrData& data);
    virtual void MakeInputNode(MObject& attrib, const char* paramName);
    virtual void MakeInputNode(CAttrData& data);
+   /*virtual void MakeInputCurveRamp(MObject& attrib, const char* paramName);
+   virtual void MakeInputCurveRamp(CAttrData& data);
+   virtual void MakeInputColorRamp(MObject& attrib, const char* paramName);
+   virtual void MakeInputColorRamp(CAttrData& data);*/
 
    virtual void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
    virtual void MakeInputCompound(MObject& attrib, CAttrData& data, std::vector<CAttrData>& children);
@@ -199,12 +207,14 @@ public:
    MObject MakeOutput();
 
    void SetNode(const char* arnoldNodeName);
-   void GetMObject(const char* attrName);
+   void GetMObject(const char* attrName) const;
+
+   void SetPrefix(const MString& prefix) { m_prefix = prefix;}
 
    // helpers
-   bool IsHidden(const char* paramName);
-   virtual MString GetMayaAttrName(const char* paramName);
-   virtual MString GetMayaAttrShortName(const char* paramName);
+   bool IsHidden(const char* paramName) const;
+   virtual MString GetMayaAttrName(const char* paramName) const;
+   virtual MString GetMayaAttrShortName(const char* paramName) const;
    // default methods, can't always get the information
    virtual MString GetMayaNodeTypeName() const {return "";}
    virtual MTypeId GetMayaNodeTypeId() const {return MTypeId(MFn::kBase);}
@@ -224,6 +234,8 @@ protected:
    virtual void MakeInputMatrix(MObject& attrib, CAttrData& data);
    virtual void MakeInputEnum(MObject& attrib, CAttrData& data);
    virtual void MakeInputNode(MObject& attrib, CAttrData& data);
+   /*virtual void MakeInputCurveRamp(MObject& attrib, CAttrData& data);
+   virtual void MakeInputColorRamp(MObject& attrib, CAttrData& data);*/
    virtual void MakeInput(MObject& input, CAttrData& attrData);
 
    const AtNodeEntry* m_nodeEntry;
@@ -243,20 +255,21 @@ class DLLEXPORT CStaticAttrHelper : public CBaseAttrHelper
 
 public:
    /// @param addFunc  function to call to add a dynamic attribute: should be YourMPxSubClass::addAttribute
-   /// @param nodeEntry  arnold node entry to use when checking parameter metadata
-   CStaticAttrHelper(AddAttributeFunction addFunc, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="") :
-      CBaseAttrHelper(nodeEntry, prefix),
+   /// @param arnoldNodeEntry  arnold node entry to use when checking parameter metadata
+   CStaticAttrHelper(AddAttributeFunction addFunc, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="") :
+      CBaseAttrHelper(arnoldNodeEntry, prefix),
       m_addFunc(addFunc)
    {}
    /// @param addFunc  function to call to add a dynamic attribute: should be YourMPxSubClass::addAttribute
-   /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
-   CStaticAttrHelper(AddAttributeFunction addFunc, const char* nodeEntryName, const MString& prefix="") :
-      CBaseAttrHelper(nodeEntryName, prefix),
+   /// @param arnoldNodeEntryName  arnold node entry to use when checking parameter metadata
+   CStaticAttrHelper(AddAttributeFunction addFunc, const char* arnoldNodeEntryName, const MString& prefix="") :
+      CBaseAttrHelper(arnoldNodeEntryName, prefix),
       m_addFunc(addFunc)
    {
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CStaticAttrHelper passed unknown Arnold node type \"%s\"", nodeEntryName);
+         AiMsgWarning("[mtoa.attr] CStaticAttrHelper passed unknown Arnold node type \"%s\"",
+                      arnoldNodeEntryName);
       }
    }
 
@@ -276,21 +289,21 @@ class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
 
 public:
    /// @param obj  maya node to add attributes to
-   /// @param nodeEntry  arnold node entry to use when checking parameter metadata
-   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="ai_") :
-      CBaseAttrHelper(nodeEntry, prefix),
+   /// @param arnoldNodeEntry  arnold node entry to use when checking parameter metadata
+   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="ai_") :
+      CBaseAttrHelper(arnoldNodeEntry, prefix),
       m_instance(obj)
    {}
    /// @param obj  maya node to add attributes to
-   /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
-   CDynamicAttrHelper(MObject& obj, const char* nodeEntryName, const MString& prefix="ai_") :
-      CBaseAttrHelper(nodeEntryName, prefix),
+   /// @param arnoldNodeEntryName  arnold node entry to use when checking parameter metadata
+   CDynamicAttrHelper(MObject& obj, const MString& arnoldNodeEntryName, const MString& prefix="ai_") :
+      CBaseAttrHelper(arnoldNodeEntryName, prefix),
       m_instance(obj)
    {
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CDynamicAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
-                      nodeEntryName, MFnDependencyNode(m_instance).typeName().asChar());
+         AiMsgWarning("[mtoa.attr] CDynamicAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+                      arnoldNodeEntryName.asChar(), MFnDependencyNode(m_instance).typeName().asChar());
       }
    }
 
@@ -319,38 +332,39 @@ class DLLEXPORT CExtensionAttrHelper : public CBaseAttrHelper
 {
 
 public:
-   /// @param nodeClassName  name of maya class to add attributes to
-   /// @param nodeEntry  arnold node entry to use when checking parameter metadata
-   CExtensionAttrHelper(MString nodeClassName, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="ai_") :
-      CBaseAttrHelper(nodeEntry, prefix),
-      m_class(nodeClassName)
+   /// @param mayaNodeClassName  name of maya class to add attributes to
+   /// @param arnoldNodeEntry  arnold node entry to use when checking parameter metadata
+   CExtensionAttrHelper(MString mayaNodeClassName, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="ai_") :
+      CBaseAttrHelper(arnoldNodeEntry, prefix),
+      m_class(mayaNodeClassName)
    {
       if (MTypeId(MFn::kInvalid) == m_class.typeId())
       {
-         AiMsgWarning("[mtoa] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
-                      nodeClassName.asChar());
-      }
+         AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
+                      mayaNodeClassName.asChar());
+      }      
+      AddCommonAttributes();
    }
-   /// @param nodeClassName  name of maya class to add attributes to
-   /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
-   CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName, const MString& prefix="ai_") :
-      CBaseAttrHelper(nodeEntryName, prefix),
-      m_class(nodeClassName)
+   /// @param mayaNodeClassName  name of maya class to add attributes to
+   /// @param arnoldNodeEntryName  arnold node entry to use when checking parameter metadata
+   CExtensionAttrHelper(MString mayaNodeClassName, const MString& arnoldNodeEntryName, const MString& prefix="ai_") :
+      CBaseAttrHelper(arnoldNodeEntryName, prefix),
+      m_class(mayaNodeClassName)
    {
       if (MTypeId(MFn::kInvalid) == m_class.typeId())
       {
-         AiMsgWarning("[mtoa] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
-                      nodeClassName.asChar());
+         AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
+                      mayaNodeClassName.asChar());
       }
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CExtensionAttrHelper was passed an unknown Arnold node type \"%s\" for Maya node type \"%s\"",
-                      nodeEntryName, nodeClassName.asChar());
+         AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+                      arnoldNodeEntryName.asChar(), mayaNodeClassName.asChar());
       }
+      AddCommonAttributes();
    }
 
    MString GetMayaNodeTypeName() const {return m_class.typeName();}
-   MTypeId GetMayaNodeTypeId() const {return m_class.typeId();}
 
 #if MAYA_API_VERSION < 201200
    void MakeInputInt(CAttrData& data);
@@ -365,15 +379,18 @@ public:
    void MakeInputMatrix(CAttrData& data);
    void MakeInputEnum(CAttrData& data);
    void MakeInputNode(CAttrData& data);
+   /*void MakeInputCurveRamp(CAttrData& data);
+   void MakeInputColorRamp(CAttrData& data);*/
    void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
    MObject MakeInput(const char* paramName);
    MObject MakeInput(CAttrData& attrData);
 #else
-protected:
+protected:   
    MStatus virtual addAttribute(MObject& attrib);
 #endif
 
 protected:
+   void AddCommonAttributes();
    MNodeClass m_class;
 
 };

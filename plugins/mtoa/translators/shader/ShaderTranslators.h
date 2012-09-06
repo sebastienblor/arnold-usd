@@ -34,7 +34,6 @@ public:
 };
 
 SHADER_TRANSLATOR(CLambertTranslator);
-SHADER_TRANSLATOR(CFileTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR(CBump3DTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
@@ -48,6 +47,7 @@ SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
+SHADER_TRANSLATOR(CMayaBlinnTranslator);
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 
@@ -68,4 +68,15 @@ public:
    virtual void ExportMotion(AtNode* shader, unsigned int step);
    AtNode* CreateArnoldNodes();
 };
+
+class CFileTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CFileTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   static void NodeInitializer(CAbTranslator context);
+};
+
+
 #endif // SHADER_TRANSLATORS_H

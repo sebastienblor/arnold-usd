@@ -6,6 +6,8 @@
 #define MNoVersionString
 #define MNoPluginEntry
 
+#include <string>
+
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -407,7 +409,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    unsigned int prevTrsNodes = TranslatedNodesCount();
    unsigned int prevTrsCount = TranslatorCount();
 
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL & ~AI_NODE_SHAPE);
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
@@ -871,7 +873,7 @@ MString CExtension::FindFileInPath(const MString &file,
 
    MFileObject fileObject;
    fileObject.setRawName(file);
-   fileObject.setRawPath(path);
+   fileObject.setRawPath(path.expandEnvironmentVariablesAndTilde());
    unsigned int nbSearchPath = fileObject.pathCount();
    for (unsigned int i=0; i<nbSearchPath; i++)
    {
@@ -900,7 +902,7 @@ MStringArray CExtension::FindLibraries(const MString &path,
    MStatus status = MStatus::kNotFound;
    MStringArray files;
 
-   MString resolvedPathList = path.expandFilePath();
+   MString resolvedPathList = path.expandEnvironmentVariablesAndTilde();
    MStringArray pluginPaths;
    resolvedPathList.split(PATHSEP, pluginPaths);
    for (unsigned int i=0; i<pluginPaths.length(); ++i)
@@ -926,7 +928,9 @@ MStringArray CExtension::FindLibraries(const MString &path,
             MString ext = entry.substringW(nchars-next, nchars);
             if (entry.substringW(0,0) != "." && ext == libext)
             {
-               files.append(dir + DIRSEP + entry);
+               std::string filePath = (dir + DIRSEP + entry).asChar();
+               std::replace(filePath.begin(), filePath.end(), '\\','/');
+               files.append(filePath.c_str());
                if (MStatus::kNotFound == status) status = MStatus::kSuccess;
             }
          }

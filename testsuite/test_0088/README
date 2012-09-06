@@ -1,0 +1,5 @@
+renderable NURBS curves
+
+Add the ability to render maya curves. (Ticket #131)
+
+author: redpawfx

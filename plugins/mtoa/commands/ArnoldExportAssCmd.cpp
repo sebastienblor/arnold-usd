@@ -253,7 +253,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Just incase we're rendering with IPR.
    MStringArray panelName;
    MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", panelName);
-   MGlobal::executeCommand("stopIprRendering " + panelName[0]);
+   if (panelName.length() > 0)
+      MGlobal::executeCommand("stopIprRendering " + panelName[0]);
    CMayaScene::End();
    // Cannot export while a render is active
    if (AiUniverseIsActive())
@@ -277,7 +278,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // Not filtering out of render layer
-      arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
+      if (exportSelected)
+      {
+         arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
+      }
+      else
+      {
+         arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask());
+      }
       arnoldSession->SetExportFrame(curframe);
       // Set mask for nodes to export or use Arnold Render Globals if not passed
       if (mask != -1)
@@ -336,7 +344,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
          // TODO: package all of this in a method
          // FIXME: is there a reason not to preserve_scene_data?  CMayaScene::End() below will destroy the scene.
-         AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
+         if (cameras.length() > 1 || writeBox)
+            // Use preserve_scene_data = true only when necessary as this value will be set also to true in the exported file
+            AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
+            
          // ascii ass export
          if (!asciiAss){
             AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
