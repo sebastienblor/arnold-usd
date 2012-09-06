@@ -12,12 +12,13 @@ AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 
 node_parameters
 {
-   
+   AiParameterStr("host_name", "localhost");
 }
 
 struct SocketDriverData{
    int socketFd;
    std::map<std::string, int> aovMap;
+   std::string hostName;
    AtCritSec critSec;
    
    static void* operator new(size_t size)
@@ -39,7 +40,8 @@ node_initialize
 
 node_update
 {
-   
+   SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
+   data->hostName = AiNodeGetStr(node, "host_name");
 }
 
 driver_supports_pixel_type
@@ -81,6 +83,8 @@ void SendSocket(int socketFd, const T& data)
 
 driver_open
 {
+   SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
+   
    int status;
    addrinfo host_info;
    addrinfo *host_info_list;
@@ -90,7 +94,7 @@ driver_open
    host_info.ai_family = AF_INET;
    host_info.ai_socktype = SOCK_STREAM;
 
-   status = getaddrinfo("localhost", "4242", &host_info, &host_info_list);
+   status = getaddrinfo(data->hostName.c_str(), "4242", &host_info, &host_info_list);
    if (status != 0)
    {
       AiMsgError("Getaddrinfo error %s", gai_strerror(status));
@@ -110,9 +114,8 @@ driver_open
    {
       AiMsgError("error connecting to the server");
       return;
-   }
+   }  
    
-   SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
    data->socketFd = socketFd;
    
    int ws[2];
