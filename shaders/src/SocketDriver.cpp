@@ -84,6 +84,7 @@ void SendSocket(int socketFd, const T& data)
 driver_open
 {
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
+   AiCritSecInit(&data->critSec);
    
    int status;
    addrinfo host_info;
@@ -146,8 +147,6 @@ driver_open
       SendSocket(socketFd, outputNameLength);
       SendSocket(socketFd, outputName, outputNameLength);
    }
-   
-   AiCritSecInit(&data->critSec);
 }
 
 driver_prepare_bucket
