@@ -424,8 +424,9 @@ def cameraTranslatorChanged(transPlug, *args):
         elif isOrtho and currTrans != 'orthographic':
             orthoPlug.setBool(False)
 
-def getCameraDefault(cam):
-    default = 'orthographic' if cam.orthographic.get() else 'perspective'
+def getCameraDefault(obj):
+    isOrtho = pm.api.MFnDependencyNode(obj).findPlug("orthographic").asBool()
+    default = 'orthographic' if isOrtho else 'perspective'
     return default
 
 templates.registerDefaultTranslator('camera', getCameraDefault)
