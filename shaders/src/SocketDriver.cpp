@@ -92,7 +92,7 @@ driver_open
    
    memset(&host_info, 0, sizeof host_info);
 
-   host_info.ai_family = AF_INET;
+   host_info.ai_family = AF_UNSPEC;
    host_info.ai_socktype = SOCK_STREAM;
 
    status = getaddrinfo(data->hostName.c_str(), "4242", &host_info, &host_info_list);
@@ -115,7 +115,7 @@ driver_open
    {
       AiMsgError("error connecting to the server");
       return;
-   }  
+   }   
    
    data->socketFd = socketFd;
    
