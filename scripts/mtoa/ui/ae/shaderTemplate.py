@@ -129,9 +129,8 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
 
         menu = pm.optionMenu(self.menuName, edit=True,
                              changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
-        pm.scriptJob(parent=menu, replacePrevious=True,
-                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
-
+        return menu
+    
     def clear(self):
         for item in pm.optionMenu(self.menuName, query=True, itemListLong=True) or []:
             pm.deleteUI(item)
@@ -140,8 +139,6 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         self.addCustom(self.attr, self.createMenu, self.updateMenu)
 
     def createMenu(self, nodeAttr):
-        #nodeAttr = self.nodeAttr(self.attr)
-
         pm.setUITemplate(popTemplate=1)
         
         if self.allowDisable:
@@ -159,8 +156,19 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         pm.optionMenu(self.menuName)
         pm.setParent('..')
 
-        self.updateMenu(nodeAttr)
+        menu = self.updateMenu(nodeAttr)
 
+        pm.scriptJob(parent=menu,
+                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
+
+    def updateMenuCallback(self):
+        '''
+        this method gets around an error with scriptJobs.
+        an attempt to use the replacePrevious flag inside updateMenu failed with
+        "A scriptJob cannot be killed while it is running." This should let us
+        use a single scriptJob by querying the current nodeAttr from the instance
+        '''
+        self.updateMenu(self.nodeAttr())
 
 class ShaderMixin(object):
     def bumpNew(self, attrName):
