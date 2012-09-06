@@ -41,6 +41,8 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
+MComputation CRenderSession::s_comp = MComputation();
+
 namespace
 {
    MString VerifyFileName(MString fileName, bool compressed)
@@ -185,12 +187,14 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 /// It only runs for non-IPR renders.
 void CRenderSession::CheckForRenderInterrupt(void *data)
 {
-   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
-   if (renderSession->m_comp.isInterruptRequested())
+   if (s_comp.isInterruptRequested())
    {
       // This causes AiRender to break, after which the CMayaScene::End()
       // which clears this callback.
       AiRenderInterrupt();
+      // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
+      // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
+      // AiRenderAbort();
    }
    return;
 }
@@ -537,7 +541,7 @@ AtUInt64 CRenderSession::GetUsedMemory()
 void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
-   renderSession->m_comp.beginComputation();
+   s_comp.beginComputation();
 
    MMessage::removeCallback(renderSession->m_idle_cb);
    MStatus status;
@@ -546,6 +550,7 @@ void CRenderSession::DoAddIdleRenderViewCallback(void* data)
                                                 CRenderSession::CheckForRenderInterrupt,
                                                 (void*)data,
                                                 &status);
+   s_comp.endComputation();
 }
 
 // there is a very strange bug with Maya where MComputation will lock up the GUI if
@@ -563,7 +568,6 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
-   m_comp.endComputation();
    // Don't clear the callback if we're in the middle of a render.
    if (m_idle_cb != 0 || m_timer_cb != 0)
    {

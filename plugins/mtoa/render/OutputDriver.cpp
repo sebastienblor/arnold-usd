@@ -382,6 +382,12 @@ void RenderBegin()
    }
 
    CHECK_MSTATUS(status);
+
+   s_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 12.0f,
+                                                 RefreshRenderView,
+                                                 NULL,
+                                                 &status);
+
    s_outputDriverData.rendering  = true;
 }
 
@@ -479,6 +485,7 @@ bool ProcessUpdateMessage(const bool refresh)
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
+            RenderEnd();
             break;
          case MSG_RENDER_END:
             // Recieved "end-of-rendering" message.
@@ -501,14 +508,7 @@ void TransferTilesToRenderView(void*)
 {
    // Send the tiles to the render view. The false argument
    // tells it not to display them just yet.
-   unsigned int i = 0;
-   while(true)
-   {
-      ++i;
-      if (!ProcessUpdateMessage(false))
-         break;
-   }
-   RefreshRenderViewBBox();
+   ProcessUpdateMessage(false);
 }
 
 /// \}

@@ -163,7 +163,7 @@ private:
    void*          m_render_thread;
    AtCritSec      m_render_lock;
    bool           m_rendering;
-   MComputation   m_comp;
+   static MComputation   s_comp;
    MString        m_postRenderMel;
 
 }; // class CRenderSession
