@@ -775,10 +775,254 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 }
 
 enum EAttributeDeclarationType{
-   DECLARATION_CONSTANT = 0,
-   DECLARATION_UNIFORM = 1,
-   DECLARATION_VARYING = 2
+   DECLARATION_CONSTANT = 1,
+   DECLARATION_UNIFORM = 2,
+   DECLARATION_VARYING = 3
 };
+
+static const char* declStrings[][4] = {
+   {"constant BYTE", "constant ARRAY BYTE", "uniform BYTE", "varying BYTE"}, // AI_TYPE_BYTE
+   {"constant INT", "constant ARRAY INT", "uniform INT", "varying INT"}, // AI_TYPE_INT
+   {"constant UINT", "constant ARRAY UINT", "uniform UINT", "varying UINT"}, // AI_TYPE_UINT
+   {"constant BOOL", "constant ARRAY BOOL", "uniform BOOL", "varying BOOL"}, // AI_TYPE_BOOLEAN
+   {"constant FLOAT", "constant ARRAY FLOAT", "uniform FLOAT", "varying FLOAT"}, // AI_TYPE_FLOAT
+   {"constant RGB", "constant ARRAY RGB", "uniform RGB", "varying RGB"}, // AI_TYPE_RGB
+   {"constant RGBA", "constant ARRAY RGBA", "uniform RGBA", "varying RGBA"}, // AI_TYPE_RGBA
+   {"constant VECTOR", "constant ARRAY VECTOR", "uniform VECTOR", "varying VECTOR"}, // AI_TYPE_VECTOR
+   {"constant POINT", "constant ARRAY POINT", "uniform POINT", "varying POINT"}, // AI_TYPE_POINT
+   {"constant POINT2", "constant ARRAY POINT2", "uniform POINT2", "varying POINT2"}, // AI_TYPE_POINT2
+   {"constant STRING", "constant ARRAY STRING", "uniform STRING", "varying STRING"}, // AI_TYPE_STRING
+};
+
+template <signed ATTR>
+void TExportArrayAttribute(AtArray* arr, MPlug& plug, unsigned int element) { }
+
+template <>
+void TExportArrayAttribute<AI_TYPE_BYTE>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetByte(arr, element, plug[element].asChar());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_INT>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetInt(arr, element, plug[element].asInt());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_BOOLEAN>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetBool(arr, element, plug[element].asBool());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_FLOAT>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetFlt(arr, element, plug[element].asFloat());
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_RGB>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtRGB rgb = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AiArraySetRGB(arr, element, rgb);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_RGBA>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtRGBA rgba = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat(), p.child(3).asFloat()};
+   AiArraySetRGBA(arr, element, rgba);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_VECTOR>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtVector vec = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AiArraySetVec(arr, element, vec);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_POINT>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtPoint pnt = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+   AiArraySetPnt(arr, element, pnt);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_POINT2>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   MPlug p = plug[element];
+   AtPoint2 pnt2 = {p.child(0).asFloat(), p.child(1).asFloat()};
+   AiArraySetPnt2(arr, element, pnt2);
+}
+
+template <>
+void TExportArrayAttribute<AI_TYPE_STRING>(AtArray* arr, MPlug& plug, unsigned int element)
+{
+   AiArraySetStr(arr, element, plug[element].asString().asChar());
+}
+
+template <signed ATTR>
+void TExportAttribute(AtNode* node, MPlug& plug, const char* attrName) { }
+
+template <>
+void TExportAttribute<AI_TYPE_BYTE>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetByte(node, attrName, plug.asChar());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_INT>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetInt(node, attrName, plug.asInt());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_BOOLEAN>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetBool(node, attrName, plug.asBool());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_FLOAT>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetFlt(node, attrName, plug.asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_RGB>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetRGB(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_RGBA>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetRGBA(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_VECTOR>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetVec(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_POINT>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetPnt(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_POINT2>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetPnt2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
+}
+
+template <>
+void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* attrName)
+{
+   AiNodeSetStr(node, attrName, plug.asString().asChar());
+}
+
+template <signed ATTR>
+void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+{
+   if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+   {
+      const unsigned int numElements = plug.numElements();
+      AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
+      for (unsigned int i = 0; i < numElements; ++i)
+         TExportArrayAttribute<ATTR>(arr, plug, i);
+      AiNodeSetArray(node, attrName, arr);
+   }
+}
+
+template <signed ATTR>
+void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+{
+   if (plug.isArray())
+      TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
+   else
+   {
+      if (AiNodeDeclare(node, attrName, declStrings[ATTR][0]))
+         TExportAttribute<ATTR>(node, plug, attrName);
+   }
+}
+
+template <signed ATTR, typename T>
+void TExportUserAttributeData(AtArray* array, T& data, unsigned int element)
+{
+   
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(AtArray* array, MFnStringArrayData& data, unsigned int element)
+{
+   AiArraySetStr(array, element, data[element].asChar());
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_FLOAT, MFnDoubleArrayData>(AtArray* array, MFnDoubleArrayData& data, unsigned int element)
+{
+   AiArraySetFlt(array, element, (float)data[element]);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(AtArray* array, MFnIntArrayData& data, unsigned int element)
+{
+   AiArraySetInt(array, element, data[element]);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
+{
+   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetVec(array, element, vec);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
+{
+   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetRGB(array, element, rgb);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
+{
+   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetVec(array, element, vec);
+}
+
+template <>
+void TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
+{
+   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+   AiArraySetRGB(array, element, rgb);
+}
+
+template <signed ATTR, typename T>
+void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+{
+   if (!plug.isArray())
+   {
+      if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+      {
+         T data(plug.asMObject());
+         const unsigned int length = data.length();
+         AtArray* arr = AiArrayAllocate(length, 1, ATTR);
+         for (unsigned int i = 0; i < length; ++i)
+            TExportUserAttributeData<ATTR, T>(arr, data, i);
+         AiNodeSetArray(node, attrName, arr);
+      }
+   }
+}
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
@@ -794,6 +1038,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       if (fnDepNode.attributeClass(oAttr) == MFnDependencyNode::kNormalAttr)
          continue; // we don`t need to check normal attributes,
       // they should be exported by the translator
+      
+      MPlug pAttr(object, oAttr);
+      if (!pAttr.parent().isNull())
+         continue;      
+      // we only need to export the compound attribute, not the compounds itself
+      // after the string comparisons, or before them? probably this one is faster
 
       MFnAttribute fnAttr(oAttr);      
       // The indexW in the MString is very slow!
@@ -809,7 +1059,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       aname += 5;
       if (strncmp(aname, "constant_", 9) == 0)
          aname += 9;
-      if (strncmp(aname, "uniform_", 8) == 0)
+      else if (strncmp(aname, "uniform_", 8) == 0)
       {
          attributeDeclaration = DECLARATION_UNIFORM;
          aname += 8;
@@ -822,210 +1072,41 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       else
          AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_!");
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
-         continue;
-      MPlug pAttr(object, oAttr);
+         continue;      
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {
-         MFnNumericAttribute nattr(oAttr);
-         switch (nattr.unitType())
+         MFnNumericAttribute nAttr(oAttr);
+         MFnNumericData::Type unitType = nAttr.unitType();
+         switch (unitType)
          {
          case MFnNumericData::kBoolean:
-            if (pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY BOOL",
-                                                  "uniform BOOL",
-                                                  "varying BOOL"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BOOLEAN);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetBool(ary, i, pAttr[i].asBool());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant BOOL"))
-               {
-                  AiNodeSetBool(anode, aname, pAttr.asBool());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_BOOLEAN>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::kByte:
          case MFnNumericData::kChar:
-            if (pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY BYTE",
-                                                  "uniform BYTE",
-                                                  "varying BYTE"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BYTE);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetBool(ary, i, pAttr[i].asBool());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant BYTE"))
-               {
-                  AiNodeSetByte(anode, aname, pAttr.asChar());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_BYTE>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::kShort:
          case MFnNumericData::kLong:
-            if (pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY INT",
-                                                  "uniform INT",
-                                                  "varying INT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_INT);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetInt(ary, i, pAttr[i].asInt());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant INT"))
-               {
-                  AiNodeSetInt(anode, aname, pAttr.asInt());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_INT>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::kFloat:
          case MFnNumericData::kDouble:
-            if (pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY FLOAT",
-                                                  "uniform FLOAT",
-                                                  "varying FLOAT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_FLOAT);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetFlt(ary, i, pAttr[i].asFloat());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant FLOAT"))
-               {
-                  AiNodeSetFlt(anode, aname, pAttr.asFloat());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_FLOAT>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k2Float:
          case MFnNumericData::k2Double:
-            if (pAttr.isArray())
-            {
-               AtPoint2 pnt2;
-               static const char* declString[] = {"constant ARRAY POINT2",
-                                                  "uniform POINT2",
-                                                  "varying POINT2"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_POINT2);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     MFnNumericData data(pAttr[i].asMObject());
-                     data.getData2Float(pnt2.x, pnt2.y);
-                     AiArraySetPnt2(ary, i, pnt2);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant POINT2"))
-               {
-                  AtPoint2 pnt2;
-                  MFnNumericData data(pAttr.asMObject());
-                  data.getData2Float(pnt2.x, pnt2.y);
-                  AiNodeSetPnt2(anode, aname, pnt2.x, pnt2.y);
-               }
-            }
+            TExportUserAttribute<AI_TYPE_POINT2>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k3Float:
          case MFnNumericData::k3Double:
-            // point? vector? rgb?
-            if (pAttr.isArray())
-            {
-               AtVector vec;
-               static const char* declString[] = {"constant ARRAY VECTOR",
-                                                  "uniform VECTOR",
-                                                  "varying VECTOR"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     MFnNumericData data(pAttr[i].asMObject());
-                     data.getData3Float(vec.x, vec.y, vec.z);
-                     AiArraySetVec(ary, i, vec);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            if (nAttr.isUsedAsColor())
+               TExportUserAttribute<AI_TYPE_RGB>(anode, pAttr, aname, attributeDeclaration);
             else
-            {
-               if (AiNodeDeclare(anode, aname, "constant VECTOR"))
-               {
-                  AtVector vec;
-                  MFnNumericData data(pAttr.asMObject());
-                  data.getData3Float(vec.x, vec.y, vec.z);
-                  AiNodeSetVec(anode, aname, vec.x, vec.y, vec.z);
-               }
-            }
+               TExportUserAttribute<AI_TYPE_VECTOR>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnNumericData::k4Double:
-            // rgba? homogeneous point?
-            if (pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY RGBA",
-                                                  "uniform RGBA",
-                                                  "varying RGBA"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtRGBA rgba;
-                  double r, g, b, a;
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGBA);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     MFnNumericData data(pAttr[i].asMObject());
-                     data.getData4Double(r, g, b, a);
-                     rgba.r = static_cast<float>(r);
-                     rgba.g = static_cast<float>(g);
-                     rgba.b = static_cast<float>(b);
-                     rgba.a = static_cast<float>(a);
-                     AiArraySetRGBA(ary, i, rgba);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant RGBA"))
-               {
-                  double r, g, b, a;
-                  MFnNumericData data(pAttr.asMObject());
-                  data.getData4Double(r, g, b, a);
-                  AiNodeSetRGBA(anode, aname, static_cast<float>(r), static_cast<float>(g), static_cast<float>(b), static_cast<float>(a));
-               }
-            }
+            TExportUserAttribute<AI_TYPE_RGBA>(anode, pAttr, aname, attributeDeclaration);
             break;
          default:
             // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
@@ -1036,130 +1117,33 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       }
       else if (oAttr.hasFn(MFn::kTypedAttribute))
       {
-         MFnTypedAttribute tattr(oAttr);
-         switch (tattr.attrType())
+         MFnTypedAttribute tAttr(oAttr);
+         const bool usedAsColor = tAttr.isUsedAsColor();
+         switch (tAttr.attrType())
          {
          case MFnData::kString:
-            if (pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY STRING",
-                                                  "uniform STRING",
-                                                  "varying STRING"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_STRING);
-                  for (unsigned int i=0; i<pAttr.numElements(); ++i)
-                  {
-                     AiArraySetStr(ary, i, pAttr[i].asString().asChar());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
-            else
-            {
-               if (AiNodeDeclare(anode, aname, "constant STRING"))
-               {
-                  AiNodeSetStr(anode, aname, pAttr.asString().asChar());
-               }
-            }
+            TExportUserAttribute<AI_TYPE_STRING>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kStringArray:
-            if (!pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY STRING",
-                                                  "uniform STRING",
-                                                  "varying STRING"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  MFnStringArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_STRING);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     AiArraySetStr(ary, i, data[i].asChar());
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kDoubleArray:
-            if (!pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY FLOAT",
-                                                  "uniform FLOAT",
-                                                  "varying FLOAT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  MFnDoubleArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_FLOAT);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     AiArraySetFlt(ary, i, static_cast<float>(data[i]));
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            TExportUserAttributeData<AI_TYPE_FLOAT, MFnDoubleArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kIntArray:
-            if (!pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY INT",
-                                       "uniform INT",
-                                       "varying INT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  MFnIntArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_INT);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     AiArraySetInt(ary, i, data[i]);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kPointArray:
-            if (!pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY POINT",
-                                       "uniform POINT",
-                                       "varying POINT"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtPoint pnt;
-                  MFnPointArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     pnt.x = static_cast<float>(data[i].x);
-                     pnt.y = static_cast<float>(data[i].y);
-                     pnt.z = static_cast<float>(data[i].z);
-                     AiArraySetPnt(ary, i, pnt);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            if (usedAsColor)
+               TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(anode, pAttr, aname, attributeDeclaration);
+            else
+               TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          case MFnData::kVectorArray:
-            if (!pAttr.isArray())
-            {
-               static const char* declString[] = {"constant ARRAY VECTOR",
-                                       "uniform VECTOR",
-                                       "varying VECTOR"};
-               if (AiNodeDeclare(anode, aname, declString[attributeDeclaration]))
-               {
-                  AtVector vec;
-                  MFnVectorArrayData data(pAttr.asMObject());
-                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
-                  for (unsigned int i=0; i<data.length(); ++i)
-                  {
-                     vec.x = static_cast<float>(data[i].x);
-                     vec.y = static_cast<float>(data[i].y);
-                     vec.z = static_cast<float>(data[i].z);
-                     AiArraySetVec(ary, i, vec);
-                  }
-                  AiNodeSetArray(anode, aname, ary);
-               }
-            }
+            if (usedAsColor)
+               TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(anode, pAttr, aname, attributeDeclaration);
+            else
+               TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(anode, pAttr, aname, attributeDeclaration);
             break;
          default:
             // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))

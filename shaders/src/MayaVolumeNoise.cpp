@@ -62,7 +62,8 @@ static const char* NoiseTypeNames[] =
    "Billow",
    "VolumeWave",
    "Wispy",
-   "SpaceTime"
+   "SpaceTime",
+   0
 };
 
 static const char* FalloffTypeNames[] =
@@ -70,7 +71,8 @@ static const char* FalloffTypeNames[] =
    "Linear",
    "Smooth",
    "Fast",
-   "Bubble"
+   "Bubble",
+   0
 };
 
 };

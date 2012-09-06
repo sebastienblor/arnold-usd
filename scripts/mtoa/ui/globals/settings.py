@@ -254,7 +254,7 @@ def createArnoldRenderSettings():
 def updateArnoldFilterOptions(*args):
     pass
 
-def raytracedSSSChanged():
+def raytracedSSSChanged(someArg):
     enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
     pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
     pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
@@ -362,10 +362,12 @@ def createArnoldSamplingSettings():
     
     pm.frameLayout(label="Diffusion SSS", collapse=False)
     
-    pm.attrControlGrp('ss_enable_raytraced_SSS',
+    pm.checkBoxGrp('ss_enable_raytraced_SSS',
                    label="Raytraced",
-                   cc=raytracedSSSChanged,
-                   attribute='defaultArnoldRenderOptions.enable_raytraced_SSS')
+                   cc=raytracedSSSChanged)
+                   
+    pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=1)
+    pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=2)
                    
     enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
                         

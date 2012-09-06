@@ -26,17 +26,33 @@ class DummyLock(object):
 def do_run_test(args):
     return run_test(*args)
 
-def print_banner(test_name):
+def print_banner(test_name, color_cmds=False):
     f = open('README', 'r')
     summary = f.readline().strip('\n')
     f.close()
-    print Fore.MAGENTA + Style.BRIGHT + '='*80
-    print Fore.MAGENTA + Style.BRIGHT +  test_name.ljust(15) + Style.RESET_ALL + Fore.MAGENTA + summary
-    print Fore.MAGENTA + Style.BRIGHT + '-'*80
+    if color_cmds:
+        print Fore.MAGENTA + Style.BRIGHT + '='*80
+        print Fore.MAGENTA + Style.BRIGHT +  test_name.ljust(15) + Style.RESET_ALL + Fore.MAGENTA + summary
+        print Fore.MAGENTA + Style.BRIGHT + '-'*80
+    else:
+        print '='*80
+        print test_name.ljust(15) + summary
+        print '-'*80
 
-def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expected_result, update_reference=False, show_test_output=True):
+def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expected_result, update_reference=False, show_test_output=True, color_cmds=False):
     os.chdir(test_dir)
-
+    
+    fore_magenta = ''
+    fore_cyan = ''
+    fore_green = ''
+    fore_red = ''
+    style_bright = ''
+    if color_cmds:
+        fore_magenta = Fore.MAGENTA
+        fore_cyan = Fore.CYAN
+        fore_green = Fore.GREEN
+        fore_red = Fore.RED
+        style_bright = Style.BRIGHT
 #	## remove any leftovers
     saferemove(output_image)
     saferemove('new.jpg')
@@ -54,7 +70,7 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     if show_test_output:
         # if we are showing output we need to lock around the entire thing, which negates all the benefits of multi-threading
         lock.acquire()
-        print_banner(test_name)
+        print_banner(test_name, color_cmds)
     else:
         # otherwise, we print a little something so that we know when the process is hung, and print the rest at the end
         lock.acquire()
@@ -72,8 +88,8 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     # verbose and log options for Render cmd : -verb -log "test.log" 
     if show_test_output:
         cmd = string.replace(cmd, "%options%", '-im %s' % os.path.splitext(output_image_name)[0])
-        print Fore.CYAN + cmd
-        print Fore.MAGENTA + Style.BRIGHT + '-'*80
+        print fore_cyan + cmd
+        print fore_magenta + style_bright + '-'*80
     else:
         logfile = "%s.log" % (test_name)
         logfile = os.path.join(output_image_dir, logfile)
@@ -165,10 +181,10 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
         os.system('tiff2jpeg %s ref.jpg' % (reference_image))
 
     if show_test_output:
-        print Fore.MAGENTA + Style.BRIGHT + '-'*80
+        print fore_magenta + style_bright + '-'*80
     else:
         lock.acquire()
-        print_banner(test_name)
+        print_banner(test_name, color_cmds)
         print "logged to", logfile
 
     print '%s %s' % ('time'.ljust(15), running_time)
@@ -176,10 +192,11 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     ## progress text (scream if the test didn't pass)
     
     if status == 'OK':
-        print Fore.GREEN + '%s %s' % ('status'.ljust(15), status)
+        print fore_green + '%s %s' % ('status'.ljust(15), status)
     else:
-        print Fore.RED + '%s %s' % ('status'.ljust(15), status)
-        print Fore.RED + '%s %s' % ('cause'.ljust(15), cause)
+        print fore_red + '%s %s' % ('status'.ljust(15), status)
+        print fore_red + '%s %s' % ('cause'.ljust(15), cause)
+        
 
     lock.release()
 
