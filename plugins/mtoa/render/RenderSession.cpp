@@ -109,7 +109,7 @@ bool CRenderSession::IsRendering()
 {
    bool rendering = false;
    AiCritSecEnter(&m_render_lock);
-   rendering = m_rendering;
+   rendering = m_rendering ? true : false;
    AiCritSecLeave(&m_render_lock);
    return rendering;
 }

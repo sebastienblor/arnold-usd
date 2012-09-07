@@ -161,9 +161,11 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       // renderOptions.SetBatch(true);
    }
 
+   AiCritSecEnter(&s_lock);
    // Init both render and export sessions
    status = s_renderSession->Begin(renderOptions);
    status = s_arnoldSession->Begin(sessionOptions);
+   AiCritSecLeave(&s_lock);
 
    return status;
 }

@@ -15,6 +15,15 @@
 #include <maya/MNodeMessage.h>
 #include <maya/MTimerMessage.h>
 
+// This value has a huge impact on the render view performance.
+// A figure too low on linux causes the render view to receive updates too slowly.
+// A figure too high on windows causes the GUI to become less responsive.
+#ifdef _WIN32
+#define DISPLAY_QUEUE_WAIT 1
+#else
+#define DISPLAY_QUEUE_WAIT 10
+#endif
+
 struct COutputDriverData
 {
    AtBBox2         refresh_bbox;

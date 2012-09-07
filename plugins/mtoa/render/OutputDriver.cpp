@@ -528,7 +528,7 @@ void EndImage()
 // return false if render is done
 bool ProcessUpdateMessage(const bool refresh)
 {
-   if (s_displayUpdateQueue.waitForNotEmpty(1))
+   if (s_displayUpdateQueue.waitForNotEmpty(DISPLAY_QUEUE_WAIT))
    {
       CDisplayUpdateMessage msg;
       if (s_displayUpdateQueue.pop(msg))
@@ -579,6 +579,9 @@ void TransferTilesToRenderView(void*)
       if (!ProcessUpdateMessage(false))
          break;
    }
+   // TODO: determine if calling this improves performance on Linux (We already
+   // know that it degrades performance on Windows)
+   //RefreshRenderViewBBox();
 }
 
 /// \}
