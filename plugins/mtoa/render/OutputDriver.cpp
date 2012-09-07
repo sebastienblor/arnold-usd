@@ -46,6 +46,11 @@ static MString                                 s_panel_name;
 static MCallbackId                             s_idle_cb = 0;
 static MCallbackId                             s_timer_cb = 0;
 
+static int s_AA_Samples;
+static int s_GI_diffuse_samples;
+static int s_GI_glossy_samples;
+static int s_sss_sample_factor;
+
 /// \name Arnold Output Driver.
 /// \{
 node_parameters
@@ -65,7 +70,7 @@ node_parameters
 node_initialize
 {
    s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
-   InitializeDisplayUpdateQueue("", "");
+   InitializeDisplayUpdateQueue("", "renderView");
 
    CDisplayUpdateMessage msg;
    msg.msgType = MSG_RENDER_BEGIN;
@@ -135,6 +140,10 @@ driver_open
             AiMsgError("Render view is not able to render");
       }
    }
+
+   CDisplayUpdateMessage msg;
+   msg.msgType = MSG_IMAGE_BEGIN;
+   s_displayUpdateQueue.push(msg);
 }
 
 driver_prepare_bucket
@@ -383,22 +392,11 @@ void RenderBegin()
 
    CHECK_MSTATUS(status);
 
-   s_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 12.0f,
-                                                 RefreshRenderView,
-                                                 NULL,
-                                                 &status);
-
    s_outputDriverData.rendering  = true;
 }
 
 void RenderEnd()
 {
-   // Get some data from Arnold before it gets deleted with the universe.
-   const int AA_Samples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
-   const int GI_diffuse_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
-   const int GI_glossy_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
-   const int sss_sample_factor(AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor"));
-
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
    // And ram used
@@ -414,13 +412,13 @@ void RenderEnd()
 
       rvInfo += "    Sampling: ";
       rvInfo += "[";
-      rvInfo += AA_Samples;
+      rvInfo += s_AA_Samples;
       rvInfo += "/";
-      rvInfo += GI_diffuse_samples;
+      rvInfo += s_GI_diffuse_samples;
       rvInfo += "/";
-      rvInfo += GI_glossy_samples;
+      rvInfo += s_GI_glossy_samples;
       rvInfo += "/";
-      rvInfo += sss_sample_factor;
+      rvInfo += s_sss_sample_factor;
       rvInfo += "]";
 
       rvInfo += "    Render Time: ";
@@ -463,11 +461,74 @@ void ClearDisplayUpdateQueue()
    s_finishedRendering = false;
 }
 
+void BeginImage()
+{
+   MStatus status;
+   s_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 12.0f,
+                                                 RefreshRenderView,
+                                                 NULL,
+                                                 &status);
+
+   s_AA_Samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   s_GI_diffuse_samples = AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
+   s_GI_glossy_samples = AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
+   s_sss_sample_factor = AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor");
+
+   s_start_time = time(NULL);
+}
+
+void EndImage()
+{
+   // Calculate the time taken.
+   const time_t elapsed = time(NULL) - s_start_time;
+   // And ram used
+   const AtUInt64 mem_used = AiMsgUtilGetUsedMemory() / 1024 / 1024;
+
+   // Format a bit of info for the renderview.
+   if (s_panel_name != "")
+   {
+      MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
+      rvInfo += "Memory: ";
+      rvInfo += (unsigned int)mem_used;
+      rvInfo += "Mb";
+
+      rvInfo += "    Sampling: ";
+      rvInfo += "[";
+      rvInfo += s_AA_Samples;
+      rvInfo += "/";
+      rvInfo += s_GI_diffuse_samples;
+      rvInfo += "/";
+      rvInfo += s_GI_glossy_samples;
+      rvInfo += "/";
+      rvInfo += s_sss_sample_factor;
+      rvInfo += "]";
+
+      rvInfo += "    Render Time: ";
+      rvInfo += int(elapsed / 60);
+      rvInfo += ":";
+      rvInfo += int(elapsed % 60);
+
+      if (s_camera_name != "")
+      {
+         rvInfo += "    Camera: ";
+         rvInfo += s_camera_name;
+      }
+
+      rvInfo += "\") " + s_panel_name;
+      MGlobal::executeCommandOnIdle(rvInfo, false);
+   }
+
+   if (s_timer_cb != 0)
+   {
+      MMessage::removeCallback(s_timer_cb);
+      s_timer_cb = 0;
+   }
+}
 
 // return false if render is done
 bool ProcessUpdateMessage(const bool refresh)
 {
-   if (s_displayUpdateQueue.waitForNotEmpty(10))
+   if (s_displayUpdateQueue.waitForNotEmpty(1))
    {
       CDisplayUpdateMessage msg;
       if (s_displayUpdateQueue.pop(msg))
@@ -483,9 +544,12 @@ bool ProcessUpdateMessage(const bool refresh)
          case MSG_BUCKET_UPDATE:
             UpdateBucket(msg, refresh);
             break;
+         case MSG_IMAGE_BEGIN:
+            BeginImage();
+            break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
-            RenderEnd();
+            EndImage();
             break;
          case MSG_RENDER_END:
             // Recieved "end-of-rendering" message.
@@ -508,7 +572,13 @@ void TransferTilesToRenderView(void*)
 {
    // Send the tiles to the render view. The false argument
    // tells it not to display them just yet.
-   ProcessUpdateMessage(false);
+   unsigned int i = 0;
+   while (true)
+   {
+      ++i;
+      if (!ProcessUpdateMessage(false))
+         break;
+   }
 }
 
 /// \}
