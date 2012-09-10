@@ -147,13 +147,13 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         
         cmds.columnLayout()
         cmds.checkBoxGrp('oa_compressed',
-                         label1='Use Compression',
+                         label1='Use Compression (.ass.gz)',
                          value1=settings.get('compressed', False))
         cmds.checkBoxGrp('oa_write_bbox',
                          label1='Write Bounding Box',
                          value1=settings.get('boundingBox', False))
         cmds.checkBoxGrp('oa_binary_ass',
-                         label1='Binary Ass Export',
+                         label1='Use Binary Encoding',
                          value1=not settings.get('asciiAss', False))
 
         cmds.setParent('..')

@@ -193,7 +193,7 @@ def createArnoldRenderSettings():
     pm.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
 
     pm.attrControlGrp('os_threads',
-                   label="Threads",
+                   label="Number of Threads",
                    attribute='defaultArnoldRenderOptions.threads')
 
     pm.separator()
@@ -211,16 +211,6 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_preserve_scene_data',
                    label='Preserve Scene Data',
                    attribute='defaultArnoldRenderOptions.preserveSceneData')
-
-    pm.separator()
-
-    pm.attrControlGrp('os_physically_based',
-                   label="Physically Based",
-                   attribute='defaultArnoldRenderOptions.physicallyBased')
-    
-    pm.attrControlGrp('os_shadow_terminator_fix',
-                   label="Shadow Terminator Fix",
-                   attribute='defaultArnoldRenderOptions.shadowTerminatorFix')
 
     pm.separator()
 
@@ -290,6 +280,12 @@ def createArnoldSamplingSettings():
                )
 
     pm.separator()
+    
+    pm.attrControlGrp('ss_lock_sampling_noise',
+                        label="Lock Sampling Pattern",
+                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+                        
+    pm.separator()
 
     pm.intSliderGrp('ss_AA_samples',
                         label="AA Samples",
@@ -353,12 +349,6 @@ def createArnoldSamplingSettings():
                         label="Glossy Samples",
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
-    
-    pm.separator()
-    
-    pm.attrControlGrp('ss_lock_sampling_noise',
-                        label="Lock sample noise",
-                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
     
     pm.frameLayout(label="Diffusion SSS", collapse=False)
     
@@ -511,14 +501,14 @@ def createArnoldRayDepthSettings():
     pm.columnLayout(adjustableColumn=True)
 
     pm.attrControlGrp('rs_total_depth',
-                        label="Total depth",
+                        label="Total",
                         attribute='defaultArnoldRenderOptions.GITotalDepth')
 
     pm.separator(style="none")
 
     
     pm.intSliderGrp('rs_diffuse_depth',
-                        label="Diffuse depth",
+                        label="Diffuse",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -534,7 +524,7 @@ def createArnoldRayDepthSettings():
     '''
     
     pm.intSliderGrp('rs_glossy_depth',
-                        label="Glossy depth",
+                        label="Glossy",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -550,11 +540,11 @@ def createArnoldRayDepthSettings():
     '''
 
     pm.attrControlGrp('rs_reflection_depth',
-                        label="Reflection depth",
+                        label="Reflection",
                         attribute='defaultArnoldRenderOptions.GIReflectionDepth')
 
     pm.intSliderGrp('rs_refraction_depth',
-                        label="Refraction depth",
+                        label="Refraction ",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -571,11 +561,11 @@ def createArnoldRayDepthSettings():
     pm.separator(style="none")
 
     pm.attrControlGrp('rs_auto_transparency_depth',
-                        label="Auto transp. depth",
+                        label="Transparency Depth",
                         attribute='defaultArnoldRenderOptions.autoTransparencyDepth')
 
     pm.attrControlGrp('rs_auto_transparency_threshold',
-                        label="Auto transp. threshold",
+                        label="Transparency Threshold",
                         attribute='defaultArnoldRenderOptions.autoTransparencyThreshold')
 
     pm.setParent('..')
