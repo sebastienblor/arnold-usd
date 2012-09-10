@@ -93,6 +93,13 @@ driver_open
    AiCritSecInit(&data->critSec);
    
    int status;
+#ifdef WIN32
+   WSADATA wsaData;
+   WORD version;
+   int error;
+   version = MAKEWORD(2, 0);
+   error = WSAStartup(version, &wsaData); // TODO : check for the error
+#endif
    
    int socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    
@@ -189,7 +196,13 @@ driver_close
 {
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
    if (data->socketFd != -1)
+   {
+#ifdef WIN32
+      closesocket(data->socketFd);
+#else
       close(data->socketFd);
+#endif
+   }
    AiCritSecClose(&data->critSec);
 }
 

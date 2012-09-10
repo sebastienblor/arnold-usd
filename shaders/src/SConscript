@@ -17,7 +17,7 @@ include_files = find_files_recursive(src_base_dir, ['.h'])
 
 if system.os() =='windows':
    local_env.Append(CPPPATH = ['.'])
-   local_env.Append(LIBS=Split('ai.lib'))
+   local_env.Append(LIBS=Split('ai.lib ws2_32.lib'))
 else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))
