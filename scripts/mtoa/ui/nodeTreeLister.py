@@ -75,7 +75,10 @@ def createArnoldNodesTreeLister_Content(renderNodeTreeLister, postCommand, filte
         if not filters or any([isSubClassification(staticClass, filter) for filter in filters]):
             for nodeType in nodeTypes:
                 command = Callback(createNodeCallback, runtimeClass, postCommand, nodeType)
+                import maya.app.general.tlfavorites as _fav
+                _fav.addPath(nodePath + '/' + nodeType, nodeType)
                 pm.nodeTreeLister(renderNodeTreeLister, e=True, add=[nodePath + '/' + nodeType, "render_%s.png" % nodeType, command])
+                del _fav
 
 
 def aiHyperShadeCreateMenu_BuildMenu():
@@ -115,7 +118,7 @@ def createNodeCallback(runtimeClassification, postCommand, nodeType):
 
     node = unicode(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
     if postCommand:
-        postCommand = postCommand.replace('%node', node).replace('%type', nodeType)
+        postCommand = postCommand.replace('%node', node).replace('%type', nodeType).replace(r'\"','"')
         pm.mel.eval(postCommand)
     return node
 

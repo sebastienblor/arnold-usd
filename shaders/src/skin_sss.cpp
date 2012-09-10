@@ -9,6 +9,7 @@ node_parameters
 {
    AiParameterRGB ("diffuse_color", 1.0f, 1.0f, 1.0f);
    AiParameterFLT ("diffuse_weight", 0.3f);
+   AiParameterFLT ("diffuse_roughness" , 0.0f);  // in [0,1]
    AiParameterFLT ("sss_weight", 1.0f);
    AiParameterRGB ("shallow_scatter_color", 1.0f, 0.909f, 0.769f);
    AiParameterFLT ("shallow_scatter_weight", 0.5f);
@@ -53,6 +54,7 @@ void CSSSParams::Evaluate(AtNode* node, AtShaderGlobals *sg)
 {
    diffuse_color          = AiShaderEvalParamRGB(p_diffuse_color);
    diffuse_weight         = AiShaderEvalParamFlt(p_diffuse_weight);
+   roughness              = AiShaderEvalParamFlt (p_diffuse_roughness);
    sss_weight             = AiShaderEvalParamFlt(p_sss_weight);
    shallow_scatter_color  = AiShaderEvalParamRGB(p_shallow_scatter_color);
    shallow_scatter_weight = AiShaderEvalParamFlt(p_shallow_scatter_weight);
@@ -265,6 +267,7 @@ shader_evaluate
    // Standard_SSS_Shallow
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd_color = params.diffuse_color;
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd = params.diffuse_weight;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].roughness = params.roughness;
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks_color = params.primary_reflection_color;
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks = params.primary_reflection_weight;
    // Spec roughness added in the latest compound version

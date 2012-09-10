@@ -21,6 +21,7 @@ void CArnoldLightLinks::ClearLightLinks()
    m_numArnoldLights = 0;
    m_linkedLights.clear();
    m_linkedShadows.clear();
+   m_cachedObjectSets.clear();
    
    m_lightMode = MTOA_LIGHTLINK_NONE;
    m_lightMode = MTOA_SHADOWLINK_NONE;
@@ -49,33 +50,50 @@ void CArnoldLightLinks::ParseLightLinks()
    }
 }
 
-void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
-        size_t& numLinkedNodes)
+const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDependencyNode& objectSet)
 {
-   if (linkedNodes.typeName() == MString("objectSet"))
-   {
-      MStatus status;
-      MFnSet objectSet(linkedNodes.object());
+   std::string setName = objectSet.name().asChar();
+   std::map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
+   if (it == m_cachedObjectSets.end())
+   {      
+      std::vector<AtNode*> lights;
+      lights.reserve(m_numArnoldLights);
+      MFnSet mayaObjectSet(objectSet.object());
       MSelectionList sList;
-      objectSet.getMembers(sList, true);
+      mayaObjectSet.getMembers(sList, true);
+      MStatus status;
       for (unsigned int i = 0; i < sList.length(); ++i)
       {
          MDagPath dgPath;
          if (!sList.getDagPath(i, dgPath))
             continue;
-         dgPath.extendToShape();
+         dgPath.extendToShapeDirectlyBelow(0);
          MFnDependencyNode linkedLight(dgPath.node(), &status);
          if (!status)
             continue;
-         std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(linkedLight.name().asChar());
-         if (it == m_arnoldLights.end())
-            it = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-         if (it != m_arnoldLights.end())
-         {
-            std::vector<AtNode*>::iterator itEnd = nodeList.begin() + numLinkedNodes;
-            if (std::find(nodeList.begin(), itEnd, it->second) == itEnd)
-               nodeList[numLinkedNodes++] = it->second;
-         }
+         std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+         if (it2 == m_arnoldLights.end())
+            it2 = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+         if (it2 != m_arnoldLights.end())
+            lights.push_back(it2->second);
+      }
+      m_cachedObjectSets.insert(std::make_pair(setName, lights));
+      return m_cachedObjectSets[setName];
+   }
+   else return it->second;
+}
+
+void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
+        size_t& numLinkedNodes)
+{
+   if (linkedNodes.typeName() == MString("objectSet"))
+   {
+      const std::vector<AtNode*>& lights = GetObjectsFromObjectSet(linkedNodes);
+      for (std::vector<AtNode*>::const_iterator it = lights.begin(); it != lights.end(); ++it)
+      {
+         std::vector<AtNode*>::iterator itEnd = nodeList.begin() + numLinkedNodes;
+         if (std::find(nodeList.begin(), itEnd, *it) == itEnd)
+            nodeList[numLinkedNodes++] = *it;
       }
    }
    else

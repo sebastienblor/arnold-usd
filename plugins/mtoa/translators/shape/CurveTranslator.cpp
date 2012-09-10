@@ -31,6 +31,8 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.INT = 5;
    data.name = "sampleRate";
    data.shortName = "srate";
+   data.hasMin = true;
+   data.min.INT = 1;
    helper.MakeInputInt(data);
 
    // FIXME: look into using CDagTranslator::MakeMayaVisibilityFlags
@@ -301,6 +303,8 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       if (!plug.isNull())
       {
         sampleRate =  plug.asInt();
+        if (sampleRate < 1)
+         sampleRate = 1;
       }
       
       nurbsCurve.getKnotDomain(start, end);

@@ -50,7 +50,7 @@ vars.AddVariables(
       PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
       PathVariable('SHCXX', 'Path to C++ (gcc) compiler used for generating shared-library objects', None),
                   
-      BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', False),
+      BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
       EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
       ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
@@ -186,8 +186,9 @@ TARGET_BINARIES = env.subst(env['TARGET_BINARIES'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 
 # Get arnold and maya versions used for this build
-arnold_version  = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
-maya_version    = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
+maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+maya_version_base = maya_version[0:4]
 
 # print build info
 print ''
@@ -564,9 +565,9 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles]
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
 # install mtoa version specific scritps (myst be done after to allow overwriting)
-versionfiles = find_files_recursive(os.path.join('scripts', maya_version), ['.py', '.mel'])
-env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version, x) for x in versionfiles],
-              [os.path.join('scripts', maya_version, x) for x in versionfiles])
+versionfiles = find_files_recursive(os.path.join('scripts', maya_version_base), ['.py', '.mel'])
+env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base, x) for x in versionfiles],
+              [os.path.join('scripts', maya_version_base, x) for x in versionfiles])
 
 # install Arnold python bindings
 arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
@@ -728,7 +729,7 @@ for p in scriptfiles:
 for p in versionfiles:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
-      [os.path.join('scripts', maya_version, p), os.path.join('scripts', 'mtoa', maya_version, d)]
+      [os.path.join('scripts', maya_version_base, p), os.path.join('scripts', 'mtoa', maya_version_base, d)]
    ]
 
 for p in arpybds:

@@ -533,7 +533,7 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_useFrameExtension);
 
-   s_frameNumber = nAttr.create("frameNumber", "frameNumber", MFnNumericData::kFloat, 0);
+   s_frameNumber = nAttr.create("frameNumber", "frameNumber", MFnNumericData::kInt, 0);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_frameNumber);

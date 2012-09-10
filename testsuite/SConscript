@@ -10,7 +10,25 @@ import time
 import subprocess
 import sys
 import signal
-from colorama import Fore
+from colorama import Fore, Style, Back
+
+Import('env')
+
+color_green   = ''
+color_red     = ''
+color_bright  = ''
+color_bgreen  = ''
+color_bred    = ''
+color_reset   = ''
+color_cyan    = ''
+if env['COLOR_CMDS']:
+   color_green   = Fore.GREEN
+   color_red     = Fore.RED
+   color_bright  = Style.BRIGHT
+   color_bgreen  = color_green + color_bright
+   color_bred    = color_red   + color_bright
+   color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
+   color_cyan    = Fore.CYAN
 
 ## Finds a test group and returns a list of all tests included
 def find_test_group(group):
@@ -315,11 +333,11 @@ class MayaTestRunner(object):
                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                            self.force_result,
                            test_env['UPDATE_REFERENCE'],
-                           show_test_output)
+                           show_test_output, test_env['COLOR_CMDS'])
                self.total_running_time += result
        else:
            manager = multiprocessing.Manager()
-           self.pool = multiprocessing.Pool(test_env['TEST_THREADS'])
+           self.pool = multiprocessing.Pool(int(test_env['TEST_THREADS']))
            try:
                self._setup_sig_handler()
            except ValueError:
@@ -337,7 +355,7 @@ class MayaTestRunner(object):
                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                            self.force_result,
                            test_env['UPDATE_REFERENCE'],
-                           show_test_output) )
+                           show_test_output, test_env['COLOR_CMDS']) )
     
            # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
            # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
@@ -352,7 +370,7 @@ class MayaTestRunner(object):
            try:
               while 1:
                   # timeout seconds per job
-                  self.total_running_time += results.next(timeout=60)
+                  self.total_running_time += results.next(timeout=600)
            except StopIteration:
                self.pool.close()
                self.pool.join()
@@ -398,9 +416,9 @@ class MayaTestRunner(object):
              failed += 1
 
        if failed == 0:
-          print Fore.CYAN + ('\nRan %d regression tests - ' % len(self.tests)) + Fore.GREEN + 'ALL TESTS OK' 
+          print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_green + 'ALL TESTS OK' 
        else:
-          print Fore.CYAN + ('\nRan %d regression tests - ' % len(self.tests)) + Fore.RED + ('%d failed!' % failed)
+          print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_red + ('%d failed!' % failed)
     
        MTOA_VERSION    = '<not available>'
        ARNOLD_VERSION  = arnold_version
@@ -537,7 +555,7 @@ if __name__ == 'SCons.Script':
     # Disable multiprocess if the operating system is Windows or a Linux without multiprocessing 
     multiprocess = False
     if test_env['MULTIPROCESS'] == True:
-        if system.os() != 'windows':
+        if (system.os() != 'windows') and (int(test_env['TEST_THREADS']) > 1):
             try:
                 import multiprocessing
                 multiprocess = True

@@ -435,7 +435,7 @@ def setEnvironmentVariable(name, value):
     This function is meant to support unicode environment variables in python 2.*
     '''
     if sys.platform == 'win32':    
-        buf= ctypes.create_unicode_buffer(unicode(value))
+        buf= ctypes.create_unicode_buffer(value)
         ctypes.windll.kernel32.SetEnvironmentVariableW(name, buf)
     else:
         os.environ[name] = value    

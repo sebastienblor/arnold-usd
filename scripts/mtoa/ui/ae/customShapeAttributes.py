@@ -51,24 +51,28 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 
     def setup(self):
         self.commonShapeAttributes()
-        self.addSeparator()
-        self.addControl("aiSubdivType", label="Subdivision Type")
-        self.addControl("aiSubdivIterations", label="Subdivision Iterations")
-        self.addControl("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
-        self.addControl("aiSubdivPixelError", label="Subdivision Pixel Error")
-        # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
-        self.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
-        self.addControl("aiSubdivSmoothDerivs", label="Smooth Subdivision Tangents")
-        self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        
         self.addSeparator()
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
         self.addControl("aiExportRefPoints", label="Export Reference Positions")
         self.addControl("aiExportRefNormals", label="Export Reference Normals")
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
+        
+        self.addSeparator()
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        
+        self.beginLayout('Subdivision', collapse=False)
+        self.addControl("aiSubdivType", label="Type")
+        self.addControl("aiSubdivIterations", label="Iterations")
+        self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
+        self.addControl("aiSubdivPixelError", label="Pixel Error")
+        # TODO: add dicing camera UI
+        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
+        self.addControl("aiSubdivUvSmoothing", label="UVs Smoothing")
+        self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
+        self.endLayout()
         
         self.beginLayout('Displacement Attributes', collapse=False)
         self.addControl("aiDispHeight", label="Height")
