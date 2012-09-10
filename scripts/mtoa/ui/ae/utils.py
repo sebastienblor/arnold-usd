@@ -106,6 +106,46 @@ def rebuildAE():
             pm.deleteUI(children[0])
             pm.mel.attributeEditorVisibilityStateChange(1, "")
 
+def attrTextFieldGrp(*args, **kwargs):
+    """
+    There is a bug with attrControlGrp and string attributes where it ignores
+    any attempt to edit the current attribute.  So, we have to write our own
+    replacement
+    """
+    attribute = kwargs.pop('attribute', kwargs.pop('a', None))
+    assert attribute is not None, "You must passed an attribute"
+    changeCommand = kwargs.pop('changeCommand', kwargs.pop('cc', None))
+    if changeCommand:
+        def cc(newVal):
+            pm.setAttr(attribute, newVal)
+            changeCommand(newVal)
+    else:
+        cc = lambda newVal: pm.setAttr(attribute, newVal)
+
+    if kwargs.pop('edit', kwargs.pop('e', False)):
+        ctrl = args[0]
+        pm.textFieldGrp(ctrl, edit=True,
+                    text=pm.getAttr(attribute),
+                    changeCommand=cc)
+        pm.scriptJob(parent=ctrl,
+                     replacePrevious=True,
+                     attributeChange=[attribute,
+                                      lambda: pm.textFieldGrp(ctrl, edit=True,
+                                                              text=pm.getAttr(attribute))])
+    elif kwargs.pop('query', kwargs.pop('q', False)):
+        # query
+        pass
+    else:
+        # create
+        ctrl = pm.textFieldGrp(label=pm.mel.interToUI(attribute.split('.')[-1]),
+                               text=pm.getAttr(attribute),
+                               changeCommand=cc)
+        pm.scriptJob(parent=ctrl,
+                     attributeChange=[attribute,
+                                      lambda: pm.textFieldGrp(ctrl, edit=True,
+                                                              text=pm.getAttr(attribute))])
+        return ctrl
+
 class AttrControlGrp(object):
     UI_TYPES = {
         'float':  pm.cmds.attrFieldSliderGrp,
@@ -123,7 +163,7 @@ class AttrControlGrp(object):
         'double': pm.cmds.attrFieldSliderGrp,
         'double2':pm.cmds.attrFieldGrp,
         'double3':pm.cmds.attrFieldGrp,
-        'string': pm.cmds.attrControlGrp,
+        'string': attrTextFieldGrp,
         'message':pm.cmds.attrNavigationControlGrp
     }
     def __init__(self, attribute, *args, **kwargs):
