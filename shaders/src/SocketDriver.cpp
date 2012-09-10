@@ -2,11 +2,17 @@
 
 #include <iostream>
 #include <cstring>
+
+#include <map>
+#include <string>
+
+#ifdef WIN32
+#include <WinSock.h>
+#else
 #include <sys/socket.h>
 #include <netdb.h> 
 #include <unistd.h>
-#include <map>
-#include <string>
+#endif
 
 AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 
@@ -87,22 +93,8 @@ driver_open
    AiCritSecInit(&data->critSec);
    
    int status;
-   addrinfo host_info;
-   addrinfo *host_info_list;
    
-   memset(&host_info, 0, sizeof host_info);
-
-   host_info.ai_family = AF_UNSPEC;
-   host_info.ai_socktype = SOCK_STREAM;
-
-   status = getaddrinfo(data->hostName.c_str(), "4242", &host_info, &host_info_list);
-   if (status != 0)
-   {
-      AiMsgError("Getaddrinfo error %s", gai_strerror(status));
-      return;
-   }
-   
-   int socketFd = socket(host_info_list->ai_family, host_info_list->ai_socktype, host_info_list->ai_protocol);
+   int socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    
    if (socketFd == -1)
    {
@@ -110,7 +102,17 @@ driver_open
       return;
    }
    
-   status = connect(socketFd, host_info_list->ai_addr, host_info_list->ai_addrlen);
+   hostent* hst;
+   hst = gethostbyname(data->hostName.c_str());
+   
+   sockaddr_in sin;
+   memset(&sin, 0, sizeof(sockaddr_in));
+   
+   sin.sin_family = AF_INET;
+   sin.sin_addr.s_addr = ((in_addr*)(hst->h_addr))->s_addr;
+   sin.sin_port = htons(4242);
+   
+   status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
    if (status == -1)
    {
       AiMsgError("error connecting to the server");
