@@ -19,6 +19,13 @@ AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 node_parameters
 {
    AiParameterStr("host_name", "localhost");
+   
+   AiParameterPTR("swatch", NULL);
+   AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
+   AiMetaDataSetStr(mds, NULL, "maya.translator", "socket");
+   AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
+   AiMetaDataSetBool(mds, NULL, "single_layer_driver", false);
+   AiMetaDataSetBool(mds, NULL, "display_driver", true);   
 }
 
 struct SocketDriverData{
@@ -41,6 +48,7 @@ struct SocketDriverData{
 node_initialize
 {
    SocketDriverData* data = new SocketDriverData;
+   data->socketFd = -1;
    AiDriverInitialize(node, true, data);
 }
 
@@ -90,6 +98,8 @@ void SendSocket(int socketFd, const T& data)
 driver_open
 {
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
+   if (data->socketFd != -1)
+      return;
    AiCritSecInit(&data->critSec);
    
    int status;
@@ -102,6 +112,7 @@ driver_open
 #endif
    
    int socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+   data->socketFd = socketFd;
    
    if (socketFd == -1)
    {
@@ -124,9 +135,7 @@ driver_open
    {
       AiMsgError("error connecting to the server");
       return;
-   }   
-   
-   data->socketFd = socketFd;
+   }
    
    int ws[2];
    ws[0] = display_window.maxx - display_window.minx + 1;
@@ -194,6 +203,11 @@ driver_write_bucket
 
 driver_close
 {
+   
+}
+
+node_finish
+{
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
    if (data->socketFd != -1)
    {
@@ -204,9 +218,5 @@ driver_close
 #endif
    }
    AiCritSecClose(&data->critSec);
-}
-
-node_finish
-{
    delete (SocketDriverData*)AiDriverGetLocalData(node);
 }
