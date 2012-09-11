@@ -19,6 +19,8 @@ AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 node_parameters
 {
    AiParameterStr("host_name", "localhost");
+   
+   AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
 }
 
 struct SocketDriverData{
