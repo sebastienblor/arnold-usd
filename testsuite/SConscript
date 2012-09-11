@@ -501,9 +501,10 @@ class MayaTestRunner(object):
     
           # copy images to results directory
           new_img = os.path.join(test_dir, 'new.jpg')
-          if not os.path.exists(new_img):
-              continue
           new_img_dest = copy_to_results(new_img)
+          new_img_exists = os.path.exists(new_img) and (new_img_dest is not None)
+          if new_img_exists:
+              new_img_exists = os.path.exists(new_img_dest)
           
           ref_img = os.path.join(test_dir, 'ref.jpg')
           ref_img_dest = copy_to_results(ref_img)
@@ -524,7 +525,7 @@ class MayaTestRunner(object):
                  bgcolor,
                  description,
                  test_link,
-                 os.path.exists(new_img_dest) and '''<img src="%s/new.jpg" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name)
+                 new_img_exists and '''<img src="%s/new.jpg" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name)
                                           or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
                  test_link,
                  os.path.exists(ref_img_dest) and '''<img src="%s/ref.jpg" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name)
