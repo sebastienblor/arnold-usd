@@ -344,7 +344,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
          // TODO: package all of this in a method
          // FIXME: is there a reason not to preserve_scene_data?  CMayaScene::End() below will destroy the scene.
-         if (cameras.length() > 1 || writeBox)
+         if (cameras.length() > 1)
             // Use preserve_scene_data = true only when necessary as this value will be set also to true in the exported file
             AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
             
