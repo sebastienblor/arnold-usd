@@ -238,16 +238,8 @@ MStatus CRenderSwatchGenerator::DefaultArnoldScene()
       if (NULL != geometry)
       {
          AiNodeSetStr(geometry, "name", "geometry");
-         if (typeName == "aiDisplacement")
-         {
-            AiNodeSetInt(geometry, "subdiv_iterations", 3);
-            AiNodeSetBool(geometry, "opaque", true);
-         }
-         else
-         {
-            AiNodeSetInt(geometry, "subdiv_iterations", 1);
-            AiNodeSetBool(geometry, "opaque", false);
-         }
+         AiNodeSetInt(geometry, "subdiv_iterations", 1);
+         AiNodeSetBool(geometry, "opaque", false);
          return MStatus::kSuccess;
       }
    }

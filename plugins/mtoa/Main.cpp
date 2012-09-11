@@ -18,7 +18,6 @@
 #include "nodes/SphereLocator.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
-#include "nodes/shader/ArnoldDisplacementNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
@@ -105,16 +104,6 @@ namespace // <anonymous>
                                    CArnoldFilterNode::initialize);
       CHECK_MSTATUS(status);
 
-
-      // Displacement Shaders
-      // TODO: remove this next release (this remains only to make it easier to upgrade to new displacement method)
-      status = plugin.registerNode("aiDisplacement",
-                                   CArnoldDisplacementNode::id,
-                                   CArnoldDisplacementNode::creator,
-                                   CArnoldDisplacementNode::initialize,
-                                   MPxNode::kDependNode,
-                                   &DISPLACEMENT_WITH_SWATCH);
-      CHECK_MSTATUS(status);
 
       // Light Shaders
       status = plugin.registerNode("aiSkyDomeLight",
@@ -425,10 +414,6 @@ namespace // <anonymous>
 
       // AOV
       status = plugin.deregisterNode(CArnoldAOVNode::id);
-      CHECK_MSTATUS(status);
-
-      // Displacement Shaders
-      status = plugin.deregisterNode(CArnoldDisplacementNode::id);
       CHECK_MSTATUS(status);
 
       // Sky dome light
