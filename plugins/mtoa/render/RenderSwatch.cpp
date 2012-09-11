@@ -81,11 +81,6 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
          {
             m_swatchClass = SWATCH_SHADER;
          }
-         else if (classes[j] == "displacement")
-         {
-            m_swatchClass = SWATCH_DISPLACEMENT;
-            break;
-         }
          else if (classes[j] == "environment")
          {
             m_swatchClass = SWATCH_ENVIRONMENT;
@@ -254,59 +249,40 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    MObject mayaNode = swatchNode();
    CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
-   // FIXME: Special case for displacement
-   if (m_swatchClass == SWATCH_DISPLACEMENT)
+   if (mayaNode.hasFn(MFn::kDagNode))
    {
-      arnoldNode = NULL;
-      // Get file translator in that case
-      // Commented as later translator redesigns will break it
-      translator = CExtensionsManager::GetTranslator("aiStandard");
-      if (NULL != translator)
+      MDagPath dagPath;
+      MDagPath::getAPathTo(mayaNode, dagPath);
+      CDagTranslator* dagTranslator = CExtensionsManager::GetTranslator(dagPath);
+      if (NULL != dagTranslator)
       {
-         status = MStatus::kSuccess;
+         translator = (CNodeTranslator*) dagTranslator;
       }
       else
       {
-         status = MStatus::kFailure;
+         translator = CExtensionsManager::GetTranslator(mayaNode);
+         dagTranslator = (CDagTranslator*) translator;
       }
+      if (NULL != dagTranslator)
+      {
+         dagTranslator->Init(exportSession, dagPath, "");
+         arnoldNode = dagTranslator->DoExport(0);
+      }
+   } else {
+      translator = CExtensionsManager::GetTranslator(mayaNode);
+      if (NULL != translator)
+      {
+         translator->Init(exportSession, mayaNode, "");
+         arnoldNode = translator->DoExport(0);
+      }
+   }
+   if (NULL != arnoldNode)
+   {
+      status = MStatus::kSuccess;
    }
    else
    {
-      if (mayaNode.hasFn(MFn::kDagNode))
-      {
-         MDagPath dagPath;
-         MDagPath::getAPathTo(mayaNode, dagPath);
-         CDagTranslator* dagTranslator = CExtensionsManager::GetTranslator(dagPath);
-         if (NULL != dagTranslator)
-         {
-            translator = (CNodeTranslator*) dagTranslator;
-         }
-         else
-         {
-            translator = CExtensionsManager::GetTranslator(mayaNode);
-            dagTranslator = (CDagTranslator*) translator;
-         }
-         if (NULL != dagTranslator)
-         {
-            dagTranslator->Init(exportSession, dagPath, "");
-            arnoldNode = dagTranslator->DoExport(0);
-         }
-      } else {
-         translator = CExtensionsManager::GetTranslator(mayaNode);
-         if (NULL != translator)
-         {
-            translator->Init(exportSession, mayaNode, "");
-            arnoldNode = translator->DoExport(0);
-         }
-      }
-      if (NULL != arnoldNode)
-      {
-         status = MStatus::kSuccess;
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
+      status = MStatus::kFailure;
    }
 
    return status;
@@ -332,46 +308,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       AiNodeSetFlt(defaultShader, "Ks", 0.35f);
       AiNodeSetBool(defaultShader, "reflection_exit_use_environment", true);
       AiNodeSetPtr(geometry, "shader", defaultShader);
-   }
-
-   // Export displacement map if required
-   if (m_swatchClass == SWATCH_DISPLACEMENT)
-   {
-      AiNodeSetFlt(geometry, "disp_height", depFn.findPlug("disp_height").asFloat());
-      AiNodeSetFlt(geometry, "disp_padding", depFn.findPlug("disp_padding").asFloat());
-      AiNodeSetFlt(geometry, "disp_zero_value", depFn.findPlug("disp_zero_value").asFloat());
-      AiNodeSetBool(geometry, "disp_autobump", depFn.findPlug("disp_autobump").asBool());
-
-      MPlugArray connections;
-      connections.clear();
-      depFn.findPlug("disp_map").connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         MString attrName = connections[0].partialName(false, false, false, false, false, true);
-         AtNode* dispImage(exportSession->ExportNode(connections[0])->GetArnoldRootNode());
-         if (dispImage != NULL)
-         {
-            // FIXME : why request a non networked plug?
-            MPlug pVectorDisp = depFn.findPlug("vector_displacement",false );
-            if (!pVectorDisp.isNull() && pVectorDisp.asBool())
-            {
-               MPlug pVectorDispScale = depFn.findPlug("vector_displacement_scale", false);
-               AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               char nodeName[MAX_NAME_SIZE];
-               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
-               translator->ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
-               AiNodeLink(dispImage, "map", tangentToObject);
-               AiNodeSetPtr(geometry, "disp_map", tangentToObject);
-            }
-            else
-            {
-               AiNodeSetPtr(geometry, "disp_map", dispImage);
-            }
-         } else {
-            ErrorSwatch("Could not export displacement map on \"" + depFn.name() + "\".");
-            return MStatus::kFailure;
-         }
-      }
    }
 
    // If we are swatching a light or light filter
