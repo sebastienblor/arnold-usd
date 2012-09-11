@@ -501,6 +501,8 @@ class MayaTestRunner(object):
     
           # copy images to results directory
           new_img = os.path.join(test_dir, 'new.jpg')
+          if not os.path.exists(new_img):
+              continue
           new_img_dest = copy_to_results(new_img)
           
           ref_img = os.path.join(test_dir, 'ref.jpg')
