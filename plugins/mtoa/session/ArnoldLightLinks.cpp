@@ -73,6 +73,8 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
             continue;
          std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
          if (it2 == m_arnoldLights.end())
+            it2 = m_arnoldLights.find(dgPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+         if (it2 == m_arnoldLights.end())
             it2 = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
          if (it2 != m_arnoldLights.end())
             lights.push_back(it2->second);
@@ -103,7 +105,9 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::v
       {
          MDagPath dgPath;
          MDagPath::getAPathTo(linkedNodes.object(), dgPath);
-         it = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+         it = m_arnoldLights.find(dgPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+         if (it == m_arnoldLights.end())
+            it = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
       }
       if (it != m_arnoldLights.end())
       {
