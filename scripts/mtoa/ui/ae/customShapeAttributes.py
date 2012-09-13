@@ -70,7 +70,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiSubdivPixelError", label="Pixel Error")
         # TODO: add dicing camera UI
         self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
-        self.addControl("aiSubdivUvSmoothing", label="UVs Smoothing")
+        self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()
         
