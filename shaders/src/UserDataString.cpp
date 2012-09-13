@@ -9,7 +9,8 @@ namespace
 
 enum UserDataStringParams
 {
-   p_stringAttrName
+   p_stringAttrName,
+   p_defaultValue
 };
 }
 
@@ -21,6 +22,7 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("stringAttrName", "");
+   AiParameterSTR("defaultValue", "")
 }
 
 node_initialize
@@ -44,5 +46,7 @@ shader_evaluate
    name = AiShaderEvalParamStr(p_stringAttrName);
    if (AiUDataGetStr(name, &value))
       sg->out.STR = value;
+   else
+      sg->out.STR = AiShaderEvalParamStr(p_defaultValue);
 
 }
