@@ -908,6 +908,9 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    MDrawData data = request.drawData();
    CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
    view.beginGL();
+   gGLFT->glPushAttrib(MGL_ALL_ATTRIB_BITS);
+   gGLFT->glEnable(MGL_DEPTH_TEST);
+   gGLFT->glDepthFunc(MGL_LESS);
 
    if (geom->updateView || geom->updateBBox)
    {
@@ -1131,6 +1134,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    {
       gGLFT->glCallList(geom->dList+1);
    }
+   gGLFT->glPopAttrib();
    view.endGL();
 
 }
