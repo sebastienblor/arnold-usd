@@ -30,6 +30,9 @@ public:
    // polygons and normals for shaded mode
    virtual void DrawNormalAndPolygons() const = 0;
    
+   // bounding box mode
+   virtual void DrawBoundingBox() const = 0;
+   
    static void setGLFTable(MGLFunctionTable* table);
 };
 
@@ -40,6 +43,7 @@ private:
    std::vector<AtVector> m_nlist;
    std::vector<AtUInt> m_nidxs;
    std::vector<AtUInt> m_nsides;
+   AtVector m_BBMin, m_BBMax;
 public:
    CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox);
    ~CArnoldPolymeshGeometry();
@@ -48,6 +52,7 @@ public:
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
+   void DrawBoundingBox() const;
 };
 
 #endif	/* ARNOLDSTANDINGEOMETRY_H */
