@@ -77,6 +77,8 @@ extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
 extern AtNodeMethods* MeshLightMaterialMtd;
 extern AtNodeMethods* SocketDriverMtd;
+extern AtNodeMethods* UserDataPnt2Mtd;
+extern AtNodeMethods* UserDataIntMtd;
 
 node_loader
 {
@@ -597,6 +599,20 @@ node_loader
       node->methods     = SocketDriverMtd;
       node->name        = "driver_socket";
       node->node_type   = AI_NODE_DRIVER;
+      break;
+      
+   case 74:
+      node->methods     = UserDataPnt2Mtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "userDataPnt2";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 75:
+      node->methods     = UserDataIntMtd;
+      node->output_type = AI_TYPE_INT;
+      node->name        = "userDataInt";
+      node->node_type   = AI_NODE_SHADER;
       break;
 
    default:

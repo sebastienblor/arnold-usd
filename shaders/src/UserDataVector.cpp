@@ -52,7 +52,6 @@ shader_evaluate
       sg->out.RGB.r = v.x;
       sg->out.RGB.g = v.y;
       sg->out.RGB.b = v.z;
-
    }
    else if (AiUDataGetRGB(name, &c))
    {
