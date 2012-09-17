@@ -298,27 +298,24 @@ namespace // <anonymous>
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
       unsigned int pluginPathLength = pluginPath.length();
-      MString arnoldPluginPath;
-      MString mayaExtensionsPath;
       if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
-         if (getenv("ARNOLD_PLUGIN_PATH") != 0)
-            arnoldPluginPath = MString(PLUGIN_SEARCH) + MString(PATH_SEPARATOR) + pluginPath + MString("shaders");
+         MString modulePluginPath = pluginPath + MString("shaders");
+         MString moduleExtensionPath = pluginPath + MString("extensions");         
+         const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
+         if (envVar != 0)
+            setenv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath).asChar(), true);
          else
-            arnoldPluginPath = pluginPath + MString("shaders");
-         if (getenv("MTOA_EXTENSIONS_PATH") != 0)
-            mayaExtensionsPath = MString(EXTENSION_SEARCH) + MString(PATH_SEPARATOR) + pluginPath + MString("extensions");
+            setenv("ARNOLD_PLUGIN_PATH", modulePluginPath.asChar(), true);
+         envVar = getenv("MTOA_EXTENSIONS");
+         if (envVar != 0)
+            setenv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath).asChar(), true);
          else
-            mayaExtensionsPath = pluginPath + MString("extensions");
-      }
-      else
-      {
-         arnoldPluginPath = PLUGIN_SEARCH;
-         mayaExtensionsPath = EXTENSION_SEARCH;
+            setenv("MTOA_EXTENSIONS_PATH", moduleExtensionPath.asChar(), true);
       }
       
-      shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", arnoldPluginPath, &status);
+      shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", PLUGIN_SEARCH, &status);
       CHECK_MSTATUS(status);
       // Overrides for mtoa_shaders if load was successful
       if (MStatus::kSuccess == status)
@@ -397,8 +394,8 @@ namespace // <anonymous>
 
 
       // for the new Arnold node each create. A CExtension is initialized.
-      status = CExtensionsManager::LoadExtensions(mayaExtensionsPath);
-      status = CExtensionsManager::LoadArnoldPlugins(arnoldPluginPath);      
+      status = CExtensionsManager::LoadExtensions(EXTENSION_SEARCH);
+      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
       // Finally register all nodes from the loaded extensions with Maya in load order
       status = CExtensionsManager::RegisterExtensions();
 
