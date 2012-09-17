@@ -302,17 +302,19 @@ namespace // <anonymous>
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          MString modulePluginPath = pluginPath + MString("shaders");
-         MString moduleExtensionPath = pluginPath + MString("extensions");         
+         MString moduleExtensionPath = pluginPath + MString("extensions");
+         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
+         // for some reason the Linux function expect a char* instead of const char*
          if (envVar != 0)
-            setenv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath).asChar(), true);
+            putenv(const_cast<char*>((MString("ARNOLD_PLUGIN_PATH") + MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath).asChar()));
          else
-            setenv("ARNOLD_PLUGIN_PATH", modulePluginPath.asChar(), true);
+            putenv(const_cast<char*>((MString("ARNOLD_PLUGIN_PATH") + modulePluginPath).asChar()));
          envVar = getenv("MTOA_EXTENSIONS");
          if (envVar != 0)
-            setenv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath).asChar(), true);
+            putenv(const_cast<char*>((MString("MTOA_EXTENSIONS_PATH=") + MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath).asChar()));
          else
-            setenv("MTOA_EXTENSIONS_PATH", moduleExtensionPath.asChar(), true);
+            putenv(const_cast<char*>((MString("MTOA_EXTENSIONS_PATH=") + moduleExtensionPath).asChar()));
       }
       
       shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", PLUGIN_SEARCH, &status);
