@@ -57,6 +57,12 @@
 
 namespace // <anonymous>
 {
+#ifdef WIN32
+   static void setenv(const char* env, const char* val, bool)
+   {
+      putenv((MString(env) + MString("=") + MString(val)).asChar());
+   }
+#endif
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
