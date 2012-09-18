@@ -48,6 +48,8 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         super(ShadingEngineTemplate, self).__init__(nodeType)
 
     def setup(self):
+        self.addControl("aiSurfaceShader")
+        self.addControl("aiUserOptions")
         self.addCustom("aiCustomAOVs", self.buildAOVFrame, self.updateAOVFrame)
 
     def update(self):
