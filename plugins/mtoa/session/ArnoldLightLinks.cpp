@@ -243,6 +243,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       {
          MFnDependencyNode shadingEngineNode(outObject);
          CheckMessage(shadingEngineNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
+         break;
          // checking the outgoing message
          // for the shadingEngine
       }
@@ -250,7 +251,10 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       {
          MFnDependencyNode outObjectNode(outObject);
          if (outObjectNode.typeName() == MString("objectSet"))
+         {
             CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
+            break;
+         }
          // checking the outgoing message
          // if it's an objectSet (this is for standins)
       }
