@@ -467,6 +467,10 @@ void COptionsTranslator::Export(AtNode *options)
             else
                AiNodeSetInt(options, "sss_bssrdf_samples", 0);
          }
+         else if (strcmp(paramName, "bucket_scanning") == 0)
+         {
+            ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+         }
          else
          {
             // Process parameter automatically
