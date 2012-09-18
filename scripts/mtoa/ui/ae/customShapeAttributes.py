@@ -164,9 +164,9 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         #pm.mel.eval('AEaddRampControl("widthProfile")')
         #pm.mel.eval('AEaddRampControl("colorTable")')
-        self.addControl("renderCurve")
-        self.addControl("curveWidth")
-        self.addControl("sampleRate")
+        self.addControl("aiRenderCurve")
+        self.addControl("aiCurveWidth")
+        self.addControl("aiSampleRate")
         self.addControl("aiCurveShader")
         self.addSeparator()
         self.addControl("primaryVisibility")
