@@ -219,9 +219,20 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       instObjGroupsPlug = instObjGroupsPlug.child(0, &status);
       if (status)
       {
-         instObjGroupsPlug = instObjGroupsPlug.elementByPhysicalIndex(0);
-         instObjGroupsPlug.connectedTo(conns, false, true);
-         numConnections = conns.length();
+         static MIntArray indicesArray;
+         instObjGroupsPlug.getExistingArrayAttributeIndices(indicesArray);
+         unsigned int numElements = indicesArray.length();
+         for (unsigned int id = 0; id < numElements; ++id)
+         {
+            MPlug instObjGroupsPlugElement = instObjGroupsPlug.elementByLogicalIndex(indicesArray[id]);
+            static MPlugArray conns2;
+            instObjGroupsPlugElement.connectedTo(conns2, false, true);
+            for(unsigned int id2 = 0; id2 < conns2.length(); ++id2)
+            {
+               conns.append(conns2[id2]);
+               ++numConnections;
+            }
+         }
       }
    }
    for (unsigned int i = 0; i < numConnections; ++i)
