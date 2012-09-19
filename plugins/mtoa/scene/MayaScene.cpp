@@ -41,6 +41,7 @@ MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
 AtCritSec CMayaScene::s_lock = NULL;
+bool CMayaScene::s_active = false;
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -82,6 +83,16 @@ bool CMayaScene::IsExportingMotion()
 
 MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 {
+   AiCritSecEnter(&s_lock);
+   // prevent this from running twice
+   if (s_active)
+   {
+      AiCritSecLeave(&s_lock);
+      return MStatus::kSuccess;
+   }
+   s_active = true;
+   AiCritSecLeave(&s_lock);
+
    MStatus status = MStatus::kSuccess;
 
    // FIXME: raise an error if Begin is called on active session
@@ -161,11 +172,9 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       // renderOptions.SetBatch(true);
    }
 
-   AiCritSecEnter(&s_lock);
    // Init both render and export sessions
    status = s_renderSession->Begin(renderOptions);
    status = s_arnoldSession->Begin(sessionOptions);
-   AiCritSecLeave(&s_lock);
 
    return status;
 }
@@ -175,6 +184,15 @@ MStatus CMayaScene::End()
    MStatus status = MStatus::kSuccess;
 
    AiCritSecEnter(&s_lock);
+   // prevent this from running twice
+   if (!s_active)
+   {
+      AiCritSecLeave(&s_lock);
+      return MStatus::kSuccess;
+   }
+   s_active = false;
+   AiCritSecLeave(&s_lock);
+
    ClearIPRCallbacks();
    if (s_renderSession != NULL)
    {
@@ -188,7 +206,7 @@ MStatus CMayaScene::End()
       delete s_arnoldSession;
       s_arnoldSession = NULL;
    }
-   AiCritSecLeave(&s_lock);
+
    return status;
 }
 

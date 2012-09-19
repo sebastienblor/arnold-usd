@@ -127,6 +127,7 @@ private:
       : m_paused_ipr(false)
       , m_is_active(false)
       , m_render_thread(NULL)
+      , m_render_lock(NULL)
    {
    }
 
@@ -137,8 +138,6 @@ private:
    void AddIdleRenderViewCallback(const MString& postRenderMel);
    static void DoAddIdleRenderViewCallback(void* data);
    void ClearIdleRenderViewCallback();
-
-   static unsigned int SceneEndThread(void* data);
 
    /// This is the static method for performing a progressive render.
    /// data should be a CRenderSession pointer.

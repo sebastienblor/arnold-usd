@@ -101,6 +101,7 @@ private:
    static double s_currentFrame;
 
    static AtCritSec s_lock;
+   static bool s_active;
 };  // class CMayaScene
 
 #endif // MAYASCENE_H

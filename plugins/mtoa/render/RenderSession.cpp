@@ -94,12 +94,13 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    else
    {
       AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
-        return MStatus::kFailure;
+      return MStatus::kFailure;
    }
 }
 
 void CRenderSession::SetRendering(bool renderState)
 {
+   assert (m_render_lock != NULL);
    AiCritSecEnter(&m_render_lock);
    m_rendering = renderState;
    AiCritSecLeave(&m_render_lock);
@@ -107,6 +108,8 @@ void CRenderSession::SetRendering(bool renderState)
 
 bool CRenderSession::IsRendering()
 {
+   if (m_render_lock == NULL)
+      return false;
    bool rendering = false;
    AiCritSecEnter(&m_render_lock);
    rendering = m_rendering ? true : false;
@@ -118,7 +121,10 @@ MStatus CRenderSession::End()
 {
    MStatus status = MStatus::kSuccess;
 
-   InterruptRender();
+   if (IsRendering())
+      // IsRendering check prevents thread lock when CMayaScene::End is called
+      // from InteractiveRenderThread
+      InterruptRender();
 
    if (!AiUniverseIsActive())
    {
@@ -130,6 +136,7 @@ MStatus CRenderSession::End()
    }
    m_is_active = false;
    AiCritSecClose(&m_render_lock);
+   m_render_lock = NULL;
    // Restore "out of rendering" logging
    MtoaSetupLogging();
    return status;
@@ -206,9 +213,6 @@ void CRenderSession::InterruptRender()
       AiRenderInterrupt();
    }
 
-   // Stop the Idle update if there was one
-   ClearIdleRenderViewCallback();
-   SetRendering(false);
    // Wait for the thread to clear.
    if (m_render_thread != NULL)
    {
@@ -216,7 +220,6 @@ void CRenderSession::InterruptRender()
       AiThreadClose(m_render_thread);
       m_render_thread = NULL;	
    }
-   m_postRenderMel = "";
 }
 
 void CRenderSession::SetResolution(const int width, const int height)
@@ -349,12 +352,6 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    return ai_status;
 }
 
-unsigned int CRenderSession::SceneEndThread(void* data)
-{
-   CMayaScene::End();
-   return 0;
-}
-
 unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
@@ -370,15 +367,13 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
    }
    // get the post-MEL before ending the MayaScene
    MString postMel = renderSession->m_postRenderMel;
+   renderSession->m_postRenderMel = "";
 
-   // Spawn a new thread to end the scene. Otherwise, this thread will block
-   // if it was interrupted by a call to CMayaScene::End() because the GUI thread
-   // will already be waiting behind a lock inside CMayaScene::End.
-   void* thread = AiThreadCreate(CRenderSession::SceneEndThread,
-                                    NULL,
-                                    AI_PRIORITY_LOW);
-   // we don't want to manage this thread
-   AiThreadClose(thread);
+   // Stop the Idle update if there was one
+   renderSession->ClearIdleRenderViewCallback();
+
+   CMayaScene::End();
+
    // don't echo, and do on idle
    CMayaScene::ExecuteScript(postMel, false, true);
    return 0;
