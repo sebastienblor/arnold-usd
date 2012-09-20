@@ -104,37 +104,38 @@ driver_open
 {
    AtParamValue *params = AiNodeGetParams(node);
 
-   if (!s_outputDriverData.rendering)
-   {
-      s_outputDriverData.imageWidth  = display_window.maxx - display_window.minx + 1;
-      s_outputDriverData.imageHeight = display_window.maxy - display_window.miny + 1;
-      s_outputDriverData.gamma       = params[p_gamma].FLT;
+   s_outputDriverData.updatedImageWidth  = display_window.maxx - display_window.minx + 1;
+   s_outputDriverData.updatedImageHeight = display_window.maxy - display_window.miny + 1;
+   s_outputDriverData.gamma       = params[p_gamma].FLT;
 //      s_outputDriverData.rendering   = true;
 
-      if (params[p_swatch].PTR == NULL)
-      {
-         s_outputDriverData.isProgressive = params[p_progressive].BOOL;
+   if (params[p_swatch].PTR == NULL)
+   {
+      s_outputDriverData.isProgressive = params[p_progressive].BOOL;
 //         cout << data_window.minx << ", " << data_window.maxx << endl;
 //         cout << data_window.miny << ", " << data_window.maxy << endl;
 //         cout << display_window.minx << ", " << display_window.maxx << endl;
 //         cout << display_window.miny << ", " << display_window.maxy << endl;
 
-         if (  (data_window.maxx == display_window.maxx) &&
-               (data_window.maxy == display_window.maxy) &&
-               (data_window.minx == display_window.minx) &&
-               (data_window.miny == display_window.miny) )
-         {
-            s_outputDriverData.isRegion = false;
-         }
-         else
-         {
-            s_outputDriverData.isRegion = true;
-         }
-         MStatus status;
+      if (  (data_window.maxx == display_window.maxx) &&
+            (data_window.maxy == display_window.maxy) &&
+            (data_window.minx == display_window.minx) &&
+            (data_window.miny == display_window.miny) )
+      {
+         s_outputDriverData.isRegion = false;
+      }
+      else
+      {
+         s_outputDriverData.isRegion = true;
+      }
+      MStatus status;
+      if (s_idle_cb == 0)
+      {
          s_idle_cb = MEventMessage::addEventCallback("idle",
-                                                    TransferTilesToRenderView,
-                                                    NULL,
-                                                    &status);
+                                                      TransferTilesToRenderView,
+                                                      NULL,
+                                                      &status);
+         
          CHECK_MSTATUS(status);
          if (status != MS::kSuccess)
             AiMsgError("Render view is not able to render");
@@ -319,7 +320,7 @@ void CopyBucketToBuffer(float * to_pixels,
       {
          // Offset into the buffer.
          const int ox = (x + msg.bucketRect.minx);
-         const int to_idx = (oy * s_outputDriverData.imageWidth + ox) * num_channels;
+         const int to_idx = (oy * s_outputDriverData.updatedImageWidth + ox) * num_channels;
          to_pixels[to_idx+0]= from->r;
          to_pixels[to_idx+1]= from->g;
          to_pixels[to_idx+2]= from->b;
@@ -349,6 +350,10 @@ void RenderBegin()
    // TODO: Implement this...      MStatus status;
    // This is not the most reliable way to get the camera, since it relies on the camera names matching
    // but theoretically, if the camera was exported by mtoa they should match.
+   s_outputDriverData.imageWidth = s_outputDriverData.updatedImageWidth;
+   s_outputDriverData.imageHeight = s_outputDriverData.updatedImageHeight;
+
+
    MStatus status;
    MString camName = AiNodeGetName(AiUniverseGetCamera());
    MDagPath camera;

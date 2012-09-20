@@ -32,6 +32,8 @@ struct COutputDriverData
    float           gamma;
    unsigned int    imageWidth;
    unsigned int    imageHeight;
+   unsigned int    updatedImageWidth;
+   unsigned int    updatedImageHeight;
    bool            rendering;
    float*          swatchPixels;
 };
