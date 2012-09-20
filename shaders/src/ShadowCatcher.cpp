@@ -10,7 +10,9 @@ enum ShadowCatcherParams
    p_shadow_transparency,
    
    p_catch_diffuse,
-   p_diffuse_color
+   p_diffuse_color,
+   
+   p_reflection
 };
 
 node_parameters
@@ -27,6 +29,8 @@ node_parameters
    
    AiParameterBOOL("catchDiffuse", false);
    AiParameterRGB("diffuseColor", 1.0f, 1.0f, 1.0f);
+   
+   AiParameterRGB("reflection", 0.f, 0.f, 0.f);
 }
 
 node_initialize
@@ -73,6 +77,8 @@ shader_evaluate
       if (!AiColorIsSmall(diffuse_color))
          result += diffuse_color * AiIndirectDiffuse(&sg->Nf, sg) * backgroundColor;
    }
+   
+   result += AiShaderEvalParamRGB(p_reflection);
    
    sg->out.RGB = result;
    sg->out_opacity = resultOpacity;
