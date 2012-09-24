@@ -51,6 +51,8 @@ static int s_GI_diffuse_samples;
 static int s_GI_glossy_samples;
 static int s_sss_sample_factor;
 
+static bool s_firstOpen = false;
+
 /// \name Arnold Output Driver.
 /// \{
 node_parameters
@@ -72,11 +74,9 @@ node_initialize
    s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
    InitializeDisplayUpdateQueue("", "renderView");
 
-   CDisplayUpdateMessage msg;
-   msg.msgType = MSG_RENDER_BEGIN;
-   s_displayUpdateQueue.push(msg);
-
    AiDriverInitialize(node, false, NULL);
+
+   s_firstOpen = true;
 }
 
 node_update
@@ -103,14 +103,13 @@ driver_extension
 driver_open
 {
    AtParamValue *params = AiNodeGetParams(node);
-
-   s_outputDriverData.updatedImageWidth  = display_window.maxx - display_window.minx + 1;
-   s_outputDriverData.updatedImageHeight = display_window.maxy - display_window.miny + 1;
-   s_outputDriverData.gamma       = params[p_gamma].FLT;
-//      s_outputDriverData.rendering   = true;
+   s_outputDriverData.gamma = params[p_gamma].FLT;
 
    if (params[p_swatch].PTR == NULL)
    {
+      unsigned int imageWidth  = display_window.maxx - display_window.minx + 1;
+      unsigned int imageHeight = display_window.maxy - display_window.miny + 1;
+
       s_outputDriverData.isProgressive = params[p_progressive].BOOL;
 //         cout << data_window.minx << ", " << data_window.maxx << endl;
 //         cout << data_window.miny << ", " << data_window.maxy << endl;
@@ -128,6 +127,21 @@ driver_open
       {
          s_outputDriverData.isRegion = true;
       }
+
+      if (s_firstOpen)
+      {
+         CDisplayUpdateMessage msg1;
+         msg1.msgType = MSG_RENDER_BEGIN;
+         msg1.imageWidth = imageWidth;
+         msg1.imageHeight = imageHeight;
+         s_displayUpdateQueue.push(msg1);
+      }
+      s_firstOpen = false;
+
+      CDisplayUpdateMessage msg2;
+      msg2.msgType = MSG_IMAGE_BEGIN;
+      s_displayUpdateQueue.push(msg2);
+
       MStatus status;
       if (s_idle_cb == 0)
       {
@@ -141,10 +155,10 @@ driver_open
             AiMsgError("Render view is not able to render");
       }
    }
-
-   CDisplayUpdateMessage msg;
-   msg.msgType = MSG_IMAGE_BEGIN;
-   s_displayUpdateQueue.push(msg);
+   else
+   {
+      s_outputDriverData.swatchImageWidth = display_window.maxx - display_window.minx + 1;
+   }
 }
 
 driver_prepare_bucket
@@ -227,7 +241,7 @@ driver_write_bucket
    }
 
    CDisplayUpdateMessage msg(MSG_BUCKET_UPDATE, minx, miny, maxx, maxy, pixels);
-   if (s_outputDriverData.swatchPixels)
+   if (s_outputDriverData.swatchPixels != NULL)
       // swatches render on the same thread and provide their own buffer to write to
       CopyBucketToBuffer(s_outputDriverData.swatchPixels, msg);
    else
@@ -320,7 +334,7 @@ void CopyBucketToBuffer(float * to_pixels,
       {
          // Offset into the buffer.
          const int ox = (x + msg.bucketRect.minx);
-         const int to_idx = (oy * s_outputDriverData.updatedImageWidth + ox) * num_channels;
+         const int to_idx = (oy * s_outputDriverData.swatchImageWidth + ox) * num_channels;
          to_pixels[to_idx+0]= from->r;
          to_pixels[to_idx+1]= from->g;
          to_pixels[to_idx+2]= from->b;
@@ -345,13 +359,13 @@ void InitializeDisplayUpdateQueue(const MString camera, const MString panel)
    s_panel_name = panel;
 }
 
-void RenderBegin()
+void RenderBegin(CDisplayUpdateMessage & msg)
 {
    // TODO: Implement this...      MStatus status;
    // This is not the most reliable way to get the camera, since it relies on the camera names matching
    // but theoretically, if the camera was exported by mtoa they should match.
-   s_outputDriverData.imageWidth = s_outputDriverData.updatedImageWidth;
-   s_outputDriverData.imageHeight = s_outputDriverData.updatedImageHeight;
+   s_outputDriverData.imageWidth = msg.imageWidth;
+   s_outputDriverData.imageHeight = msg.imageHeight;
 
 
    MStatus status;
@@ -541,7 +555,7 @@ bool ProcessUpdateMessage(const bool refresh)
          switch (msg.msgType)
          {
          case MSG_RENDER_BEGIN:
-            RenderBegin();
+            RenderBegin(msg);
             break;
          case MSG_BUCKET_PREPARE:
             // TODO: Implement this...

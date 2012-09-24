@@ -19,7 +19,7 @@
 // A figure too low on linux causes the render view to receive updates too slowly.
 // A figure too high on windows causes the GUI to become less responsive.
 #ifdef _WIN32
-#define DISPLAY_QUEUE_WAIT 1
+#define DISPLAY_QUEUE_WAIT 5
 #else
 #define DISPLAY_QUEUE_WAIT 10
 #endif
@@ -32,8 +32,7 @@ struct COutputDriverData
    float           gamma;
    unsigned int    imageWidth;
    unsigned int    imageHeight;
-   unsigned int    updatedImageWidth;
-   unsigned int    updatedImageHeight;
+   unsigned int    swatchImageWidth;
    bool            rendering;
    float*          swatchPixels;
 };
@@ -57,10 +56,13 @@ struct CDisplayUpdateMessage
    EDisplayUpdateMessageType msgType;
    AtBBox2                   bucketRect;
    RV_PIXEL*                 pixels;
+   unsigned int              imageWidth;
+   unsigned int              imageHeight;
 
    CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
                            int minx = 0, int miny = 0, int maxx = 0, int maxy = 0,
-                           RV_PIXEL* px = NULL)
+                           RV_PIXEL* px = NULL,
+                           unsigned int width = 0, unsigned int height = 0)
    {
       msgType         = msg;
       bucketRect.minx = minx;
@@ -68,6 +70,8 @@ struct CDisplayUpdateMessage
       bucketRect.maxx = maxx;
       bucketRect.maxy = maxy;
       pixels          = px;
+      imageWidth      = width;
+      imageHeight     = height;
    }
 };
 
