@@ -34,7 +34,7 @@ private:
    void HandleLightLinker(MPlug& conn, 
       size_t& numLinkedLights, size_t& numLinkedShadows,
       NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
-   void CheckMessage(MFnDependencyNode& dNode, 
+   bool CheckMessage(MFnDependencyNode& dNode, 
       size_t& numLinkedLights, size_t& numLinkedShadows,
       NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
    // saving the lights here for faster access

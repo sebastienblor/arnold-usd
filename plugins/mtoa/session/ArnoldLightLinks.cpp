@@ -174,20 +174,25 @@ void CArnoldLightLinks::HandleLightLinker(MPlug& conn,
    }
 }
 
-void CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, 
+bool CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, 
         size_t& numLinkedLights, size_t& numLinkedShadows, 
         NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
 {
    MPlug messagePlug = dNode.findPlug("message");
    static MPlugArray conns;
    messagePlug.connectedTo(conns, false, true);
-   unsigned int numConnections = conns.length();   
+   unsigned int numConnections = conns.length();
+   bool ret = false;
    for (unsigned int i = 0; i < numConnections; ++i)
    {
       MPlug conn = conns[i];
       if (conn.node().hasFn(MFn::kLightLink))
+      {
          HandleLightLinker(conn, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
+         ret = true;
+      }
    }
+   return ret;
 }
 
 void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
@@ -252,8 +257,8 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
          MFnDependencyNode outObjectNode(outObject);
          if (outObjectNode.typeName() == MString("objectSet"))
          {
-            CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
-            break;
+            if (CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode))
+               break;
          }
          // checking the outgoing message
          // if it's an objectSet (this is for standins)
