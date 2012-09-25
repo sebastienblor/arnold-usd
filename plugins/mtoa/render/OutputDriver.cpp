@@ -52,6 +52,9 @@ static int s_GI_glossy_samples;
 static int s_sss_sample_factor;
 
 static bool s_firstOpen = false;
+static bool s_newRender = false;
+
+static AtCritSec m_driver_lock = NULL;
 
 /// \name Arnold Output Driver.
 /// \{
@@ -73,6 +76,9 @@ node_initialize
 {
    s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
    InitializeDisplayUpdateQueue("", "renderView");
+
+   if (m_driver_lock == NULL)
+      AiCritSecInit(&m_driver_lock);
 
    AiDriverInitialize(node, false, NULL);
 
@@ -136,24 +142,37 @@ driver_open
          msg1.imageHeight = imageHeight;
          s_displayUpdateQueue.push(msg1);
       }
-      s_firstOpen = false;
 
       CDisplayUpdateMessage msg2;
       msg2.msgType = MSG_IMAGE_BEGIN;
       s_displayUpdateQueue.push(msg2);
 
+      AiCritSecEnter(&m_driver_lock);
+
       MStatus status;
-      if (s_idle_cb == 0)
+
+      if (s_firstOpen)
       {
-         s_idle_cb = MEventMessage::addEventCallback("idle",
-                                                      TransferTilesToRenderView,
-                                                      NULL,
-                                                      &status);
+         if (s_idle_cb != 0)
+            AiMsgWarning("[mtoa] Previous Render View idle callback not properly cleaned up");
+
+         if (s_idle_cb == 0)
+         {
+            s_idle_cb = MEventMessage::addEventCallback("idle",
+                                                         TransferTilesToRenderView,
+                                                         NULL,
+                                                         &status);
          
-         CHECK_MSTATUS(status);
-         if (status != MS::kSuccess)
-            AiMsgError("Render view is not able to render");
+            CHECK_MSTATUS(status);
+            if (status != MS::kSuccess)
+               AiMsgError("Render view is not able to render");
+         }
       }
+
+      s_firstOpen = false;
+      s_newRender = true;
+
+      AiCritSecLeave(&m_driver_lock);
    }
    else
    {
@@ -258,9 +277,15 @@ driver_close
 
 node_finish
 {
+   AiCritSecEnter(&m_driver_lock);
+   s_newRender = false;
    CDisplayUpdateMessage msg;
    msg.msgType = MSG_RENDER_END;
    s_displayUpdateQueue.push(msg);
+   AiCritSecLeave(&m_driver_lock);
+
+   AiCritSecClose(&m_driver_lock);
+   m_driver_lock = NULL;
 
    // release the driver
    AiDriverDestroy(node);
@@ -456,10 +481,25 @@ void RenderEnd()
    }
 
    // clear callbacks
-   if (s_idle_cb != 0)
+   if (m_driver_lock != NULL)
    {
-      MMessage::removeCallback(s_idle_cb);
-      s_idle_cb = 0;
+      AiCritSecEnter(&m_driver_lock);
+      if (s_newRender == false && s_idle_cb != 0)
+      {
+         MMessage::removeCallback(s_idle_cb);
+         s_idle_cb = 0;
+         ClearDisplayUpdateQueue();
+      }
+      AiCritSecLeave(&m_driver_lock);
+   }
+   else
+   {
+      if (s_idle_cb != 0)
+      {
+         MMessage::removeCallback(s_idle_cb);
+         s_idle_cb = 0;
+         ClearDisplayUpdateQueue();
+      }
    }
 
    if (s_timer_cb != 0)
@@ -467,8 +507,6 @@ void RenderEnd()
       MMessage::removeCallback(s_timer_cb);
       s_timer_cb = 0;
    }
-
-   ClearDisplayUpdateQueue();
 
    s_outputDriverData.rendering = false;
    MRenderView::endRender();
@@ -483,7 +521,13 @@ void ClearDisplayUpdateQueue()
 void BeginImage()
 {
    MStatus status;
-   s_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 12.0f,
+   if (s_timer_cb != 0)
+   {
+      AiMsgWarning("[mtoa] Previous Render View timer callback not properly cleaned up");
+      MMessage::removeCallback(s_timer_cb);
+      s_timer_cb = 0;
+   }
+   s_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 6.0f,
                                                  RefreshRenderView,
                                                  NULL,
                                                  &status);
