@@ -7,6 +7,7 @@ class AEaiShadowCatcherTemplate(ShaderAETemplate):
         self.beginScrollLayout()
 
         self.addControl("backgroundColor", label="Background Color")
+        self.addControl("reflection", label="Reflection")
 
         self.beginLayout("Shadows", collapse=False)
         self.addControl("catchShadows", label="Catch Shadows")

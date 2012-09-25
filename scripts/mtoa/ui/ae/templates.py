@@ -103,7 +103,9 @@ class BaseTemplate(object):
             self._nodeType = pm.objectType(self.nodeName)
         return self._nodeType
 
-    def nodeAttr(self, attr):
+    def nodeAttr(self, attr=None):
+        if attr is None:
+            attr = self.attr
         return self.nodeName + '.' + attr
 
     def nodeAttrExists(self, attr):

@@ -70,7 +70,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiSubdivPixelError", label="Pixel Error")
         # TODO: add dicing camera UI
         self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
-        self.addControl("aiSubdivUvSmoothing", label="UVs Smoothing")
+        self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
         self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
         self.endLayout()
         
@@ -164,9 +164,9 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         #pm.mel.eval('AEaddRampControl("widthProfile")')
         #pm.mel.eval('AEaddRampControl("colorTable")')
-        self.addControl("renderCurve")
-        self.addControl("curveWidth")
-        self.addControl("sampleRate")
+        self.addControl("aiRenderCurve")
+        self.addControl("aiCurveWidth")
+        self.addControl("aiSampleRate")
         self.addControl("aiCurveShader")
         self.addSeparator()
         self.addControl("primaryVisibility")
@@ -428,8 +428,9 @@ def cameraTranslatorChanged(transPlug, *args):
         elif isOrtho and currTrans != 'orthographic':
             orthoPlug.setBool(False)
 
-def getCameraDefault(cam):
-    default = 'orthographic' if cam.orthographic.get() else 'perspective'
+def getCameraDefault(obj):
+    isOrtho = pm.api.MFnDependencyNode(obj).findPlug("orthographic").asBool()
+    default = 'orthographic' if isOrtho else 'perspective'
     return default
 
 templates.registerDefaultTranslator('camera', getCameraDefault)

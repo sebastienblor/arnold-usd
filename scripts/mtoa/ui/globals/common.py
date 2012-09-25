@@ -70,12 +70,15 @@ def getMultiCameraChildren(camera):
         import maya.app.stereo.stereoCameraRig as stereoCameraRig
         if stereoCameraRig.isRigRoot(str(camera)):
             # camera.leftCam.get() does not work on Maya2011
-            result = camera.leftCam.inputs()[0]
-            if result:
-                cameras.append(result)
-                result = camera.rightCam.inputs()[0]
+            try:
+                result = camera.leftCam.inputs()[0]
                 if result:
                     cameras.append(result)
+                    result = camera.rightCam.inputs()[0]
+                    if result:
+                        cameras.append(result)
+            except IndexError:
+                pm.warning("Stereo camera %s is missing required connections" % camera)
     return cameras
 
 def fileTypeToExtension(fileType):
@@ -797,7 +800,10 @@ def arnoldChangedCamera(camera, cameraMode, menu):
 def setArnoldCheckboxFromAttr(camera, chkbox, attr):
     if pm.hasAttr(camera, 'stereoRigType'):
         # camera.leftCam.get() does not work on Maya2011
-        camera = camera.leftCam.inputs()[0]
+        try:
+            camera = camera.leftCam.inputs()[0]
+        except IndexError:
+            return
     val = camera.attr(attr).get()
     pm.checkBoxGrp(chkbox, e=True, value1=val)
 
@@ -842,8 +848,12 @@ def updateArnoldCameraControl(*args):
         for rig in rigs:
             nonRenderableCameras.append(MENU_SEPARATOR)
             # rig.leftCam.get() does not work in Maya2011
-            lCam = rig.leftCam.inputs()[0].getShape()
-            rCam = rig.rightCam.inputs()[0].getShape()
+            try:
+                lCam = rig.leftCam.inputs()[0].getShape()
+                rCam = rig.rightCam.inputs()[0].getShape()
+            except IndexError:
+                pm.warning("Stereo camera %s is missing required connections" % rig)
+                continue
             cameras = rig.listRelatives(type="camera", allDescendents=True)
             # Add an entry for the rig pair if at least one cam is not
             # renderable. Use the + character to mark it.

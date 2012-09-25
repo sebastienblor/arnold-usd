@@ -18,7 +18,6 @@
 #include "nodes/SphereLocator.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
-#include "nodes/shader/ArnoldDisplacementNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
@@ -58,6 +57,12 @@
 
 namespace // <anonymous>
 {
+#ifdef WIN32
+   static void setenv(const char* env, const char* val, bool)
+   {
+      putenv((MString(env) + MString("=") + MString(val)).asChar());
+   }
+#endif
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
@@ -105,16 +110,6 @@ namespace // <anonymous>
                                    CArnoldFilterNode::initialize);
       CHECK_MSTATUS(status);
 
-
-      // Displacement Shaders
-      // TODO: remove this next release (this remains only to make it easier to upgrade to new displacement method)
-      status = plugin.registerNode("aiDisplacement",
-                                   CArnoldDisplacementNode::id,
-                                   CArnoldDisplacementNode::creator,
-                                   CArnoldDisplacementNode::initialize,
-                                   MPxNode::kDependNode,
-                                   &DISPLACEMENT_WITH_SWATCH);
-      CHECK_MSTATUS(status);
 
       // Light Shaders
       status = plugin.registerNode("aiSkyDomeLight",
@@ -307,7 +302,26 @@ namespace // <anonymous>
 
       // Load all plugins path or only shaders?
       CExtension* shaders;
-      shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", "$ARNOLD_PLUGIN_PATH", &status);
+      MString pluginPath = plugin.loadPath();
+      unsigned int pluginPathLength = pluginPath.length();
+      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
+      {
+         pluginPath = pluginPath.substring(0, pluginPathLength - 9);
+         MString modulePluginPath = pluginPath + MString("shaders");
+         MString moduleExtensionPath = pluginPath + MString("extensions");         
+         const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
+         if (envVar != 0)
+            setenv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath).asChar(), true);
+         else
+            setenv("ARNOLD_PLUGIN_PATH", modulePluginPath.asChar(), true);
+         envVar = getenv("MTOA_EXTENSIONS");
+         if (envVar != 0)
+            setenv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath).asChar(), true);
+         else
+            setenv("MTOA_EXTENSIONS_PATH", moduleExtensionPath.asChar(), true);
+      }
+      
+      shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", PLUGIN_SEARCH, &status);
       CHECK_MSTATUS(status);
       // Overrides for mtoa_shaders if load was successful
       if (MStatus::kSuccess == status)
@@ -390,8 +404,8 @@ namespace // <anonymous>
 
 
       // for the new Arnold node each create. A CExtension is initialized.
-      status = CExtensionsManager::LoadExtensions();
-      status = CExtensionsManager::LoadArnoldPlugins();
+      status = CExtensionsManager::LoadExtensions(EXTENSION_SEARCH);
+      status = CExtensionsManager::LoadArnoldPlugins(PLUGIN_SEARCH);      
       // Finally register all nodes from the loaded extensions with Maya in load order
       status = CExtensionsManager::RegisterExtensions();
 
@@ -429,10 +443,6 @@ namespace // <anonymous>
 
       // AOV
       status = plugin.deregisterNode(CArnoldAOVNode::id);
-      CHECK_MSTATUS(status);
-
-      // Displacement Shaders
-      status = plugin.deregisterNode(CArnoldDisplacementNode::id);
       CHECK_MSTATUS(status);
 
       // Sky dome light

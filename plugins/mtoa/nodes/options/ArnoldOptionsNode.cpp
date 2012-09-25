@@ -34,6 +34,7 @@ MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
 MObject CArnoldOptionsNode::s_threads;
 MObject CArnoldOptionsNode::s_threads_autodetect;
+MObject CArnoldOptionsNode::s_bucket_scanning;
 MObject CArnoldOptionsNode::s_clear_before_render;
 MObject CArnoldOptionsNode::s_plugins_path;
 MObject CArnoldOptionsNode::s_use_sample_clamp;
@@ -186,7 +187,19 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMax(64);
    addAttribute(s_threads);
 
-   s_attributes.MakeInput("bucket_scanning");
+   s_bucket_scanning = eAttr.create("bucketScanning", "bktsc");
+   eAttr.addField("top", 0);
+   eAttr.addField("bottom", 1);
+   eAttr.addField("left", 2);
+   eAttr.addField("right", 3);
+   eAttr.addField("random", 4);
+   eAttr.addField("woven", 5);
+   eAttr.addField("spiral", 6);
+   eAttr.addField("hilbert", 7);
+   eAttr.setDefault(6);   
+   eAttr.setKeyable(false);
+   addAttribute(s_bucket_scanning);
+   
    s_attributes.MakeInput("bucket_size");
 
    s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 1);

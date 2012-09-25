@@ -360,14 +360,19 @@ class AOVItem(object):
             if len(self.outputs) > 1:
                 for i, outputRow in enumerate(self.outputs):
                     subMenu = pm.cmds.menuItem(parent=menu, label='Output Driver %d' % (i+1), subMenu=True)
-                    pm.cmds.menuItem(parent=subMenu, label='Select Driver', c=lambda *args: pm.select(outputRow.driverNode))
-                    pm.cmds.menuItem(parent=subMenu, label='Select Filter', c=lambda *args: pm.select(outputRow.filterNode))
+                    pm.cmds.menuItem(parent=subMenu, label='Select Driver',
+                                     c=pm.Callback(pm.select, outputRow.driverNode))
+                    pm.cmds.menuItem(parent=subMenu, label='Select Filter',
+                                     c=pm.Callback(pm.select, outputRow.filterNode))
                     pm.cmds.menuItem(parent=subMenu, divider=True)
-                    pm.cmds.menuItem(parent=subMenu, label='Remove', c=lambda *args: self.removeOutput(i))
-            else:
+                    pm.cmds.menuItem(parent=subMenu, label='Remove',
+                                     c=pm.Callback(self.removeOutput, i))
+            elif len(self.outputs) == 1:
                 outputRow = self.outputs[0]
-                pm.cmds.menuItem(parent=menu, label='Select Driver', c=lambda *args: pm.select(outputRow.driverNode))
-                pm.cmds.menuItem(parent=menu, label='Select Filter', c=lambda *args: pm.select(outputRow.filterNode))
+                pm.cmds.menuItem(parent=menu, label='Select Driver',
+                                 c=pm.Callback(pm.select, outputRow.driverNode))
+                pm.cmds.menuItem(parent=menu, label='Select Filter',
+                                 c=pm.Callback(pm.select, outputRow.filterNode))
             self.outputsChanged = False
         return menu
 

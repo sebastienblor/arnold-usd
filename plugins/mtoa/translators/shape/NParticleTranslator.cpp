@@ -84,4 +84,9 @@ void CNParticleTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
+bool CNParticleTranslator::IsCached()
+{
+   MPlug plug = m_fnParticleSystem.findPlug("playFromCache");
+   return !plug.isNull() && plug.asBool();
+}
 

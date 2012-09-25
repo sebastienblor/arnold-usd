@@ -67,15 +67,24 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
          MDagPath dgPath;
          if (!sList.getDagPath(i, dgPath))
             continue;
-         dgPath.extendToShapeDirectlyBelow(0);
-         MFnDependencyNode linkedLight(dgPath.node(), &status);
-         if (!status)
-            continue;
-         std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
-         if (it2 == m_arnoldLights.end())
-            it2 = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-         if (it2 != m_arnoldLights.end())
-            lights.push_back(it2->second);
+         unsigned int childCount = dgPath.childCount();
+         for (unsigned int child = 0; child < childCount; ++child)
+         {
+            MObject childObject = dgPath.child(child);
+            MDagPath childPath;
+            status = MDagPath::getAPathTo(childObject, childPath);
+            if (!status)
+               continue;
+            MFnDependencyNode linkedLight(childPath.node(), &status);            
+            std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+            if (it2 == m_arnoldLights.end())
+               it2 = m_arnoldLights.find(childPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+            if (it2 == m_arnoldLights.end())
+               it2 = m_arnoldLights.find(childPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+            if (it2 != m_arnoldLights.end())
+               lights.push_back(it2->second);
+               
+         }
       }
       m_cachedObjectSets.insert(std::make_pair(setName, lights));
       return m_cachedObjectSets[setName];
@@ -103,7 +112,9 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::v
       {
          MDagPath dgPath;
          MDagPath::getAPathTo(linkedNodes.object(), dgPath);
-         it = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+         it = m_arnoldLights.find(dgPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+         if (it == m_arnoldLights.end())
+            it = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
       }
       if (it != m_arnoldLights.end())
       {
@@ -208,9 +219,20 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       instObjGroupsPlug = instObjGroupsPlug.child(0, &status);
       if (status)
       {
-         instObjGroupsPlug = instObjGroupsPlug.elementByPhysicalIndex(0);
-         instObjGroupsPlug.connectedTo(conns, false, true);
-         numConnections = conns.length();
+         static MIntArray indicesArray;
+         instObjGroupsPlug.getExistingArrayAttributeIndices(indicesArray);
+         unsigned int numElements = indicesArray.length();
+         for (unsigned int id = 0; id < numElements; ++id)
+         {
+            MPlug instObjGroupsPlugElement = instObjGroupsPlug.elementByLogicalIndex(indicesArray[id]);
+            static MPlugArray conns2;
+            instObjGroupsPlugElement.connectedTo(conns2, false, true);
+            for(unsigned int id2 = 0; id2 < conns2.length(); ++id2)
+            {
+               conns.append(conns2[id2]);
+               ++numConnections;
+            }
+         }
       }
    }
    for (unsigned int i = 0; i < numConnections; ++i)
@@ -221,6 +243,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       {
          MFnDependencyNode shadingEngineNode(outObject);
          CheckMessage(shadingEngineNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
+         break;
          // checking the outgoing message
          // for the shadingEngine
       }
@@ -228,7 +251,10 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
       {
          MFnDependencyNode outObjectNode(outObject);
          if (outObjectNode.typeName() == MString("objectSet"))
+         {
             CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
+            break;
+         }
          // checking the outgoing message
          // if it's an objectSet (this is for standins)
       }

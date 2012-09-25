@@ -1,4 +1,5 @@
 import pymel.core as pm
+import maya.cmds as cmds
 import mtoa.aovs as aovs
 import mtoa.ui.ae.templates as templates
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
@@ -46,8 +47,19 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         self.orphanedAOVs = set([]) # set of aov names that appear in aiCustomAOVs that are not in the globals
 
         super(ShadingEngineTemplate, self).__init__(nodeType)
+        
+    def surfaceShaderCreate(self, attrName):
+        cmds.columnLayout()
+        cmds.attrNavigationControlGrp("ShadingEngineSurfaceShader", label = "Surface Shader",
+                            attribute=attrName)
+        cmds.setParent('..')
+        
+    def surfaceShaderUpdate(self, attrName):
+        cmds.attrNavigationControlGrp("ShadingEngineSurfaceShader", edit=True, attribute=attrName)
 
     def setup(self):
+        self.addCustom("aiSurfaceShader", self.surfaceShaderCreate, self.surfaceShaderUpdate)
+        self.addControl("aiUserOptions")
         self.addCustom("aiCustomAOVs", self.buildAOVFrame, self.updateAOVFrame)
 
     def update(self):

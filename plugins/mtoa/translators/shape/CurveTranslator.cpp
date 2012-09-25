@@ -19,17 +19,17 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
 
    // FIXME: all attributes that are arnold-specific should have an "ai" prefix
    data.defaultValue.BOOL = false;
-   data.name = "renderCurve";
+   data.name = "aiRenderCurve";
    data.shortName = "rcurve";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.FLT = 0.01;
-   data.name = "curveWidth";
+   data.name = "aiCurveWidth";
    data.shortName = "cwdth";
    helper.MakeInputFloat(data);
 
    data.defaultValue.INT = 5;
-   data.name = "sampleRate";
+   data.name = "aiSampleRate";
    data.shortName = "srate";
    data.hasMin = true;
    data.min.INT = 1;
@@ -61,7 +61,7 @@ AtNode* CCurveTranslator::CreateArnoldNodes()
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());
 
-   plug = fnNode.findPlug("renderCurve");
+   plug = fnNode.findPlug("aiRenderCurve");
    if (!plug.isNull() && plug.asBool() == false)
    {
       return NULL;
@@ -80,7 +80,7 @@ void CCurveTranslator::Update( AtNode *curve )
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());
 
-   plug = fnNode.findPlug("renderCurve");
+   plug = fnNode.findPlug("aiRenderCurve");
    if (!plug.isNull() && plug.asBool() == false)
    {
       return;
@@ -271,7 +271,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
    MPlug plug;
    float globalWidth = 1.0;
    MFnDependencyNode fnNode(GetMayaObject());
-   plug = fnNode.findPlug("curveWidth");
+   plug = fnNode.findPlug("aiCurveWidth");
    if (!plug.isNull())
    {
      globalWidth =  plug.asFloat();
@@ -299,7 +299,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       unsigned int sampleRate = 5;
       double incPerSample;
 
-      plug = fnNode.findPlug("sampleRate");
+      plug = fnNode.findPlug("aiSampleRate");
       if (!plug.isNull())
       {
         sampleRate =  plug.asInt();

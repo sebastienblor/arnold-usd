@@ -31,6 +31,14 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
    
    AtArray* vlist = AiNodeGetArray(node, "vlist");
    
+   m_BBMin.x = AI_BIG;
+   m_BBMin.y = AI_BIG;
+   m_BBMin.z = AI_BIG;
+   
+   m_BBMax.x = -AI_BIG;
+   m_BBMax.y = -AI_BIG;
+   m_BBMax.z = -AI_BIG;
+   
    if (vlist->nelements)
    {
       m_vlist.resize(vlist->nelements);
@@ -39,10 +47,21 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
          const AtPoint pnt = AiArrayGetPnt(vlist, i);
          AtPoint tmpPnt;
          AiM4PointByMatrixMult(&tmpPnt, matrix, &pnt);
-         bbox.expand(MPoint(tmpPnt.x, tmpPnt.y, tmpPnt.z));
+         
+         m_BBMin.x = MIN(m_BBMin.x, tmpPnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, tmpPnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, tmpPnt.z);
+         
+         m_BBMax.x = MAX(m_BBMax.x, tmpPnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, tmpPnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, tmpPnt.z);
+         
          m_vlist[i] = tmpPnt;
       }
    }
+   
+   bbox.expand(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z));
+   bbox.expand(MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
    
@@ -150,4 +169,47 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
       }
       g_GLFT->glEnd();
    }
+}
+
+void CArnoldPolymeshGeometry::DrawBoundingBox() const
+{
+   g_GLFT->glBegin(MGL_LINES);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glEnd();
 }

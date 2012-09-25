@@ -193,7 +193,7 @@ def createArnoldRenderSettings():
     pm.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
 
     pm.attrControlGrp('os_threads',
-                   label="Number of Threads",
+                   label="Threads",
                    attribute='defaultArnoldRenderOptions.threads')
 
     pm.separator()
@@ -205,7 +205,7 @@ def createArnoldRenderSettings():
     pm.separator()
                     
     pm.attrControlGrp('os_outputAssBoundingBox',
-                   label="Export BoundingBox",
+                   label="Export Bounding Box",
                    attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
 
     pm.attrControlGrp('os_preserve_scene_data',
