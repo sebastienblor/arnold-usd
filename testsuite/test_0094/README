@@ -1,3 +1,5 @@
-****TODO**** write a one-line description for test case test_0094
+Add a surface shader slot in the Arnold section of Shading Engines
 
-author: --
+When a shader is connected to this slot, this will be used instead of the Maya surface shader.
+
+author: pal
