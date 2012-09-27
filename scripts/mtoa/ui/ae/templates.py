@@ -550,6 +550,7 @@ class ShapeMixin(object):
         self.addControl("aiOpaque", label="Opaque")
         self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
         self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.addControl("aiTraceSets", label="Trace Sets")
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
