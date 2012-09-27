@@ -429,6 +429,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(100000);
+   nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
    s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
