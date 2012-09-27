@@ -191,10 +191,10 @@ void CArnoldLightBlockerNode::draw(M3dView& view, const MDagPath& path, M3dView:
    case 2: // plane
       glBegin(GL_QUADS);
       
-      glVertex3f(-0.5f, 0.f, -0.5f);
-      glVertex3f(0.5f, 0.f, -0.5f);
-      glVertex3f(0.5f, 0.f, 0.5f);
-      glVertex3f(-0.5f, 0.f, 0.5f);
+      glVertex3f(-0.5f, -0.5f, 0.f);
+      glVertex3f(0.5f, -0.5f, 0.f);
+      glVertex3f(0.5f, 0.5f, 0.f);
+      glVertex3f(-0.5f, 0.5f, 0.f);
       
       glEnd();
       break;
