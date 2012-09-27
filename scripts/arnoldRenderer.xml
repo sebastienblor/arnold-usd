@@ -37,6 +37,7 @@
     <attr n="rt" s="defaultArnoldRenderOptions.renderType" t="int" h="Render type (0 = render, 1 = export ass, 2 = export and kick)"/>
     <mel n="lic" p="1" s="setAttr defaultArnoldRenderOptions.skipLicenseCheck (!(int(%1)))" t="boolean" h="Turn licensing on or off"/>
     <attr n="v" s="defaultArnoldRenderOptions.log_console_verbosity" t="int" h="Verbosity level (0-6)"/>
+    <mel n="threads" p="1" s="setAttr defaultArnoldRenderOptions.threads_autodetect 0; setAttr defaultArnoldRenderOptions.threads %1" t="int" h="Set the number of threads."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Frame numbering options"/>
