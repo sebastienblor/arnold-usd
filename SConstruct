@@ -741,7 +741,7 @@ for p in arpybds:
 for p in apiheaders:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
-      [os.path.join(TARGET_INCLUDE_PATH, p), os.path.join('include', d)]
+      [os.path.join('plugins', 'mtoa', p), os.path.join('include', d)]
    ]
    
 for e in ext_files:
