@@ -207,6 +207,7 @@ void CFileTranslator::Export(AtNode* shader)
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
    AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
+   AiNodeSetBool(shader, "useDefaultColor", FindMayaPlug("aiUseDefaultColor").asBool());
 
    ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
    ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
@@ -222,6 +223,7 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "MayaFile");
    helper.MakeInput("mipBias");
    helper.MakeInput("filter");
+   helper.MakeInput("useDefaultColor");
 }
 
 // Bump2d

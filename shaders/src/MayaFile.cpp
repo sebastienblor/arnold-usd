@@ -51,6 +51,7 @@ enum MayaFileParams
    p_noise,
    p_mip_bias,
    p_filter,
+   p_use_default_color,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -98,6 +99,7 @@ node_parameters
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
    AiParameterINT("mipBias", 0);
    AiParameterENUM("filter", 3, filterNames);
+   AiParameterBOOL("useDefaultColor", true);
    AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -524,6 +526,8 @@ shader_evaluate
       if ((sg->Rt & AI_RAY_DIFFUSE) && (texparams.filter > AI_TEXTURE_BILINEAR))
          texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
+      bool useDefaultColor = AiShaderEvalParamBool(p_use_default_color);
+      bool* successP = useDefaultColor ? &success : 0;
       if (idata->ntokens > 0)
       {
          TokenData* token = idata->tokens;
@@ -651,21 +655,19 @@ shader_evaluate
 
          if (success)
          {
-            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, &success);
+            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
          }
          //AiMsgInfo("FILE: new name: %s", newfname.c_str());
       }
       else if (idata->texture_handle != NULL)
       {
-         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, &success);
+         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, successP);
       }
       else
       {       
-         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, &success);
+         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
       }
-      if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
-      else
+      if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals
