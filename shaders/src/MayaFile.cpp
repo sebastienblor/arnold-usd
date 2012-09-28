@@ -34,7 +34,6 @@ enum TokenModes
    USER_PARAM
 };
 
-
 enum MayaFileParams
 {
    p_coverage = 0,
@@ -51,6 +50,7 @@ enum MayaFileParams
    p_filename,
    p_noise,
    p_mip_bias,
+   p_filter,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -79,6 +79,8 @@ typedef struct AtImageData
    AtTextureHandle* texture_handle;
 } AtImageData;
 
+static const char* filterNames[] = {"closest", "bilinear", "bicubic", "smart_bicubic", 0};
+
 node_parameters
 {
    AiParameterPNT2("coverage", 1.0f, 1.0f);
@@ -95,6 +97,7 @@ node_parameters
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
    AiParameterINT("mipBias", 0);
+   AiParameterENUM("filter", 3, filterNames);
    AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -517,7 +520,8 @@ shader_evaluate
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
-      if (sg->Rt & AI_RAY_DIFFUSE)
+      texparams.filter = AiShaderEvalParamInt(p_filter);
+      if ((sg->Rt & AI_RAY_DIFFUSE) && (texparams.filter > AI_TEXTURE_BILINEAR))
          texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
       if (idata->ntokens > 0)
