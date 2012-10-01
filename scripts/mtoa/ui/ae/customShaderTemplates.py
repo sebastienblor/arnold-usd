@@ -16,7 +16,7 @@ templates.registerAETemplate(DisplacementShaderTemplate, "displacementShader")
 class FileTemplate(templates.AttributeTemplate):
     def setup(self):
         self.addControl("aiFilter", label="Filter Type")
-        self.addControl("aiMipBias", label="Mip-Mapping Bias")
+        self.addControl("aiMipBias", label="Mip-map Bias")
         self.addControl("aiUseDefaultColor", label="Use Default Color")
 
 templates.registerAETemplate(FileTemplate, "file")
