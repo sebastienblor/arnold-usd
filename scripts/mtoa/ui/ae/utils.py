@@ -137,7 +137,10 @@ def attrTextFieldGrp(*args, **kwargs):
         pass
     else:
         # create
-        ctrl = pm.textFieldGrp(label=pm.mel.interToUI(attribute.split('.')[-1]),
+        labelText = kwargs.pop('label', None)
+        if not labelText:
+            labelText = pm.mel.interToUI(attribute.split('.')[-1])
+        ctrl = pm.textFieldGrp(label=labelText,
                                text=pm.getAttr(attribute),
                                changeCommand=cc)
         pm.scriptJob(parent=ctrl,
