@@ -480,9 +480,7 @@ class AERootMode(BaseMode):
         if dynamic:
             kwargs['addDynamicControl'] = True
         else:
-            kwargs['addControl'] = True
-        if enumeratedItem:
-            kwargs['enumeratedItem'] = enumeratedItem
+            kwargs['addControl'] = True        
         if changeCommand:
             if hasattr(changeCommand, '__call__'):
                 changeCommand = aeCallback(changeCommand)
