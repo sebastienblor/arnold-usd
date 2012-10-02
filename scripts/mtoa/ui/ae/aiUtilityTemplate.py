@@ -1,24 +1,25 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+#from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiUtilityTemplate(nodeName):
+def AEaiUtilityTemplate(ShaderAETemplate):
 
-    aiSwatchDisplay(nodeName)
+    def setup(self):
+        #aiSwatchDisplay(nodeName)
+        self.beginScrollLayout()
 
-    cmds.editorTemplate(beginScrollLayout=True)
+        #cmds.editorTemplate('AEshaderTypeNew', 'AEshaderTypeReplace', "message", callCustom=True)
 
-    cmds.editorTemplate('AEshaderTypeNew', 'AEshaderTypeReplace', "message", callCustom=True)
+        self.beginLayout("Utility Attributes", collapse=False)
+        self.addControl("shade_mode", label="Shade Mode")
+        self.addControl("color_mode", label="Color Mode")
+        self.addControl("color", label="Color")
+        self.addControl("opacity", label="Opacity")
+        self.endLayout()
 
-    cmds.editorTemplate(beginLayout="Utility Attributes", collapse=False)
-    cmds.editorTemplate("shade_mode", label="Shade Mode", addControl=True)
-    cmds.editorTemplate("color_mode", label="Color Mode", addControl=True)
-    cmds.editorTemplate("color", label="Color", addControl=True)
-    cmds.editorTemplate("opacity", label="Opacity", addControl=True)
-    cmds.editorTemplate(endLayout=True)
+        # include/call base class/node attributes
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        self.addExtraControls()
 
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-
-    cmds.editorTemplate(endScrollLayout=True)
+        self.endScrollLayout()
+    
