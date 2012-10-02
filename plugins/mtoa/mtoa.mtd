@@ -723,7 +723,6 @@
     maya.name               STRING  "aiUtility"
     maya.id                 INT     0x00115D03
     maya.classification     STRING  "shader/surface"
-    maya.hide               BOOL    True
 
 [node ray_switch]
     desc                    STRING  "Switch input depending on ray type."

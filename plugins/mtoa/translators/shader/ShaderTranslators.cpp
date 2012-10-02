@@ -1048,16 +1048,3 @@ AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
 {
    return ProcessAOVOutput(AddArnoldNode("standard"));
 }
-
-void CArnoldUtilityTranslator::Export(AtNode* utility)
-{
-   ProcessParameter(utility, "color_mode", AI_TYPE_INT, FindMayaPlug("colorMode"));
-   ProcessParameter(utility, "shade_mode", AI_TYPE_INT, FindMayaPlug("shadeMode"));
-   ProcessParameter(utility, "color", AI_TYPE_RGB, FindMayaPlug("color"));
-   ProcessParameter(utility, "opacity", AI_TYPE_FLOAT, FindMayaPlug("opacity"));
-}
-
-AtNode* CArnoldUtilityTranslator::CreateArnoldNodes()
-{
-   return AddArnoldNode("utility");
-}

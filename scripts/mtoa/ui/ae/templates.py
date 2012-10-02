@@ -223,7 +223,7 @@ class AttributeTemplate(BaseTemplate):
 
     @modeAttrMethod
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False):
+                   preventOverride=False, dynamic=False, enumeratedItem=None):
         pass
 
     @modeMethod
@@ -348,7 +348,7 @@ class AEChildMode(BaseMode):
         self.addCustom(attr, template._doSetup, template._doUpdate)
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False):
+                   preventOverride=False, dynamic=False, enumeratedItem=None):
         # TODO: lookup label and descr from metadata
         if not label:
             label = prettify(attr)
@@ -361,6 +361,8 @@ class AEChildMode(BaseMode):
             kwargs['annotation'] = annotation
         if changeCommand:
             kwargs['changeCommand'] = changeCommand
+        if enumeratedItem:
+            kwargs['enumeratedItem'] = enumeratedItem
         parent = self._layoutStack[-1]
         pm.setParent(parent)
         control = AttrControlGrp(**kwargs)
@@ -467,7 +469,7 @@ class AERootMode(BaseMode):
                           callCustom=True)
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False):
+                   preventOverride=False, dynamic=False, enumeratedItem=None):
         if not label:
             label = prettify(attr)
             if label.startswith('Ai '):
@@ -478,7 +480,7 @@ class AERootMode(BaseMode):
         if dynamic:
             kwargs['addDynamicControl'] = True
         else:
-            kwargs['addControl'] = True
+            kwargs['addControl'] = True        
         if changeCommand:
             if hasattr(changeCommand, '__call__'):
                 changeCommand = aeCallback(changeCommand)

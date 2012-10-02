@@ -18,7 +18,6 @@
 #include "nodes/SphereLocator.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
-#include "nodes/shader/ArnoldUtilityNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
@@ -91,15 +90,6 @@ namespace // <anonymous>
                                     CArnoldOptionsNode::creator,
                                     CArnoldOptionsNode::initialize);
       CHECK_MSTATUS(status);
-      
-      status = plugin.registerNode("aiUtility",
-                                    CArnoldUtilityNode::id,
-                                    CArnoldUtilityNode::creator,
-                                    CArnoldUtilityNode::initialize,
-                                    MPxNode::kDependNode,
-                                    &SHADER_WITH_SWATCH);
-      
-      CHECK_MSTATUS(status);
 
       // AOV
       status = plugin.registerNode("aiAOV",
@@ -170,9 +160,6 @@ namespace // <anonymous>
        builtin->RegisterTranslator("aiSky",
                                    "",
                                    CSkyShaderTranslator::creator);
-       builtin->RegisterTranslator("aiUtility",
-                                   "",
-                                   CArnoldUtilityTranslator::creator);
        // Lights
        builtin->RegisterTranslator("directionalLight",
                                    "",
