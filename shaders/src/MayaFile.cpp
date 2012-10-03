@@ -223,8 +223,9 @@ node_update
                TokenData data;
                data.mode = USER_PARAM;
                data.position = (int) newfname.size();
-               data.extra = AiMalloc((unsigned long)attr.size());
+               data.extra = AiMalloc((unsigned long)attr.size() + 1);
                strcpy((char*)data.extra, attr.c_str());
+               ((char*)data.extra)[attr.size()] = 0;
                data.nextSize = 0;
                // If a previous token broke the file path chunk, update its "nextSize" attribute
                if (prevToken >= 0)
@@ -600,6 +601,7 @@ shader_evaluate
                   {
                      // TODO: only warn once
                      // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
+                     idata->processPath[sg->tid][pos] = 0;
                      success = false;
                   }
                   break;
