@@ -91,19 +91,19 @@ templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def shaderCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
 
     def shaderUpdate(self, attrName):
         cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
 
     def minPixelCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
@@ -140,11 +140,11 @@ templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
