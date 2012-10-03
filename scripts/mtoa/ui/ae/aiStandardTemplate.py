@@ -112,7 +112,8 @@ class AEaiStandardTemplate(ShaderAETemplate):
         pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
         self.endLayout()
 
-        self.addAOVLayout()
+        self.addAOVLayout(aovReorder = ['direct_diffuse', 'indirect_diffuse', 'direct_specular', 'indirect_specular',
+                                        'reflection', 'refraction', 'emission', 'sss'])
 
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

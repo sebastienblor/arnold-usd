@@ -191,9 +191,16 @@ class ShaderMixin(object):
         menu = AOVOptionMenuGrp(self.nodeType(), attr)
         self.addChildTemplate(attr, menu)
 
-    def addAOVLayout(self):
+    def addAOVLayout(self, aovReorder = None):
         '''Add an aov control for each aov registered for this node type'''
         aovAttrs = aovs.getNodeGlobalAOVData(nodeType=self.nodeType())
+        if aovReorder: #do some reordering based on the passed string list
+            i = 0
+            aovMap = {}
+            for aov in aovReorder:
+                aovMap[aov] = i
+                i += 1
+            aovAttrs = sorted(aovAttrs, key = lambda aov: aovMap[aov[0]])
         if aovAttrs:
             self.beginLayout("AOVs", collapse=True)
 #            self.beginNoOptimize()
