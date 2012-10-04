@@ -79,6 +79,7 @@ extern AtNodeMethods* MeshLightMaterialMtd;
 extern AtNodeMethods* SocketDriverMtd;
 extern AtNodeMethods* UserDataPnt2Mtd;
 extern AtNodeMethods* UserDataIntMtd;
+extern AtNodeMethods* MayaBump2DMtd;
 
 node_loader
 {
@@ -612,6 +613,13 @@ node_loader
       node->methods     = UserDataIntMtd;
       node->output_type = AI_TYPE_INT;
       node->name        = "userDataInt";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 76:
+      node->methods     = MayaBump2DMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "mayaBump2D";
       node->node_type   = AI_NODE_SHADER;
       break;
 
