@@ -68,6 +68,8 @@ node_update
    data->bumpMultiplier = AiNodeGetFlt(options, "bump_multiplier");
    if (AiNodeGetBool(options, "ignore_bump"))
       data->bumpMap = 0;
+   if (ABS(data->bumpMultiplier) < AI_EPSILON)
+      data->bumpMap = 0;
 }
 
 node_finish
