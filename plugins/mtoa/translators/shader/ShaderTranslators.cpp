@@ -230,13 +230,26 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
 //
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("bump2d");
+   return AddArnoldNode("mayaBump2D");
 }
 
 void CBump2DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
    ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
+   MStatus status;
+   MPlug plug = FindMayaPlug("bumpInterp", &status);
+   if (status && !plug.isNull())
+   {
+      int useAs = plug.asShort();
+      AiNodeSetInt(shader, "use_as", useAs);
+      if (useAs > 0)
+      {         
+         AtNode* n = AiNodeGetLink(shader, "bump_map");
+         if (n != 0)
+            AiNodeLink(n, "normal_map", shader);
+      }
+   }
 }
 
 // Bump3d
@@ -249,7 +262,7 @@ AtNode*  CBump3DTranslator::CreateArnoldNodes()
 void CBump3DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");   
 }
 
 // SamplerInfo
