@@ -257,7 +257,7 @@ void CBump3DTranslator::Export(AtNode* shader)
       int useAs = plug.asShort();
       AiNodeSetInt(shader, "use_as", useAs);
       if (useAs > 0)
-         ProcessParameter(shader, "normal_map", AI_TYPE_VECTOR, "bumpValue"); // Or float?
+         ProcessParameter(shader, "normal_map", AI_TYPE_RGB, "bumpValue"); // Or float?
    }
 }
 

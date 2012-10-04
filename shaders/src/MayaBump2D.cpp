@@ -14,7 +14,7 @@ node_parameters
 {
    AiParameterFlt("bump_map", 0.f);
    AiParameterFlt("bump_height", 1.f);
-   AiParameterVec("normal_map", 0.f, 1.f, 0.f);
+   AiParameterRGB("normal_map", 0.f, 0.f, 1.f);
    AiParameterEnum("use_as", 0, useAsNames)
    AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -122,7 +122,21 @@ shader_evaluate
    }
    else if(data->bumpMode == BM_TANGENT_NORMAL) // tangent space normal mapping
    {
-      
+      const AtRGB normalMap = (AiShaderEvalParamRGB(p_normal_map) - .5f) * 2.f;
+      AtVector tangent;
+      if (!AiUDataGetVec("tangent", &tangent))
+         tangent = sg->dPdu;
+      tangent = AiV3Normalize(tangent);
+      AtVector bitangent;
+      if (!AiUDataGetVec("bitangent", &bitangent))
+         bitangent = sg->dPdv;
+      bitangent = AiV3Normalize(bitangent);
+      sg->N = normalMap.r * tangent +
+              normalMap.g * bitangent +
+              normalMap.b * oldN;
+      sg->N = AiV3Normalize(sg->N);
+      if (!AiV3Exists(sg->N))
+         sg->N = oldN;
    }
    else // object space normal mapping
       sg->N = AiShaderEvalParamVec(p_normal_map);
