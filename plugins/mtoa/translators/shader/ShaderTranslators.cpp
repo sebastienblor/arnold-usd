@@ -237,6 +237,15 @@ void CBump2DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
    ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
+   MStatus status;
+   MPlug plug = FindMayaPlug("bumpInterp", &status);
+   if (status && !plug.isNull())
+   {      
+      int useAs = plug.asShort();
+      AiNodeSetInt(shader, "use_as", useAs);
+      if (useAs > 0)
+         ProcessParameter(shader, "normal_map", AI_TYPE_RGB, "bumpValue"); // Or float?
+   }
 }
 
 // Bump3d
@@ -249,16 +258,7 @@ AtNode*  CBump3DTranslator::CreateArnoldNodes()
 void CBump3DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
-   MStatus status;
-   MPlug plug = FindMayaPlug("bumpInterp");
-   if (status && !plug.isNull())
-   {
-      int useAs = plug.asShort();
-      AiNodeSetInt(shader, "use_as", useAs);
-      if (useAs > 0)
-         ProcessParameter(shader, "normal_map", AI_TYPE_RGB, "bumpValue"); // Or float?
-   }
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");   
 }
 
 // SamplerInfo
