@@ -118,6 +118,9 @@ shader_evaluate
          evalData.bumpHeight = bumpHeight;
          evalData.bumpMap = data->bumpMap;
          sg->N = AiShaderGlobalsEvaluateBump(sg, BumpFunction, &evalData);
+         AiFaceForward(&sg->N, oldN);
+         sg->N = -sg->N;
+         AiFaceViewer(sg, sg->Nf);         
       }
    }
    else if(data->bumpMode == BM_TANGENT_NORMAL) // tangent space normal mapping
@@ -131,19 +134,23 @@ shader_evaluate
       if (!AiUDataGetVec("bitangent", &bitangent))
          bitangent = sg->dPdv;
       bitangent = AiV3Normalize(bitangent);
-      sg->N = normalMap.r * tangent +
-              normalMap.g * bitangent +
+      sg->N = (-normalMap.r) * tangent +
+              (-normalMap.g) * bitangent +
               normalMap.b * oldN;
       sg->N = AiV3Normalize(sg->N);
       if (!AiV3Exists(sg->N))
          sg->N = oldN;
+      else
+      {
+         sg->Nf = sg->N;
+         AiFaceViewer(sg, sg->Nf);
+      }
    }
    else // object space normal mapping
+   {
       sg->N = AiShaderEvalParamVec(p_normal_map);
-   
-   AiFaceForward(&sg->N, oldN);
-   sg->N = -sg->N;
-   AiFaceViewer(sg, sg->Nf);         
+      sg->Nf = sg->N;
+   }
    
    AiShaderEvaluate(data->shader, sg);
    if (data->isShaderRGBA == false)

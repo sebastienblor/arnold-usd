@@ -240,11 +240,15 @@ void CBump2DTranslator::Export(AtNode* shader)
    MStatus status;
    MPlug plug = FindMayaPlug("bumpInterp", &status);
    if (status && !plug.isNull())
-   {      
+   {
       int useAs = plug.asShort();
       AiNodeSetInt(shader, "use_as", useAs);
       if (useAs > 0)
-         ProcessParameter(shader, "normal_map", AI_TYPE_RGB, "bumpValue"); // Or float?
+      {         
+         AtNode* n = AiNodeGetLink(shader, "bump_map");
+         if (n != 0)
+            AiNodeLink(n, "normal_map", shader);
+      }
    }
 }
 
