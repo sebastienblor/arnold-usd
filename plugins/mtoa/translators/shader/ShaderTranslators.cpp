@@ -233,7 +233,7 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "bump2d");
    
    CAttrData data;
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL = true;
    data.name = "aiFlipR";
    data.shortName = "flip_r";
    helper.MakeInputBoolean(data);
@@ -242,8 +242,9 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "flip_g";
    helper.MakeInputBoolean(data);
    
-   data.name = "aiFlipTangents";
-   data.shortName = "flip_tangents";
+   data.defaultValue.BOOL = false;
+   data.name = "aiSwapTangents";
+   data.shortName = "swap_tangents";
    helper.MakeInputBoolean(data);
    
    data.defaultValue.BOOL = true;
@@ -276,7 +277,7 @@ void CBump2DTranslator::Export(AtNode* shader)
    }
    ProcessParameter(shader, "flip_r", AI_TYPE_BOOLEAN, "aiFlipR");
    ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
-   ProcessParameter(shader, "flip_tangents", AI_TYPE_BOOLEAN, "aiFlipTangents");
+   ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
 }
 

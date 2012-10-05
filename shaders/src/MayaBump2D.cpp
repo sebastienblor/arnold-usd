@@ -15,9 +15,9 @@ node_parameters
    AiParameterFlt("bump_map", 0.f);
    AiParameterFlt("bump_height", 1.f);
    AiParameterRGB("normal_map", 0.f, 0.f, 1.f);
-   AiParameterBool("flip_r", false);
-   AiParameterBool("flip_g", false);
-   AiParameterBool("flip_tangents", false);
+   AiParameterBool("flip_r", true);
+   AiParameterBool("flip_g", true);
+   AiParameterBool("swap_tangents", false);
    AiParameterBool("use_derivatives", true);
    AiParameterEnum("use_as", 0, useAsNames)
    AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);   
@@ -30,7 +30,7 @@ enum mayaBump2DParams {
    p_normal_map,
    p_flip_r,
    p_flip_g,
-   p_flip_tangents,
+   p_swap_tangents,
    p_use_derivatives,
    p_use_as,
    p_shader
@@ -43,7 +43,7 @@ struct mayaBump2DData{
    float bumpMultiplier;
    int bumpMode;
    bool isShaderRGBA;
-   bool flipR, flipG, flipTangents, useDerivatives;
+   bool flipR, flipG, swapTangents, useDerivatives;
 };
 
 node_initialize
@@ -53,9 +53,9 @@ node_initialize
    data->shader = 0;
    data->bumpMode = 0;
    data->bumpMultiplier = 1.f;
-   data->flipR = false;
-   data->flipG = false;
-   data->flipTangents = false;
+   data->flipR = true;
+   data->flipG = true;
+   data->swapTangents = false;
    data->useDerivatives = true;
    data->isShaderRGBA = false;   
    AiNodeSetLocalData(node, data);
@@ -85,7 +85,7 @@ node_update
       data->bumpMap = 0;
    data->flipR = AiNodeGetBool(node, "flip_r");
    data->flipG = AiNodeGetBool(node, "flip_g");
-   data->flipTangents = AiNodeGetBool(node, "flip_tangents");
+   data->swapTangents = AiNodeGetBool(node, "swap_tangents");
    data->useDerivatives = AiNodeGetBool(node, "use_derivatives");
 }
 
@@ -156,7 +156,7 @@ shader_evaluate
          normalMap.r *= -1.f;
       if (data->flipG)
          normalMap.g *= -1.f;
-      if (data->flipTangents)
+      if (data->swapTangents)
          std::swap(tangent, bitangent);
       sg->N = normalMap.r * tangent +
               normalMap.g * bitangent +
