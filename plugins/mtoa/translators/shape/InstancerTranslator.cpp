@@ -227,8 +227,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
       // we have to do this no matter if we have particles or not..
       if (m_customAttrs.length() != 0)
       {
-         MStringArray attrs;
-         status = m_customAttrs.split(';', attrs);
          if (status ==  MS::kSuccess)
          {
             for (unsigned int i=0; i < attrs.length(); i++)
@@ -272,11 +270,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                   continue;
                }
             }
-            if (exportID)
-            {
-               m_instant_customIntAttrArrays["particleId"]= partIds;
-            }
          }
+      }
+      
+      if (exportID)
+      {
+         m_instant_customIntAttrArrays["particleId"]= partIds;
       }
    }
 
@@ -314,7 +313,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
       }
 
-      if (m_customAttrs.length() != 0)
+      if (m_customAttrs.length() != 0 || exportID)
       {
          m_out_customVectorAttrArrays = m_instant_customVectorAttrArrays;
          m_out_customDoubleAttrArrays = m_instant_customDoubleAttrArrays;
@@ -422,12 +421,14 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                          continue;
                         }
                      }
-                     if (exportID)
-                     {
-                        m_out_customIntAttrArrays["particleId"].append(m_instant_customIntAttrArrays["particleId"][j]);
-                     }
                   }
                }
+               
+               if (exportID)
+               {
+                  m_out_customIntAttrArrays["particleId"].append(m_instant_customIntAttrArrays["particleId"][j]);
+               }
+               
                m_vec_matrixArrays.push_back(outMatrix);
                m_particleIDMap[partIds[j]] = m_vec_matrixArrays.size()-1;
                m_startIndicesArray.append(particlePathStartIndices[j]);
