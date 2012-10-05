@@ -186,6 +186,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
+         // Do not wait if Arnold license is not present
+         AiNodeSetBool(options, "skip_license_check", true);
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
@@ -199,6 +201,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
+         // Do not wait if Arnold license is not present
+         AiNodeSetBool(options, "skip_license_check", true);
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetStr(procedural, "data", dsoData.asChar());
