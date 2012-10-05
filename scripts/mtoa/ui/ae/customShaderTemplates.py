@@ -20,3 +20,12 @@ class FileTemplate(templates.AttributeTemplate):
         self.addControl("aiUseDefaultColor", label="Use Default Color")
 
 templates.registerAETemplate(FileTemplate, "file")
+        
+class Bump2dTemplate(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl("aiFlipR", label="Flip R Channel")
+        self.addControl("aiFlipG", label="Flip G Channel")
+        self.addControl("aiFlipTangents", label="Flip Tangents")
+        self.addControl("aiUseDerivatives", label="Use Derivatives")
+
+templates.registerAETemplate(Bump2dTemplate, "bump2d")

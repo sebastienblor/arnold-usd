@@ -228,6 +228,30 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
 
 // Bump2d
 //
+void CBump2DTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "bump2d");
+   
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "aiFlipR";
+   data.shortName = "flip_r";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiFlipG";
+   data.shortName = "flip_g";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiFlipTangents";
+   data.shortName = "flip_tangents";
+   helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = true;
+   data.name = "aiUseDerivatives";
+   data.shortName = "use_derivatives";
+   helper.MakeInputBoolean(data);
+}
+
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("mayaBump2D");
@@ -250,6 +274,10 @@ void CBump2DTranslator::Export(AtNode* shader)
             AiNodeLink(n, "normal_map", shader);
       }
    }
+   ProcessParameter(shader, "flip_r", AI_TYPE_BOOLEAN, "aiFlipR");
+   ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
+   ProcessParameter(shader, "flip_tangents", AI_TYPE_BOOLEAN, "aiFlipTangents");
+   ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
 }
 
 // Bump3d

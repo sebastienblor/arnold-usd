@@ -344,7 +344,8 @@ namespace // <anonymous>
                                      CPlace2DTextureTranslator::creator);
          shaders->RegisterTranslator("bump2d",
                                      "",
-                                     CBump2DTranslator::creator);
+                                     CBump2DTranslator::creator,
+                                     CBump2DTranslator::NodeInitializer);
          shaders->RegisterTranslator("bump3d",
                                      "",
                                      CBump3DTranslator::creator);

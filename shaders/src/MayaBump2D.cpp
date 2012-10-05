@@ -15,8 +15,12 @@ node_parameters
    AiParameterFlt("bump_map", 0.f);
    AiParameterFlt("bump_height", 1.f);
    AiParameterRGB("normal_map", 0.f, 0.f, 1.f);
+   AiParameterBool("flip_r", false);
+   AiParameterBool("flip_g", false);
+   AiParameterBool("flip_tangents", false);
+   AiParameterBool("use_derivatives", true);
    AiParameterEnum("use_as", 0, useAsNames)
-   AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);
+   AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);   
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
@@ -24,7 +28,11 @@ enum mayaBump2DParams {
    p_bump_map,
    p_bump_height,
    p_normal_map,
-   p_use_as,   
+   p_flip_r,
+   p_flip_g,
+   p_flip_tangents,
+   p_use_derivatives,
+   p_use_as,
    p_shader
 };
 
@@ -34,7 +42,8 @@ struct mayaBump2DData{
    AtNode* shader;
    float bumpMultiplier;
    int bumpMode;
-   bool isShaderRGBA;   
+   bool isShaderRGBA;
+   bool flipR, flipG, flipTangents, useDerivatives;
 };
 
 node_initialize
@@ -44,6 +53,10 @@ node_initialize
    data->shader = 0;
    data->bumpMode = 0;
    data->bumpMultiplier = 1.f;
+   data->flipR = false;
+   data->flipG = false;
+   data->flipTangents = false;
+   data->useDerivatives = true;
    data->isShaderRGBA = false;   
    AiNodeSetLocalData(node, data);
 }
@@ -70,6 +83,10 @@ node_update
       data->bumpMap = 0;
    if (ABS(data->bumpMultiplier) < AI_EPSILON)
       data->bumpMap = 0;
+   data->flipR = AiNodeGetBool(node, "flip_r");
+   data->flipG = AiNodeGetBool(node, "flip_g");
+   data->flipTangents = AiNodeGetBool(node, "flip_tangents");
+   data->useDerivatives = AiNodeGetBool(node, "use_derivatives");
 }
 
 node_finish
@@ -125,17 +142,24 @@ shader_evaluate
    }
    else if(data->bumpMode == BM_TANGENT_NORMAL) // tangent space normal mapping
    {
-      const AtRGB normalMap = (AiShaderEvalParamRGB(p_normal_map) - .5f) * 2.f;
-      AtVector tangent;
-      if (!AiUDataGetVec("tangent", &tangent))
-         tangent = sg->dPdu;
+      AtRGB normalMap = (AiShaderEvalParamRGB(p_normal_map) - .5f) * 2.f;
+      AtVector tangent = sg->dPdu;
+      AtVector bitangent = sg->dPdv;
+      if (!data->useDerivatives)
+      {
+         AiUDataGetVec("tangent", &tangent);
+         AiUDataGetVec("bitangent", &bitangent);
+      }
       tangent = AiV3Normalize(tangent);
-      AtVector bitangent;
-      if (!AiUDataGetVec("bitangent", &bitangent))
-         bitangent = sg->dPdv;
       bitangent = AiV3Normalize(bitangent);
-      sg->N = (-normalMap.r) * tangent +
-              (-normalMap.g) * bitangent +
+      if (data->flipR)
+         normalMap.r *= -1.f;
+      if (data->flipG)
+         normalMap.g *= -1.f;
+      if (data->flipTangents)
+         std::swap(tangent, bitangent);
+      sg->N = normalMap.r * tangent +
+              normalMap.g * bitangent +
               normalMap.b * oldN;
       sg->N = AiV3Normalize(sg->N);
       if (!AiV3Exists(sg->N))
