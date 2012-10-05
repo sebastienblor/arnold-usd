@@ -172,8 +172,10 @@ shader_evaluate
    }
    else // object space normal mapping
    {
-      sg->N = AiShaderEvalParamVec(p_normal_map);
+      const AtRGB normalMap = AiShaderEvalParamRGB(p_normal_map);
+      AiM4VectorByMatrixMult(&sg->N, sg->M, (const AtVector*)&normalMap);
       sg->Nf = sg->N;
+      AiFaceViewer(sg, sg->Nf);
    }
    
    AiShaderEvaluate(data->shader, sg);
