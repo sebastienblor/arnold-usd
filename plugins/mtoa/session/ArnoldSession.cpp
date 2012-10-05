@@ -1121,7 +1121,7 @@ void CArnoldSession::DoUpdate()
                   }
                }
                // Just export it then
-               ExportDagPath(path, &status);
+               ExportDagPath(path, true, &status);
                if (MStatus::kSuccess == status)
                {
                   name = path.partialPathName();

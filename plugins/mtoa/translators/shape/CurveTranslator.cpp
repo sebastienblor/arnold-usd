@@ -23,7 +23,7 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "rcurve";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.FLT = 0.01;
+   data.defaultValue.FLT = 0.01f;
    data.name = "aiCurveWidth";
    data.shortName = "cwdth";
    helper.MakeInputFloat(data);
@@ -308,13 +308,13 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       }
       
       nurbsCurve.getKnotDomain(start, end);
-      numcvs = std::ceil((end - start) * sampleRate); 
+      numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
       incPerSample = 1.0 / sampleRate;
 
       MPoint point;
-      for(int i = 0; i < numcvs - 1; i++)
+      for(unsigned int i = 0; i < numcvs - 1; i++)
       {
-         nurbsCurve.getPointAtParam(start + incPerSample*i, point, MSpace::kWorld);
+         nurbsCurve.getPointAtParam(start + incPerSample * (double)i, point, MSpace::kWorld);
          cvs.append(point);
       }
       nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);

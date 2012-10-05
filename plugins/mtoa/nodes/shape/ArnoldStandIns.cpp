@@ -235,7 +235,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
                bool inherit_xform = true;
-               AtArray* myArray;
                while(AiNodeIs(node, "ginstance"))
                {
                   AtMatrix current_matrix;
@@ -751,16 +750,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       else
       {
          float3 m_value;
-         m_value[0] = bbMin.x;
-         m_value[1] = bbMin.y;
-         m_value[2] = bbMin.z;
+         m_value[0] = (float)bbMin.x;
+         m_value[1] = (float)bbMin.y;
+         m_value[2] = (float)bbMin.z;
          plug.setAttribute(s_boundingBoxMin);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-         m_value[0] = bbMax.x;
-         m_value[1] = bbMax.y;
-         m_value[2] = bbMax.z;
+         m_value[0] = (float)bbMax.x;
+         m_value[1] = (float)bbMax.y;
+         m_value[2] = (float)bbMax.z;
          plug.setAttribute(s_boundingBoxMax);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
@@ -794,16 +793,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          else
          {
             float3 m_value;
-            m_value[0] = bbMin.x;
-            m_value[1] = bbMin.y;
-            m_value[2] = bbMin.z;
+            m_value[0] = (float)bbMin.x;
+            m_value[1] = (float)bbMin.y;
+            m_value[2] = (float)bbMin.z;
             plug.setAttribute(s_boundingBoxMin);
             SetPointPlugValue(plug, m_value);
             fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-            m_value[0] = bbMax.x;
-            m_value[1] = bbMax.y;
-            m_value[2] = bbMax.z;
+            m_value[0] = (float)bbMax.x;
+            m_value[1] = (float)bbMax.y;
+            m_value[2] = (float)bbMax.z;
             plug.setAttribute(s_boundingBoxMax);
             SetPointPlugValue(plug, m_value);
             fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
@@ -839,16 +838,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       else
       {
          float3 m_value;
-         m_value[0] = bbMin.x;
-         m_value[1] = bbMin.y;
-         m_value[2] = bbMin.z;
+         m_value[0] = (float)bbMin.x;
+         m_value[1] = (float)bbMin.y;
+         m_value[2] = (float)bbMin.z;
          plug.setAttribute(s_boundingBoxMin);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-         m_value[0] = bbMax.x;
-         m_value[1] = bbMax.y;
-         m_value[2] = bbMax.z;
+         m_value[0] = (float)bbMax.x;
+         m_value[1] = (float)bbMax.y;
+         m_value[2] = (float)bbMax.z;
          plug.setAttribute(s_boundingBoxMax);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);

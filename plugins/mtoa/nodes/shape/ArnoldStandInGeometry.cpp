@@ -143,7 +143,7 @@ void CArnoldPolymeshGeometry::DrawPoints() const
    g_GLFT->glEnableClientState(MGL_VERTEX_ARRAY);
    
    g_GLFT->glVertexPointer(3, MGL_FLOAT, 0, &m_vlist[0]);
-   g_GLFT->glDrawArrays(MGL_POINTS, 0, m_vlist.size());
+   g_GLFT->glDrawArrays(MGL_POINTS, 0, (MGLsizei)m_vlist.size());
    
    g_GLFT->glDisableClientState(MGL_VERTEX_ARRAY);
 }

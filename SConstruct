@@ -260,6 +260,7 @@ if env['COMPILER'] == 'gcc':
 
 elif env['COMPILER'] == 'msvc':
    MSVC_FLAGS  = " /W3"         # Warning level : 3
+   MSVC_FLAGS += " /wd 4005"
    MSVC_FLAGS += " /EHsc"       # enable synchronous C++ exception handling model & 
                                 # assume extern "C" functions do not throw exceptions
    MSVC_FLAGS += " /Gd"         # makes __cdecl the default calling convention 
