@@ -292,7 +292,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-   CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
    // Assign what needs to be on geometry
 
