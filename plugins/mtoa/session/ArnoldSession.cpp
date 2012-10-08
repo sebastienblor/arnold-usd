@@ -867,7 +867,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    }
 
    // UpdateLightLinks refreshes global light linking info
-   MStatus updateSuccess = UpdateLightLinks();
+   UpdateLightLinks();
 
    return status;
 }
