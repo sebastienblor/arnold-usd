@@ -19,8 +19,9 @@ node_parameters
    AiParameterBool("flip_g", true);
    AiParameterBool("swap_tangents", false);
    AiParameterBool("use_derivatives", true);
+   AiParameterBool("gamma_correct", true);
    AiParameterEnum("use_as", 0, useAsNames)
-   AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);   
+   AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
@@ -31,6 +32,7 @@ enum mayaBump2DParams {
    p_flip_r,
    p_flip_g,
    p_swap_tangents,
+   p_gamma_correct,
    p_use_derivatives,
    p_use_as,
    p_shader
@@ -41,6 +43,7 @@ struct mayaBump2DData{
    AtNode* bumpMap;
    AtNode* shader;
    float bumpMultiplier;
+   float gammaCorrect;
    int bumpMode;
    bool isShaderRGBA;
    bool flipR, flipG, swapTangents, useDerivatives;
@@ -53,6 +56,7 @@ node_initialize
    data->shader = 0;
    data->bumpMode = 0;
    data->bumpMultiplier = 1.f;
+   data->gammaCorrect = 1.f;
    data->flipR = true;
    data->flipG = true;
    data->swapTangents = false;
@@ -87,6 +91,9 @@ node_update
    data->flipG = AiNodeGetBool(node, "flip_g");
    data->swapTangents = AiNodeGetBool(node, "swap_tangents");
    data->useDerivatives = AiNodeGetBool(node, "use_derivatives");
+   data->gammaCorrect = 1.f;
+   if (AiNodeGetBool(node, "gamma_correct"))
+      data->gammaCorrect = AiNodeGetFlt(options, "texture_gamma");
 }
 
 node_finish
@@ -142,7 +149,10 @@ shader_evaluate
    }
    else if(data->bumpMode == BM_TANGENT_NORMAL) // tangent space normal mapping
    {
-      AtRGB normalMap = (AiShaderEvalParamRGB(p_normal_map) - .5f) * 2.f;
+      AtRGB normalMap = AiShaderEvalParamRGB(p_normal_map);
+      if (data->gammaCorrect != 1.f)
+         AiColorGamma(&normalMap, data->gammaCorrect);
+      normalMap = (normalMap - .5f) * 2.f;
       AtVector tangent = sg->dPdu;
       AtVector bitangent = sg->dPdv;
       if (!data->useDerivatives)
@@ -172,7 +182,9 @@ shader_evaluate
    }
    else // object space normal mapping
    {
-      const AtRGB normalMap = AiShaderEvalParamRGB(p_normal_map);
+      AtRGB normalMap = AiShaderEvalParamRGB(p_normal_map);
+      if (data->gammaCorrect != 1.f)
+         AiColorGamma(&normalMap, data->gammaCorrect);
       AiM4VectorByMatrixMult(&sg->N, sg->M, (const AtVector*)&normalMap);
       sg->Nf = sg->N;
       AiFaceViewer(sg, sg->Nf);

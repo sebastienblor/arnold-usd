@@ -251,6 +251,10 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiUseDerivatives";
    data.shortName = "use_derivatives";
    helper.MakeInputBoolean(data);
+   
+   data.name = "aiGammaCorrect";
+   data.shortName = "gamma_correct";
+   helper.MakeInputBoolean(data);
 }
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
@@ -279,6 +283,7 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
+   ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
 }
 
 // Bump3d
