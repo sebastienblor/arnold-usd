@@ -153,9 +153,6 @@ driver_open
 
       if (s_firstOpen)
       {
-         if (s_idle_cb != 0)
-            AiMsgWarning("[mtoa] Previous Render View idle callback not properly cleaned up");
-
          if (s_idle_cb == 0)
          {
             s_idle_cb = MEventMessage::addEventCallback("idle",
