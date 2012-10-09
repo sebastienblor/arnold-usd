@@ -82,13 +82,6 @@ void COptionsTranslator::ExportAOVs()
    if ((displayAOV == "RGBA") || (displayAOV == "RGB"))
       displayAOV = "beauty";
 
-   AtNode* defaultFilter = CreateDefaultFilter();
-
-   bool singleLayerDisplay = false;
-   CAOVOutput displayOutput;
-   displayOutput.driver = CreateDisplayDriver(displayOutput.prefix, singleLayerDisplay);
-   displayOutput.filter = defaultFilter;
-   displayOutput.mergeAOVs = false;  // FIXME: get a proper value
 
    // loop through AOVs
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
@@ -97,11 +90,27 @@ void COptionsTranslator::ExportAOVs()
       CAOVOutputArray aovData;
       aovData.type = it->GetDataType();
 
+   // Global drivers
+   std::vector<CAOVOutput> globalOutputs;
+   MPlug pFilter = FindMayaPlug("filter");
+   MPlug pDisplays = FindMayaPlug("drivers");
+   for (unsigned int i=0; i < pDisplays.numElements(); ++i)
+   {
+      CAOVOutput output;
+      if (GetOutput(pDisplays[i], pFilter, output))
+         globalOutputs.push_back(output);
+   }
       AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", name.asChar());
 
-      GetDriversAndFilters(*it, aovData.outputs);
-      if (displayOutput.driver != NULL && (!singleLayerDisplay || name == displayAOV))
-         aovData.outputs.push_back(displayOutput);
+      GetOutputArray(*it, aovData.outputs);
+
+      // Add global outputs
+      for (unsigned int i=0; i < globalOutputs.size(); ++i)
+      {
+         if (!globalOutputs[i].singleLayer || name == displayAOV)
+            aovData.outputs.push_back(globalOutputs[i]);
+      }
+
 
       aovData.tokens = MString("RenderPass=") + name;
 
@@ -110,7 +119,7 @@ void COptionsTranslator::ExportAOVs()
          // add default driver
          CAOVOutput output;
          output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer);
-         output.filter = defaultFilter;
+         output.filter = ExportFilter(FindMayaPlug("filter"));
          aovData.outputs.push_back(output);
 
          // RGBA/RGB AOVs are a special case because the AOV name and the data type are linked.
@@ -167,8 +176,17 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
       for (unsigned int j=0; j < nOutputs; ++j)
       {
          CAOVOutput& output = aovData.outputs[j];
+         if (output.driver == NULL)
+         {
+            AiMsgWarning("[mtoa] Output driver %d for AOV \"%s\" is null", j, aovData.name.asChar());
+            continue;
+         }
+         if (output.filter == NULL)
+         {
+            AiMsgWarning("[mtoa] Output filter %d for AOV \"%s\" is null", j, aovData.name.asChar());
+            continue;
+         }
          const AtNodeEntry* driverEntry = AiNodeGetNodeEntry(output.driver);
-
          // handle drivers with filename parameters
          if (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL)
          {
@@ -294,14 +312,6 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
 
    const AtNodeEntry* entry = AiNodeGetNodeEntry(driver);
 
-   bool displayDriver = false;
-   if ((AiNodeEntryLookUpParameter(entry, "gamma") != NULL) &&
-        AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) &&
-        displayDriver)
-   {
-      AiNodeSetFlt(driver, "gamma", FindMayaPlug("display_gamma").asFloat());
-   }
-
    MFnDependencyNode fnNode(conn[0].node());
    singleLayer = false;
    AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
@@ -328,63 +338,41 @@ AtNode* COptionsTranslator::ExportFilter(const MPlug& filterPlug)
    return filter;
 }
 
-unsigned int COptionsTranslator::GetDriversAndFilters(const CAOV& aov,
-                                                      std::vector<CAOVOutput>& outputs)
+unsigned int COptionsTranslator::GetOutputArray(const CAOV& aov,
+                                                std::vector<CAOVOutput>& outputs)
 {
    MFnDependencyNode fnNode;
    MObject aovNode = aov.GetNode();
    if (aovNode.isNull())
       return 0;
    fnNode.setObject(aovNode);
-   MString name = aov.GetName();
-   MPlugArray conn;
    MPlug outputsPlug = fnNode.findPlug("outputs", true);
    for (unsigned int i=0; i<outputsPlug.numElements(); ++i)
    {
-      // Filter
       CAOVOutput output;
-      output.filter = ExportFilter(outputsPlug[i].child(1));
-      if (output.filter == NULL)
-         continue;
-
-      // Driver
-      output.driver = ExportDriver(outputsPlug[i].child(0), output.prefix, output.mergeAOVs, output.singleLayer);
-      if (output.driver == NULL)
-         continue;
-
-      outputs.push_back(output);
+      if (GetOutput(outputsPlug[i].child(0), outputsPlug[i].child(1), output))
+         outputs.push_back(output);
    }
    return outputs.size();
 }
 
-AtNode * COptionsTranslator::CreateDefaultFilter()
+bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
+                                   const MPlug& filterPlug,
+                                   CAOVOutput& output)
 {
-   // set the output driver
-   AtNode* filter = ExportFilter(FindMayaPlug("filter"));
-   if (filter == NULL)
-      AiMsgError("[mtoa] default filter is NULL");
-   return filter;
-}
+   // Filter
+   output.filter = ExportFilter(filterPlug);
+   if (output.filter == NULL)
+      return false;
 
-AtNode * COptionsTranslator::CreateDisplayDriver(MString& prefix, bool& singleLayer)
-{
-   // Don't create it if we're in batch mode.
-   if (m_session->IsBatch()) return NULL;
-
-   AtNode* driver = AiNode("renderview_display");
-
-   const AtNodeEntry* entry = AiNodeGetNodeEntry(driver);
-   MString nodeTypeName = AiNodeEntryGetName(entry);
-   MString driverName = nodeTypeName + "@display";
-   AiNodeSetStr(driver, "name", driverName.asChar());
-
-   AiNodeSetFlt(driver, "gamma", FindMayaPlug("display_gamma").asFloat());
-
-   singleLayer = false;
-   AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
-
-   prefix = "";
-   return driver;
+   // Driver
+   output.driver = ExportDriver(driverPlug,
+                                output.prefix,
+                                output.mergeAOVs,
+                                output.singleLayer);
+   if (output.driver == NULL)
+      return false;
+   return true;
 }
 
 void COptionsTranslator::SetCamera(AtNode *options)
@@ -420,8 +408,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    MStringArray outputStrings;
 
-   ExportAOVs(); // file outputs are skipped during IPR, so no need to call this in Update
-
+   ExportAOVs();
 
    SetCamera(options);
 

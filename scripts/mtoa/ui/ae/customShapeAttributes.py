@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
@@ -447,14 +447,14 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
 def registerDriverTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
 
 def registerFilterTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVFilter"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVFilter', 'gaussian')
 

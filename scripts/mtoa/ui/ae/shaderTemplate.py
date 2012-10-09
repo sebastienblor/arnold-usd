@@ -29,7 +29,7 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
     EMPTY_AOV_ITEM = "<None>"
     NEW_AOV_ITEM = "<Create New...>"
     UNKNOWN_AOV_ITEM = "%s (Inactive)"
-    BEAUTY_ITEM = "RGBA"
+    BEAUTY_ITEM = "beauty"
     _instances = []
     
     def __init__(self, nodeType, attr, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=False):
@@ -109,8 +109,15 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         elif currVal not in self.activeNames and currVal != self.BEAUTY_ITEM:
             currVal = self.UNKNOWN_AOV_ITEM % currVal
             pm.menuItem(label=currVal, parent=(self.menuName))
-            
 
+        # beauty is always first, so remove it in all cases, it will be added below if
+        # includeBeauty is enabled
+        try:
+            index = self.activeNames.index(self.BEAUTY_ITEM)
+            self.activeNames.pop(index)
+        except ValueError:
+            pass
+        
         if self.includeBeauty:
             pm.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName))
 

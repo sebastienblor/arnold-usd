@@ -24,6 +24,7 @@ public:
    static MObject s_mergeAOVs;
    static MObject s_driver;
    static MObject s_prefix;
+   static MObject s_outputMode;
 
 };  // class CArnoldDriverNode
 

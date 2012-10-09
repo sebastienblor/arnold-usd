@@ -39,7 +39,12 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // "-mode" flag is not set, so we simply return a bool with the rendering status
    if (!args.isFlagSet("mode"))
    {
-      setResult(CMayaScene::IsActive());
+      // Note that we return false if the scene is active with a different type of render
+      // (MTOA_SESSION_RENDER is currently the only other that runs on a separate thread).
+      // This is intentional: returning true here for non-IPR render would result in a follow-up
+      // call to `arnoldIpr -stop` which is specialized for IPR (specifically it calls post render
+      // MEL scripts, which are handled in a different way by interrupted non-IPR renders).
+      setResult(CMayaScene::IsActive(MTOA_SESSION_IPR));
       return MS::kSuccess;
    }
 
@@ -91,7 +96,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "stop")
    {
-      if (!CMayaScene::IsActive())
+      if (!CMayaScene::IsActive(MTOA_SESSION_IPR))
       {
          MGlobal::displayError("Error stopping Arnold IPR, Arnold Render session is not active.");
          return MS::kFailure;
@@ -105,7 +110,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "refresh")
    {
-      if (!CMayaScene::IsActive())
+      if (!CMayaScene::IsActive(MTOA_SESSION_IPR))
       {
          MGlobal::displayError("Error refreshing Arnold IPR, Arnold Render session is not active.");
          return MS::kFailure;
@@ -219,8 +224,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       // We might be rendering again by the time this is called.
       if (AiRendering()) return status;
-         
-      CMayaScene::GetRenderSession()->FinishedIPRTuning();
 
       CMayaScene::End();
    }

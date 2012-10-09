@@ -36,6 +36,7 @@ public:
    static MObject s_aovs;
    static MObject s_aovMode;
    static MObject s_driver;
+   static MObject s_drivers;
 
    static MObject s_renderType;
    static MObject s_outputAssBoundingBox;

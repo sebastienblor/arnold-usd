@@ -197,6 +197,7 @@ def createOptions():
     options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
     driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
+    displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
     if (filterNode or driverNode) and not options:
         options = pm.nt.DependNode('defaultArnoldRenderOptions')
@@ -222,10 +223,21 @@ def createOptions():
         hooks.setupOptions(options)
     else:
         options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        if displayDriverNode:
+            # options exist, but not display driver: upgrade from older version of mtoa
+            hooks.setupDefaultAOVs(aovs.AOVInterface(options))
 
+    if displayDriverNode:
+        # newly created default driver
+        displayDriverNode.aiTranslator.set('maya')
+        # GUI only
+        displayDriverNode.outputMode.set(0)
+        hooks.setupDriver(displayDriverNode)
+        displayDriverNode.message.connect(options.drivers, nextAvailable=True)
+    elif not options.drivers.inputs():
+        pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
     filterNode.message.connect(options.filter, force=True)
     driverNode.message.connect(options.driver, force=True)
-
 
 
 #-------------------------------------------------

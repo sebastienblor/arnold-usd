@@ -326,6 +326,10 @@ namespace // <anonymous>
       // Overrides for mtoa_shaders if load was successful
       if (MStatus::kSuccess == status)
       {
+         // Register nodes built into mtoa (display driver)
+         InstallNodes();
+         shaders->RegisterPluginNodesAndTranslators("mtoa");
+
          shaders->RegisterTranslator("lambert",
                                      "",
                                      CLambertTranslator::creator);
@@ -472,7 +476,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString metafile = loadpath + "/" + "mtoa.mtd";
    SetMetafile(metafile);
 
-   ArnoldUniverseBegin();
+   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
 
    // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
@@ -664,6 +668,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    ArnoldUniverseEnd();
 
+   CMayaScene::Init();
    return returnStatus;
 }
 
@@ -682,7 +687,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    // Should be done when render finishes
    CMayaScene::End();
 
-   ArnoldUniverseBegin();
+   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
@@ -826,5 +831,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    ArnoldUniverseEnd();
 
+   CMayaScene::DeInit();
    return returnStatus;
 }
