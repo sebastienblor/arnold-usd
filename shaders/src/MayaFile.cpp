@@ -571,7 +571,7 @@ shader_evaluate
                   while (found != std::string::npos)
                   {
                      shapeName[found]='_';
-                     found=shapeName.find("|:", found + 1);
+                     found=shapeName.find_first_of("|:", found + 1);
                   }
                   memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),shapeName.size());
                   pos += (unsigned int) shapeName.size();
