@@ -365,9 +365,9 @@ node_parameters
 typedef struct 
 {
    AtNode*  camera;
+   AtArray* camera_fov;
    float    render_aspect;
    float    image_aspect;
-   float    camera_fov;
    
 } ShaderData;
 
@@ -388,7 +388,9 @@ node_update
    if (camera != NULL) // Use a custom camera for the perspective projection
    {
       data->camera = camera;
-      data->camera_fov = ((float)AI_PI * AiNodeGetFlt(data->camera, "fov")) / 180.f;
+      data->camera_fov = AiArrayCopy(AiNodeGetArray(camera, "fov"));
+      for (int i = 0; i < data->camera_fov->nelements; ++i)
+         AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
    }
 
    data->image_aspect = 1.0f;
@@ -554,7 +556,8 @@ shader_evaluate
                   float imgAR = data->image_aspect;
                   float camAR = AiShaderEvalParamFlt(p_camera_aspect);
 
-                  float hfov  = data->camera_fov;
+                  //float hfov  = data->camera_fov;
+                  float hfov = AiArrayInterpolateFlt(data->camera_fov, sg->time, 0);
                   float nearp = AiShaderEvalParamFlt(p_camera_near);
 
                   float maxw = nearp * tan(0.5f * hfov);
