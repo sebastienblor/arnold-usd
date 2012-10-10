@@ -389,7 +389,7 @@ node_update
    {
       data->camera = camera;
       data->camera_fov = AiArrayCopy(AiNodeGetArray(camera, "fov"));
-      for (int i = 0; i < data->camera_fov->nelements; ++i)
+      for (int i = 0; i < data->camera_fov->nkeys; ++i)
          AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
    }
 
