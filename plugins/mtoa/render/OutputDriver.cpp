@@ -16,6 +16,7 @@
 #include <maya/MRenderView.h>
 #include <maya/MGlobal.h>
 #include <maya/MImage.h>
+#include <maya/MAnimControl.h>
 
 #include <time.h>
 time_t s_start_time;
@@ -447,7 +448,12 @@ void RenderEnd()
    if (s_panel_name != "")
    {
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
-      rvInfo += "Memory: ";
+      
+      const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+      rvInfo += "Frame: ";
+      rvInfo += int(frame);
+      
+      rvInfo += "    Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
 
