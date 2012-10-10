@@ -556,7 +556,6 @@ shader_evaluate
                   float imgAR = data->image_aspect;
                   float camAR = AiShaderEvalParamFlt(p_camera_aspect);
 
-                  //float hfov  = data->camera_fov;
                   float hfov = AiArrayInterpolateFlt(data->camera_fov, sg->time, 0);
                   float nearp = AiShaderEvalParamFlt(p_camera_near);
 
