@@ -3,6 +3,7 @@ import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
 from mtoa.utils import toMayaStyle
+from mtoa.utils import prettify
 import mtoa.ui.ae.templates as templates
 import mtoa.core as core
 
@@ -50,7 +51,14 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
     # TODO: convert to propertycache
     @property
     def label(self):
-        return self._label if self._label else interToUI(self.attr)
+        if self._label:
+            return self._label
+        else:
+            cattr = interToUI(self.attr)
+            if cattr[0:3] == 'Aov':
+                cattr = 'AOV' + cattr[3:]
+            return cattr
+        
 
     def changeCallback(self, nodeAttr, newAOV):
         """
