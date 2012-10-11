@@ -554,7 +554,12 @@ void EndImage()
    if (s_panel_name != "")
    {
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
-      rvInfo += "Memory: ";
+      
+      const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+      rvInfo += "Frame: ";
+      rvInfo += int(frame);
+      
+      rvInfo += "    Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
 
