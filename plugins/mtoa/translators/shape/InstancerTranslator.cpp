@@ -484,75 +484,77 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
          return;
       }
 
-         for (unsigned int  j = 0; j< m_particleIDMap.size(); j++)
+      for (std::map<int,int>::iterator it = m_particleIDMap.begin();
+           it !=  m_particleIDMap.end(); ++it)
+      {
+         int partID = it->first;
+         int j = it->second;
+
+         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
          {
-            int size = m_particlePathsMap[m_particleIDMap[j]].length();
+            AtNode *instance;
+            instance = AiNode("ginstance");
+            char nodeName[MAX_NAME_SIZE];
+            AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
 
-            for (unsigned int  k = 0; k < m_particlePathsMap[m_particleIDMap[j]].length(); k++)
-            {
-               AtNode *instance;
-               instance = AiNode("ginstance");
-               char nodeName[MAX_NAME_SIZE];
-               AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+            int idx = m_particlePathsMap[partID][k];
 
-               int idx = m_particlePathsMap[m_particleIDMap[j]][k];
+            if (idx > 3)
+               int a = 0;
 
-               if (idx > 3)
-                  int a = 0;
+            AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
+            AiNodeSetPtr(instance, "node", obj);
+            AiNodeSetBool(instance, "inherit_xform", true);
+            // Do not assign same array to more than one node
+            if (k == 0)
+               AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
+            else
+               AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
 
-               AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
-               AiNodeSetPtr(instance, "node", obj);
-               AiNodeSetBool(instance, "inherit_xform", true);
-               // Do not assign same array to more than one node
-               if (k == 0)
-                  AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
-               else
-                  AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
-
-               //AiNodeDeclare(instance, "instanceTag", "constant STRING");
-               //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
+            //AiNodeDeclare(instance, "instanceTag", "constant STRING");
+            //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
            
-               // need this in case instance sources are hidden
-               int visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
-               AiNodeSetInt(instance, "visibility", visibility);
+            // need this in case instance sources are hidden
+            int visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
+            AiNodeSetInt(instance, "visibility", visibility);
 
-               // add the custom user selected attributes to export
-               std::map<std::string, MVectorArray>::iterator custVect;
-               for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
+            // add the custom user selected attributes to export
+            std::map<std::string, MVectorArray>::iterator custVect;
+            for (custVect = m_out_customVectorAttrArrays.begin(); custVect != m_out_customVectorAttrArrays.end(); custVect++)
+            {
+
+               MVector vecAttrValue = custVect->second[j];
+               if (MString(custVect->first.c_str()) == "rgbPP")
                {
-
-                  MVector vecAttrValue = custVect->second[j];
-                  if (MString(custVect->first.c_str()) == "rgbPP")
-                  {
-                     AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
-                     AiNodeSetRGB(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
-                                                 }
-                  else
-                  {
-                     AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
-                     AiNodeSetVec(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
-                  }
-               }
-               std::map<std::string, MDoubleArray>::iterator custDouble;
-               for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
+                  AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
+                  AiNodeSetRGB(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
+                                                }
+               else
                {
-                  AtFloat doubleAttrValue = (AtFloat)custDouble->second[j];
-
-                     AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
-                     AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
-
-               }
-               std::map<std::string, MIntArray>::iterator custInt;
-               for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
-               {
-                  AtInt intAttrValue = custInt->second[j];
-
-                     AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
-                     AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
-
+                  AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
+                  AiNodeSetVec(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
                }
             }
+            std::map<std::string, MDoubleArray>::iterator custDouble;
+            for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
+            {
+               AtFloat doubleAttrValue = (AtFloat)custDouble->second[j];
+
+                  AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
+                  AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
+
+            }
+            std::map<std::string, MIntArray>::iterator custInt;
+            for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
+            {
+               AtInt intAttrValue = custInt->second[j];
+
+                  AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
+                  AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
+
+            }
          }
+      }
    }
 
 }
