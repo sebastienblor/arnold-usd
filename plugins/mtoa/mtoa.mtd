@@ -633,7 +633,6 @@
     maya.output_shortname   STRING  "out"
     [attr IOR]
         min                 FLOAT   0.0
-        max                 FLOAT   10.0
         softmax             FLOAT   3.0
     [attr Kb]
         min                 FLOAT   0.0
