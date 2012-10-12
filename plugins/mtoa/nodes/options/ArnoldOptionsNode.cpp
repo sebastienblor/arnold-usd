@@ -202,7 +202,7 @@ MStatus CArnoldOptionsNode::initialize()
    
    s_attributes.MakeInput("bucket_size");
 
-   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 1);
+   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_clear_before_render);
 
