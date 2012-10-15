@@ -201,13 +201,13 @@ void CRenderOptions::SetupLog() const
       // this replaces the MAYA_PROJECT_PATH with the actual project path
       // if there are no such environment variables are declared
       MString logPath = m_log_filename;
-      if (m_log_filename.substringW(0, 18) == MString("$MAYA_PROJECT_PATH/"))
+      if (m_log_filename.substringW(0, 14) == MString("$MTOA_LOG_PATH/"))
       {
-         if (getenv("MAYA_PROJECT_PATH") == 0)
+         if (getenv("MTOA_LOG_PATH") == 0)
          {
             MString result;
             MGlobal::executeCommand("workspace -q -directory", result);
-            logPath = result + m_log_filename.substringW(19, m_log_filename.length());
+            logPath = result + m_log_filename.substringW(15, m_log_filename.length());
          }
       }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());

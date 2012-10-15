@@ -423,7 +423,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_log_filename = tAttr.create("log_filename", "logf", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("$MAYA_PROJECT_PATH/arnold.log"));
+   tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold.log"));
    addAttribute(s_log_filename);
 
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
