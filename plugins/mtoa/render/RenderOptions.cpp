@@ -197,8 +197,22 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
 void CRenderOptions::SetupLog() const
 {
    if (m_log_filename != "")
-      AiMsgSetLogFileName(m_log_filename.expandEnvironmentVariablesAndTilde().asChar());
-
+   {
+      // this replaces the MAYA_PROJECT_PATH with the actual project path
+      // if there are no such environment variables are declared
+      MString logPath = m_log_filename;
+      if (m_log_filename.substringW(0, 18) == MString("$MAYA_PROJECT_PATH/"))
+      {
+         if (getenv("MAYA_PROJECT_PATH") == 0)
+         {
+            MString result;
+            MGlobal::executeCommand("workspace -q -directory", result);
+            logPath = result + m_log_filename.substringW(19, m_log_filename.length());
+         }
+      }
+      AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
+   }
+   
    AiMsgSetMaxWarnings(m_log_max_warnings);
    AiMsgSetConsoleFlags(m_log_console_verbosity | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(m_log_file_verbosity);
