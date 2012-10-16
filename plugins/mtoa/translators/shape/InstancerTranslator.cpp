@@ -499,9 +499,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
             int idx = m_particlePathsMap[partID][k];
 
-            if (idx > 3)
-               int a = 0;
-
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
             AiNodeSetBool(instance, "inherit_xform", true);
