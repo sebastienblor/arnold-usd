@@ -2,6 +2,7 @@ import pymel.core as pm
 import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
+import maya.cmds as cmds
 
 class AttributeListWindow(object):
     
