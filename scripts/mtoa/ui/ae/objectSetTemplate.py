@@ -3,7 +3,6 @@ import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
 import maya.cmds as cmds
-from time import time
 
 class AttributeListWindow(object):
     
@@ -112,49 +111,12 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         pass
 
     def getCandidateAttributes(self):
-        st1 = time()
-        candidates = {}
-        elts = pm.sets(self.nodeName, query=True)
-        for elt in elts :
-            dag = pm.listRelatives(elt, allDescendents=True)
-            dag.append(elt)
-            for node in dag:                
-                attrs = node.listAttr(write=True, visible=True)
-                for attr in attrs :
-                    name = attr.longName(fullPath=True)
-                    # Too restrictive, missing useful attributes like "primary visibility" on shapes
-                    # or "Out Matte Opacity" on surface shader for instance.
-                    # Why it's not marked as render source or affects appearance beats me but point
-                    # is these distinctions don't seem reliable enough in Maya yet to filter useful attrs
-                    # fnAttr = om.MFnAttribute(attr.__apimobject__())
-                    # if (fnAttr.isRenderSource() or fnAttr.affectsAppearance() or fnAttr.hasCategory('arnold')) :                       
-                    if not name in candidates :
-                        candidates[name] = attr
-        st2 = time()
-        st3 = time()
         attributeList = cmds.arnoldListAttributes(self.nodeName)
-        st4 = time()
-        candidates2 = {}
+        candidates = {}
         if attributeList:
             for attrName in attributeList:
                 attr = pm.general.Attribute(attrName)
-                candidates2[attr.longName(fullPath=True)] = attr
-        numMissingCandidates = 0
-        for can in candidates.keys():
-            if can not in candidates2:
-                print 'Missing candidate named %s for node %s' % (can, candidates[can].node().name())
-                numMissingCandidates += 1
-        numExtraCandidates = 0
-        for can in candidates2.keys():
-            if can not in candidates:
-                print 'Extra candidate named ', can
-                numExtraCandidates += 1
-        print 'Number of original candidates ', len(candidates)
-        print 'Number of missing candidates ', numMissingCandidates
-        print 'Number of new candidates ', len(candidates2)
-        print 'Number of extra candidates ', numExtraCandidates
-        print 'Original attribute list time ', st2 - st1
-        print 'New attribute list time ', st4 - st3
+                candidates[attr.longName(fullPath=True)] = attr
         return candidates
 
     def getExistingAttributes(self):
