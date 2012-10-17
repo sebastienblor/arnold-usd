@@ -73,8 +73,8 @@ class AEaiStandardTemplate(ShaderAETemplate):
 
         self.beginLayout("Refraction", collapse=True)
         self.addControl("Kt_color", label="Color")
-        self.addControl("Kt", label="Transparency")
-        self.addControl("IOR", label="Index of Refraction")
+        self.addControl("Kt", label="Weight")
+        self.addControl("IOR", label="IOR")
         self.addControl("refraction_roughness", label="Roughness")
         self.addControl("transmittance", label="Transmittance")
         self.addControl("opacity", label="Opacity")
