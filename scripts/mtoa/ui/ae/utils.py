@@ -43,11 +43,21 @@ def attributeExists(attribute, nodeName):
 
 def loadAETemplates():
     templates = []
-    for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
+    customTemplatePaths = []
+    
+    if (os.getenv('MTOA_TEMPLATES_PATH')):
+        import sys
+        customTemplatePaths = os.getenv('MTOA_TEMPLATES_PATH').split(os.pathsep)
+        sys.path += customTemplatePaths
+        
+    pathsList = mtoa.ui.ae.__path__ + customTemplatePaths
+    
+    for importer, modname, ispkg in pkgutil.iter_modules(pathsList):
         # module name must end in "Template"
         if modname.endswith('Template') and modname not in templates:
             # TODO: use importer?
             mod = __import__(modname, globals(), locals(), [], -1)
+            
             procName = 'AE%s' % modname
             if hasattr(mod, modname):
                 # a function named after the module
