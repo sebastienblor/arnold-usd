@@ -128,6 +128,7 @@ private:
       , m_is_active(false)
       , m_render_thread(NULL)
       , m_render_lock(NULL)
+      , m_rendering(false)
    {
    }
 
