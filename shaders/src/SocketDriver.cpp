@@ -19,6 +19,7 @@ AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 node_parameters
 {
    AiParameterStr("host_name", "localhost");
+   AiParameterInt("bucket_threshold", -3);
    
    AiParameterPTR("swatch", NULL);
    AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
@@ -28,11 +29,19 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "display_driver", true);   
 }
 
+struct AOVData{
+   std::string name;
+   AtInt type;
+   float* data;   
+};
+
 struct SocketDriverData{
    int socketFd;
-   std::map<std::string, int> aovMap;
    std::string hostName;
    AtCritSec critSec;
+   bool fullUpdate;
+   std::vector<AOVData> aovData;
+   int width, height;
    
    static void* operator new(size_t size)
    {
@@ -82,7 +91,7 @@ void SendSocket(int socketFd, const void* data, int dataSize)
    while(rem)
    {
       int curr = send(socketFd, d, MIN(1024, rem), 0); // without this there might be some problems (especially on windows)
-      if (curr == -1)
+      if (curr <= 0)
          return;
       rem = rem - curr;
       d += curr;
@@ -98,6 +107,35 @@ void SendSocket(int socketFd, const T& data)
 driver_open
 {
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
+   data->width = display_window.maxx - display_window.minx + 1;
+   data->height = display_window.maxy - display_window.miny + 1;
+   AtNode* options = AiUniverseGetOptions();
+   int AASamples = AiNodeGetInt(options, "AA_samples");
+   if (AASamples <= AiNodeGetInt(node, "bucket_threshold"))
+      data->fullUpdate = true;
+   else
+      data->fullUpdate = false;
+   if (data->fullUpdate && data->aovData.size() == 0)
+   {
+      const char* outputName;
+      int pixelType;
+      
+      int pixelCount = (data->width) * (data->height);
+
+      while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, 0))
+      {
+         const int outputNameLength = strlen(outputName);
+         if (outputNameLength < 1)
+            continue;
+         AOVData aovData;
+         aovData.name = outputName;
+         aovData.type = pixelType;
+         aovData.data = (float*)AiMalloc(pixelCount * (pixelType == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA)));
+         data->aovData.push_back(aovData);
+      }
+      if (data->socketFd == -1)
+         AiOutputIteratorReset(iterator);
+   }
    if (data->socketFd != -1)
       return;
    AiCritSecInit(&data->critSec);
@@ -119,6 +157,8 @@ driver_open
       AiMsgError("socket creation error");
       return;
    }
+   int OPT = 1;
+   setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, (char*)&OPT, sizeof(int));
    
    hostent* hst;
    hst = gethostbyname(data->hostName.c_str());
@@ -138,8 +178,8 @@ driver_open
    }
    
    int ws[2];
-   ws[0] = display_window.maxx - display_window.minx + 1;
-   ws[1] = display_window.maxy - display_window.miny + 1;
+   ws[0] = data->width;
+   ws[1] = data->height;
    
    int evt = 1;
    
@@ -155,12 +195,8 @@ driver_open
       if (outputNameLength < 1)
          continue;
       
-      int aovID = data->aovMap.size();
-      data->aovMap[outputName] = aovID;
-      
       evt = 2;
       SendSocket(socketFd, evt);
-      SendSocket(socketFd, aovID);
       SendSocket(socketFd, pixelType);
       SendSocket(socketFd, outputNameLength);
       SendSocket(socketFd, outputName, outputNameLength);
@@ -180,30 +216,91 @@ driver_write_bucket
    int pixelType;
    const void* bucketData;
    
-   AiCritSecEnter(&data->critSec);
-   
-   while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, &bucketData))
+   if (data->fullUpdate)
    {
-      std::map<std::string, int>::iterator it = data->aovMap.find(outputName);
-      if (it == data->aovMap.end())
-         continue;
-      int evt = 3; // aov data
-      SendSocket(data->socketFd, evt);
-      SendSocket(data->socketFd, it->second);
-      SendSocket(data->socketFd, bucket_xo);
-      SendSocket(data->socketFd, bucket_yo);
-      SendSocket(data->socketFd, bucket_size_x);
-      SendSocket(data->socketFd, bucket_size_y);
-      int pixelSize = pixelType == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA);
-      SendSocket(data->socketFd, bucketData, pixelSize * bucket_size_x * bucket_size_y);
+      while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, &bucketData))
+      {
+         std::string aovName = outputName;
+         for (std::vector<AOVData>::iterator it = data->aovData.begin(); it != data->aovData.end(); ++it)
+         {
+            AOVData& aovData = *it;
+            if (aovData.name != aovName)
+               continue;
+            if (pixelType == AI_TYPE_RGB) // TODO : CLEAN UP THIS LATER!
+            {
+               AtRGB* trg = (AtRGB*)aovData.data;
+               AtRGB* src = (AtRGB*)bucketData;
+               for (int x = 0; x < bucket_size_x; ++x)
+               {
+                  for (int y = 0; y < bucket_size_y; ++y)
+                  {
+                     trg[bucket_xo + x + (bucket_yo + y) * data->width] = src[x + y * bucket_size_x];
+                  }
+               }
+            }
+            else
+            {
+               AtRGBA* trg = (AtRGBA*)aovData.data;
+               AtRGBA* src = (AtRGBA*)bucketData;
+               for (int x = 0; x < bucket_size_x; ++x)
+               {
+                  for (int y = 0; y < bucket_size_y; ++y)
+                  {
+                     trg[bucket_xo + x + (bucket_yo + y) * data->width] = src[x + y * bucket_size_x];
+                  }
+               }               
+            }            
+         }
+      }
    }
-   
-   AiCritSecLeave(&data->critSec);
+   else
+   {   
+      AiCritSecEnter(&data->critSec);
+
+      while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, &bucketData))
+      {
+         int evt = 3; // aov data
+         SendSocket(data->socketFd, evt);
+         int nameLen = strlen(outputName);
+         SendSocket(data->socketFd, nameLen);
+         SendSocket(data->socketFd, outputName, nameLen);
+         SendSocket(data->socketFd, bucket_xo);
+         SendSocket(data->socketFd, bucket_yo);
+         SendSocket(data->socketFd, bucket_size_x);
+         SendSocket(data->socketFd, bucket_size_y);
+         int pixelSize = pixelType == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA);
+         pixelSize = pixelSize * bucket_size_x * bucket_size_y;
+         SendSocket(data->socketFd, pixelSize);
+         SendSocket(data->socketFd, bucketData, pixelSize);
+      }
+
+      AiCritSecLeave(&data->critSec);
+   }
 }
 
 driver_close
 {
-   
+   SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
+   if (data->fullUpdate)
+   {
+      for (std::vector<AOVData>::iterator it = data->aovData.begin(); it != data->aovData.end(); ++it)
+      {         
+         AOVData& aovData = *it;
+         int nameLen = aovData.name.length();
+         int evt = 3; // aov data
+         SendSocket(data->socketFd, evt);
+         SendSocket(data->socketFd, nameLen);
+         SendSocket(data->socketFd, aovData.name.c_str(), nameLen);
+         SendSocket(data->socketFd, 0);
+         SendSocket(data->socketFd, 0);
+         SendSocket(data->socketFd, data->width);
+         SendSocket(data->socketFd, data->height);
+         int pixelSize = aovData.type == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA);
+         pixelSize = pixelSize * data->width * data->height;
+         SendSocket(data->socketFd, pixelSize);
+         SendSocket(data->socketFd, aovData.data, pixelSize);
+      }
+   }
 }
 
 node_finish
@@ -214,9 +311,11 @@ node_finish
 #ifdef WIN32
       closesocket(data->socketFd);
 #else
-      close(data->socketFd);
+      shutdown(data->socketFd, SHUT_RDWR);
 #endif
    }
    AiCritSecClose(&data->critSec);
+   for (std::vector<AOVData>::iterator it = data->aovData.begin(); it != data->aovData.end(); ++it)
+      AiFree((*it).data);
    delete (SocketDriverData*)AiDriverGetLocalData(node);
 }
