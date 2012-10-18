@@ -19,7 +19,8 @@ AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 node_parameters
 {
    AiParameterStr("host_name", "localhost");
-   AiParameterInt("bucket_threshold", -3);
+   AiParameterInt("port", 4242);
+   AiParameterInt("bucket_threshold", -3);   
    
    AiParameterPTR("swatch", NULL);
    AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
@@ -37,6 +38,7 @@ struct AOVData{
 
 struct SocketDriverData{
    int socketFd;
+   int port;
    std::string hostName;
    AtCritSec critSec;
    bool fullUpdate;
@@ -65,6 +67,7 @@ node_update
 {
    SocketDriverData* data = (SocketDriverData*)AiDriverGetLocalData(node);
    data->hostName = AiNodeGetStr(node, "host_name");
+   data->port = AiNodeGetInt(node, "port");
 }
 
 driver_supports_pixel_type
@@ -168,7 +171,7 @@ driver_open
    
    sin.sin_family = AF_INET;
    sin.sin_addr.s_addr = ((in_addr*)(hst->h_addr))->s_addr;
-   sin.sin_port = htons(4242);
+   sin.sin_port = htons(data->port);
    
    status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
    if (status == -1)
@@ -197,8 +200,8 @@ driver_open
       
       evt = 2;
       SendSocket(socketFd, evt);
-      SendSocket(socketFd, pixelType);
-      SendSocket(socketFd, outputNameLength);
+      int dataToSend[2] = {pixelType, outputNameLength};
+      SendSocket(socketFd, dataToSend, sizeof(int) * 2);
       SendSocket(socketFd, outputName, outputNameLength);
    }
 }
@@ -264,10 +267,8 @@ driver_write_bucket
          int nameLen = strlen(outputName);
          SendSocket(data->socketFd, nameLen);
          SendSocket(data->socketFd, outputName, nameLen);
-         SendSocket(data->socketFd, bucket_xo);
-         SendSocket(data->socketFd, bucket_yo);
-         SendSocket(data->socketFd, bucket_size_x);
-         SendSocket(data->socketFd, bucket_size_y);
+         int dataToSend[4] = {bucket_xo, bucket_yo, bucket_size_x, bucket_size_y};
+         SendSocket(data->socketFd, dataToSend, sizeof(int) * 4);
          int pixelSize = pixelType == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA);
          pixelSize = pixelSize * bucket_size_x * bucket_size_y;
          SendSocket(data->socketFd, pixelSize);
@@ -291,10 +292,8 @@ driver_close
          SendSocket(data->socketFd, evt);
          SendSocket(data->socketFd, nameLen);
          SendSocket(data->socketFd, aovData.name.c_str(), nameLen);
-         SendSocket(data->socketFd, 0);
-         SendSocket(data->socketFd, 0);
-         SendSocket(data->socketFd, data->width);
-         SendSocket(data->socketFd, data->height);
+         int dataToSend[4] = {0, 0, data->width, data->height};
+         SendSocket(data->socketFd, dataToSend, sizeof(int) * 4);
          int pixelSize = aovData.type == AI_TYPE_RGB ? sizeof(AtRGB) : sizeof(AtRGBA);
          pixelSize = pixelSize * data->width * data->height;
          SendSocket(data->socketFd, pixelSize);
