@@ -7,6 +7,7 @@
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldPluginCmd.h"
+#include "commands/ArnoldListAttributesCmd.h"
 
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -602,6 +603,20 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    {
       AiMsgError("Failed to register 'arnoldPlugins' command");
       MGlobal::displayError("Failed to register 'arnoldPlugins' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+   
+   status = plugin.registerCommand("arnoldListAttributes", CArnoldListAttributesCmd::creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldListAttributes' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldListAttributes' command");
+      MGlobal::displayError("Failed to register 'arnoldListAttributes' command");
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
