@@ -5,6 +5,7 @@ functions for dealing with mtoa node types and classifications
 import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
+import maya.cmds as cmds
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -266,6 +267,7 @@ def registerDefaultTranslator(nodeType, default):
 
     global _defaultTranslators
     _defaultTranslators[nodeType] = default
+    cmds.arnoldPlugins(setDefaultTranslator=(nodeType, default))    
 
     isFunc = callable(default)
     if arnoldIsCurrentRenderer():
