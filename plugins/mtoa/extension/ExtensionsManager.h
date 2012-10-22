@@ -65,9 +65,7 @@ public:
    static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
    static MCallbackId CreatePluginLoadedCallback();
    static MStatus RemovePluginLoadedCallback();
-   static const bool IsRegisteredMayaNode(const MString &mayaNodeType);      
-   static void SetDefaultTranslator(const MString &mayaTypeName,
-                                const MString &translatorName);
+   static const bool IsRegisteredMayaNode(const MString &mayaNodeType);
 
 protected:
    static MStatus DoUnloadExtension(CExtension* extension);
@@ -83,14 +81,12 @@ protected:
    static const CPxTranslator* FindRegisteredTranslator(const CPxMayaNode &mayaNode,
                                                         const CPxTranslator &translator=CPxTranslator());
    static TranslatorsSet* FindRegisteredTranslators(const CPxMayaNode &mayaNode);
-   static MString GetDefaultTranslator(const MString& nodeName);
 
 private:
    CExtensionsManager() {}
 
    static MayaNodesSet s_registeredMayaNodes;
    static MayaNodeToTranslatorsMap s_registeredTranslators;
-   static DefaultTranslatorMap s_defaultTranslators;
 
    static MObject s_plugin;
    static ExtensionsList s_extensions;
