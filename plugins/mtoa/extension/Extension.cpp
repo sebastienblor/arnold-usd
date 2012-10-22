@@ -14,6 +14,7 @@
 #include <ai_msg.h>
 #include <ai_nodes.h>
 #include "ai_node_entry.h"
+#include "ExtensionsManager.h"
 
 #include <maya/MSceneMessage.h>
 #include <maya/MNodeMessage.h>
@@ -829,6 +830,12 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    {
       AiMsgWarning("[mtoa] [%s] [node %s] Failed to register translator %s for Maya node %s.",
             m_extensionName.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+   }
+   else
+   {
+      MString defaultTranslator = CExtensionsManager::GetDefaultTranslator(mayaNode.name);
+      if (defaultTranslator == "")
+         CExtensionsManager::SetDefaultTranslator(mayaNode.name, translator.name);
    }
    return status;
 }
