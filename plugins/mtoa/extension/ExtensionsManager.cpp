@@ -28,6 +28,7 @@ typedef void (*ExtensionDeinitFunction)(CExtension&);
 
 MayaNodesSet CExtensionsManager::s_registeredMayaNodes;
 MayaNodeToTranslatorsMap CExtensionsManager::s_registeredTranslators;
+DefaultTranslatorMap CExtensionsManager::s_defaultTranslators;
 MObject CExtensionsManager::s_plugin;
 ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
@@ -509,7 +510,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
                AiMsgDebug("[mtoa] [%s] [maya %s] Multiple translators, adding \"aiTranslator\" attribute to Maya node",
                   extName.asChar(), mayaNode->name.asChar());
                CAttrData data;
-               data.defaultValue.STR = "";
+               data.stringDefault = GetDefaultTranslator(mayaNode->name);
                data.name = "aiTranslator";
                data.shortName = "ai_translator";
                helper.MakeInputString(data);
@@ -566,6 +567,20 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    }
 
    return status;
+}
+
+void CExtensionsManager::SetDefaultTranslator(const MString& mayaTypeName, const MString& translatorName)
+{
+   s_defaultTranslators[mayaTypeName.asChar()] = translatorName;
+}
+
+MString CExtensionsManager::GetDefaultTranslator(const MString& nodeName)
+{
+   DefaultTranslatorMap::const_iterator it = s_defaultTranslators.find(nodeName.asChar());
+   if (it == s_defaultTranslators.end())
+      return "";
+   else
+      return it->second;
 }
 
 MStatus CExtensionsManager::RegisterExtensions()
