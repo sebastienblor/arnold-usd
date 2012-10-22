@@ -510,7 +510,6 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
                AiMsgDebug("[mtoa] [%s] [maya %s] Multiple translators, adding \"aiTranslator\" attribute to Maya node",
                   extName.asChar(), mayaNode->name.asChar());
                CAttrData data;
-               data.stringDefault = GetDefaultTranslator(mayaNode->name);
                data.name = "aiTranslator";
                data.shortName = "ai_translator";
                helper.MakeInputString(data);
@@ -1138,7 +1137,11 @@ const CPxTranslator* CExtensionsManager::FindRegisteredTranslator(const CPxMayaN
    {
       // No specific translator requested, return last
       // TODO : actually check s_extensions to use the last loaded translator?
-      result = &(*--allTranslators->end());
+      TranslatorsSet::iterator it = allTranslators->find(GetDefaultTranslator(mayaNode.name));
+      if (it == allTranslators->end())
+         result = &(*--allTranslators->end());
+      else
+         result = &(*it);
    }
    else
    {
