@@ -411,52 +411,19 @@ shader_evaluate
    
    AtVector lRo;
    AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
-   AtVector lRd;
-   AiM4VectorByMatrixMult(&lRd, data->inverseWorldMatrix, &sg->Rd);
-   float lRl = 1.0f / AiV3Length(lRd);
-   lRd *= lRl;
-   lRl = lRl * sg->Rl;
-   float stepSize = data->stepSize;
-   if (stepSize < AI_EPSILON)
-   {
-      sg->out.RGB = sg->Ci;
-      return;
-   }
+   const AtVector lPt = ConvertToLocalSpace(data, lRo);
    
-   float transparency = 1.f;
+   const float opacity = CLAMP(GetValue(data, lPt, data->opacityGradient) * (float)sg->Rl, 0.f, 1.f); 
    
    if (sg->Rt & AI_RAY_SHADOW) // only access the opacity here
    {
-      for (float l = 0.f; l < lRl; l += stepSize)
-      {
-         AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
-
-         float opacity = GetValue(data, lPt, data->opacityGradient) * stepSize;
-         float tr = 1.f - opacity;
-         transparency *= tr;
-         if (transparency < AI_EPSILON)
-            break;
-      }
-      
-      sg->out.RGB = transparency * sg->Ci;
+      sg->out.RGB = (1.f - opacity) * sg->Ci;
       return;
    }
    
-   AtRGB color = AI_RGB_BLACK;
-   AtRGB incandescence = AI_RGB_BLACK;
+   const AtRGB color = GetValue(data, lPt, data->colorGradient);
+   const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
    
-   for (float l = 0.f; l < lRl; l += stepSize)
-   {
-      AtVector lPt = ConvertToLocalSpace(data, lRo + lRd * l);
-      
-      float opacity = GetValue(data, lPt, data->opacityGradient) * stepSize;      
-      float tr = 1.f - opacity;      
-      color += GetValue(data, lPt, data->colorGradient) * opacity * transparency;
-      incandescence += GetValue(data, lPt, data->incandescenceGradient) * opacity;
-      transparency *= tr;
-      if (transparency < AI_EPSILON)
-         break;
-   }
-   
-   sg->out.RGB = incandescence + color + sg->Ci * transparency;
+   sg->Vo = (color + incandescence) * opacity;
+   sg->out.RGB = sg->Ci * (1.f - opacity) + sg->Vo;   
 }
