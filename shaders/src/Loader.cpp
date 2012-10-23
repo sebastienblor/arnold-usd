@@ -76,14 +76,11 @@ extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
 extern AtNodeMethods* MeshLightMaterialMtd;
-<<<<<<< local
 extern AtNodeMethods* MayaFluidMtd;
-=======
 extern AtNodeMethods* SocketDriverMtd;
 extern AtNodeMethods* UserDataPnt2Mtd;
 extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
->>>>>>> other
 
 node_loader
 {
@@ -599,31 +596,18 @@ node_loader
       node->name        = "meshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
       break;
-<<<<<<< local
-   
-=======
-      
    case 73:
       node->methods     = SocketDriverMtd;
       node->name        = "driver_socket";
       node->node_type   = AI_NODE_DRIVER;
-      break;
-      
->>>>>>> other
+      break;   
+
    case 74:
-<<<<<<< local
-      node->methods     = MayaFluidMtd;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "mayaFluid";
-=======
       node->methods     = UserDataPnt2Mtd;
       node->output_type = AI_TYPE_POINT2;
       node->name        = "userDataPnt2";
->>>>>>> other
       node->node_type   = AI_NODE_SHADER;
       break;
-<<<<<<< local
-=======
       
    case 75:
       node->methods     = UserDataIntMtd;
@@ -638,7 +622,13 @@ node_loader
       node->name        = "mayaBump2D";
       node->node_type   = AI_NODE_SHADER;
       break;
->>>>>>> other
+      
+   case 77:
+      node->methods     = MayaFluidMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "mayaFluid";
+      node->node_type   = AI_NODE_SHADER;
+      break;
 
    default:
       return false;

@@ -63,7 +63,7 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1C);
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1E);
 }
 
 enum MayaFluidParams{

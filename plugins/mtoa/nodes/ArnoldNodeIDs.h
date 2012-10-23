@@ -55,12 +55,9 @@
 #define ANROLD_NODEID_SHADOW_CATCHER            0x00115D19
 #define ARNOLD_NODEID_MAYA_HAIR                 0x00115D1A
 #define ARNOLD_NODEID_MESHLIGHT_MATERIAL        0x00115D1B
-<<<<<<< local
-#define ARNOLD_NODEID_MAYA_FLUID                0x00115D1C
-=======
 #define ARNOLD_NODEID_USER_DATA_PNT2            0x00115D1C
 #define ARNOLD_NODEID_USER_DATA_INT             0x00115D1D
->>>>>>> other
+#define ARNOLD_NODEID_MAYA_FLUID                0x00115D1E
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
