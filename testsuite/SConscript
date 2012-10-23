@@ -362,7 +362,8 @@ class MayaTestRunner(object):
                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                            self.force_result,
                            test_env['UPDATE_REFERENCE'],
-                           show_test_output) )
+                           show_test_output,
+                           test_env['COLOR_CMDS']) )
     
            # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
            # even more treacherous by Scons and its heavy use of exec (at least that's my theory).

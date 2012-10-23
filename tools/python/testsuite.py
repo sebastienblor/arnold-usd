@@ -43,11 +43,9 @@ def print_banner(test_name, color_cmds=False):
 def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename, expected_result, update_reference=False, show_test_output=True, color_cmds=False):
     os.chdir(test_dir)
 
-
     # make a glob out of the output image
     output_image = output_basename + "*.tif"
 
-    
     fore_magenta = ''
     fore_cyan = ''
     fore_green = ''
@@ -59,6 +57,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
         fore_green = Fore.GREEN
         fore_red = Fore.RED
         style_bright = Style.BRIGHT
+
 #	## remove any leftovers
     saferemove(output_image)
     saferemove('new*.jpg')
