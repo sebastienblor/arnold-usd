@@ -559,6 +559,7 @@ enum SSSParams {
    p_aov_deep_scatter
 };
 
+class CInstanceData;
 
 class CSSSParams
 {
@@ -594,8 +595,14 @@ public:
    bool  use_screen_compositing_for_colors;
    bool  sample_sss_only_in_gi_rays;
    bool  sample_sss_only_in_glossy_rays;
+
+   float radius_to_color;
+   bool secondary_spec_fresnel;
+   bool primary_spec_fresnel;
    
    void Evaluate(AtNode *node, AtShaderGlobals *sg);
+   void CopyTo(CInstanceData *iData, AtShaderGlobals *sg);
+   void CopyFrom(CInstanceData *iData, AtShaderGlobals *sg);
 };
 
 
