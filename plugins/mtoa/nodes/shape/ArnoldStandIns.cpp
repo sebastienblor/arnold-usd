@@ -61,6 +61,15 @@ MObject CArnoldStandInShape::s_deferStandinLoad;
 MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
+   
+enum StandinDrawingMode{
+   DM_BOUNDING_BOX,
+   DM_PER_OBJECT_BOUNDING_BOX,
+   DM_POLYWIRE,
+   DM_WIREFRAME,
+   DM_POINT_CLOUD,
+   DM_SHADED
+};
 
 CArnoldStandInGeom::CArnoldStandInGeom()
 {
@@ -177,6 +186,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
+         // Do not wait if Arnold license is not present
+         AiNodeSetBool(options, "skip_license_check", true);
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
@@ -190,6 +201,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
+         // Do not wait if Arnold license is not present
+         AiNodeSetBool(options, "skip_license_check", true);
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetStr(procedural, "data", dsoData.asChar());
@@ -221,25 +234,21 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             {
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
-               int inherit_xform = 1;
-               AtArray* myArray;
-               if (AiNodeIs(node, "ginstance"))
+               bool inherit_xform = true;
+               while(AiNodeIs(node, "ginstance"))
                {
-                  while(AiNodeIs(node, "ginstance"))
+                  AtMatrix current_matrix;
+                  AiNodeGetMatrix(node, "matrix", current_matrix);
+                  if (inherit_xform)
                   {
-                     AtMatrix current_matrix;
-                     AiNodeGetMatrix(node, "matrix", current_matrix);
-                     if (inherit_xform)
-                     {
-                        AiM4Mult(total_matrix, total_matrix, current_matrix);
-                     }
-                     inherit_xform = (int)AiNodeGetBool(node, "inherit_xform");
-                     node = (AtNode*)AiNodeGetPtr(node, "node");
+                     AiM4Mult(total_matrix, total_matrix, current_matrix);
                   }
+                  inherit_xform = AiNodeGetBool(node, "inherit_xform");
+                  node = (AtNode*)AiNodeGetPtr(node, "node");
                }
                if (AiNodeIs(node, "polymesh"))
                {
-                  geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, geom->bbox));
+                  geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox));
                }
             }
          }
@@ -522,11 +531,12 @@ MStatus CArnoldStandInShape::initialize()
    addAttribute(s_dso);
 
    s_mode = eAttr.create("mode", "mode", 0);
-   eAttr.addField("Bounding Box", 0);
-   eAttr.addField("Polywire", 1);
-   eAttr.addField("Wireframe", 2);
-   eAttr.addField("Point Cloud", 3);
-   eAttr.addField("Shaded", 4);
+   eAttr.addField("Bounding Box", DM_BOUNDING_BOX);
+   eAttr.addField("Per Object Bounding Box", DM_PER_OBJECT_BOUNDING_BOX);
+   eAttr.addField("Polywire", DM_POLYWIRE);
+   eAttr.addField("Wireframe", DM_WIREFRAME);
+   eAttr.addField("Point Cloud", DM_POINT_CLOUD);
+   eAttr.addField("Shaded", DM_SHADED);
    //eAttr.setInternal(true);
    addAttribute(s_mode);
 
@@ -536,7 +546,7 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_useFrameExtension);
 
-   s_frameNumber = nAttr.create("frameNumber", "frameNumber", MFnNumericData::kFloat, 0);
+   s_frameNumber = nAttr.create("frameNumber", "frameNumber", MFnNumericData::kInt, 0);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_frameNumber);
@@ -740,16 +750,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       else
       {
          float3 m_value;
-         m_value[0] = bbMin.x;
-         m_value[1] = bbMin.y;
-         m_value[2] = bbMin.z;
+         m_value[0] = (float)bbMin.x;
+         m_value[1] = (float)bbMin.y;
+         m_value[2] = (float)bbMin.z;
          plug.setAttribute(s_boundingBoxMin);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-         m_value[0] = bbMax.x;
-         m_value[1] = bbMax.y;
-         m_value[2] = bbMax.z;
+         m_value[0] = (float)bbMax.x;
+         m_value[1] = (float)bbMax.y;
+         m_value[2] = (float)bbMax.z;
          plug.setAttribute(s_boundingBoxMax);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
@@ -783,16 +793,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          else
          {
             float3 m_value;
-            m_value[0] = bbMin.x;
-            m_value[1] = bbMin.y;
-            m_value[2] = bbMin.z;
+            m_value[0] = (float)bbMin.x;
+            m_value[1] = (float)bbMin.y;
+            m_value[2] = (float)bbMin.z;
             plug.setAttribute(s_boundingBoxMin);
             SetPointPlugValue(plug, m_value);
             fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-            m_value[0] = bbMax.x;
-            m_value[1] = bbMax.y;
-            m_value[2] = bbMax.z;
+            m_value[0] = (float)bbMax.x;
+            m_value[1] = (float)bbMax.y;
+            m_value[2] = (float)bbMax.z;
             plug.setAttribute(s_boundingBoxMax);
             SetPointPlugValue(plug, m_value);
             fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
@@ -828,16 +838,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       else
       {
          float3 m_value;
-         m_value[0] = bbMin.x;
-         m_value[1] = bbMin.y;
-         m_value[2] = bbMin.z;
+         m_value[0] = (float)bbMin.x;
+         m_value[1] = (float)bbMin.y;
+         m_value[2] = (float)bbMin.z;
          plug.setAttribute(s_boundingBoxMin);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-         m_value[0] = bbMax.x;
-         m_value[1] = bbMax.y;
-         m_value[2] = bbMax.z;
+         m_value[0] = (float)bbMax.x;
+         m_value[1] = (float)bbMax.y;
+         m_value[2] = (float)bbMax.z;
          plug.setAttribute(s_boundingBoxMax);
          SetPointPlugValue(plug, m_value);
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
@@ -883,37 +893,9 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
       return;
 
    // Use mode status to determine how to display object
-
-   switch (geom->mode)
-   {
-   case 0:
-      // bounding box
-      getDrawRequestsWireFrame(request, info);
-      queue.add(request);
-      break;
-   case 1:
-      // geom
-      getDrawRequestsWireFrame(request, info);
-      queue.add(request);
-      break;
-   case 2:
-      // wire
-      getDrawRequestsWireFrame(request, info);
-      queue.add(request);
-      break;
-   case 3:
-      // points
-      getDrawRequestsWireFrame(request, info);
-      queue.add(request);
-      break;
-   case 4:
-      // points
-      getDrawRequestsWireFrame(request, info);
-      queue.add(request);
-      break;
-   default:
-      break;
-   }
+   // why was there a switch if everything executed the same code??
+   getDrawRequestsWireFrame(request, info);
+   queue.add(request);
 }
 
 void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) const
@@ -929,6 +911,9 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    MDrawData data = request.drawData();
    CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
    view.beginGL();
+   gGLFT->glPushAttrib(MGL_ALL_ATTRIB_BITS);
+   gGLFT->glEnable(MGL_DEPTH_TEST);
+   gGLFT->glDepthFunc(MGL_LESS);
 
    if (geom->updateView || geom->updateBBox)
    {
@@ -1021,7 +1006,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
 
       switch (geom->mode)
       {
-      case 0:
+      case DM_BOUNDING_BOX:
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          gGLFT->glBegin(MGL_LINE_STRIP);
 
@@ -1049,8 +1034,17 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glEnd();
          gGLFT->glEndList();
          break;
-
-      case 1: // filled polygon
+      case DM_PER_OBJECT_BOUNDING_BOX:
+         gGLFT->glNewList(geom->dList, MGL_COMPILE);
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
+         {
+            
+            (*it)->DrawBoundingBox();
+         }
+         gGLFT->glEndList();
+         break;
+      case DM_POLYWIRE: // filled polygon
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          gGLFT->glPushAttrib(MGL_CURRENT_BIT);
          gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
@@ -1075,7 +1069,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glEndList();
          break;
 
-      case 2: // wireframe
+      case DM_WIREFRAME: // wireframe
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
@@ -1086,7 +1080,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          
          break;
 
-      case 3: // points
+      case DM_POINT_CLOUD: // points
          gGLFT->glPushAttrib(MGL_CURRENT_BIT);
          gGLFT->glEnable(MGL_POINT_SMOOTH);
          // Make round points, not square points and not working
@@ -1106,7 +1100,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glDisable(MGL_POINT_SMOOTH);
          gGLFT->glPopAttrib();
          break;
-      case 4: // shaded
+      case DM_SHADED: // shaded
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          gGLFT->glPushAttrib(MGL_ALL_ATTRIB_BITS);
          gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
@@ -1143,6 +1137,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    {
       gGLFT->glCallList(geom->dList+1);
    }
+   gGLFT->glPopAttrib();
    view.endGL();
 
 }

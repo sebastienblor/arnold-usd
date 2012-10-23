@@ -1314,7 +1314,6 @@ createNode polyPlane -n "polyPlane1";
 	setAttr ".lumaID" -type "string" "a:1338936649.38:0.836954358353";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
-	setAttr ".bucket_scanning" 4;
 	setAttr ".bucket_size" 32;
 	setAttr ".GI_diffuse_samples" 1;
 	setAttr ".GI_glossy_samples" 1;

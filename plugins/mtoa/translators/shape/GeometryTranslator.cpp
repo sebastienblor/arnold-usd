@@ -317,10 +317,11 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
 {
    MFnMesh fnMesh(m_dagPath);
    MDagPath dagPathRef = GetMeshRefObj();
-   MObject geometryRef = dagPathRef.node();
+   MObject geometryRef = dagPathRef.node();   
 
    if (dagPathRef.isValid())
    {
+      MFnMesh fnRefMesh(dagPathRef);
       // Find whether we're exporting points/normals/tangents
       MStatus stat;
       MPlug pExportRefPoints = fnMesh.findPlug("aiExportRefPoints", false,
@@ -328,7 +329,7 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
       if (stat == MStatus::kSuccess && pExportRefPoints.asBool())
       {
          // Get vertices of the reference object in world space
-         refVertices = fnMesh.getRawPoints(&stat);
+         refVertices = fnRefMesh.getRawPoints(&stat);
       }
 
       MPlug pExportRefNormals = fnMesh.findPlug("aiExportRefNormals", false,
@@ -1088,7 +1089,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
       // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
       AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
       AiNodeSetArray(instance, "mtoa_shading_groups",
-            AiArrayConvert(1, 1, AI_TYPE_NODE, shader));
+            AiArrayConvert(1, 1, AI_TYPE_NODE, &shader));
    }
 
    // Export light linking per instance

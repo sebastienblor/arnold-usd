@@ -1,0 +1,5 @@
+Add a surface shader slot in the Arnold section of Shading Engines
+
+When a shader is connected to this slot, this will be used instead of the Maya surface shader.
+
+author: pal

@@ -21,7 +21,7 @@ public:
    void Export(AtNode* atNode);
 
 protected:
-   // FIXME: not implemented until these translators are tracked
+   // FIXME: not implemented until these translators are tested
    virtual void AddUpdateCallbacks();
    virtual void RemoveUpdateCallbacks();
 };

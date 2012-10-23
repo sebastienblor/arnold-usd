@@ -360,14 +360,19 @@ class AOVItem(object):
             if len(self.outputs) > 1:
                 for i, outputRow in enumerate(self.outputs):
                     subMenu = pm.cmds.menuItem(parent=menu, label='Output Driver %d' % (i+1), subMenu=True)
-                    pm.cmds.menuItem(parent=subMenu, label='Select Driver', c=lambda *args: pm.select(outputRow.driverNode))
-                    pm.cmds.menuItem(parent=subMenu, label='Select Filter', c=lambda *args: pm.select(outputRow.filterNode))
+                    pm.cmds.menuItem(parent=subMenu, label='Select Driver',
+                                     c=pm.Callback(pm.select, outputRow.driverNode))
+                    pm.cmds.menuItem(parent=subMenu, label='Select Filter',
+                                     c=pm.Callback(pm.select, outputRow.filterNode))
                     pm.cmds.menuItem(parent=subMenu, divider=True)
-                    pm.cmds.menuItem(parent=subMenu, label='Remove', c=lambda *args: self.removeOutput(i))
-            else:
+                    pm.cmds.menuItem(parent=subMenu, label='Remove',
+                                     c=pm.Callback(self.removeOutput, i))
+            elif len(self.outputs) == 1:
                 outputRow = self.outputs[0]
-                pm.cmds.menuItem(parent=menu, label='Select Driver', c=lambda *args: pm.select(outputRow.driverNode))
-                pm.cmds.menuItem(parent=menu, label='Select Filter', c=lambda *args: pm.select(outputRow.filterNode))
+                pm.cmds.menuItem(parent=menu, label='Select Driver',
+                                 c=pm.Callback(pm.select, outputRow.driverNode))
+                pm.cmds.menuItem(parent=menu, label='Select Filter',
+                                 c=pm.Callback(pm.select, outputRow.filterNode))
             self.outputsChanged = False
         return menu
 
@@ -572,12 +577,33 @@ class ArnoldAOVEditor(object):
 
         self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
-        pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH, collapsable=True, collapse=False)
+        # global drivers
+        pm.cmds.frameLayout('arnoldDisplayDriverFrame', label='Default Drivers',
+                            width=WIDTH, collapsable=True, collapse=True)
+        pm.cmds.columnLayout(adj=True)
+        for attr in self.renderOptions.node.drivers:
+            driver = attr.inputs()
+            if driver:
+                pm.cmds.rowLayout(nc=2, columnAttach2=['both', 'right'], adjustableColumn=1, rowAttach=[2, 'top', 5])
+                pm.cmds.columnLayout(adj=True)
+                templates.createTranslatorMenu(driver[0], 
+                                     label=utils.prettify(driver[0].name()),
+                                     nodeType='aiAOVDriver')
+                pm.cmds.setParent('..')
+                pm.cmds.symbolButton(image="navButtonConnected.png",
+                                      command=Callback(pm.select, driver))
+        pm.cmds.setParent('..')
+
+        pm.setParent(self.mainCol)
+
+        pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH,
+                            collapsable=True, collapse=False)
 
         self.browser = AOVBrowser(self.renderOptions)
         pm.setParent(self.mainCol)
 
-        pm.cmds.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH, collapsable=True, collapse=False)
+        pm.cmds.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH,
+                            collapsable=True, collapse=False)
         self.aovCol = pm.cmds.columnLayout('arnoldAOVListColumn', adj=True)
 
         pm.cmds.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
@@ -607,6 +633,7 @@ class ArnoldAOVEditor(object):
 
         # add all control rows
         self.addRows()
+
         aovs.addAOVChangedCallback(self.refresh, 'aoveditor')
         
         # update AOV imageFormat of all rows when the default imageFormat changes.  a scriptJob will suffice here 
@@ -712,6 +739,8 @@ def arnoldAOVBrowser(**kwargs):
     return browser
 
 
+_aovDisplayCtrl= None
+
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
 
@@ -722,12 +751,21 @@ def createArnoldAOVTab():
 
     pm.attrControlGrp(attribute=aovNode.node.aovMode, label='Mode')
 
-    ctrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', label='Render View AOV',
+    # the tab gets recreated from scratch each time rather than updated and each
+    # time the AOVOptionMenuGrp adds itself to the AOVChanged callback list. 
+    # we must remove it or we'll leave behind invalid copies
+    global _aovDisplayCtrl
+    if _aovDisplayCtrl is not None:
+        aovs.removeAOVChangedCallback(_aovDisplayCtrl.update)
+
+    _aovDisplayCtrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', 'displayAOV', label='Render View AOV',
                                            allowCreation=False,
                                            includeBeauty=True,
                                            allowEmpty=False,
                                            allowDisable=False)
-    ctrl._doSetup(aovNode.node.name() + '.displayAOV')
+    _aovDisplayCtrl._setToChildMode()
+    _aovDisplayCtrl._doSetup(aovNode.node.name() + '.displayAOV')
+
     pm.attrControlGrp('enable_aov_composition',
                       attribute = 'defaultArnoldRenderOptions.enable_aov_composition',
                       label = 'Enable AOV Composition')

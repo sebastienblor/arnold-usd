@@ -253,7 +253,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Just incase we're rendering with IPR.
    MStringArray panelName;
    MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", panelName);
-   MGlobal::executeCommand("stopIprRendering " + panelName[0]);
+   if (panelName.length() > 0)
+      MGlobal::executeCommand("stopIprRendering " + panelName[0]);
    CMayaScene::End();
    // Cannot export while a render is active
    if (AiUniverseIsActive())
@@ -277,7 +278,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // Not filtering out of render layer
-      arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
+      if (exportSelected)
+      {
+         arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
+      }
+      else
+      {
+         arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask());
+      }
       arnoldSession->SetExportFrame(curframe);
       // Set mask for nodes to export or use Arnold Render Globals if not passed
       if (mask != -1)

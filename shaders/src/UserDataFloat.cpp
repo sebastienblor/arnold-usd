@@ -9,7 +9,8 @@ namespace
 
 enum UserDataFloatParams
 {
-   p_floatAttrName
+   p_floatAttrName,
+   p_defaultValue
 };
 }
 
@@ -21,6 +22,7 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("floatAttrName", "");
+   AiParameterFLT("defaultValue", 0.f);
 }
 
 node_initialize
@@ -49,6 +51,6 @@ shader_evaluate
    }
    else
    {
-      sg->out.FLT = 0;
+      sg->out.FLT = AiShaderEvalParamFlt(p_defaultValue);
    }
 }

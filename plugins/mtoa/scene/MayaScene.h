@@ -55,7 +55,7 @@ public:
    /// Return the instance of the render session.
    static CRenderSession* GetRenderSession();
 
-   static bool IsActive();
+   static bool IsActive(ArnoldSessionMode mode=MTOA_SESSION_ANY);
 
    static ArnoldSessionMode GetSessionMode();
    static bool IsExportingMotion();
@@ -74,9 +74,12 @@ public:
    static MStatus ExportAndRenderFrame(ArnoldSessionMode mode, MSelectionList* selected = NULL);
    static MStatus ExportAndRenderSequence(ArnoldSessionMode mode, MSelectionList* selected = NULL);
 
-   static MStatus ExecuteScript(const MString &str, bool echo=false);
+   static MStatus ExecuteScript(const MString &str, bool echo=false, bool idle=false);
 
    static MStatus UpdateIPR();
+
+   static void Init();
+   static void DeInit();
 
 private:
 
@@ -97,6 +100,8 @@ private:
 
    static double s_currentFrame;
 
+   static AtCritSec s_lock;
+   static bool s_active;
 };  // class CMayaScene
 
 #endif // MAYASCENE_H

@@ -26,6 +26,12 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.isArray = true;
 
    helper.MakeInputCompound(data, children);
+   
+   data.name = "aiSurfaceShader";
+   data.shortName = "ai_surface_shader";
+   data.isArray = false;
+   
+   helper.MakeInputNode(data);
 }
 
 /// Compute the shading engine's AOVs. these are connected to aiCustomAOVs compound array.
@@ -71,9 +77,14 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    std::vector<AtNode*> aovShaders;
    AtNode* rootShader = NULL;
    MPlugArray        connections;
-   MPlug shaderPlug = FindMayaPlug("surfaceShader");
-   AiMsgDebug("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug %s", shaderPlug.name().asChar());
+   MPlug shaderPlug = FindMayaPlug("aiSurfaceShader");
    shaderPlug.connectedTo(connections, true, false);
+   if (connections.length() == 0)
+   {
+      shaderPlug = FindMayaPlug("surfaceShader");
+      AiMsgDebug("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug %s", shaderPlug.name().asChar());
+      shaderPlug.connectedTo(connections, true, false);
+   }
    if (connections.length() > 0)
    {
       // export the root shading network, this fills m_shaders

@@ -281,11 +281,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MStringArray allPanelNames;
       MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
       if (allPanelNames.length() > 0) renderSession->SetRenderViewPanelName(allPanelNames[0]);
-      renderSession->DoInteractiveRender(); // Start the render.
+      // Start the render. CMayaScene::End will be called automatically
+      renderSession->DoInteractiveRender(renderGlobals.postRenderMel);
 
-      CMayaScene::End(); // Clean up.
-
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       // DEBUG_MEMORY;
    }
 

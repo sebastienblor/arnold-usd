@@ -8,7 +8,8 @@ namespace
 {
    enum UserDataBoolParams
    {
-      p_boolAttrName
+      p_boolAttrName,
+      p_defaultValue
    };
 }
 
@@ -20,6 +21,7 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("boolAttrName", "");
+   AiParameterBOOL("defaultValue", false);
 }
 
 node_initialize
@@ -42,6 +44,6 @@ shader_evaluate
    if (AiUDataGetBool(name, &value))
       sg->out.BOOL = value;
    else
-      sg->out.BOOL = FALSE;
+      sg->out.BOOL = AiShaderEvalParamBool(p_defaultValue);
 }
 

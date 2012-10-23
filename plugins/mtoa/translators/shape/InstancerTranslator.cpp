@@ -227,8 +227,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
       // we have to do this no matter if we have particles or not..
       if (m_customAttrs.length() != 0)
       {
-         MStringArray attrs;
-         status = m_customAttrs.split(';', attrs);
          if (status ==  MS::kSuccess)
          {
             for (unsigned int i=0; i < attrs.length(); i++)
@@ -272,11 +270,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                   continue;
                }
             }
-            if (exportID)
-            {
-               m_instant_customIntAttrArrays["particleId"]= partIds;
-            }
          }
+      }
+      
+      if (exportID)
+      {
+         m_instant_customIntAttrArrays["particleId"]= partIds;
       }
    }
 
@@ -284,8 +283,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
    {
       m_instantVeloArray.clear();
       m_vec_matrixArrays.clear();
-      m_startIndicesArray.clear();
-      m_pathIndicesArray.clear();
       m_out_customVectorAttrArrays.clear();
       m_out_customDoubleAttrArrays.clear();
       m_out_customIntAttrArrays.clear();
@@ -303,8 +300,13 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
             int id = partIds[j];
             m_particleIDMap[id] = j;
-            m_startIndicesArray.append(particlePathStartIndices[j]);
-            m_pathIndicesArray.append(pathIndices[j]);
+            int pathNumber = particlePathStartIndices[j + 1] - particlePathStartIndices[j];
+            MIntArray paths;
+            for (int i = 0; i < pathNumber; i++)
+            {
+               paths.append(pathIndices[particlePathStartIndices[j]+i]);
+            }
+            m_particlePathsMap[id] = paths;
             m_instanceTags.append("originalParticle");
             if(velocities.length() > 0)
             {
@@ -314,7 +316,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
       }
 
-      if (m_customAttrs.length() != 0)
+      if (m_customAttrs.length() != 0 || exportID)
       {
          m_out_customVectorAttrArrays = m_instant_customVectorAttrArrays;
          m_out_customDoubleAttrArrays = m_instant_customDoubleAttrArrays;
@@ -422,16 +424,25 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                          continue;
                         }
                      }
-                     if (exportID)
-                     {
-                        m_out_customIntAttrArrays["particleId"].append(m_instant_customIntAttrArrays["particleId"][j]);
-                     }
                   }
                }
+               
+               if (exportID)
+               {
+                  m_out_customIntAttrArrays["particleId"].append(m_instant_customIntAttrArrays["particleId"][j]);
+               }
+               
                m_vec_matrixArrays.push_back(outMatrix);
                m_particleIDMap[partIds[j]] = m_vec_matrixArrays.size()-1;
-               m_startIndicesArray.append(particlePathStartIndices[j]);
-               m_pathIndicesArray.append(pathIndices[j]);
+
+               int pathNumber = particlePathStartIndices[j + 1] - particlePathStartIndices[j];
+               MIntArray paths;
+               for (int i = 0; i < pathNumber; i++)
+               {
+                  paths.append(pathIndices[particlePathStartIndices[j]+i]);
+               }
+               m_particlePathsMap[partIds[j]] = paths;
+
                m_instanceTags.append("newParticle");
                if (velocities.length() > 0)
                {
@@ -473,19 +484,29 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
          return;
       }
 
-         for (unsigned int  j = 0; j< m_particleIDMap.size(); j++)
-         {
+      for (std::map<int,int>::iterator it = m_particleIDMap.begin();
+           it !=  m_particleIDMap.end(); ++it)
+      {
+         int partID = it->first;
+         int j = it->second;
 
+         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
+         {
             AtNode *instance;
             instance = AiNode("ginstance");
             char nodeName[MAX_NAME_SIZE];
             AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
 
-            int idx = m_pathIndicesArray[j];
+            int idx = m_particlePathsMap[partID][k];
+
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
             AiNodeSetBool(instance, "inherit_xform", true);
-            AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
+            // Do not assign same array to more than one node
+            if (k == 0)
+               AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
+            else
+               AiNodeSetArray(instance, "matrix", AiArrayCopy(m_vec_matrixArrays[j]));
 
             //AiNodeDeclare(instance, "instanceTag", "constant STRING");
             //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
@@ -504,7 +525,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                {
                   AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
                   AiNodeSetRGB(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
-                                              }
+                                                }
                else
                {
                   AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
@@ -529,8 +550,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                   AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );
 
             }
-
          }
+      }
    }
 
 }

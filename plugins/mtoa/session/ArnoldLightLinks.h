@@ -22,10 +22,28 @@ public:
    void ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode);
    void SetLinkingMode(int light, int shadow);
 private:
-   // Try using an MObject for this, or some other trick, instead of strings
-   // that might cause problems with specially named / grouped nodes or something
-   std::map<std::string, std::vector<AtNode*> > m_lightLinks;
-   std::map<std::string, std::vector<AtNode*> > m_shadowLinks;
+   enum NodeLinkMode{
+      MTOA_NODELINK_LINK,
+      MTOA_NODELINK_IGNORE
+   };
+   
+   const std::vector<AtNode*>& GetObjectsFromObjectSet(MFnDependencyNode& objectSet);
+
+   void AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
+        size_t& numLinkedNodes);
+   void HandleLightLinker(MPlug& conn, 
+      size_t& numLinkedLights, size_t& numLinkedShadows,
+      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
+   bool CheckMessage(MFnDependencyNode& dNode, 
+      size_t& numLinkedLights, size_t& numLinkedShadows,
+      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
+   // saving the lights here for faster access
+   std::map<std::string, AtNode*> m_arnoldLights;
+   std::map<std::string, std::vector<AtNode*> > m_cachedObjectSets;
+   size_t m_numArnoldLights;
+   
+   std::vector<AtNode*> m_linkedLights;
+   std::vector<AtNode*> m_linkedShadows;
    
    int m_lightMode;
    int m_shadowMode;

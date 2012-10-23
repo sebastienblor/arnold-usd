@@ -2,6 +2,7 @@ import pymel.core as pm
 import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
+import maya.cmds as cmds
 
 class AttributeListWindow(object):
     
@@ -91,7 +92,6 @@ class ObjectSetTemplate(templates.AttributeTemplate):
             
     def createAttributesButtons(self, attr):
         # print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
-        self._doUpdate(attr)
         # print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         pm.rowLayout(numberOfColumns=3,
@@ -107,27 +107,16 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         
     def updateAttributesButtons(self, attr):
         # print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
-        self._doUpdate(attr)
         # print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
-   
+        pass
+
     def getCandidateAttributes(self):
+        attributeList = cmds.arnoldListAttributes(self.nodeName)
         candidates = {}
-        elts = pm.sets(self.nodeName, query=True)
-        for elt in elts :
-            dag = pm.listRelatives(elt, allDescendents=True)
-            dag.append(elt)
-            for node in dag:                
-                attrs = node.listAttr(write=True, visible=True)
-                for attr in attrs :
-                    name = attr.longName(fullPath=True)
-                    # Too restrictive, missing useful attributes like "primary visibility" on shapes
-                    # or "Out Matte Opacity" on surface shader for instance.
-                    # Why it's not marked as render source or affects appearance beats me but point
-                    # is these distinctions don't seem reliable enough in Maya yet to filter useful attrs
-                    # fnAttr = om.MFnAttribute(attr.__apimobject__())
-                    # if (fnAttr.isRenderSource() or fnAttr.affectsAppearance() or fnAttr.hasCategory('arnold')) :                       
-                    if not name in candidates :
-                        candidates[name] = attr
+        if attributeList:
+            for attrName in attributeList:
+                attr = pm.general.Attribute(attrName)
+                candidates[attr.longName(fullPath=True)] = attr
         return candidates
 
     def getExistingAttributes(self):

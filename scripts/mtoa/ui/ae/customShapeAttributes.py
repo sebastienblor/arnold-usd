@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
@@ -51,24 +51,28 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 
     def setup(self):
         self.commonShapeAttributes()
-        self.addSeparator()
-        self.addControl("aiSubdivType", label="Subdivision Type")
-        self.addControl("aiSubdivIterations", label="Subdivision Iterations")
-        self.addControl("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
-        self.addControl("aiSubdivPixelError", label="Subdivision Pixel Error")
-        # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
-        self.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
-        self.addControl("aiSubdivSmoothDerivs", label="Smooth Subdivision Tangents")
-        self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        
         self.addSeparator()
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
         self.addControl("aiExportRefPoints", label="Export Reference Positions")
         self.addControl("aiExportRefNormals", label="Export Reference Normals")
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
+        
+        self.addSeparator()
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        
+        self.beginLayout('Subdivision', collapse=False)
+        self.addControl("aiSubdivType", label="Type")
+        self.addControl("aiSubdivIterations", label="Iterations")
+        self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
+        self.addControl("aiSubdivPixelError", label="Pixel Error")
+        # TODO: add dicing camera UI
+        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
+        self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
+        self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
+        self.endLayout()
         
         self.beginLayout('Displacement Attributes', collapse=False)
         self.addControl("aiDispHeight", label="Height")
@@ -85,14 +89,37 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
-def HairSystemTemplateCCU1(attrName):
-    cmds.columnLayout()
-    cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
-
-def HairSystemTemplateCCU2(attrName):
-    cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
-
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
+    def shaderCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
+        cmds.setUITemplate(popTemplate=True)
+
+    def shaderUpdate(self, attrName):
+        cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
+
+    def minPixelCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setUITemplate(popTemplate=True)
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before HairTemplateMinPixelWidth exists
+            pass
+
     def setup(self):
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
@@ -103,37 +130,57 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair", label="Override Hair")
-        pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU1, HairSystemTemplateCCU2, "aiHairShader")
+        self.addCustom("aiHairShader", self.shaderCreate, self.shaderUpdate)
         self.addSeparator()
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
-        self.addControl("aiMode", label="Mode")
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
+    def minPixelCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setUITemplate(popTemplate=True)
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before NurbsCurveTemplateMinPixelWidth exists
+            pass
+            
     def setup(self):
         #pm.mel.eval('AEaddRampControl("widthProfile")')
         #pm.mel.eval('AEaddRampControl("colorTable")')
-        self.addControl("renderCurve")
-        self.addControl("curveWidth")
-        self.addControl("sampleRate")
+        self.addControl("aiRenderCurve")
+        self.addControl("aiCurveWidth")
+        self.addControl("aiSampleRate")
         self.addControl("aiCurveShader")
         self.addSeparator()
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
         self.commonShapeAttributes()
         self.addSeparator()
-        self.addControl("aiMinPixelWidth")
-        self.addControl("aiMode")
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker']
-
     def setup(self):
         self.addControl("aiNormalize")  
 
@@ -147,9 +194,6 @@ class AmbientLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker']
     def setup(self):
         self.addControl("aiExposure")
         self.addControl("aiAngle")
@@ -170,9 +214,6 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -197,9 +238,6 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -231,10 +269,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
-    # TODO: handle filter association via metadata
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
-
     def setup(self):
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
@@ -394,8 +428,9 @@ def cameraTranslatorChanged(transPlug, *args):
         elif isOrtho and currTrans != 'orthographic':
             orthoPlug.setBool(False)
 
-def getCameraDefault(cam):
-    default = 'orthographic' if cam.orthographic.get() else 'perspective'
+def getCameraDefault(obj):
+    isOrtho = pm.api.MFnDependencyNode(obj).findPlug("orthographic").asBool()
+    default = 'orthographic' if isOrtho else 'perspective'
     return default
 
 templates.registerDefaultTranslator('camera', getCameraDefault)
@@ -412,14 +447,14 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
 def registerDriverTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
 
 def registerFilterTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVFilter"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVFilter', 'gaussian')
 

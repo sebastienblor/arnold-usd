@@ -110,8 +110,6 @@ Section "MtoA for Maya 2011 Env Variables" MtoA2011EnvVariables
     FileClose $0
     
     ;Add new enviroment variables to Maya.env
-    FileWrite $1 "$\nARNOLD_PLUGIN_PATH = $R0\shaders;"
-    FileWrite $1 "$\nMTOA_EXTENSIONS_PATH = $R0\extensions"
     FileWrite $1 "$\nMAYA_RENDER_DESC_PATH = $R0"
     FileWrite $1 "$\nPATH = %PATH%;$R0\bin;$\n"
     FileClose $1

@@ -7,14 +7,26 @@ from collections import defaultdict
 
 class DisplacementShaderTemplate(templates.AttributeTemplate):
     def setup(self):
-        self.addControl("aiDisplacementPadding", label="Bounds Padding")
-        self.addControl("aiDisplacementZeroValue", label="Scalar Zero Value")
-        self.addControl("aiDisplacementAutoBump", label="Auto Bump")
+        self.addControl('aiDisplacementPadding', label='Bounds Padding')
+        self.addControl('aiDisplacementZeroValue', label='Scalar Zero Value')
+        self.addControl('aiDisplacementAutoBump', label='Auto Bump')
 
-templates.registerAETemplate(DisplacementShaderTemplate, "displacementShader")
+templates.registerAETemplate(DisplacementShaderTemplate, 'displacementShader')
 
 class FileTemplate(templates.AttributeTemplate):
     def setup(self):
-        self.addControl("aiMipBias", label="Mip-Mapping Bias")
+        self.addControl('aiFilter', label='Filter Type')
+        self.addControl('aiMipBias', label='Mip-map Bias')
+        self.addControl('aiUseDefaultColor', label='Use Default Color')
 
-templates.registerAETemplate(FileTemplate, "file")
+templates.registerAETemplate(FileTemplate, 'file')
+        
+class Bump2dTemplate(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl('aiFlipR', label='Flip R Channel')
+        self.addControl('aiFlipG', label='Flip G Channel')
+        self.addControl('aiSwapTangents', label='Swap Tangents')
+        self.addControl('aiUseDerivatives', label='Use Derivatives')
+        self.addControl('aiGammaCorrect', label='Gamma Correct')
+
+templates.registerAETemplate(Bump2dTemplate, 'bump2d')

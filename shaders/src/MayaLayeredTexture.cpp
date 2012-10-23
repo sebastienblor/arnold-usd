@@ -544,7 +544,6 @@ shader_evaluate
    unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
 
    AtRGBA result = AI_RGBA_BLACK;
-   bool finished = false;
 
    if (numInputs > 0)
    {

@@ -26,6 +26,7 @@ MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
 MObject CArnoldOptionsNode::s_driver;
+MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
@@ -33,6 +34,7 @@ MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
 MObject CArnoldOptionsNode::s_threads;
 MObject CArnoldOptionsNode::s_threads_autodetect;
+MObject CArnoldOptionsNode::s_bucket_scanning;
 MObject CArnoldOptionsNode::s_clear_before_render;
 MObject CArnoldOptionsNode::s_plugins_path;
 MObject CArnoldOptionsNode::s_use_sample_clamp;
@@ -70,6 +72,7 @@ MObject CArnoldOptionsNode::s_log_console_verbosity;
 MObject CArnoldOptionsNode::s_log_file_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_atmosphereShader;
 MObject CArnoldOptionsNode::s_displayAOV;
 MObject CArnoldOptionsNode::s_enable_swatch_render;
 MObject CArnoldOptionsNode::s_texture_searchpath;
@@ -184,10 +187,22 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMax(64);
    addAttribute(s_threads);
 
-   s_attributes.MakeInput("bucket_scanning");
+   s_bucket_scanning = eAttr.create("bucketScanning", "bktsc");
+   eAttr.addField("top", 0);
+   eAttr.addField("bottom", 1);
+   eAttr.addField("left", 2);
+   eAttr.addField("right", 3);
+   eAttr.addField("random", 4);
+   eAttr.addField("woven", 5);
+   eAttr.addField("spiral", 6);
+   eAttr.addField("hilbert", 7);
+   eAttr.setDefault(6);   
+   eAttr.setKeyable(false);
+   addAttribute(s_bucket_scanning);
+   
    s_attributes.MakeInput("bucket_size");
 
-   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 1);
+   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_clear_before_render);
 
@@ -415,6 +430,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(100000);
+   nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
    s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
@@ -431,6 +447,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_background);
 
    s_atmosphere = eAttr.create("atmosphere", "atm", 0);
@@ -438,11 +455,15 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("None", 0);
    eAttr.addField("Fog", 1);
    eAttr.addField("Volume Scattering", 2);
+   eAttr.addField("Custom Shader", 3);
    addAttribute(s_atmosphere);
+   
+   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
+   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("RGBA"));
+   tAttr.setDefault(sData.create("beauty"));
    addAttribute(s_displayAOV);
 
    s_attributes.MakeInput("binary_ass");
@@ -470,15 +491,24 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_driver = mAttr.create("driver", "drvr");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_driver);
 
    s_filter = mAttr.create("filter", "filt");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_filter);
    
    s_user_options = tAttr.create("aiUserOptions", "ai_user_options", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_user_options);
+
+   s_drivers = mAttr.create("drivers", "drivers");
+   mAttr.setKeyable(false);
+   mAttr.setArray(true);
+   mAttr.setReadable(false);
+   mAttr.setIndexMatters(false);
+   addAttribute(s_drivers);
 
    return MS::kSuccess;
 }

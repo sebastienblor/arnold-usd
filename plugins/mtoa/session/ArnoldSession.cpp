@@ -867,7 +867,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    }
 
    // UpdateLightLinks refreshes global light linking info
-   MStatus updateSuccess = UpdateLightLinks();
+   UpdateLightLinks();
 
    return status;
 }
@@ -1121,7 +1121,7 @@ void CArnoldSession::DoUpdate()
                   }
                }
                // Just export it then
-               ExportDagPath(path, &status);
+               ExportDagPath(path, true, &status);
                if (MStatus::kSuccess == status)
                {
                   name = path.partialPathName();

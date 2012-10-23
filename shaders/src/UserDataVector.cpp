@@ -9,7 +9,8 @@ namespace
 
 enum UserDataVectorParams
 {
-   p_vectorAttrName
+   p_vectorAttrName,
+   p_defaultValue
 };
 }
 
@@ -21,6 +22,7 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("vectorAttrName", "");
+   AiParameterVEC("defaultValue", 0.f, 0.f, 0.f);
 }
 
 node_initialize
@@ -50,7 +52,6 @@ shader_evaluate
       sg->out.RGB.r = v.x;
       sg->out.RGB.g = v.y;
       sg->out.RGB.b = v.z;
-
    }
    else if (AiUDataGetRGB(name, &c))
    {
@@ -66,6 +67,6 @@ shader_evaluate
    }
    else
    {
-      sg->out.RGB = AI_RGB_BLACK;
+      sg->out.VEC = AiShaderEvalParamVec(p_defaultValue);
    }
 }

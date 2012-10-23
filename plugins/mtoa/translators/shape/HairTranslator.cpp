@@ -117,6 +117,7 @@ void CHairTranslator::Update( AtNode *curve )
    MStatus status;
    
    //ProcessRenderFlags(curve);
+   ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
    int visibility = ComputeVisibility(m_dagPath);
 
    // Default to the Hair shader if nothing else has been set.

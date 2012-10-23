@@ -36,6 +36,7 @@ public:
    static MObject s_aovs;
    static MObject s_aovMode;
    static MObject s_driver;
+   static MObject s_drivers;
 
    static MObject s_renderType;
    static MObject s_outputAssBoundingBox;
@@ -44,6 +45,7 @@ public:
    static MObject s_progressive_initial_level;
    static MObject s_threads;
    static MObject s_threads_autodetect;
+   static MObject s_bucket_scanning;
    static MObject s_clear_before_render;
    static MObject s_force_scene_update_before_IPR_refresh;
    static MObject s_plugins_path;
@@ -91,6 +93,7 @@ public:
 
    static MObject s_background;
    static MObject s_atmosphere;
+   static MObject s_atmosphereShader;
 
    static MObject s_displayAOV;
 

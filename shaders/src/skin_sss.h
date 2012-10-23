@@ -521,6 +521,7 @@ public:
 enum SSSParams {
    p_diffuse_color,
    p_diffuse_weight,
+   p_diffuse_roughness,
    p_sss_weight,
    p_shallow_scatter_color,
    p_shallow_scatter_weight,
@@ -558,12 +559,14 @@ enum SSSParams {
    p_aov_deep_scatter
 };
 
+class CInstanceData;
 
 class CSSSParams
 {
 public:
    AtColor diffuse_color;
    float diffuse_weight;
+   float roughness;
    float sss_weight;
    AtColor shallow_scatter_color;
    float shallow_scatter_weight;
@@ -594,6 +597,8 @@ public:
    bool  sample_sss_only_in_glossy_rays;
    
    void Evaluate(AtNode *node, AtShaderGlobals *sg);
+   void CopyTo(CInstanceData *iData, AtShaderGlobals *sg);
+   void CopyFrom(CInstanceData *iData, AtShaderGlobals *sg);
 };
 
 

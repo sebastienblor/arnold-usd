@@ -205,22 +205,12 @@ def createArnoldRenderSettings():
     pm.separator()
                     
     pm.attrControlGrp('os_outputAssBoundingBox',
-                   label="Export BoundingBox",
+                   label="Export Bounding Box",
                    attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
 
     pm.attrControlGrp('os_preserve_scene_data',
                    label='Preserve Scene Data',
                    attribute='defaultArnoldRenderOptions.preserveSceneData')
-
-    pm.separator()
-
-    pm.attrControlGrp('os_physically_based',
-                   label="Physically Based",
-                   attribute='defaultArnoldRenderOptions.physicallyBased')
-    
-    pm.attrControlGrp('os_shadow_terminator_fix',
-                   label="Shadow Terminator Fix",
-                   attribute='defaultArnoldRenderOptions.shadowTerminatorFix')
 
     pm.separator()
 
@@ -254,7 +244,7 @@ def createArnoldRenderSettings():
 def updateArnoldFilterOptions(*args):
     pass
 
-def raytracedSSSChanged():
+def raytracedSSSChanged(someArg):
     enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
     pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
     pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
@@ -289,6 +279,12 @@ def createArnoldSamplingSettings():
                align='left',
                )
 
+    pm.separator()
+    
+    pm.attrControlGrp('ss_lock_sampling_noise',
+                        label="Lock Sampling Pattern",
+                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+                        
     pm.separator()
 
     pm.intSliderGrp('ss_AA_samples',
@@ -354,18 +350,14 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.separator()
-    
-    pm.attrControlGrp('ss_lock_sampling_noise',
-                        label="Lock sample noise",
-                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
-    
     pm.frameLayout(label="Diffusion SSS", collapse=False)
     
-    pm.attrControlGrp('ss_enable_raytraced_SSS',
+    pm.checkBoxGrp('ss_enable_raytraced_SSS',
                    label="Raytraced",
-                   cc=raytracedSSSChanged,
-                   attribute='defaultArnoldRenderOptions.enable_raytraced_SSS')
+                   cc=raytracedSSSChanged)
+                   
+    pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=1)
+    pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=2)
                    
     enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
                         
@@ -509,14 +501,14 @@ def createArnoldRayDepthSettings():
     pm.columnLayout(adjustableColumn=True)
 
     pm.attrControlGrp('rs_total_depth',
-                        label="Total depth",
+                        label="Total",
                         attribute='defaultArnoldRenderOptions.GITotalDepth')
 
     pm.separator(style="none")
 
     
     pm.intSliderGrp('rs_diffuse_depth',
-                        label="Diffuse depth",
+                        label="Diffuse",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -532,7 +524,7 @@ def createArnoldRayDepthSettings():
     '''
     
     pm.intSliderGrp('rs_glossy_depth',
-                        label="Glossy depth",
+                        label="Glossy",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -548,11 +540,11 @@ def createArnoldRayDepthSettings():
     '''
 
     pm.attrControlGrp('rs_reflection_depth',
-                        label="Reflection depth",
+                        label="Reflection",
                         attribute='defaultArnoldRenderOptions.GIReflectionDepth')
 
     pm.intSliderGrp('rs_refraction_depth',
-                        label="Refraction depth",
+                        label="Refraction ",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -569,11 +561,11 @@ def createArnoldRayDepthSettings():
     pm.separator(style="none")
 
     pm.attrControlGrp('rs_auto_transparency_depth',
-                        label="Auto transp. depth",
+                        label="Transparency Depth",
                         attribute='defaultArnoldRenderOptions.autoTransparencyDepth')
 
     pm.attrControlGrp('rs_auto_transparency_threshold',
-                        label="Auto transp. threshold",
+                        label="Transparency Threshold",
                         attribute='defaultArnoldRenderOptions.autoTransparencyThreshold')
 
     pm.setParent('..')

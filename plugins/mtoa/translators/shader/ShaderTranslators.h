@@ -54,6 +54,7 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 class CBump2DTranslator : public CNodeTranslator
 {
 public:
+   static void NodeInitializer(CAbTranslator context);
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();

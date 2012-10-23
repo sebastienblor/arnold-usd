@@ -1,6 +1,5 @@
 syntax: glob
 .git
-contrib/scons
 build
 *.rej
 *.pyc

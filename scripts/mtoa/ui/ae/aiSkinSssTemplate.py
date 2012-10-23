@@ -16,6 +16,7 @@ class AEaiSkinSssTemplate(ShaderAETemplate):
         self.beginLayout("Diffuse", collapse=False)     
         self.addControl("diffuse_color",  label="Color", annotation="Diffuse Color")
         self.addControl("diffuse_weight", label="Weight")
+        self.addControl("diffuse_roughness", label="Roughness")
         self.endLayout()
         
         self.beginLayout("SSS", collapse=False)

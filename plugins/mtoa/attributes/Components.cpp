@@ -7,29 +7,16 @@ const MStringArray& GetComponentNames(int arnoldParamType)
    switch (arnoldParamType)
    {
    case AI_TYPE_RGB:
-      {
-         return RGB_COMPONENTS;
-      }
+      return RGB_COMPONENTS;
    case AI_TYPE_RGBA:
-      {
-         return RGBA_COMPONENTS;
-      }
-      break;
+      return RGBA_COMPONENTS;
    case AI_TYPE_VECTOR:
    case AI_TYPE_POINT:
-      {
-         return VECTOR_COMPONENTS;
-      }
-      break;
+      return VECTOR_COMPONENTS;
    case AI_TYPE_POINT2:
-      {
-         return POINT2_COMPONENTS;
-      }
-      break;
+      return POINT2_COMPONENTS;
    default:
-      {
-         return INVALID_COMPONENTS;
-      }
+      return INVALID_COMPONENTS;
    }
 }
 

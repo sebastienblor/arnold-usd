@@ -21,7 +21,6 @@ extern AtNodeMethods* MayaProjectionMtd;
 extern AtNodeMethods* MayaLuminanceMtd;
 extern AtNodeMethods* MayaSetRangeMtd;
 extern AtNodeMethods* MeshInfoMtd;
-extern AtNodeMethods* TangentToObjectSpaceMtd;
 extern AtNodeMethods* MayaCheckerMtd;
 extern AtNodeMethods* MayaBulgeMtd;
 extern AtNodeMethods* MayaClothMtd;
@@ -77,6 +76,10 @@ extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
 extern AtNodeMethods* MeshLightMaterialMtd;
+extern AtNodeMethods* SocketDriverMtd;
+extern AtNodeMethods* UserDataPnt2Mtd;
+extern AtNodeMethods* UserDataIntMtd;
+extern AtNodeMethods* MayaBump2DMtd;
 
 node_loader
 {
@@ -216,389 +219,409 @@ node_loader
       break;
 
    case 19:
-      node->methods     = TangentToObjectSpaceMtd;
-      node->output_type = AI_TYPE_VECTOR;
-      node->name        = "TangentToObjectSpace";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
-   case 20:
       node->methods     = MayaCheckerMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaChecker";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 21:
+   case 20:
       node->methods     = MayaBulgeMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaBulge";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 22:
+   case 21:
       node->methods     = MayaClothMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaCloth";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 23:
+   case 22:
       node->methods     = MayaGridMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaGrid";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 24:
+   case 23:
       node->methods     = MayaFractalMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaFractal";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 25:
+   case 24:
       node->methods     = MayaNoiseMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaNoise";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 26:
+   case 25:
       node->methods     = MayaPlace3DTextureMtd;
       node->output_type = AI_TYPE_MATRIX;
       node->name        = "MayaPlace3DTexture";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 27:
+   case 26:
       node->methods     = MayaRgbToHsvMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "MayaRgbToHsv";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 28:
+   case 27:
       node->methods     = MayaHsvToRgbMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaHsvToRgb";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 29:
+   case 28:
       node->methods     = MayaLuminanceMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "MayaLuminance";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 30:
+   case 29:
       node->methods     = MayaCloudMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaCloud";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 31:
+   case 30:
       node->methods     = MayaCloudAlphaMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "MayaCloudAlpha";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 32:
+   case 31:
       node->methods     = MayaSnowMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaSnow";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 33:
+   case 32:
       node->methods     = MayaContrastMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaContrast";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 34:
+   case 33:
       node->methods     = MayaLayeredTextureMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaLayeredTexture";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 35:
+   case 34:
       node->methods     = MayaLayeredShaderMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaLayeredShader";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 36:
+   case 35:
       node->methods     = MayaSolidFractalMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaSolidFractal";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 37:
+   case 36:
       node->methods     = MayaVolumeNoiseMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaVolumeNoise";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 38:
+   case 37:
       node->methods     = MayaBrownianMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaBrownian";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 39:
+   case 38:
       node->methods     = MayaStuccoMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaStucco";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 40:
+   case 39:
       node->methods     = MayaRemapHsvMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaRemapHsv";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 41:
+   case 40:
       node->methods     = MayaSetRangeMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "MayaSetRange";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 42:
+   case 41:
       node->methods     = MayaImagePlaneMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaImagePlane";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 43:
+   case 42:
       node->methods     = MayaSurfaceShaderMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaSurfaceShader";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 44:
+   case 43:
       node->methods     = ColorToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "colorToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 45:
+   case 44:
       node->methods     = VectorToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "vectorToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 46:
+   case 45:
       node->methods     = PointToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "pointToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 47:
+   case 46:
       node->methods     = Point2ToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "point2ToFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 48:
+   case 47:
       node->methods     = WriteColorMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "writeColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 49:
+   case 48:
       node->methods     = WriteColorInlineMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "aovWriteColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 50:
+   case 49:
       node->methods     = WriteFloatMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "writeFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 51:
+   case 50:
       node->methods     = WriteFloatInlineMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "aovWriteFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 52:
+   case 51:
       node->methods     = MayaEnvSphereMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaEnvSphere";
       node->node_type   = AI_NODE_SHADER;
       break;      
 
-   case 53:
+   case 52:
       node->methods     = AnimMatrixMtd;
       node->output_type = AI_TYPE_MATRIX;
       node->name        = "anim_matrix";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 54:
+   case 53:
       node->methods     = AnimFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "anim_float";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 55:
+   case 54:
       node->methods     = AnimPointMtd;
       node->output_type = AI_TYPE_POINT;
       node->name        = "anim_point";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 56:
+   case 55:
       node->methods     = AnimVectorMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "anim_vector";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 57:
+   case 56:
       node->methods     = AnimColorMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "anim_color";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 58:
+   case 57:
       node->methods     = UserDataFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "userDataFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 59:
+   case 58:
       node->methods     = UserDataVectorMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "userDataVector";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 60:
+   case 59:
       node->methods     = UserDataColorMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "userDataColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 61:
+   case 60:
       node->methods     = UserDataStringMtd;
       node->output_type = AI_TYPE_STRING;
       node->name        = "userDataString";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 62:
+   case 61:
       node->methods     = MayaShadingEngineMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaShadingEngine";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 63:
+   case 62:
       node->methods     = SkinSssMethods;
       node->output_type = AI_TYPE_RGB;
       node->name        = "skin_sss";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 64:
+   case 63:
       node->methods     = MayaSamplerInfo3DMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaSamplerInfo3D";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 65:
+   case 64:
       node->methods     = WriteVectorInlineMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "aovWriteVector";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 66:
+   case 65:
       node->methods     = WritePointInlineMtd;
       node->output_type = AI_TYPE_POINT;
       node->name        = "aovWritePoint";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 67:
+   case 66:
       node->methods     = WritePoint2InlineMtd;
       node->output_type = AI_TYPE_POINT2;
       node->name        = "aovWritePoint2";
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 68:
+   case 67:
       node->methods     = MayaNormalDisplacementMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "MayaNormalDisplacement";
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 69:
+   case 68:
       node->methods     = MayaVectorDisplacementMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "MayaVectorDisplacement";
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 70:
+   case 69:
       node->methods     = UserDataBoolMtd;
       node->output_type = AI_TYPE_BOOLEAN;
       node->name        = "userDataBool";
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 71:
+   case 70:
       node->methods     = ShadowCatcherMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "shadowCatcher";
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 72:
+   case 71:
       node->methods     = MayaHairMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaHair";
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 73:
+   case 72:
       node->methods     = MeshLightMaterialMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "meshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
-      break;         
+      break;
+      
+   case 73:
+      node->methods     = SocketDriverMtd;
+      node->name        = "driver_socket";
+      node->node_type   = AI_NODE_DRIVER;
+      break;
+      
+   case 74:
+      node->methods     = UserDataPnt2Mtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "userDataPnt2";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 75:
+      node->methods     = UserDataIntMtd;
+      node->output_type = AI_TYPE_INT;
+      node->name        = "userDataInt";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 76:
+      node->methods     = MayaBump2DMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "mayaBump2D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
 
    default:
       return false;

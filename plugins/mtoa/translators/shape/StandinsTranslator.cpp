@@ -215,7 +215,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
       MString filename;
 
-      float frame = m_DagNode.findPlug("frameNumber").asFloat();
+      int frame = m_DagNode.findPlug("frameNumber").asInt();
       float frameOffset = m_DagNode.findPlug("frameOffset").asFloat();
       bool useFrameExtension = m_DagNode.findPlug("useFrameExtension").asBool();
       bool useSubFrame = m_DagNode.findPlug("useSubFrame").asBool();

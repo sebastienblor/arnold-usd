@@ -17,14 +17,27 @@ void CArnoldStandInGeometry::setGLFTable(MGLFunctionTable* table)
    g_GLFT = table;
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, MBoundingBox& bbox)
+CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox)
 {
-   AtMatrix matrix;
-   AiNodeGetMatrix(node, "matrix", matrix);
+   AtMatrix matrix;  
    
-   AiM4Mult(matrix, matrix, inherited_matrix);
+   if (inherit_xform)
+   {
+      AiNodeGetMatrix(node, "matrix", matrix);
+      AiM4Mult(matrix, matrix, inherited_matrix);
+   }
+   else
+      AiM4Copy(matrix, inherited_matrix);
    
    AtArray* vlist = AiNodeGetArray(node, "vlist");
+   
+   m_BBMin.x = AI_BIG;
+   m_BBMin.y = AI_BIG;
+   m_BBMin.z = AI_BIG;
+   
+   m_BBMax.x = -AI_BIG;
+   m_BBMax.y = -AI_BIG;
+   m_BBMax.z = -AI_BIG;
    
    if (vlist->nelements)
    {
@@ -34,10 +47,21 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
          const AtPoint pnt = AiArrayGetPnt(vlist, i);
          AtPoint tmpPnt;
          AiM4PointByMatrixMult(&tmpPnt, matrix, &pnt);
-         bbox.expand(MPoint(tmpPnt.x, tmpPnt.y, tmpPnt.z));
+         
+         m_BBMin.x = MIN(m_BBMin.x, tmpPnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, tmpPnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, tmpPnt.z);
+         
+         m_BBMax.x = MAX(m_BBMax.x, tmpPnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, tmpPnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, tmpPnt.z);
+         
          m_vlist[i] = tmpPnt;
       }
    }
+   
+   bbox.expand(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z));
+   bbox.expand(MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
    
@@ -119,7 +143,7 @@ void CArnoldPolymeshGeometry::DrawPoints() const
    g_GLFT->glEnableClientState(MGL_VERTEX_ARRAY);
    
    g_GLFT->glVertexPointer(3, MGL_FLOAT, 0, &m_vlist[0]);
-   g_GLFT->glDrawArrays(MGL_POINTS, 0, m_vlist.size());
+   g_GLFT->glDrawArrays(MGL_POINTS, 0, (MGLsizei)m_vlist.size());
    
    g_GLFT->glDisableClientState(MGL_VERTEX_ARRAY);
 }
@@ -145,4 +169,47 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
       }
       g_GLFT->glEnd();
    }
+}
+
+void CArnoldPolymeshGeometry::DrawBoundingBox() const
+{
+   g_GLFT->glBegin(MGL_LINES);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   
+   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   g_GLFT->glEnd();
 }

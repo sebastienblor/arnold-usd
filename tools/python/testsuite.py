@@ -27,20 +27,38 @@ class DummyLock(object):
 def do_run_test(args):
     return run_test(*args)
 
-def print_banner(test_name):
+def print_banner(test_name, color_cmds=False):
     f = open('README', 'r')
     summary = f.readline().strip('\n')
     f.close()
-    print Fore.MAGENTA + Style.BRIGHT + '='*80
-    print Fore.MAGENTA + Style.BRIGHT +  test_name.ljust(15) + Style.RESET_ALL + Fore.MAGENTA + summary
-    print Fore.MAGENTA + Style.BRIGHT + '-'*80
+    if color_cmds:
+        print Fore.MAGENTA + Style.BRIGHT + '='*80
+        print Fore.MAGENTA + Style.BRIGHT +  test_name.ljust(15) + Style.RESET_ALL + Fore.MAGENTA + summary
+        print Fore.MAGENTA + Style.BRIGHT + '-'*80
+    else:
+        print '='*80
+        print test_name.ljust(15) + summary
+        print '-'*80
 
-def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename, expected_result, update_reference=False, show_test_output=True):
+def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename, expected_result, update_reference=False, show_test_output=True, color_cmds=False):
     os.chdir(test_dir)
+
 
     # make a glob out of the output image
     output_image = output_basename + "*.tif"
 
+    
+    fore_magenta = ''
+    fore_cyan = ''
+    fore_green = ''
+    fore_red = ''
+    style_bright = ''
+    if color_cmds:
+        fore_magenta = Fore.MAGENTA
+        fore_cyan = Fore.CYAN
+        fore_green = Fore.GREEN
+        fore_red = Fore.RED
+        style_bright = Style.BRIGHT
 #	## remove any leftovers
     saferemove(output_image)
     saferemove('new*.jpg')
@@ -58,7 +76,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     if show_test_output:
         # if we are showing output we need to lock around the entire thing, which negates all the benefits of multi-threading
         lock.acquire()
-        print_banner(test_name)
+        print_banner(test_name, color_cmds)
     else:
         # otherwise, we print a little something so that we know when the process is hung, and print the rest at the end
         lock.acquire()
@@ -81,8 +99,8 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     # verbose and log options for Render cmd : -verb -log "test.log" 
     if show_test_output:
         cmd = string.replace(cmd, "%options%", options)
-        print Fore.CYAN + cmd
-        print Fore.MAGENTA + Style.BRIGHT + '-'*80
+        print fore_cyan + cmd
+        print fore_magenta + style_bright + '-'*80
     else:
         logfile = "%s.log" % (test_name)
         logfile = os.path.join(test_dir, logfile)
@@ -144,12 +162,12 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                 saferemove(reference)
                 shutil.copy(output, reference)
                 print 'Updating %s ...' % (reference)
+            
             references = sorted(glob.glob(reference_basename + '*.tif'))
 
         for reference in references:
             
             output = reference.replace(reference_basename, output_basename)
-
             output_stripped = os.path.splitext(output)[0]
             reference_stripped = os.path.split(os.path.splitext(reference)[0])[1]
             new = 'new_%s.jpg' % output_stripped
@@ -194,10 +212,10 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                 os.system('tiff2jpeg %s %s' % (reference, ref))
 
     if show_test_output:
-        print Fore.MAGENTA + Style.BRIGHT + '-'*80
+        print fore_magenta + style_bright + '-'*80
     else:
         lock.acquire()
-        print_banner(test_name)
+        print_banner(test_name, color_cmds)
         print "logged to", logfile
 
     print '%s %s' % ('time'.ljust(15), running_time)
@@ -205,10 +223,11 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     ## progress text (scream if the test didn't pass)
     
     if status == 'OK':
-        print Fore.GREEN + '%s %s' % ('status'.ljust(15), status)
+        print fore_green + '%s %s' % ('status'.ljust(15), status)
     else:
-        print Fore.RED + '%s %s' % ('status'.ljust(15), status)
-        print Fore.RED + '%s %s' % ('cause'.ljust(15), cause)
+        print fore_red + '%s %s' % ('status'.ljust(15), status)
+        print fore_red + '%s %s' % ('cause'.ljust(15), cause)
+        
 
     html_file = test_name + '.html'
     print os.path.abspath(html_file)
@@ -310,3 +329,4 @@ Arnold testsuite - %s
     f.close()
 
     return running_time, results
+

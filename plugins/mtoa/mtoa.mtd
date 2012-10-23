@@ -33,10 +33,6 @@
         softmax             INT     10
         default             INT     3
         maya.orig_shortname STRING  "AAsmpls"
-    [attr bucket_scanning]
-        maya.keyable        BOOL    False
-        maya.orig_shortname STRING  "bktsc"
-        default             INT     6  # Spiral
     [attr bucket_size]
         maya.keyable        BOOL    False
         min                 INT     16
@@ -401,6 +397,7 @@
     maya.name               STRING  "aiBarndoor"
     maya.id                 INT     0x00115C80
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
     [attr barndoor_bottom_edge]
         min                 FLOAT   0
@@ -444,6 +441,7 @@
     maya.name               STRING  "aiGobo"
     maya.id                 INT     0x00115C81
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -463,6 +461,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -484,6 +483,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight"
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -633,19 +633,18 @@
     maya.output_shortname   STRING  "out"
     [attr IOR]
         min                 FLOAT   0.0
-        max                 FLOAT   10.0
         softmax             FLOAT   3.0
     [attr Kb]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
     [attr Kd]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
     [attr Kd_color]
         maya.name           STRING  "color"
     [attr Kr]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
     [attr Krn]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
@@ -654,7 +653,7 @@
         max                 FLOAT   1.0
     [attr Ks]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
     [attr Ksn]
         min                 FLOAT   0.0
         max                 FLOAT   1.0

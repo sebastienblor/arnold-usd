@@ -14,8 +14,7 @@ BUILTIN_AOVS = (
                 ('Pref',    'rgb'),
                 ('raycount','float'),
                 ('cputime', 'float'),
-                ('RGB',     'rgb'),
-                ('RGBA',    'rgba'),
+                ('beauty',  'rgba'),
 #                ('A',       'float'),
 #                ('ID',      'int'),
 #                ('OBJECT',  'node'),
@@ -422,7 +421,8 @@ _aovOptionsChangedCallbacks = callbacks.DeferredCallbackQueue()
 def addAOVChangedCallback(func, key=None):
     _aovOptionsChangedCallbacks.addCallback(func, key)
 
-
+def removeAOVChangedCallback(key):
+    _aovOptionsChangedCallbacks.removeCallback(key)
 
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown
