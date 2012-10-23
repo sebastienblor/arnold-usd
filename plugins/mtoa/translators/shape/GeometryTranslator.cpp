@@ -1089,7 +1089,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
       // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
       AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
       AiNodeSetArray(instance, "mtoa_shading_groups",
-            AiArrayConvert(1, 1, AI_TYPE_NODE, shader));
+            AiArrayConvert(1, 1, AI_TYPE_NODE, &shader));
    }
 
    // Export light linking per instance

@@ -206,6 +206,8 @@ void CFileTranslator::Export(AtNode* shader)
    }
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
+   AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
+   AiNodeSetBool(shader, "useDefaultColor", FindMayaPlug("aiUseDefaultColor").asBool());
 
    ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
    ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
@@ -220,19 +222,68 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "MayaFile");
    helper.MakeInput("mipBias");
+   helper.MakeInput("filter");
+   helper.MakeInput("useDefaultColor");
 }
 
 // Bump2d
 //
+void CBump2DTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "bump2d");
+   
+   CAttrData data;
+   data.defaultValue.BOOL = true;
+   data.name = "aiFlipR";
+   data.shortName = "flip_r";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiFlipG";
+   data.shortName = "flip_g";
+   helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = false;
+   data.name = "aiSwapTangents";
+   data.shortName = "swap_tangents";
+   helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = true;
+   data.name = "aiUseDerivatives";
+   data.shortName = "use_derivatives";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiGammaCorrect";
+   data.shortName = "gamma_correct";
+   helper.MakeInputBoolean(data);
+}
+
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("bump2d");
+   return AddArnoldNode("mayaBump2D");
 }
 
 void CBump2DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
    ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
+   MStatus status;
+   MPlug plug = FindMayaPlug("bumpInterp", &status);
+   if (status && !plug.isNull())
+   {
+      int useAs = plug.asShort();
+      AiNodeSetInt(shader, "use_as", useAs);
+      if (useAs > 0)
+      {         
+         AtNode* n = AiNodeGetLink(shader, "bump_map");
+         if (n != 0)
+            AiNodeLink(n, "normal_map", shader);
+      }
+   }
+   ProcessParameter(shader, "flip_r", AI_TYPE_BOOLEAN, "aiFlipR");
+   ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
+   ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
+   ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
+   ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
 }
 
 // Bump3d
@@ -245,7 +296,7 @@ AtNode*  CBump3DTranslator::CreateArnoldNodes()
 void CBump3DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");   
 }
 
 // SamplerInfo

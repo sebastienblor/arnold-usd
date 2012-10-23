@@ -22,6 +22,7 @@ public:
 
 protected:
    virtual void ProcessRenderFlags(AtNode* node);
+   virtual void ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug);
    void ExportLightLinking(AtNode* polymesh);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);

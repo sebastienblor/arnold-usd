@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
@@ -51,24 +51,28 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 
     def setup(self):
         self.commonShapeAttributes()
-        self.addSeparator()
-        self.addControl("aiSubdivType", label="Subdivision Type")
-        self.addControl("aiSubdivIterations", label="Subdivision Iterations")
-        self.addControl("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
-        self.addControl("aiSubdivPixelError", label="Subdivision Pixel Error")
-        # TODO: add dicing camera UI
-        self.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
-        self.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
-        self.addControl("aiSubdivSmoothDerivs", label="Smooth Subdivision Tangents")
-        self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        
         self.addSeparator()
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
         self.addControl("aiExportRefPoints", label="Export Reference Positions")
         self.addControl("aiExportRefNormals", label="Export Reference Normals")
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
+        
+        self.addSeparator()
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        
+        self.beginLayout('Subdivision', collapse=False)
+        self.addControl("aiSubdivType", label="Type")
+        self.addControl("aiSubdivIterations", label="Iterations")
+        self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
+        self.addControl("aiSubdivPixelError", label="Pixel Error")
+        # TODO: add dicing camera UI
+        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
+        self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
+        self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
+        self.endLayout()
         
         self.beginLayout('Displacement Attributes', collapse=False)
         self.addControl("aiDispHeight", label="Height")
@@ -87,19 +91,19 @@ templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def shaderCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
 
     def shaderUpdate(self, attrName):
         cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
 
     def minPixelCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
@@ -143,11 +147,11 @@ templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")
 
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
@@ -167,9 +171,9 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         #pm.mel.eval('AEaddRampControl("widthProfile")')
         #pm.mel.eval('AEaddRampControl("colorTable")')
-        self.addControl("renderCurve")
-        self.addControl("curveWidth")
-        self.addControl("sampleRate")
+        self.addControl("aiRenderCurve")
+        self.addControl("aiCurveWidth")
+        self.addControl("aiSampleRate")
         self.addControl("aiCurveShader")
         self.addSeparator()
         self.addControl("primaryVisibility")
@@ -431,8 +435,9 @@ def cameraTranslatorChanged(transPlug, *args):
         elif isOrtho and currTrans != 'orthographic':
             orthoPlug.setBool(False)
 
-def getCameraDefault(cam):
-    default = 'orthographic' if cam.orthographic.get() else 'perspective'
+def getCameraDefault(obj):
+    isOrtho = pm.api.MFnDependencyNode(obj).findPlug("orthographic").asBool()
+    default = 'orthographic' if isOrtho else 'perspective'
     return default
 
 templates.registerDefaultTranslator('camera', getCameraDefault)
@@ -449,14 +454,14 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
 def registerDriverTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
 
 def registerFilterTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVFilter"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVFilter', 'gaussian')
 

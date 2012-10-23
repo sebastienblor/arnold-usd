@@ -34,7 +34,6 @@ enum TokenModes
    USER_PARAM
 };
 
-
 enum MayaFileParams
 {
    p_coverage = 0,
@@ -51,6 +50,8 @@ enum MayaFileParams
    p_filename,
    p_noise,
    p_mip_bias,
+   p_filter,
+   p_use_default_color,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -79,6 +80,8 @@ typedef struct AtImageData
    AtTextureHandle* texture_handle;
 } AtImageData;
 
+static const char* filterNames[] = {"closest", "bilinear", "bicubic", "smart_bicubic", 0};
+
 node_parameters
 {
    AiParameterPNT2("coverage", 1.0f, 1.0f);
@@ -95,6 +98,8 @@ node_parameters
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
    AiParameterINT("mipBias", 0);
+   AiParameterENUM("filter", 3, filterNames);
+   AiParameterBOOL("useDefaultColor", true);
    AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -218,8 +223,9 @@ node_update
                TokenData data;
                data.mode = USER_PARAM;
                data.position = (int) newfname.size();
-               data.extra = AiMalloc((unsigned long)attr.size());
+               data.extra = AiMalloc((unsigned long)attr.size() + 1);
                strcpy((char*)data.extra, attr.c_str());
+               ((char*)data.extra)[attr.size()] = 0;
                data.nextSize = 0;
                // If a previous token broke the file path chunk, update its "nextSize" attribute
                if (prevToken >= 0)
@@ -517,9 +523,12 @@ shader_evaluate
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
-      if (sg->Rt & AI_RAY_DIFFUSE)
+      texparams.filter = AiShaderEvalParamInt(p_filter);
+      if ((sg->Rt & AI_RAY_DIFFUSE) && (texparams.filter > AI_TEXTURE_BILINEAR))
          texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
+      bool useDefaultColor = AiShaderEvalParamBool(p_use_default_color);
+      bool* successP = useDefaultColor ? &success : 0;
       if (idata->ntokens > 0)
       {
          TokenData* token = idata->tokens;
@@ -562,7 +571,7 @@ shader_evaluate
                   while (found != std::string::npos)
                   {
                      shapeName[found]='_';
-                     found=shapeName.find("|:", found + 1);
+                     found=shapeName.find_first_of("|:", found + 1);
                   }
                   memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),shapeName.size());
                   pos += (unsigned int) shapeName.size();
@@ -592,6 +601,7 @@ shader_evaluate
                   {
                      // TODO: only warn once
                      // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
+                     idata->processPath[sg->tid][pos] = 0;
                      success = false;
                   }
                   break;
@@ -647,21 +657,19 @@ shader_evaluate
 
          if (success)
          {
-            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, &success);
+            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
          }
          //AiMsgInfo("FILE: new name: %s", newfname.c_str());
       }
       else if (idata->texture_handle != NULL)
       {
-         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, &success);
+         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, successP);
       }
       else
       {       
-         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, &success);
+         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
       }
-      if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
-      else
+      if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals

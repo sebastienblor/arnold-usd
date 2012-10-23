@@ -4,7 +4,7 @@ workspace -fr "offlineEdit" "scenes/edits";
 workspace -fr "movie" "data";
 workspace -fr "autoSave" "autosave";
 workspace -fr "mayaAscii" "scenes";
-workspace -fr "particles" "./";
 workspace -fr "templates" "assets";
+workspace -fr "particles" "./";
 workspace -fr "image" "./test";
 workspace -fr "mayaBinary" "scenes";

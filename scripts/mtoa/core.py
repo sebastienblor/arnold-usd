@@ -197,6 +197,7 @@ def createOptions():
     options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
     driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
+    displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
     if (filterNode or driverNode) and not options:
         options = pm.nt.DependNode('defaultArnoldRenderOptions')
@@ -222,10 +223,21 @@ def createOptions():
         hooks.setupOptions(options)
     else:
         options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        if displayDriverNode:
+            # options exist, but not display driver: upgrade from older version of mtoa
+            hooks.setupDefaultAOVs(aovs.AOVInterface(options))
 
+    if displayDriverNode:
+        # newly created default driver
+        displayDriverNode.aiTranslator.set('maya')
+        # GUI only
+        displayDriverNode.outputMode.set(0)
+        hooks.setupDriver(displayDriverNode)
+        displayDriverNode.message.connect(options.drivers, nextAvailable=True)
+    elif not options.drivers.inputs():
+        pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
     filterNode.message.connect(options.filter, force=True)
     driverNode.message.connect(options.driver, force=True)
-
 
 
 #-------------------------------------------------
@@ -234,12 +246,14 @@ def createOptions():
 
 _defaultTranslators = {}
 
-def _doSetDefaultTranslator(node):
-    if not arnoldIsCurrentRenderer(): return
+def _doSetDefaultTranslator(obj):
+    if not arnoldIsCurrentRenderer():
+        return
     try:
-        node.attr('aiTranslator').set(getDefaultTranslator(node))
+        default = getDefaultTranslator(obj)
+        pm.api.MFnDependencyNode(obj).findPlug('aiTranslator').setString(default)
     except RuntimeError:
-        pm.warning("failed to set default translator for %s" % node.name())
+        pm.warning("failed to set default translator for %s" % pm.api.MFnDependencyNode(obj).name())
 
 def registerDefaultTranslator(nodeType, default):
     """
@@ -253,27 +267,35 @@ def registerDefaultTranslator(nodeType, default):
     global _defaultTranslators
     _defaultTranslators[nodeType] = default
 
+    isFunc = callable(default)
     if arnoldIsCurrentRenderer():
-        # set defaults for existing nodes of this type
-        for node in pm.ls(exactType=nodeType):
-            at = node.attr('aiTranslator')
-            if not at.get():
-                if callable(default):
-                    val = default(node)
-                else:
-                    val = default
-                at.set(val)
+        it = pm.api.MItDependencyNodes()
+        while not it.isDone():
+            obj = it.item()
+            if not obj.isNull():
+                mfn = pm.api.MFnDependencyNode(obj)
+                if mfn.typeName() == nodeType:
+                    plug = mfn.findPlug("aiTranslator")
+                    if not plug.isNull() and plug.asString() == "":
+                        if isFunc:
+                            val = default(obj)
+                        else:
+                            val = default
+                        plug.setString(val)
+            it.next()
 
-    callbacks.addNodeAddedCallback(_doSetDefaultTranslator, nodeType)
+    callbacks.addNodeAddedCallback(_doSetDefaultTranslator, nodeType,
+                                   applyToExisting=False, apiArgs=True)
 
-def getDefaultTranslator(node):
-    if isinstance(node, basestring):
-        node = pm.PyNode(node)
+def getDefaultTranslator(obj):
+    if isinstance(obj, basestring):
+        obj = pm.api.toMObject(obj)
+    mfn = pm.api.MFnDependencyNode(obj)
     global _defaultTranslators
     try:
-        default = _defaultTranslators[node.type()]
+        default = _defaultTranslators[mfn.typeName()]
         if callable(default):
-            return default(node)
+            return default(obj)
         else:
             return default
     except KeyError:
@@ -282,19 +304,25 @@ def getDefaultTranslator(node):
 def _rendererChanged(*args):
     if pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':
         global _defaultTranslators
-        for nodeType, default in _defaultTranslators.iteritems():
-            if default:
-                # set defaults for existing nodes
-                for node in pm.ls(exactType=nodeType):
-                    # only set the default if it has not already been set
-                    at = node.attr('aiTranslator')
-                    if not at.get():
+
+        it = pm.api.MItDependencyNodes()
+        while not it.isDone():
+            obj = it.item()
+            if not obj.isNull():
+                mfn = pm.api.MFnDependencyNode(obj)
+                nodeType = mfn.typeName()
+                if nodeType in _defaultTranslators:
+                    default = _defaultTranslators[nodeType]
+                    assert default is not None
+                    plug = mfn.findPlug("aiTranslator")
+                    if not plug.isNull() and plug.asString() == "":
                         if callable(default):
-                            val = default(node)
+                            val = default(obj)
                         else:
                             val = default
-                        at.set(val)
-
+                        plug.setString(val)
+            it.next()
+            
 def installCallbacks():
     """
     install all callbacks

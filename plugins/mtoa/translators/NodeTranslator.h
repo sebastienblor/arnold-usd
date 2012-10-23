@@ -47,6 +47,8 @@ private:
 
 public:
    MString GetTranslatorName() {return m_abstract.name;}
+   /// for translators that are associated with a specific arnold node
+   MString GetArnoldNodeType() {return m_abstract.arnold;};
 
    virtual ~CNodeTranslator()
    {}
@@ -156,7 +158,7 @@ protected:
 
    // session info
    inline double GetExportFrame() const {return m_session->GetExportFrame();}
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_session->IsMotionBlurEnabled(type); }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_session->IsMotionBlurEnabled(type); }
    bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);

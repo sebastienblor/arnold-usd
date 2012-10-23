@@ -3,6 +3,7 @@ import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
 from mtoa.utils import toMayaStyle
+from mtoa.utils import prettify
 import mtoa.ui.ae.templates as templates
 import mtoa.core as core
 
@@ -29,7 +30,7 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
     EMPTY_AOV_ITEM = "<None>"
     NEW_AOV_ITEM = "<Create New...>"
     UNKNOWN_AOV_ITEM = "%s (Inactive)"
-    BEAUTY_ITEM = "RGBA"
+    BEAUTY_ITEM = "beauty"
     _instances = []
     
     def __init__(self, nodeType, attr, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=False):
@@ -50,7 +51,14 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
     # TODO: convert to propertycache
     @property
     def label(self):
-        return self._label if self._label else interToUI(self.attr)
+        if self._label:
+            return self._label
+        else:
+            cattr = interToUI(self.attr)
+            if cattr[0:3] == 'Aov':
+                cattr = 'AOV' + cattr[3:]
+            return cattr
+        
 
     def changeCallback(self, nodeAttr, newAOV):
         """
@@ -109,8 +117,15 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         elif currVal not in self.activeNames and currVal != self.BEAUTY_ITEM:
             currVal = self.UNKNOWN_AOV_ITEM % currVal
             pm.menuItem(label=currVal, parent=(self.menuName))
-            
 
+        # beauty is always first, so remove it in all cases, it will be added below if
+        # includeBeauty is enabled
+        try:
+            index = self.activeNames.index(self.BEAUTY_ITEM)
+            self.activeNames.pop(index)
+        except ValueError:
+            pass
+        
         if self.includeBeauty:
             pm.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName))
 
@@ -129,9 +144,8 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
 
         menu = pm.optionMenu(self.menuName, edit=True,
                              changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
-        pm.scriptJob(parent=menu, replacePrevious=True,
-                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
-
+        return menu
+    
     def clear(self):
         for item in pm.optionMenu(self.menuName, query=True, itemListLong=True) or []:
             pm.deleteUI(item)
@@ -140,8 +154,6 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         self.addCustom(self.attr, self.createMenu, self.updateMenu)
 
     def createMenu(self, nodeAttr):
-        #nodeAttr = self.nodeAttr(self.attr)
-
         pm.setUITemplate(popTemplate=1)
         
         if self.allowDisable:
@@ -159,8 +171,19 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         pm.optionMenu(self.menuName)
         pm.setParent('..')
 
-        self.updateMenu(nodeAttr)
+        menu = self.updateMenu(nodeAttr)
 
+        pm.scriptJob(parent=menu,
+                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
+
+    def updateMenuCallback(self):
+        '''
+        this method gets around an error with scriptJobs.
+        an attempt to use the replacePrevious flag inside updateMenu failed with
+        "A scriptJob cannot be killed while it is running." This should let us
+        use a single scriptJob by querying the current nodeAttr from the instance
+        '''
+        self.updateMenu(self.nodeAttr())
 
 class ShaderMixin(object):
     def bumpNew(self, attrName):
@@ -183,9 +206,16 @@ class ShaderMixin(object):
         menu = AOVOptionMenuGrp(self.nodeType(), attr)
         self.addChildTemplate(attr, menu)
 
-    def addAOVLayout(self):
+    def addAOVLayout(self, aovReorder = None):
         '''Add an aov control for each aov registered for this node type'''
         aovAttrs = aovs.getNodeGlobalAOVData(nodeType=self.nodeType())
+        if aovReorder: #do some reordering based on the passed string list
+            i = 0
+            aovMap = {}
+            for aov in aovReorder:
+                aovMap[aov] = i
+                i += 1
+            aovAttrs = sorted(aovAttrs, key = lambda aov: aovMap[aov[0]])
         if aovAttrs:
             self.beginLayout("AOVs", collapse=True)
 #            self.beginNoOptimize()

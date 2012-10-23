@@ -1,20 +1,20 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Fri, Aug 03, 2012 03:39:17 PM
-//Codeset: UTF-8
+//Last modified: Tue, Oct 09, 2012 03:55:54 PM
+//Codeset: 1252
 requires maya "2011";
-requires "mtoa" "0.19.0.dev";
+requires "mtoa" "0.20.0.dev";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
-fileInfo "cutIdentifier" "201009060248-781623";
-fileInfo "osv" "Linux 3.4.6-2.fc17.x86_64 #1 SMP Thu Jul 19 22:54:16 UTC 2012 x86_64";
+fileInfo "cutIdentifier" "201009060330-781623";
+fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7 Service Pack 1 (Build 7601)\n";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 8.5791324620954406 26.535189106703033 4.1248791192375176 ;
-	setAttr ".r" -type "double3" -86.138352729604705 0.2000000000000258 0 ;
+	setAttr ".t" -type "double3" 8.2328101033104097 29.430278054852693 7.7595808612292858 ;
+	setAttr ".r" -type "double3" -91.53835272960464 0.2000000000000258 -1.2424117416441811e-017 ;
 createNode camera -s -n "perspShape" -p "persp";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
@@ -47,7 +47,7 @@ createNode camera -s -n "perspShape" -p "persp";
 	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999986;
-	setAttr ".coi" 26.595572132863087;
+	setAttr ".coi" 29.861318577716773;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -196,6 +196,7 @@ createNode mesh -n "pPlaneShape1" -p "pPlane1";
 		-min 0 -smx 1 -at "float";
 	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
 	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
 		1 -at "bool";
 	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
@@ -239,9 +240,10 @@ createNode mesh -n "pPlaneShape1" -p "pPlane1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-07 0 0 -2.3841858e-07 0 0 
-		-2.3841858e-07 0 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 
-		6.6174449e-24 0 2.3841858e-07 0 0 2.3841858e-07 0 0 2.3841858e-07 0;
+	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-007 0 0 -2.3841858e-007 
+		0 0 -2.3841858e-007 0 0 2.646978e-023 6.6174449e-024 0 2.646978e-023 6.6174449e-024 
+		0 2.646978e-023 6.6174449e-024 0 2.3841858e-007 0 0 2.3841858e-007 0 0 2.3841858e-007 
+		0;
 createNode transform -n "directionalLight1";
 	setAttr ".t" -type "double3" 0 5.1628475931277249 3.1280933277221914 ;
 	setAttr ".r" -type "double3" -38.968848577268517 0 0 ;
@@ -270,6 +272,7 @@ createNode mesh -n "pPlaneShape2" -p "pPlane2";
 		-min 0 -smx 1 -at "float";
 	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
 	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
 		1 -at "bool";
 	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
@@ -309,24 +312,27 @@ createNode mesh -n "pPlaneShape2" -p "pPlane2";
 	setAttr ".vif" yes;
 	setAttr ".pv" -type "double2" 1.0315449237823486 1.5064982054507841 ;
 	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr -s 16 ".uvst[0].uvsp[0:15]" -type "float2" 1.2438611 1.3030871 1.7438611 
-		1.3030871 0.81922877 1.2787113 0.29912809 0.29390275 1.2378938 0.30627072 0.81922877 
-		1.7099094 0.29912809 0.72510093 1.2378938 0.73746872 1.7378938 0.73746872 0.79912812 
-		0.72510093 0.31922877 1.7099094 1.7438611 1.734285 0.79912812 0.29390275 1.7378938 
-		0.30627072 1.2438611 1.734285 0.31922877 1.2787113;
+	setAttr -s 16 ".uvst[0].uvsp[0:15]" -type "float2" 1.2438611 1.3030871 
+		1.7438611 1.3030871 0.81922877 1.2787113 0.29912809 0.29390275 1.2378938 0.30627072 
+		0.81922877 1.7099094 0.29912809 0.72510093 1.2378938 0.73746872 1.7378938 0.73746872 
+		0.79912812 0.72510093 0.31922877 1.7099094 1.7438611 1.734285 0.79912812 0.29390275 
+		1.7378938 0.30627072 1.2438611 1.734285 0.31922877 1.2787113;
 	setAttr ".cuvs" -type "string" "map1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-07 0 0 -2.3841858e-07 0 0 
-		-2.3841858e-07 0 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 
-		6.6174449e-24 0 2.3841858e-07 0 0 2.3841858e-07 0 0 2.3841858e-07 0;
-	setAttr -s 9 ".vt[0:8]"  -5.781405 -2.3841858e-07 4.9858618 0 -2.3841858e-07 4.9858618 
-		5.781405 -2.3841858e-07 4.9858618 -5.781405 2.646978e-23 6.6174449e-24 0 2.646978e-23 
-		6.6174449e-24 5.781405 2.646978e-23 6.6174449e-24 -5.781405 2.3841858e-07 -4.9858618 
-		0 2.3841858e-07 -4.9858618 5.781405 2.3841858e-07 -4.9858618;
-	setAttr -s 12 ".ed[0:11]"  0 1 0 0 3 0 1 2 0 1 4 1 2 5 0 3 4 1 3 6 0 4 5 1 4 7 1 
-		5 8 0 6 7 0 7 8 0;
+	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-007 0 0 -2.3841858e-007 
+		0 0 -2.3841858e-007 0 0 2.646978e-023 6.6174449e-024 0 2.646978e-023 6.6174449e-024 
+		0 2.646978e-023 6.6174449e-024 0 2.3841858e-007 0 0 2.3841858e-007 0 0 2.3841858e-007 
+		0;
+	setAttr -s 9 ".vt[0:8]"  -5.781405 -2.3841858e-007 4.9858618 0 -2.3841858e-007 
+		4.9858618 5.781405 -2.3841858e-007 4.9858618 -5.781405 2.646978e-023 6.6174449e-024 
+		0 2.646978e-023 6.6174449e-024 5.781405 2.646978e-023 6.6174449e-024 -5.781405 2.3841858e-007 
+		-4.9858618 0 2.3841858e-007 -4.9858618 5.781405 2.3841858e-007 -4.9858618;
+	setAttr -s 12 ".ed[0:11]"  0 1 0 0 3 0 
+		1 2 0 1 4 1 2 5 0 3 4 1 
+		3 6 0 4 5 1 4 7 1 5 8 0 
+		6 7 0 7 8 0;
 	setAttr -s 4 ".fc[0:3]" -type "polyFaces" 
 		f 4 0 3 -6 -2 
 		mu 0 4 0 1 11 14 
@@ -339,9 +345,544 @@ createNode mesh -n "pPlaneShape2" -p "pPlane2";
 	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
 	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+createNode transform -n "group";
+	setAttr ".t" -type "double3" 0 0 10.530631381358173 ;
+	setAttr ".rp" -type "double3" 1.8991104903154916 0 2.3337462221316123 ;
+	setAttr ".sp" -type "double3" 1.8991104903154916 0 2.3337462221316123 ;
+createNode transform -n "pPlane3";
+	setAttr ".t" -type "double3" -1.2499089037731976 0 10.804117128822247 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape3" -p "pPlane3";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1001";
+createNode transform -n "pPlane4";
+	setAttr ".t" -type "double3" 4.8807076606846103 0 10.804117128822247 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape4" -p "pPlane4";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1002";
+createNode transform -n "pPlane5";
+	setAttr ".t" -type "double3" -1.2726613752561029 0 16.628541820402706 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape5" -p "pPlane5";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1003";
+createNode transform -n "pPlane6";
+	setAttr ".t" -type "double3" 4.9255348223961999 0 16.675014370506702 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape6" -p "pPlane6";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1004";
+createNode transform -n "pPlane7";
+	setAttr ".t" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape1001" -p "|pPlane7";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1001";
+createNode transform -n "group1";
+	setAttr ".t" -type "double3" 6.0639464973609503 0 0 ;
+	setAttr ".rp" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".sp" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+createNode transform -n "pasted__pPlane7" -p "group1";
+	setAttr ".t" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape1002" -p "pasted__pPlane7";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1001";
+createNode transform -n "group2";
+	setAttr ".t" -type "double3" 0 0 5.8014485910920097 ;
+	setAttr ".rp" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".sp" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+createNode transform -n "pPlane7" -p "group2";
+	setAttr ".t" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape1003" -p "|group2|pPlane7";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1001";
+createNode transform -n "group3";
+	setAttr ".t" -type "double3" 5.9381250254779854 0 5.8367052810465854 ;
+	setAttr ".rp" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".sp" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+createNode transform -n "pPlane7" -p "group3";
+	setAttr ".t" -type "double3" 11.41947298636258 0 10.804117128822247 ;
+	setAttr ".s" -type "double3" 1.1583769136445605 1.1583769136445605 1.1583769136445605 ;
+createNode mesh -n "pPlaneShape1003" -p "|group3|pPlane7";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "mtoa_constant_myString" -ln "mtoa_constant_myString" -dt "string";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 4 ".uvst[0].uvsp[0:3]" -type "float2" 0 0 1 0 0 0.96074474 
+		1 0.96074474;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 4 ".vt[0:3]"  -2.4955454 -5.3237016e-016 2.3975821 2.4955454 
+		-5.3237016e-016 2.3975821 -2.4955454 5.3237016e-016 -2.3975821 2.4955454 5.3237016e-016 
+		-2.3975821;
+	setAttr -s 4 ".ed[0:3]"  0 1 0 0 2 0 
+		1 3 0 2 3 0;
+	setAttr ".fc[0]" -type "polyFaces" 
+		f 4 0 2 -4 -2 
+		mu 0 4 0 1 3 2 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr -k on ".mtoa_constant_myString" -type "string" "1001";
 createNode lightLinker -s -n "lightLinker1";
-	setAttr -s 4 ".lnk";
-	setAttr -s 4 ".slnk";
+	setAttr -s 11 ".lnk";
+	setAttr -s 11 ".slnk";
 createNode displayLayerManager -n "layerManager";
 createNode displayLayer -n "defaultLayer";
 createNode renderLayerManager -n "renderLayerManager";
@@ -375,7 +916,7 @@ createNode aiAOVDriver -s -n "defaultArnoldDriver";
 	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
 	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-005 
 		-smx 5 -at "float";
 	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
 	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
@@ -385,6 +926,7 @@ createNode aiAOVDriver -s -n "defaultArnoldDriver";
 	addAttr -ci true -sn "tiff_format" -ln "tiffFormat" -min 0 -max 3 -en "int8:int16:int32:float32" 
 		-at "enum";
 	addAttr -ci true -sn "unpremult_alpha" -ln "unpremultAlpha" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "host_name" -ln "hostName" -dt "string";
 	setAttr ".ai_translator" -type "string" "tif";
 	setAttr ".tiled" no;
 createNode aiStandard -n "aiStandard1";
@@ -393,12 +935,17 @@ createNode shadingEngine -n "aiStandard1SG";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
 	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo1";
 createNode file -n "file1";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
 	setAttr ".ftn" -type "string" "./test/mari.<udim>.jpg";
 createNode place2dTexture -n "place2dTexture1";
 createNode script -n "uiConfigurationScriptNode";
@@ -447,8 +994,8 @@ createNode script -n "uiConfigurationScriptNode";
 		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n"
 		+ "                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperShadePanel\" (localizedPanelLabel(\"Hypershade\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperShadePanel\" -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"visorPanel\" (localizedPanelLabel(\"Visor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"visorPanel\" -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"polyTexturePlacementPanel\" (localizedPanelLabel(\"UV Texture Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"polyTexturePlacementPanel\" -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n"
+		+ "\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"referenceEditorPanel\" (localizedPanelLabel(\"Reference Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"referenceEditorPanel\" -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"componentEditorPanel\" (localizedPanelLabel(\"Component Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"componentEditorPanel\" -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynPaintScriptedPanelType\" (localizedPanelLabel(\"Paint Effects\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynPaintScriptedPanelType\" -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"scriptEditorPanel\" (localizedPanelLabel(\"Script Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"scriptEditorPanel\" -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"Stereo\" (localizedPanelLabel(\"Stereo\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"Stereo\" -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels `;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n"
@@ -467,9 +1014,10 @@ createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".st" 6;
 createNode polyTweakUV -n "polyTweakUV1";
 	setAttr ".uopa" yes;
-	setAttr -s 9 ".uvtk[0:8]" -type "float2" 0.033340443 0.038897183 0.033340458 0.038897183 
-		0.033340398 0.038897183 0.033340443 0.03889719 0.033340458 0.03889719 0.033340398 
-		0.03889719 0.033340443 0.03889716 0.033340458 0.03889716 0.033340398 0.03889716;
+	setAttr -s 9 ".uvtk[0:8]" -type "float2" 0.033340443 0.038897183 
+		0.033340458 0.038897183 0.033340398 0.038897183 0.033340443 0.03889719 0.033340458 
+		0.03889719 0.033340398 0.03889719 0.033340443 0.03889716 0.033340458 0.03889716 0.033340398 
+		0.03889716;
 createNode polyMapCut -n "polyMapCut1";
 	setAttr ".uopa" yes;
 	setAttr ".ics" -type "componentList" 2 "e[8]" "e[10:11]";
@@ -481,25 +1029,171 @@ createNode polyMapCut -n "polyMapCut3";
 	setAttr ".ics" -type "componentList" 3 "e[3]" "e[5]" "e[7:8]";
 createNode polyTweakUV -n "polyTweakUV2";
 	setAttr ".uopa" yes;
-	setAttr -s 16 ".uvtk[0:15]" -type "float2" 3.1110625 0.26085815 3.1110625 0.26085815 
-		1.6381931 0.26542473 0.26578763 -0.17619254 0.70455343 -0.16382457 1.6381931 0.26542473 
-		0.26578763 -0.17619248 0.70455343 -0.16382466 0.70455343 -0.16382466 0.26578766 -0.17619248 
-		1.6381931 0.26542473 3.1110625 0.260858 0.26578766 -0.17619254 0.70455343 -0.16382457 
-		3.1110625 0.260858 1.6381931 0.26542473;
+	setAttr -s 16 ".uvtk[0:15]" -type "float2" 3.1110625 0.26085815 3.1110625 
+		0.26085815 1.6381931 0.26542473 0.26578763 -0.17619254 0.70455343 -0.16382457 1.6381931 
+		0.26542473 0.26578763 -0.17619248 0.70455343 -0.16382466 0.70455343 -0.16382466 0.26578766 
+		-0.17619248 1.6381931 0.26542473 3.1110625 0.260858 0.26578766 -0.17619254 0.70455343 
+		-0.16382457 3.1110625 0.260858 1.6381931 0.26542473;
 createNode aiStandard -n "aiStandard2";
 createNode shadingEngine -n "aiStandard2SG";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
 	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo2";
 createNode file -n "file2";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
 	setAttr ".ftn" -type "string" "./test/mudbox.<tile>.jpg";
 createNode place2dTexture -n "place2dTexture2";
+createNode materialInfo -n "pasted__materialInfo1";
+createNode shadingEngine -n "pasted__aiStandard1SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode aiStandard -n "pasted__aiStandard1";
+createNode file -n "pasted__file1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<udim>.jpg";
+createNode place2dTexture -n "pasted__place2dTexture1";
+createNode polyPlane -n "polyPlane2";
+	setAttr ".w" 4.9910908449713203;
+	setAttr ".h" 4.7951639057995674;
+	setAttr ".sw" 1;
+	setAttr ".sh" 1;
+	setAttr ".cuv" 2;
+createNode aiStandard -n "aiStandard3";
+createNode shadingEngine -n "aiStandard3SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr -s 4 ".dsm";
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo3";
+createNode file -n "file3";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<attr:myString>.jpg";
+createNode place2dTexture -n "place2dTexture3";
+createNode aiStandard -n "aiStandard4";
+createNode shadingEngine -n "aiStandard4SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo4";
+createNode file -n "file4";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+createNode place2dTexture -n "place2dTexture4";
+createNode materialInfo -n "pasted__materialInfo4";
+createNode shadingEngine -n "pasted__aiStandard4SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode aiStandard -n "pasted__aiStandard4";
+createNode file -n "pasted__file4";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+createNode place2dTexture -n "pasted__place2dTexture4";
+createNode materialInfo -n "pasted__materialInfo5";
+createNode shadingEngine -n "pasted__aiStandard4SG1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode aiStandard -n "pasted__aiStandard5";
+createNode file -n "pasted__file5";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+createNode place2dTexture -n "pasted__place2dTexture5";
+createNode materialInfo -n "pasted__materialInfo6";
+createNode shadingEngine -n "pasted__aiStandard4SG2";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode aiStandard -n "pasted__aiStandard6";
+createNode file -n "pasted__file6";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+createNode place2dTexture -n "pasted__place2dTexture6";
+createNode aiStandard -n "aiStandard5";
+createNode shadingEngine -n "aiStandard5SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr -s 2 ".dsm";
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo5";
+createNode file -n "file5";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	addAttr -ci true -sn "ai_filter" -ln "aiFilter" -dv 3 -min 0 -max 3 -en "closest:bilinear:bicubic:smart_bicubic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
+		1 -at "bool";
+	setAttr ".ftn" -type "string" "./test/mari.<shapePath>.jpg";
+createNode place2dTexture -n "place2dTexture5";
 select -ne :time1;
 	setAttr -av -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -512,13 +1206,15 @@ select -ne :renderPartition;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 4 ".st";
+	setAttr -s 11 ".st";
 	setAttr -cb on ".an";
 	setAttr -cb on ".pt";
 select -ne :initialShadingGroup;
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
 	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	setAttr -k on ".cch";
 	setAttr -cb on ".ihi";
 	setAttr -av -k on ".nds";
@@ -541,9 +1237,11 @@ select -ne :initialShadingGroup;
 	setAttr -cb on ".micw";
 	setAttr -cb on ".mirw";
 select -ne :initialParticleSE;
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
 	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	setAttr -k on ".cch";
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
@@ -570,9 +1268,9 @@ select -ne :defaultShaderList1;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 4 ".s";
+	setAttr -s 11 ".s";
 select -ne :defaultTextureList1;
-	setAttr -s 2 ".tx";
+	setAttr -s 9 ".tx";
 select -ne :lightList1;
 select -ne :postProcessList1;
 	setAttr -k on ".cch";
@@ -581,7 +1279,7 @@ select -ne :postProcessList1;
 	setAttr -cb on ".bnm";
 	setAttr -s 2 ".p";
 select -ne :defaultRenderUtilityList1;
-	setAttr -s 2 ".u";
+	setAttr -s 9 ".u";
 select -ne :renderGlobalsList1;
 	setAttr -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -692,6 +1390,8 @@ select -ne :defaultResolution;
 	setAttr -k on ".isu";
 	setAttr -k on ".pdu";
 select -ne :defaultLightSet;
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -k true -sn "ai_override" -ln "aiOverride" -min 0 -max 1 -at "bool";
 	setAttr -k on ".cch";
 	setAttr -k on ".ihi";
 	setAttr -k on ".nds";
@@ -705,6 +1405,8 @@ select -ne :defaultLightSet;
 	setAttr -k on ".epo";
 	setAttr ".ro" yes;
 select -ne :defaultObjectSet;
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -k true -sn "ai_override" -ln "aiOverride" -min 0 -max 1 -at "bool";
 	setAttr ".ro" yes;
 select -ne :hardwareRenderGlobals;
 	setAttr ".ctrs" 256;
@@ -748,14 +1450,29 @@ select -ne :defaultHardwareRenderGlobals;
 	setAttr -cb on ".sd";
 connectAttr "polyTweakUV2.out" "pPlaneShape1.i";
 connectAttr "polyTweakUV2.uvtk[0]" "pPlaneShape1.uvst[0].uvtw";
+connectAttr "polyPlane2.out" "pPlaneShape3.i";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "pasted__aiStandard1SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard3SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard4SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "pasted__aiStandard4SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "pasted__aiStandard4SG1.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "pasted__aiStandard4SG2.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard5SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "pasted__aiStandard1SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard3SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard4SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "pasted__aiStandard4SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "pasted__aiStandard4SG1.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "pasted__aiStandard4SG2.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard5SG.message" ":defaultLightSet.message";
 connectAttr "layerManager.dli[0]" "defaultLayer.id";
 connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
@@ -813,14 +1530,211 @@ connectAttr "place2dTexture2.vt3" "file2.vt3";
 connectAttr "place2dTexture2.vc1" "file2.vc1";
 connectAttr "place2dTexture2.o" "file2.uv";
 connectAttr "place2dTexture2.ofs" "file2.fs";
+connectAttr "pasted__aiStandard1SG.msg" "pasted__materialInfo1.sg";
+connectAttr "pasted__aiStandard1.msg" "pasted__materialInfo1.m";
+connectAttr "pasted__aiStandard1.msg" "pasted__materialInfo1.t" -na;
+connectAttr "pasted__aiStandard1.out" "pasted__aiStandard1SG.ss";
+connectAttr "pasted__file1.oc" "pasted__aiStandard1.Kd_color";
+connectAttr "pasted__place2dTexture1.c" "pasted__file1.c";
+connectAttr "pasted__place2dTexture1.tf" "pasted__file1.tf";
+connectAttr "pasted__place2dTexture1.rf" "pasted__file1.rf";
+connectAttr "pasted__place2dTexture1.mu" "pasted__file1.mu";
+connectAttr "pasted__place2dTexture1.mv" "pasted__file1.mv";
+connectAttr "pasted__place2dTexture1.s" "pasted__file1.s";
+connectAttr "pasted__place2dTexture1.wu" "pasted__file1.wu";
+connectAttr "pasted__place2dTexture1.wv" "pasted__file1.wv";
+connectAttr "pasted__place2dTexture1.re" "pasted__file1.re";
+connectAttr "pasted__place2dTexture1.of" "pasted__file1.of";
+connectAttr "pasted__place2dTexture1.r" "pasted__file1.ro";
+connectAttr "pasted__place2dTexture1.n" "pasted__file1.n";
+connectAttr "pasted__place2dTexture1.vt1" "pasted__file1.vt1";
+connectAttr "pasted__place2dTexture1.vt2" "pasted__file1.vt2";
+connectAttr "pasted__place2dTexture1.vt3" "pasted__file1.vt3";
+connectAttr "pasted__place2dTexture1.vc1" "pasted__file1.vc1";
+connectAttr "pasted__place2dTexture1.o" "pasted__file1.uv";
+connectAttr "pasted__place2dTexture1.ofs" "pasted__file1.fs";
+connectAttr "file3.oc" "aiStandard3.Kd_color";
+connectAttr "aiStandard3.out" "aiStandard3SG.ss";
+connectAttr "pPlaneShape3.iog" "aiStandard3SG.dsm" -na;
+connectAttr "pPlaneShape4.iog" "aiStandard3SG.dsm" -na;
+connectAttr "pPlaneShape5.iog" "aiStandard3SG.dsm" -na;
+connectAttr "pPlaneShape6.iog" "aiStandard3SG.dsm" -na;
+connectAttr "aiStandard3SG.msg" "materialInfo3.sg";
+connectAttr "aiStandard3.msg" "materialInfo3.m";
+connectAttr "aiStandard3.msg" "materialInfo3.t" -na;
+connectAttr "place2dTexture3.c" "file3.c";
+connectAttr "place2dTexture3.tf" "file3.tf";
+connectAttr "place2dTexture3.rf" "file3.rf";
+connectAttr "place2dTexture3.mu" "file3.mu";
+connectAttr "place2dTexture3.mv" "file3.mv";
+connectAttr "place2dTexture3.s" "file3.s";
+connectAttr "place2dTexture3.wu" "file3.wu";
+connectAttr "place2dTexture3.wv" "file3.wv";
+connectAttr "place2dTexture3.re" "file3.re";
+connectAttr "place2dTexture3.of" "file3.of";
+connectAttr "place2dTexture3.r" "file3.ro";
+connectAttr "place2dTexture3.n" "file3.n";
+connectAttr "place2dTexture3.vt1" "file3.vt1";
+connectAttr "place2dTexture3.vt2" "file3.vt2";
+connectAttr "place2dTexture3.vt3" "file3.vt3";
+connectAttr "place2dTexture3.vc1" "file3.vc1";
+connectAttr "place2dTexture3.o" "file3.uv";
+connectAttr "place2dTexture3.ofs" "file3.fs";
+connectAttr "file4.oc" "aiStandard4.Kd_color";
+connectAttr "aiStandard4.out" "aiStandard4SG.ss";
+connectAttr "pPlaneShape1001.iog" "aiStandard4SG.dsm" -na;
+connectAttr "aiStandard4SG.msg" "materialInfo4.sg";
+connectAttr "aiStandard4.msg" "materialInfo4.m";
+connectAttr "aiStandard4.msg" "materialInfo4.t" -na;
+connectAttr "place2dTexture4.c" "file4.c";
+connectAttr "place2dTexture4.tf" "file4.tf";
+connectAttr "place2dTexture4.rf" "file4.rf";
+connectAttr "place2dTexture4.mu" "file4.mu";
+connectAttr "place2dTexture4.mv" "file4.mv";
+connectAttr "place2dTexture4.s" "file4.s";
+connectAttr "place2dTexture4.wu" "file4.wu";
+connectAttr "place2dTexture4.wv" "file4.wv";
+connectAttr "place2dTexture4.re" "file4.re";
+connectAttr "place2dTexture4.of" "file4.of";
+connectAttr "place2dTexture4.r" "file4.ro";
+connectAttr "place2dTexture4.n" "file4.n";
+connectAttr "place2dTexture4.vt1" "file4.vt1";
+connectAttr "place2dTexture4.vt2" "file4.vt2";
+connectAttr "place2dTexture4.vt3" "file4.vt3";
+connectAttr "place2dTexture4.vc1" "file4.vc1";
+connectAttr "place2dTexture4.o" "file4.uv";
+connectAttr "place2dTexture4.ofs" "file4.fs";
+connectAttr "pasted__aiStandard4SG.msg" "pasted__materialInfo4.sg";
+connectAttr "pasted__aiStandard4.msg" "pasted__materialInfo4.m";
+connectAttr "pasted__aiStandard4.msg" "pasted__materialInfo4.t" -na;
+connectAttr "pasted__aiStandard4.out" "pasted__aiStandard4SG.ss";
+connectAttr "pPlaneShape1002.iog" "pasted__aiStandard4SG.dsm" -na;
+connectAttr "pasted__file4.oc" "pasted__aiStandard4.Kd_color";
+connectAttr "pasted__place2dTexture4.c" "pasted__file4.c";
+connectAttr "pasted__place2dTexture4.tf" "pasted__file4.tf";
+connectAttr "pasted__place2dTexture4.rf" "pasted__file4.rf";
+connectAttr "pasted__place2dTexture4.mu" "pasted__file4.mu";
+connectAttr "pasted__place2dTexture4.mv" "pasted__file4.mv";
+connectAttr "pasted__place2dTexture4.s" "pasted__file4.s";
+connectAttr "pasted__place2dTexture4.wu" "pasted__file4.wu";
+connectAttr "pasted__place2dTexture4.wv" "pasted__file4.wv";
+connectAttr "pasted__place2dTexture4.re" "pasted__file4.re";
+connectAttr "pasted__place2dTexture4.of" "pasted__file4.of";
+connectAttr "pasted__place2dTexture4.r" "pasted__file4.ro";
+connectAttr "pasted__place2dTexture4.n" "pasted__file4.n";
+connectAttr "pasted__place2dTexture4.vt1" "pasted__file4.vt1";
+connectAttr "pasted__place2dTexture4.vt2" "pasted__file4.vt2";
+connectAttr "pasted__place2dTexture4.vt3" "pasted__file4.vt3";
+connectAttr "pasted__place2dTexture4.vc1" "pasted__file4.vc1";
+connectAttr "pasted__place2dTexture4.o" "pasted__file4.uv";
+connectAttr "pasted__place2dTexture4.ofs" "pasted__file4.fs";
+connectAttr "pasted__aiStandard4SG1.msg" "pasted__materialInfo5.sg";
+connectAttr "pasted__aiStandard5.msg" "pasted__materialInfo5.m";
+connectAttr "pasted__aiStandard5.msg" "pasted__materialInfo5.t" -na;
+connectAttr "pasted__aiStandard5.out" "pasted__aiStandard4SG1.ss";
+connectAttr "pasted__file5.oc" "pasted__aiStandard5.Kd_color";
+connectAttr "pasted__place2dTexture5.c" "pasted__file5.c";
+connectAttr "pasted__place2dTexture5.tf" "pasted__file5.tf";
+connectAttr "pasted__place2dTexture5.rf" "pasted__file5.rf";
+connectAttr "pasted__place2dTexture5.mu" "pasted__file5.mu";
+connectAttr "pasted__place2dTexture5.mv" "pasted__file5.mv";
+connectAttr "pasted__place2dTexture5.s" "pasted__file5.s";
+connectAttr "pasted__place2dTexture5.wu" "pasted__file5.wu";
+connectAttr "pasted__place2dTexture5.wv" "pasted__file5.wv";
+connectAttr "pasted__place2dTexture5.re" "pasted__file5.re";
+connectAttr "pasted__place2dTexture5.of" "pasted__file5.of";
+connectAttr "pasted__place2dTexture5.r" "pasted__file5.ro";
+connectAttr "pasted__place2dTexture5.n" "pasted__file5.n";
+connectAttr "pasted__place2dTexture5.vt1" "pasted__file5.vt1";
+connectAttr "pasted__place2dTexture5.vt2" "pasted__file5.vt2";
+connectAttr "pasted__place2dTexture5.vt3" "pasted__file5.vt3";
+connectAttr "pasted__place2dTexture5.vc1" "pasted__file5.vc1";
+connectAttr "pasted__place2dTexture5.o" "pasted__file5.uv";
+connectAttr "pasted__place2dTexture5.ofs" "pasted__file5.fs";
+connectAttr "pasted__aiStandard4SG2.msg" "pasted__materialInfo6.sg";
+connectAttr "pasted__aiStandard6.msg" "pasted__materialInfo6.m";
+connectAttr "pasted__aiStandard6.msg" "pasted__materialInfo6.t" -na;
+connectAttr "pasted__aiStandard6.out" "pasted__aiStandard4SG2.ss";
+connectAttr "pasted__file6.oc" "pasted__aiStandard6.Kd_color";
+connectAttr "pasted__place2dTexture6.c" "pasted__file6.c";
+connectAttr "pasted__place2dTexture6.tf" "pasted__file6.tf";
+connectAttr "pasted__place2dTexture6.rf" "pasted__file6.rf";
+connectAttr "pasted__place2dTexture6.mu" "pasted__file6.mu";
+connectAttr "pasted__place2dTexture6.mv" "pasted__file6.mv";
+connectAttr "pasted__place2dTexture6.s" "pasted__file6.s";
+connectAttr "pasted__place2dTexture6.wu" "pasted__file6.wu";
+connectAttr "pasted__place2dTexture6.wv" "pasted__file6.wv";
+connectAttr "pasted__place2dTexture6.re" "pasted__file6.re";
+connectAttr "pasted__place2dTexture6.of" "pasted__file6.of";
+connectAttr "pasted__place2dTexture6.r" "pasted__file6.ro";
+connectAttr "pasted__place2dTexture6.n" "pasted__file6.n";
+connectAttr "pasted__place2dTexture6.vt1" "pasted__file6.vt1";
+connectAttr "pasted__place2dTexture6.vt2" "pasted__file6.vt2";
+connectAttr "pasted__place2dTexture6.vt3" "pasted__file6.vt3";
+connectAttr "pasted__place2dTexture6.vc1" "pasted__file6.vc1";
+connectAttr "pasted__place2dTexture6.o" "pasted__file6.uv";
+connectAttr "pasted__place2dTexture6.ofs" "pasted__file6.fs";
+connectAttr "file5.oc" "aiStandard5.Kd_color";
+connectAttr "aiStandard5.out" "aiStandard5SG.ss";
+connectAttr "|group3|pPlane7|pPlaneShape1003.iog" "aiStandard5SG.dsm" -na;
+connectAttr "|group2|pPlane7|pPlaneShape1003.iog" "aiStandard5SG.dsm" -na;
+connectAttr "aiStandard5SG.msg" "materialInfo5.sg";
+connectAttr "aiStandard5.msg" "materialInfo5.m";
+connectAttr "aiStandard5.msg" "materialInfo5.t" -na;
+connectAttr "place2dTexture5.c" "file5.c";
+connectAttr "place2dTexture5.tf" "file5.tf";
+connectAttr "place2dTexture5.rf" "file5.rf";
+connectAttr "place2dTexture5.mu" "file5.mu";
+connectAttr "place2dTexture5.mv" "file5.mv";
+connectAttr "place2dTexture5.s" "file5.s";
+connectAttr "place2dTexture5.wu" "file5.wu";
+connectAttr "place2dTexture5.wv" "file5.wv";
+connectAttr "place2dTexture5.re" "file5.re";
+connectAttr "place2dTexture5.of" "file5.of";
+connectAttr "place2dTexture5.r" "file5.ro";
+connectAttr "place2dTexture5.n" "file5.n";
+connectAttr "place2dTexture5.vt1" "file5.vt1";
+connectAttr "place2dTexture5.vt2" "file5.vt2";
+connectAttr "place2dTexture5.vt3" "file5.vt3";
+connectAttr "place2dTexture5.vc1" "file5.vc1";
+connectAttr "place2dTexture5.o" "file5.uv";
+connectAttr "place2dTexture5.ofs" "file5.fs";
 connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard2SG.pa" ":renderPartition.st" -na;
+connectAttr "pasted__aiStandard1SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard3SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard4SG.pa" ":renderPartition.st" -na;
+connectAttr "pasted__aiStandard4SG.pa" ":renderPartition.st" -na;
+connectAttr "pasted__aiStandard4SG1.pa" ":renderPartition.st" -na;
+connectAttr "pasted__aiStandard4SG2.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard5SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard1.msg" ":defaultShaderList1.s" -na;
 connectAttr "aiStandard2.msg" ":defaultShaderList1.s" -na;
+connectAttr "pasted__aiStandard1.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard3.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard4.msg" ":defaultShaderList1.s" -na;
+connectAttr "pasted__aiStandard4.msg" ":defaultShaderList1.s" -na;
+connectAttr "pasted__aiStandard5.msg" ":defaultShaderList1.s" -na;
+connectAttr "pasted__aiStandard6.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard5.msg" ":defaultShaderList1.s" -na;
 connectAttr "file1.msg" ":defaultTextureList1.tx" -na;
 connectAttr "file2.msg" ":defaultTextureList1.tx" -na;
+connectAttr "pasted__file1.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file3.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file4.msg" ":defaultTextureList1.tx" -na;
+connectAttr "pasted__file4.msg" ":defaultTextureList1.tx" -na;
+connectAttr "pasted__file5.msg" ":defaultTextureList1.tx" -na;
+connectAttr "pasted__file6.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file5.msg" ":defaultTextureList1.tx" -na;
 connectAttr "directionalLightShape1.ltd" ":lightList1.l" -na;
 connectAttr "place2dTexture1.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "place2dTexture2.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "pasted__place2dTexture1.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture3.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture4.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "pasted__place2dTexture4.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "pasted__place2dTexture5.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "pasted__place2dTexture6.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture5.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "directionalLight1.iog" ":defaultLightSet.dsm" -na;
 // End of test.ma

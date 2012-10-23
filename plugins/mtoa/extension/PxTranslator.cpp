@@ -4,6 +4,7 @@
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "translators/shader/ShaderTranslator.h"
 #include "translators/driver/DriverTranslator.h"
+#include "translators/filter/FilterTranslator.h"
 
 // A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -72,8 +73,8 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "filter")
       {
-         creator = CDriverTranslator::creator;
-         initialize = CDriverTranslator::NodeInitializer;
+         creator = CFilterTranslator::creator;
+         initialize = CFilterTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

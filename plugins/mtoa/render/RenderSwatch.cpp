@@ -81,11 +81,6 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
          {
             m_swatchClass = SWATCH_SHADER;
          }
-         else if (classes[j] == "displacement")
-         {
-            m_swatchClass = SWATCH_DISPLACEMENT;
-            break;
-         }
          else if (classes[j] == "environment")
          {
             m_swatchClass = SWATCH_ENVIRONMENT;
@@ -238,16 +233,8 @@ MStatus CRenderSwatchGenerator::DefaultArnoldScene()
       if (NULL != geometry)
       {
          AiNodeSetStr(geometry, "name", "geometry");
-         if (typeName == "aiDisplacement")
-         {
-            AiNodeSetInt(geometry, "subdiv_iterations", 3);
-            AiNodeSetBool(geometry, "opaque", true);
-         }
-         else
-         {
-            AiNodeSetInt(geometry, "subdiv_iterations", 1);
-            AiNodeSetBool(geometry, "opaque", false);
-         }
+         AiNodeSetInt(geometry, "subdiv_iterations", 1);
+         AiNodeSetBool(geometry, "opaque", false);
          return MStatus::kSuccess;
       }
    }
@@ -262,59 +249,40 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    MObject mayaNode = swatchNode();
    CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
-   // FIXME: Special case for displacement
-   if (m_swatchClass == SWATCH_DISPLACEMENT)
+   if (mayaNode.hasFn(MFn::kDagNode))
    {
-      arnoldNode = NULL;
-      // Get file translator in that case
-      // Commented as later translator redesigns will break it
-      translator = CExtensionsManager::GetTranslator("aiStandard");
-      if (NULL != translator)
+      MDagPath dagPath;
+      MDagPath::getAPathTo(mayaNode, dagPath);
+      CDagTranslator* dagTranslator = CExtensionsManager::GetTranslator(dagPath);
+      if (NULL != dagTranslator)
       {
-         status = MStatus::kSuccess;
+         translator = (CNodeTranslator*) dagTranslator;
       }
       else
       {
-         status = MStatus::kFailure;
+         translator = CExtensionsManager::GetTranslator(mayaNode);
+         dagTranslator = (CDagTranslator*) translator;
       }
+      if (NULL != dagTranslator)
+      {
+         dagTranslator->Init(exportSession, dagPath, "");
+         arnoldNode = dagTranslator->DoExport(0);
+      }
+   } else {
+      translator = CExtensionsManager::GetTranslator(mayaNode);
+      if (NULL != translator)
+      {
+         translator->Init(exportSession, mayaNode, "");
+         arnoldNode = translator->DoExport(0);
+      }
+   }
+   if (NULL != arnoldNode)
+   {
+      status = MStatus::kSuccess;
    }
    else
    {
-      if (mayaNode.hasFn(MFn::kDagNode))
-      {
-         MDagPath dagPath;
-         MDagPath::getAPathTo(mayaNode, dagPath);
-         CDagTranslator* dagTranslator = CExtensionsManager::GetTranslator(dagPath);
-         if (NULL != dagTranslator)
-         {
-            translator = (CNodeTranslator*) dagTranslator;
-         }
-         else
-         {
-            translator = CExtensionsManager::GetTranslator(mayaNode);
-            dagTranslator = (CDagTranslator*) translator;
-         }
-         if (NULL != dagTranslator)
-         {
-            dagTranslator->Init(exportSession, dagPath, "");
-            arnoldNode = dagTranslator->DoExport(0);
-         }
-      } else {
-         translator = CExtensionsManager::GetTranslator(mayaNode);
-         if (NULL != translator)
-         {
-            translator->Init(exportSession, mayaNode, "");
-            arnoldNode = translator->DoExport(0);
-         }
-      }
-      if (NULL != arnoldNode)
-      {
-         status = MStatus::kSuccess;
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
+      status = MStatus::kFailure;
    }
 
    return status;
@@ -324,7 +292,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-   CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
    // Assign what needs to be on geometry
 
@@ -340,46 +307,6 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       AiNodeSetFlt(defaultShader, "Ks", 0.35f);
       AiNodeSetBool(defaultShader, "reflection_exit_use_environment", true);
       AiNodeSetPtr(geometry, "shader", defaultShader);
-   }
-
-   // Export displacement map if required
-   if (m_swatchClass == SWATCH_DISPLACEMENT)
-   {
-      AiNodeSetFlt(geometry, "disp_height", depFn.findPlug("disp_height").asFloat());
-      AiNodeSetFlt(geometry, "disp_padding", depFn.findPlug("disp_padding").asFloat());
-      AiNodeSetFlt(geometry, "disp_zero_value", depFn.findPlug("disp_zero_value").asFloat());
-      AiNodeSetBool(geometry, "disp_autobump", depFn.findPlug("disp_autobump").asBool());
-
-      MPlugArray connections;
-      connections.clear();
-      depFn.findPlug("disp_map").connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         MString attrName = connections[0].partialName(false, false, false, false, false, true);
-         AtNode* dispImage(exportSession->ExportNode(connections[0])->GetArnoldRootNode());
-         if (dispImage != NULL)
-         {
-            // FIXME : why request a non networked plug?
-            MPlug pVectorDisp = depFn.findPlug("vector_displacement",false );
-            if (!pVectorDisp.isNull() && pVectorDisp.asBool())
-            {
-               MPlug pVectorDispScale = depFn.findPlug("vector_displacement_scale", false);
-               AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               char nodeName[MAX_NAME_SIZE];
-               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
-               translator->ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
-               AiNodeLink(dispImage, "map", tangentToObject);
-               AiNodeSetPtr(geometry, "disp_map", tangentToObject);
-            }
-            else
-            {
-               AiNodeSetPtr(geometry, "disp_map", dispImage);
-            }
-         } else {
-            ErrorSwatch("Could not export displacement map on \"" + depFn.name() + "\".");
-            return MStatus::kFailure;
-         }
-      }
    }
 
    // If we are swatching a light or light filter
@@ -523,7 +450,7 @@ bool CRenderSwatchGenerator::doIteration()
       return true;
    }
 
-   if (m_iteration == 0)
+
    {
       // No need to start a new swatch iteration process if option is off
       MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
@@ -559,9 +486,29 @@ bool CRenderSwatchGenerator::doIteration()
          status = BuildArnoldScene();
          if (MStatus::kSuccess == status)
          {
-            // Set iteration to 1 and return to be called again
-            m_iteration = 1;
-            return false;
+            // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
+            // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
+            AiMsgWarning("[mtoa.swatch] %-30s | Rendering", MFnDependencyNode(swatchNode()).name().asChar());
+
+            image().create(resolution(),
+                           resolution(),
+                         4,                               // RGBA
+                         MImage::kFloat);                // Has to be for swatches it seems.
+
+            CMayaScene::GetRenderSession()->DoSwatchRender(image(), resolution());
+#ifndef NDEBUG
+            // Catch this as it would lead to a Maya UI crash
+            // with no proper stack info on what caused it
+            unsigned int iWidth, iHeight;
+            image().getSize(iWidth, iHeight);
+            assert(resolution() == iWidth);
+            assert(resolution() == iHeight);
+            assert(MImage::kFloat == image().pixelType());
+#endif
+            image().convertPixelFormat(MImage::kByte);
+            // Stop being called/iterated.
+            CMayaScene::End();
+            return true;
          }
          else
          {
@@ -577,88 +524,8 @@ bool CRenderSwatchGenerator::doIteration()
          return true;
       }
    }
-   else if (m_iteration == 1)
-   {
-      // Scene/ass is built, so start the render.
-      if (CMayaScene::IsActive())
-      {
-         // Arnold is rendering, so bail out. Return false to be called again.
-         // This is how we manage to render many swatches "at the same time".
-         // We don't want to end the current session there
-         if (AiRendering())
-         {
-             // Restart if it's another swatch already rendering, abort else.
-            if (CMayaScene::GetSessionMode() == MTOA_SESSION_SWATCH)
-            {
-               m_iteration = 0;
-               return false;
-            }
-            else
-            {
-               return true;
-            }
-         }
-         else
-         {
-            // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
-            // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
-            CMayaScene::GetRenderSession()->DoSwatchRender(resolution());
-            m_iteration = 2;
-            return false;
-         }
-      }
-      else
-      {
-         ErrorSwatch("Render cannot be started, CMayaScene (and probably Arnold universe) not active.");
-         // Stop iterating/rendering.
-         CMayaScene::End();
-         return true; 
-      }
-   }
-   else
-   {
-      // We must be done rendering.
-      if (CMayaScene::IsActive())
-      {
-         // Abort if it's not a swatch render, if is it should
-         // be this swatch since another cannot start while one is active
-         if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH)
-         {
-            return true;
-         }
-         bool success = CMayaScene::GetRenderSession()->GetSwatchImage(image());
-         if (success)
-         {
-#ifndef NDEBUG
-            // Catch this as it would lead to a Maya UI crash
-            // with no proper stack info on what caused it
-            unsigned int iWidth, iHeight;
-            image().getSize(iWidth, iHeight);
-            assert(resolution() == iWidth);
-            assert(resolution() == iHeight);
-            assert(MImage::kFloat == image().pixelType());
-#endif
-            image().convertPixelFormat(MImage::kByte, 1.0f/255);
-            // Stop being called/iterated.
-            CMayaScene::End();
-            return true;
-         }
-         else
-         {
-            // Start again as it didn't complete.
-            CMayaScene::End();
-            m_iteration = 0;
-            return false;     
-         }
-      }
-      else
-      {
-         ErrorSwatch("Cannot get image, CMayaScene (and probably Arnold universe) not active.");
-         // Stop iterating/rendering.
-         CMayaScene::End();
-         return true; 
-      }
-   }
+   // we'll never get here
+   return true;
 }
 
 // This will create a polygon sphere for swatching

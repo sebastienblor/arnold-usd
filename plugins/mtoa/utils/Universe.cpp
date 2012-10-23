@@ -34,7 +34,7 @@ void InstallNodes()
       AiNodeEntryInstall(AI_NODE_DRIVER,
                          AI_TYPE_NONE,
                          "renderview_display",
-                         NULL,
+                         "mtoa",
                          (AtNodeMethods*) mtoa_driver_mtd,
                          AI_VERSION);
    }

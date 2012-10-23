@@ -123,7 +123,7 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
-   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0')))
+   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0', '10.0Exp')))
 
 if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
@@ -260,6 +260,7 @@ if env['COMPILER'] == 'gcc':
 
 elif env['COMPILER'] == 'msvc':
    MSVC_FLAGS  = " /W3"         # Warning level : 3
+   MSVC_FLAGS += " /wd 4005"
    MSVC_FLAGS += " /EHsc"       # enable synchronous C++ exception handling model & 
                                 # assume extern "C" functions do not throw exceptions
    MSVC_FLAGS += " /Gd"         # makes __cdecl the default calling convention 
@@ -741,7 +742,7 @@ for p in arpybds:
 for p in apiheaders:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
-      [os.path.join(TARGET_INCLUDE_PATH, p), os.path.join('include', d)]
+      [os.path.join('plugins', 'mtoa', p), os.path.join('include', d)]
    ]
    
 for e in ext_files:

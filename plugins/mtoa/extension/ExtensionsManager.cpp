@@ -748,10 +748,8 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
       if (NULL == foundTrs)
       {
-         searchTrs.name = "";
-         foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
          AiMsgWarning("[mtoa.extensions]  %s Found no translator named \"%s\"",
-               mayaNode.name.asChar(), translatorName.asChar(), foundTrs->name.asChar());
+               mayaNode.name.asChar(), translatorName.asChar());
          return NULL;
       }
    }

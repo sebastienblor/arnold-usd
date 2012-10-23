@@ -51,18 +51,17 @@ def manageCallback(callbackId):
 
 def _makeNodeAddedCB(nodeType):
     def nodeAddedCB(obj, *args):
-        node = pm.nt.DependNode(obj)
         # nodeAdded callback includes sub-types, but we want exact type only
-        if node.type() != nodeType:
+        mfn = pm.api.MFnDependencyNode(obj)
+        if mfn.typeName() != nodeType:
             return
         global _nodeAddedCallbacks
         for func, apiArgs in _nodeAddedCallbacks[nodeType]:
             if apiArgs:
                 func(obj)
             else:
+                node = pm.nt.DependNode(obj)
                 func(node)
-    if pm.mel.getApplicationVersionAsFloat() > 2011 and not pm.about(batch=True):
-        pm._factories.addMayaType(nodeType)
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB

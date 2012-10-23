@@ -5,7 +5,7 @@ from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 
 def LoadStandInButtonPush(nodeName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
     if ret is not None and len(ret):
         ArnoldStandInDsoEdit(nodeName, ret[0])

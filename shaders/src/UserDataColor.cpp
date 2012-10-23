@@ -10,7 +10,8 @@ namespace
 
 enum UserDataColorParams
 {
-   p_colorAttrName
+   p_colorAttrName,
+   p_defaultValue
 };
 }
 
@@ -22,6 +23,7 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("colorAttrName", "");
+   AiParameterRGB("defaultValue", 0.f, 0.f, 0.f);
 }
 
 node_initialize
@@ -59,7 +61,7 @@ shader_evaluate
       }
       else
       {
-         sg->out.RGB = AI_RGB_BLACK;
+         sg->out.RGB = AiShaderEvalParamRGB(p_defaultValue);
       }
    }
    else
@@ -90,7 +92,7 @@ shader_evaluate
       }
       else
       {
-         sg->out.RGB = AI_RGB_BLACK;
+         sg->out.RGB = AiShaderEvalParamRGB(p_defaultValue);
       }
    }
 }

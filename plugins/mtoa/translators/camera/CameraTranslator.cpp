@@ -416,6 +416,14 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
       AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
    }
+   else
+   {
+      AiNodeSetFlt(camera, "focus_distance", 1.f);
+      AiNodeSetFlt(camera, "aperture_size", 0.f);
+      AiNodeSetInt(camera, "aperture_blades", 0);
+      AiNodeSetFlt(camera, "aperture_rotation", 0.f);
+      AiNodeSetFlt(camera, "aperture_blade_curvature", 0.f);
+   }
 }
 
 void CCameraTranslator::ExportCameraData(AtNode* camera)

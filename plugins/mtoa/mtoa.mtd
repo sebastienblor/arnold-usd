@@ -33,10 +33,6 @@
         softmax             INT     10
         default             INT     3
         maya.orig_shortname STRING  "AAsmpls"
-    [attr bucket_scanning]
-        maya.keyable        BOOL    False
-        maya.orig_shortname STRING  "bktsc"
-        default             INT     6  # Spiral
     [attr bucket_size]
         maya.keyable        BOOL    False
         min                 INT     16
@@ -637,7 +633,6 @@
     maya.output_shortname   STRING  "out"
     [attr IOR]
         min                 FLOAT   0.0
-        max                 FLOAT   10.0
         softmax             FLOAT   3.0
     [attr Kb]
         min                 FLOAT   0.0
