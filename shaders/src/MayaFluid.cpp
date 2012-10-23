@@ -424,6 +424,21 @@ shader_evaluate
    const AtRGB color = GetValue(data, lPt, data->colorGradient);
    const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
    
-   sg->Vo = (color + incandescence) * opacity;
+   const AtPoint oldP = sg->P;
+   const bool oldFHemi = sg->fhemi;
+   
+   sg->P = sg->Ro + sg->Rd * (float)sg->Rl * 0.5f;
+   sg->fhemi = false;
+   
+   AiLightsPrepare(sg);
+   AtRGB shading = AI_RGB_BLACK;
+   while (AiLightsGetSample(sg))
+      shading += sg->Li * sg->we / (4.f * (float)AI_PI);
+
+   
+   sg->P = oldP;
+   sg->fhemi = oldFHemi;
+   
+   sg->Vo = (color * shading + incandescence) * opacity;
    sg->out.RGB = sg->Ci * (1.f - opacity) + sg->Vo;   
 }
