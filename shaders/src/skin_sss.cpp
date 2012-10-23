@@ -173,7 +173,6 @@ void CSSSParams::CopyFrom(CInstanceData *iData, AtShaderGlobals *sg)
    sample_sss_only_in_glossy_rays = iData->Glossy_Switch.params[sg->tid].switcher;
    // Standard
    sss_weight = iData->Standard.params[sg->tid].Ksss;
-   radius_to_color = iData->Radius_To_Color.params[sg->tid].input;
 
    // Standard_Secondary_Specular
    secondary_reflection_color = iData->Standard_Secondary_Specular.params[sg->tid].Ks_color;
@@ -183,7 +182,7 @@ void CSSSParams::CopyFrom(CInstanceData *iData, AtShaderGlobals *sg)
 
    secondary_reflection_specular_weight = iData->Standard_Secondary_Specular.params[sg->tid].direct_specular;
    secondary_reflection_reflection_weight = iData->Standard_Secondary_Specular.params[sg->tid].indirect_specular;
-   secondary_spec_fresnel = iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel;
+   secondary_reflection_enable_fresnel_falloff = iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel;
    secondary_reflection_fresnel_coefficient = iData->Standard_Secondary_Specular.params[sg->tid].Ksn;
    // Standard_SSS_Shallow
    shallow_scatter_color = iData->Standard_SSS_Shallow.params[sg->tid].Ksss_color;
@@ -202,7 +201,7 @@ void CSSSParams::CopyFrom(CInstanceData *iData, AtShaderGlobals *sg)
    
    primary_reflection_specular_weight = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].direct_specular;
    primary_reflection_reflection_weight = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].indirect_specular;
-   primary_spec_fresnel = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel;
+   primary_reflection_enable_fresnel_falloff = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel;
    primary_reflection_fresnel_coefficient = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ksn;
    // Multiply_ShallowSSS
    shallow_scatter_weight = iData->Multiply_ShallowSSS.params[sg->tid].input1;
