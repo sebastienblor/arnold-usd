@@ -436,10 +436,8 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW) // only access the opacity here
    {
+      sg->Vo = AI_RGB_BLACK;
       sg->out.RGB = (1.f - opacity) * sg->Ci;
-      sg->out.RGB.r = MAX(0.f, sg->out.RGB.r);
-      sg->out.RGB.g = MAX(0.f, sg->out.RGB.g);
-      sg->out.RGB.b = MAX(0.f, sg->out.RGB.b);
       return;
    }
    
@@ -461,5 +459,5 @@ shader_evaluate
    sg->fhemi = oldFHemi;
    
    sg->Vo = (color * shading + incandescence) * opacity;
-   sg->out.RGB = sg->Ci + sg->Vo;   
+   sg->out.RGB = sg->Ci * (1.f - opacity) + sg->Vo;   
 }
