@@ -329,7 +329,7 @@ node_update
    // wasting time here, the string is read only, so thread safe.
    // Anyway, it's a one time only assignment, let's keep the param structure consistent
    // with all the other CNode types
-   for (int i=0; i<MAX_NB_THREADS; i++)
+   for (int i=0; i<AI_MAX_THREADS; i++)
    {
       strcpy(iData->Store_Secondary_Specular.params[i].channel, secondarySpecular);
       strcpy(iData->Store_Shallow_Scatter.params[i].channel,    shallowScatter);
