@@ -437,6 +437,9 @@ shader_evaluate
    if (sg->Rt & AI_RAY_SHADOW) // only access the opacity here
    {
       sg->out.RGB = (1.f - opacity) * sg->Ci;
+      sg->out.RGB.r = MAX(0.f, sg->out.RGB.r);
+      sg->out.RGB.g = MAX(0.f, sg->out.RGB.g);
+      sg->out.RGB.b = MAX(0.f, sg->out.RGB.b);
       return;
    }
    
