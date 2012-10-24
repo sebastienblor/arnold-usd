@@ -349,12 +349,31 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescript
            arrayDesc.data[c101] * pcx * npcy + arrayDesc.data[c011] * npcx * pcy) * pcz;   
 }
 
+inline float ApplyBias(const float& value, const float& bias)
+{
+   if (bias == 0.f)
+      return value;
+   else
+   {
+      const float b = bias < -.99f ? -.99f : bias;
+      const float x = value < 0.f ? 0.f : value;
+      
+      return powf(x, (b - 1.f) / (-b - 1.f));
+   }
+              
+   /*if (bias >= 0.f)
+      return LERP(bias, value, 1.f);
+   else
+      return LERP(-bias, value, 0.f);*/
+}
+
 template <typename T>
-T GetGradientValue(const GradientDescription<T>& gradient, const float& v)
+T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const float& bias = 0.f)
 {
    if (gradient.resolution == 0)
       return GetDefaultValue<T>();
-   float p = v * gradient.resolution;
+   const float _v = ApplyBias(v, bias);
+   float p = _v * gradient.resolution;
    float pf = floorf(p);
    int b = CLAMP((int)pf, 0, gradient.resolution - 1);
    int e = MIN(b + 1, gradient.resolution - 1);
@@ -381,25 +400,25 @@ T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gra
    switch (gradient.type)
    {
       case GT_CONSTANT:
-         return GetGradientValue(gradient, 1.f + gradient.inputBias);
+         return GetGradientValue(gradient, 1.f, gradient.inputBias);
       case GT_X_GRADIENT:
-         return GetGradientValue(gradient, 1.f - lPt.x + gradient.inputBias);
+         return GetGradientValue(gradient, 1.f - lPt.x, gradient.inputBias);
       case GT_Y_GRADIENT:
-         return GetGradientValue(gradient, 1.f - lPt.y + gradient.inputBias);
+         return GetGradientValue(gradient, 1.f - lPt.y, gradient.inputBias);
       case GT_Z_GRADIENT:
-         return GetGradientValue(gradient, 1.f - lPt.z + gradient.inputBias);
+         return GetGradientValue(gradient, 1.f - lPt.z, gradient.inputBias);
       case GT_CENTER_GRADIENT:
-         return GetGradientValue(gradient, 1.0f - AiV3Length(lPt - middlePoint) + gradient.inputBias);
+         return GetGradientValue(gradient, 1.0f - AiV3Length(lPt - middlePoint), gradient.inputBias);
       case GT_DENSITY:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density) + gradient.inputBias);
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density), gradient.inputBias);
       case GT_TEMPERATURE:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature) + gradient.inputBias);
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature), gradient.inputBias);
       case GT_FUEL:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel) + gradient.inputBias);
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel), gradient.inputBias);
       case GT_PRESSURE:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->pressure) + gradient.inputBias);
+         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->pressure), gradient.inputBias);
       case GT_SPEED:
-         return GetGradientValue(gradient, AiV3Length(GetFilteredValue(data, lPt, data->velocity)) + gradient.inputBias);
+         return GetGradientValue(gradient, AiV3Length(GetFilteredValue(data, lPt, data->velocity)), gradient.inputBias);
       default:
          return GetDefaultValue<T>();
    }
@@ -434,11 +453,10 @@ shader_evaluate
    AtRGB shading = AI_RGB_BLACK;
    while (AiLightsGetSample(sg))
       shading += sg->Li * sg->we / (4.f * (float)AI_PI);
-
    
    sg->P = oldP;
    sg->fhemi = oldFHemi;
    
    sg->Vo = (color * shading + incandescence) * opacity;
-   sg->out.RGB = sg->Ci * (1.f - opacity) + sg->Vo;   
+   sg->out.RGB = sg->Ci + sg->Vo;   
 }
