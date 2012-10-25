@@ -141,6 +141,7 @@ templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.addControl("aiStepSize", label="Step Size")
+        self.addControl("aiShadowDensity", label="Shadow Density")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")

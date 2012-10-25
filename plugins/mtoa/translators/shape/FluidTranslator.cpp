@@ -12,7 +12,12 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.FLT = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
-   helper.MakeInputFloat(data);   
+   helper.MakeInputFloat(data);
+   
+   data.defaultValue.FLT = 1.f;
+   data.name = "aiShadowDensity";
+   data.shortName = "ai_shadow_density";
+   helper.MakeInputFloat(data);
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -84,9 +89,15 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (!plug.isNull())
       stepSize = plug.asFloat();
    AiNodeSetFlt(fluid, "step_size", stepSize);
+   float shadowDensity = 1.f;
    
    AtNode* fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
    AiNodeSetPtr(fluid, "shader", fluid_shader);
+   
+   plug = mayaFluidNode.findPlug("aiShadowDensity");
+   if (!plug.isNull())
+      shadowDensity = plug.asFloat();
+   AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
    
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);

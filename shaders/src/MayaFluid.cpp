@@ -24,6 +24,7 @@ node_parameters
    AiParameterRGB("color", 1.f, 1.f, 1.f);
    
    AiParameterFlt("step_size", 0.1f);
+   AiParameterFlt("shadow_density", 1.f);
    
    AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
@@ -68,6 +69,9 @@ node_parameters
 
 enum MayaFluidParams{
    p_color=0,
+   
+   p_step_size,
+   p_shadow_density,
    
    p_xres,
    p_yres,
@@ -120,6 +124,7 @@ struct MayaFluidData{
    int xres, yres, zres;
    float xdim, ydim, zdim;
    float stepSize;
+   float shadowDensity;
    
    ArrayDescription<float> density;
    ArrayDescription<float> fuel;
@@ -245,6 +250,7 @@ node_update
    data->zres = AiNodeGetInt(node, "zres");
    
    data->stepSize = AiNodeGetFlt(node, "step_size");
+   data->shadowDensity = AiNodeGetFlt(node, "shadow_density");
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -431,15 +437,16 @@ shader_evaluate
    AtVector lRo;
    AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
-   
-   const float opacity = CLAMP(GetValue(data, lPt, data->opacityGradient) * (float)sg->Rl, 0.f, 1.f); 
-   
+      
    if (sg->Rt & AI_RAY_SHADOW) // only access the opacity here
    {
+      const float opacity = CLAMP(GetValue(data, lPt, data->opacityGradient) * (float)sg->Rl * data->shadowDensity, 0.f, 1.f); 
       sg->Vo = AI_RGB_BLACK;
       sg->out.RGB = (1.f - opacity) * sg->Ci;
       return;
    }
+   
+   const float opacity = CLAMP(GetValue(data, lPt, data->opacityGradient) * (float)sg->Rl, 0.f, 1.f); 
    
    const AtRGB color = GetValue(data, lPt, data->colorGradient);
    const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
