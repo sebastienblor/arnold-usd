@@ -3,28 +3,7 @@
 
 #include "CameraTranslator.h"
 
-
-class CPerspCameraTranslator
-      :   public CCameraTranslator
-{
-public:
-   virtual void Export(AtNode* camera);
-   virtual void ExportMotion(AtNode* camera, unsigned int step);
-   static void NodeInitializer(CAbTranslator context);
-   static void* creator()
-   {
-      return new CPerspCameraTranslator();
-   }
-   AtNode* CreateArnoldNodes();
-
-protected:
-   // return FOV
-   float ExportFilmback(AtNode* camera);
-};
-
-
-class COrthoCameraTranslator
-      :   public CCameraTranslator
+class CStandardCameraTranslator : public CCameraTranslator
 {
 public:
    void Export(AtNode* camera);
@@ -32,13 +11,20 @@ public:
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
-      return new COrthoCameraTranslator();
+      return new CStandardCameraTranslator();
    }
    AtNode* CreateArnoldNodes();
-
+   
 protected:
-   void ExportFilmback(AtNode* camera);
-};
+   bool IsOrtho();
+   
+   void ExportOrtho(AtNode* camera);
+   void ExportPersp(AtNode* camera);
+   void ExportMotionOrtho(AtNode* camera, unsigned int step);
+   void ExportMotionPersp(AtNode* camera, unsigned int step);
+   void ExportFilmbackOrtho(AtNode* camera);
+   float ExportFilmbackPersp(AtNode* camera);
+};      
 
 class CFishEyeCameraTranslator
       :   public CCameraTranslator
