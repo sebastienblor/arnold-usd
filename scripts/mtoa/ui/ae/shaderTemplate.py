@@ -55,8 +55,10 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
             return self._label
         else:
             cattr = interToUI(self.attr)
+            if cattr[-3:] == 'Sss':
+                cattr = cattr[:-3] + 'SSS'
             if cattr[0:3] == 'Aov':
-                cattr = 'AOV' + cattr[3:]
+                cattr = cattr[3:]
             return cattr
         
 
@@ -217,7 +219,7 @@ class ShaderMixin(object):
                 i += 1
             aovAttrs = sorted(aovAttrs, key = lambda aov: aovMap[aov[0]])
         if aovAttrs:
-            self.beginLayout("AOVs", collapse=True)
+            self.beginLayout("AOV Names", collapse=True)
 #            self.beginNoOptimize()
 #            self.addControl('enableAOVs', label='Enable AOVs')
 #            self.addControl('overrideAOVs', label='Override AOV Names')
