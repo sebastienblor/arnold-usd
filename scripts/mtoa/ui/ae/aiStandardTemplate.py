@@ -35,15 +35,15 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("Fresnel_affect_diff", label="Fresnel affects Diffuse")
 
         self.beginLayout("Extended Controls", collapse=True)
-        self.addControl("direct_diffuse", label="Direct Diffuse")
-        self.addControl("indirect_diffuse", label="Indirect Diffuse")
+        self.addControl("direct_diffuse", label="Direct Diffuse Scale")
+        self.addControl("indirect_diffuse", label="Indirect Diffuse Scale")
         self.endLayout()
         self.endLayout()#End Diffuse Layout
 
         self.beginLayout("Specular", collapse=False)
         self.addControl("Ks_color", label="Color")
         self.addControl("Ks", label="Weight")
-        self.addControl("specular_brdf", changeCommand=self.checkSpecularBrdf, label="Brdf")
+        self.addControl("specular_brdf", changeCommand=self.checkSpecularBrdf, label="BRDF")
         self.addControl("specular_roughness", label="Roughness")
         self.addControl("specular_anisotropy", label="Anisotropy")
         self.addControl("specular_rotation", label="Rotation")        
@@ -54,8 +54,8 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("Ksn", label="Fresnel Coefficient")
 
         self.beginLayout("Extended Controls", collapse=True)
-        self.addControl("direct_specular", label="Direct Specularity")
-        self.addControl("indirect_specular", label="Indirect Specularity")
+        self.addControl("direct_specular", label="Direct Specular Scale")
+        self.addControl("indirect_specular", label="Indirect Specular Scale")
         self.endLayout()
         self.endLayout()# End Specular Layout
 
@@ -65,20 +65,23 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl("Fresnel", changeCommand=self.checkReflectionFresnel, label="Fresnel")
         self.addControl("Krn", label="Fresnel Coefficient")
-        self.addSeparator()
-        self.addControl("reflection_exit_use_environment", label="Reflection Exit Use Environment")
-        self.addControl("reflection_exit_color", label="Reflection Exit Color")
+        self.beginLayout("Exit Color", collapse=True)
+        self.addControl("reflection_exit_use_environment", label="Use Environment")
+        self.addControl("reflection_exit_color", label="Color")
+        self.endLayout() # End Exit Color Layout
         self.endLayout() # End Reflection Layout
 
         self.beginLayout("Refraction", collapse=True)
-        self.addControl("IOR", label="Index of Refraction")
-        self.addControl("transmittance", label="Transmittance")
         self.addControl("Kt_color", label="Color")
-        self.addControl("Kt", label="Transparency")
+        self.addControl("Kt", label="Weight")
+        self.addControl("IOR", label="IOR")
         self.addControl("refraction_roughness", label="Roughness")
-        self.addSeparator()
-        self.addControl("refraction_exit_use_environment", label="Refraction Exit Use Environment")
-        self.addControl("refraction_exit_color", label="Refraction Exit Color")
+        self.addControl("transmittance", label="Transmittance")
+        self.addControl("opacity", label="Opacity")
+        self.beginLayout("Exit Color", collapse=True)
+        self.addControl("refraction_exit_use_environment", label="Use Environment")
+        self.addControl("refraction_exit_color", label="Color")
+        self.endLayout() # End Exit Color Layout
         self.endLayout() # End Refraction Layout
 
         self.addBumpLayout()
@@ -105,7 +108,6 @@ class AEaiStandardTemplate(ShaderAETemplate):
 
         self.beginLayout("Advanced", collapse=True)
         self.addControl("bounce_factor", label="Bounce Factor")
-        self.addControl("opacity", label="Opacity")
         self.endLayout() # End Advanced Layout
 
         self.beginLayout("Hardware Texturing", collapse=True)

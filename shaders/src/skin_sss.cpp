@@ -85,6 +85,140 @@ void CSSSParams::Evaluate(AtNode* node, AtShaderGlobals *sg)
    sample_sss_only_in_glossy_rays      = AiShaderEvalParamBool(p_sample_sss_only_in_glossy_rays);
 }
 
+void CSSSParams::CopyTo(CInstanceData *iData, AtShaderGlobals *sg)
+{
+   // Set the texturable parameters.
+   // So, the plain parameters are set ("input"), and NEVER the CNode pointer ("p_input");
+   // In other words, we are now simply setting the parameters of the compound
+   // displayed as dotted lines, so getting the input from the compound ppg.
+
+   // #1306: all the parameters must be set into the appropriate param box params[sg->tid], else
+   // multiple threads would write into the same structure, if unique instead of per-thread
+
+   // Ray_Switch
+   iData->Screen_Switch.params[sg->tid].switcher = use_screen_compositing_for_colors;
+   // Diffuse_Switch 
+   iData->Diffuse_Switch.params[sg->tid].switcher = sample_sss_only_in_gi_rays;
+   // Glossy_Switch
+   iData->Glossy_Switch.params[sg->tid].switcher = sample_sss_only_in_glossy_rays;
+   // Standard
+   iData->Standard.params[sg->tid].Ksss = sss_weight;
+   iData->Radius_To_Color.params[sg->tid].input = (shallow_scatter_radius * shallow_scatter_weight +
+                                              mid_scatter_radius * mid_scatter_weight +
+                                              deep_scatter_radius * deep_scatter_weight) /
+                                              (shallow_scatter_weight + mid_scatter_weight + deep_scatter_weight) *
+                                              global_sss_radius_multiplier;
+
+   // Standard_Secondary_Specular
+   iData->Standard_Secondary_Specular.params[sg->tid].Ks_color = secondary_reflection_color;
+   iData->Standard_Secondary_Specular.params[sg->tid].Ks = secondary_reflection_weight;
+   // Spec roughness added in the latest compound version
+   iData->Standard_Secondary_Specular.params[sg->tid].specular_roughness = secondary_reflection_roughness;
+
+   iData->Standard_Secondary_Specular.params[sg->tid].direct_specular = secondary_reflection_specular_weight;
+   iData->Standard_Secondary_Specular.params[sg->tid].indirect_specular = secondary_reflection_reflection_weight;
+   iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel = secondary_reflection_weight == 0.0f ? false : secondary_reflection_enable_fresnel_falloff;
+   iData->Standard_Secondary_Specular.params[sg->tid].Ksn = secondary_reflection_fresnel_coefficient;
+   // Standard_SSS_Shallow
+   iData->Standard_SSS_Shallow.params[sg->tid].Ksss_color = shallow_scatter_color;
+   // Standard_SSS_Mid
+   iData->Standard_SSS_Mid.params[sg->tid].Ksss_color = mid_scatter_color;
+   // Standard_SSS_Deep
+   iData->Standard_SSS_Deep.params[sg->tid].Ksss_color = deep_scatter_color;
+   // Standard_SSS_Shallow
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd_color = diffuse_color;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd = diffuse_weight;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].roughness = roughness;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks_color = primary_reflection_color;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks = primary_reflection_weight;
+   // Spec roughness added in the latest compound version
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].specular_roughness = primary_reflection_roughness;
+   
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].direct_specular = primary_reflection_specular_weight;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].indirect_specular = primary_reflection_reflection_weight;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel = primary_reflection_weight == 0.0f ? false : primary_reflection_enable_fresnel_falloff;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ksn = primary_reflection_fresnel_coefficient;
+   // Colors_Add
+   iData->Colors_Add.params[sg->tid].baseColor = diffuse_color * diffuse_weight;
+   iData->Colors_Add.params[sg->tid].color1 = shallow_scatter_color * shallow_scatter_weight;
+   iData->Colors_Add.params[sg->tid].color2 = mid_scatter_color * mid_scatter_weight;
+   iData->Colors_Add.params[sg->tid].color3 = deep_scatter_color * deep_scatter_weight;
+   // Multiply_ShallowSSS
+   iData->Multiply_ShallowSSS.params[sg->tid].input1 = shallow_scatter_weight;
+   iData->Multiply_ShallowSSS.params[sg->tid].input2 = sss_weight;
+   // Multiply_MidSSS
+   iData->Multiply_MidSSS.params[sg->tid].input1 = mid_scatter_weight;
+   iData->Multiply_MidSSS.params[sg->tid].input2 = sss_weight;
+   // Multiply_DeepSSS
+   iData->Multiply_DeepSSS.params[sg->tid].input1 = deep_scatter_weight;
+   iData->Multiply_DeepSSS.params[sg->tid].input2 = sss_weight;
+   // Multiply_Shallow_Radius
+   iData->Multiply_Shallow_Radius.params[sg->tid].input1 = shallow_scatter_radius;
+   iData->Multiply_Shallow_Radius.params[sg->tid].input2 = global_sss_radius_multiplier;
+   // Multiply_Mid_Radius
+   iData->Multiply_Mid_Radius.params[sg->tid].input1 = mid_scatter_radius;
+   iData->Multiply_Mid_Radius.params[sg->tid].input2 = global_sss_radius_multiplier;
+   // Multiply_Deep_Radius
+   iData->Multiply_Deep_Radius.params[sg->tid].input1 = deep_scatter_radius;
+   iData->Multiply_Deep_Radius.params[sg->tid].input2 = global_sss_radius_multiplier;
+}
+
+void CSSSParams::CopyFrom(CInstanceData *iData, AtShaderGlobals *sg)
+{
+   // Ray_Switch
+   use_screen_compositing_for_colors = iData->Screen_Switch.params[sg->tid].switcher;
+   // Diffuse_Switch 
+   sample_sss_only_in_gi_rays = iData->Diffuse_Switch.params[sg->tid].switcher;
+   // Glossy_Switch
+   sample_sss_only_in_glossy_rays = iData->Glossy_Switch.params[sg->tid].switcher;
+   // Standard
+   sss_weight = iData->Standard.params[sg->tid].Ksss;
+
+   // Standard_Secondary_Specular
+   secondary_reflection_color = iData->Standard_Secondary_Specular.params[sg->tid].Ks_color;
+   secondary_reflection_weight = iData->Standard_Secondary_Specular.params[sg->tid].Ks;
+   // Spec roughness added in the latest compound version
+   secondary_reflection_roughness = iData->Standard_Secondary_Specular.params[sg->tid].specular_roughness;
+
+   secondary_reflection_specular_weight = iData->Standard_Secondary_Specular.params[sg->tid].direct_specular;
+   secondary_reflection_reflection_weight = iData->Standard_Secondary_Specular.params[sg->tid].indirect_specular;
+   secondary_reflection_enable_fresnel_falloff = iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel;
+   secondary_reflection_fresnel_coefficient = iData->Standard_Secondary_Specular.params[sg->tid].Ksn;
+   // Standard_SSS_Shallow
+   shallow_scatter_color = iData->Standard_SSS_Shallow.params[sg->tid].Ksss_color;
+   // Standard_SSS_Mid
+   mid_scatter_color = iData->Standard_SSS_Mid.params[sg->tid].Ksss_color;
+   // Standard_SSS_Deep
+   deep_scatter_color = iData->Standard_SSS_Deep.params[sg->tid].Ksss_color;
+   // Standard_SSS_Shallow
+   diffuse_color = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd_color;
+   diffuse_weight = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd;
+   roughness = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].roughness;
+   primary_reflection_color = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks_color;
+   primary_reflection_weight = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks;
+   // Spec roughness added in the latest compound version
+   primary_reflection_roughness = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].specular_roughness;
+   
+   primary_reflection_specular_weight = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].direct_specular;
+   primary_reflection_reflection_weight = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].indirect_specular;
+   primary_reflection_enable_fresnel_falloff = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel;
+   primary_reflection_fresnel_coefficient = iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ksn;
+   // Multiply_ShallowSSS
+   shallow_scatter_weight = iData->Multiply_ShallowSSS.params[sg->tid].input1;
+   sss_weight = iData->Multiply_ShallowSSS.params[sg->tid].input2;
+   // Multiply_MidSSS
+   mid_scatter_weight = iData->Multiply_MidSSS.params[sg->tid].input1;
+   // Multiply_DeepSSS
+   deep_scatter_weight = iData->Multiply_DeepSSS.params[sg->tid].input1;
+   // Multiply_Shallow_Radius
+   shallow_scatter_radius = iData->Multiply_Shallow_Radius.params[sg->tid].input1;
+   global_sss_radius_multiplier = iData->Multiply_Shallow_Radius.params[sg->tid].input2;
+   // Multiply_Mid_Radius
+   mid_scatter_radius = iData->Multiply_Mid_Radius.params[sg->tid].input1;
+   // Multiply_Deep_Radius
+   deep_scatter_radius = iData->Multiply_Deep_Radius.params[sg->tid].input1;
+}
+
 
 node_initialize
 {
@@ -220,86 +354,16 @@ node_finish
 shader_evaluate
 {
    CSSSParams params;
+   CSSSParams params_tmp;
    // Evaluate all the texturable paramaters
    params.Evaluate(node, sg);
    // Get the instance data
    CInstanceData *iData = (CInstanceData*)AiNodeGetLocalData(node);
    COptions options = iData->options;
 
-   // Set the texturable parameters.
-   // So, the plain parameters are set ("input"), and NEVER the CNode pointer ("p_input");
-   // In other words, we are now simply setting the parameters of the compound
-   // displayed as dotted lines, so getting the input from the compound ppg.
-
-   // #1306: all the parameters must be set into the appropriate param box params[sg->tid], else
-   // multiple threads would write into the same structure, if unique instead of per-thread
-
-   // Ray_Switch
-   iData->Screen_Switch.params[sg->tid].switcher = params.use_screen_compositing_for_colors;
-   // Diffuse_Switch 
-   iData->Diffuse_Switch.params[sg->tid].switcher = params.sample_sss_only_in_gi_rays;
-   // Glossy_Switch
-   iData->Glossy_Switch.params[sg->tid].switcher = params.sample_sss_only_in_glossy_rays;
-   // Standard
-   iData->Standard.params[sg->tid].Ksss = params.sss_weight;
-   iData->Radius_To_Color.params[sg->tid].input = (params.shallow_scatter_radius * params.shallow_scatter_weight +
-                                              params.mid_scatter_radius * params.mid_scatter_weight +
-                                              params.deep_scatter_radius * params.deep_scatter_weight) /
-                                              (params.shallow_scatter_weight + params.mid_scatter_weight + params.deep_scatter_weight) *
-                                              params.global_sss_radius_multiplier;
-
-   // Standard_Secondary_Specular
-   iData->Standard_Secondary_Specular.params[sg->tid].Ks_color = params.secondary_reflection_color;
-   iData->Standard_Secondary_Specular.params[sg->tid].Ks = params.secondary_reflection_weight;
-   // Spec roughness added in the latest compound version
-   iData->Standard_Secondary_Specular.params[sg->tid].specular_roughness = params.secondary_reflection_roughness;
-
-   iData->Standard_Secondary_Specular.params[sg->tid].direct_specular = params.secondary_reflection_specular_weight;
-   iData->Standard_Secondary_Specular.params[sg->tid].indirect_specular = params.secondary_reflection_reflection_weight;
-   iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel = params.secondary_reflection_weight == 0.0f ? false : params.secondary_reflection_enable_fresnel_falloff;
-   iData->Standard_Secondary_Specular.params[sg->tid].Ksn = params.secondary_reflection_fresnel_coefficient;
-   // Standard_SSS_Shallow
-   iData->Standard_SSS_Shallow.params[sg->tid].Ksss_color = params.shallow_scatter_color;
-   // Standard_SSS_Mid
-   iData->Standard_SSS_Mid.params[sg->tid].Ksss_color = params.mid_scatter_color;
-   // Standard_SSS_Deep
-   iData->Standard_SSS_Deep.params[sg->tid].Ksss_color = params.deep_scatter_color;
-   // Standard_SSS_Shallow
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd_color = params.diffuse_color;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Kd = params.diffuse_weight;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].roughness = params.roughness;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks_color = params.primary_reflection_color;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ks = params.primary_reflection_weight;
-   // Spec roughness added in the latest compound version
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].specular_roughness = params.primary_reflection_roughness;
+   params_tmp.CopyFrom(iData, sg);
+   params.CopyTo(iData, sg);
    
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].direct_specular = params.primary_reflection_specular_weight;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].indirect_specular = params.primary_reflection_reflection_weight;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel = params.primary_reflection_weight == 0.0f ? false : params.primary_reflection_enable_fresnel_falloff;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ksn = params.primary_reflection_fresnel_coefficient;
-   // Colors_Add
-   iData->Colors_Add.params[sg->tid].baseColor = params.diffuse_color * params.diffuse_weight;
-   iData->Colors_Add.params[sg->tid].color1 = params.shallow_scatter_color * params.shallow_scatter_weight;
-   iData->Colors_Add.params[sg->tid].color2 = params.mid_scatter_color * params.mid_scatter_weight;
-   iData->Colors_Add.params[sg->tid].color3 = params.deep_scatter_color * params.deep_scatter_weight;
-   // Multiply_ShallowSSS
-   iData->Multiply_ShallowSSS.params[sg->tid].input1 = params.shallow_scatter_weight;
-   iData->Multiply_ShallowSSS.params[sg->tid].input2 = params.sss_weight;
-   // Multiply_MidSSS
-   iData->Multiply_MidSSS.params[sg->tid].input1 = params.mid_scatter_weight;
-   iData->Multiply_MidSSS.params[sg->tid].input2 = params.sss_weight;
-   // Multiply_DeepSSS
-   iData->Multiply_DeepSSS.params[sg->tid].input1 = params.deep_scatter_weight;
-   iData->Multiply_DeepSSS.params[sg->tid].input2 = params.sss_weight;
-   // Multiply_Shallow_Radius
-   iData->Multiply_Shallow_Radius.params[sg->tid].input1 = params.shallow_scatter_radius;
-   iData->Multiply_Shallow_Radius.params[sg->tid].input2 = params.global_sss_radius_multiplier;
-   // Multiply_Mid_Radius
-   iData->Multiply_Mid_Radius.params[sg->tid].input1 = params.mid_scatter_radius;
-   iData->Multiply_Mid_Radius.params[sg->tid].input2 = params.global_sss_radius_multiplier;
-   // Multiply_Deep_Radius
-   iData->Multiply_Deep_Radius.params[sg->tid].input1 = params.deep_scatter_radius;
-   iData->Multiply_Deep_Radius.params[sg->tid].input2 = params.global_sss_radius_multiplier;
 
    /*
    // Test, just to check that a single CStandard node works
@@ -317,5 +381,7 @@ shader_evaluate
 
    // The output is simply the Evaluate result of the right-most node of the compound (Ray_Switch)
    sg->out.RGB = *(AtColor*)iData->Ray_Switch.Evaluate(node, sg, options);
+   params_tmp.CopyTo(iData, sg);
+
 }
 

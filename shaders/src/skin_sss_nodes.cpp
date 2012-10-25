@@ -362,7 +362,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
 
       indirect_diffuse *= Kd_indirect;
       if (Fresnel_on_diff)
-         indirect_diffuse *= 1 - refl_fresnel - spec_fresnel;
+         indirect_diffuse *= 1 - pParams->Kr * refl_fresnel - Ks * spec_fresnel;
       output.rgb += indirect_diffuse;
       // #1311
       if (pParams->writeAOVs)

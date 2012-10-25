@@ -559,6 +559,7 @@ enum SSSParams {
    p_aov_deep_scatter
 };
 
+class CInstanceData;
 
 class CSSSParams
 {
@@ -596,6 +597,8 @@ public:
    bool  sample_sss_only_in_glossy_rays;
    
    void Evaluate(AtNode *node, AtShaderGlobals *sg);
+   void CopyTo(CInstanceData *iData, AtShaderGlobals *sg);
+   void CopyFrom(CInstanceData *iData, AtShaderGlobals *sg);
 };
 
 

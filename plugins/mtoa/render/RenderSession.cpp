@@ -194,7 +194,7 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 /// It only runs for non-IPR renders.
 void CRenderSession::CheckForRenderInterrupt(void *data)
 {
-   if (s_comp.isInterruptRequested())
+   if (s_comp.isInterruptRequested() && AiRendering())
    {
       // This causes AiRender to break, after which the CMayaScene::End()
       // which clears this callback.
@@ -208,7 +208,7 @@ void CRenderSession::CheckForRenderInterrupt(void *data)
 
 void CRenderSession::InterruptRender()
 {
-   if (IsRendering())
+   if (IsRendering() && AiRendering())
    {
       AiRenderInterrupt();
    }
