@@ -366,11 +366,6 @@ inline float ApplyBias(const float& value, const float& bias)
       
       return powf(x, (b - 1.f) / (-b - 1.f));
    }
-              
-   /*if (bias >= 0.f)
-      return LERP(bias, value, 1.f);
-   else
-      return LERP(-bias, value, 0.f);*/
 }
 
 template <typename T>
