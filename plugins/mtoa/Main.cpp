@@ -246,8 +246,6 @@ namespace // <anonymous>
                                    "spherical",
                                    CSphericalCameraTranslator::creator,
                                    CSphericalCameraTranslator::NodeInitializer);
-       
-       CExtensionsManager::SetDefaultTranslator("camera", "perspective");
 
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
@@ -270,8 +268,6 @@ namespace // <anonymous>
                                   "spherical",
                                   CSphericalCameraTranslator::creator,
                                   CSphericalCameraTranslator::NodeInitializer);
-      
-      CExtensionsManager::SetDefaultTranslator("stereoRigCamera", "perspective");
                                   
        // Hair
        builtin->RegisterTranslator("pfxHair",

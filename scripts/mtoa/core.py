@@ -267,9 +267,10 @@ def registerDefaultTranslator(nodeType, default):
 
     global _defaultTranslators
     _defaultTranslators[nodeType] = default
-    cmds.arnoldPlugins(setDefaultTranslator=(nodeType, default))    
 
     isFunc = callable(default)
+    if not isFunc:
+      cmds.arnoldPlugins(setDefaultTranslator=(nodeType, default))    
     if arnoldIsCurrentRenderer():
         it = pm.api.MItDependencyNodes()
         while not it.isDone():

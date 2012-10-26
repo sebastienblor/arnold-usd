@@ -158,7 +158,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    {
       MString mayaTypeName, translatorName;
       args.getFlagArgument("setDefaultTranslator", 0, mayaTypeName);
-      args.getFlagArgument("setDefaultTranslator", 1,translatorName);
+      args.getFlagArgument("setDefaultTranslator", 1, translatorName);
       CExtensionsManager::SetDefaultTranslator(mayaTypeName, translatorName);
    }
 
