@@ -4,16 +4,106 @@
 
 using namespace std;
 
-// Orthographic Camera
-//
-
-AtNode*  COrthoCameraTranslator::CreateArnoldNodes()
+void CStandardCameraTranslator::Export(AtNode* camera)
 {
-   return AddArnoldNode("ortho_camera");
+   if (IsOrtho())
+      ExportOrtho(camera);
+   else
+      ExportPersp(camera);
 }
 
+void CStandardCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+{
+   if (IsOrtho())
+      ExportMotionOrtho(camera, step);
+   else
+      ExportMotionPersp(camera, step);
+}
 
-void COrthoCameraTranslator::ExportFilmback(AtNode* camera)
+void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "persp_camera");
+   MakeDefaultAttributes(helper);
+   MakeDOFAttributes(helper);
+   helper.MakeInput("uv_remap");
+   
+   CExtensionAttrHelper helper2(context.maya, "ortho_camera");
+   MakeDefaultAttributes(helper2);
+}
+
+AtNode* CStandardCameraTranslator::CreateArnoldNodes()
+{
+   if (IsOrtho())
+      AddArnoldNode("ortho_camera");
+   else
+      AddArnoldNode("persp_camera");
+}
+
+bool CStandardCameraTranslator::IsOrtho()
+{ // is return FindMayaPlug("orthographic").asBool(); enough? the translators always change that value?
+   MStatus status;
+   MPlug plug = FindMayaPlug("aiTranslator", &status);
+   if (status && !plug.isNull())
+   {
+      if (plug.asString() == MString("orthographic"))
+         return true;
+      else if(plug.asString() == MString("perspective"))
+         return false;
+      else return FindMayaPlug("orthographic").asBool();
+   }
+   else return FindMayaPlug("orthographic").asBool();
+}
+
+void CStandardCameraTranslator::ExportOrtho(AtNode* camera)
+{
+   ExportCameraData(camera);
+   ExportFilmbackOrtho(camera);
+   ExportImagePlanes(0);
+}
+
+void CStandardCameraTranslator::ExportPersp(AtNode* camera)
+{
+   float fov = ExportFilmbackPersp(camera);
+
+   ExportCameraData(camera);
+   ExportDOF(camera);
+   ExportImagePlanes(0);
+
+   // UV Remap export
+   MObject uvRemapNode;
+   MPlugArray conns;
+   MPlug pUVR = FindMayaPlug("aiUvRemap");
+   pUVR.connectedTo(conns, true, false);
+   if (conns.length() == 1)
+   {
+      uvRemapNode = conns[0].node();
+   }
+   else
+   {
+      uvRemapNode = MObject::kNullObj;
+   }
+   if (!uvRemapNode.isNull())
+   {
+      AiNodeLink(ExportNode(conns[0]), "uv_remap", camera);
+   }
+   else
+   {
+      ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, pUVR);
+   }
+
+   if (RequiresMotionData())
+   {
+      AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AiArraySetFlt(fovs, 0, fov);
+      AiNodeSetArray(camera, "fov", fovs);
+   }
+   else
+   {
+      AiNodeSetFlt(camera, "fov", fov);
+   }
+}
+
+void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
 {
    double deviceAspect = GetDeviceAspect();
 
@@ -49,34 +139,25 @@ void COrthoCameraTranslator::ExportFilmback(AtNode* camera)
    SetFilmTransform(camera, 0, 0, width, false);
 }
 
-void COrthoCameraTranslator::Export(AtNode* camera)
-{
-   ExportCameraData(camera);
-   ExportFilmback(camera);
-   ExportImagePlanes(0);
-}
-
-void COrthoCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CStandardCameraTranslator::ExportMotionOrtho(AtNode* camera, unsigned int step)
 {
    ExportCameraMBData(camera, step);
    ExportImagePlanes(step);
 }
 
-void COrthoCameraTranslator::NodeInitializer(CAbTranslator context)
+void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera, unsigned int step)
 {
-   CExtensionAttrHelper helper(context.maya, "ortho_camera");
-   MakeDefaultAttributes(helper);
+   // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
+   // which we don't want to do at each step
+   float fov = ExportFilmbackPersp(camera);
+   ExportCameraMBData(camera, step);
+   ExportImagePlanes(step);
+
+   AtArray* fovs = AiNodeGetArray(camera, "fov");
+   AiArraySetFlt(fovs, step, fov);
 }
 
-// Perspective Camera
-//
-AtNode*  CPerspCameraTranslator::CreateArnoldNodes()
-{
-   return AddArnoldNode("persp_camera");
-}
-
-
-float CPerspCameraTranslator::ExportFilmback(AtNode* camera)
+float CStandardCameraTranslator::ExportFilmbackPersp(AtNode* camera)
 {
    double deviceAspect = GetDeviceAspect();
    float fov = 1.0f;
@@ -168,70 +249,6 @@ float CPerspCameraTranslator::ExportFilmback(AtNode* camera)
 
    return fov;
 }
-
-
-void CPerspCameraTranslator::Export(AtNode* camera)
-{
-   float fov = ExportFilmback(camera);
-
-   ExportCameraData(camera);
-   ExportDOF(camera);
-   ExportImagePlanes(0);
-
-   // UV Remap export
-   MObject uvRemapNode;
-   MPlugArray conns;
-   MPlug pUVR = FindMayaPlug("aiUvRemap");
-   pUVR.connectedTo(conns, true, false);
-   if (conns.length() == 1)
-   {
-      uvRemapNode = conns[0].node();
-   }
-   else
-   {
-      uvRemapNode = MObject::kNullObj;
-   }
-   if (!uvRemapNode.isNull())
-   {
-      AiNodeLink(ExportNode(conns[0]), "uv_remap", camera);
-   }
-   else
-   {
-      ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, pUVR);
-   }
-
-   if (RequiresMotionData())
-   {
-      AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(fovs, 0, fov);
-      AiNodeSetArray(camera, "fov", fovs);
-   }
-   else
-   {
-      AiNodeSetFlt(camera, "fov", fov);
-   }
-}
-
-void CPerspCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
-{
-   // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
-   // which we don't want to do at each step
-   float fov = ExportFilmback(camera);
-   ExportCameraMBData(camera, step);
-   ExportImagePlanes(step);
-
-   AtArray* fovs = AiNodeGetArray(camera, "fov");
-   AiArraySetFlt(fovs, step, fov);
-}
-
-void CPerspCameraTranslator::NodeInitializer(CAbTranslator context)
-{
-   CExtensionAttrHelper helper(context.maya, "persp_camera");
-   MakeDefaultAttributes(helper);
-   MakeDOFAttributes(helper);
-   helper.MakeInput("uv_remap");
-}
-
 
 // Fish Eye Camera
 //

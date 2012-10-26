@@ -228,12 +228,12 @@ namespace // <anonymous>
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
-                                   CPerspCameraTranslator::creator,
-                                   CPerspCameraTranslator::NodeInitializer);
+                                   CStandardCameraTranslator::creator,
+                                   CStandardCameraTranslator::NodeInitializer);
        builtin->RegisterTranslator("camera",
                                    "orthographic",
-                                   COrthoCameraTranslator::creator,
-                                   COrthoCameraTranslator::NodeInitializer);
+                                   CStandardCameraTranslator::creator,
+                                   CStandardCameraTranslator::NodeInitializer);
        builtin->RegisterTranslator("camera",
                                    "fisheye",
                                    CFishEyeCameraTranslator::creator,
@@ -250,12 +250,12 @@ namespace // <anonymous>
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
                                   "perspective",
-                                  CPerspCameraTranslator::creator,
-                                  CPerspCameraTranslator::NodeInitializer);
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
                                   "orthographic",
-                                  COrthoCameraTranslator::creator,
-                                  COrthoCameraTranslator::NodeInitializer);
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
                                   "fisheye",
                                   CFishEyeCameraTranslator::creator,
