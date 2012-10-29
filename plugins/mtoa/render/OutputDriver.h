@@ -27,14 +27,14 @@
 struct COutputDriverData
 {
    AtBBox2         refresh_bbox;
-   bool            isRegion;
-   bool            isProgressive;
+   float*          swatchPixels;
    float           gamma;
    unsigned int    imageWidth;
    unsigned int    imageHeight;
    unsigned int    swatchImageWidth;
-   bool            rendering;
-   float*          swatchPixels;
+   bool            isRegion;
+   bool            isProgressive;  
+   bool            rendering;  
 };
 
 enum EDisplayUpdateMessageType
