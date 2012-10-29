@@ -400,7 +400,12 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     if createDirectory:
         dir =  os.path.dirname(result)
         if not os.path.exists(dir):
-            os.makedirs(dir)
+            try:
+                os.makedirs(dir)
+            except OSError as exc:
+                if exc.errno == 17:
+                    pass
+                else: raise
     return result
 
 registerFileToken(fileTokenScene, 'Scene')
