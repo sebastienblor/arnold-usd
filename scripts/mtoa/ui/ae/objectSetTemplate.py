@@ -115,8 +115,11 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         candidates = {}
         if attributeList:
             for attrName in attributeList:
-                attr = pm.general.Attribute(attrName)
-                candidates[attr.longName(fullPath=True)] = attr
+                try:
+                    attr = pm.general.Attribute(attrName)
+                    candidates[attr.longName(fullPath=True)] = attr
+                except:
+                    pass
         return candidates
 
     def getExistingAttributes(self):
