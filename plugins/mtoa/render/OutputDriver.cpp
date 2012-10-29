@@ -446,6 +446,19 @@ void RenderBegin(CDisplayUpdateMessage & msg)
                                                 // keep current image (true) or clear (false):
                                                 s_outputDriverData.isProgressive,
                                                 true);
+      const unsigned int regionSize = (right - left + 1) * (top - bottom + 1);
+      std::vector<RV_PIXEL> regionData;
+      regionData.resize(regionSize);
+      unsigned int i = 0;
+      for (unsigned int y = bottom; y <= top; ++y)
+      {
+         const unsigned int yw = y * s_outputDriverData.imageWidth;
+         for (unsigned int x = left; x <= right; ++x)
+            regionData[i++] = s_outputDriverData.oldPixels[x + yw];        
+      }
+      MRenderView::updatePixels(left, right, bottom, top, 
+                                &regionData[0], true);
+      MRenderView::refresh(left, right, bottom, top);
    }
    else
    {
@@ -453,12 +466,11 @@ void RenderBegin(CDisplayUpdateMessage & msg)
                                         s_outputDriverData.imageHeight,
                                         // keep current image (true) or clear (false):
                                         s_outputDriverData.isProgressive,
-                                        true);      
-   }
-   
-   MRenderView::updatePixels(0, s_outputDriverData.imageWidth - 1, 0, s_outputDriverData.imageHeight - 1, 
+                                        true);
+      MRenderView::updatePixels(0, s_outputDriverData.imageWidth - 1, 0, s_outputDriverData.imageHeight - 1, 
                                 &s_outputDriverData.oldPixels[0], true);
-   MRenderView::refresh(0, s_outputDriverData.imageWidth - 1, 0, s_outputDriverData.imageHeight - 1);
+      MRenderView::refresh(0, s_outputDriverData.imageWidth - 1, 0, s_outputDriverData.imageHeight - 1);
+   } 
 
    CHECK_MSTATUS(status);
 
