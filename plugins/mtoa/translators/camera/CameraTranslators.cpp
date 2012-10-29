@@ -34,9 +34,9 @@ void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
 AtNode* CStandardCameraTranslator::CreateArnoldNodes()
 {
    if (IsOrtho())
-      AddArnoldNode("ortho_camera");
+      return AddArnoldNode("ortho_camera");
    else
-      AddArnoldNode("persp_camera");
+      return AddArnoldNode("persp_camera");
 }
 
 bool CStandardCameraTranslator::IsOrtho()
