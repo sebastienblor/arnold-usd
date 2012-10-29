@@ -511,7 +511,10 @@ void RenderEnd()
       rvInfo += "    Render Time: ";
       rvInfo += int(elapsed / 60);
       rvInfo += ":";
-      rvInfo += int(elapsed % 60);
+      const int secondsPart = int(elapsed % 60);
+      if (secondsPart < 10)
+         rvInfo += "0";
+      rvInfo += secondsPart;
 
       if (s_camera_name != "")
       {
@@ -616,8 +619,10 @@ void EndImage()
 
       rvInfo += "    Render Time: ";
       rvInfo += int(elapsed / 60);
-      rvInfo += ":";
-      rvInfo += int(elapsed % 60);
+      const int secondsPart = int(elapsed % 60);
+      if (secondsPart < 10)
+         rvInfo += "0";
+      rvInfo += secondsPart;
 
       if (s_camera_name != "")
       {
