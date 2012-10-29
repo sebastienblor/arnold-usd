@@ -13,6 +13,7 @@ class DisplacementShaderTemplate(templates.AttributeTemplate):
             self.addControl('vectorEncoding', label='Vector Encoding')
             self.addControl('vectorSpace', label='Vector Space')
             self.addControl('tangent', label='Tangent')
+            self.addSeparator()
         self.addControl('aiDisplacementPadding', label='Bounds Padding')
         self.addControl('aiDisplacementZeroValue', label='Scalar Zero Value')
         self.addControl('aiDisplacementAutoBump', label='Auto Bump')
