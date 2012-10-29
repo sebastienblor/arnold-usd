@@ -129,14 +129,21 @@ class ObjectSetTemplate(templates.AttributeTemplate):
             name = attr.longName(fullPath=True)
             if not name in existing :
                 existing[name] = attr
-        return existing   
+        return existing
+        
+    @staticmethod
+    def getAttrParent(attr):
+        if pm.mel.getApplicationVersionAsFloat() > 2011:
+            return attr.getParent(-1, True)
+        else:
+            return attr.getParent(-1)
         
     def addAttr(self, attrs):    
         # print "addAttr %r" % attrs
         for attr in attrs:
             # must add from top parent
-            parent = attr.getParent(-1, True)
-            self._doAdd(parent.node(), parent.attrName(longName=True), None)
+            parent = ObjectSetTemplate.getAttrParent(attr)
+            self._doAdd(parent.node(), parent.name(longName=True, includeNode=False), None)
        
     def _doAdd(self, srcNode, attrName, parentName):
         dstNode = pm.PyNode(self.nodeName)
@@ -233,7 +240,7 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         # print "removeAttr %r" % attrs
         for attr in attrs:
             # Can only delete top parent of compound / multi attributes
-            parent = attr.getParent(-1, True)
+            parent = ObjectSetTemplate.getAttrParent(attr)
             # print "remove %r will need to remove %r" % (attr, parent)
             parent.delete()
             
