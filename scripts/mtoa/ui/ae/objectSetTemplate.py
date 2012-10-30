@@ -3,6 +3,7 @@ import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
 import maya.cmds as cmds
+import re
 
 class AttributeListWindow(object):
     
@@ -23,6 +24,7 @@ class AttributeListWindow(object):
         form = pm.formLayout('form')
         filterText = pm.textField('alf_filter_text', height=20)
         self.filterText = filterText
+        pm.textField(self.filterText, edit=True, changeCommand=Callback(self.filterAttributes))
         if pm.mel.getApplicationVersionAsFloat() < 2013:
             list = pm.textScrollList('alf_attribute_list', nr=10, ams=True)
         else:
@@ -61,6 +63,21 @@ class AttributeListWindow(object):
                 attachControl=[(list, 'bottom', 5, row), (list, 'top', 5, filterText)])
 
         pm.showWindow(self.win)
+        
+    def filterAttributes(self):
+        pm.textScrollList(self.scrollList, edit=True, removeAll=True)        
+        if self._attributes is None:
+            return
+        filterText = pm.textField(self.filterText, query=True, text=True)
+        labels = self._attributes.keys()
+        labels.sort()
+        if filterText == "":
+            for attr in labels:
+                pm.textScrollList(self.scrollList, edit=True, append=attr)       
+        else:
+            for attr in labels:
+                if re.search(filterText, attr) is not None:
+                    pm.textScrollList(self.scrollList, edit=True, append=attr)
 
     def addAttrAndHide(self):
         pm.window(self.win, edit=True, visible=False)
