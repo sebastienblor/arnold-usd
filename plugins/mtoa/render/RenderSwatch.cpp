@@ -488,7 +488,7 @@ bool CRenderSwatchGenerator::doIteration()
          {
             // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
             // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
-            AiMsgWarning("[mtoa.swatch] %-30s | Rendering", MFnDependencyNode(swatchNode()).name().asChar());
+            AiMsgDebug("[mtoa.swatch] %-30s | Rendering", MFnDependencyNode(swatchNode()).name().asChar());
 
             image().create(resolution(),
                            resolution(),
