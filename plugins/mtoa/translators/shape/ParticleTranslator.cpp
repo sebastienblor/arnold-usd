@@ -1165,7 +1165,8 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
       // Good to do in all cases, but particularly important when motion blur
       // is enabled so that values are correct on other steps
       m_fnParticleSystem.evaluateDynamics(curTime, false);
-      m_inheritCacheTxfm = true; // defaults to false
+      // We are geting particles World coordinates, so we do not need this
+      //m_inheritCacheTxfm = true; // defaults to false
    }
 
    uint numParticles = m_fnParticleSystem.count();
@@ -1209,7 +1210,8 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
    }
 
 
-   m_fnParticleSystem.position(*positionArray);
+   //m_fnParticleSystem.position(*positionArray);
+   m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
    m_fnParticleSystem.particleIds(particleId);
 
