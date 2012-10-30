@@ -3,6 +3,7 @@ import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
 import maya.cmds as cmds
+import re
 
 class AttributeListWindow(object):
     
@@ -20,7 +21,10 @@ class AttributeListWindow(object):
                     sizeable=True,
                     resizeToFitChildren=False)
         #pm.windowPref(removeAll=True)
-        form = pm.formLayout('form')    
+        form = pm.formLayout('form')
+        filterText = pm.textField('alf_filter_text', height=20)
+        self.filterText = filterText
+        pm.textField(self.filterText, edit=True, changeCommand=Callback(self.filterAttributes))
         if pm.mel.getApplicationVersionAsFloat() < 2013:
             list = pm.textScrollList('alf_attribute_list', nr=10, ams=True)
         else:
@@ -55,10 +59,25 @@ class AttributeListWindow(object):
         pm.setParent('..')
         
         pm.formLayout(form, edit=True,
-                attachForm=[(list, 'top', 5), (list, 'left', 5), (list, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
-                attachControl=[(list, 'bottom', 5, row)])
+                attachForm=[(filterText, 'top', 5), (filterText, 'left', 5), (filterText, 'right', 5), (list, 'left', 5), (list, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
+                attachControl=[(list, 'bottom', 5, row), (list, 'top', 5, filterText)])
 
         pm.showWindow(self.win)
+        
+    def filterAttributes(self):
+        pm.textScrollList(self.scrollList, edit=True, removeAll=True)        
+        if self._attributes is None:
+            return
+        filterText = pm.textField(self.filterText, query=True, text=True)
+        labels = self._attributes.keys()
+        labels.sort()
+        if filterText == "":
+            for attr in labels:
+                pm.textScrollList(self.scrollList, edit=True, append=attr)       
+        else:
+            for attr in labels:
+                if re.search(filterText, attr) is not None:
+                    pm.textScrollList(self.scrollList, edit=True, append=attr)
 
     def addAttrAndHide(self):
         pm.window(self.win, edit=True, visible=False)
