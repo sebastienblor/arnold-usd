@@ -671,6 +671,8 @@ shader_evaluate
       }
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      else if (success)
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals
       sg->u = inU;
