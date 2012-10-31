@@ -1153,8 +1153,6 @@ void CBaseAttrHelper::ReadPrefixMetadata()
       const char* tmp;
       if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.attr_prefix", &tmp))
          m_prefix = tmp;
-      else
-         m_prefix = "";
    }
 }
 
