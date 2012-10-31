@@ -186,6 +186,7 @@ createNode pointEmitter -n "emitter1";
 	setAttr ".spd" 30;
 	setAttr ".srnd" 10;
 createNode transform -n "particle1";
+	setAttr ".t" -type "double3" 0 -5 0 ;
 createNode particle -n "particleShape1" -p "particle1";
 	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
 		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
