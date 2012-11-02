@@ -107,7 +107,7 @@ void CCurveTranslator::Update( AtNode *curve )
    // Check if we using a custom curve shader.
    AtNode* shader = NULL;
    MPlugArray curveShaderPlugs;
-   plug = fnDepNodeCurve.findPlug("aiCurveShader");
+   plug = FindMayaPlug("aiCurveShader");
    if (!plug.isNull())
    {
       plug.connectedTo(curveShaderPlugs, true, false);
