@@ -95,6 +95,7 @@ class AttributeListWindow(object):
 class ObjectSetTemplate(templates.AttributeTemplate):
         
     def setup(self):
+        self.addControl('aiUserOptions', label='User Options')
         self.addControl("aiOverride")
         # print "ObjectSetTemplate setup %s" % self.nodeName
         # print self.attributeCandidates()
