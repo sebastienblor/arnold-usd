@@ -358,6 +358,10 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    // Set the global options for background and atmosphere
    
    AtNode * const options = AiUniverseGetOptions();
+   
+   AiNodeDeclare(options, "frame", "constant FLOAT");
+   MTime ct = MAnimControl::currentTime();
+   AiNodeSetFlt(options, "frame", ct.value());
 
    // If we are swatching an environment (background) shader
    if (m_swatchClass == SWATCH_ENVIRONMENT)
