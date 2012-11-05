@@ -739,13 +739,13 @@
         softmax             FLOAT   100.0
     [attr far_clip]
         min                 FLOAT   0.0
-        softmax             FLOAT   100000.0
+        softmax             FLOAT   2000.0
     [attr near_clip]
         min                 FLOAT   0.0
-        softmax             FLOAT   100000.0
+        softmax             FLOAT   100.0
     [attr samples]
         min                 INT     0
-        softmax             INT     100
+        softmax             INT     10
     [attr spread]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
