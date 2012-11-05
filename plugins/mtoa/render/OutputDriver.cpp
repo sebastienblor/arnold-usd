@@ -408,7 +408,10 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    const unsigned int pixelCount = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
    const static RV_PIXEL blackRVPixel = {0.f, 0.f, 0.f, 0.f};
    if (pixelCount != (unsigned int)s_outputDriverData.oldPixels.size())
+   {
+      s_outputDriverData.oldPixels.clear();
       s_outputDriverData.oldPixels.resize(pixelCount, blackRVPixel);
+   }
    else if (clearBeforeRender)
    {
       const size_t numOldPixels = s_outputDriverData.oldPixels.size();      
