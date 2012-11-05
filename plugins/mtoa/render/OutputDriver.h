@@ -35,7 +35,8 @@ struct COutputDriverData
    unsigned int            swatchImageWidth;
    bool                    isRegion;
    bool                    isProgressive;  
-   bool                    rendering;  
+   bool                    rendering;
+   bool                    clearBeforeRender;
 };
 
 enum EDisplayUpdateMessageType

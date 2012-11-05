@@ -112,6 +112,7 @@ driver_open
 {
    AtParamValue *params = AiNodeGetParams(node);
    s_outputDriverData.gamma = params[p_gamma].FLT;
+   s_outputDriverData.clearBeforeRender = true;
 
    if (params[p_swatch].PTR == NULL)
    {
@@ -306,8 +307,7 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy,
                              msg.pixels, true);
    
-   const bool clearBeforeRender =  CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
-   if (!clearBeforeRender)
+   if (!s_outputDriverData.clearBeforeRender)
    {
       unsigned int i = 0;
       for (unsigned int y = miny; y <= maxy; ++y)
@@ -403,6 +403,7 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    s_outputDriverData.imageWidth = msg.imageWidth;
    s_outputDriverData.imageHeight = msg.imageHeight;
    const bool clearBeforeRender =  CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
+   s_outputDriverData.clearBeforeRender = clearBeforeRender;
    
    const unsigned int pixelCount = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
    const static RV_PIXEL blackRVPixel = {0.f, 0.f, 0.f, 0.f};
