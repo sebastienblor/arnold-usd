@@ -187,13 +187,18 @@ class ObjectSetTemplate(templates.AttributeTemplate):
                 args['defaultValue']    = defaultValue[0]
             except:
                 pass           
-        if pm.mel.getApplicationVersionAsFloat() < 2013:
-            args['attributeType']    = pm.getAttr("%s.%s" % (srcNode, attrName), type=True)
-            # silly 2012 bug, returns float3 as type on surfaceShader attribute
-            if (args['attributeType'] == 'float3' and not children):
-                args['attributeType'] = 'typed'
+        
+        attributeType = pm.getAttr("%s.%s" % (srcNode, attrName), type=True)
+        # silly 2012 bug, returns float3 as type on surfaceShader attribute
+        if attributeType == 'string' or attributeType == 'float2':
+            args['attributeType'] = None
+            args['dataType'] = attributeType            
         else:
-            args['attributeType']    = pm.attributeQuery(attrName, node=srcNode, attributeType=True)
+            args['attributeType'] = attributeType
+            if pm.mel.getApplicationVersionAsFloat() < 2013:
+                if (args['attributeType'] == 'float3' and not children):
+                    args['attributeType'] = 'typed'
+            
         # args['dataType']       = None
         try:
             args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)
