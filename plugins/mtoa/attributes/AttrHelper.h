@@ -334,7 +334,8 @@ class DLLEXPORT CExtensionAttrHelper : public CBaseAttrHelper
 public:
    /// @param mayaNodeClassName  name of maya class to add attributes to
    /// @param arnoldNodeEntry  arnold node entry to use when checking parameter metadata
-   CExtensionAttrHelper(MString mayaNodeClassName, const AtNodeEntry* arnoldNodeEntry=NULL, const MString& prefix="ai_") :
+   CExtensionAttrHelper(MString mayaNodeClassName, const AtNodeEntry* arnoldNodeEntry = NULL, const MString& prefix = "ai_", 
+      bool addCommonAttributes = true) :
       CBaseAttrHelper(arnoldNodeEntry, prefix),
       m_class(mayaNodeClassName)
    {
@@ -343,11 +344,13 @@ public:
          AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
                       mayaNodeClassName.asChar());
       }      
-      AddCommonAttributes();
+      if (addCommonAttributes)
+         AddCommonAttributes();
    }
    /// @param mayaNodeClassName  name of maya class to add attributes to
    /// @param arnoldNodeEntryName  arnold node entry to use when checking parameter metadata
-   CExtensionAttrHelper(MString mayaNodeClassName, const MString& arnoldNodeEntryName, const MString& prefix="ai_") :
+   CExtensionAttrHelper(MString mayaNodeClassName, const MString& arnoldNodeEntryName, const MString& prefix = "ai_", 
+      bool addCommonAttributes = true) :
       CBaseAttrHelper(arnoldNodeEntryName, prefix),
       m_class(mayaNodeClassName)
    {
@@ -361,7 +364,8 @@ public:
          AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Arnold node type \"%s\" for Maya node type \"%s\"",
                       arnoldNodeEntryName.asChar(), mayaNodeClassName.asChar());
       }
-      AddCommonAttributes();
+      if (addCommonAttributes)
+         AddCommonAttributes();
    }
 
    MString GetMayaNodeTypeName() const {return m_class.typeName();}

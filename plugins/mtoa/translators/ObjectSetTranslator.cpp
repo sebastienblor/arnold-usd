@@ -6,7 +6,7 @@
 
 void CObjectSetTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya);
+   CExtensionAttrHelper helper(context.maya, NULL, "ai_", false);
 
    CAttrData data;
    data.defaultValue.BOOL = true;
