@@ -244,7 +244,7 @@ def createArnoldRenderSettings():
 def updateArnoldFilterOptions(*args):
     pass
 
-def raytracedSSSChanged(someArg):
+def raytracedSSSChanged(someArg=None):
     enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
     pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
     pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
@@ -353,8 +353,7 @@ def createArnoldSamplingSettings():
     pm.frameLayout(label="Diffusion SSS", collapse=False)
     
     pm.checkBoxGrp('ss_enable_raytraced_SSS',
-                   label="Raytraced",
-                   cc=raytracedSSSChanged)
+                   label="Raytraced")
                    
     pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=1)
     pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=2)
@@ -370,6 +369,8 @@ def createArnoldSamplingSettings():
                    label="PointCloud Sample Factor",
                    enable=not enableRaytracedSSS,
                    attribute='defaultArnoldRenderOptions.sss_sample_factor')
+                   
+    pm.scriptJob(ac=['defaultArnoldRenderOptions.enable_raytraced_SSS', raytracedSSSChanged])
     
     pm.setParent('..')
     
