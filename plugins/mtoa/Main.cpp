@@ -62,7 +62,8 @@ namespace // <anonymous>
    static void SetEnv(const MString& env, const MString& val)
    {
 #ifdef WIN32
-      MString envStr = env + MString("=") + val;
+      MString val2 = val;
+      MString envStr = env + MString("=") + val2.toLowerCase();
       _putenv(envStr.asChar());
 #else
       setenv(env.asChar(), val.asChar(), true);
