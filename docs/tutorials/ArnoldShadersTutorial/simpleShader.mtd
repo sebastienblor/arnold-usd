@@ -1,7 +1,7 @@
 # simple                    0x00070000
 
 [node simple]
-    maya.name               STRING  "aiSimple"
+    maya.name               STRING  "mySimple"
     maya.id                 INT     0x00070000
     maya.classification     STRING  "shader/surface"
     maya.output_name        STRING  "outColor"
