@@ -16,6 +16,10 @@
 
 AI_DRIVER_NODE_EXPORT_METHODS(SocketDriverMtd);
 
+#ifndef WIN32
+typedef int SOCKET;
+#endif
+
 node_parameters
 {
    AiParameterStr("host_name", "localhost");
@@ -37,7 +41,7 @@ struct AOVData{
 };
 
 struct SocketDriverData{
-   int socketFd;
+   SOCKET socketFd;
    int port;
    std::string hostName;
    AtCritSec critSec;
@@ -47,7 +51,7 @@ struct SocketDriverData{
    
    static void* operator new(size_t size)
    {
-      return AiMalloc(size);
+      return AiMalloc((unsigned long)size);
    }
    
    static void operator delete(void* p)
@@ -87,7 +91,7 @@ driver_extension
    return 0;
 }
 
-void SendSocket(int socketFd, const void* data, int dataSize)
+void SendSocket(SOCKET socketFd, const void* data, int dataSize)
 {
    int rem = dataSize;
    const char* d = (const char*)data;
@@ -102,7 +106,7 @@ void SendSocket(int socketFd, const void* data, int dataSize)
 }
 
 template <typename T>
-void SendSocket(int socketFd, const T& data)
+void SendSocket(SOCKET socketFd, const T& data)
 {
    SendSocket(socketFd, &data, sizeof(T));
 }
@@ -127,7 +131,7 @@ driver_open
 
       while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, 0))
       {
-         const int outputNameLength = strlen(outputName);
+         const int outputNameLength = (int)strlen(outputName);
          if (outputNameLength < 1)
             continue;
          AOVData aovData;
@@ -152,7 +156,7 @@ driver_open
    error = WSAStartup(version, &wsaData); // TODO : check for the error
 #endif
    
-   int socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+   SOCKET socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    data->socketFd = socketFd;
    
    if (socketFd == -1)
@@ -194,7 +198,7 @@ driver_open
    
    while (AiOutputIteratorGetNext(iterator, &outputName, &pixelType, 0))
    {
-      const int outputNameLength = strlen(outputName);
+      const int outputNameLength = (int)strlen(outputName);
       if (outputNameLength < 1)
          continue;
       
@@ -264,7 +268,7 @@ driver_write_bucket
       {
          int evt = 3; // aov data
          SendSocket(data->socketFd, evt);
-         int nameLen = strlen(outputName);
+         int nameLen = (int)strlen(outputName);
          SendSocket(data->socketFd, nameLen);
          SendSocket(data->socketFd, outputName, nameLen);
          int dataToSend[4] = {bucket_xo, bucket_yo, bucket_size_x, bucket_size_y};
@@ -287,7 +291,7 @@ driver_close
       for (std::vector<AOVData>::iterator it = data->aovData.begin(); it != data->aovData.end(); ++it)
       {         
          AOVData& aovData = *it;
-         int nameLen = aovData.name.length();
+         int nameLen = (int)aovData.name.length();
          int evt = 3; // aov data
          SendSocket(data->socketFd, evt);
          SendSocket(data->socketFd, nameLen);
