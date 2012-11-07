@@ -112,7 +112,7 @@ driver_open
 {
    AtParamValue *params = AiNodeGetParams(node);
    s_outputDriverData.gamma = params[p_gamma].FLT;
-   s_outputDriverData.clearBeforeRender = true;
+   s_outputDriverData.clearBeforeRender = false;
 
    if (params[p_swatch].PTR == NULL)
    {
