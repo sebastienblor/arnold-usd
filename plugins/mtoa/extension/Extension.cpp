@@ -954,12 +954,15 @@ MStringArray CExtension::FindLibraries(const MString &path,
 /// @param path  the resolved file name of Arnold plugin
 bool CExtension::IsArnoldPluginLoaded(const MString &file)
 {
-   std::string file_str(file.asChar());
-   LoadedArnoldPluginsSet::iterator pluginIt;
-   pluginIt = s_allLoadedArnoldPlugins.find(file_str);
-   if (pluginIt != s_allLoadedArnoldPlugins.end())
+   MFileObject fo;
+   fo.setRawFullName(file);
+   MString rawName = fo.rawName();
+   for (LoadedArnoldPluginsSet::iterator it = s_allLoadedArnoldPlugins.begin() ; it != s_allLoadedArnoldPlugins.end(); ++it)
    {
-      return true;
+      MFileObject fo2;
+      fo2.setRawFullName((*it).c_str());
+      if (rawName == fo2.rawName())
+         return true;
    }
    return false;
 }
