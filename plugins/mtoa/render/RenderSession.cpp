@@ -356,13 +356,13 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
-   int ai_status(AI_SUCCESS);
    if (renderSession->m_renderOptions.isProgressive())
-      ai_status = ProgressiveRenderThread(data);
+      ProgressiveRenderThread(data);
+      
    else
    {
       renderSession->SetRendering(true);
-      ai_status = AiRender(AI_RENDER_MODE_CAMERA);
+      AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
    // get the post-MEL before ending the MayaScene

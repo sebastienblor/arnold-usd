@@ -310,10 +310,10 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    if (!s_outputDriverData.clearBeforeRender)
    {
       unsigned int i = 0;
-      for (unsigned int y = miny; y <= maxy; ++y)
+      for (int y = miny; y <= maxy; ++y)
       {
          const unsigned int yw = y * s_outputDriverData.imageWidth;
-         for (unsigned int x = msg.bucketRect.minx; x <= msg.bucketRect.maxx; ++x)
+         for (int x = msg.bucketRect.minx; x <= msg.bucketRect.maxx; ++x)
             s_outputDriverData.oldPixels[x + yw] = msg.pixels[i++];
       }
    }
