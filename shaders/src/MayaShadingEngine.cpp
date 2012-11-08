@@ -8,7 +8,8 @@ enum ShadingGroupParams
    p_beauty,
    p_aov_inputs,
    p_aov_names,
-   p_enable_matte
+   p_enable_matte,
+   p_matte_color
 };
 
 };
@@ -27,13 +28,14 @@ node_parameters
    AiParameterARRAY("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
    AiParameterARRAY("aov_names", AiArray(0, 0, AI_TYPE_STRING));
    AiParameterBool("enable_matte", false);
+   AiParameterRGBA("matte_color", 0.f, 0.f, 0.f, 0.f);
 }
 
 shader_evaluate
 {
    if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))
    {
-      sg->out.RGBA = AI_RGBA_BLACK;
+      sg->out.RGBA = AiShaderEvalParamRGBA(p_matte_color);
       return;
    }
    AtArray *inputs = AiShaderEvalParamArray(p_aov_inputs);

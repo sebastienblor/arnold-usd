@@ -38,6 +38,12 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = false;
    
    helper.MakeInputBoolean(data);
+   
+   data.name = "aiMatteColor";
+   data.shortName = "ai_matte_color";
+   data.defaultValue.RGBA = AI_RGBA_BLACK;
+   
+   helper.MakeInputRGBA(data);
 }
 
 /// Compute the shading engine's AOVs. these are connected to aiCustomAOVs compound array.
@@ -81,6 +87,7 @@ void CShadingEngineTranslator::ComputeAOVs()
 void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 {
    ProcessParameter(shadingEngine, "enable_matte", AI_TYPE_BOOLEAN, "aiEnableMatte");
+   ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, "aiMatteColor");
    std::vector<AtNode*> aovShaders;
    AtNode* rootShader = NULL;
    MPlugArray        connections;
@@ -100,6 +107,9 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       MPlug mattePlug = shaderNode.findPlug("aiEnableMatte", &status);
       if (status)
          AiNodeSetBool(shadingEngine, "enable_matte", mattePlug.asBool());
+      MPlug matteColorPlug = shaderNode.findPlug("aiMatteColor", &status);
+      if (status)
+         ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, matteColorPlug);
       rootShader = ExportNode(connections[0]);
       AiNodeLink(rootShader, "beauty", shadingEngine);
 

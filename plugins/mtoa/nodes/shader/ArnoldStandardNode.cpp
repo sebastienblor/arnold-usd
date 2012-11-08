@@ -128,6 +128,22 @@ MStatus CArnoldStandardNode::initialize()
    addAttribute(tempObject);
    attributeAffects(tempObject, s_OUT_color);
    
+   tempObject = nAttr.createColor("aiMatteColor", "ai_matte_color");
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   nAttr.setDefault(0.);
+   addAttribute(tempObject);
+   attributeAffects(tempObject, s_OUT_color);
+   
+   tempObject = nAttr.create("aiMatteColorA", "ai_matte_color_a", MFnNumericData::kFloat);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   nAttr.setDefault(0.);
+   addAttribute(tempObject);
+   attributeAffects(tempObject, s_OUT_color);
+   
    // outputs
    s_OUT_color = helper.MakeOutput();
    
