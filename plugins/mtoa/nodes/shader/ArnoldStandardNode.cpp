@@ -121,6 +121,13 @@ MStatus CArnoldStandardNode::initialize()
    addAttribute(s_normal_camera);
    attributeAffects(s_normal_camera, s_OUT_color);
    
+   MObject tempObject = nAttr.create("aiEnableMatte", "ai_enable_matte", MFnNumericData::kBoolean, 0);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(tempObject);
+   attributeAffects(tempObject, s_OUT_color);
+   
    // outputs
    s_OUT_color = helper.MakeOutput();
    

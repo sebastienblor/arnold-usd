@@ -58,8 +58,8 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         cmds.attrNavigationControlGrp("ShadingEngineSurfaceShader", edit=True, attribute=attrName)
 
     def setup(self):
+        self.addControl("aiEnableMatte")
         self.addCustom("aiSurfaceShader", self.surfaceShaderCreate, self.surfaceShaderUpdate)
-        self.addControl("aiUserOptions")
         self.addCustom("aiCustomAOVs", self.buildAOVFrame, self.updateAOVFrame)
 
     def update(self):

@@ -25,6 +25,10 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginScrollLayout()
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+        
+        self.beginLayout("Matte", collapse=True)
+        self.addControl("aiEnableMatte", "Enable Matte")
+        self.endLayout()
 
         self.beginLayout("Diffuse", collapse=False)
         self.addControl("color",  label="Color", annotation="Diffuse Color")
