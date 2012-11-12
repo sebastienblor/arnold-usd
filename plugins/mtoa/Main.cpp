@@ -39,6 +39,7 @@
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
+#include "translators/shape/FluidTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
@@ -230,6 +231,10 @@ namespace // <anonymous>
                                    "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
+       builtin->RegisterTranslator("fluidShape",
+                                   "",
+                                   CFluidTranslator::creator,
+                                   CFluidTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",

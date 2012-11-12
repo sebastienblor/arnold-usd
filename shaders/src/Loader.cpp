@@ -80,6 +80,7 @@ extern AtNodeMethods* SocketDriverMtd;
 extern AtNodeMethods* UserDataPnt2Mtd;
 extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
+extern AtNodeMethods* MayaFluidMtd;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -158,7 +159,8 @@ enum{
    SHADER_SOCKETDRIVER,
    SHADER_USERDATAPNT2,
    SHADER_USERDATAINT,
-   SHADER_BUMP2D   
+   SHADER_BUMP2D,
+   SHADER_MAYAFLUID
 };
 
 node_loader
@@ -675,13 +677,12 @@ node_loader
       node->name        = "meshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
       break;
-      
    case SHADER_SOCKETDRIVER:
       node->methods     = SocketDriverMtd;
       node->name        = "driver_socket";
       node->node_type   = AI_NODE_DRIVER;
-      break;
-      
+      break;   
+
    case SHADER_USERDATAPNT2:
       node->methods     = UserDataPnt2Mtd;
       node->output_type = AI_TYPE_POINT2;
@@ -700,6 +701,13 @@ node_loader
       node->methods     = MayaBump2DMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "mayaBump2D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case SHADER_MAYAFLUID:
+      node->methods     = MayaFluidMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "mayaFluid";
       node->node_type   = AI_NODE_SHADER;
       break;
 
