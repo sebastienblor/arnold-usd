@@ -1,4 +1,5 @@
 #include <ai.h>
+#include <shaderglobals.h>
 
 #include <memory.h>
 #include <cmath>
@@ -432,34 +433,19 @@ shader_evaluate
    AtVector lRo;
    AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
-      
-   if (sg->Rt & AI_RAY_SHADOW) // only access the opacity here
+   
+   if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = CLAMP(GetValue(data, lPt, data->opacityGradient) * (float)sg->Rl * data->shadowDensity, 0.f, 1.f); 
-      sg->Vo = AI_RGB_BLACK;
-      sg->out.RGB = (1.f - opacity) * sg->Ci;
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity; 
+      AiShaderGlobalsSetVolumeAttenuation(sg, AI_RGB_WHITE * opacity);
       return;
-   }
+   }  
    
-   const float opacity = CLAMP(GetValue(data, lPt, data->opacityGradient) * (float)sg->Rl, 0.f, 1.f); 
-   
+   const float opacity = GetValue(data, lPt, data->opacityGradient); 
    const AtRGB color = GetValue(data, lPt, data->colorGradient);
    const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
    
-   const AtPoint oldP = sg->P;
-   const bool oldFHemi = sg->fhemi;
-   
-   sg->P = sg->Ro + sg->Rd * (float)sg->Rl * 0.5f;
-   sg->fhemi = false;
-   
-   AiLightsPrepare(sg);
-   AtRGB shading = AI_RGB_BLACK;
-   while (AiLightsGetSample(sg))
-      shading += sg->Li * sg->we / (4.f * (float)AI_PI);
-   
-   sg->P = oldP;
-   sg->fhemi = oldFHemi;
-   
-   sg->Vo = (color * shading + incandescence) * opacity;
-   sg->out.RGB = sg->Ci * (1.f - opacity) + sg->Vo;   
+   AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
+   AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
+   AiShaderGlobalsSetVolumeScattering(sg, opacity * color);
 }
