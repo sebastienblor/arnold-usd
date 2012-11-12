@@ -97,6 +97,11 @@ void CFluidTranslator::Export(AtNode* fluid)
    plug = mayaFluidNode.findPlug("aiShadowDensity");
    if (!plug.isNull())
       shadowDensity = plug.asFloat();
+   
+   plug = mayaFluidNode.findPlug("transparency");
+   if (!plug.isNull())
+      AiNodeSetRGB(fluid_shader, "transparency", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
    AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
    
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));

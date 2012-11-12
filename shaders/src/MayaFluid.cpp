@@ -26,6 +26,7 @@ node_parameters
    
    AiParameterFlt("step_size", 0.1f);
    AiParameterFlt("shadow_density", 1.f);
+   AiParameterRGB("transparency", .1f, .1f, .1f);
    
    AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
@@ -73,6 +74,7 @@ enum MayaFluidParams{
    
    p_step_size,
    p_shadow_density,
+   p_transparency,
    
    p_xres,
    p_yres,
@@ -122,11 +124,6 @@ struct ArrayDescription{
 };
 
 struct MayaFluidData{
-   int xres, yres, zres;
-   float xdim, ydim, zdim;
-   float stepSize;
-   float shadowDensity;
-   
    ArrayDescription<float> density;
    ArrayDescription<float> fuel;
    ArrayDescription<float> temperature;
@@ -140,6 +137,13 @@ struct MayaFluidData{
    
    AtMatrix worldMatrix;
    AtMatrix inverseWorldMatrix;
+   
+   AtRGB transparency;  
+   
+   int xres, yres, zres;
+   float xdim, ydim, zdim;
+   float stepSize;
+   float shadowDensity;   
 };
 
 node_initialize
@@ -252,6 +256,10 @@ node_update
    
    data->stepSize = AiNodeGetFlt(node, "step_size");
    data->shadowDensity = AiNodeGetFlt(node, "shadow_density");
+   data->transparency = AiNodeGetRGB(node, "transparency");
+   data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
+   data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
+   data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -437,11 +445,11 @@ shader_evaluate
    if (sg->Rt & AI_RAY_SHADOW)
    {
       const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity; 
-      AiShaderGlobalsSetVolumeAttenuation(sg, AI_RGB_WHITE * opacity);
+      AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
    
-   const float opacity = GetValue(data, lPt, data->opacityGradient); 
+   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency; 
    const AtRGB color = GetValue(data, lPt, data->colorGradient);
    const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
    
