@@ -320,7 +320,7 @@ namespace // <anonymous>
             SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath));
          else
             SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath);
-         envVar = getenv("MTOA_EXTENSIONS");
+         envVar = getenv("MTOA_EXTENSIONS_PATH");
          if (envVar != 0)
             SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath));
          else
