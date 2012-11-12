@@ -76,11 +76,11 @@ extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
 extern AtNodeMethods* MeshLightMaterialMtd;
-extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* SocketDriverMtd;
 extern AtNodeMethods* UserDataPnt2Mtd;
 extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
+extern AtNodeMethods* MayaFluidMtd;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -159,7 +159,8 @@ enum{
    SHADER_SOCKETDRIVER,
    SHADER_USERDATAPNT2,
    SHADER_USERDATAINT,
-   SHADER_BUMP2D   
+   SHADER_BUMP2D,
+   SHADER_MAYAFLUID
 };
 
 node_loader
@@ -703,7 +704,7 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case 77:
+   case SHADER_MAYAFLUID:
       node->methods     = MayaFluidMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "mayaFluid";
