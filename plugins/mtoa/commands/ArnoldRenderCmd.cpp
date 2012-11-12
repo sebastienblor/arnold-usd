@@ -22,6 +22,8 @@
 
 #include <sstream>
 
+extern AtNodeMethods* batch_progress_driver_mtd;
+
 MSyntax CArnoldRenderCmd::newSyntax()
 {
    MSyntax syntax;
@@ -230,12 +232,35 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          CMayaScene::Export(selectedPtr);
          // Reset resolution and output since it's a new export, new options node
          renderSession->SetResolution(width, height);
+         
+         AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE,
+                        "batch_progress_driver", "mtoa",
+                        (AtNodeMethods*) batch_progress_driver_mtd, AI_VERSION);         
+         
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
             // It is ok to set the camera here, because if camera is no set at export time,
             // all the cameras are exported during the export.
             arnoldSession->SetExportCamera(cameras[arrayIter]);
+            
+            AtNode* options = AiUniverseGetOptions();
+            AtArray* oldOutputs = AiNodeGetArray(options, "outputs");
+            const AtUInt32 oldCount = oldOutputs->nelements;
+            AtArray* newOutputs = AiArrayAllocate(oldCount + 1, 1, AI_TYPE_STRING);
+            for (AtUInt32 i = 0; i < oldCount; ++i)
+               AiArraySetStr(newOutputs, i, AiArrayGetStr(oldOutputs, i));
+
+            AtNode* filterNode = AiNode("box_filter");
+            AiNodeSetStr(filterNode, "name", "progress_driver_filter");
+
+            AtNode* progressDriver = AiNode("batch_progress_driver");
+            AiNodeSetStr(progressDriver, "name", "progress_driver");
+
+            AiArraySetStr(newOutputs, oldCount, "Z FLOAT progress_driver_filter progress_driver");
+            AiNodeSetArray(options, "outputs", newOutputs);
+            
+            // append the batch progress driver at the end of the list            
 
             if (renderSession->DoBatchRender() != AI_SUCCESS)
             {
