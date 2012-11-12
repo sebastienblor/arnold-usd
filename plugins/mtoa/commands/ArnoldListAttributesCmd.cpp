@@ -76,7 +76,7 @@ MStatus CArnoldListAttributesCmd::doIt(const MArgList& args)
    }  
    
    MSelectionList slist;
-   slist.add(args.asString(0), &status);
+   status = slist.add(args.asString(0));
    
    if (!status)
    {

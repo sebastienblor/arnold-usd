@@ -12,6 +12,7 @@ class AEaiWriteColorTemplate(ShaderAETemplate):
         self.addControl("beauty")
         self.addControl("input")
         self.addAOVControl('aovName')
+        self.addControl("blend")
 
         self.endLayout()
 

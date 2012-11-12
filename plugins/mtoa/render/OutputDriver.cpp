@@ -3,6 +3,7 @@
 
 #include "render/RenderSession.h"
 #include "render/OutputDriver.h"
+#include "scene/MayaScene.h"
 
 #include <ai_critsec.h>
 #include <ai_drivers.h>
@@ -111,6 +112,7 @@ driver_open
 {
    AtParamValue *params = AiNodeGetParams(node);
    s_outputDriverData.gamma = params[p_gamma].FLT;
+   s_outputDriverData.clearBeforeRender = CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
 
    if (params[p_swatch].PTR == NULL)
    {
@@ -304,6 +306,17 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    // last argument tells the RenderView that these are float pixels
    MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy,
                              msg.pixels, true);
+   
+   if (!s_outputDriverData.clearBeforeRender)
+   {
+      unsigned int i = 0;
+      for (int y = miny; y <= maxy; ++y)
+      {
+         const unsigned int yw = y * s_outputDriverData.imageWidth;
+         for (int x = msg.bucketRect.minx; x <= msg.bucketRect.maxx; ++x)
+            s_outputDriverData.oldPixels[x + yw] = msg.pixels[i++];
+      }
+   }
    if (refresh)
    {
       MRenderView::refresh(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy);
@@ -389,8 +402,23 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    // but theoretically, if the camera was exported by mtoa they should match.
    s_outputDriverData.imageWidth = msg.imageWidth;
    s_outputDriverData.imageHeight = msg.imageHeight;
-
-
+   const bool clearBeforeRender =  CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
+   s_outputDriverData.clearBeforeRender = clearBeforeRender;
+   
+   const unsigned int pixelCount = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
+   const static RV_PIXEL blackRVPixel = {0.f, 0.f, 0.f, 0.f};
+   if (pixelCount != (unsigned int)s_outputDriverData.oldPixels.size())
+   {
+      s_outputDriverData.oldPixels.clear();
+      s_outputDriverData.oldPixels.resize(pixelCount, blackRVPixel);
+   }
+   else if (clearBeforeRender)
+   {
+      const size_t numOldPixels = s_outputDriverData.oldPixels.size();      
+      for (size_t i = 0; i < numOldPixels; ++i)
+         s_outputDriverData.oldPixels[i] = blackRVPixel;
+   }
+   
    MStatus status;
    MString camName = AiNodeGetName(AiUniverseGetCamera());
    MDagPath camera;
@@ -422,6 +450,19 @@ void RenderBegin(CDisplayUpdateMessage & msg)
                                                 // keep current image (true) or clear (false):
                                                 s_outputDriverData.isProgressive,
                                                 true);
+      const unsigned int regionSize = (right - left + 1) * (top - bottom + 1);
+      std::vector<RV_PIXEL> regionData;
+      regionData.resize(regionSize);
+      unsigned int i = 0;
+      for (unsigned int y = bottom; y <= top; ++y)
+      {
+         const unsigned int yw = y * s_outputDriverData.imageWidth;
+         for (unsigned int x = left; x <= right; ++x)
+            regionData[i++] = s_outputDriverData.oldPixels[x + yw];        
+      }
+      MRenderView::updatePixels(left, right, bottom, top, 
+                                &regionData[0], true);
+      MRenderView::refresh(left, right, bottom, top);
    }
    else
    {
@@ -430,7 +471,10 @@ void RenderBegin(CDisplayUpdateMessage & msg)
                                         // keep current image (true) or clear (false):
                                         s_outputDriverData.isProgressive,
                                         true);
-   }
+      MRenderView::updatePixels(0, s_outputDriverData.imageWidth - 1, 0, s_outputDriverData.imageHeight - 1, 
+                                &s_outputDriverData.oldPixels[0], true);
+      MRenderView::refresh(0, s_outputDriverData.imageWidth - 1, 0, s_outputDriverData.imageHeight - 1);
+   } 
 
    CHECK_MSTATUS(status);
 
@@ -471,7 +515,10 @@ void RenderEnd()
       rvInfo += "    Render Time: ";
       rvInfo += int(elapsed / 60);
       rvInfo += ":";
-      rvInfo += int(elapsed % 60);
+      const int secondsPart = int(elapsed % 60);
+      if (secondsPart < 10)
+         rvInfo += "0";
+      rvInfo += secondsPart;
 
       if (s_camera_name != "")
       {
@@ -576,8 +623,10 @@ void EndImage()
 
       rvInfo += "    Render Time: ";
       rvInfo += int(elapsed / 60);
-      rvInfo += ":";
-      rvInfo += int(elapsed % 60);
+      const int secondsPart = int(elapsed % 60);
+      if (secondsPart < 10)
+         rvInfo += "0";
+      rvInfo += secondsPart;
 
       if (s_camera_name != "")
       {

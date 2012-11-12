@@ -59,12 +59,17 @@
 
 namespace // <anonymous>
 {
-#ifdef WIN32
-   static void setenv(const char* env, const char* val, bool)
+
+   static void SetEnv(const MString& env, const MString& val)
    {
-      _putenv((MString(env) + MString("=") + MString(val)).asChar());
+#ifdef WIN32
+      MString val2 = val;
+      MString envStr = env + MString("=") + val2.toLowerCase();
+      _putenv(envStr.asChar());
+#else
+      setenv(env.asChar(), val.asChar(), true);
+#endif      
    }
-#endif
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
@@ -233,12 +238,12 @@ namespace // <anonymous>
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
-                                   CPerspCameraTranslator::creator,
-                                   CPerspCameraTranslator::NodeInitializer);
+                                   CStandardCameraTranslator::creator,
+                                   CStandardCameraTranslator::NodeInitializer);
        builtin->RegisterTranslator("camera",
                                    "orthographic",
-                                   COrthoCameraTranslator::creator,
-                                   COrthoCameraTranslator::NodeInitializer);
+                                   CStandardCameraTranslator::creator,
+                                   CStandardCameraTranslator::NodeInitializer);
        builtin->RegisterTranslator("camera",
                                    "fisheye",
                                    CFishEyeCameraTranslator::creator,
@@ -255,12 +260,12 @@ namespace // <anonymous>
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
                                   "perspective",
-                                  CPerspCameraTranslator::creator,
-                                  CPerspCameraTranslator::NodeInitializer);
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
                                   "orthographic",
-                                  COrthoCameraTranslator::creator,
-                                  COrthoCameraTranslator::NodeInitializer);
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
                                   "fisheye",
                                   CFishEyeCameraTranslator::creator,
@@ -317,14 +322,14 @@ namespace // <anonymous>
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          if (envVar != 0)
-            setenv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath).asChar(), true);
+            SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath));
          else
-            setenv("ARNOLD_PLUGIN_PATH", modulePluginPath.asChar(), true);
-         envVar = getenv("MTOA_EXTENSIONS");
+            SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath);
+         envVar = getenv("MTOA_EXTENSIONS_PATH");
          if (envVar != 0)
-            setenv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath).asChar(), true);
+            SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath));
          else
-            setenv("MTOA_EXTENSIONS_PATH", moduleExtensionPath.asChar(), true);
+            SetEnv("MTOA_EXTENSIONS_PATH", moduleExtensionPath);
       }
       
       shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", PLUGIN_SEARCH, &status);

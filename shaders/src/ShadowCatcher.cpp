@@ -6,6 +6,7 @@ enum ShadowCatcherParams
 {
    p_catch_shadows = 0,
    p_background_color,
+   p_shadow_color,
    p_enable_transparency,
    p_shadow_transparency,
    
@@ -24,6 +25,7 @@ node_parameters
    
    AiParameterBOOL("catchShadows", true);
    AiParameterRGB("backgroundColor", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("shadowColor", 0.f, 0.f, 0.f);
    AiParameterBOOL("enableTransparency", false);
    AiParameterRGB("shadowTransparency", 0.0f, 0.0f, 0.0f);
    
@@ -54,6 +56,7 @@ shader_evaluate
    }
    
    AtRGB backgroundColor = AiShaderEvalParamRGB(p_background_color);
+   AtRGB shadowColor = AiShaderEvalParamRGB(p_shadow_color);
 
    AtRGB result = AI_RGB_BLACK;
    AtRGB resultOpacity = AI_RGB_WHITE;
@@ -66,7 +69,7 @@ shader_evaluate
       resultAlpha = (matte.r + matte.g + matte.b) / 3.0f;      
       if (AiShaderEvalParamBool(p_enable_transparency))
          resultOpacity = matte * (1.0f - AiShaderEvalParamRGB(p_shadow_transparency));
-      result = (AI_RGB_WHITE - matte) * backgroundColor;
+      result = LERP(matte, backgroundColor, shadowColor);
    }
    else
       result = backgroundColor;
