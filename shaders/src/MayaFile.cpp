@@ -534,7 +534,7 @@ shader_evaluate
          TokenData* token = idata->tokens;
          unsigned int pos = 0;
          pos = idata->startPos;
-         for (unsigned int i=0; i < idata->ntokens; i++, token++)
+         for (unsigned int i=0; (i < idata->ntokens) && success; i++, token++)
          {
             switch(token->mode)
             {
