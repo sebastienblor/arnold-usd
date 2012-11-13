@@ -25,6 +25,13 @@ AtNode* CFluidTranslator::CreateArnoldNodes()
    return AddArnoldNode("box");
 }
 
+void CleanArray(AtNode* node, const char* paramName)
+{
+   AtArray* arr = AiNodeGetArray(node, paramName);
+   if (arr->nelements > 0)
+      AiArrayDestroy(arr);
+}
+
 void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsigned int numVoxels)
 {
    if (values == 0)
@@ -38,6 +45,7 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
       else
          AiArraySetFlt(array, i, cVoxel);
    }
+   CleanArray(fluid, paramName);
    AiNodeSetArray(fluid, paramName, array);
 }
 
@@ -51,6 +59,7 @@ void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName, int sa
       ramp.getValueAtPosition((float)i / (float)(samplingResolution - 1), v);
       AiArraySetFlt(array, i, v);
    }
+   CleanArray(node, paramName);
    AiNodeSetArray(node, paramName, array);
 }
 
@@ -65,6 +74,7 @@ void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samp
       AtRGB rgb = {(float)v.r, (float)v.g, (float)v.b};
       AiArraySetRGB(array, i, rgb);
    }
+   CleanArray(node, paramName);
    AiNodeSetArray(node, paramName, array);
 }
 

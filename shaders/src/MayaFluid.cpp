@@ -116,6 +116,8 @@ struct GradientDescription{
    int type;
    int resolution;
    
+   GradientDescription() : data(0) {}
+   
    void release() {if(data) AiFree(data);}
 };
 
@@ -123,6 +125,8 @@ template<typename T>
 struct ArrayDescription{
    T* data;
    bool single;
+   
+   ArrayDescription() : data(0) {}
    
    void release() {if(data) AiFree(data);}   
 };
@@ -147,15 +151,23 @@ struct MayaFluidData{
    int xres, yres, zres;
    float xdim, ydim, zdim;
    float stepSize;
-   float shadowDensity;   
+   float shadowDensity;
+   
+   static void* operator new(size_t size)
+   {
+      return AiMalloc(size);
+   }
+   
+   static void operator delete(void* p)
+   {
+      AiFree(p);
+   }
 };
 
 node_initialize
 {
-   MayaFluidData* data = (MayaFluidData*)AiMalloc(sizeof(MayaFluidData));
+   MayaFluidData* data = new MayaFluidData();
    AiNodeSetLocalData(node, data);
-   
-   memset(data, sizeof(MayaFluidData), 0); // setting all of the values to zero
 }
 
 template <typename T>
@@ -210,6 +222,8 @@ template <typename T>
 void ReadGradient(AtNode* node, const char* name, GradientDescription<T>& gradient)
 {
    AtArray* array = AiNodeGetArray(node, name);
+   
+   gradient.release();
     
    if (array->nelements)
    {
@@ -229,6 +243,8 @@ template <typename T>
 void ReadArray(AtNode* node, const char* name, int numVoxels, ArrayDescription<T>& arrayDesc)
 {
    AtArray* array = AiNodeGetArray(node, name);
+   
+   arrayDesc.release();
    
    if ((int)array->nelements == numVoxels)
    {
@@ -322,7 +338,7 @@ node_finish
    data->incandescenceGradient.release();
    data->opacityGradient.release();
    
-   AiFree(data);
+   delete data;
 }
 
 template<typename T>
