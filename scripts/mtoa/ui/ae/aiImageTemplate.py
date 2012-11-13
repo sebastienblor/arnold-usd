@@ -32,8 +32,6 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addCustom('filename', self.filenameNew, self.filenameReplace)
         self.addControl("filter", label="Filter")
         
-        self.addControl("single_channel", label="Only First Channel")
-        
         self.addControl("mipmap_bias", label="Mipmap Bias")
         self.addControl("multiply", label="Multiply")
         self.addControl("offset", label="Offset")
@@ -42,6 +40,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout("UV Coordinates", collapse=True)
+        self.beginNoOptimize()
         self.addControl("uvcoords", label="UV Coord")
         
         self.addControl("swrap", label="Wrap U")
@@ -54,7 +53,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("tflip", label="Flip V")
         
         self.addControl("swap_st", label="Swap UV")
-        
+        self.endNoOptimize()
         self.endLayout()
         
         pm.mel.AEdependNodeTemplate(self.nodeName)
