@@ -153,6 +153,18 @@ struct MayaFluidData{
    float stepSize;
    float shadowDensity;
    
+   ~MayaFluidData()
+   {
+      density.release();
+      fuel.release();
+      temperature.release();
+      pressure.release();
+      velocity.release();
+      colors.release();
+      incandescenceGradient.release();
+      opacityGradient.release();
+   }
+   
    static void* operator new(size_t size)
    {
       return AiMalloc(size);
@@ -328,15 +340,6 @@ node_update
 node_finish
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
-   
-   data->density.release();
-   data->fuel.release();
-   data->temperature.release();
-   data->colors.release();
-   
-   data->colorGradient.release();
-   data->incandescenceGradient.release();
-   data->opacityGradient.release();
    
    delete data;
 }
