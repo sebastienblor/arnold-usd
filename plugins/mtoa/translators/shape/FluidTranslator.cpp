@@ -122,9 +122,9 @@ void CFluidTranslator::Export(AtNode* fluid)
    AiNodeSetInt(fluid_shader, "yres", yRes);
    AiNodeSetInt(fluid_shader, "zres", zRes);
    
-   AiNodeSetFlt(fluid_shader, "xdim", xDim);
-   AiNodeSetFlt(fluid_shader, "ydim", yDim);
-   AiNodeSetFlt(fluid_shader, "zdim", zDim);   
+   AiNodeSetFlt(fluid_shader, "xdim", (float)xDim);
+   AiNodeSetFlt(fluid_shader, "ydim", (float)yDim);
+   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);   
    
    // first getting a simple color information from the color gradient
    

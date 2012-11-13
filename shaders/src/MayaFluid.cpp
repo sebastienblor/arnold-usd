@@ -1,5 +1,9 @@
 #include <ai.h>
+#ifdef WIN32
+#include "../../../arnold/core/src/shaderglobals.h"
+#else
 #include <shaderglobals.h>
+#endif
 
 #include <memory.h>
 #include <cmath>
