@@ -69,8 +69,9 @@ driver_write_bucket
    str += "Render progress : ";
    str += (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels));
    MGlobal::displayInfo(str);
-   std::fstream fs("/work/test.tx", std::ios::app);
-   fs << 100.f * ((float)g_calculatedPixels / (float)g_totalPixels) << std::endl;
+   //std::fstream fs("/work/test.tx", std::ios::app);
+   //fs << 100.f * ((float)g_calculatedPixels / (float)g_totalPixels) << std::endl;
+   AiMsgInfo("Render progress %i %%", (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)));
 }
 
 driver_close
