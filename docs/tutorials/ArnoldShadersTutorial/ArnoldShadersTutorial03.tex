@@ -422,5 +422,53 @@ class AEaiParametersShaderTemplate(ShaderAETemplate):
         ...
 \end{minted}
 
+\subsubsection{Summary of Template Commands}
+Here we will summarize all the previously used template methods and add some new ones:
+
+\begin{description}
+
+\item[addSwatch] \hfill \\
+As previously seen, this command creates a Swatch in the Attribute Editor that shows a preview of the Shader.
+
+\item[beginScrollLayout endScrollLayout] \hfill \\
+Begins and ends a Vertical Scroll Layout where you can place sections and attributes.
+
+\item[beginLayout endLayout] \hfill \\
+Begins and ends a Layout. You can give it a name and define if it will be collapsed or not by default.
+
+\texttt{self.beginLayout("Section Name", collapse=False)}
+
+\item[addControl] \hfill \\
+Creates a control for a shader attribute. It automatically creates the correct control depending
+on the type of attribute. You can define a label and a changeCommand.
+
+\texttt{self.addControl("attrname", label="My Attr",}\\
+\texttt{changeCommand=self.changeAttr])}
+
+\item[addCustom] \hfill \\
+Creates a custom control for a shader attribute.
+
+\texttt{self.addCustom(attrName, newMethod, replaceMethod)}
+
+\item[addSeparator] \hfill \\
+Adds a separator in the layout.
+
+\item[beginNoOptimize endNoOptimize] \hfill \\
+Stops and starts again the layout space optimization.
+
+\item[addBumpLayout] \hfill \\
+Creates a section that will allow you to connect a bump normal mapping to the shader.
+
+\item[addExtraControls] \hfill \\
+All extra attributes will be grouped in an "Extra Controls" section
+
+
+\item[addCustom('message','AEshaderTypeNew','AEshaderTypeReplace')] \hfill \\
+Creates a "Type" scroll list where you can change the shader type of the node.
+
+\item[pm.mel.AEdependNodeTemplate(self.nodeName)] \hfill \\
+Creates the "Node Behavior" section in the shader template.
+
+\end{description}
 
 
