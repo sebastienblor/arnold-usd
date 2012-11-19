@@ -3,8 +3,6 @@
 #include <memory.h>
 #include <cmath>
 
-#include "shaderglobals.h"
-
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 enum GradientType{
