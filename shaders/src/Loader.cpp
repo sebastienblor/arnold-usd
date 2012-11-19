@@ -697,7 +697,7 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case SHADER_BUMP2D :
+   case SHADER_BUMP2D:
       node->methods     = MayaBump2DMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "mayaBump2D";

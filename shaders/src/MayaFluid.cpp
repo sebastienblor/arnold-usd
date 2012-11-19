@@ -1,12 +1,9 @@
 #include <ai.h>
-#ifdef WIN32
-#include "../../../arnold/core/src/shaderglobals.h"
-#else
-#include "../../../arnold/trunk/core/src/shaderglobals.h"
-#endif
 
 #include <memory.h>
 #include <cmath>
+
+#include "shaderglobals.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
