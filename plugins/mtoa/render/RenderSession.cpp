@@ -81,12 +81,17 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    }
 
    // Begin the Arnold universe, read metadata file and load plugins
-   ArnoldUniverseBegin();
+   if (ArnoldUniverseOnlyBegin())
+   {
+      //Set the user defined log file
+      m_renderOptions = options;
+      m_renderOptions.SetupLog();
+      ArnoldUniverseLoadPluginsAndMetadata();
+   }
+   
    m_is_active = AiUniverseIsActive() ? true : false;
    if (m_is_active)
    {
-      m_renderOptions = options;
-      m_renderOptions.SetupLog();
       InstallNodes();
       AiCritSecInit(&m_render_lock);
       return MStatus::kSuccess;
