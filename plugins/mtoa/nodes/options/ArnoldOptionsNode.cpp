@@ -406,6 +406,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
+   
+   s_attributes.MakeInput("volume_sampling_mode");
+   s_attributes.MakeInput("volume_scattering_sampling_rate");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);

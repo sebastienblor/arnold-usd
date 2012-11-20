@@ -374,6 +374,18 @@ def createArnoldSamplingSettings():
     
     pm.setParent('..')
     
+    pm.frameLayout(label="Volumes", collapse=False)
+    
+    pm.attrControlGrp('ss_volume_sampling_mode',
+                      label='Sampling Mode',
+                      attribute='defaultArnoldRenderOptions.volume_sampling_mode')
+                      
+    pm.attrControlGrp('ss_volume_scattering_sampling_rate',
+                      label='Scattering Sampling Rate',
+                      attribute='defaultArnoldRenderOptions.volume_scattering_sampling_rate')
+                      
+    pm.setParent('..')
+    
     pm.frameLayout(label="Clamping", collapse=True)
 
     pm.checkBoxGrp('ss_clamp_sample_values',
