@@ -172,7 +172,12 @@
         max                 INT     100
         softmin             INT     1
         softmax             INT     10        
-        default             INT     4        
+        default             INT     4
+    [attr volume_scattering_sampling_rate]
+        maya.keyable        BOOL    False
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.2		
     [attr low_light_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
