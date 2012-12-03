@@ -180,7 +180,7 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
                     result.append('')
         else:
             result.append(tok)
-    return ''.join(result)
+    return ''.join(result).replace(':', '_')
 
 _tokenCallbacks = []
 _tokenNames = []
