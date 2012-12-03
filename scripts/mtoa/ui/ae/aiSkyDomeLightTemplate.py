@@ -44,6 +44,10 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
     
     cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("aiAffectVolumetrics", addControl=True, label="Affect Volumetrics")
+    cmds.editorTemplate("aiCastVolumetricShadows", addControl=True, label="Cast Volumetric Shadows")
+    
+    cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiUserOptions", addControl=True, label="User Options")
     
     cmds.editorTemplate(endLayout=True)
