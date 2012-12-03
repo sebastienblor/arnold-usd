@@ -240,6 +240,12 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
+   if (!shadowColorPlug.isNull())
+   {
+      AiNodeSetRGB(light, "shadow_color", shadowColorPlug.child(0).asFloat(), 
+              shadowColorPlug.child(1).asFloat(), shadowColorPlug.child(2).asFloat());
+   }
 }
 
 void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
@@ -249,6 +255,7 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("shadow_color");
 }
 
 double CalculateTriangleArea(const AtVector& p0, 
