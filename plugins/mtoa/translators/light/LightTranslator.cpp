@@ -139,6 +139,10 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.defaultValue.FLT = 6500;
    data.name = "aiColorTemperature";
    data.shortName = "ai_color_temperature";
+   data.hasSoftMin = true;
+   data.hasSoftMax = true;
+   data.softMin.FLT = 1000.f;
+   data.softMax.FLT = 15000.f;
    helper.MakeInputFloat(data);
 }
 

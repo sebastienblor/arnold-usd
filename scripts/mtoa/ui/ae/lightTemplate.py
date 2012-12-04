@@ -124,6 +124,11 @@ class LightTemplate(AttributeTemplate):
         self.addControl("aiBounces")
 
         self.addSeparator()
+        
+        self.addControl("aiUseColorTemperature", label="Use Color Temperature")
+        self.addControl("aiColorTemperature", label="Color Temperature")
+        
+        self.addSeparator()
 
         self.lightFiltersLayout()
         
