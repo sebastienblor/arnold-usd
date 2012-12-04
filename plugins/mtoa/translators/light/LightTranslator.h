@@ -24,6 +24,7 @@ protected:
    virtual void ExportLightFilters(AtNode* light, const MPlugArray &filters);
    virtual void Delete();
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
+   static AtRGB ConvertKelvinToRGB(float kelvin);
 };
 
 #endif // LIGHT_TRANSLATOR_H

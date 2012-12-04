@@ -129,6 +129,17 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("filters");
+   
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "aiUseColorTemperature";
+   data.shortName = "ai_use_color_temperature";
+   helper.MakeInputBoolean(data);
+   
+   data.defaultValue.FLT = 6500;
+   data.name = "aiColorTemperature";
+   data.shortName = "ai_color_temperature";
+   helper.MakeInputFloat(data);
 }
 
 void CLightTranslator::Delete()
@@ -137,4 +148,9 @@ void CLightTranslator::Delete()
    // Arnold doesn't allow us to create nodes in between to calls to AiRender
    // for the moment. For IPR we still need to rely on setting the intensity to 0.0.
    AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
+}
+
+AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
+{
+   return AI_RGB_BLACK;
 }
