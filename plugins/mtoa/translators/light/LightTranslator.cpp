@@ -184,9 +184,8 @@ AtRGB XYZtoRGB(double x, double y, double z)
    static const double xw = 0.33333333;
    static const double yw = 0.33333333;
    static const double zw = 1. - (xw + yw);
-
-   /* xyz -> rgb matrix, before scaling to white. */
    
+   /* xyz -> rgb matrix, before scaling to white. */   
    double rx = (yg * zb) - (yb * zg);
    double ry = (xb * zg) - (xg * zb);
    double rz = (xg * yb) - (xb * yg);
@@ -255,8 +254,8 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
    double X = 0;
    double Y = 0;
    double Z = 0;
-   double lambda = 380;
-   for (int i = 0; lambda < 780.1; i++, lambda += 5)
+   double lambda = 380.0;
+   for (int i = 0; lambda < 780.1; i++, lambda += 5.0)
    {
       double Me;
       Me = BBSpectrum(lambda, bbTemp);
