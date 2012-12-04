@@ -167,7 +167,7 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
                 if tokn is None:
                     result.append('<%s>' % tok)
                 else:
-                    result.append(tokn)
+                    result.append(tokn.replace(':', '_')
             except KeyError:
                 if allOrNothing:
                     if leaveUnmatchedTokens:
@@ -180,7 +180,7 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
                     result.append('')
         else:
             result.append(tok)
-    return ''.join(result).replace(':', '_')
+    return ''.join(result)
 
 _tokenCallbacks = []
 _tokenNames = []
