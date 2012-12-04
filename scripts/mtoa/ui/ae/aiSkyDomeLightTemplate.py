@@ -37,11 +37,16 @@ def aiSkyDomeLightTemplate(nodeName):
 
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiCastShadows", addControl=True, label="Cast Shadows")
+    cmds.editorTemplate("aiShadowColor", addControl=True, label="Shadow Color")
 
     # FIXME: use light template code here
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
+    
+    cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("aiAffectVolumetrics", addControl=True, label="Affect Volumetrics")
+    cmds.editorTemplate("aiCastVolumetricShadows", addControl=True, label="Cast Volumetric Shadows")
     
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiUserOptions", addControl=True, label="User Options")

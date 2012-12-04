@@ -4,7 +4,7 @@ import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
-class AEaiSimpleTemplate(ShaderAETemplate):
+class AEmySimpleTemplate(ShaderAETemplate):
 
     def setup(self):
         # Add the shader swatch to the AE

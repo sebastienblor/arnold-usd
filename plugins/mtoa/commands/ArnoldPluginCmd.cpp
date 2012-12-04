@@ -24,6 +24,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("n", "nodePlug", MSyntax::kSelectionItem);
 
    syntax.addFlag("lnt", "listAOVNodeTypes", MSyntax::kNoArg);
+   syntax.addFlag("sdt", "setDefaultTranslator", MSyntax::kString, MSyntax::kString);
    return syntax;
 }
 
@@ -152,6 +153,13 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       MStringArray result;
       CExtensionsManager::GetNodeTypesWithAOVs(result);
       setResult(result);
+   }
+   else if(args.isFlagSet("setDefaultTranslator"))
+   {
+      MString mayaTypeName, translatorName;
+      args.getFlagArgument("setDefaultTranslator", 0, mayaTypeName);
+      args.getFlagArgument("setDefaultTranslator", 1, translatorName);
+      CExtensionsManager::SetDefaultTranslator(mayaTypeName, translatorName);
    }
 
    // FIXME: error on unknown flag

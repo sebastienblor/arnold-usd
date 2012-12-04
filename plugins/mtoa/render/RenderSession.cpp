@@ -81,12 +81,17 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    }
 
    // Begin the Arnold universe, read metadata file and load plugins
-   ArnoldUniverseBegin();
+   if (ArnoldUniverseOnlyBegin())
+   {
+      //Set the user defined log file
+      m_renderOptions = options;
+      m_renderOptions.SetupLog();
+      ArnoldUniverseLoadPluginsAndMetadata();
+   }
+   
    m_is_active = AiUniverseIsActive() ? true : false;
    if (m_is_active)
    {
-      m_renderOptions = options;
-      m_renderOptions.SetupLog();
       InstallNodes();
       AiCritSecInit(&m_render_lock);
       return MStatus::kSuccess;
@@ -356,13 +361,13 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
-   int ai_status(AI_SUCCESS);
    if (renderSession->m_renderOptions.isProgressive())
-      ai_status = ProgressiveRenderThread(data);
+      ProgressiveRenderThread(data);
+      
    else
    {
       renderSession->SetRendering(true);
-      ai_status = AiRender(AI_RENDER_MODE_CAMERA);
+      AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
    // get the post-MEL before ending the MayaScene

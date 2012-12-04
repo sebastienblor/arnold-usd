@@ -25,12 +25,18 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginScrollLayout()
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+        
+        self.beginLayout("Matte", collapse=True)
+        self.addControl("aiEnableMatte", label="Enable Matte")
+        self.addControl("aiMatteColor", label="Matte Color")
+        self.addControl("aiMatteColorA", label="Matte Alpha")
+        self.endLayout()
 
         self.beginLayout("Diffuse", collapse=False)
         self.addControl("color",  label="Color", annotation="Diffuse Color")
         self.addControl("Kd", label="Weight")
         self.addControl("diffuse_roughness", label="Roughness")
-        self.addControl("Kb", label="Backlight")
+        self.addControl("Kb", label="Backlighting")
         self.addSeparator()
         self.addControl("Fresnel_affect_diff", label="Fresnel affects Diffuse")
 
@@ -51,7 +57,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         # self.addControl("Phong_exponent", label="Glossiness")
         self.addSeparator()
         self.addControl("specular_Fresnel", changeCommand=self.checkSpecularFresnel, label="Fresnel")
-        self.addControl("Ksn", label="Fresnel Coefficient")
+        self.addControl("Ksn", label="Reflectance at Normal")
 
         self.beginLayout("Extended Controls", collapse=True)
         self.addControl("direct_specular", label="Direct Specular Scale")
@@ -62,9 +68,11 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginLayout("Reflection", collapse=True)
         self.addControl("Kr_color", label="Color")
         self.addControl("Kr", label="Weight")
+        self.addControl("enable_internal_reflections", label="Enable Internal Reflections")
         self.addSeparator()
         self.addControl("Fresnel", changeCommand=self.checkReflectionFresnel, label="Fresnel")
-        self.addControl("Krn", label="Fresnel Coefficient")
+        self.addSeparator()
+        self.addControl("Krn", label="Reflectance at Normal")
         self.beginLayout("Exit Color", collapse=True)
         self.addControl("reflection_exit_use_environment", label="Use Environment")
         self.addControl("reflection_exit_color", label="Color")
@@ -102,7 +110,6 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("enable_glossy_caustics", label="Enable Glossy Caustics")
         self.addControl("enable_reflective_caustics", label="Enable Reflective Caustics")
         self.addControl("enable_refractive_caustics", label="Enable Refractive Caustics")
-        self.addControl("enable_internal_reflections", label="Enable Internal Reflections")
         self.endNoOptimize()
         self.endLayout() # End Caustics Layout
 

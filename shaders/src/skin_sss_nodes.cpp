@@ -198,6 +198,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
 
    AtColor   Kd                     = pParams->Kd * pParams->Kd_color;
    AtColor   Ks                     = pParams->Ks * pParams->Ks_color;
+   AtColor   Kr                     = pParams->Kr * pParams->Kr_color;
    float     roughness              = pParams->roughness;
    bool      enable_glossy_caustics = pParams->enable_glossy_caustics;
    float     pexp                   = pParams->pexp;
@@ -362,7 +363,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
 
       indirect_diffuse *= Kd_indirect;
       if (Fresnel_on_diff)
-         indirect_diffuse *= 1 - refl_fresnel - spec_fresnel;
+         indirect_diffuse *= 1 - Kr * refl_fresnel - Ks * spec_fresnel;
       output.rgb += indirect_diffuse;
       // #1311
       if (pParams->writeAOVs)
@@ -393,7 +394,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
    //
    // Mirror reflection layer
    //
-   AtColor Kr = pParams->Kr * pParams->Kr_color;
    if (!AiColorIsZero(Kr) && (sg->Rr_diff == 0 || pParams->enable_reflective_caustics)
                           && (sg->Rr_refr == 0 || enable_internal_reflections))
    {

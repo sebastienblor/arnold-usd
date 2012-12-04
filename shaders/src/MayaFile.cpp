@@ -534,7 +534,7 @@ shader_evaluate
          TokenData* token = idata->tokens;
          unsigned int pos = 0;
          pos = idata->startPos;
-         for (unsigned int i=0; i < idata->ntokens; i++, token++)
+         for (unsigned int i=0; (i < idata->ntokens) && success; i++, token++)
          {
             switch(token->mode)
             {
@@ -603,6 +603,8 @@ shader_evaluate
                      // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
                      idata->processPath[sg->tid][pos] = 0;
                      success = false;
+                     const char* shapeName = AiNodeGetName(sg->shader);
+                     AiMsgWarning("[MayaFile] Could not find user attribute %s for file node %s, setting to default color", (const char*)token->extra, shapeName);
                   }
                   break;
                }
@@ -671,6 +673,8 @@ shader_evaluate
       }
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      else if (success)
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals
       sg->u = inU;

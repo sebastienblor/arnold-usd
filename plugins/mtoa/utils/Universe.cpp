@@ -64,6 +64,22 @@ bool ArnoldUniverseBegin(int logFlags)
    return false;
 }
 
+bool ArnoldUniverseOnlyBegin()
+{
+   if (!AiUniverseIsActive())
+   {
+      AiBegin();
+      return true;
+   }
+   return false;
+}
+
+void ArnoldUniverseLoadPluginsAndMetadata()
+{
+   LoadPlugins();
+   ReadMetafile();
+}
+
 void ArnoldUniverseEnd()
 {
    if (AiUniverseIsActive())

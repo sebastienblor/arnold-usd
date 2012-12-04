@@ -138,6 +138,14 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
+class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        self.addControl("aiStepSize", label="Step Size")
+        self.addControl("aiShadowDensity", label="Shadow Density")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")
+
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
@@ -209,8 +217,14 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiShadowDensity")
 
         self.addSeparator()
+        
+        self.addControl("aiAffectVolumetrics")
+        self.addControl("aiCastVolumetricShadows")
+        
+        self.addSeparator()
 
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
@@ -235,6 +249,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiCastVolumetricShadows")
         self.addSeparator()
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
@@ -266,6 +281,7 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
@@ -295,6 +311,7 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 # Actually currently connecting the other way round, filter's decayRate

@@ -44,7 +44,7 @@ void CNParticleTranslator::NodeInitializer(CAbTranslator context)
    enumNames.append("points");
    enumNames.append("spheres");
    enumNames.append("quads");
-   //data.defaultValue.ENUM = 0; /// how do you do a default in an enum?
+   data.defaultValue.INT = 0;
    data.name = "aiRenderPointsAs";
    data.shortName = "ai_render_points_as";
    data.enums= enumNames;

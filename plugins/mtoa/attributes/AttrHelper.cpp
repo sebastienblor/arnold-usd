@@ -530,6 +530,8 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setMin(0.);
+   nAttr.setMax(1.);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)

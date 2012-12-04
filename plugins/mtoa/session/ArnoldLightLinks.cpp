@@ -86,10 +86,7 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
             if (it2 == m_arnoldLights.end())
                it2 = m_arnoldLights.find(childPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
             if (it2 != m_arnoldLights.end())
-               lights.push_back(it2->second);
-            
-            std::cerr << childPath.fullPathName().asChar() + 1 << std::endl;
-               
+               lights.push_back(it2->second);               
          }
       }
       m_cachedObjectSets.insert(std::make_pair(setName, lights));

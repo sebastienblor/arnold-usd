@@ -26,15 +26,17 @@
 
 struct COutputDriverData
 {
-   AtBBox2         refresh_bbox;
-   bool            isRegion;
-   bool            isProgressive;
-   float           gamma;
-   unsigned int    imageWidth;
-   unsigned int    imageHeight;
-   unsigned int    swatchImageWidth;
-   bool            rendering;
-   float*          swatchPixels;
+   std::vector<RV_PIXEL>   oldPixels;
+   AtBBox2                 refresh_bbox;
+   float*                  swatchPixels;
+   float                   gamma;
+   unsigned int            imageWidth;
+   unsigned int            imageHeight;
+   unsigned int            swatchImageWidth;
+   bool                    isRegion;
+   bool                    isProgressive;  
+   bool                    rendering;
+   bool                    clearBeforeRender;
 };
 
 enum EDisplayUpdateMessageType

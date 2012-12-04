@@ -666,9 +666,13 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       }
 
       int numMeshDisps = (int)meshDisps.size();
-      if (numMeshDisps > 0)
-      { 
-         AiNodeSetArray(polymesh, "disp_map", AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
+      for (int i = 0; i < numMeshDisps; ++i)
+      {
+         if (meshDisps[i] != 0)
+         {
+            AiNodeSetArray(polymesh, "disp_map", AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
+            break;
+         }
       }
 
       // Export face to shader indices

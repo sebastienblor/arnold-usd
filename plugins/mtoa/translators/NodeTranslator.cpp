@@ -167,8 +167,8 @@ MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* Retu
 /// Get a plug for that attribute name on the maya override sets, if any
 MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
 {
-   MStatus status(MStatus::kSuccess);
    MPlug plug;
+   MStatus status(MStatus::kSuccess);   
    // Check if a set override this plug's value
    std::vector<CNodeTranslator*>::iterator it;
    std::vector<CNodeTranslator*> translators;
@@ -176,7 +176,7 @@ MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* Re
    for (unsigned int i=0; i<novr; i++)
    {
       CNodeTranslator* translator = m_overrideSets[i];
-
+      
       // MString setName = translator->GetMayaObjectName();
       // Search only on active translators
       if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
@@ -238,8 +238,11 @@ MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideS
       for (unsigned int i=0; i<nc; i++)
       {
          MObject set = connections[i].node();
-         if (MStatus::kSuccess == fnSet.setObject(set))
+         MFnDependencyNode setDNode(set);
+         if (setDNode.typeName() == MString("objectSet"))
          {
+            if (!fnSet.setObject(set))
+               continue;
             // MString setName = fnSet.name();
             // Also add sets with override turned off to allow chaining
             // on these as well
@@ -1158,8 +1161,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    }
    
    // Exporting the UnexposedOptions parameter
-   
-   MPlug plug = fnDepNode.findPlug("aiUserOptions");
+   MPlug plug = FindMayaPlug("aiUserOptions");
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
@@ -1780,8 +1782,11 @@ MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSet
       for (unsigned int i=0; i<nc; i++)
       {
          MObject set = connections[i].node();
-         if (MStatus::kSuccess == fnSet.setObject(set))
+         MFnDependencyNode setDNode(set);
+         if (setDNode.typeName() == MString("objectSet"))
          {
+            if (!fnSet.setObject(set))
+               continue;
             // MString setName = fnSet.name();
             // Also add sets with override turned off to allow chaining
             // on these as well

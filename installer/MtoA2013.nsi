@@ -1,7 +1,7 @@
 !include "MUI2.nsh"
 
-Name "MtoA 0.17.0 Maya 2013"
-OutFile "MtoA-0.17.0-win64-2013.exe"
+Name "MtoA 0.20.0 Maya 2013"
+OutFile "MtoA-0.20.0-win64-2013.exe"
 
 ;Default installation folder
 InstallDir "C:\solidangle\mtoadeploy\2013"
@@ -59,6 +59,13 @@ Section "MtoA for Maya 2013" MtoA2013
   SetOutPath "$INSTDIR"
   File /r /x *.nsi *.*
 
+  ;Add a mtoa.mod file in the Maya modules folder
+  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+  CreateDirectory "$R1\maya\2013-x64\modules"
+  FileOpen $0 "$R1\maya\2013-x64\modules\mtoa.mod" w
+  FileWrite $0 "+ mtoa any $INSTDIR"
+  FileClose $0
+  
   ;Store installation folder
   SetRegView 32
   WriteRegStr HKCU "Software\MtoA2013" "" $INSTDIR
@@ -76,7 +83,7 @@ Section "MtoA for Maya 2013" MtoA2013
   
   SetRegView 64
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA2013" \
-                 "DisplayName" "MtoA 0.17.0 Maya 2013"
+                 "DisplayName" "MtoA 0.20.0 Maya 2013"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA2013" \
                  "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
 
@@ -89,13 +96,7 @@ Section "MtoA for Maya 2013 Env Variables" MtoA2013EnvVariables
    ;Create .mod file
     SetRegView 64
     ReadRegStr $R0 HKCU "Software\MtoA2013" ""
-    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
     
-    File "mtoa.mod"
-    CreateDirectory "$R1\maya\2013-x64\modules"
-    FileOpen $0 "$R1\maya\2013-x64\modules\mtoa.mod" w
-    FileWrite $0 "+ mtoa any $R0"
-    FileClose $0
     
     ;Create a backup of Maya.env
     CreateDirectory "$PROFILE\Documents\maya\2013-x64\MtoA_backup"
