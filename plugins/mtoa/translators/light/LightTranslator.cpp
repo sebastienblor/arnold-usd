@@ -149,6 +149,8 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.hasSoftMax = true;
    data.softMin.FLT = 1000.f;
    data.softMax.FLT = 15000.f;
+   data.hasMin = true;
+   data.min.FLT = 0.f;
    helper.MakeInputFloat(data);
 }
 
@@ -268,17 +270,17 @@ AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
    Y /= XYZ;
    Z /= XYZ;
    
-   AtRGB rgb = XYZtoRGB(Z, Y, Z);
+   AtRGB rgb = XYZtoRGB(X, Y, Z);
    float w;
    w = (0.f < rgb.r) ? 0.f : rgb.r;
    w = (w < rgb.g) ? w : rgb.g;
    w = (w < rgb.b) ? w : rgb.b;
    
-   if (w > 0.f)
+   if (w < 0.f)
    {
-      rgb.r += w;
-      rgb.g += w;
-      rgb.b += w;
+      rgb.r -= w;
+      rgb.g -= w;
+      rgb.b -= w;
    }
 
    return rgb;
