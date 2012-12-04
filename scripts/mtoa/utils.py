@@ -167,7 +167,7 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
                 if tokn is None:
                     result.append('<%s>' % tok)
                 else:
-                    result.append(tokn.replace(':', '_')
+                    result.append(tokn.replace(':', '_'))
             except KeyError:
                 if allOrNothing:
                     if leaveUnmatchedTokens:
