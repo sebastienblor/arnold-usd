@@ -101,21 +101,21 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
+        cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
         cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True,
+        cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
 
     def modeChanged(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
-                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
+                cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
             else:
-                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
+                cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
         except RuntimeError:
             # this callback runs immediately, before HairTemplateMinPixelWidth exists
             pass
@@ -150,21 +150,21 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
-                            attribute=attrName, enable=isEnabled)
+        cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName)#, enable=isEnabled)
         cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
-                            attribute=attrName, enable=isEnabled)
+        cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
+                            attribute=attrName)#, enable=isEnabled)
 
     def modeChanged(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
-                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
+                cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
             else:
-                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
+                cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
         except RuntimeError:
             # this callback runs immediately, before NurbsCurveTemplateMinPixelWidth exists
             pass
