@@ -151,13 +151,13 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
-                            attribute=attrName)#, enable=isEnabled)
+                            attribute=attrName, enable=isEnabled)
         cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
-                            attribute=attrName)#, enable=isEnabled)
+                            attribute=attrName, enable=isEnabled)
 
     def modeChanged(self, *args):
         try:
