@@ -118,6 +118,28 @@ class LightTemplate(AttributeTemplate):
 
     def validFilters(self):
         return getLightFilterClassification(self.nodeType())
+        
+    def colorTemperatureCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.attrControlGrp("LightColorTemperature", label="Color Temperature",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setUITemplate(popTemplate=True)
+        
+    def colorTemperatureUpdate(self, attrName):
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.attrControlGrp("LightColorTemperature", edit=True,
+                            attribute=attrName, enable=isEnabled)
+        
+    def useColorTemperatureChange(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiUseColorTemperature')) == 1:
+                cmds.attrControlGrp("LightColorTemperature", edit=True, enable=True)
+            else:
+                cmds.attrControlGrp("LightColorTemperature", edit=True, enable=False)
+        except RuntimeError:
+            # this callback runs immediately, before LightColorTemperature exists
+            pass
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
@@ -125,8 +147,8 @@ class LightTemplate(AttributeTemplate):
 
         self.addSeparator()
         
-        self.addControl("aiUseColorTemperature", label="Use Color Temperature")
-        self.addControl("aiColorTemperature", label="Color Temperature")
+        self.addControl("aiUseColorTemperature", label="Use Color Temperature", changeCommand=self.useColorTemperatureChange)
+        self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
         
         self.addSeparator()
 
