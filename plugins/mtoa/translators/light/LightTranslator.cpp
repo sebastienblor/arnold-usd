@@ -220,6 +220,8 @@ AtRGB XYZtoRGB(double x, double y, double z)
    return rgb;
 }
 
+// reference, public domain code : http://www.fourmilab.ch/documents/specrend/specrend.c
+
 AtRGB CLightTranslator::ConvertKelvinToRGB(float kelvin)
 {
    double bbTemp = (double)kelvin;
