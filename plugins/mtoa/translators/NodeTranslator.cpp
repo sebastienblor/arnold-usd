@@ -526,6 +526,19 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    return GetArnoldRootNode();
 }
 
+void CNodeTranslator::Export(AtNode* node)
+{
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (strcmp(paramName, "name") != 0) ProcessParameter(node, paramName, AiParamGetType(paramEntry));
+   }
+   AiParamIteratorDestroy(nodeParam);
+}
+
 AtNode* CNodeTranslator::DoCreateArnoldNodes()
 {
    m_atNode = CreateArnoldNodes();
@@ -1355,7 +1368,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    // if the linkable metadata is not set, then only link if the node is a shader
    if (!AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), arnoldParamName, "linkable", &acceptLinks))
       acceptLinks = ((AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) & AI_NODE_SHADER) != 0) ? true : false;
-
    // ignoreWhenRendering flag
    if (acceptLinks && plug.isIgnoredWhenRendering()) return NULL;
 
@@ -1762,7 +1774,48 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
    } // switch
 }
 
+/// for automatically creating parameters
+void CNodeTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, context.arnold);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeEntryLookUp(context.arnold.asChar()));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+      if (!helper.IsHidden(paramName))
+         helper.MakeInput(paramName);
+   }
+   AiParamIteratorDestroy(nodeParam);
+}
+
 //------------ CDagTranslator ------------//
+
+void CDagTranslator::Export(AtNode* node)
+{
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (strcmp(paramName, "name") != 0)
+      {
+         if (strcmp(paramName, "matrix") == 0)
+            ExportMatrix(node, 0);
+         else
+            ProcessParameter(node, paramName, AiParamGetType(paramEntry));
+      }
+   }
+   AiParamIteratorDestroy(nodeParam);
+}
+
+void CDagTranslator::ExportMotion(AtNode* node, unsigned int step)
+{
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), "matrix"))
+      ExportMatrix(node, step);
+}
+
 /// get override sets containing the passed Maya dag path
 /// and add them to the passed MObjectArray
 MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
