@@ -14,7 +14,7 @@ def aiGoboTemplate(nodeName):
     cmds.editorTemplate("slidemap", addControl=True, label="Slide Map")
     cmds.editorTemplate("density", addControl=True, label="Density")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
 
     cmds.editorTemplate(beginLayout="Placement Attributes", collapse=False)
@@ -26,7 +26,7 @@ def aiGoboTemplate(nodeName):
     cmds.editorTemplate("wrap_s", addControl=True, label="Wrap S")
     cmds.editorTemplate("wrap_t", addControl=True, label="Wrap T")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)
