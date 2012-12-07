@@ -109,6 +109,8 @@ class LightFilterWindow(object):
         filterNodeType = dict(self.filters())[filterLabels]
         self.template.addLightFilter(filterNodeType)
 
+from functools import partial
+
 class LightTemplate(AttributeTemplate):
     MENU_NODE_TYPE = 0
     MENU_NODE_INSTANCE = 1
@@ -120,31 +122,30 @@ class LightTemplate(AttributeTemplate):
         return getLightFilterClassification(self.nodeType())
         
     @staticmethod
-    def updateColorTemperature(attrName):
+    def updateColorTemperature(attrName, *args, **kwargs):
         temperature = cmds.getAttr(attrName)
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.canvas('LightColorTemperatureCanvas', edit=True, rgbValue=colorTemp)
+        cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
         
     def colorTemperatureCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        cmds.canvas('LightColorTemperatureCanvas', width=100, height=20, rgbValue=(1, 0, 0))
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
         cmds.attrFieldSliderGrp('LightColorTemperature', label='Color Temperature',
                             attribute=attrName, enable=isEnabled,
-                            changeCommand=lambda *args: LightTemplate.updateColorTemperature(attrName))
+                            changeCommand=partial(LightTemplate.updateColorTemperature, attrName))
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.canvas('LightColorTemperatureCanvas', edit=True, rgbValue=colorTemp)
+        cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
         cmds.setUITemplate(popTemplate=True)
         
     def colorTemperatureUpdate(self, attrName):
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
         cmds.attrFieldSliderGrp('LightColorTemperature', edit=True,
                             attribute=attrName, enable=isEnabled,
-                            changeCommand=lambda *args: LightTemplate.updateColorTemperature(attrName))
+                            changeCommand=partial(LightTemplate.updateColorTemperature, attrName))
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.canvas('LightColorTemperatureCanvas', edit=True, rgbValue=colorTemp)    
+        cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
         
     def useColorTemperatureChange(self, *args):
         try:
@@ -152,6 +153,9 @@ class LightTemplate(AttributeTemplate):
                 cmds.attrControlGrp('LightColorTemperature', edit=True, enable=True)
             else:
                 cmds.attrControlGrp('LightColorTemperature', edit=True, enable=False)
+            temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+            colorTemp = cmds.arnoldTemperatureToColor(temperature)
+            cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
         except RuntimeError:
             # this callback runs immediately, before LightColorTemperature exists
             pass
