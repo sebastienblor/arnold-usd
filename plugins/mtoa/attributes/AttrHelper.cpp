@@ -683,7 +683,7 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
 
    attrib = mAttr.create(data.name, data.shortName, MFnMatrixAttribute::kFloat);
    mAttr.setArray(data.isArray);
-   mAttr.setKeyable(true);
+   mAttr.setKeyable(data.keyable);
    mAttr.setStorable(true);
    mAttr.setReadable(true);
    mAttr.setWritable(true);
