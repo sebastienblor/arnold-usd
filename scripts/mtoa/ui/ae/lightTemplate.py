@@ -127,12 +127,19 @@ class LightTemplate(AttributeTemplate):
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
         cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
         
+    @staticmethod
+    def getChangeCommand(attrName):
+        if pm.mel.getApplicationVersionAsFloat() == 2011:
+            return '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; attrFieldSliderGrp -e -backgroundColor $c[0] $c[1] $c[2] "LightColorTemperature"' % attrName
+        else:
+            return partial(LightTemplate.updateColorTemperature, attrName)
+        
     def colorTemperatureCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))        
         cmds.attrFieldSliderGrp('LightColorTemperature', label='Color Temperature',
                             attribute=attrName, enable=isEnabled,
-                            changeCommand=partial(LightTemplate.updateColorTemperature, attrName))
+                            changeCommand=LightTemplate.getChangeCommand(attrName))
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
         cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
@@ -142,7 +149,7 @@ class LightTemplate(AttributeTemplate):
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
         cmds.attrFieldSliderGrp('LightColorTemperature', edit=True,
                             attribute=attrName, enable=isEnabled,
-                            changeCommand=partial(LightTemplate.updateColorTemperature, attrName))
+                            changeCommand=LightTemplate.getChangeCommand(attrName))
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
         cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
@@ -150,9 +157,9 @@ class LightTemplate(AttributeTemplate):
     def useColorTemperatureChange(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiUseColorTemperature')) == 1:
-                cmds.attrControlGrp('LightColorTemperature', edit=True, enable=True)
+                cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, enable=True)
             else:
-                cmds.attrControlGrp('LightColorTemperature', edit=True, enable=False)
+                cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, enable=False)
             temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
             colorTemp = cmds.arnoldTemperatureToColor(temperature)
             cmds.attrFieldSliderGrp('LightColorTemperature', edit=True, backgroundColor=colorTemp)
