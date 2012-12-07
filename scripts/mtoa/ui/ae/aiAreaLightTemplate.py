@@ -19,6 +19,7 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
     
     def setup(self):
+        self.setLightType("ArnoldArea")
         self.addSwatch()
 
         self.beginScrollLayout()
