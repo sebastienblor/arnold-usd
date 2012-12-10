@@ -3,17 +3,6 @@ import mtoa.ui.ae.lightTemplate as lightTemplate
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
 
-'''def ArnoldMakeLightExclusive(attr):
-    lightName = attr.split(".")[0]
-    cmds.rowLayout(nc=2, cal=[2, 'left'])
-    cmds.text(label="")
-    cmds.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
-    cmds.setParent('..')
-    
-def ArnoldReplaceLightExclusive(attr):
-    lightName = attr.split(".")[0]
-    cmds.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)'''
-
 class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
     def addSwatch(self):
         self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
