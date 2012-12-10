@@ -63,7 +63,7 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         self.endLayout()
 
         # Do not show extra attributes
-        '''extras = ["visibility",
+        extras = ["visibility",
                 "intermediateObject",
                 "template",
                 "ghosting",
@@ -102,8 +102,8 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
                 "localScale"]
 
         for extra in extras:
-           cmds.editorTemplate(nodeName, suppress=extra)
-        '''
+            self.suppress(extra)
+        
         pm.mel.AEdependNodeTemplate(self.nodeName)
 
         self.addExtraControls()
