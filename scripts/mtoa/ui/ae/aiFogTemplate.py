@@ -1,27 +1,22 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiFogTemplate(nodeName):
+class AEaiFogTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        
+        self.beginLayout('Fog Attributes', collapse=False)
+        self.addControl('color', label='Color')
+        self.addControl('distance', label='Distance')
+        self.addControl('height', label='Height')
+        self.addSeparator()
+        self.addControl('ground_normal', label='Ground Normal')
+        self.addControl('ground_point', label='Ground Point')
+        self.endLayout()
+        
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
-    aiSwatchDisplay(nodeName)
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    cmds.editorTemplate(beginScrollLayout=True)
-
-    cmds.editorTemplate(beginLayout="Fog Attributes", collapse=False)
-    cmds.editorTemplate("color", addControl=True, label="Color")
-    cmds.editorTemplate("distance", addControl=True, label="Distance")
-    cmds.editorTemplate("height", addControl=True, label="Height")
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("ground_normal", addControl=True, label="Ground Normal")
-    cmds.editorTemplate("ground_point", addControl=True, label="Ground Point")
-
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    
-    cmds.editorTemplate(addExtraControls=True)
-    cmds.editorTemplate(endScrollLayout=True)
