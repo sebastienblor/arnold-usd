@@ -1,38 +1,39 @@
-import maya.cmds as cmds
-import maya.mel as mel
 import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.ae.utils import aeCallback
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
-
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+'''
 def checkNearAtten(nodeName):
-    aeUtils.arnoldDimControlIfFalse(nodeName, "near_start", "use_near_atten")
-    aeUtils.arnoldDimControlIfFalse(nodeName, "near_end", "use_near_atten")
+    aeUtils.arnoldDimControlIfFalse(nodeName, 'near_start', 'use_near_atten')
+    aeUtils.arnoldDimControlIfFalse(nodeName, 'near_end', 'use_near_atten')
 
 def checkFarAtten(nodeName):
-    aeUtils.arnoldDimControlIfFalse(nodeName, "far_start", "use_far_atten")
-    aeUtils.arnoldDimControlIfFalse(nodeName, "far_end", "use_far_atten")
+    aeUtils.arnoldDimControlIfFalse(nodeName, 'far_start', 'use_far_atten')
+    aeUtils.arnoldDimControlIfFalse(nodeName, 'far_end', 'use_far_atten')
+'''
 
-def aiLightDecayTemplate(nodeName):
+class AEaiLightDecayTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        
+        self.beginLayout('Attenuation', collapse=False)
 
-    aiSwatchDisplay(nodeName)
+        #cmds.editorTemplate("use_near_atten", aeCallback(checkNearAtten), addControl=True, label="Use Near Attenuation")
+        self.addControl('use_near_atten', label='Use Near Attenuation')
+        self.addControl('near_start', label='Near Start')
+        self.addControl('near_end', label='Near End')
 
-    cmds.editorTemplate(beginScrollLayout=True)
+        self.addSeparator()
+        
+        #cmds.editorTemplate("use_far_atten", aeCallback(checkNearAtten), addControl=True, label="Use Far Attenuation")        
+        self.addControl('use_far_atten', label='Use Far Attenuation')
+        self.addControl('far_start', label='Far Start')
+        self.addControl('far_end', label='Far End')
+        
+        self.endLayout()
+        
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
-    cmds.editorTemplate(beginLayout="Attenuation", collapse=False)
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    cmds.editorTemplate("use_near_atten", aeCallback(checkNearAtten), addControl=True, label="Use Near Attenuation")
-    cmds.editorTemplate("near_start", addControl=True, label="Near Start")
-    cmds.editorTemplate("near_end", addControl=True, label="Near End")
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("use_far_atten", aeCallback(checkNearAtten), addControl=True, label="Use Far Attenuation")
-    cmds.editorTemplate("far_start", addControl=True, label="Far Start")
-    cmds.editorTemplate("far_end", addControl=True, label="Far End")
-
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-    cmds.editorTemplate(endScrollLayout=True)
