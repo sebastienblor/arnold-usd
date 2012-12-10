@@ -1,92 +1,82 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiSkyTemplate(nodeName):
+class AEaiSkyTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        
+        self.beginLayout('Sky Attributes', collapse=False)
+        self.addControl('format', label='Format')
+        self.addControl('color', label='Color')
+        self.addControl('intensity', label='Intensity')
+        self.endLayout()
+        
+        self.beginLayout('Render Stats', collapse=True)
+        self.beginNoOptimize()
+        self.addControl('castsShadows', label='Casts Shadows')
+        self.addControl('primaryVisibility', label='Primary Visibility')
+        self.addControl('aiVisibleInDiffuse', label='Visible in Diffuse')
+        self.addControl('aiVisibleInGlossy', label='Visible in Glossy')
+        self.addControl('visibleInReflections', label='Visible in Reflections')
+        self.addControl('visibleInRefractions', label='Visible in Refractions')
+        self.endNoOptimize()
+        self.endLayout()
+        
+        self.beginLayout('Hardware Texturing', collapse=True)
+        self.addControl('sampling', label='Texture Resolution')
+        self.addControl('hwtexalpha', label='Opacity')
+        self.endLayout()
+        
+        self.beginLayout('Viewport', collapse=True)
+        self.addControl('skyRadius', label='Sky Radius')
+        self.addControl('skyFacing', label='Facing')
+        self.endLayout()
 
-    aiSwatchDisplay(nodeName)
+        # Do not show extra attributes
+        extras = ["visibility",
+                "intermediateObject",
+                "template",
+                "ghosting",
+                "instObjGroups",
+                "useObjectColor",
+                "objectColor",
+                "drawOverride",
+                "lodVisibility",
+                "renderInfo",
+                "renderLayerInfo",
+                "ghostingControl",
+                "ghostCustomSteps",
+                "ghostFrames",
+                "ghostRangeStart",
+                "ghostRangeEnd",
+                "ghostDriver",
+                "motionBlur",
+                "visibleInReflections",
+                "visibleInRefractions",
+                "castsShadows",
+                "receiveShadows",
+                "maxVisibilitySamplesOverride",
+                "maxVisibilitySamples",
+                "geometryAntialiasingOverride",
+                "antialiasingLevel",
+                "shadingSamplesOverride",
+                "shadingSamples",
+                "maxShadingSamples",
+                "volumeSamplesOverride",
+                "volumeSamples",
+                "depthJitter",
+                "ignoreSelfShadowing",
+                "primaryVisibility",
+                "compInstObjGroups",
+                "localPosition",
+                "localScale"]
 
-    cmds.editorTemplate(beginScrollLayout=True)
+        for extra in extras:
+            self.suppress(extra)
+            
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
-    cmds.editorTemplate(beginLayout="Sky Attributes", collapse=False)
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    cmds.editorTemplate("format", addControl=True, label="Format")
-    cmds.editorTemplate("color", addControl=True, label="Color")
-    cmds.editorTemplate("intensity", addControl=True, label="Intensity")
-
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Render Stats", collapse=True)
-    cmds.editorTemplate(beginNoOptimize=True)
-
-    cmds.editorTemplate("castsShadows", addControl=True, label="Casts Shadows")
-    cmds.editorTemplate("primaryVisibility", addControl=True, label="Primary Visibility")
-    cmds.editorTemplate("aiVisibleInDiffuse", addControl=True, label="Visible in Diffuse")
-    cmds.editorTemplate("aiVisibleInGlossy", addControl=True, label="Visible in Glossy")
-    cmds.editorTemplate("visibleInReflections", addControl=True, label="Visible in Reflections")
-    cmds.editorTemplate("visibleInRefractions", addControl=True, label="Visible in Refractions")
-    cmds.editorTemplate(endNoOptimize=True)
-
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
-
-    cmds.editorTemplate("sampling", addControl=True,  label="Texture Resolution")
-    cmds.editorTemplate("hwtexalpha", addControl=True,  label="Opacity")
-
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Viewport", collapse=True)
-
-    cmds.editorTemplate("skyRadius", addControl=True,  label="Sky Radius")
-    cmds.editorTemplate("skyFacing", addControl=True,  label="Facing")
-
-    cmds.editorTemplate(endLayout=True)
-
-    # Do not show extra attributes
-    extras = ["visibility",
-             "intermediateObject",
-             "template",
-             "ghosting",
-             "instObjGroups",
-             "useObjectColor",
-             "objectColor",
-             "drawOverride",
-             "lodVisibility",
-             "renderInfo",
-             "renderLayerInfo",
-             "ghostingControl",
-             "ghostCustomSteps",
-             "ghostFrames",
-             "ghostRangeStart",
-             "ghostRangeEnd",
-             "ghostDriver",
-             "motionBlur",
-             "visibleInReflections",
-             "visibleInRefractions",
-             "castsShadows",
-             "receiveShadows",
-             "maxVisibilitySamplesOverride",
-             "maxVisibilitySamples",
-             "geometryAntialiasingOverride",
-             "antialiasingLevel",
-             "shadingSamplesOverride",
-             "shadingSamples",
-             "maxShadingSamples",
-             "volumeSamplesOverride",
-             "volumeSamples",
-             "depthJitter",
-             "ignoreSelfShadowing",
-             "primaryVisibility",
-             "compInstObjGroups",
-             "localPosition",
-             "localScale"]
-
-    for extra in extras:
-        cmds.editorTemplate(nodeName, suppress=extra)
-
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-    cmds.editorTemplate(endScrollLayout=True)
