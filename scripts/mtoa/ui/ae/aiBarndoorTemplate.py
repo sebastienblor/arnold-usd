@@ -1,40 +1,32 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiBarndoorTemplate(nodeName):
+class AEaiBarndoorTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        
+        self.beginScrollLayout()
+        
+        self.beginLayout('Barndoor Attributes', collapse=False)
+        self.addControl('barndoor_top_left', label='Top Left')
+        self.addControl('barndoor_top_right', label='Top Right')
+        self.addControl('barndoor_top_edge', label='Top Edge')        
+        self.addSeparator()
+        self.addControl('barndoor_bottom_left', label='Bottom Left')
+        self.addControl('barndoor_bottom_right', label='Bottom Right')
+        self.addControl('barndoor_bottom_edge', label='Bottom Edge')
+        self.addSeparator()
+        self.addControl('barndoor_left_top', label='Left Top')
+        self.addControl('barndoor_left_bottom', label='Left Bottom')
+        self.addControl('barndoor_left_edge', label='Left Edge')
+        self.addSeparator()
+        self.addControl('barndoor_right_top', label='Right Top')
+        self.addControl('barndoor_right_bottom', label='Right Bottom')
+        self.addControl('barndoor_right_edge', label='Right Edge')
+        self.endLayout()
+        
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    aiSwatchDisplay(nodeName)
-    
-    cmds.editorTemplate(beginScrollLayout=True)
-    cmds.editorTemplate(beginLayout="Barndoor Attributes", collapse=False)
-
-    cmds.editorTemplate("barndoor_top_left", addControl=True, label="Top Left")
-    cmds.editorTemplate("barndoor_top_right", addControl=True, label="Top Right")
-    cmds.editorTemplate("barndoor_top_edge", addControl=True, label="Top Edge")
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("barndoor_bottom_left", addControl=True, label="Bottom Left")
-    cmds.editorTemplate("barndoor_bottom_right", addControl=True, label="Bottom Right")
-    cmds.editorTemplate("barndoor_bottom_edge", addControl=True, label="Bottom Edge")
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("barndoor_left_top", addControl=True, label="Left Top")
-    cmds.editorTemplate("barndoor_left_bottom", addControl=True, label="Left Bottom")
-    cmds.editorTemplate("barndoor_left_edge", addControl=True, label="Left Edge")
-
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("barndoor_right_top", addControl=True, label="Right Top")
-    cmds.editorTemplate("barndoor_right_bottom", addControl=True, label="Right Bottom")
-    cmds.editorTemplate("barndoor_right_edge", addControl=True, label="Right Edge")
-
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-
-    cmds.editorTemplate(addExtraControls=True)
-
-    cmds.editorTemplate(endScrollLayout=True)

@@ -5,13 +5,13 @@
 namespace
 {
 
-enum WriteColorParams
-{
-   p_beauty,
-   p_input,
-   p_name,
-   p_blend
-};
+   enum WriteColorParams
+   {
+      p_beauty,
+      p_input,
+      p_name,
+      p_blend
+   };
 
 };
 
@@ -38,13 +38,7 @@ shader_evaluate
    if (sg->Rt & AI_RAY_CAMERA)
    {
       const AtRGBA input = AiShaderEvalParamRGBA(p_input);
-      if (AiShaderEvalParamBool(p_blend))
-      {
-         const AtRGB inputRGB = {input.r, input.g, input.b};
-         AiAOVSetRGB(sg, AiShaderEvalParamStr(p_name), inputRGB);
-      }
-      else
-         AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), input);
+      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), input);
    }
 }
 
