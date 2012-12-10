@@ -1,36 +1,27 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiGoboTemplate(nodeName):
+class AEaiGoboTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        
+        self.beginLayout('Gobo Attributes', collapse=False)
+        self.addControl('filter_mode', label='Filter Mode')
+        self.addControl('slidemap', label='Slide Map')
+        self.addControl('density', label='Density')
+        self.endLayout()
+        
+        self.beginLayout('Placement Attributes', collapse=False)
+        self.addControl('offset', label='Offset')
+        self.addControl('rotate', label='Rotate')
+        self.addControl('scale_s', label='Scale S')
+        self.addControl('scale_t', label='Scale T')
+        self.addControl('wrap_s', label='Wrap S')
+        self.addControl('wrap_t', label='Wrap T')
+        self.endLayout()
+        
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
-    aiSwatchDisplay(nodeName)
-
-    cmds.editorTemplate(beginScrollLayout=True)
-
-    cmds.editorTemplate(beginLayout="Gobo Attributes", collapse=False)
-
-    cmds.editorTemplate("filter_mode", addControl=True, label="Filter Mode")
-    cmds.editorTemplate("slidemap", addControl=True, label="Slide Map")
-    cmds.editorTemplate("density", addControl=True, label="Density")
-
-    cmds.editorTemplate(endLayout=True)
-
-
-    cmds.editorTemplate(beginLayout="Placement Attributes", collapse=False)
-
-    cmds.editorTemplate("offset", addControl=True, label="Offset")
-    cmds.editorTemplate("rotate", addControl=True, label="Rotate")
-    cmds.editorTemplate("scale_s", addControl=True, label="Scale S")
-    cmds.editorTemplate("scale_t", addControl=True, label="Scale T")
-    cmds.editorTemplate("wrap_s", addControl=True, label="Wrap S")
-    cmds.editorTemplate("wrap_t", addControl=True, label="Wrap T")
-
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-    cmds.editorTemplate(endScrollLayout=True)
-
-
+        self.addExtraControls()
+        self.endScrollLayout()
