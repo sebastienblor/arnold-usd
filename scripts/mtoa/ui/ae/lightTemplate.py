@@ -112,57 +112,60 @@ class LightFilterWindow(object):
 from functools import partial
 
 class ColorTemperatureTemplate:
-
-    def setLightType(self, lightType = ""):
-        self.sliderName = '%s_LightColorTemperature' % lightType
-
     @staticmethod
-    def updateColorTemperature(attrName, sliderName, *args, **kwargs):
+    def updateColorTemperature(attrName, canvasName, *args, **kwargs):
         temperature = cmds.getAttr(attrName)
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.attrFieldSliderGrp(sliderName, edit=True, backgroundColor=colorTemp)
+        cmds.canvas(canvasName, edit=True, rgbValue=colorTemp)
         
     @staticmethod
-    def getChangeCommand(attrName, sliderName):
+    def getChangeCommand(attrName, canvasName):
         if pm.mel.getApplicationVersionAsFloat() == 2011:
-            return '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; attrFieldSliderGrp -e -backgroundColor $c[0] $c[1] $c[2] "%s_LightColorTemperature"' % (attrName, sliderName)
+            return '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; canvas -e -rgbValue $c[0] $c[1] $c[2] "%s"' % (attrName, canvasName)
         else:
-            return partial(ColorTemperatureTemplate.updateColorTemperature, attrName, sliderName)
+            return partial(ColorTemperatureTemplate.updateColorTemperature, attrName, canvasName)
         
     def colorTemperatureCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))        
-        cmds.attrFieldSliderGrp(self.sliderName, label='Color Temperature',
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.rowLayout(numberOfColumns=2, columnWidth2=(100,160), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -135)])
+        cmds.canvas(self.canvasName, enable=isEnabled, width=100, height=20)
+        cmds.attrFieldSliderGrp(self.sliderName, label='', width=160,
                             attribute=attrName, enable=isEnabled,
-                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.sliderName))
+                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
+        cmds.setParent('..')
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.attrFieldSliderGrp(self.sliderName, edit=True, backgroundColor=colorTemp)
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
         cmds.setUITemplate(popTemplate=True)
         
     def colorTemperatureUpdate(self, attrName):
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
         cmds.attrFieldSliderGrp(self.sliderName, edit=True,
                             attribute=attrName, enable=isEnabled,
-                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.sliderName))
+                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.attrFieldSliderGrp(self.sliderName, edit=True, backgroundColor=colorTemp)
+        cmds.canvas(self.canvasName, edit=True, enable=isEnabled, rgbValue=colorTemp)
         
     def useColorTemperatureChange(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiUseColorTemperature')) == 1:
                 cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=True)
+                cmds.canvas(self.canvasName, edit=True, enable=True)
             else:
                 cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=False)
+                cmds.canvas(self.canvasName, edit=True, enable=False)
             temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
             colorTemp = cmds.arnoldTemperatureToColor(temperature)
-            cmds.attrFieldSliderGrp(self.sliderName, edit=True, backgroundColor=colorTemp)
+            cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
         except RuntimeError:
             # this callback runs immediately, before LightColorTemperature exists
             pass
             
-    def setupColorTemperature(self):    
+    def setupColorTemperature(self, lightType=""):
+        self.sliderName = '%s_LightColorTemperature' % lightType
+        self.canvasName = '%s_LightColorCanvas' % lightType
         self.addControl("aiUseColorTemperature", label="Use Color Temperature", changeCommand=self.useColorTemperatureChange)
         self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
         
@@ -183,8 +186,6 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addControl("aiBounces")
 
         self.addSeparator()
-        
-        self.setupColorTemperature()
 
         self.lightFiltersLayout()
         

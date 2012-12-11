@@ -19,7 +19,6 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
         
     def setup(self):
-        self.setLightType('ArnoldSkyDome')
         self.addSwatch()
         self.beginScrollLayout()
         
@@ -27,6 +26,8 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         self.addControl('color', label='Color')
         self.addControl('intensity', label='Intensity')
         self.addControl('resolution', label='Resolution')
+        self.addSeparator()
+        self.setupColorTemperature("ArnoldSkyDome")
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl('emitDiffuse', label='Emit Diffuse')
         self.addControl('emitSpecular', label='Emit Specular')

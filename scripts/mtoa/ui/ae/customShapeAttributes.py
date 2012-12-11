@@ -190,7 +190,7 @@ templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType("Ambient")
+        self.setupColorTemperature("Ambient")
         self.addControl("aiNormalize")  
 
         self.addSeparator()
@@ -204,7 +204,7 @@ templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType('Directional')
+        self.setupColorTemperature("Directional")
         self.addControl("aiExposure")
         self.addControl("aiAngle")
         
@@ -230,7 +230,7 @@ templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType('Point')
+        self.setupColorTemperature("Point")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -257,7 +257,7 @@ templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType("Spot")
+        self.setupColorTemperature("Spot")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -290,7 +290,7 @@ templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType("Area")
+        self.setupColorTemperature("Area")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
