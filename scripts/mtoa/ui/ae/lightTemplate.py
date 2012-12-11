@@ -128,10 +128,10 @@ class ColorTemperatureTemplate:
     def colorTemperatureCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
-        cmds.rowLayout(numberOfColumns=2, columnWidth2=(100,160), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -135)])
-        cmds.canvas(self.canvasName, enable=isEnabled, width=100, height=20)
-        cmds.attrFieldSliderGrp(self.sliderName, label='', width=160,
-                            attribute=attrName, enable=isEnabled,
+        cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,170), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -80)])
+        cmds.canvas(self.canvasName, enable=isEnabled, width=65, height=12)
+        cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=170,
+                            attribute=attrName, enable=isEnabled, precision=0, columnWidth=(2, 70),
                             changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
         cmds.setParent('..')
         temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
