@@ -148,25 +148,35 @@ class ColorTemperatureTemplate:
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
         cmds.canvas(self.canvasName, edit=True, enable=isEnabled, rgbValue=colorTemp)
         
-    def useColorTemperatureChange(self, *args):
+    @staticmethod
+    def updateUseColorTemperature(attrName, sliderName, *args, **kwargs):
         try:
-            if cmds.getAttr(self.nodeAttr('aiUseColorTemperature')) == 1:
-                cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=True)
-                cmds.canvas(self.canvasName, edit=True, enable=True)
-            else:
-                cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=False)
-                cmds.canvas(self.canvasName, edit=True, enable=False)
-            temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
-            colorTemp = cmds.arnoldTemperatureToColor(temperature)
-            cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
-        except RuntimeError:
-            # this callback runs immediately, before LightColorTemperature exists
+            cmds.attrFieldSliderGrp(sliderName, edit=True, enable=cmds.getAttr(attrName))
+        except:
             pass
+    
+    @staticmethod
+    def getUseChangeCommand(attrName, sliderName):
+        if pm.mel.getApplicationVersionAsFloat() == 2011:
+            return '$t = `getAttr %s`; attrFieldSliderGrp -e -enable $t %s;' % (attrName, sliderName)
+        else:
+            return partial(ColorTemperatureTemplate.updateUseColorTemperature, attrName, sliderName)
+            
+    def useColorTemperatureCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        cmds.attrControlGrp(self.checkBoxName, attribute=attrName, label='Use Color Temperature',
+                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))
+        cmds.setUITemplate(popTemplate=True)
+    
+    def useColorTemperatureUpdate(self, attrName):
+        cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=attrName,
+                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))                            
             
     def setupColorTemperature(self, lightType=""):
         self.sliderName = '%s_LightColorTemperature' % lightType
+        self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
-        self.addControl("aiUseColorTemperature", label="Use Color Temperature", changeCommand=self.useColorTemperatureChange)
+        self.addCustom("aiUseColorTemperature", self.useColorTemperatureCreate, self.useColorTemperatureUpdate)
         self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
         
         self.addSeparator()
