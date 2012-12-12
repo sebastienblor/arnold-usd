@@ -307,12 +307,14 @@ def registerArnoldRenderer():
             # callbacks
             import mtoa.core as core
             core.installCallbacks()
-            # opening a command port for batch render messaging
-            if not cmds.commandPort(':1234', query=True) and not pm.about(batch=True):
-                cmds.commandPort(name=':1234')
-
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
         raise
+    try:
+	    # opening a command port for batch render messaging
+        if not cmds.commandPort(':1234', query=True) and not pm.about(batch=True):
+            cmds.commandPort(name=':1234')
+    except:
+	    pass
 
