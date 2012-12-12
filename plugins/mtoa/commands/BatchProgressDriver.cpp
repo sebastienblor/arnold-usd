@@ -16,8 +16,6 @@
 typedef int SOCKET;
 #endif
 
-#include <iostream>
-
 AI_DRIVER_NODE_EXPORT_METHODS(batch_progress_driver_mtd);
 
 node_parameters
@@ -58,7 +56,6 @@ node_initialize
    
    sin.sin_family = AF_INET;
    sin.sin_addr.s_addr = ((in_addr*)(hst->h_addr))->s_addr;
-   std::cerr << " ------------ " << AiNodeGetInt(node, "port") << " ------------- " << std::endl;
    sin.sin_port = htons(AiNodeGetInt(node, "port"));
    
    status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
