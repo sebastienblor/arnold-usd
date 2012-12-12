@@ -1,6 +1,20 @@
 #include <ai.h>
 
-#include <maya/MGlobal.h>
+#include <sstream>
+#include <string>
+#include <cstring> // for memset
+
+#ifdef WIN32
+#include <WinSock.h>
+#else
+#include <sys/socket.h>
+#include <netdb.h> 
+#include <unistd.h>
+#endif
+
+#ifndef WIN32
+typedef int SOCKET;
+#endif
 
 AI_DRIVER_NODE_EXPORT_METHODS(batch_progress_driver_mtd);
 
@@ -9,9 +23,62 @@ node_parameters
    
 }
 
+static SOCKET g_socketFd;
+
 node_initialize
 {
    AiDriverInitialize(node, false, NULL);
+   g_socketFd = -1;
+   
+   int status;
+#ifdef WIN32
+   WSADATA wsaData;
+   WORD version;
+   int error;
+   version = MAKEWORD(2, 0);
+   error = WSAStartup(version, &wsaData); // TODO : check for the error
+#endif
+   
+   SOCKET socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+   g_socketFd = socketFd;
+   
+   if (socketFd == -1)
+   {
+      AiMsgInfo("Error creating socket for maya commandPort connection.");
+      return;
+   }
+   
+   hostent* hst;
+   hst = gethostbyname("127.0.0.1");
+   
+   sockaddr_in sin;
+   memset(&sin, 0, sizeof(sockaddr_in));
+   
+   sin.sin_family = AF_INET;
+   sin.sin_addr.s_addr = ((in_addr*)(hst->h_addr))->s_addr;
+   sin.sin_port = htons(1234);
+   
+   status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
+   if (status == -1)
+   {
+      AiMsgInfo("Error connecting to the maya commandPort 1234.");
+      g_socketFd = -1;
+      return;
+   }
+}
+
+void SendSocket(SOCKET socketFd, const void* data, int dataSize)
+{
+   int rem = dataSize;
+   const char* d = (const char*)data;
+   while(rem)
+   {
+      int curr = send(socketFd, d, MIN(1024, rem), 0); // without this there might be some problems (especially on windows)
+      if (curr <= 0)
+         return;
+      rem = rem - curr;
+      d += curr;
+   }
 }
 
 node_update
@@ -31,6 +98,7 @@ driver_extension
 
 static int g_totalPixels;
 static int g_calculatedPixels;
+static int g_frameNumber = 0;
 
 driver_open
 {
@@ -53,6 +121,12 @@ driver_open
    }     
    
    g_calculatedPixels = 0;
+   if (g_socketFd != -1)
+   {
+      std::stringstream ss;
+      ss << "print \"Starting render of Frame : " << ++g_frameNumber << "\\n\";";
+      SendSocket(g_socketFd, ss.str().c_str(), ss.str().length() + 1);
+   }
 }
 
 driver_prepare_bucket
@@ -60,23 +134,27 @@ driver_prepare_bucket
    
 }
 
-#include <fstream>
-
 driver_write_bucket
-{
-   g_calculatedPixels += bucket_size_x * bucket_size_y;
-   MString str;
-   str += "Render progress : ";
-   str += (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels));
-   MGlobal::displayInfo(str);
-   //std::fstream fs("/work/test.tx", std::ios::app);
-   //fs << 100.f * ((float)g_calculatedPixels / (float)g_totalPixels) << std::endl;
-   AiMsgInfo("Render progress %i %%", (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)));
+{   
+   if (g_socketFd != -1)
+   {
+      g_calculatedPixels += bucket_size_x * bucket_size_y;
+      std::stringstream ss;
+      ss << "print \"Render progress : " << (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) << "%\\n\";";
+      SendSocket(g_socketFd, ss.str().c_str(), ss.str().length() + 1);
+   }
 }
 
 driver_close
 {
-   
+    if (g_socketFd != -1)
+   {
+#ifdef WIN32
+      closesocket(data->socketFd);
+#else
+      shutdown(g_socketFd, SHUT_WR);
+#endif
+   }
 }
 
 node_finish

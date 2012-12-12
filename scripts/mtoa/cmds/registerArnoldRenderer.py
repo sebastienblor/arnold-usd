@@ -32,6 +32,7 @@ if 'pymel' in globals():
 
 import pymel.core as pm
 import pymel.versions as versions
+import maya.cmds as cmds
 
 if hasattr(pymel, '_mtoaPatch') :
     print "Patched pymel version %s loaded" % pymel.__version__
@@ -306,6 +307,9 @@ def registerArnoldRenderer():
             # callbacks
             import mtoa.core as core
             core.installCallbacks()
+            # opening a command port for batch render messaging
+            if not cmds.commandPort(':1234', query=True) and not pm.about(batch=True):
+                cmds.commandPort(name=':1234')
 
     except:
         import traceback
