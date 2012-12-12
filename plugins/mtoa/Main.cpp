@@ -8,6 +8,7 @@
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
+#include "commands/ArnoldTemperatureCmd.h"
 
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -231,10 +232,10 @@ namespace // <anonymous>
                                    "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
-       builtin->RegisterTranslator("fluidShape",
+       /*builtin->RegisterTranslator("fluidShape",
                                    "",
                                    CFluidTranslator::creator,
-                                   CFluidTranslator::NodeInitializer);
+                                   CFluidTranslator::NodeInitializer);*/
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
@@ -627,6 +628,20 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    {
       AiMsgError("Failed to register 'arnoldListAttributes' command");
       MGlobal::displayError("Failed to register 'arnoldListAttributes' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+   
+   status = plugin.registerCommand("arnoldTemperatureToColor", CArnoldTemperatureCmd::creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldTemperatureToColor' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldTemperatureToColor' command");
+      MGlobal::displayError("Failed to register 'arnoldTemperatureToColor' command");
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }

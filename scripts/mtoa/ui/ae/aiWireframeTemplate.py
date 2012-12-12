@@ -1,27 +1,23 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiWireframeTemplate(nodeName):
+class AEaiWireframeTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
 
-    aiSwatchDisplay(nodeName)
+        self.beginScrollLayout()
 
-    cmds.editorTemplate(beginScrollLayout=True)
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
-    cmds.editorTemplate('AEshaderTypeNew', 'AEshaderTypeReplace', "message", callCustom=True)
+        self.beginLayout('Wireframe Attributes', collapse=False)
+        self.addControl('edge_type', label='Edge Type')
+        self.addControl('fill_color', label='Fill Color')
+        self.addControl('line_color', label='Line Color')
+        self.addControl('line_width', label='Line Width')
+        self.addControl('raster_space', label='Raster Space')
+        self.endLayout()
 
-    cmds.editorTemplate(beginLayout="Wireframe Attributes", collapse=False)
-    cmds.editorTemplate("edge_type", label="Edge Type", addControl=True)
-    cmds.editorTemplate("fill_color", label="Fill Color", addControl=True)
-    cmds.editorTemplate("line_color", label="Line Color", addControl=True)
-    cmds.editorTemplate("line_width", label="Line Width", addControl=True)
-    cmds.editorTemplate("raster_space", label="Raster Space", addControl=True)
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-
-    cmds.editorTemplate(endScrollLayout=True)
-
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        self.addExtraControls()
+        self.endScrollLayout()
 

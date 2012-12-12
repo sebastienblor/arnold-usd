@@ -451,6 +451,7 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	setAttr -k on ".driver_half_precision" yes;
 	setAttr -k on ".driver_tiled" no;
 	setAttr ".lumaID" -type "string" "a:1292543823.37:0.763113719731";
+	setAttr ".AA_samples" 8;
 createNode lightLinker -s -n "lightLinker1";
 	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
 	setAttr -s 12 ".lnk";

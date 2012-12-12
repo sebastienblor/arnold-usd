@@ -530,6 +530,8 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setMin(0.);
+   nAttr.setMax(1.);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
@@ -681,7 +683,7 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
 
    attrib = mAttr.create(data.name, data.shortName, MFnMatrixAttribute::kFloat);
    mAttr.setArray(data.isArray);
-   mAttr.setKeyable(true);
+   mAttr.setKeyable(data.keyable);
    mAttr.setStorable(true);
    mAttr.setReadable(true);
    mAttr.setWritable(true);

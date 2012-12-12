@@ -163,7 +163,11 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
     for i, tok in enumerate(parts):
         if even(i):
             try:
-                result.append(tokens[tok])
+                tokn = tokens[tok]
+                if tokn is None:
+                    result.append('<%s>' % tok)
+                else:
+                    result.append(tokn.replace(':', '_'))
             except KeyError:
                 if allOrNothing:
                     if leaveUnmatchedTokens:
@@ -171,7 +175,7 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
                     else:
                         return ''
                 elif leaveUnmatchedTokens:
-                        result.append('<%s>' % tok)
+                    result.append('<%s>' % tok)
                 else:
                     result.append('')
         else:

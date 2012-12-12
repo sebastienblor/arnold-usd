@@ -603,6 +603,8 @@ shader_evaluate
                      // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
                      idata->processPath[sg->tid][pos] = 0;
                      success = false;
+                     const char* shapeName = AiNodeGetName(sg->shader);
+                     AiMsgWarning("[MayaFile] Could not find user attribute %s for file node %s, setting to default color", (const char*)token->extra, shapeName);
                   }
                   break;
                }
