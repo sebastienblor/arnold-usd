@@ -49,6 +49,7 @@ if system.os() == 'darwin':
 
 # LoadableModule doesn't work on windows for now.
 if system.os() == 'windows':
+   local_env.Append(LIBS=Split('ws2_32.lib'))
    MTOA = local_env.SharedLibrary('mtoa', source_files, LIBPREFIX='')
 else:
    MTOA = local_env.LoadableModule('mtoa', source_files, LIBPREFIX='')
