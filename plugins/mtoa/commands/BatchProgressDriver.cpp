@@ -150,7 +150,7 @@ driver_close
     if (g_socketFd != -1)
    {
 #ifdef WIN32
-      closesocket(data->socketFd);
+      closesocket(g_socketFd);
 #else
       shutdown(g_socketFd, SHUT_WR);
 #endif
