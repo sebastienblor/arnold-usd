@@ -125,7 +125,7 @@ driver_open
    {
       std::stringstream ss;
       ss << "print \"Starting render of Frame : " << ++g_frameNumber << "\\n\";";
-      SendSocket(g_socketFd, ss.str().c_str(), ss.str().length() + 1);
+      SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
    }
 }
 
@@ -141,7 +141,7 @@ driver_write_bucket
       g_calculatedPixels += bucket_size_x * bucket_size_y;
       std::stringstream ss;
       ss << "print \"Render progress : " << (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) << "%\\n\";";
-      SendSocket(g_socketFd, ss.str().c_str(), ss.str().length() + 1);
+      SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
    }
 }
 
