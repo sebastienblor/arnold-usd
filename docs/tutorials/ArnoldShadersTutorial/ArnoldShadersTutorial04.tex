@@ -1,0 +1,117 @@
+
+\section{Creating a Light Filter Shader}
+
+To create this shader you will need, as previously, a source code file, a loader, a metadata and a template.
+We will take a look at them here.
+
+\subsection{Creating the shader}
+
+We can add the light filter shader to the previous shader loader we created in the previous sections:
+
+First, create the shader:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=simpleLightFilter.cpp]
+{c++}{simpleLightFilter.cpp}
+
+Now, to add the shader to the loader, you only need to add this code to the previous \texttt{Loader.cpp} file from the previous sections:
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=loader.cpp,
+tabsize=3]
+{c++}
+...
+extern AtNodeMethods* SimpleLightFilterMtd;
+
+enum{
+   MY_SHADER_1 = 0,
+   MY_SHADER_2,
+   PARAMETERS_SHADER,
+   SIMPLE_LIGHT_FILTER
+};
+...
+
+   case SIMPLE_LIGHT_FILTER:
+      node->methods      = SimpleLightFilterMtd;
+      node->output_type  = AI_TYPE_RGB;
+      node->name         = "simpleLightFilter";
+      node->node_type    = AI_NODE_SHADER;
+      break;
+...
+
+\end{minted}
+
+You will be able to compile the light filter and the loader again as described in the previous sections,
+check that Arnold can load the shader correctly, and copy the compiled shader to the
+correct folder (as if it was a normal shader) so that Maya can use it.
+
+\subsection{Integrating the light filter in Maya}
+
+To integrate a light filter in Maya, we need to add extra information to the
+metadata file and create a template script as in the previous section.
+
+\subsubsection{Adding light filter metadata information}
+
+To add the metadata information, you only have to add this to the \texttt{loader.mtd} file created in the
+previous sections that you placed in the same folder as the compiled shader file.
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=loader.mtd,
+firstline=101,
+firstnumber=101]
+{mtd}{loader3.mtd}
+
+Here it is important to set \texttt{maya.classification} to \texttt{"light/filter"}. And also
+set \texttt{maya.lights} to a string that contains all the lights that can use this light filter
+like: \texttt{ambientLight}, \texttt{directionalLight}, \texttt{pointLight},
+\texttt{spotLight}, \texttt{areaLight} or \texttt{aiAreaLight}.
+
+\subsubsection{Adding a Maya template}
+
+As in the previous sections, we can create a simple template for this light filter in the same was as for
+normal shaders. Anyway, we will avoid some of the commands that do not make sense in a light filter:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=aiSimpleLightFilterTemplate.py]
+{python}{aiSimpleLightFilterTemplate.py}
+
+Now, when you create a type of light that is accepted by this light filter, you will be able to
+add this light filter in the "Light Filters" section in the "Arnold" section of the light:
+
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=9cm]{LightFiltersMenu.png}}
+\caption{Light Filters Menu}
+\label{LightFiltersMenu}
+\end{figure}
+
+
+
+
+

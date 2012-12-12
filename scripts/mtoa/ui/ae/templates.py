@@ -225,6 +225,11 @@ class AttributeTemplate(BaseTemplate):
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
                    preventOverride=False, dynamic=False, enumeratedItem=None):
         pass
+        
+            
+    @modeMethod
+    def suppress(self, attr):
+        pass
 
     @modeMethod
     def addSeparator(self):
@@ -490,6 +495,9 @@ class AERootMode(BaseMode):
         if annotation:
             kwargs['annotation'] = annotation
         pm.cmds.editorTemplate(*args, **kwargs)
+        
+    def suppress(self, attr):
+        pm.cmds.editorTemplate(suppress=attr)
 
     def addCustom(self, attr, newFunc, replaceFunc):
         # TODO: support multiple attributes passed

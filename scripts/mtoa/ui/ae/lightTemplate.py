@@ -109,7 +109,79 @@ class LightFilterWindow(object):
         filterNodeType = dict(self.filters())[filterLabels]
         self.template.addLightFilter(filterNodeType)
 
-class LightTemplate(AttributeTemplate):
+from functools import partial
+
+class ColorTemperatureTemplate:
+    @staticmethod
+    def updateColorTemperature(attrName, canvasName, *args, **kwargs):
+        temperature = cmds.getAttr(attrName)
+        colorTemp = cmds.arnoldTemperatureToColor(temperature)
+        cmds.canvas(canvasName, edit=True, rgbValue=colorTemp)
+        
+    @staticmethod
+    def getChangeCommand(attrName, canvasName):
+        if pm.mel.getApplicationVersionAsFloat() == 2011:
+            return '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; canvas -e -rgbValue $c[0] $c[1] $c[2] "%s"' % (attrName, canvasName)
+        else:
+            return partial(ColorTemperatureTemplate.updateColorTemperature, attrName, canvasName)
+        
+    def colorTemperatureCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,170), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -80)])
+        cmds.canvas(self.canvasName, enable=isEnabled, width=65, height=12)
+        cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=170,
+                            attribute=attrName, enable=isEnabled, precision=0, columnWidth=(2, 70),
+                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
+        cmds.setParent('..')
+        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+        colorTemp = cmds.arnoldTemperatureToColor(temperature)
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+        cmds.setUITemplate(popTemplate=True)
+        
+    def colorTemperatureUpdate(self, attrName):
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.attrFieldSliderGrp(self.sliderName, edit=True,
+                            attribute=attrName, enable=isEnabled,
+                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
+        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+        colorTemp = cmds.arnoldTemperatureToColor(temperature)
+        cmds.canvas(self.canvasName, edit=True, enable=isEnabled, rgbValue=colorTemp)
+        
+    @staticmethod
+    def updateUseColorTemperature(attrName, sliderName, *args, **kwargs):
+        try:
+            cmds.attrFieldSliderGrp(sliderName, edit=True, enable=cmds.getAttr(attrName))
+        except:
+            pass
+    
+    @staticmethod
+    def getUseChangeCommand(attrName, sliderName):
+        if pm.mel.getApplicationVersionAsFloat() == 2011:
+            return '$t = `getAttr %s`; attrFieldSliderGrp -e -enable $t %s;' % (attrName, sliderName)
+        else:
+            return partial(ColorTemperatureTemplate.updateUseColorTemperature, attrName, sliderName)
+            
+    def useColorTemperatureCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        cmds.attrControlGrp(self.checkBoxName, attribute=attrName, label='Use Color Temperature',
+                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))
+        cmds.setUITemplate(popTemplate=True)
+    
+    def useColorTemperatureUpdate(self, attrName):
+        cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=attrName,
+                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))                            
+            
+    def setupColorTemperature(self, lightType=""):
+        self.sliderName = '%s_LightColorTemperature' % lightType
+        self.checkBoxName = '%s_UseLightColorTemperature' % lightType
+        self.canvasName = '%s_LightColorCanvas' % lightType
+        self.addCustom("aiUseColorTemperature", self.useColorTemperatureCreate, self.useColorTemperatureUpdate)
+        self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
+        
+        self.addSeparator()
+
+class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     MENU_NODE_TYPE = 0
     MENU_NODE_INSTANCE = 1
     _callbacks = []

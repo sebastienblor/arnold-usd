@@ -141,6 +141,8 @@ MStatus CArnoldStandardNode::initialize()
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setDefault(0.);
+   nAttr.setMin(0.);
+   nAttr.setMax(1.);
    addAttribute(tempObject);
    attributeAffects(tempObject, s_OUT_color);
    
