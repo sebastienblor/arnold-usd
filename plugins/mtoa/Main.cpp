@@ -232,10 +232,10 @@ namespace // <anonymous>
                                    "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
-       /*builtin->RegisterTranslator("fluidShape",
+       builtin->RegisterTranslator("fluidShape",
                                    "",
                                    CFluidTranslator::creator,
-                                   CFluidTranslator::NodeInitializer);*/
+                                   CFluidTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
