@@ -802,7 +802,7 @@
     desc                    STRING  "Image"
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "texture"
 
 [node motion_vector]
     desc                    STRING  "Motion vectors"
