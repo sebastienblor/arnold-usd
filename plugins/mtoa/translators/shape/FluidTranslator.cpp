@@ -18,6 +18,15 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiShadowDensity";
    data.shortName = "ai_shadow_density";
    helper.MakeInputFloat(data);
+   
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiPhaseFunc";
+   data.shortName = "aiPhaseFunc";
+   data.hasMin = true;
+   data.min.FLT = -1.f;
+   data.hasMax = true;
+   data.max.FLT = 1.f;
+   helper.MakeInputFloat(data);
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -119,12 +128,16 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (!plug.isNull())
       shadowDensity = plug.asFloat();
    
+   AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
+   
    plug = mayaFluidNode.findPlug("transparency");
    if (!plug.isNull())
       AiNodeSetRGB(fluid_shader, "transparency", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
-   
+   plug = mayaFluidNode.findPlug("aiPhaseFunc");
+   if (!plug.isNull())
+      AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
+      
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);
    ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);

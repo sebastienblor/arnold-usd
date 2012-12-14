@@ -26,6 +26,7 @@ node_parameters
    AiParameterFlt("step_size", 0.1f);
    AiParameterFlt("shadow_density", 1.f);
    AiParameterRGB("transparency", .1f, .1f, .1f);
+   AiParameterFlt("phase_func", 0.f);
    
    AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
@@ -74,6 +75,7 @@ enum MayaFluidParams{
    p_step_size,
    p_shadow_density,
    p_transparency,
+   p_phase_func,
    
    p_xres,
    p_yres,
@@ -141,7 +143,8 @@ struct MayaFluidData{
    AtMatrix worldMatrix;
    AtMatrix inverseWorldMatrix;
    
-   AtRGB transparency;  
+   AtRGB transparency; 
+   float phaseFunc;
    
    int xres, yres, zres;
    float xdim, ydim, zdim;
@@ -287,6 +290,7 @@ node_update
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
+   data->phaseFunc = AiNodeGetFlt(node, "phase_func");
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -473,5 +477,5 @@ shader_evaluate
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
-   AiShaderGlobalsSetVolumeScattering(sg, opacity * color);
+   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, data->phaseFunc);
 }
