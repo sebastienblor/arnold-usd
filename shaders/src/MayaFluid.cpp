@@ -165,7 +165,7 @@ struct MayaFluidData{
    
    static void* operator new(size_t size)
    {
-      return AiMalloc(size);
+      return AiMalloc((unsigned long)size);
    }
    
    static void operator delete(void* p)
