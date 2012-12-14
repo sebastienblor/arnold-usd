@@ -35,6 +35,7 @@ def doCreateMeshLight():
     cmds.xform(lLocator, worldSpace=True, matrix=wm)
     cmds.connectAttr('%s.outMesh' % shs[0], '%s.inputMesh' % lShape, force=True)
     cmds.setAttr('%s.aiTranslator' % lShape, 'mesh', type='string')
+
    
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -57,4 +58,14 @@ def createArnoldMenu():
                     c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
         pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light',
                     c=lambda *args: doCreateMeshLight())
+                    
+        pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True)
+        pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",
+                    c=lambda *args: cmds.arnoldFlushCache(textures=True))
+        pm.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights",
+                    c=lambda *args: cmds.arnoldFlushCache(skydome=True))
+        pm.menuItem('ArnoldFlushQuads', parent='ArnoldFlush', label="Quad Lights",
+                    c=lambda *args: cmds.arnoldFlushCache(quads=True))
+        pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All",
+                    c=lambda *args: cmds.arnoldFlushCache(flushall=True))
 
