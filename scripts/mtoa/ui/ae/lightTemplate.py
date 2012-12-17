@@ -193,7 +193,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
-        self.addControl("aiBounces")
+        self.addControl("aiBounces", "Max Bounces")
 
         self.addSeparator()
 
