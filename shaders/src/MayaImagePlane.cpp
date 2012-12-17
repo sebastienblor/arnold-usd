@@ -180,6 +180,8 @@ shader_evaluate
        AtTextureParams texparams;
        AiTextureParamsSetDefaults(&texparams);
        // setup filter?
+       texparams.wrap_s = AI_WRAP_BLACK;
+       texparams.wrap_t = AI_WRAP_BLACK;
 
        result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
        //AtRGBA result = color;
@@ -192,11 +194,18 @@ shader_evaluate
        AtTextureParams texparams;
        AiTextureParamsSetDefaults(&texparams);
        // setup filter?
+       texparams.wrap_s = AI_WRAP_BLACK;
+       texparams.wrap_t = AI_WRAP_BLACK;
+
        result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
    }
    if (displayMode == 2)
    {
        result.a = 1.0f;
+   }
+   if (displayMode > 2)
+   {
+      sg->out_opacity = result.a;
    }
    if (displayMode == 4)
    {
@@ -219,4 +228,5 @@ shader_evaluate
    result.b = (result.b * colorGain.b) + colorOffset.b;
    result.a = (result.a * alphaGain);
    sg->out.RGBA = result;
+   sg->out_opacity *= alphaGain;
 }
