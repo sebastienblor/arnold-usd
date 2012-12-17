@@ -102,19 +102,19 @@ conventions (use LD_LIBRARY_PATH to add the path).
 
  == Mac OS X users ==
 
-The following instructions assume that you are using MtoA 0.19.0 or higher, Autodesk Maya 2012 and
-have uncompressed the package to the following location:
+The following instructions assume that your session user is solidangle, you are using MtoA 0.21.0
+or higher, Autodesk Maya 2012 and have uncompressed the package to the following location:
  
-   /Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012/
+   /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012/
  
 Locate mtoa.mod in
  
-   /Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012/
+   /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012/
  
 Open the file with TextEdit and check the path is pointing to the folder where MtoA is located. In
 this case it should be:
  
-   + mtoa any /Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012
+   + mtoa any /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012
  
 Then, there are several environment variables you need to fill.
  
@@ -123,45 +123,12 @@ and PATH should append the current path with the bin folder of the MtoA distribu
  
 In this particular example:
  
-   MAYA_MODULE_PATH = /Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012
-   MAYA_RENDER_DESC_PATH = /Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012
-   PATH = %PATH%:/Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012/bin
+   MAYA_MODULE_PATH = /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012
+   MAYA_RENDER_DESC_PATH = /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012
+   PATH = %PATH%:/Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012/bin
  
-You can set the environment variables manually, with a script, or using maya.env (located in
-/Users/solidangle/Library/Preferences/Autodesk/maya/2012-x64/). There are also other ways to set the
-environment variables:
- 
- • Via .cshrc (or .bashrc depending on what terminal shell you're using)
- • Via the environment.plist file (this file is described in the Apple developer documentation
-   https://developer.apple.com/library/mac/#documentation/MacOSX/Conceptual/BPRuntimeConfig/Articles/EnvironmentVars.html)
- 
-To simplify the process we provide you the following Python script that sets all the variables without
-the need of setting them in maya.env and launches Maya (2012 in this example). To make it work you will
-need to fill the mtoa_path variable in the script to point to the corresponding MtoA path.
-
-
-#!/usr/bin/env python
-import os, subprocess
- 
-mtoa_path = "/Users/solidangle/Development/MtoA/MtoA-0.19.0-darwin64-2012/"
- 
-if "MAYA_MODULE_PATH" in os.environ:
-    os.environ["MAYA_MODULE_PATH"] += ':' + mtoa_path
-else:
-    os.environ["MAYA_MODULE_PATH"] = mtoa_path
-os.environ["ARNOLD_PLUGIN_PATH"] = os.path.join(mtoa_path, "shaders")
-os.environ["MTOA_EXTENSIONS_PATH"] = os.path.join(mtoa_path, "extensions")
-os.environ["MAYA_RENDER_DESC_PATH"] = mtoa_path
- 
-# Launch Maya
-subprocess.Popen("/usr/bin/open -n /Applications/Autodesk/maya2012/Maya.app", shell=True)
- 
- 
- 
-
-Note that setting up all these environment variables if you are using several versions of Maya can be a
-pain - an alternative approach is outlined in the MtoA Usage FAQ, but the above method is the simplest
-and easiest to begin with.
+You can set the environment variables manually (or using environment.plist file), with a script, 
+or using maya.env file (located in /Users/solidangle/Library/Preferences/Autodesk/maya/2012-x64/). 
 
 
  == Rendering with Arnold ==
