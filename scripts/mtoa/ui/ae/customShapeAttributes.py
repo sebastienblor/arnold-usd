@@ -141,6 +141,8 @@ templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.addControl("aiStepSize", label="Step Size")
+        self.addControl("aiStepSizeShadowMult", label="Step Size Shadow Multiplier")
+        self.addControl("aiStepSizeBlurryMult", label="Step Size Blurry Multiplier")
         self.addControl("aiPhaseFunc", label="Phase Function")
         self.addControl("aiShadowDensity", label="Shadow Density")
         self.addSeparator()
