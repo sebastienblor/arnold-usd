@@ -344,15 +344,16 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             pm.deleteUI(item)
         # rebuild
         pm.menuItem(label='<Add Filter>', parent=self.addOptionMenu)
-        for filterType in self.validFilters():
-            pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
-        connected = self.getConnectedLightFilters()
-        existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
-        if existing:
-            #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
-            pm.menuItem(divider=True, parent=self.addOptionMenu)
-            for filter in existing:
-                pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
+        if self.validFilters():
+            for filterType in self.validFilters():
+                pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
+            connected = self.getConnectedLightFilters()
+            existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
+            if existing:
+                #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
+                pm.menuItem(divider=True, parent=self.addOptionMenu)
+                for filter in existing:
+                    pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
 
     def customLightFiltersNew(self, attr):
         pm.rowLayout(numberOfColumns=3,
