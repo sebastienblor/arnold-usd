@@ -10,30 +10,10 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    
    CAttrData data;
    data.defaultValue.FLT = 0.f;
-   data.hasMin = true;
-   data.hasSoftMax = true;
-   data.min.FLT = 0.f;
-   data.softMax.FLT = 1.0f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.FLT = 1.f;
-   data.min.FLT = 0.f;
-   data.softMax.FLT = 5.0f;
-   data.name = "aiStepSizeShadowMult";
-   data.shortName = "ai_step_size_shadow_mult";
-   helper.MakeInputFloat(data);
-   
-   data.defaultValue.FLT = 1.f;
-   data.min.FLT = 0.f;
-   data.softMax.FLT = 5.0f;
-   data.name = "aiStepSizeBlurryMult";
-   data.shortName = "ai_step_size_blurry_mult";
-   helper.MakeInputFloat(data);
-   
-   data.hasMin = false;
-   data.hasSoftMax = false;
    data.defaultValue.FLT = 1.f;
    data.name = "aiShadowDensity";
    data.shortName = "ai_shadow_density";
@@ -132,12 +112,6 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (!plug.isNull())
       stepSize = plug.asFloat();
    AiNodeSetFlt(fluid, "step_size", stepSize);
-   plug = mayaFluidNode.findPlug("aiStepSizeShadowMult");
-   if (!plug.isNull())
-      AiNodeSetFlt(fluid, "step_size_shadow_mult", plug.asFloat());
-   plug = mayaFluidNode.findPlug("aiStepSizeBlurryMult");
-   if (!plug.isNull())
-      AiNodeSetFlt(fluid, "step_size_blurry_mult", plug.asFloat());
    
    unsigned int xRes, yRes, zRes;
    double xDim, yDim, zDim;
