@@ -384,6 +384,10 @@ def createArnoldSamplingSettings():
                       label='Scattering Sampling Rate',
                       attribute='defaultArnoldRenderOptions.volume_scattering_sampling_rate')
                       
+    pm.attrControlGrp('ss_volume_diffuse_sampling_rate',
+                      label='Diffuse Sampling Rate',
+                      attribute='defaultArnoldRenderOptions.volume_diffuse_sampling_rate')
+                      
     pm.setParent('..')
     
     pm.frameLayout(label="Clamping", collapse=True)
