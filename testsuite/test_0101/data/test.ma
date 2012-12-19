@@ -1,6 +1,6 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Wed, Dec 19, 2012 12:11:55 PM
+//Last modified: Wed, Dec 19, 2012 12:24:58 PM
 //Codeset: UTF-8
 requires maya "2011";
 requires "stereoCamera" "10.0";
@@ -827,6 +827,7 @@ createNode materialInfo -n "materialInfo8";
 createNode aiStandard -n "aiStandard5";
 	setAttr ".ai_enable_matte" yes;
 	setAttr ".ai_matte_color" -type "float3" 1 0 0 ;
+	setAttr ".ai_matte_color_a" 1;
 createNode shadingEngine -n "aiStandard5SG";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
