@@ -410,6 +410,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("volume_sampling_mode");
    s_attributes.MakeInput("volume_scattering_sampling_rate");
    s_attributes.MakeInput("volume_diffuse_sampling_rate");
+   s_attributes.MakeInput("volume_shadow_step_size_mult");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
