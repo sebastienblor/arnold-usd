@@ -1,6 +1,6 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Mon, Dec 03, 2012 03:36:12 PM
+//Last modified: Wed, Dec 19, 2012 12:24:58 PM
 //Codeset: UTF-8
 requires maya "2011";
 requires "stereoCamera" "10.0";
@@ -10,7 +10,7 @@ fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
 fileInfo "cutIdentifier" "201009060248-781623";
-fileInfo "osv" "Linux 3.6.7-4.fc17.x86_64 #1 SMP Tue Nov 20 19:40:01 UTC 2012 x86_64";
+fileInfo "osv" "Linux 3.6.9-2.fc17.x86_64 #1 SMP Tue Dec 4 13:26:04 UTC 2012 x86_64";
 fileInfo "psyop_attr_pUsers" "yyamashita";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
@@ -40,7 +40,7 @@ createNode camera -s -n "perspShape" -p "persp";
 	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
 		-at "float";
 	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
-	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -min 0 -max 1 -at "float";
 	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
 	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
 	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
@@ -82,7 +82,7 @@ createNode camera -s -n "topShape" -p "top";
 	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
 		-at "float";
 	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
-	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -min 0 -max 1 -at "float";
 	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
 	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
 	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
@@ -125,7 +125,7 @@ createNode camera -s -n "frontShape" -p "front";
 	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
 		-at "float";
 	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
-	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -min 0 -max 1 -at "float";
 	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
 	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
 	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
@@ -169,7 +169,7 @@ createNode camera -s -n "sideShape" -p "side";
 	addAttr -ci true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 -smx 360 
 		-at "float";
 	addAttr -ci true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
-	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -h true -sn "ai_uv_remapa" -ln "aiUvRemapA" -min 0 -max 1 -at "float";
 	addAttr -ci true -uac -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 3;
 	addAttr -ci true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
 	addAttr -ci true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
@@ -325,6 +325,10 @@ createNode mesh -n "pCubeShape1" -p "pCube1";
 		-at "bool";
 	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
 		1 -at "bool";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
 	setAttr -k off ".v";
 	setAttr ".vir" yes;
 	setAttr ".vif" yes;
@@ -499,11 +503,19 @@ createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
 		-at "float";
 	addAttr -ci true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 -at "long";
 	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -k true -sn "ai_use_color_temperature" -ln "aiUseColorTemperature" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_color_temperature" -ln "aiColorTemperature" -dv 
+		6500 -min 0 -smn 1000 -smx 15000 -at "float";
 	addAttr -ci true -sn "ai_angle" -ln "aiAngle" -min 0 -smx 10 -at "float";
+	addAttr -ci true -sn "ai_affect_volumetrics" -ln "aiAffectVolumetrics" -dv 1 -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_cast_volumetric_shadows" -ln "aiCastVolumetricShadows" 
+		-dv 1 -min 0 -max 1 -at "bool";
 	setAttr -k off ".v";
 createNode lightLinker -s -n "lightLinker1";
-	setAttr -s 10 ".lnk";
-	setAttr -s 10 ".slnk";
+	setAttr -s 11 ".lnk";
+	setAttr -s 11 ".slnk";
 createNode displayLayerManager -n "layerManager";
 createNode displayLayer -n "defaultLayer";
 createNode renderLayerManager -n "renderLayerManager";
@@ -793,7 +805,6 @@ createNode shadingEngine -n "lambert2SG";
 	setAttr -k on ".ai_matte_colora" 0.5;
 	setAttr -k on ".ai_matte_color" -type "float3" 1 0 0 ;
 createNode materialInfo -n "materialInfo7";
-createNode lambert -n "lambert3";
 createNode shadingEngine -n "lambert3SG";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
@@ -813,6 +824,18 @@ createNode shadingEngine -n "lambert3SG";
 	setAttr -k on ".ai_matte_colora" 0.75;
 	setAttr -k on ".ai_matte_color" -type "float3" 0 1 0 ;
 createNode materialInfo -n "materialInfo8";
+createNode aiStandard -n "aiStandard5";
+	setAttr ".ai_enable_matte" yes;
+	setAttr ".ai_matte_color" -type "float3" 1 0 0 ;
+	setAttr ".ai_matte_color_a" 1;
+createNode shadingEngine -n "aiStandard5SG";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo9";
 select -ne :time1;
 	setAttr -av -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -825,7 +848,7 @@ select -ne :renderPartition;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 10 ".st";
+	setAttr -s 11 ".st";
 	setAttr -cb on ".an";
 	setAttr -cb on ".pt";
 select -ne :initialShadingGroup;
@@ -1080,6 +1103,7 @@ relationship "link" ":lightLinker1" "aiStandard3SG.message" ":defaultLightSet.me
 relationship "link" ":lightLinker1" "aiStandard4SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "lambert2SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "lambert3SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard5SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "surfaceShader1SG.message" ":defaultLightSet.message";
@@ -1090,6 +1114,7 @@ relationship "shadowLink" ":lightLinker1" "aiStandard3SG.message" ":defaultLight
 relationship "shadowLink" ":lightLinker1" "aiStandard4SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "lambert2SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "lambert3SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard5SG.message" ":defaultLightSet.message";
 connectAttr "layerManager.dli[0]" "defaultLayer.id";
 connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
@@ -1114,10 +1139,12 @@ connectAttr "lambert2.oc" "lambert2SG.ss";
 connectAttr "pSphereShape1.iog" "lambert2SG.dsm" -na;
 connectAttr "lambert2SG.msg" "materialInfo7.sg";
 connectAttr "lambert2.msg" "materialInfo7.m";
-connectAttr "lambert3.oc" "lambert3SG.ss";
-connectAttr "pCubeShape1.iog" "lambert3SG.dsm" -na;
 connectAttr "lambert3SG.msg" "materialInfo8.sg";
-connectAttr "lambert3.msg" "materialInfo8.m";
+connectAttr "aiStandard5.out" "aiStandard5SG.ss";
+connectAttr "pCubeShape1.iog" "aiStandard5SG.dsm" -na;
+connectAttr "aiStandard5SG.msg" "materialInfo9.sg";
+connectAttr "aiStandard5.msg" "materialInfo9.m";
+connectAttr "aiStandard5.msg" "materialInfo9.t" -na;
 connectAttr "surfaceShader1SG.pa" ":renderPartition.st" -na;
 connectAttr "surfaceShader2SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
@@ -1126,12 +1153,13 @@ connectAttr "aiStandard3SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard4SG.pa" ":renderPartition.st" -na;
 connectAttr "lambert2SG.pa" ":renderPartition.st" -na;
 connectAttr "lambert3SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard5SG.pa" ":renderPartition.st" -na;
 connectAttr "pPlaneShape1.iog" ":initialShadingGroup.dsm" -na;
 connectAttr "pTorusShape1.iog" ":initialShadingGroup.dsm" -na;
 connectAttr "aiStandard1.msg" ":defaultShaderList1.s" -na;
 connectAttr "aiStandard2.msg" ":defaultShaderList1.s" -na;
 connectAttr "lambert2.msg" ":defaultShaderList1.s" -na;
-connectAttr "lambert3.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard5.msg" ":defaultShaderList1.s" -na;
 connectAttr "directionalLightShape1.ltd" ":lightList1.l" -na;
 connectAttr "place2dTexture1.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "difColTexture_place2d.msg" ":defaultRenderUtilityList1.u" -na;
