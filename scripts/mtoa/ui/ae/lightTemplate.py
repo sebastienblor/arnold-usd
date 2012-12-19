@@ -148,35 +148,17 @@ class ColorTemperatureTemplate:
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
         cmds.canvas(self.canvasName, edit=True, enable=isEnabled, rgbValue=colorTemp)
         
-    @staticmethod
-    def updateUseColorTemperature(attrName, sliderName, *args, **kwargs):
+    def updateUseColorTemperature(self, nodeName):
         try:
-            cmds.attrFieldSliderGrp(sliderName, edit=True, enable=cmds.getAttr(attrName))
+            cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(nodeName+".aiUseColorTemperature"))
         except:
             pass
-    
-    @staticmethod
-    def getUseChangeCommand(attrName, sliderName):
-        if pm.mel.getApplicationVersionAsFloat() == 2011:
-            return '$t = `getAttr %s`; attrFieldSliderGrp -e -enable $t %s;' % (attrName, sliderName)
-        else:
-            return partial(ColorTemperatureTemplate.updateUseColorTemperature, attrName, sliderName)
-            
-    def useColorTemperatureCreate(self, attrName):
-        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        cmds.attrControlGrp(self.checkBoxName, attribute=attrName, label='Use Color Temperature',
-                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))
-        cmds.setUITemplate(popTemplate=True)
-    
-    def useColorTemperatureUpdate(self, attrName):
-        cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=attrName,
-                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))                            
             
     def setupColorTemperature(self, lightType=""):
         self.sliderName = '%s_LightColorTemperature' % lightType
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
-        self.addCustom("aiUseColorTemperature", self.useColorTemperatureCreate, self.useColorTemperatureUpdate)
+        self.addControl("aiUseColorTemperature", changeCommand=self.updateUseColorTemperature)
         self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
         
         self.addSeparator()
@@ -193,7 +175,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
-        self.addControl("aiBounces")
+        self.addControl("aiBounces", "Max Bounces")
 
         self.addSeparator()
 
@@ -344,15 +326,16 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             pm.deleteUI(item)
         # rebuild
         pm.menuItem(label='<Add Filter>', parent=self.addOptionMenu)
-        for filterType in self.validFilters():
-            pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
-        connected = self.getConnectedLightFilters()
-        existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
-        if existing:
-            #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
-            pm.menuItem(divider=True, parent=self.addOptionMenu)
-            for filter in existing:
-                pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
+        if self.validFilters():
+            for filterType in self.validFilters():
+                pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
+            connected = self.getConnectedLightFilters()
+            existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
+            if existing:
+                #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
+                pm.menuItem(divider=True, parent=self.addOptionMenu)
+                for filter in existing:
+                    pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
 
     def customLightFiltersNew(self, attr):
         pm.rowLayout(numberOfColumns=3,
