@@ -10,6 +10,7 @@ class AEaiAmbientOcclusionTemplate(ShaderAETemplate):
 
         self.beginLayout('Ambient Occlusion Attributes', collapse=False)
         self.addControl('samples', label='Samples')
+        self.addControl('spread', label='Spread')
         self.addControl('white', label='White')
         self.addControl('black', label='Black')
         self.addControl('falloff', label='Falloff')
