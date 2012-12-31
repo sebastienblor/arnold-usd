@@ -178,6 +178,11 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addControl("aiBounces", "Max Bounces")
 
         self.addSeparator()
+        
+        self.addControl("aiDiffuse", label="Diffuse")
+        self.addControl("aiSpecular", label="Specular")
+        self.addControl("aiSss", label="SSS")
+        self.addControl("aiIndirect", label="Indirect")
 
         self.lightFiltersLayout()
         
