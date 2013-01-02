@@ -88,6 +88,7 @@ void ArnoldUniverseEnd()
          AiRenderInterrupt();
       if (AiRendering())
          AiRenderAbort();
+      AiUniverseCacheFlush(AI_CACHE_TEXTURE);
       AiEnd();
       // MtoaSetupLogging();
       // AiMsgResetCallback();

@@ -190,7 +190,7 @@ templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType("Ambient")
+        self.setupColorTemperature("Ambient")
         self.addControl("aiNormalize")  
 
         self.addSeparator()
@@ -204,7 +204,7 @@ templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType('Directional')
+        self.setupColorTemperature("Directional")
         self.addControl("aiExposure")
         self.addControl("aiAngle")
         
@@ -217,11 +217,6 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
         
         self.addControl("aiCastShadows")
         self.addControl("aiShadowDensity")
-
-        self.addSeparator()
-        
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
         
         self.addSeparator()                
         self.commonLightAttributes()
@@ -230,7 +225,7 @@ templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType('Point')
+        self.setupColorTemperature("Point")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -247,17 +242,13 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-        
-        self.addSeparator()
         self.commonLightAttributes()
 
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType("Spot")
+        self.setupColorTemperature("Spot")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -274,11 +265,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-
-        self.addSeparator()
-
         self.addControl("aiAspectRatio")
         self.addControl("aiLensRadius")
 
@@ -290,7 +276,7 @@ templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
-        self.setLightType("Area")
+        self.setupColorTemperature("Area")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -308,11 +294,6 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
         self.addControl("aiResolution")
         
-        self.addSeparator()
-
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-
         self.addSeparator()
 
         self.commonLightAttributes()

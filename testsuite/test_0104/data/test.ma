@@ -1,10 +1,10 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Wed, Dec 19, 2012 12:24:58 PM
+//Last modified: Mon, Dec 31, 2012 03:26:26 PM
 //Codeset: UTF-8
 requires maya "2011";
 requires "stereoCamera" "10.0";
-requires "mtoa" "0.21.0.dev";
+requires "mtoa" "0.22.0.dev";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
@@ -185,261 +185,8 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
 	setAttr -k on ".ai_translator" -type "string" "orthographic";
-createNode transform -n "pPlane1";
-createNode mesh -n "pPlaneShape1" -p "pPlane1";
-	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
-		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-at "enum";
-	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
-		-min 0 -smx 1 -at "float";
-	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
-	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
-	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
-		0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
-		10 -at "float";
-	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
-		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
-		-max 1 -at "bool";
-	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
-	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
-	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
-	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
-		-at "bool";
-	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
-		1 -at "bool";
-	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
-createNode transform -n "pTorus1";
-createNode mesh -n "pTorusShape1" -p "pTorus1";
-	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
-		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-at "enum";
-	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
-		-min 0 -smx 1 -at "float";
-	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
-	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
-	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
-		0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
-		10 -at "float";
-	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
-		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
-		-max 1 -at "bool";
-	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
-	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
-	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
-	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
-		-at "bool";
-	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
-		1 -at "bool";
-	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
-createNode transform -n "pCube1";
-	setAttr ".t" -type "double3" 0.42327733447673477 0.19539379614743613 1.0685773969667496 ;
-createNode mesh -n "pCubeShape1" -p "pCube1";
-	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
-		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-at "enum";
-	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
-		-min 0 -smx 1 -at "float";
-	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
-	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
-	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
-		0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
-		10 -at "float";
-	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
-		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
-		-max 1 -at "bool";
-	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
-	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
-	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
-	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
-		-at "bool";
-	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
-	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
-	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
-createNode transform -n "pCylinder1";
-	setAttr ".t" -type "double3" -0.71110413019180996 0.2465976308063782 -0.54727577130258354 ;
-createNode mesh -n "pCylinderShape1" -p "pCylinder1";
-	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
-		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-at "enum";
-	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
-		-min 0 -smx 1 -at "float";
-	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
-	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
-	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
-		0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
-		10 -at "float";
-	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
-		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
-		-max 1 -at "bool";
-	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
-	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
-	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
-	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
-		-at "bool";
-	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
-		1 -at "bool";
-	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
-createNode transform -n "pCone1";
-	setAttr ".t" -type "double3" 0.69371321522379537 0.11451436017824956 -0.39842449594707485 ;
-	setAttr ".r" -type "double3" 225.62100768781809 59.153702860048959 90.379225418531036 ;
-createNode mesh -n "pConeShape1" -p "pCone1";
-	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
-		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-at "enum";
-	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
-		-min 0 -smx 1 -at "float";
-	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
-	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
-	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
-		0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
-		10 -at "float";
-	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
-		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
-	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
-		-max 1 -at "bool";
-	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
-	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
-	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
-	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
-		1 -at "bool";
-	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
-		-at "bool";
-	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
-		1 -at "bool";
-	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
 createNode transform -n "pSphere1";
-	setAttr ".t" -type "double3" -0.87608990401561782 0.074406772741392624 0.95577435123047838 ;
+	setAttr ".t" -type "double3" -1 0.25 -1 ;
 createNode mesh -n "pSphereShape1" -p "pSphere1";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
@@ -488,9 +235,108 @@ createNode mesh -n "pSphereShape1" -p "pSphere1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
+createNode transform -n "pSphere2";
+	setAttr ".t" -type "double3" 1 0.25 -1 ;
+createNode mesh -n "pSphereShape2" -p "pSphere2";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+createNode transform -n "pSphere3";
+	setAttr ".t" -type "double3" 0 0.25 0 ;
+createNode mesh -n "pSphereShape3" -p "pSphere3";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "trace_sets" -ln "aiTraceSets" -dt "string";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 0 -smx 
+		10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exprnrm" -ln "aiExportRefNormals" -min 0 -max 1 
+		-at "bool";
+	addAttr -ci true -k true -sn "ai_exprtan" -ln "aiExportRefTangents" -min 0 -max 
+		1 -at "bool";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
 createNode transform -n "directionalLight1";
-	setAttr ".r" -type "double3" -51.911426706265104 -8.7819697946150175 22.257558285768052 ;
-	setAttr ".s" -type "double3" 1.6205221581870095 1.6205221581870095 1.6205221581870095 ;
+	setAttr ".r" -type "double3" -45 0 0 ;
 createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 -max 1 -at "bool";
@@ -503,6 +349,10 @@ createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
 		-at "float";
 	addAttr -ci true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 -at "long";
 	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -sn "ai_diffuse" -ln "aiDiffuse" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_specular" -ln "aiSpecular" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_sss" -ln "aiSss" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_indirect" -ln "aiIndirect" -dv 1 -smn 0 -smx 1 -at "float";
 	addAttr -ci true -k true -sn "ai_use_color_temperature" -ln "aiUseColorTemperature" 
 		-min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_color_temperature" -ln "aiColorTemperature" -dv 
@@ -513,9 +363,84 @@ createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
 	addAttr -ci true -sn "ai_cast_volumetric_shadows" -ln "aiCastVolumetricShadows" 
 		-dv 1 -min 0 -max 1 -at "bool";
 	setAttr -k off ".v";
+	setAttr ".edi" no;
+	setAttr ".esp" no;
+	setAttr -k on ".ai_use_color_temperature" yes;
+	setAttr -k on ".ai_color_temperature" 4609.375;
+createNode transform -n "pointLight1";
+	setAttr ".t" -type "double3" -1.5 0.8 0 ;
+createNode pointLight -n "pointLightShape1" -p "pointLight1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_shadow_density" -ln "aiShadowDensity" -dv 1 -min 0 -max 
+		1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -smn 0 -smx 10 -at "float";
+	addAttr -ci true -sn "ai_samples" -ln "aiSamples" -dv 1 -min 1 -max 100 -at "long";
+	addAttr -ci true -sn "ai_normalize" -ln "aiNormalize" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_bounce_factor" -ln "aiBounceFactor" -dv 1 -min 0 -smx 20 
+		-at "float";
+	addAttr -ci true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 -at "long";
+	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -sn "ai_diffuse" -ln "aiDiffuse" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_specular" -ln "aiSpecular" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_sss" -ln "aiSss" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_indirect" -ln "aiIndirect" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_use_color_temperature" -ln "aiUseColorTemperature" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_color_temperature" -ln "aiColorTemperature" -dv 
+		6500 -min 0 -smn 1000 -smx 15000 -at "float";
+	addAttr -ci true -sn "ai_decay_type" -ln "aiDecayType" -dv 1 -min 0 -max 1 -en "constant:quadratic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_affect_volumetrics" -ln "aiAffectVolumetrics" -dv 1 -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_cast_volumetric_shadows" -ln "aiCastVolumetricShadows" 
+		-dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_radius" -ln "aiRadius" -min 0 -smx 10 -at "float";
+	setAttr -k off ".v";
+	setAttr ".edi" no;
+	setAttr ".us" no;
+	setAttr ".phi" 8000;
+	setAttr ".ai_exposure" 5;
+	setAttr -k on ".ai_use_color_temperature" yes;
+	setAttr -k on ".ai_color_temperature" 2968.75;
+createNode transform -n "pointLight2";
+	setAttr ".t" -type "double3" 1.5 0.8 0 ;
+createNode pointLight -n "pointLightShape2" -p "pointLight2";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_shadow_density" -ln "aiShadowDensity" -dv 1 -min 0 -max 
+		1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -smn 0 -smx 10 -at "float";
+	addAttr -ci true -sn "ai_samples" -ln "aiSamples" -dv 1 -min 1 -max 100 -at "long";
+	addAttr -ci true -sn "ai_normalize" -ln "aiNormalize" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_bounce_factor" -ln "aiBounceFactor" -dv 1 -min 0 -smx 20 
+		-at "float";
+	addAttr -ci true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 -at "long";
+	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -sn "ai_diffuse" -ln "aiDiffuse" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_specular" -ln "aiSpecular" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_sss" -ln "aiSss" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -sn "ai_indirect" -ln "aiIndirect" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_use_color_temperature" -ln "aiUseColorTemperature" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_color_temperature" -ln "aiColorTemperature" -dv 
+		6500 -min 0 -smn 1000 -smx 15000 -at "float";
+	addAttr -ci true -sn "ai_decay_type" -ln "aiDecayType" -dv 1 -min 0 -max 1 -en "constant:quadratic" 
+		-at "enum";
+	addAttr -ci true -sn "ai_affect_volumetrics" -ln "aiAffectVolumetrics" -dv 1 -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_cast_volumetric_shadows" -ln "aiCastVolumetricShadows" 
+		-dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_radius" -ln "aiRadius" -min 0 -smx 10 -at "float";
+	setAttr -k off ".v";
+	setAttr ".esp" no;
+	setAttr ".phi" 8000;
+	setAttr ".ai_exposure" 5;
+	setAttr -k on ".ai_use_color_temperature" yes;
+	setAttr -k on ".ai_color_temperature" 11171.875;
 createNode lightLinker -s -n "lightLinker1";
-	setAttr -s 11 ".lnk";
-	setAttr -s 11 ".slnk";
+	setAttr -s 13 ".lnk";
+	setAttr -s 13 ".slnk";
 createNode displayLayerManager -n "layerManager";
 createNode displayLayer -n "defaultLayer";
 createNode renderLayerManager -n "renderLayerManager";
@@ -569,7 +494,8 @@ createNode shadingEngine -n "surfaceShader1SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -586,7 +512,8 @@ createNode shadingEngine -n "surfaceShader2SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -624,19 +551,19 @@ createNode script -n "uiConfigurationScriptNode";
 		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `outlinerPanel -unParent -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            outlinerEditor -e \n                -docTag \"isolOutln_fromSeln\" \n                -showShapes 1\n                -showAttributes 0\n                -showConnected 0\n                -showAnimCurvesOnly 0\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 1\n                -showPublishedAsConnected 0\n                -showContainerContents 1\n                -ignoreDagHierarchy 0\n                -expandConnections 0\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 0\n                -highlightActive 1\n"
 		+ "                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"defaultSetFilter\" \n                -showSetMembers 1\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -docTag \"isolOutln_fromSeln\" \n            -showShapes 1\n            -showAttributes 0\n            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 0\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n            -autoSelectNewObjects 0\n            -doNotSelectNewObjects 0\n            -dropIsParent 1\n            -transmitFilters 0\n            -setFilter \"defaultSetFilter\" \n            -showSetMembers 1\n            -allowMultiSelection 1\n"
-		+ "            -alwaysToggleSelect 0\n            -directSelect 0\n            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"graphEditor\" (localizedPanelLabel(\"Graph Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"graphEditor\" -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n"
-		+ "                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n"
-		+ "                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n"
-		+ "                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n"
-		+ "                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n"
-		+ "                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n"
-		+ "                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dopeSheetPanel\" (localizedPanelLabel(\"Dope Sheet\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dopeSheetPanel\" -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n"
-		+ "                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n"
-		+ "                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n"
-		+ "                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n"
-		+ "                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"clipEditorPanel\" (localizedPanelLabel(\"Trax Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"clipEditorPanel\" -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n"
-		+ "                -manageSequencer 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"sequenceEditorPanel\" (localizedPanelLabel(\"Camera Sequencer\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"sequenceEditorPanel\" -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels `;\n"
+		+ "            -alwaysToggleSelect 0\n            -directSelect 0\n            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\toutlinerPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"graphEditor\" (localizedPanelLabel(\"Graph Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"graphEditor\" -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels `;\n"
+		+ "\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n"
+		+ "                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n"
+		+ "                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n"
+		+ "                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n"
+		+ "                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n"
+		+ "                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dopeSheetPanel\" (localizedPanelLabel(\"Dope Sheet\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dopeSheetPanel\" -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n"
+		+ "                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n"
+		+ "                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n"
+		+ "\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n"
+		+ "                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n"
+		+ "                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"clipEditorPanel\" (localizedPanelLabel(\"Trax Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"clipEditorPanel\" -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n"
+		+ "                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"sequenceEditorPanel\" (localizedPanelLabel(\"Camera Sequencer\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"sequenceEditorPanel\" -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels `;\n"
 		+ "\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n"
 		+ "\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperGraphPanel\" (localizedPanelLabel(\"Hypergraph Hierarchy\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperGraphPanel\" -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n"
 		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n"
@@ -687,35 +614,6 @@ createNode aiAOVDriver -s -n "defaultArnoldDisplayDriver";
 	addAttr -ci true -sn "bucket_threshold" -ln "bucketThreshold" -dv -3 -at "long";
 	setAttr ".ai_translator" -type "string" "maya";
 	setAttr ".output_mode" 0;
-createNode polyPlane -n "polyPlane1";
-	setAttr ".w" 6;
-	setAttr ".h" 6;
-	setAttr ".sw" 6;
-	setAttr ".sh" 6;
-	setAttr ".cuv" 2;
-createNode polyTorus -n "polyTorus1";
-	setAttr ".sr" 0.25;
-createNode polyCube -n "polyCube1";
-	setAttr ".w" 0.39078759229487225;
-	setAttr ".h" 0.39078759229487225;
-	setAttr ".d" 0.39078759229487225;
-	setAttr ".cuv" 4;
-createNode polyCylinder -n "polyCylinder1";
-	setAttr ".r" 0.34874171393545339;
-	setAttr ".h" 0.4931952616127564;
-	setAttr ".sc" 1;
-	setAttr ".cuv" 3;
-createNode polyCone -n "polyCone1";
-	setAttr ".r" 0.31117061159378295;
-	setAttr ".h" 0.44006169912785853;
-	setAttr ".cuv" 3;
-createNode polySphere -n "polySphere1";
-	setAttr ".r" 0.31834237303896906;
-createNode aiStandard -n "aiStandard1";
-	setAttr ".ai_enable_matte" yes;
-	setAttr ".ai_matte_color_a" 1;
-createNode aiStandard -n "aiStandard2";
-	setAttr ".ai_enable_matte" yes;
 createNode shadingEngine -n "aiStandard1SG";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
@@ -723,7 +621,8 @@ createNode shadingEngine -n "aiStandard1SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -739,7 +638,8 @@ createNode shadingEngine -n "aiStandard2SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -755,7 +655,8 @@ createNode shadingEngine -n "aiStandard3SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -774,7 +675,8 @@ createNode shadingEngine -n "aiStandard4SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -785,7 +687,6 @@ createNode shadingEngine -n "aiStandard4SG";
 	setAttr -k on ".ai_matte_colora" 0.75;
 	setAttr -k on ".ai_matte_color" -type "float3" 0 1 0 ;
 createNode materialInfo -n "materialInfo6";
-createNode lambert -n "lambert2";
 createNode shadingEngine -n "lambert2SG";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
@@ -793,7 +694,8 @@ createNode shadingEngine -n "lambert2SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -812,7 +714,8 @@ createNode shadingEngine -n "lambert3SG";
 	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
 	addAttr -ci true -k true -sn "ai_enable_matte" -ln "aiEnableMatte" -min 0 -max 1 
 		-at "bool";
-	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -at "float";
+	addAttr -ci true -h true -k true -sn "ai_matte_colora" -ln "aiMatteColorA" -min 
+		0 -max 1 -at "float";
 	addAttr -ci true -uac -k true -sn "ai_matte_color" -ln "aiMatteColor" -at "float3" 
 		-nc 3;
 	addAttr -ci true -k true -sn "ai_matte_colorr" -ln "aiMatteColorR" -at "float" -p "aiMatteColor";
@@ -824,10 +727,21 @@ createNode shadingEngine -n "lambert3SG";
 	setAttr -k on ".ai_matte_colora" 0.75;
 	setAttr -k on ".ai_matte_color" -type "float3" 0 1 0 ;
 createNode materialInfo -n "materialInfo8";
+createNode polySphere -n "polySphere1";
+	setAttr ".r" 0.25;
+createNode polySphere -n "polySphere2";
+	setAttr ".r" 0.25017941705323321;
+createNode polySphere -n "polySphere3";
+	setAttr ".r" 0.25;
 createNode aiStandard -n "aiStandard5";
-	setAttr ".ai_enable_matte" yes;
-	setAttr ".ai_matte_color" -type "float3" 1 0 0 ;
-	setAttr ".ai_matte_color_a" 1;
+	setAttr ".Kd" 0.5;
+	setAttr ".Ks" 0.5;
+createNode aiStandard -n "aiStandard6";
+	setAttr ".Kd" 0.5;
+	setAttr ".Ks" 0.5;
+createNode aiStandard -n "aiStandard7";
+	setAttr ".Kd" 0.5;
+	setAttr ".Ks" 0.5;
 createNode shadingEngine -n "aiStandard5SG";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
@@ -836,6 +750,22 @@ createNode shadingEngine -n "aiStandard5SG";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo9";
+createNode shadingEngine -n "aiStandard6SG";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo10";
+createNode shadingEngine -n "aiStandard7SG";
+	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
+	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
+	addAttr -ci true -k true -sn "ai_surface_shader" -ln "aiSurfaceShader" -at "message";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo11";
 select -ne :time1;
 	setAttr -av -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -848,7 +778,7 @@ select -ne :renderPartition;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 11 ".st";
+	setAttr -s 13 ".st";
 	setAttr -cb on ".an";
 	setAttr -cb on ".pt";
 select -ne :initialShadingGroup;
@@ -860,7 +790,6 @@ select -ne :initialShadingGroup;
 	setAttr -cb on ".ihi";
 	setAttr -av -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 2 ".dsm";
 	setAttr -k on ".mwc";
 	setAttr -cb on ".an";
 	setAttr -cb on ".il";
@@ -909,8 +838,9 @@ select -ne :defaultShaderList1;
 	setAttr -cb on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -cb on ".bnm";
-	setAttr -s 6 ".s";
+	setAttr -s 5 ".s";
 select -ne :lightList1;
+	setAttr -s 3 ".l";
 select -ne :postProcessList1;
 	setAttr -k on ".cch";
 	setAttr -cb on ".ihi";
@@ -1035,6 +965,7 @@ select -ne :defaultLightSet;
 	setAttr -k on ".ihi";
 	setAttr -k on ".nds";
 	setAttr -k on ".bnm";
+	setAttr -s 3 ".dsm";
 	setAttr -k on ".mwc";
 	setAttr -k on ".an";
 	setAttr -k on ".il";
@@ -1087,12 +1018,9 @@ select -ne :defaultHardwareRenderGlobals;
 	setAttr -k on ".aap";
 	setAttr -k on ".gh";
 	setAttr -cb on ".sd";
-connectAttr "polyPlane1.out" "pPlaneShape1.i";
-connectAttr "polyTorus1.out" "pTorusShape1.i";
-connectAttr "polyCube1.out" "pCubeShape1.i";
-connectAttr "polyCylinder1.out" "pCylinderShape1.i";
-connectAttr "polyCone1.out" "pConeShape1.i";
 connectAttr "polySphere1.out" "pSphereShape1.i";
+connectAttr "polySphere2.out" "pSphereShape2.i";
+connectAttr "polySphere3.out" "pSphereShape3.i";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "surfaceShader1SG.message" ":defaultLightSet.message";
@@ -1104,6 +1032,8 @@ relationship "link" ":lightLinker1" "aiStandard4SG.message" ":defaultLightSet.me
 relationship "link" ":lightLinker1" "lambert2SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "lambert3SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard5SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard6SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard7SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "surfaceShader1SG.message" ":defaultLightSet.message";
@@ -1115,6 +1045,8 @@ relationship "shadowLink" ":lightLinker1" "aiStandard4SG.message" ":defaultLight
 relationship "shadowLink" ":lightLinker1" "lambert2SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "lambert3SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard5SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard6SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard7SG.message" ":defaultLightSet.message";
 connectAttr "layerManager.dli[0]" "defaultLayer.id";
 connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
 connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
@@ -1123,28 +1055,27 @@ connectAttr ":defaultArnoldDisplayDriver.msg" ":defaultArnoldRenderOptions.drive
 		 -na;
 connectAttr "surfaceShader1SG.msg" "materialInfo1.sg";
 connectAttr "surfaceShader2SG.msg" "materialInfo2.sg";
-connectAttr "aiStandard1.out" "aiStandard1SG.ss";
-connectAttr "pConeShape1.iog" "aiStandard1SG.dsm" -na;
 connectAttr "aiStandard1SG.msg" "materialInfo3.sg";
-connectAttr "aiStandard1.msg" "materialInfo3.m";
-connectAttr "aiStandard1.msg" "materialInfo3.t" -na;
-connectAttr "aiStandard2.out" "aiStandard2SG.ss";
-connectAttr "pCylinderShape1.iog" "aiStandard2SG.dsm" -na;
 connectAttr "aiStandard2SG.msg" "materialInfo4.sg";
-connectAttr "aiStandard2.msg" "materialInfo4.m";
-connectAttr "aiStandard2.msg" "materialInfo4.t" -na;
 connectAttr "aiStandard3SG.msg" "materialInfo5.sg";
 connectAttr "aiStandard4SG.msg" "materialInfo6.sg";
-connectAttr "lambert2.oc" "lambert2SG.ss";
-connectAttr "pSphereShape1.iog" "lambert2SG.dsm" -na;
 connectAttr "lambert2SG.msg" "materialInfo7.sg";
-connectAttr "lambert2.msg" "materialInfo7.m";
 connectAttr "lambert3SG.msg" "materialInfo8.sg";
 connectAttr "aiStandard5.out" "aiStandard5SG.ss";
-connectAttr "pCubeShape1.iog" "aiStandard5SG.dsm" -na;
+connectAttr "pSphereShape1.iog" "aiStandard5SG.dsm" -na;
 connectAttr "aiStandard5SG.msg" "materialInfo9.sg";
 connectAttr "aiStandard5.msg" "materialInfo9.m";
 connectAttr "aiStandard5.msg" "materialInfo9.t" -na;
+connectAttr "aiStandard6.out" "aiStandard6SG.ss";
+connectAttr "pSphereShape2.iog" "aiStandard6SG.dsm" -na;
+connectAttr "aiStandard6SG.msg" "materialInfo10.sg";
+connectAttr "aiStandard6.msg" "materialInfo10.m";
+connectAttr "aiStandard6.msg" "materialInfo10.t" -na;
+connectAttr "aiStandard7.out" "aiStandard7SG.ss";
+connectAttr "pSphereShape3.iog" "aiStandard7SG.dsm" -na;
+connectAttr "aiStandard7SG.msg" "materialInfo11.sg";
+connectAttr "aiStandard7.msg" "materialInfo11.m";
+connectAttr "aiStandard7.msg" "materialInfo11.t" -na;
 connectAttr "surfaceShader1SG.pa" ":renderPartition.st" -na;
 connectAttr "surfaceShader2SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
@@ -1154,14 +1085,17 @@ connectAttr "aiStandard4SG.pa" ":renderPartition.st" -na;
 connectAttr "lambert2SG.pa" ":renderPartition.st" -na;
 connectAttr "lambert3SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard5SG.pa" ":renderPartition.st" -na;
-connectAttr "pPlaneShape1.iog" ":initialShadingGroup.dsm" -na;
-connectAttr "pTorusShape1.iog" ":initialShadingGroup.dsm" -na;
-connectAttr "aiStandard1.msg" ":defaultShaderList1.s" -na;
-connectAttr "aiStandard2.msg" ":defaultShaderList1.s" -na;
-connectAttr "lambert2.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard6SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard7SG.pa" ":renderPartition.st" -na;
 connectAttr "aiStandard5.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard6.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard7.msg" ":defaultShaderList1.s" -na;
 connectAttr "directionalLightShape1.ltd" ":lightList1.l" -na;
+connectAttr "pointLightShape1.ltd" ":lightList1.l" -na;
+connectAttr "pointLightShape2.ltd" ":lightList1.l" -na;
 connectAttr "place2dTexture1.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "difColTexture_place2d.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "directionalLight1.iog" ":defaultLightSet.dsm" -na;
+connectAttr "pointLight1.iog" ":defaultLightSet.dsm" -na;
+connectAttr "pointLight2.iog" ":defaultLightSet.dsm" -na;
 // End of test.ma
