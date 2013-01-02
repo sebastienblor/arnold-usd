@@ -1,13 +1,12 @@
 #pragma once
 
-#include "translators/NodeTranslator.h"
+#include "CameraTranslator.h"
 
-class DLLEXPORT CAutoCameraTranslator : public CDagTranslator{
+class DLLEXPORT CAutoCameraTranslator : public CCameraTranslator{
 public:
    static void* creator()
    {
       return new CAutoCameraTranslator();
    }
    virtual AtNode* CreateArnoldNodes();
-   virtual bool RequiresMotionData();
 };
