@@ -174,8 +174,6 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         return getLightFilterClassification(self.nodeType())
 
     def commonLightAttributes(self):
-        self.addSeparator()
-        
         self.addControl("aiDiffuse", label="Diffuse")
         self.addControl("aiSpecular", label="Specular")
         self.addControl("aiSss", label="SSS")
