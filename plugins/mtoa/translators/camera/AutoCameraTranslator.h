@@ -1,23 +1,13 @@
-/* 
- * File:   AutoCameraTranslator.h
- * Author: palmezei
- *
- * Created on January 2, 2013, 7:31 PM
- */
+#pragma once
 
-#ifndef AUTOCAMERATRANSLATOR_H
-#define	AUTOCAMERATRANSLATOR_H
+#include "translators/NodeTranslator.h"
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
-
-
-
-#ifdef	__cplusplus
-}
-#endif
-
-#endif	/* AUTOCAMERATRANSLATOR_H */
-
+class DLLEXPORT CAutoCameraTranslator : public CDagTranslator{
+public:
+   static void* creator()
+   {
+      return new CAutoCameraTranslator();
+   }
+   virtual AtNode* CreateArnoldNodes();
+   virtual bool RequiresMotionData();
+};

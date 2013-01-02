@@ -3,6 +3,7 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "translators/AutoDagTranslator.h"
+#include "translators/camera/AutoCameraTranslator.h"
 #include "translators/shader/ShaderTranslator.h"
 #include "translators/driver/DriverTranslator.h"
 #include "translators/filter/FilterTranslator.h"
@@ -47,7 +48,7 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool map
       if (arnoldNodeTypeName ==  "camera")
       {
          // TODO : define a non virtual generic CCameraTranslator
-         creator = CAutoDagTranslator::creator;
+         creator = CAutoCameraTranslator::creator;
          if (mappedMayaNode)
             initialize = CNodeTranslator::NodeInitializer;
       }
