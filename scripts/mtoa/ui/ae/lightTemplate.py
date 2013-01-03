@@ -174,10 +174,16 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         return getLightFilterClassification(self.nodeType())
 
     def commonLightAttributes(self):
-        self.addControl("aiBounceFactor")
-        self.addControl("aiBounces", "Max Bounces")
-
+        self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")
+        self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
+        
         self.addSeparator()
+    
+        self.addControl("aiDiffuse", label="Diffuse")
+        self.addControl("aiSpecular", label="Specular")
+        self.addControl("aiSss", label="SSS")
+        self.addControl("aiIndirect", label="Indirect")
+        self.addControl("aiMaxBounces", label="Max Bounces")
 
         self.lightFiltersLayout()
         

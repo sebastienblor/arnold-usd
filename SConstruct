@@ -613,7 +613,7 @@ env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + maya_version
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_version
 
 if env['MODE'] in ['debug', 'profile']:
    package_name += '-' + env['MODE']

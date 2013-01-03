@@ -97,6 +97,10 @@ driver_supports_pixel_type
    {
       case AI_TYPE_RGB:
       case AI_TYPE_RGBA:
+      case AI_TYPE_POINT:
+      case AI_TYPE_VECTOR:
+      case AI_TYPE_POINT2:
+      case AI_TYPE_FLOAT:
          return true;
       default:
          return false;
@@ -204,13 +208,86 @@ driver_write_bucket
 
    switch(pixel_type)
    {
+      case AI_TYPE_FLOAT:
+      {
+         for (int j = miny; (j <= maxy); ++j)
+         {
+            for (int i = minx; (i <= maxx); ++i)
+            {
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
+               float flt = ((float*)bucket_data)[in_idx]; 
+
+               // Flip vertically
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
+
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
+               RV_PIXEL* pixel = &pixels[out_idx];
+
+               pixel->r = flt;
+               pixel->g = flt;
+               pixel->b = flt;
+               pixel->a = 0.f;
+            }
+         }
+         break;
+      }
+      case AI_TYPE_VECTOR:
+      case AI_TYPE_POINT:
+      {
+         for (int j = miny; (j <= maxy); ++j)
+         {
+            for (int i = minx; (i <= maxx); ++i)
+            {
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
+               AtVector vec = ((AtVector*)bucket_data)[in_idx]; 
+
+               // Flip vertically
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
+
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
+               RV_PIXEL* pixel = &pixels[out_idx];
+
+               pixel->r = vec.x;
+               pixel->g = vec.y;
+               pixel->b = vec.z;
+               pixel->a = 0.f;
+            }
+         }
+         break;
+      }
+      case AI_TYPE_POINT2:
+      {
+         for (int j = miny; (j <= maxy); ++j)
+         {
+            for (int i = minx; (i <= maxx); ++i)
+            {
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
+               AtPoint2 vec = ((AtPoint2*)bucket_data)[in_idx]; 
+
+               // Flip vertically
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
+
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
+               RV_PIXEL* pixel = &pixels[out_idx];
+
+               pixel->r = vec.x;
+               pixel->g = vec.y;
+               pixel->b = 0.f;
+               pixel->a = 0.f;
+            }
+         }
+         break;
+      }
       case AI_TYPE_RGB:
       {
          for (int j = miny; (j <= maxy); ++j)
          {
             for (int i = minx; (i <= maxx); ++i)
             {
-               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
                AtRGB  rgb = ((AtRGB*)bucket_data)[in_idx]; 
 
                // Flip vertically
@@ -225,19 +302,18 @@ driver_write_bucket
                pixel->r = rgb.r;
                pixel->g = rgb.g;
                pixel->b = rgb.b;
-               pixel->a = 0;
+               pixel->a = 0.f;
             }
          }
          break;
       }
-
       case AI_TYPE_RGBA:
       {
          for (int j = miny; (j <= maxy); ++j)
          {
             for (int i = minx; (i <= maxx); ++i)
             {
-               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
                AtRGBA  rgba = ((AtRGBA*)bucket_data)[in_idx]; 
 
                // Flip vertically

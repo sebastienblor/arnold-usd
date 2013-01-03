@@ -60,11 +60,6 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiShadowDensity")
         self.addControl("aiShadowColor")
 
-        self.addSeparator()
-        
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-
     def setup(self):
         self.addCommonParameters()       
         
