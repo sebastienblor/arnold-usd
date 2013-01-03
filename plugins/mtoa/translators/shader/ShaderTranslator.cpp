@@ -153,19 +153,10 @@ void CShaderTranslator::Export(AtNode *shader)
 {
    // the node passed in is the root node. we want the node tagged with ""
    shader = GetArnoldNode("");
-   MStatus status;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
-   while (!AiParamIteratorFinished(nodeParam))
-   {
-      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
 
-      if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
-   }
-   AiParamIteratorDestroy(nodeParam);
+   CNodeTranslator::Export(shader);
 
    MPlugArray connections;
-
    MPlug plug = FindMayaPlug("normalCamera");
 
    plug.connectedTo(connections, true, false);

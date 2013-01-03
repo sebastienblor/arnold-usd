@@ -188,24 +188,6 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
                         m_extensionName,
                         m_extensionFile);
 
-   // TODO: Make this code more general for hidden nodes
-   if (mayaTypeName == "lambert")
-   {
-		   
-	   CAOVData data;
-	   data.attribute = "aov_direct_diffuse";
-	   data.name = "direct_diffuse";
-	   data.type = AI_TYPE_RGB;
-	   mayaNode.m_aovs.push_back(data);
-
-	   CAOVData data2;
-	   data2.attribute = "aov_indirect_diffuse";
-	   data2.name = "indirect_diffuse";
-	   data2.type = AI_TYPE_RGB;
-	   mayaNode.m_aovs.push_back(data2);
-
-   }
-
    MString transName;
    if (translatorName.numChars() != 0)
       transName = translatorName;
@@ -436,7 +418,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          CPxTranslator translator("",
                                   m_extensionName,
                                   m_extensionFile);
-         translator.ReadMetaData(nentry);
+         translator.ReadMetaData(nentry, MFnPlugin::isNodeRegistered(mayaNode.name));
 
          // Each arnold node may be processed in several ways:
          // - generate a new Maya node and a translator
@@ -467,7 +449,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
             status = nodeStatus;
          }
          // Warning for Arnold nodes that are from plugins and not translated
-         if (m_extensionName != "<built-in>" && MStatus::kNotImplemented == translatorStatus)
+         if (m_extensionName != BUILTIN && MStatus::kNotImplemented == translatorStatus)
          {
             AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
                m_extensionName.asChar(), arnoldNode.name.asChar());
