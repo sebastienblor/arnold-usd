@@ -294,7 +294,9 @@ node_update
       if (tokens.size())
       {
          idata->tokens = (TokenData*) AiMalloc((unsigned long) (sizeof(TokenData) * tokens.size()));
-         std::copy(tokens.begin(), tokens.end(), idata->tokens);
+         int k = 0;
+         for (std::vector<TokenData>::const_iterator it = tokens.begin(); it != tokens.end(); ++it, ++k)
+            idata->tokens[k] = *it;
 
          idata->origPath = (char*) AiMalloc((unsigned long)newfname.size() + 1);
          strcpy(idata->origPath, newfname.c_str());
