@@ -17,21 +17,6 @@
 
 using namespace std;
 
-bool CCameraTranslator::IsOrtho()
-{ // is return FindMayaPlug("orthographic").asBool(); enough? the translators always change that value?
-   MStatus status;
-   MPlug plug = FindMayaPlug("aiTranslator", &status);
-   if (status && !plug.isNull())
-   {
-      if (plug.asString() == MString("orthographic"))
-         return true;
-      else if(plug.asString() == MString("perspective"))
-         return false;
-      else return FindMayaPlug("orthographic").asBool();
-   }
-   else return FindMayaPlug("orthographic").asBool();
-}
-
 void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 {
    // get the dependency node of the image plane

@@ -34,7 +34,6 @@ public:
    }
 
 protected:
-   bool IsOrtho();
    double GetDeviceAspect();
    void SetFilmTransform(AtNode* camera, double factorX=0, double factorY=0, double width=0, bool persp=true);
    void ExportImagePlanes(unsigned int step);
