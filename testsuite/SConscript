@@ -499,13 +499,9 @@ class MayaTestRunner(object):
                   return dest
               #else:  print "does not exist", file
     
-          f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
-          status = f.readline() ## just one line
-          f.close()
           f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
           description = f.readline() ## just one line
           f.close()
-          bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
           
           if not os.path.exists(test_results_dir):
               os.mkdir(test_results_dir)
@@ -517,6 +513,11 @@ class MayaTestRunner(object):
               new_img_dest = copy_to_results(os.path.join(test_dir, new))
               ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
               copy_to_results(os.path.join(test_dir, dif))
+              
+              f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
+              status = f.readline() ## just one line
+              f.close()
+              bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
     
               outfile.write('''
         <tr>
@@ -529,7 +530,9 @@ class MayaTestRunner(object):
                      test_link,
                      test_name,
                      bgcolor,
-                     description,
+                     len(test_files) < 2 and
+                        description
+                        or description+': <small>'+ref+'</small>',
                      test_link,
                      new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
                                               or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',

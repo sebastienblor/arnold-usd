@@ -63,7 +63,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
     saferemove('new*.jpg')
     saferemove('ref*.jpg')
     saferemove('dif*.jpg')
-    saferemove('STATUS')
+    saferemove('STATUS*')
 
     test_dir = os.path.abspath(test_dir)
 
@@ -165,7 +165,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
             references = sorted(glob.glob(reference_basename + '*.tif'))
 
         for reference in references:
-            
+            current_status = 'OK'
             output = reference.replace(reference_basename, output_basename)
             output_stripped = os.path.splitext(output)[0]
             reference_stripped = os.path.split(os.path.splitext(reference)[0])[1]
@@ -189,6 +189,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                     diff_retcode = os.system(difftiff_cmd)
                     if diff_retcode != 0:
                         status = 'FAILED'
+                        current_status = 'FAILED'
                         cause = 'images differ'
                         ## run difftiff again (!) to make one with a solid alpha...
                         if system.os() == 'windows':
@@ -203,12 +204,18 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
                     os.system('tiff2jpeg %s %s' % (output, new))
                 else:
                     status = 'FAILED'
+                    current_status = 'FAILED'
                     if cause:
                         cause += ", '%s'" % output
                     else:
                         cause = "output image does not exist: '%s'" % output
             if os.path.exists(reference):
                 os.system('tiff2jpeg %s %s' % (reference, ref))
+                
+            ## create the html file with the results
+            f = open('STATUS_'+dif+'.txt', 'w')
+            f.write(current_status) ## so we can get the status of this test later
+            f.close()
 
     if show_test_output:
         print fore_magenta + style_bright + '-'*80
