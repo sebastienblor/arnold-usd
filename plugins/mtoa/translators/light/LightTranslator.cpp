@@ -80,6 +80,7 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light,  "sss",             FindMayaPlug("aiSss").asFloat());
    AiNodeSetFlt(light,  "indirect",        FindMayaPlug("aiIndirect").asFloat());
    AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
+   AiNodeSetInt(light,  "volume_samples",  FindMayaPlug("aiVolumeSamples").asInt());
    
    if (FindMayaPlug("emitDiffuse").asBool())
       AiNodeSetFlt(light, "diffuse", FindMayaPlug("aiDiffuse").asFloat());
@@ -147,6 +148,7 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("sss");
    helper.MakeInput("indirect");
    helper.MakeInput("max_bounces");
+   helper.MakeInput("volume_samples");
    
    CAttrData data;
    data.defaultValue.BOOL = false;

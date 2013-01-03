@@ -380,18 +380,6 @@ def createArnoldSamplingSettings():
                       label='Sampling Mode',
                       attribute='defaultArnoldRenderOptions.volume_sampling_mode')
                       
-    pm.attrControlGrp('ss_volume_scattering_sampling_rate',
-                      label='Scattering Sampling Rate',
-                      attribute='defaultArnoldRenderOptions.volume_scattering_sampling_rate')
-                      
-    pm.attrControlGrp('ss_volume_diffuse_sampling_rate',
-                      label='Diffuse Sampling Rate',
-                      attribute='defaultArnoldRenderOptions.volume_diffuse_sampling_rate')
-                      
-    pm.attrControlGrp('ss_volume_shadow_step_size_mult',
-                       label='Shadow Step Size Multiplier',
-                       attribute='defaultArnoldRenderOptions.volume_shadow_step_size_mult')
-                      
     pm.setParent('..')
     
     pm.frameLayout(label="Clamping", collapse=True)
