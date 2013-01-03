@@ -15,9 +15,7 @@ public:
    }
    AtNode* CreateArnoldNodes();
    
-protected:
-   bool IsOrtho();
-   
+protected:   
    void ExportOrtho(AtNode* camera);
    void ExportPersp(AtNode* camera);
    void ExportMotionOrtho(AtNode* camera, unsigned int step);
