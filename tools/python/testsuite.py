@@ -3,7 +3,7 @@ This module implements the function for performing an indivudal test of a Maya b
 
 It must be in a separate module in order to work properly with the python multiprocessing module
 """
- 
+import re
 import time
 import os
 import shutil
@@ -174,7 +174,7 @@ def run_test(test_name, lock, test_dir, cmd, output_basename, reference_basename
             ref = 'ref_%s.jpg' % reference_stripped
             
             results.append((new, ref, dif))
-            if status =='OK': 
+            if True : #status =='OK': 
                 if os.path.exists(output) and os.path.exists(reference):
 
                     ## if the test passed - compare the generated image to the reference
@@ -256,19 +256,44 @@ Arnold testsuite - %s
 </title>
 </head>
 <body>
+%s
     <table border="0" cellpadding="0">
         <tr>
             <th><font face="Arial">test</font></th>
             <th><font face="Arial">status</font></th>
-            <th><font face="Arial">description</font></th>
+            <th><font face="Arial"> %s </font></th>
             <th><font face="Arial">new</font></th>
             <th><font face="Arial">ref</font></th>
             <th><font face="Arial">diff</font></th>
+        </tr>''' % (test_name,
+        len(references) < 2 and ''' '''
+        or
+        ('''
+        <table border="0" cellpadding="0">
+        <tr>
+        <th><font face="Arial">description</font></th>
         </tr>
-        <tr>''' % test_name)
+        
+        <tr>
+        <td bgcolor="#ececec">
+                         &nbsp;
+                         <pre>
+                         %s
+                         </pre>
+                         &nbsp;
+        </td>
+        </tr>
+        </table>
+        
+        ''' % readme)
+        ,
+        len(references) < 2 and
+            '''description'''
+            or '''file'''))
     
     for new, ref, dif in results:
         f.write('''
+            <tr>
             <td bgcolor="#ececec">
                 <center>
                 <font face="Arial">
@@ -283,13 +308,7 @@ Arnold testsuite - %s
                 </font>
                 </center>
             </td>
-            <td bgcolor="#ececec">
-                &nbsp;
-                <pre>
-                %s
-                </pre>
-                &nbsp;
-            </td>
+            %s
             <td bgcolor="#ececec">
                 <font face="Arial">
                   %s
@@ -304,10 +323,23 @@ Arnold testsuite - %s
                 <font face="Arial">
                   %s
                 </font>
-            </td>''' % (
+            </td>
+            </tr>''' % (
                   test_name,
-                  status,
-                  readme,
+                  os.path.exists(dif) and ''' FAILED ''' or '''OK''',
+                  len(references) < 2 and
+                    ( '''<td bgcolor="#ececec">
+                         &nbsp;
+                         <pre>
+                         %s
+                         </pre>
+                         &nbsp;
+                         </td>''' % readme)
+                    or ( '''<td bgcolor="#ececec">
+                        &nbsp;
+                        %s
+                        &nbsp;
+                        </td>''' % ref),
                   os.path.exists(new) and ('''<img src="%s" border="0" hspace="1" width="160" height="120" alt="new image" />''' % new)
                                                       or '''&nbsp;''',
                   os.path.exists(ref) and ('''<img src="%s" border="0" hspace="1" width="160" height="120" alt="ref image" />''' % ref)
@@ -318,7 +350,6 @@ Arnold testsuite - %s
             )
 
     f.write('''
-        </tr>
     </table>
     <font face="Arial">
     <a href=".">link to files</a>
