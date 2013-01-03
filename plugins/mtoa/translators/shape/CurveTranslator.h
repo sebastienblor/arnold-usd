@@ -1,5 +1,4 @@
-#ifndef CURVETRANSLATOR_H
-#define CURVETRANSLATOR_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -67,5 +66,3 @@ private:
 
 
 };
-
-#endif // CURVETRANSLATOR_H

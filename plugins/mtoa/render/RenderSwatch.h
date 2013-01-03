@@ -1,5 +1,4 @@
-#ifndef RENDERSWATCH_H
-#define RENDERSWATCH_H
+#pragma once
 
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
@@ -94,7 +93,3 @@ private:
    CRenderSwatchClass m_swatchClass;
 
 };
-      
-
-
-#endif // RENDERSWATCH_H

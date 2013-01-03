@@ -1,5 +1,4 @@
-#ifndef ARNOLDSTANDINGEOMETRY_H
-#define	ARNOLDSTANDINGEOMETRY_H
+#pragma once
 
 #include <ai.h>
 
@@ -54,6 +53,3 @@ public:
    void DrawNormalAndPolygons() const;
    void DrawBoundingBox() const;
 };
-
-#endif	/* ARNOLDSTANDINGEOMETRY_H */
-

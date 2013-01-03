@@ -1,5 +1,4 @@
-#ifndef NODETRANSLATOR_H
-#define NODETRANSLATOR_H
+#pragma once
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
@@ -278,6 +277,3 @@ protected:
 protected:
    MDagPath m_dagPath;
 };
-
-
-#endif // NODETRANSLATOR_H

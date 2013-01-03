@@ -1,5 +1,4 @@
-#ifndef SHADING_ENGINE_TRANSLATOR_H
-#define SHADING_ENGINE_TRANSLATOR_H
+#pragma once
 
 #include "ShaderTranslator.h"
 
@@ -30,6 +29,3 @@ protected:
 protected:
    MPlugArray m_customAOVPlugs;
 };
-
-
-#endif

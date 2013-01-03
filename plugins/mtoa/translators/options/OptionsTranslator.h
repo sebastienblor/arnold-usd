@@ -1,5 +1,4 @@
-#ifndef OPTIONSTRANSLATOR_H
-#define OPTIONSTRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -78,5 +77,3 @@ protected:
    bool m_aovsInUse;
    std::map<std::string, AtNode*> m_multiDriverMap;
 };
-
-#endif // OPTIONSTRANSLATOR_H

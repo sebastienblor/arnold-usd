@@ -1,5 +1,4 @@
-#ifndef ARNOLD_EXPORT_ASS_CMD_H
-#define ARNOLD_EXPORT_ASS_CMD_H
+#pragma once
 
 #include <maya/MPxCommand.h>
 #include <maya/MArgList.h>
@@ -24,5 +23,3 @@ public:
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldExportAssCmd
-
-#endif // ARNOLD_EXPORT_ASS_CMD_H

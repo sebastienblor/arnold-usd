@@ -1,12 +1,8 @@
-#ifndef DRIVER_TRANSLATOR_H
-#define DRIVER_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
-
-
 //--------------- DriverTranslator ------------------------------------------
-
 
 class DLLEXPORT CDriverTranslator
    :  public CNodeTranslator
@@ -25,6 +21,3 @@ protected:
    virtual void AddUpdateCallbacks();
    virtual void RemoveUpdateCallbacks();
 };
-
-
-#endif // DRIVER_TRANSLATOR_H

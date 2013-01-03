@@ -1,5 +1,4 @@
-#ifndef ARNOLDPLUGINCMD_H
-#define ARNOLDPLUGINCMD_H
+#pragma once
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
@@ -20,5 +19,3 @@ public:
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldPluginCmd
-
-#endif // ARNOLDPLUGINCMD_H

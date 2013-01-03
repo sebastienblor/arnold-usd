@@ -1,5 +1,4 @@
-#ifndef HAIRTRANSLATOR_H
-#define HAIRTRANSLATOR_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -42,5 +41,3 @@ private:
    MDagPath         m_pfxHairPath;
    unsigned int     m_numPointsInterpolation;
 };
-
-#endif // HAIRTRANSLATOR_H

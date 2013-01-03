@@ -1,5 +1,4 @@
-#ifndef AUTO_DAG_TRANSLATOR_H
-#define AUTO_DAG_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -17,5 +16,3 @@ public:
    virtual AtNode* CreateArnoldNodes();
    virtual bool RequiresMotionData();
 };
-
-#endif // SHADER_TRANSLATOR_H

@@ -1,5 +1,4 @@
-#ifndef ARNOLDLIGHTBLOCKERNODE_H
-#define ARNOLDLIGHTBLOCKERNODE_H
+#pragma once
 
 #include "attributes/AttrHelper.h"
 #include "nodes/ArnoldNodeIDs.h"
@@ -31,5 +30,3 @@ private:
    static MObject s_ramp;
    static MObject s_rampAxis;
 };
-
-#endif // ARNOLDLIGHTBLOCKERNODE_H

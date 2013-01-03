@@ -1,5 +1,4 @@
-#ifndef EVENT_H 
-#define EVENT_H
+#pragma once
 
 #include <windows.h>
 #include <climits>
@@ -39,5 +38,3 @@ private:
    HANDLE   m_event;
 
 };  // class CEvent
-
-#endif // EVENT_H

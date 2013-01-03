@@ -1,5 +1,4 @@
-#ifndef LIGHT_LINKER_TRANSLATOR_H
-#define LIGHT_LINKER_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 #include <maya/MNodeMessage.h>
@@ -30,6 +29,3 @@ protected:
 private:
    unsigned int GetMembers(MSelectionList &list, const MPlug &plug, bool doLights, bool doObjects);
 };
-
-
-#endif // LIGHT_LINKER_TRANSLATOR_H

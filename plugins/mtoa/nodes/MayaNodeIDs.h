@@ -1,5 +1,4 @@
-#ifndef MAYADNODEIDS_H
-#define MAYADNODEIDS_H
+#pragma once
 
 // Maya built-in nodes IDs
 
@@ -29,5 +28,3 @@
 
 #define MAYA_NODEID_CAMERA                      0x4443414d
 #define MAYA_NODEID_HAIR                        0x48535953
-
-#endif // MAYADNODEIDS_H

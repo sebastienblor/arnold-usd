@@ -1,5 +1,4 @@
-#ifndef OUTPUTDRIVER_H
-#define OUTPUTDRIVER_H
+#pragma once
 
 #include <ai_drivers.h>
 #include <ai_render.h>
@@ -97,7 +96,3 @@ void ClearDisplayUpdateQueue();
 void RefreshRenderView(float, float, void *);
 
 void TransferTilesToRenderView(void*);
-
-#endif  // OUTPUTDRIVER_H
-
-

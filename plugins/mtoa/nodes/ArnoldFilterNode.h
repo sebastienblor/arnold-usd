@@ -1,5 +1,4 @@
-#ifndef ARNOLD_FILTER_NODE_H
-#define ARNOLD_FILTER_NODE_H
+#pragma once
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
@@ -24,5 +23,3 @@ public:
    static MObject s_filter;
 
 };  // class CArnoldFilterNode
-
-#endif // ARNOLD_DRIVER_NODE_H

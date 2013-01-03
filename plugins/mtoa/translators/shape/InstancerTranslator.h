@@ -1,5 +1,4 @@
-#ifndef INSTANCER_H
-#define INSTANCER_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -75,5 +74,3 @@ protected:
    MStringArray m_instanceTags; // for debug purposes
 
 };
-
-#endif // INSTANCER_H

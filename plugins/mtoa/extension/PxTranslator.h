@@ -1,5 +1,4 @@
-#ifndef PXTRANSLATOR_H
-#define PXTRANSLATOR_H
+#pragma once
 
 #include <cstring>
 #include <maya/MString.h>
@@ -42,5 +41,3 @@ private:
    TCreatorFunction creator;
    TNodeInitFunction initialize;
 };
-
-#endif // PXTRANSLATOR_H

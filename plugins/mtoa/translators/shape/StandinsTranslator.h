@@ -1,5 +1,4 @@
-#ifndef STANDINSTRANSLATOR_H
-#define STANDINSTRANSLATOR_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -38,5 +37,3 @@ protected:
 protected:
    MFnDagNode m_DagNode;
 };
-
-#endif // STANDINSTRANSLATOR_H

@@ -1,5 +1,4 @@
-#ifndef PLATFORM_H
-#define PLATFORM_H
+#pragma once
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -39,6 +38,3 @@
 #endif // _DARWIN
 
 #endif // #else _WIN32
-
-
-#endif  // PLATFORM_H

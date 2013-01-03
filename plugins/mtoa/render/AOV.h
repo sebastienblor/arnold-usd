@@ -1,5 +1,4 @@
-#ifndef AOV_H
-#define AOV_H
+#pragma once
 
 #include "platform/Platform.h"
 
@@ -85,6 +84,3 @@ protected:
    std::vector<AtNode*>  m_filters;
    MStringArray m_extensions;
 };
-
-
-#endif // AOV_H

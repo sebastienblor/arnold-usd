@@ -1,5 +1,4 @@
-#ifndef FLUIDTRANSLATOR_H
-#define	FLUIDTRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -12,7 +11,3 @@ public:
 protected:
    virtual void Export(AtNode* fluid);
 };
-
-
-#endif	/* FLUIDTRANSLATOR_H */
-

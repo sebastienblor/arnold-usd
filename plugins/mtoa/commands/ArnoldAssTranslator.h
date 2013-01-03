@@ -1,5 +1,4 @@
-#ifndef ARNOLD_ASS_TRANSLATOR_H
-#define ARNOLD_ASS_TRANSLATOR_H
+#pragma once
 
 #include <maya/MPxFileTranslator.h>
 #include <maya/MItDag.h>
@@ -49,7 +48,3 @@ protected:
    bool m_isImporter;
 
 }; // class CArnoldAssTranslator
-
-
-
-#endif // ARNOLD_ASS_TRANSLATOR_H

@@ -1,5 +1,4 @@
-#ifndef CAMERA_TRANSLATOR_H
-#define CAMERA_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -47,5 +46,3 @@ protected:
 protected:
    MFnCamera m_fnCamera;
 };
-
-#endif // CAMERA_TRANSLATOR_H
