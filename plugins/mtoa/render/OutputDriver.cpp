@@ -383,6 +383,9 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy,
                              msg.pixels, true);
    
+   const unsigned int num_pixels = (unsigned int)((msg.bucketRect.maxx - msg.bucketRect.minx + 1) * (msg.bucketRect.maxy - msg.bucketRect.miny + 1));
+   s_outputDriverData.renderedPixels += num_pixels;
+   
    if (!s_outputDriverData.clearBeforeRender)
    {
       unsigned int i = 0;
@@ -396,6 +399,13 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    if (refresh)
    {
       MRenderView::refresh(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy);
+      int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
+      MString cmd;
+      cmd += "global string $gMainProgressBar;";
+      cmd += "progressBar -edit -progress ";
+      cmd += progress;
+      cmd += " $gMainProgressBar;";
+      MGlobal::executeCommand(cmd);
    }
    else
    {
@@ -417,17 +427,7 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    {
       delete[] msg.pixels;
       msg.pixels = NULL;
-   }
-   
-   const unsigned int num_pixels = (unsigned int)((msg.bucketRect.maxx - msg.bucketRect.minx + 1) * (msg.bucketRect.maxy - msg.bucketRect.miny + 1));
-   s_outputDriverData.renderedPixels += num_pixels;
-   int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
-   MString cmd;
-   cmd += "global string $gMainProgressBar;";
-   cmd += "progressBar -edit -progress ";
-   cmd += progress;
-   cmd += " $gMainProgressBar;";
-   MGlobal::executeCommand(cmd);
+   }   
 }
 
 void RefreshRenderViewBBox()
@@ -436,6 +436,13 @@ void RefreshRenderViewBBox()
                         s_outputDriverData.refresh_bbox.maxx,
                         s_outputDriverData.refresh_bbox.miny,
                         s_outputDriverData.refresh_bbox.maxy);
+   int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
+   MString cmd;
+   cmd += "global string $gMainProgressBar;";
+   cmd += "progressBar -edit -progress ";
+   cmd += progress;
+   cmd += " $gMainProgressBar;";
+   MGlobal::executeCommand(cmd);
 }
 
 // Please note: this function flips the Y as the resulting
