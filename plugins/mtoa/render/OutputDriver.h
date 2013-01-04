@@ -32,6 +32,8 @@ struct COutputDriverData
    unsigned int            imageWidth;
    unsigned int            imageHeight;
    unsigned int            swatchImageWidth;
+   unsigned int            renderedPixels;
+   unsigned int            totalPixels;
    bool                    isRegion;
    bool                    isProgressive;  
    bool                    rendering;

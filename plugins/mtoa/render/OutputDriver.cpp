@@ -199,7 +199,7 @@ driver_write_bucket
    // get the first AOV layer
    if (!AiOutputIteratorGetNext(iterator, NULL, &pixel_type, &bucket_data))
       return;
-
+   
    RV_PIXEL* pixels = new RV_PIXEL[bucket_size_x * bucket_size_y];
    int minx = bucket_xo;
    int miny = bucket_yo;
@@ -418,6 +418,16 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
       delete[] msg.pixels;
       msg.pixels = NULL;
    }
+   
+   const unsigned int num_pixels = (unsigned int)((msg.bucketRect.maxx - msg.bucketRect.minx + 1) * (msg.bucketRect.maxy - msg.bucketRect.miny + 1));
+   s_outputDriverData.renderedPixels += num_pixels;
+   int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
+   MString cmd;
+   cmd += "global string $gMainProgressBar;";
+   cmd += "progressBar -edit -progress ";
+   cmd += progress;
+   cmd += " $gMainProgressBar;";
+   MGlobal::executeCommand(cmd);
 }
 
 void RefreshRenderViewBBox()
@@ -479,7 +489,6 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    s_outputDriverData.imageWidth = msg.imageWidth;
    s_outputDriverData.imageHeight = msg.imageHeight;
    const bool clearBeforeRender =  CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
-   s_outputDriverData.clearBeforeRender = clearBeforeRender;
    
    const unsigned int pixelCount = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
    const static RV_PIXEL blackRVPixel = {0.f, 0.f, 0.f, 0.f};
@@ -636,6 +645,7 @@ void RenderEnd()
 
    s_outputDriverData.rendering = false;
    MRenderView::endRender();
+   MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;");
 }
 
 void ClearDisplayUpdateQueue()
@@ -658,12 +668,29 @@ void BeginImage()
                                                  NULL,
                                                  &status);
 
-   s_AA_Samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   s_GI_diffuse_samples = AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
-   s_GI_glossy_samples = AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
-   s_sss_sample_factor = AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor");
+   AtNode* options = AiUniverseGetOptions();
+   s_AA_Samples = AiNodeGetInt(options, "AA_samples");
+   s_GI_diffuse_samples = AiNodeGetInt(options, "GI_diffuse_samples");
+   s_GI_glossy_samples = AiNodeGetInt(options, "GI_glossy_samples");
+   s_sss_sample_factor = AiNodeGetInt(options, "sss_sample_factor");
 
    s_start_time = time(NULL);
+   if (s_outputDriverData.isRegion)
+   {
+      const int region_min_x = AiNodeGetInt(options, "region_min_x");
+      const int region_min_y = AiNodeGetInt(options, "region_min_y");
+      const int region_max_x = AiNodeGetInt(options, "region_max_x");
+      const int region_max_y = AiNodeGetInt(options, "region_max_y");
+      s_outputDriverData.totalPixels = (region_max_x - region_min_x + 1) * (region_max_y - region_min_y + 1);
+   }
+   else
+      s_outputDriverData.totalPixels = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
+   s_outputDriverData.renderedPixels = 0;
+   
+   MString cmd;
+   cmd += "global string $gMainProgressBar;";
+   cmd += "progressBar -edit -beginProgress -status \"Arnold Render ...\" -maxValue 100 -progress 0 $gMainProgressBar;";
+   MGlobal::executeCommand(cmd);
 }
 
 void EndImage()
