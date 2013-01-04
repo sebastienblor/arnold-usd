@@ -645,7 +645,6 @@ void RenderEnd()
 
    s_outputDriverData.rendering = false;
    MRenderView::endRender();
-   MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;");
 }
 
 void ClearDisplayUpdateQueue()
@@ -746,6 +745,7 @@ void EndImage()
       MMessage::removeCallback(s_timer_cb);
       s_timer_cb = 0;
    }
+   MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;");
 }
 
 // return false if render is done
