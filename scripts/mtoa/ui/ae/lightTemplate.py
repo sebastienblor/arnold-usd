@@ -174,9 +174,9 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         return getLightFilterClassification(self.nodeType())
 
     def commonLightAttributes(self):        
-        self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")
-        self.addControl("aiVolumeSamples", label="Volume Samples")
+        self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")        
         self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
+        self.addControl("aiVolumeSamples", label="Volume Samples")
         
         self.addSeparator()
     
