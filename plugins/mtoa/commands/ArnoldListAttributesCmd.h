@@ -1,5 +1,4 @@
-#ifndef ARNOLDLISTATTRIBUTES_H
-#define	ARNOLDLISTATTRIBUTES_H
+#pragma once
 
 #include <maya/MPxCommand.h>
 
@@ -11,6 +10,3 @@ public:
    static void* creator();
    virtual MStatus doIt(const MArgList& args);
 };
-
-#endif	/* ARNOLDLISTATTRIBUTES_H */
-

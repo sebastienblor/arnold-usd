@@ -1,5 +1,4 @@
-#ifndef TX_TEXTURE_FILE_H
-#define TX_TEXTURE_FILE_H
+#pragma once
 
 #include <maya/MPxImageFile.h>
 #include <maya/MImageFileInfo.h>
@@ -19,6 +18,3 @@ public:
    void populateTestImage(unsigned char* pixels, unsigned int w, unsigned int h);
    
 }; // class CTxTextureFile
-
-
-#endif // TX_TEXTURE_FILE_H

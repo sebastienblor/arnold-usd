@@ -1,5 +1,4 @@
-#ifndef SESSIONOPTIONS_H
-#define SESSIONOPTIONS_H
+#pragma once
 
 #include <set>
 
@@ -143,5 +142,3 @@ private:
 
    bool                 m_progressive_rendering;
 };
-
-#endif // SESSIONOPTIONS_H

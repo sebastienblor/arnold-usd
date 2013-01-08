@@ -1,5 +1,4 @@
-#ifndef EVENT_H 
-#define EVENT_H
+#pragma once
 
 #include <ai_msg.h>
 #include <climits>
@@ -126,5 +125,3 @@ private:
    pthread_cond_t m_cond;
 
 };  // class CEvent
-
-#endif // EVENT_H

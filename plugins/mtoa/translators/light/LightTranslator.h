@@ -1,5 +1,4 @@
-#ifndef LIGHT_TRANSLATOR_H
-#define LIGHT_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -26,5 +25,3 @@ protected:
    virtual void Delete();
    static void MakeCommonAttributes(CBaseAttrHelper& helper);   
 };
-
-#endif // LIGHT_TRANSLATOR_H

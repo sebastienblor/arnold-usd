@@ -1,5 +1,4 @@
-#ifndef ARNOLDOPTIONSNODE_H
-#define ARNOLDOPTIONSNODE_H
+#pragma once
 
 #include "attributes/AttrHelper.h"
 
@@ -106,5 +105,3 @@ public:
    static MObject s_user_options;
 
 };  // class CArnoldOptionsNode
-
-#endif // ARNOLDOPTIONSNODE_H

@@ -1,5 +1,4 @@
-#ifndef RENDERSESSION_H
-#define RENDERSESSION_H
+#pragma once
 
 #include "render/RenderOptions.h"
 
@@ -167,5 +166,3 @@ private:
    MString        m_postRenderMel;
 
 }; // class CRenderSession
-
-#endif // RENDERSESSION_H

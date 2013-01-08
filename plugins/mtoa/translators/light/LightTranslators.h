@@ -1,5 +1,4 @@
-#ifndef LIGHT_TRANSLATORS_H
-#define LIGHT_TRANSLATORS_H
+#pragma once
 
 #include "LightTranslator.h"
 
@@ -143,5 +142,3 @@ public:
 private:
    int m_numVertices;
 };
-
-#endif // LIGHT_TRANSLATORS_H

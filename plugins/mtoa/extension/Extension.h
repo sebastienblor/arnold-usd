@@ -1,5 +1,4 @@
-#ifndef EXTENSION_H
-#define EXTENSION_H
+#pragma once
 
 #include "extension/PxUtils.h"
 #include "extension/PathUtils.h"
@@ -157,5 +156,3 @@ protected:
    static unsigned int s_autoNodeId;
    static LoadedArnoldPluginsSet s_allLoadedArnoldPlugins;
 };
-
-#endif // EXTENSION_H

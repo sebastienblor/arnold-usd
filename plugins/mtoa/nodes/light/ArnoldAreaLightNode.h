@@ -1,5 +1,4 @@
-#ifndef ARNOLDAREALIGHTNODE_H
-#define ARNOLDAREALIGHTNODE_H
+#pragma once
 
 #include "attributes/AttrHelper.h"
 #include "nodes/ArnoldNodeIDs.h"
@@ -80,5 +79,3 @@ public:
    int                  m_displayList;
    static   MTypeId     id;
 };  // class CArnoldAreaLightNode
-
-#endif // ARNOLDAREALIGHTNODE_H

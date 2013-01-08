@@ -1,5 +1,4 @@
-#ifndef MESHTRANSLATOR_H
-#define MESHTRANSLATOR_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -37,5 +36,3 @@ private:
    MStatus Tessellate(const MDagPath &dagPath);
    unsigned int GetNumMeshGroups(const MDagPath& dagPath);
 };
-
-#endif // MESHTRANSLATOR_H

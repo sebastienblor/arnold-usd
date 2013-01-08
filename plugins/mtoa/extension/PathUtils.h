@@ -1,5 +1,4 @@
-#ifndef PATHUTILS_H
-#define PATHUTILS_H
+#pragma once
 
 #define PLUGIN_SEARCH "$ARNOLD_PLUGIN_PATH"
 #define EXTENSION_SEARCH "$MTOA_EXTENSIONS_PATH"
@@ -9,5 +8,3 @@
 #else
 #define PATH_SEPARATOR ":"
 #endif
-
-#endif // PATHUTILS_H

@@ -1,5 +1,4 @@
-#ifndef RENDEROPTIONS_H
-#define RENDEROPTIONS_H
+#pragma once
 
 #include "platform/Platform.h"
 #include "AOV.h"
@@ -242,5 +241,3 @@ private:
    unsigned int   m_log_console_verbosity;
    unsigned int   m_log_file_verbosity;
 };
-
-#endif // RENDEROPTIONS_H

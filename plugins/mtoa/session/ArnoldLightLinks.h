@@ -1,5 +1,4 @@
-#ifndef ARNOLDLIGHTLINKS_H
-#define	ARNOLDLIGHTLINKS_H
+#pragma once
 
 #include <maya/MFnDependencyNode.h>
 
@@ -48,6 +47,3 @@ private:
    int m_lightMode;
    int m_shadowMode;
 };
-
-#endif	/* ARNOLDLIGHTLINKS_H */
-

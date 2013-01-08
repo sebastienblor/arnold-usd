@@ -1,5 +1,4 @@
-#ifndef LIGHTBLOCKERTRANSLATOR_H
-#define LIGHTBLOCKERTRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -12,5 +11,3 @@ public:
 protected:
    virtual void Export(AtNode* blocker);
 };
-
-#endif // LIGHTBLOCKERTRANSLATOR_H

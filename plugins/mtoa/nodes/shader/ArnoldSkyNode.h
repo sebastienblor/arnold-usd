@@ -1,5 +1,4 @@
-#ifndef ARNOLDSKYNODE_H
-#define ARNOLDSKYNODE_H
+#pragma once
 
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
@@ -69,6 +68,3 @@ public:
    static MObject s_OUT_transparencyB;
    static MObject s_OUT_transparency;
 };  // class CArnoldSkyNode
-
-#endif // ARNOLDSKYNODE_H
-
