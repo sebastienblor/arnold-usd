@@ -38,30 +38,30 @@ static const char* declStrings[][4] = {
    {"constant ENUM", "constant ARRAY ENUM", "uniform ENUM", "varying ENUM"} // AI_TYPE_ENUM   
 };
 
-void AiNodeDeclareConstant(AtNode* node, const char* name, unsigned int type)
+bool AiNodeDeclareConstant(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
-      return;
-   AiNodeDeclare(node, name, declStrings[0][type]);
+      return false;
+   return AiNodeDeclare(node, name, declStrings[0][type]);
 }
 
-void AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int type)
+bool AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
-      return;
-   AiNodeDeclare(node, name, declStrings[1][type]);
+      return false;
+   return AiNodeDeclare(node, name, declStrings[1][type]);
 }
 
-void AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type)
+bool AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
-      return;
-   AiNodeDeclare(node, name, declStrings[2][type]);
+      return false;
+   return AiNodeDeclare(node, name, declStrings[2][type]);
 }
 
-void AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type)
+bool AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
-      return;
-   AiNodeDeclare(node, name, declStrings[3][type]);
+      return false;
+   return AiNodeDeclare(node, name, declStrings[3][type]);
 }
