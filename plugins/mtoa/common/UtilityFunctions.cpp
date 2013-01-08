@@ -42,26 +42,26 @@ bool AiNodeDeclareConstant(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
       return false;
-   return AiNodeDeclare(node, name, declStrings[0][type]);
+   return AiNodeDeclare(node, name, declStrings[type][0]);
 }
 
 bool AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
       return false;
-   return AiNodeDeclare(node, name, declStrings[1][type]);
+   return AiNodeDeclare(node, name, declStrings[type][1]);
 }
 
 bool AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
       return false;
-   return AiNodeDeclare(node, name, declStrings[2][type]);
+   return AiNodeDeclare(node, name, declStrings[type][2]);
 }
 
 bool AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type)
 {
    if (type > AI_TYPE_ENUM)
       return false;
-   return AiNodeDeclare(node, name, declStrings[3][type]);
+   return AiNodeDeclare(node, name, declStrings[type][3]);
 }
