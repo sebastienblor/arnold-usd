@@ -3,6 +3,7 @@
 #include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/Components.h"
+#include "common/UtilityFunctions.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -796,20 +797,6 @@ enum EAttributeDeclarationType{
    DECLARATION_VARYING = 3
 };
 
-static const char* declStrings[][4] = {
-   {"constant BYTE", "constant ARRAY BYTE", "uniform BYTE", "varying BYTE"}, // AI_TYPE_BYTE
-   {"constant INT", "constant ARRAY INT", "uniform INT", "varying INT"}, // AI_TYPE_INT
-   {"constant UINT", "constant ARRAY UINT", "uniform UINT", "varying UINT"}, // AI_TYPE_UINT
-   {"constant BOOL", "constant ARRAY BOOL", "uniform BOOL", "varying BOOL"}, // AI_TYPE_BOOLEAN
-   {"constant FLOAT", "constant ARRAY FLOAT", "uniform FLOAT", "varying FLOAT"}, // AI_TYPE_FLOAT
-   {"constant RGB", "constant ARRAY RGB", "uniform RGB", "varying RGB"}, // AI_TYPE_RGB
-   {"constant RGBA", "constant ARRAY RGBA", "uniform RGBA", "varying RGBA"}, // AI_TYPE_RGBA
-   {"constant VECTOR", "constant ARRAY VECTOR", "uniform VECTOR", "varying VECTOR"}, // AI_TYPE_VECTOR
-   {"constant POINT", "constant ARRAY POINT", "uniform POINT", "varying POINT"}, // AI_TYPE_POINT
-   {"constant POINT2", "constant ARRAY POINT2", "uniform POINT2", "varying POINT2"}, // AI_TYPE_POINT2
-   {"constant STRING", "constant ARRAY STRING", "uniform STRING", "varying STRING"}, // AI_TYPE_STRING
-};
-
 template <signed ATTR>
 void TExportArrayAttribute(AtArray* arr, MPlug& plug, unsigned int element) { }
 
@@ -946,10 +933,19 @@ void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* att
    AiNodeSetStr(node, attrName, plug.asString().asChar());
 }
 
+typedef bool (*declarationPointer)(AtNode*, const char*, unsigned int);
+
+static declarationPointer declarationPointers[] = {
+   0,
+   AiNodeDeclareConstantArray,
+   AiNodeDeclareUniform,
+   AiNodeDeclareVarying
+};
+
 template <signed ATTR>
 void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
 {
-   if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+   if (declarationPointers[declType](node, attrName, ATTR))
    {
       const unsigned int numElements = plug.numElements();
       AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
@@ -966,7 +962,7 @@ void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttr
       TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
    else
    {
-      if (AiNodeDeclare(node, attrName, declStrings[ATTR][0]))
+      if (AiNodeDeclareConstant(node, attrName, ATTR))
          TExportAttribute<ATTR>(node, plug, attrName);
    }
 }
@@ -1028,7 +1024,7 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
 {
    if (!plug.isArray())
    {
-      if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+      if (declarationPointers[declType](node, attrName, ATTR))
       {
          T data(plug.asMObject());
          const unsigned int length = data.length();
