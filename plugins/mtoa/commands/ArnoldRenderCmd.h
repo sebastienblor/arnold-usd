@@ -1,5 +1,4 @@
-#ifndef ARNOLDRENDERCMD_H
-#define ARNOLDRENDERCMD_H
+#pragma once
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
@@ -20,5 +19,3 @@ public:
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldRenderCmd
-
-#endif // ARNOLDRENDERCMD_H

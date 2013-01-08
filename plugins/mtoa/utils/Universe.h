@@ -1,5 +1,4 @@
-#ifndef UNIVERSE_H_
-#define UNIVERSE_H_
+#pragma once
 
 #include "MtoaLog.h"
 
@@ -18,5 +17,3 @@ DLLEXPORT bool ArnoldUniverseBegin(int logFlags = DEFAULT_LOG_FLAGS);
 DLLEXPORT bool ArnoldUniverseOnlyBegin();
 DLLEXPORT void ArnoldUniverseLoadPluginsAndMetadata();
 DLLEXPORT void ArnoldUniverseEnd();
-
-#endif // UNIVERSE_H_

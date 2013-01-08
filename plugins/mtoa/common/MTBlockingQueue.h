@@ -1,5 +1,4 @@
-#ifndef MTBLOCKINGQUEUE_H
-#define MTBLOCKINGQUEUE_H
+#pragma once
 
 #include "platform/Platform.h"
 #include <ai_critsec.h>
@@ -117,5 +116,3 @@ protected:
    CEvent        m_notFull;
 
 }; // class CMTBlockingQueue
-
-#endif // MTBLOCKINGQUEUE_H

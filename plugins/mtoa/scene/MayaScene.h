@@ -1,5 +1,4 @@
-#ifndef MAYASCENE_H
-#define MAYASCENE_H
+#pragma once
 
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
@@ -103,5 +102,3 @@ private:
    static AtCritSec s_lock;
    static bool s_active;
 };  // class CMayaScene
-
-#endif // MAYASCENE_H

@@ -1,5 +1,4 @@
-#ifndef ARNOLDSESSION_H
-#define ARNOLDSESSION_H
+#pragma once
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
@@ -235,5 +234,3 @@ protected:
    bool                 m_is_active;
    //AOVSet m_aovs;
 };  // class CArnoldSession
-
-#endif // ARNOLDSESSION_H

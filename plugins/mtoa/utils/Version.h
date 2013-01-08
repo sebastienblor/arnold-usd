@@ -1,5 +1,4 @@
-#ifndef VERSION_H
-#define VERSION_H
+#pragma once
 
 #define MTOA_VAL(str) #str
 #define MTOA_TOSTRING(str) MTOA_VAL(str)
@@ -18,5 +17,3 @@
 #ifndef MAYA_VERSION
    #define MAYA_VERSION "Any"
 #endif
-
-#endif // VERSION_H

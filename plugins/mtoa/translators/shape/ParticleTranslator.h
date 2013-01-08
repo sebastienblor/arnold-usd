@@ -1,6 +1,4 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
-
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -148,5 +146,3 @@ protected:
    bool		m_exportId;
 
 };
-
-#endif // PARTICLE_H

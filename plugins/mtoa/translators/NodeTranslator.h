@@ -1,5 +1,4 @@
-#ifndef NODETRANSLATOR_H
-#define NODETRANSLATOR_H
+#pragma once
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
@@ -98,6 +97,8 @@ public:
    // Used by the Update callbacks.
    virtual void RequestUpdate(void * clientData = NULL);
 
+   static void NodeInitializer(CAbTranslator context);
+
 protected:
    CNodeTranslator()  :
       m_abstract(CAbTranslator()),
@@ -127,7 +128,7 @@ protected:
    }
    CNodeAttrHandle GetMayaHandle() const { return m_handle; }
 
-   virtual void Export(AtNode* atNode) = 0;
+   virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}
    // Update runs during IPR for step==0 (calls Export by default)
    virtual void Update(AtNode* atNode){Export(atNode);}
@@ -257,6 +258,8 @@ public:
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
+   virtual void Export(AtNode* atNode);
+   virtual void ExportMotion(AtNode* atNode, unsigned int step);
    virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
    virtual MStatus ExportOverrideSets();
    virtual bool IsMasterInstance(MDagPath &masterDag);
@@ -274,6 +277,3 @@ protected:
 protected:
    MDagPath m_dagPath;
 };
-
-
-#endif // NODETRANSLATOR_H

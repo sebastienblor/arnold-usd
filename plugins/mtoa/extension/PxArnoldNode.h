@@ -1,5 +1,4 @@
-#ifndef PXARNOLDNODE_H
-#define PXARNOLDNODE_H
+#pragma once
 
 #include <ai_node_entry.h>
 
@@ -32,5 +31,3 @@ private:
    MString provider;
    MString file;
 };
-
-#endif // PXARNOLDNODE_H

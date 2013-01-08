@@ -1,5 +1,4 @@
-#ifndef SHADERUTILS_H
-#define SHADERUTILS_H
+#pragma once
 
 #include <ai_params.h>
 #include <ai_node_entry.h>
@@ -252,5 +251,3 @@ const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
    plug = node.findPlug(param_name);\
    if (!plug.isNull())\
       AiNodeSetInt(arnold_node, param_name, plug.asInt());
-
-#endif // SHADERUTILS_H

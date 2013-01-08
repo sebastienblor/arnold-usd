@@ -1,5 +1,4 @@
-#ifndef OUTPUTDRIVER_H
-#define OUTPUTDRIVER_H
+#pragma once
 
 #include <ai_drivers.h>
 #include <ai_render.h>
@@ -33,6 +32,8 @@ struct COutputDriverData
    unsigned int            imageWidth;
    unsigned int            imageHeight;
    unsigned int            swatchImageWidth;
+   unsigned int            renderedPixels;
+   unsigned int            totalPixels;
    bool                    isRegion;
    bool                    isProgressive;  
    bool                    rendering;
@@ -97,7 +98,3 @@ void ClearDisplayUpdateQueue();
 void RefreshRenderView(float, float, void *);
 
 void TransferTilesToRenderView(void*);
-
-#endif  // OUTPUTDRIVER_H
-
-

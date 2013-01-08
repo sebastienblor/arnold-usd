@@ -1,5 +1,4 @@
-#ifndef ARNOLDSHADERNODE_H
-#define ARNOLDSHADERNODE_H
+#pragma once
 
 #include "attributes/AttrHelper.h"
 #include <maya/MPxHwShaderNode.h>
@@ -36,5 +35,3 @@ public:
    static std::vector<CStaticAttrHelper> s_nodeHelpers;
 
 };  // class CArnoldShaderNode
-
-#endif // ARNOLDSHADERNODE_H

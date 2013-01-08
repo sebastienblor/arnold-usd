@@ -1,5 +1,4 @@
-#ifndef ARNOLDNODEIDS_H
-#define ARNOLDNODEIDS_H
+#pragma once
 
 // We have 5 blocks of 512 IDs each
 
@@ -8,10 +7,6 @@
 // 0x00116000 - 0x001161FF
 // 0x00115E00 - 0x00115FFF
 // Arnolds internal ids are 0x00115C00 - 0x00115DFF
-
-
-
-
 
 // Arnold Nodes in Maya
 #define ARNOLD_NODEID_RENDER_OPTIONS            0x00115C00
@@ -61,5 +56,3 @@
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
-
-#endif // ARNOLDNODEIDS_H

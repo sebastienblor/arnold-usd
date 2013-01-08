@@ -1,5 +1,4 @@
-#ifndef ABMAYANODE_H
-#define ABMAYANODE_H
+#pragma once
 
 #include <maya/MPxNode.h>
 
@@ -28,6 +27,3 @@ public:
    MString classification;
    MString provider;
 };
-
-
-#endif // ABMAYANODE_H
