@@ -63,6 +63,8 @@ node_parameters
    AiParameterArray("opacity_gradient", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterFlt("opacity_gradient_input_bias", 0.0f);
    
+   AiParameterNode("volume_noise", 0);
+   
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -104,6 +106,7 @@ enum MayaFluidParams{
    p_opacity_gradient_type,
    p_opacity_gradient,
    p_opacity_gradient_input_bias,
+   p_volume_noise,
 };
 
 template<typename T>
@@ -150,6 +153,7 @@ struct MayaFluidData{
    float xdim, ydim, zdim;
    float stepSize;
    float shadowDensity;
+   AtNode* volumeNoise;
    
    ~MayaFluidData()
    {
@@ -279,6 +283,9 @@ void ReadArray(AtNode* node, const char* name, int numVoxels, ArrayDescription<T
 node_update
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
+   
+   data->volumeNoise = AiNodeGetLink(node, "volume_noise");
+   
    
    data->xres = AiNodeGetInt(node, "xres");
    data->yres = AiNodeGetInt(node, "yres");
@@ -464,14 +471,21 @@ shader_evaluate
    AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
    
+   float volumeNoise = 1.f;
+   if (data->volumeNoise)
+   {
+      AiShaderEvaluate(data->volumeNoise, sg);
+      volumeNoise = sg->out.FLT;
+   }
+   
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity; 
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity * volumeNoise; 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
    
-   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency; 
+   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * volumeNoise; 
    const AtRGB color = GetValue(data, lPt, data->colorGradient);
    const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
    

@@ -3,6 +3,7 @@
 #include <maya/MFnFluid.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MColor.h>
+#include <maya/MPlugArray.h>
 
 void CFluidTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -27,6 +28,12 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.hasMax = true;
    data.max.FLT = 1.f;
    helper.MakeInputFloat(data);
+   
+   data.hasMin = false;
+   data.hasMax = false;
+   data.name = "aiVolumeNoise";
+   data.shortName = "ai_volume_noise";
+   helper.MakeInputNode(data);
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -137,6 +144,19 @@ void CFluidTranslator::Export(AtNode* fluid)
    plug = mayaFluidNode.findPlug("aiPhaseFunc");
    if (!plug.isNull())
       AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
+   
+   
+   plug = mayaFluidNode.findPlug("aiVolumeNoise");
+   if (!plug.isNull())
+   {
+      MPlugArray volumeNoisePlug;
+      plug.connectedTo(volumeNoisePlug, true, false);
+      if (volumeNoisePlug.length() > 0)
+      {
+         AtNode* volumeNoise = ExportRootShader(volumeNoisePlug[0]);
+         AiNodeSetPtr(fluid_shader, "volume_noise", volumeNoise);
+      }
+   }
       
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);

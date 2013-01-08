@@ -1,9 +1,9 @@
 #ifndef FLUIDTRANSLATOR_H
 #define	FLUIDTRANSLATOR_H
 
-#include "translators/NodeTranslator.h"
+#include "ShapeTranslator.h"
 
-class CFluidTranslator : public CDagTranslator{
+class CFluidTranslator : public CShapeTranslator{
 public:
    static void NodeInitializer(CAbTranslator context);
    static void* creator() {return new CFluidTranslator();}
