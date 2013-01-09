@@ -3,7 +3,7 @@
 #include "platform/Platform.h"
 #include <ai.h>
 
-DLLEXPORT void AiNodeDeclareConstant(AtNode* node, const char* name, unsigned int type);
-DLLEXPORT void AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int type);
-DLLEXPORT void AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type);
-DLLEXPORT void AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type);
+DLLEXPORT bool AiNodeDeclareConstant(AtNode* node, const char* name, unsigned int type);
+DLLEXPORT bool AiNodeDeclareConstantArray(AtNode* node, const char* name, unsigned int type);
+DLLEXPORT bool AiNodeDeclareUniform(AtNode* node, const char* name, unsigned int type);
+DLLEXPORT bool AiNodeDeclareVarying(AtNode* node, const char* name, unsigned int type);
