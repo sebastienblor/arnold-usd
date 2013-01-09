@@ -11,7 +11,7 @@ def aiUtilityCreateColorMode(attr):
                                                (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'),
                                                (12, 'Triangle Wireframe'), (13, 'Polygon Wireframe'), (14, 'Object'),
                                                (15, 'Subdivision Edge Length'), (16, 'Floatgrid'), (17, 'Reflection Lines'),
-                                               (18, 'Bad UVs'), (29, 'Number of Lights'), (20, 'Object ID')])
+                                               (18, 'Bad UVs'), (19, 'Number of Lights'), (20, 'Object ID')])
     cmds.setUITemplate(popTemplate=True)
 
 def aiUtilitySetColorMode(attr):
