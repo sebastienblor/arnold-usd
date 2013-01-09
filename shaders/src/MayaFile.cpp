@@ -549,7 +549,7 @@ shader_evaluate
                   const char* shapeName = AiNodeGetName(shape);
                   int lastSep = -1;
                   int it = 0;
-                  for(char c = '0';(c = *(shapeName[it])) != '\0';++it)
+                  for(char c = '0';(c = (shapeName[it])) != '\0';++it)
                   {
                      if (c == '|')
                         lastSep = it;
