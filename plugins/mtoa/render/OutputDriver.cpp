@@ -732,6 +732,7 @@ void EndImage()
 
       rvInfo += "    Render Time: ";
       rvInfo += int(elapsed / 60);
+      rvInfo += ":";
       const int secondsPart = int(elapsed % 60);
       if (secondsPart < 10)
          rvInfo += "0";
