@@ -284,8 +284,7 @@ node_update
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
-   data->volumeNoise = AiNodeGetLink(node, "volume_noise");
-   
+   data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");
    
    data->xres = AiNodeGetInt(node, "xres");
    data->yres = AiNodeGetInt(node, "yres");
@@ -474,8 +473,11 @@ shader_evaluate
    float volumeNoise = 1.f;
    if (data->volumeNoise)
    {
+      const AtVector p = sg->P;
+      sg->P = sg->Ro;
       AiShaderEvaluate(data->volumeNoise, sg);
       volumeNoise = sg->out.FLT;
+      sg->P = p;
    }
    
    if (sg->Rt & AI_RAY_SHADOW)
