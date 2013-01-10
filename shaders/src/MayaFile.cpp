@@ -561,6 +561,7 @@ shader_evaluate
                   }
                   else
                   {
+                     lastSep += 1;
                      const unsigned int memcpySize = (unsigned int)(it - lastSep);
                      memcpy(&(idata->processPath[sg->tid][pos]), shapeName + lastSep, memcpySize);
                      pos += memcpySize;
@@ -669,6 +670,7 @@ shader_evaluate
          if (success)
          {
             sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
+            AiMsgInfo("%s", idata->processPath[sg->tid]);
          }
          //AiMsgInfo("FILE: new name: %s", newfname.c_str());
       }
