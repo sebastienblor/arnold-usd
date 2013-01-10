@@ -545,17 +545,26 @@ shader_evaluate
                {
                   // short shape name
                   AtNode* shape = sg->Op;
-                  std::string shapeName = AiNodeGetName(shape);
-                  size_t sep = shapeName.rfind('|');
-                  if (sep != std::string::npos)
+                  
+                  const char* shapeName = AiNodeGetName(shape);
+                  int lastSep = -1;
+                  int it = 0;
+                  for(char c = '0';(c = (shapeName[it])) != '\0';++it)
                   {
-                     memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),sep);
-                     pos += (unsigned int) sep;
+                     if (c == '|')
+                        lastSep = it;
+                  }
+                  if (lastSep == -1)
+                  {
+                     memcpy(&(idata->processPath[sg->tid][pos]),shapeName,it);
+                     pos += (unsigned int) it;
                   }
                   else
                   {
-                     memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),shapeName.size());
-                     pos += (unsigned int) shapeName.size();
+                     lastSep += 1;
+                     const unsigned int memcpySize = (unsigned int)(it - lastSep);
+                     memcpy(&(idata->processPath[sg->tid][pos]), shapeName + lastSep, memcpySize);
+                     pos += memcpySize;
                   }
                   // Copy next text chunk to the "processPath"
                   memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
@@ -568,15 +577,14 @@ shader_evaluate
                {
                   // full path with underscores for illegal characters
                   AtNode* shape = sg->Op;
-                  std::string shapeName = AiNodeGetName(shape);
-                  std::string::size_type found=shapeName.find_first_of("|:");
-                  while (found != std::string::npos)
+                  const char* shapeName = AiNodeGetName(shape);
+                  char c;
+                  while((c = *(shapeName++)) != '\0')
                   {
-                     shapeName[found]='_';
-                     found=shapeName.find_first_of("|:", found + 1);
+                     if ((c == '|') || (c == ':'))
+                        c = '_';
+                     idata->processPath[sg->tid][pos++] = c;
                   }
-                  memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),shapeName.size());
-                  pos += (unsigned int) shapeName.size();
                   // Copy next text chunk to the "processPath"
                   memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
                   pos += token->nextSize;
