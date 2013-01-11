@@ -88,6 +88,8 @@ node_parameters
    AiParameterFlt("texture_origin_y", 0.f);
    AiParameterFlt("texture_origin_z", 0.f);
    
+   AiParameterVec("texture_scale", 1.f, 1.f, 1.f);
+   
    AiParameterNode("volume_noise", 0);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
@@ -146,6 +148,8 @@ enum MayaFluidParams{
    p_texture_origin_x,
    p_texture_origin_y,
    p_texture_origin_z,
+   
+   p_texture_scale,
    
    p_volume_noise,
 };
@@ -545,6 +549,8 @@ shader_evaluate
       sg->P.x -= AiShaderEvalParamFlt(p_texture_origin_x);
       sg->P.y -= AiShaderEvalParamFlt(p_texture_origin_y);
       sg->P.z -= AiShaderEvalParamFlt(p_texture_origin_z);
+      
+      sg->P *= AiShaderEvalParamVec(p_texture_scale);
       // do the transformations etc...
       float volumeNoise = 0.f;
       switch (data->textureType)

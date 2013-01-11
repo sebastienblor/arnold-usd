@@ -194,6 +194,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "texture_origin_y", AI_TYPE_FLOAT, "textureOriginY");
    ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
    
+   ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
+   
    // first getting a simple color information from the color gradient
    
    MRampAttribute colorRamp(mayaFluidNode.findPlug("color"));
