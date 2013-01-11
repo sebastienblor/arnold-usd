@@ -530,7 +530,7 @@ shader_evaluate
       opacityNoise = sg->out.FLT;
       sg->P = p;
    }
-   else if (data->textureNoise)
+   else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
    {
       const AtVector p = sg->P;
       sg->P = sg->Ro;
