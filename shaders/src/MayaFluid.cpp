@@ -82,7 +82,11 @@ node_parameters
    
    AiParameterFlt("color_tex_gain", 1.f);   
    AiParameterFlt("incand_tex_gain", 1.f);
-   AiParameterFlt("opacity_tex_gain", 1.f);  
+   AiParameterFlt("opacity_tex_gain", 1.f);
+   
+   AiParameterFlt("texture_origin_x", 0.f);
+   AiParameterFlt("texture_origin_y", 0.f);
+   AiParameterFlt("texture_origin_z", 0.f);
    
    AiParameterNode("volume_noise", 0);
    
@@ -137,7 +141,11 @@ enum MayaFluidParams{
    
    p_color_tex_gain,   
    p_incand_tex_gain,
-   p_opacity_tex_gain,   
+   p_opacity_tex_gain,
+   
+   p_texture_origin_x,
+   p_texture_origin_y,
+   p_texture_origin_z,
    
    p_volume_noise,
 };
@@ -534,6 +542,9 @@ shader_evaluate
    {
       const AtVector p = sg->P;
       sg->P = sg->Ro;
+      sg->P.x -= AiShaderEvalParamFlt(p_texture_origin_x);
+      sg->P.y -= AiShaderEvalParamFlt(p_texture_origin_y);
+      sg->P.z -= AiShaderEvalParamFlt(p_texture_origin_z);
       // do the transformations etc...
       float volumeNoise = 0.f;
       switch (data->textureType)
