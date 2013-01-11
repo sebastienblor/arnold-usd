@@ -115,7 +115,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    }
    
    float stepSize = 0.1f;
-   MPlug plug = mayaFluidNode.findPlug("aiStepSize");
+   MPlug plug = FindMayaPlug("aiStepSize");
    if (!plug.isNull())
       stepSize = plug.asFloat();
    AiNodeSetFlt(fluid, "step_size", stepSize);
@@ -131,22 +131,22 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    float shadowDensity = 1.f;
    
-   plug = mayaFluidNode.findPlug("aiShadowDensity");
+   plug = FindMayaPlug("aiShadowDensity");
    if (!plug.isNull())
       shadowDensity = plug.asFloat();
    
    AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
    
-   plug = mayaFluidNode.findPlug("transparency");
+   plug = FindMayaPlug("transparency");
    if (!plug.isNull())
       AiNodeSetRGB(fluid_shader, "transparency", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = mayaFluidNode.findPlug("aiPhaseFunc");
+   plug = FindMayaPlug("aiPhaseFunc");
    if (!plug.isNull())
       AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
    
    
-   plug = mayaFluidNode.findPlug("aiVolumeNoise");
+   plug = FindMayaPlug("aiVolumeNoise");
    if (!plug.isNull())
    {
       MPlugArray volumeNoisePlug;
@@ -178,7 +178,17 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    AiNodeSetFlt(fluid_shader, "xdim", (float)xDim);
    AiNodeSetFlt(fluid_shader, "ydim", (float)yDim);
-   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);   
+   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);  
+   
+   ProcessParameter(fluid_shader, "color_texture", AI_TYPE_BOOLEAN, "colorTexture");
+   ProcessParameter(fluid_shader, "incand_texture", AI_TYPE_BOOLEAN, "incandTexture");
+   ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");
+   
+   ProcessParameter(fluid_shader, "texture_type", AI_TYPE_INT, "textureType");
+   
+   ProcessParameter(fluid_shader, "color_tex_gain", AI_TYPE_FLOAT, "colorTexGain");
+   ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
+   ProcessParameter(fluid_shader, "opacity_tex_gain", AI_TYPE_FLOAT, "opacityTexGain");   
    
    // first getting a simple color information from the color gradient
    

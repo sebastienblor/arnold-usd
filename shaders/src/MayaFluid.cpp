@@ -19,6 +19,17 @@ enum GradientType{
    GT_DENSITY_AND_FUEL
 };
 
+const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
+
+enum textureType{
+   TT_PERLIN_NOISE = 0,
+   TT_BILLOW,
+   TT_VOLUME_WAVE,
+   TT_WISPY,
+   TT_SPACE_TIME,
+   TT_MANDELBROT
+};
+
 node_parameters
 {
    AiParameterRGB("color", 1.f, 1.f, 1.f);
@@ -61,7 +72,17 @@ node_parameters
    
    AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypes);
    AiParameterArray("opacity_gradient", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   AiParameterFlt("opacity_gradient_input_bias", 0.0f);
+   AiParameterFlt("opacity_gradient_input_bias", 0.0f);   
+   
+   AiParameterBool("color_texture", false);
+   AiParameterBool("incand_texture", false);
+   AiParameterBool("opacity_texture", false);
+   
+   AiParameterEnum("texture_type", 0, textureTypeEnums);
+   
+   AiParameterFlt("color_tex_gain", 1.f);   
+   AiParameterFlt("incand_tex_gain", 1.f);
+   AiParameterFlt("opacity_tex_gain", 1.f);  
    
    AiParameterNode("volume_noise", 0);
    
@@ -106,6 +127,17 @@ enum MayaFluidParams{
    p_opacity_gradient_type,
    p_opacity_gradient,
    p_opacity_gradient_input_bias,
+   
+   p_color_texture,
+   p_incand_texture,
+   p_opacity_texture,
+   
+   p_texture_type,
+   
+   p_color_tex_gain,   
+   p_incand_tex_gain,
+   p_opacity_tex_gain,   
+   
    p_volume_noise,
 };
 
@@ -153,6 +185,13 @@ struct MayaFluidData{
    float xdim, ydim, zdim;
    float stepSize;
    float shadowDensity;
+   
+   bool colorTexture;
+   bool incandTexture;
+   bool opacityTexture;
+   
+   int textureType;
+   
    AtNode* volumeNoise;
    
    ~MayaFluidData()
@@ -284,8 +323,6 @@ node_update
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
-   data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");
-   
    data->xres = AiNodeGetInt(node, "xres");
    data->yres = AiNodeGetInt(node, "yres");
    data->zres = AiNodeGetInt(node, "zres");
@@ -340,6 +377,14 @@ node_update
       AiM4Identity(data->inverseWorldMatrix);
       AiMsgWarning("[aiMayaFluid] The matrix array is empty!");
    }
+   
+   data->colorTexture = AiNodeGetBool(node, "color_texture");
+   data->incandTexture = AiNodeGetBool(node, "incand_texture");
+   data->opacityTexture = AiNodeGetBool(node, "opacity_texture");
+   
+   data->textureType = AiNodeGetInt(node, "texture_type");
+   
+   data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");   
 }
 
 node_finish
