@@ -112,6 +112,7 @@ enum MayaFluidParams{
    p_fuel,
    p_temperature,
    p_pressure,
+   p_velocity,
    p_colors,
    
    p_matrix,
@@ -189,6 +190,7 @@ struct MayaFluidData{
    bool colorTexture;
    bool incandTexture;
    bool opacityTexture;
+   bool textureNoise;
    
    int textureType;
    
@@ -382,6 +384,8 @@ node_update
    data->incandTexture = AiNodeGetBool(node, "incand_texture");
    data->opacityTexture = AiNodeGetBool(node, "opacity_texture");
    
+   data->textureNoise = data->colorTexture || data->incandTexture || data->opacityTexture;
+   
    data->textureType = AiNodeGetInt(node, "texture_type");
    
    data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");   
@@ -515,26 +519,50 @@ shader_evaluate
    AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
    
-   float volumeNoise = 1.f;
+   float colorNoise = 1.f; // colors?
+   float incandNoise = 1.f;
+   float opacityNoise = 1.f;
    if (data->volumeNoise)
    {
       const AtVector p = sg->P;
       sg->P = sg->Ro;
       AiShaderEvaluate(data->volumeNoise, sg);
-      volumeNoise = sg->out.FLT;
+      opacityNoise = sg->out.FLT;
+      sg->P = p;
+   }
+   else if (data->textureNoise)
+   {
+      const AtVector p = sg->P;
+      sg->P = sg->Ro;
+      // do the transformations etc...
+      float volumeNoise = 0.f;
+      switch (data->textureType)
+      {
+         case TT_PERLIN_NOISE:
+            volumeNoise = CLAMP(AiPerlin3(sg->P) * 0.5f + 0.5f, 0.f, 1.f);
+            break;
+         default:
+            volumeNoise = 1.0f;
+      }
+      if (data->colorTexture)
+         colorNoise = AiShaderEvalParamFlt(p_color_tex_gain) * volumeNoise;
+      if (data->incandTexture)
+         incandNoise = AiShaderEvalParamFlt(p_incand_tex_gain) * volumeNoise;
+      if (data->opacityTexture)
+         opacityNoise = AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
       sg->P = p;
    }
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity * volumeNoise; 
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity * opacityNoise; 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
    
-   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * volumeNoise; 
-   const AtRGB color = GetValue(data, lPt, data->colorGradient);
-   const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient);
+   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * opacityNoise; 
+   const AtRGB color = GetValue(data, lPt, data->colorGradient) * colorNoise;
+   const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient) * incandNoise;
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
