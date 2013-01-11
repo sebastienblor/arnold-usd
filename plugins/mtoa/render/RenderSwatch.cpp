@@ -505,8 +505,8 @@ bool CRenderSwatchGenerator::doIteration()
             // with no proper stack info on what caused it
             unsigned int iWidth, iHeight;
             image().getSize(iWidth, iHeight);
-            assert(resolution() == iWidth);
-            assert(resolution() == iHeight);
+            assert(resolution() == (int)iWidth);
+            assert(resolution() == (int)iHeight);
             assert(MImage::kFloat == image().pixelType());
 #endif
             image().convertPixelFormat(MImage::kByte);
