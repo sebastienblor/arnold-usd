@@ -146,7 +146,7 @@ node_initialize
    MayaFluidData* data = (MayaFluidData*)AiMalloc(sizeof(MayaFluidData));
    AiNodeSetLocalData(node, data);
    
-   memset(data, sizeof(MayaFluidData), 0); // setting all of the values to zero
+   memset(data, 0, sizeof(MayaFluidData)); // setting all of the values to zero
 }
 
 template <typename T>
