@@ -597,9 +597,9 @@ shader_evaluate
       const AtVector p = sg->P;
       sg->P = sg->Ro;
       ApplyImplode(sg->P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));
-      sg->P.x -= AiShaderEvalParamFlt(p_texture_origin_x);
-      sg->P.y -= AiShaderEvalParamFlt(p_texture_origin_y);
-      sg->P.z -= AiShaderEvalParamFlt(p_texture_origin_z);
+      sg->P.x += AiShaderEvalParamFlt(p_texture_origin_x);
+      sg->P.y += AiShaderEvalParamFlt(p_texture_origin_y);
+      sg->P.z += AiShaderEvalParamFlt(p_texture_origin_z);
       
       sg->P *= AiShaderEvalParamVec(p_texture_scale);
       // do the transformations etc...
