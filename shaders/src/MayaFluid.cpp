@@ -3,6 +3,8 @@
 #include <memory.h>
 #include <cmath>
 
+#include "RandomNoise.h"
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 enum GradientType{
@@ -609,8 +611,7 @@ shader_evaluate
       const float frequency = AiShaderEvalParamFlt(p_frequency);
       sg->P.x *= frequency / textureScale.x;
       sg->P.y *= frequency / textureScale.y;
-      sg->P.z *= frequency / textureScale.z;
-      
+      sg->P.z *= frequency / textureScale.z;      
       sg->P.x += AiShaderEvalParamFlt(p_texture_origin_x);
       sg->P.y += AiShaderEvalParamFlt(p_texture_origin_y);
       sg->P.z += AiShaderEvalParamFlt(p_texture_origin_z);
