@@ -212,6 +212,9 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
    
+   ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
+   ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");
+   
    ProcessParameter(fluid_shader, "noise_affect_color", AI_TYPE_BOOLEAN, "aiNoiseAffectColor");
    ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
    ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");

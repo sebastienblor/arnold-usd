@@ -92,6 +92,9 @@ node_parameters
    
    AiParameterVec("texture_scale", 1.f, 1.f, 1.f);
    
+   AiParameterFlt("implode", 0.f);
+   AiParameterVec("implode_center", 0.f, 0.f, 0.f);
+   
    AiParameterBool("noise_affect_color", false);
    AiParameterBool("noise_affect_incand", false);
    AiParameterBool("noise_affect_opacity", false);
@@ -158,6 +161,9 @@ enum MayaFluidParams{
    p_texture_origin_z,
    
    p_texture_scale,
+   
+   p_implode,
+   p_implode_center,
    
    p_noise_affect_color,
    p_noise_affect_incand,
@@ -546,6 +552,21 @@ T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gra
    }
 }
 
+void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
+{
+   if ((implode > AI_EPSILON) || (implode < -AI_EPSILON))
+   {
+      v -= implodeCenter;
+      const float dist = AiV3Length(v);
+      if (dist > AI_EPSILON)
+      {
+         const float fac = powf(dist, 1.f - implode) / dist;
+         v *= fac;
+      }
+      v += implodeCenter;
+   }
+}
+
 shader_evaluate
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
@@ -575,6 +596,7 @@ shader_evaluate
    {
       const AtVector p = sg->P;
       sg->P = sg->Ro;
+      ApplyImplode(sg->P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));
       sg->P.x -= AiShaderEvalParamFlt(p_texture_origin_x);
       sg->P.y -= AiShaderEvalParamFlt(p_texture_origin_y);
       sg->P.z -= AiShaderEvalParamFlt(p_texture_origin_z);
