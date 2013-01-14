@@ -141,7 +141,7 @@ templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def volumeNoiseCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        cmds.attrNavigationControlGrp("FluidTemplateVolumeNoise", attribute=attrName, label="Volume Noise")
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeNoise", attribute=attrName, label="Shader")
         cmds.setUITemplate(popTemplate=True)
 
     def volumeNoiseUpdate(self, attrName):
@@ -151,12 +151,12 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiPhaseFunc", label="Phase Function")
         self.addControl("aiShadowDensity", label="Shadow Density")
-        self.addSeparator()
+        self.beginLayout("Noise", collapse=True)
         self.addControl("aiNoiseAffectColor", label="Affect Color")
         self.addControl("aiNoiseAffectIncand", label="Affect Incand")
         self.addControl("aiNoiseAffectOpacity", label="Affect Opacity")
         self.addCustom("aiVolumeNoise", self.volumeNoiseCreate, self.volumeNoiseUpdate)
-        self.addSeparator()
+        self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")
 
