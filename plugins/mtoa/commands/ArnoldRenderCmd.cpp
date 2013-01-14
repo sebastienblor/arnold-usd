@@ -147,10 +147,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
             // NOTE: must be blocking when in batch mode, non blocking when in interractive mode
 
-            const int kickRet = MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
-            
+            MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
+            int kickRet = system(kickCmd.asChar());            
             if (kickRet)
-               MGlobal::displayWarning("[mtoa] Kick return code : %i", kickRet);
+            {
+               MString msg = "[mtoa] Kick return code : ";
+               msg += kickRet;
+               MGlobal::displayWarning(msg);
+            }
 
             // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback?
          }
