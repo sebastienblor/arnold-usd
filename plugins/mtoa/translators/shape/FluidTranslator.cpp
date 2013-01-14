@@ -31,9 +31,23 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    
    data.hasMin = false;
    data.hasMax = false;
+   
+   data.name = "aiNoiseAffectColor";
+   data.shortName = "ai_noise_affect_color";
+   data.defaultValue.BOOL = false;
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiNoiseAffectIncand";
+   data.shortName = "ai_noise_affect_incand";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiNoiseAffectOpacity";
+   data.shortName = "ai_noise_affect_opacity";
+   helper.MakeInputBoolean(data);
+   
    data.name = "aiVolumeNoise";
    data.shortName = "ai_volume_noise";
-   helper.MakeInputNode(data);
+   helper.MakeInputNode(data);   
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -197,6 +211,10 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
    
    ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
+   
+   ProcessParameter(fluid_shader, "noise_affect_color", AI_TYPE_BOOLEAN, "aiNoiseAffectColor");
+   ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
+   ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
    // first getting a simple color information from the color gradient
    

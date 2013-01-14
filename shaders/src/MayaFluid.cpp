@@ -91,7 +91,11 @@ node_parameters
    AiParameterFlt("texture_origin_z", 0.f);
    
    AiParameterVec("texture_scale", 1.f, 1.f, 1.f);
-      
+   
+   AiParameterBool("noise_affect_color", false);
+   AiParameterBool("noise_affect_incand", false);
+   AiParameterBool("noise_affect_opacity", false);
+   
    AiParameterNode("volume_noise", 0);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
@@ -155,6 +159,10 @@ enum MayaFluidParams{
    
    p_texture_scale,
    
+   p_noise_affect_color,
+   p_noise_affect_incand,
+   p_noise_affect_opacity,
+   
    p_volume_noise,
 };
 
@@ -209,6 +217,10 @@ struct MayaFluidData{
    bool textureNoise;
    
    int textureType;
+   
+   bool noiseAffectColor;
+   bool noiseAffectIncand;
+   bool noiseAffectOpacity;
    
    AtNode* volumeNoise;
    
@@ -404,7 +416,14 @@ node_update
    
    data->textureType = AiNodeGetInt(node, "texture_type");
    
-   data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");   
+   data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");
+   
+   data->noiseAffectColor = AiNodeGetBool(node, "noise_affect_color");
+   data->noiseAffectIncand = AiNodeGetBool(node, "noise_affect_incand");
+   data->noiseAffectOpacity = AiNodeGetBool(node, "noise_affect_opacity");
+   
+   if (!(data->noiseAffectColor || data->noiseAffectOpacity || data->noiseAffectOpacity))
+      data->volumeNoise = 0;
 }
 
 node_finish
@@ -543,7 +562,13 @@ shader_evaluate
       const AtVector p = sg->P;
       sg->P = sg->Ro;
       AiShaderEvaluate(data->volumeNoise, sg);
-      opacityNoise = sg->out.FLT;
+      float volumeNoise = sg->out.FLT;
+      if (data->noiseAffectColor)
+         colorNoise = volumeNoise;
+      if (data->noiseAffectIncand)
+         incandNoise = volumeNoise;
+      if (data->noiseAffectOpacity)
+         opacityNoise = volumeNoise;
       sg->P = p;
    }
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
