@@ -84,12 +84,14 @@ node_parameters
    AiParameterFlt("incand_tex_gain", 1.f);
    AiParameterFlt("opacity_tex_gain", 1.f);
    
+   AiParameterBool("invert_texture", false);
+   
    AiParameterFlt("texture_origin_x", 0.f);
    AiParameterFlt("texture_origin_y", 0.f);
    AiParameterFlt("texture_origin_z", 0.f);
    
    AiParameterVec("texture_scale", 1.f, 1.f, 1.f);
-   
+      
    AiParameterNode("volume_noise", 0);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
@@ -144,6 +146,8 @@ enum MayaFluidParams{
    p_color_tex_gain,   
    p_incand_tex_gain,
    p_opacity_tex_gain,
+   
+   p_invert_texture,
    
    p_texture_origin_x,
    p_texture_origin_y,
@@ -561,6 +565,8 @@ shader_evaluate
          default:
             volumeNoise = 1.0f;
       }
+      if (AiShaderEvalParamBool(p_invert_texture))
+         volumeNoise = MAX(1.f - volumeNoise, 0.f);
       if (data->colorTexture)
          colorNoise = AiShaderEvalParamFlt(p_color_tex_gain) * volumeNoise;
       if (data->incandTexture)
