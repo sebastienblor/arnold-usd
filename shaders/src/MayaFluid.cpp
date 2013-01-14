@@ -86,6 +86,8 @@ node_parameters
    
    AiParameterBool("invert_texture", false);
    
+   AiParameterFlt("frequency", 1.f);
+   
    AiParameterFlt("texture_origin_x", 0.f);
    AiParameterFlt("texture_origin_y", 0.f);
    AiParameterFlt("texture_origin_z", 0.f);
@@ -155,6 +157,8 @@ enum MayaFluidParams{
    p_opacity_tex_gain,
    
    p_invert_texture,
+   
+   p_frequency,
    
    p_texture_origin_x,
    p_texture_origin_y,
@@ -596,12 +600,20 @@ shader_evaluate
    {
       const AtVector p = sg->P;
       sg->P = sg->Ro;
-      ApplyImplode(sg->P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));
+      ApplyImplode(sg->P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
+      
+      AtVector textureScale = AiShaderEvalParamVec(p_texture_scale);
+      textureScale.x = MAX(AI_EPSILON, textureScale.x);
+      textureScale.y = MAX(AI_EPSILON, textureScale.y);
+      textureScale.z = MAX(AI_EPSILON, textureScale.z);
+      const float frequency = AiShaderEvalParamFlt(p_frequency);
+      sg->P.x *= frequency / textureScale.x;
+      sg->P.y *= frequency / textureScale.y;
+      sg->P.z *= frequency / textureScale.z;
+      
       sg->P.x += AiShaderEvalParamFlt(p_texture_origin_x);
       sg->P.y += AiShaderEvalParamFlt(p_texture_origin_y);
       sg->P.z += AiShaderEvalParamFlt(p_texture_origin_z);
-      
-      sg->P *= AiShaderEvalParamVec(p_texture_scale);
       // do the transformations etc...
       float volumeNoise = 0.f;
       switch (data->textureType)

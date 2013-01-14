@@ -206,6 +206,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
    
+   ProcessParameter(fluid_shader, "frequency", AI_TYPE_FLOAT, "frequency");
+   
    ProcessParameter(fluid_shader, "texture_origin_x", AI_TYPE_FLOAT, "textureOriginX");
    ProcessParameter(fluid_shader, "texture_origin_y", AI_TYPE_FLOAT, "textureOriginY");
    ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
