@@ -210,7 +210,10 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "depthMax", AI_TYPE_INT, "depthMax");
    
    ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
+   ProcessParameter(fluid_shader, "inflection", AI_TYPE_INT, "inflection");
    
+   ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
+   ProcessParameter(fluid_shader, "zoom_factor", AI_TYPE_FLOAT, "zoomFactor");
    ProcessParameter(fluid_shader, "frequency", AI_TYPE_FLOAT, "frequency");
    
    ProcessParameter(fluid_shader, "texture_origin_x", AI_TYPE_FLOAT, "textureOriginX");
@@ -218,6 +221,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
    
    ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
+   ProcessParameter(fluid_shader, "texture_rotate", AI_TYPE_VECTOR, "textureRotate");
    
    ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
    ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");

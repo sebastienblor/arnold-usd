@@ -91,7 +91,10 @@ node_parameters
    AiParameterInt("depth_max", 2);
    
    AiParameterBool("invert_texture", false);
+   AiParameterBool("inflection", false);
    
+   AiParameterFlt("texture_time", 0.f);
+   AiParameterFlt("zoom_factor", 1.f);
    AiParameterFlt("frequency", 1.f);
    
    AiParameterFlt("texture_origin_x", 0.f);
@@ -99,6 +102,7 @@ node_parameters
    AiParameterFlt("texture_origin_z", 0.f);
    
    AiParameterVec("texture_scale", 1.f, 1.f, 1.f);
+   AiParameterVec("texture_rotate", 0.f, 0.f, 0.f);
    
    AiParameterFlt("implode", 0.f);
    AiParameterVec("implode_center", 0.f, 0.f, 0.f);
@@ -167,7 +171,10 @@ enum MayaFluidParams{
    p_depth_max,
    
    p_invert_texture,
+   p_inflection,
    
+   p_texture_time,
+   p_zoom_factor,
    p_frequency,
    
    p_texture_origin_x,
@@ -175,6 +182,7 @@ enum MayaFluidParams{
    p_texture_origin_z,
    
    p_texture_scale,
+   p_texture_rotate,
    
    p_implode,
    p_implode_center,
