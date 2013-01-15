@@ -3,6 +3,7 @@
 #include <maya/MFnFluid.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MColor.h>
+#include <maya/MPlugArray.h>
 
 void CFluidTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -18,6 +19,35 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiShadowDensity";
    data.shortName = "ai_shadow_density";
    helper.MakeInputFloat(data);
+   
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiPhaseFunc";
+   data.shortName = "aiPhaseFunc";
+   data.hasMin = true;
+   data.min.FLT = -1.f;
+   data.hasMax = true;
+   data.max.FLT = 1.f;
+   helper.MakeInputFloat(data);
+   
+   data.hasMin = false;
+   data.hasMax = false;
+   
+   data.name = "aiNoiseAffectColor";
+   data.shortName = "ai_noise_affect_color";
+   data.defaultValue.BOOL = false;
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiNoiseAffectIncand";
+   data.shortName = "ai_noise_affect_incand";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiNoiseAffectOpacity";
+   data.shortName = "ai_noise_affect_opacity";
+   helper.MakeInputBoolean(data);
+   
+   data.name = "aiVolumeNoise";
+   data.shortName = "ai_volume_noise";
+   helper.MakeInputNode(data);   
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -25,11 +55,27 @@ AtNode* CFluidTranslator::CreateArnoldNodes()
    return AddArnoldNode("box");
 }
 
+AtArray* GetArray(AtNode* node, const char* paramName, unsigned int size, int type)
+{
+   AtArray* arr = AiNodeGetArray(node, paramName);
+   if (arr == 0)
+   {
+      arr = AiArrayAllocate(size, 1, type);
+      AiNodeSetArray(node, paramName, arr);
+   }
+   else if (arr->nelements != size)
+   {
+      arr = AiArrayAllocate(size, 1, type);
+      AiNodeSetArray(node, paramName, arr);
+   }
+   return arr;
+}
+
 void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsigned int numVoxels)
 {
    if (values == 0)
       return;
-   AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_FLOAT);
+   AtArray* array = GetArray(fluid, paramName, numVoxels, AI_TYPE_FLOAT);
    for (unsigned int i = 0; i < numVoxels; ++i)
    {
       const float cVoxel = values[i];
@@ -38,26 +84,24 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
       else
          AiArraySetFlt(array, i, cVoxel);
    }
-   AiNodeSetArray(fluid, paramName, array);
 }
 
 void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
 {
    MRampAttribute ramp(plug);
-   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_FLOAT);
+   AtArray* array = GetArray(node, paramName, samplingResolution, AI_TYPE_FLOAT);
    for (int i = 0; i < samplingResolution; ++i)
    {
       float v;
       ramp.getValueAtPosition((float)i / (float)(samplingResolution - 1), v);
       AiArraySetFlt(array, i, v);
    }
-   AiNodeSetArray(node, paramName, array);
 }
 
 void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
 {
    MRampAttribute ramp(plug);
-   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_RGB);
+   AtArray* array = GetArray(node, paramName, samplingResolution, AI_TYPE_RGB);
    for (int i = 0; i < samplingResolution; ++i)
    {
       MColor v;
@@ -65,7 +109,6 @@ void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samp
       AtRGB rgb = {(float)v.r, (float)v.g, (float)v.b};
       AiArraySetRGB(array, i, rgb);
    }
-   AiNodeSetArray(node, paramName, array);
 }
 
 void CFluidTranslator::Export(AtNode* fluid)
@@ -74,6 +117,22 @@ void CFluidTranslator::Export(AtNode* fluid)
    MFnDependencyNode mayaFluidNode(GetMayaObject());
    
    ExportMatrix(fluid, 0);
+   
+   AtNode* fluid_shader = (AtNode*)AiNodeGetPtr(fluid, "shader");
+   MString shader_name = MString(AiNodeGetStr(fluid, "name")) + MString("_shader");
+
+   if (MString(AiNodeGetName(fluid_shader)) != shader_name)
+   {
+      fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
+      AiNodeSetPtr(fluid, "shader", fluid_shader);
+      AiNodeSetStr(fluid_shader, "name", shader_name.asChar());
+   }
+   
+   float stepSize = 0.1f;
+   MPlug plug = FindMayaPlug("aiStepSize");
+   if (!plug.isNull())
+      stepSize = plug.asFloat();
+   AiNodeSetFlt(fluid, "step_size", stepSize);
    
    unsigned int xRes, yRes, zRes;
    double xDim, yDim, zDim;
@@ -84,21 +143,35 @@ void CFluidTranslator::Export(AtNode* fluid)
    AiNodeSetPnt(fluid, "min", -0.5f * (float)xDim, -0.5f * (float)yDim, -0.5f * (float)zDim);
    AiNodeSetPnt(fluid, "max", 0.5f * (float)xDim, 0.5f * (float)yDim, 0.5f * (float)zDim);
    
-   float stepSize = 0.1f;
-   MPlug plug = mayaFluidNode.findPlug("aiStepSize");
-   if (!plug.isNull())
-      stepSize = plug.asFloat();
-   AiNodeSetFlt(fluid, "step_size", stepSize);
    float shadowDensity = 1.f;
    
-   AtNode* fluid_shader = AiNode("mayaFluid"); // replace with a proper shader later
-   AiNodeSetPtr(fluid, "shader", fluid_shader);
-   
-   plug = mayaFluidNode.findPlug("aiShadowDensity");
+   plug = FindMayaPlug("aiShadowDensity");
    if (!plug.isNull())
       shadowDensity = plug.asFloat();
+   
    AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
    
+   plug = FindMayaPlug("transparency");
+   if (!plug.isNull())
+      AiNodeSetRGB(fluid_shader, "transparency", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("aiPhaseFunc");
+   if (!plug.isNull())
+      AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
+   
+   
+   plug = FindMayaPlug("aiVolumeNoise");
+   if (!plug.isNull())
+   {
+      MPlugArray volumeNoisePlug;
+      plug.connectedTo(volumeNoisePlug, true, false);
+      if (volumeNoisePlug.length() > 0)
+      {
+         AtNode* volumeNoise = ExportRootShader(volumeNoisePlug[0]);
+         AiNodeSetPtr(fluid_shader, "volume_noise", volumeNoise);
+      }
+   }
+      
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);
    ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);
@@ -119,7 +192,34 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    AiNodeSetFlt(fluid_shader, "xdim", (float)xDim);
    AiNodeSetFlt(fluid_shader, "ydim", (float)yDim);
-   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);   
+   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);  
+   
+   ProcessParameter(fluid_shader, "color_texture", AI_TYPE_BOOLEAN, "colorTexture");
+   ProcessParameter(fluid_shader, "incand_texture", AI_TYPE_BOOLEAN, "incandTexture");
+   ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");
+   
+   ProcessParameter(fluid_shader, "texture_type", AI_TYPE_INT, "textureType");
+   
+   ProcessParameter(fluid_shader, "color_tex_gain", AI_TYPE_FLOAT, "colorTexGain");
+   ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
+   ProcessParameter(fluid_shader, "opacity_tex_gain", AI_TYPE_FLOAT, "opacityTexGain");
+   
+   ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
+   
+   ProcessParameter(fluid_shader, "frequency", AI_TYPE_FLOAT, "frequency");
+   
+   ProcessParameter(fluid_shader, "texture_origin_x", AI_TYPE_FLOAT, "textureOriginX");
+   ProcessParameter(fluid_shader, "texture_origin_y", AI_TYPE_FLOAT, "textureOriginY");
+   ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
+   
+   ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
+   
+   ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
+   ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");
+   
+   ProcessParameter(fluid_shader, "noise_affect_color", AI_TYPE_BOOLEAN, "aiNoiseAffectColor");
+   ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
+   ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
    // first getting a simple color information from the color gradient
    
@@ -161,7 +261,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       mayaFluid.getVelocity(x, y, z);
       if (x != 0 && y != 0 && z != 0)
       {
-         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
+         AtArray* array = GetArray(fluid_shader, "velocity", numVoxels, AI_TYPE_VECTOR);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
             AtVector cVector = {x[i], y[i], z[i]};
@@ -170,7 +270,6 @@ void CFluidTranslator::Export(AtNode* fluid)
             cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
             AiArraySetVec(array, i, cVector);
          }
-         AiNodeSetArray(fluid_shader, "velocity", array);
       }
    }
    
@@ -184,7 +283,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       mayaFluid.getColors(r, g, b);
       if (r != 0 && g != 0 && b != 0)
       {
-         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_RGB);
+         AtArray* array = GetArray(fluid_shader, "colors", numVoxels, AI_TYPE_RGB);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
             AtColor cColor = {r[i], g[i], b[i]};
@@ -193,7 +292,6 @@ void CFluidTranslator::Export(AtNode* fluid)
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;
             AiArraySetRGB(array, i, cColor);
          }
-         AiNodeSetArray(fluid_shader, "colors", array);
       }
    }
 }
