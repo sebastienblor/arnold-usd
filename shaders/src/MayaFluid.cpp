@@ -58,8 +58,6 @@ node_parameters
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    
-   AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
-   
    static const char* gradientTypes[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
       "Center Gradient", "Density", "Temperature", "Fuel", "Pressure", "Speed",
       "Density And Fuel", 0};
@@ -133,8 +131,6 @@ enum MayaFluidParams{
    p_pressure,
    p_velocity,
    p_colors,
-   
-   p_matrix,
    
    p_color_gradient_type,
    p_color_gradient,
@@ -211,9 +207,6 @@ struct MayaFluidData{
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
    GradientDescription<float> opacityGradient;  
-   
-   AtMatrix worldMatrix;
-   AtMatrix inverseWorldMatrix;
    
    AtRGB transparency; 
    float phaseFunc;
@@ -405,20 +398,6 @@ node_update
    data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");
    data->opacityGradient.inputBias = AiNodeGetFlt(node, "opacity_gradient_input_bias");
    ReadGradient(node, "opacity_gradient", data->opacityGradient);
-
-   AtArray* matrixArray = AiNodeGetArray(node, "matrix");
-   
-   if (matrixArray->nelements != 0)
-   { // only using the first matrix atm
-      AiArrayGetMtx(matrixArray, 0, data->worldMatrix);
-      AiM4Invert(data->worldMatrix, data->inverseWorldMatrix);
-   }
-   else
-   {
-      AiM4Identity(data->worldMatrix);
-      AiM4Identity(data->inverseWorldMatrix);
-      AiMsgWarning("[aiMayaFluid] The matrix array is empty!");
-   }
    
    data->colorTexture = AiNodeGetBool(node, "color_texture");
    data->incandTexture = AiNodeGetBool(node, "incand_texture");
@@ -579,7 +558,7 @@ shader_evaluate
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
    AtVector lRo;
-   AiM4PointByMatrixMult(&lRo, data->inverseWorldMatrix, &sg->Ro);
+   AiM4PointByMatrixMult(&lRo, sg->Minv, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
    
    float colorNoise = 1.f; // colors?

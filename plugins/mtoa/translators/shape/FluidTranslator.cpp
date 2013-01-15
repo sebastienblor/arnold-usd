@@ -171,8 +171,7 @@ void CFluidTranslator::Export(AtNode* fluid)
          AiNodeSetPtr(fluid_shader, "volume_noise", volumeNoise);
       }
    }
-      
-   AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);
    ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);
    AiNodeSetInt(fluid_shader, "color_gradient_type", mayaFluidNode.findPlug("colorInput").asShort());
