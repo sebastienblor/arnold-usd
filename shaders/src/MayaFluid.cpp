@@ -615,16 +615,39 @@ shader_evaluate
       sg->P.x += AiShaderEvalParamFlt(p_texture_origin_x);
       sg->P.y += AiShaderEvalParamFlt(p_texture_origin_y);
       sg->P.z += AiShaderEvalParamFlt(p_texture_origin_z);
-      // do the transformations etc...
+      float amp = AiShaderEvalParamFlt(p_amplitude);
       float volumeNoise = 0.f;
-      switch (data->textureType)
+      const float frequencyRatio = AiShaderEvalParamFlt(p_frequency_ratio);
+      const float ratio = AiShaderEvalParamFlt(p_ratio);
+      const float timeRatio = sqrtf(frequencyRatio);
+      float textureTime = AiShaderEvalParamFlt(p_texture_time);
+      const int depthMax = AiShaderEvalParamInt(p_depth_max);
+      const bool inflection = AiShaderEvalParamBool(p_inflection);
+      
+      for (int i = 0; i < depthMax; ++i)
       {
-         case TT_PERLIN_NOISE:
-            volumeNoise = CLAMP(AiPerlin3(sg->P) * 0.5f + 0.5f, 0.f, 1.f);
-            break;
-         default:
-            volumeNoise = 1.0f;
+         float noise = AiPerlin4(sg->P, textureTime);
+         if (inflection)
+            noise = ABS(noise);
+         
+         volumeNoise += amp * noise;
+         
+         amp *= ratio;
+         sg->P *= frequencyRatio;
+         textureTime *= timeRatio;
       }
+      
+      const float threshold = AiShaderEvalParamFlt(p_threshold);
+      if (inflection)
+         volumeNoise += threshold;
+      else
+         volumeNoise = (volumeNoise * .5f + .5f) + threshold;
+      
+      if (volumeNoise > 1.f)
+         volumeNoise = 1.f;
+      else if (volumeNoise < 0.f)
+         volumeNoise = 0.f;
+      
       if (AiShaderEvalParamBool(p_invert_texture))
          volumeNoise = MAX(1.f - volumeNoise, 0.f);
       if (data->colorTexture)
