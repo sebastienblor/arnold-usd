@@ -230,6 +230,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
    ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
+   AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+   
    // first getting a simple color information from the color gradient
    
    MRampAttribute colorRamp(mayaFluidNode.findPlug("color"));

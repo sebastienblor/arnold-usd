@@ -113,6 +113,8 @@ node_parameters
    
    AiParameterNode("volume_noise", 0);
    
+   AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
+   
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -192,6 +194,8 @@ enum MayaFluidParams{
    p_noise_affect_opacity,
    
    p_volume_noise,
+   
+   p_matrix,
 };
 
 template<typename T>
@@ -248,6 +252,7 @@ struct MayaFluidData{
    bool noiseAffectOpacity;
    
    AtNode* volumeNoise;
+   AtArray* worldMatrix;
    
    ~MayaFluidData()
    {
@@ -435,6 +440,8 @@ node_update
    
    if (!(data->noiseAffectColor || data->noiseAffectOpacity || data->noiseAffectOpacity))
       data->volumeNoise = 0;
+   
+   data->worldMatrix = AiNodeGetArray(node, "matrix");
 }
 
 node_finish
@@ -577,8 +584,12 @@ shader_evaluate
 #if AI_VERSION_MINOR_NUM > 11
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
+   AtMatrix worldMatrix;
+   AiArrayInterpolateMtx(data->worldMatrix, sg->time, 0, worldMatrix);
+   AtMatrix worldInverseMatrix;
+   AiM4Invert(worldMatrix, worldInverseMatrix);
    AtVector lRo;
-   AiM4PointByMatrixMult(&lRo, sg->Minv, &sg->Ro);
+   AiM4PointByMatrixMult(&lRo, worldInverseMatrix, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
    
    float colorNoise = 1.f; // colors?
