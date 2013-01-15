@@ -575,6 +575,7 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
 
 shader_evaluate
 {
+#if AI_VERSION_MINOR_NUM > 11
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
    AtVector lRo;
@@ -650,4 +651,5 @@ shader_evaluate
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
    AiShaderGlobalsSetVolumeScattering(sg, opacity * color, data->phaseFunc);
+#endif
 }
