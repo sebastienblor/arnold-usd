@@ -84,6 +84,9 @@ node_parameters
    AiParameterFlt("incand_tex_gain", 1.f);
    AiParameterFlt("opacity_tex_gain", 1.f);
    
+   AiParameterFlt("frequency_ratio", 2.f);
+   AiParameterInt("depth_max", 2);
+   
    AiParameterBool("invert_texture", false);
    
    AiParameterFlt("frequency", 1.f);
@@ -153,6 +156,9 @@ enum MayaFluidParams{
    p_color_tex_gain,   
    p_incand_tex_gain,
    p_opacity_tex_gain,
+   
+   p_frequency_ratio,
+   p_depth_max,
    
    p_invert_texture,
    
