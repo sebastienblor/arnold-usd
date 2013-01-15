@@ -149,7 +149,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         
     def setup(self):    
         self.addControl("aiStepSize", label="Step Size")
-        self.addControl("aiPhaseFunc", label="Phase Function")
+        self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.addControl("aiShadowDensity", label="Shadow Density")
         self.beginLayout("Custom Noise", collapse=True)
         self.addControl("aiNoiseAffectColor", label="Affect Color")
