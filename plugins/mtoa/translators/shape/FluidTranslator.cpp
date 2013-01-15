@@ -203,6 +203,9 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
    ProcessParameter(fluid_shader, "opacity_tex_gain", AI_TYPE_FLOAT, "opacityTexGain");
    
+   ProcessParameter(fluid_shader, "threshold", AI_TYPE_FLOAT, "threshold");
+   ProcessParameter(fluid_shader, "amplitude", AI_TYPE_FLOAT, "amplitude");
+   ProcessParameter(fluid_shader, "ratio", AI_TYPE_FLOAT, "ratio");
    ProcessParameter(fluid_shader, "frequency_ratio", AI_TYPE_FLOAT, "frequencyRatio");
    ProcessParameter(fluid_shader, "depthMax", AI_TYPE_INT, "depthMax");
    
