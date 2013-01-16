@@ -306,3 +306,15 @@ void CFluidTranslator::Export(AtNode* fluid)
       }
    }
 }
+
+void CFluidTranslator::ExportMotion(AtNode* fluid, unsigned int step)
+{
+   ExportMatrix(fluid, step);
+   
+   AtNode* fluid_shader = (AtNode*)AiNodeGetPtr(fluid, "shader");
+   
+   if (fluid_shader != 0)
+   {
+      AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+   }
+}
