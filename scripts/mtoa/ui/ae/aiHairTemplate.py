@@ -20,9 +20,18 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout('Specular', collapse=False)
-        self.addControl('gloss', label='Gloss')
-        self.addControl('spec', label='Specular')
-        self.addControl('spec_color', label='Specular Color')
+        self.addControl('gloss', label='Glossiness')
+        self.addControl('spec', label='Weight')
+        self.addControl('spec_color', label='Color')
+        self.addControl('spec_shift', label='Angular Shift')
+        
+        self.beginLayout('Secondary Specular', collapse=True)        
+        self.addControl('gloss2', label='Glossiness')
+        self.addControl('spec2', label='Weight')
+        self.addControl('spec2_color', label='Color')
+        self.addControl('spec2_shift', label='Angular Shift')
+        self.endLayout()
+        
         self.endLayout()
         
         self.beginLayout('Extra', collapse=False)
