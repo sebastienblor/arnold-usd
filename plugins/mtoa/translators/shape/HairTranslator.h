@@ -28,7 +28,7 @@ public:
    }
    
 private:                         
-   AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
+   AtVector2 GetHairRootUVs(const MVector& lineStart, MFnMesh& mesh, MMatrix shapeTransform);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
    void GetHairLines(MObject& hair, MRenderLineArray& mainLines, bool firstStep = true);
 

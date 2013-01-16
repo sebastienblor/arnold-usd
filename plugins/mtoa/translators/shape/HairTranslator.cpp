@@ -215,6 +215,7 @@ void CHairTranslator::Update( AtNode *curve )
    // The U and V param coords arrays
    AtArray* curveUParamCoord = NULL;
    AtArray* curveVParamCoord = NULL;
+   MMatrix shapeTransform;
    if (m_export_curve_uvs)
    {
       curveUParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_FLOAT);
@@ -231,8 +232,8 @@ void CHairTranslator::Update( AtNode *curve )
          MDagPath shapePath = connectedShapes[0];
          MObject shapeNode = shapePath.node();
          const MMatrix matrix = shapePath.inclusiveMatrix();
-         m_meshInt.create(shapeNode, matrix);
-         m_mesh.setObject(shapeNode);
+         shapeTransform = matrix.inverse();
+         m_mesh.setObject(shapePath);
       }
    }
 
@@ -327,7 +328,7 @@ void CHairTranslator::Update( AtNode *curve )
          AtVector2 uvparam(AI_P2_ZERO);
          // TODO : leave an option to use exact but slow method?
          if (m_hasConnectedShapes)
-            uvparam = GetHairRootUVs(line[0], m_meshInt, m_mesh);
+            uvparam = GetHairRootUVs(line[0], m_mesh, shapeTransform);
          AiArraySetFlt(curveUParamCoord, i, uvparam.x);
          AiArraySetFlt(curveVParamCoord, i, uvparam.y);
       }
@@ -417,7 +418,7 @@ void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
    mainLines.deleteArray();
 }
  
-AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh)
+AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MFnMesh& mesh, MMatrix shapeTransform)
 {
    // Find the closest point on mesh from hair lineStart
    // And returns the UV at this point
@@ -430,6 +431,8 @@ AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshInterse
    // From the API documentation : "Find the point closet to the given point, 
    // and return the UV value at that point."
    MPoint point(lineStart.x, lineStart.y, lineStart.z);
+   // We need to transalte the point to object space as "mesh" does not have any transformation matrix
+   point *= shapeTransform;
    
    MString currentUVSet = mesh.currentUVSetName();
    mesh.getUVAtPoint(point, uv, MSpace::kObject, &currentUVSet);
