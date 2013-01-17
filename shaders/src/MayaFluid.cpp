@@ -672,14 +672,6 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      /*if (!AiShaderEvalParamBool(p_self_shadowing))
-      {
-         if (node == sg->shader)
-         {
-            AiShaderGlobalsSetVolumeAttenuation(sg, AI_RGB_BLACK);
-            return;
-         }
-      }*/
       const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity); 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
