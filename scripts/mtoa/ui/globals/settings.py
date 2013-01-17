@@ -2,6 +2,7 @@
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
+import arnold as ai
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -374,13 +375,12 @@ def createArnoldSamplingSettings():
     
     pm.setParent('..')
     
-    pm.frameLayout(label="Volumes", collapse=False)
-                      
-    pm.attrControlGrp('ss_volume_indirect_samples',
-                      label='Indirect Samples',
-                      attribute='defaultArnoldRenderOptions.volume_indirect_samples')
-                      
-    pm.setParent('..')
+    if int(ai.AiGetVersion()[2]) > 11:    
+        pm.frameLayout(label="Volumes", collapse=False)                      
+        pm.attrControlGrp('ss_volume_indirect_samples',
+                          label='Indirect Samples',
+                          attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
+        pm.setParent('..')
     
     pm.frameLayout(label="Clamping", collapse=True)
 
