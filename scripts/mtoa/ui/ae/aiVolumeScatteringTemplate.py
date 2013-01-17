@@ -14,7 +14,7 @@ class AEaiVolumeScatteringTemplate(ShaderAETemplate):
         self.addControl('rgb_attenuation', label='Attenuation Color')
         self.addControl('attenuation', label='Attenuation')
         self.addSeparator()
-        self.addControl('eccentricity', label='Eccentricity')
+        self.addControl('eccentricity', label='Anisotropy')
         self.addSeparator()
         self.addControl('importance_sampling', label='Importance Sampling')
         self.addControl('sampling_pattern', label='Sampling Pattern')
