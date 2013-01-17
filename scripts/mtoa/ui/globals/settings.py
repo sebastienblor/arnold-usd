@@ -375,10 +375,6 @@ def createArnoldSamplingSettings():
     pm.setParent('..')
     
     pm.frameLayout(label="Volumes", collapse=False)
-    
-    pm.attrControlGrp('ss_volume_sampling_mode',
-                      label='Sampling Mode',
-                      attribute='defaultArnoldRenderOptions.volume_sampling_mode')
                       
     pm.attrControlGrp('ss_volume_indirect_samples',
                       label='Indirect Samples',
