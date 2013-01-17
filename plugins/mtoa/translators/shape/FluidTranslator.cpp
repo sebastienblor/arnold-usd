@@ -15,11 +15,6 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_step_size";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.FLT = 1.f;
-   data.name = "aiShadowDensity";
-   data.shortName = "ai_shadow_density";
-   helper.MakeInputFloat(data);
-   
    data.defaultValue.FLT = 0.f;
    data.name = "aiPhaseFunc";
    data.shortName = "aiPhaseFunc";
@@ -142,14 +137,6 @@ void CFluidTranslator::Export(AtNode* fluid)
 
    AiNodeSetPnt(fluid, "min", -0.5f * (float)xDim, -0.5f * (float)yDim, -0.5f * (float)zDim);
    AiNodeSetPnt(fluid, "max", 0.5f * (float)xDim, 0.5f * (float)yDim, 0.5f * (float)zDim);
-   
-   float shadowDensity = 1.f;
-   
-   plug = FindMayaPlug("aiShadowDensity");
-   if (!plug.isNull())
-      shadowDensity = plug.asFloat();
-   
-   AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
    
    plug = FindMayaPlug("transparency");
    if (!plug.isNull())

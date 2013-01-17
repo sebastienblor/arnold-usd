@@ -37,7 +37,6 @@ node_parameters
    AiParameterRGB("color", 1.f, 1.f, 1.f);
    
    AiParameterFlt("step_size", 0.1f);
-   AiParameterFlt("shadow_density", 1.f);
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiParameterFlt("phase_func", 0.f);
    
@@ -125,7 +124,6 @@ enum MayaFluidParams{
    p_color=0,
    
    p_step_size,
-   p_shadow_density,
    p_transparency,
    p_phase_func,
    
@@ -388,7 +386,6 @@ node_update
    data->zres = AiNodeGetInt(node, "zres");
    
    data->stepSize = AiNodeGetFlt(node, "step_size");
-   data->shadowDensity = AiNodeGetFlt(node, "shadow_density");
    data->transparency = AiNodeGetRGB(node, "transparency");
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
@@ -672,7 +669,7 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * data->shadowDensity * opacityNoise; 
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise; 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
