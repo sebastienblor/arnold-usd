@@ -217,8 +217,6 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
    ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
-   AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
-   
    ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
    
@@ -300,11 +298,4 @@ void CFluidTranslator::Export(AtNode* fluid)
 void CFluidTranslator::ExportMotion(AtNode* fluid, unsigned int step)
 {
    ExportMatrix(fluid, step);
-   
-   AtNode* fluid_shader = (AtNode*)AiNodeGetPtr(fluid, "shader");
-   
-   if (fluid_shader != 0)
-   {
-      AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
-   }
 }

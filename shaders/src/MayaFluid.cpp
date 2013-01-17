@@ -253,7 +253,6 @@ struct MayaFluidData{
    bool noiseAffectOpacity;
    
    AtNode* volumeNoise;
-   AtArray* worldMatrix;
    
    ~MayaFluidData()
    {
@@ -440,8 +439,6 @@ node_update
    
    if (!(data->noiseAffectColor || data->noiseAffectOpacity || data->noiseAffectOpacity))
       data->volumeNoise = 0;
-   
-   data->worldMatrix = AiNodeGetArray(node, "matrix");
 }
 
 node_finish
@@ -584,12 +581,8 @@ shader_evaluate
 #if AI_VERSION_MINOR_NUM > 11
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
-   AtMatrix worldMatrix;
-   AiArrayInterpolateMtx(data->worldMatrix, sg->time, 0, worldMatrix);
-   AtMatrix worldInverseMatrix;
-   AiM4Invert(worldMatrix, worldInverseMatrix);
    AtVector lRo;
-   AiM4PointByMatrixMult(&lRo, worldInverseMatrix, &sg->Ro);
+   AiM4PointByMatrixMult(&lRo, sg->Minv, &sg->Ro);
    const AtVector lPt = ConvertToLocalSpace(data, lRo);
    
    float colorNoise = 1.f; // colors?
