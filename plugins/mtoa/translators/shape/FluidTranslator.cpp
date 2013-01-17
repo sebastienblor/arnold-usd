@@ -194,10 +194,10 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "amplitude", AI_TYPE_FLOAT, "amplitude");
    ProcessParameter(fluid_shader, "ratio", AI_TYPE_FLOAT, "ratio");
    ProcessParameter(fluid_shader, "frequency_ratio", AI_TYPE_FLOAT, "frequencyRatio");
-   ProcessParameter(fluid_shader, "depthMax", AI_TYPE_INT, "depthMax");
+   ProcessParameter(fluid_shader, "depth_max", AI_TYPE_INT, "depthMax");
    
    ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
-   ProcessParameter(fluid_shader, "inflection", AI_TYPE_INT, "inflection");
+   ProcessParameter(fluid_shader, "inflection", AI_TYPE_BOOLEAN, "inflection");
    
    ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
    ProcessParameter(fluid_shader, "zoom_factor", AI_TYPE_FLOAT, "zoomFactor");
@@ -218,6 +218,9 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
    AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+   
+   ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
+   ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
    
    // first getting a simple color information from the color gradient
    

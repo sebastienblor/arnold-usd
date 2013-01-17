@@ -114,6 +114,8 @@ node_parameters
    
    AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
    
+   AiParameterFlt("shadow_opacity", 0.5f);
+   
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -194,6 +196,8 @@ enum MayaFluidParams{
    p_volume_noise,
    
    p_matrix,
+   
+   p_shadow_opacity,
 };
 
 template<typename T>
@@ -236,7 +240,6 @@ struct MayaFluidData{
    int xres, yres, zres;
    float xdim, ydim, zdim;
    float stepSize;
-   float shadowDensity;
    
    bool colorTexture;
    bool incandTexture;
@@ -669,7 +672,15 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise; 
+      /*if (!AiShaderEvalParamBool(p_self_shadowing))
+      {
+         if (node == sg->shader)
+         {
+            AiShaderGlobalsSetVolumeAttenuation(sg, AI_RGB_BLACK);
+            return;
+         }
+      }*/
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity); 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
