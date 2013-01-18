@@ -584,8 +584,6 @@ shader_evaluate
    float opacityNoise = 1.f;
    if (data->volumeNoise)
    {
-      const AtVector p = sg->P;
-      sg->P = sg->Ro;
       AiShaderEvaluate(data->volumeNoise, sg);
       float volumeNoise = sg->out.FLT;
       if (data->noiseAffectColor)
@@ -594,25 +592,23 @@ shader_evaluate
          incandNoise = volumeNoise;
       if (data->noiseAffectOpacity)
          opacityNoise = volumeNoise;
-      sg->P = p;
    }
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
    {
-      const AtVector p = sg->P;
-      sg->P = sg->Ro;
-      ApplyImplode(sg->P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
+      AtVector P = sg->P;
+      ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
       
       AtVector textureScale = AiShaderEvalParamVec(p_texture_scale);
       textureScale.x = MAX(AI_EPSILON, textureScale.x);
       textureScale.y = MAX(AI_EPSILON, textureScale.y);
       textureScale.z = MAX(AI_EPSILON, textureScale.z);
       const float frequency = AiShaderEvalParamFlt(p_frequency);
-      sg->P.x *= frequency / textureScale.x;
-      sg->P.y *= frequency / textureScale.y;
-      sg->P.z *= frequency / textureScale.z;      
-      sg->P.x += AiShaderEvalParamFlt(p_texture_origin_x);
-      sg->P.y += AiShaderEvalParamFlt(p_texture_origin_y);
-      sg->P.z += AiShaderEvalParamFlt(p_texture_origin_z);
+      P.x *= frequency / textureScale.x;
+      P.y *= frequency / textureScale.y;
+      P.z *= frequency / textureScale.z;      
+      P.x += AiShaderEvalParamFlt(p_texture_origin_x);
+      P.y += AiShaderEvalParamFlt(p_texture_origin_y);
+      P.z += AiShaderEvalParamFlt(p_texture_origin_z);
       float amp = AiShaderEvalParamFlt(p_amplitude);
       float volumeNoise = 0.f;
       const float frequencyRatio = AiShaderEvalParamFlt(p_frequency_ratio);
@@ -631,7 +627,7 @@ shader_evaluate
          volumeNoise += amp * noise;
          
          amp *= ratio;
-         sg->P *= frequencyRatio;
+         P *= frequencyRatio;
          textureTime *= timeRatio;
       }
       
@@ -654,7 +650,6 @@ shader_evaluate
          incandNoise = AiShaderEvalParamFlt(p_incand_tex_gain) * volumeNoise;
       if (data->opacityTexture)
          opacityNoise = AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
-      sg->P = p;
    }
    
    if (sg->Rt & AI_RAY_SHADOW)
