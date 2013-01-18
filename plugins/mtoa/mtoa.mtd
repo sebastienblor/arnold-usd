@@ -213,6 +213,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -255,6 +256,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -297,6 +299,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -359,6 +362,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     0
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr color]
@@ -398,6 +402,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -447,6 +452,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     0
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr diffuse]
@@ -488,6 +494,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr diffuse]
@@ -502,7 +509,7 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-[attr volume_samples]
+    [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
