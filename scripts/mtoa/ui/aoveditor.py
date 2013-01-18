@@ -328,8 +328,8 @@ class AOVItem(object):
         output on the aiAOV node for this AOVItem, then build a sub-UI for it
         '''
         # all new output starts with the default driver/filter nodes
-        driverNode = pm.nt.DependNode('defaultArnoldDriver')
-        filterNode = pm.nt.DependNode('defaultArnoldFilter')
+        driverNode = pm.PyNode('defaultArnoldDriver')
+        filterNode = pm.PyNode('defaultArnoldFilter')
         outputAttr = self.aov.node.attr('outputs')
         outputAttr = outputAttr.elementByLogicalIndex(outputAttr.numElements())
  

@@ -254,7 +254,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             #pm.mel.updateAE(newFilter)
         else: # MENU_NODE_INSTANCE
             # name is an existing node
-            self.connectLightFilter(pm.nt.DependNode(name))
+            self.connectLightFilter(pm.PyNode(name))
 
     def addLightFilter(self, filterNodeType):
         '''
