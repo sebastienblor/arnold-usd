@@ -134,9 +134,16 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    mayaFluid.getResolution(xRes, yRes, zRes);
    mayaFluid.getDimensions(xDim, yDim, zDim);
+   plug = mayaFluid.findPlug("dynamicOffset");
+   float dynOffX = plug.child(0).asFloat();
+   float dynOffY = plug.child(1).asFloat();
+   float dynOffZ = plug.child(2).asFloat();
+   
+   const AtVector mn = {-0.5f * (float)xDim + dynOffX, -0.5f * (float)yDim + dynOffY, -0.5f * (float)zDim + dynOffZ};
+   const AtVector mx = {0.5f * (float)xDim + dynOffX, 0.5f * (float)yDim + dynOffY, 0.5f * (float)zDim + dynOffZ};
 
-   AiNodeSetPnt(fluid, "min", -0.5f * (float)xDim, -0.5f * (float)yDim, -0.5f * (float)zDim);
-   AiNodeSetPnt(fluid, "max", 0.5f * (float)xDim, 0.5f * (float)yDim, 0.5f * (float)zDim);
+   AiNodeSetPnt(fluid, "min", mn.x, mn.y, mn.z);
+   AiNodeSetPnt(fluid, "max", mx.x, mx.y, mx.z);
    
    plug = FindMayaPlug("transparency");
    if (!plug.isNull())
@@ -176,10 +183,9 @@ void CFluidTranslator::Export(AtNode* fluid)
    AiNodeSetInt(fluid_shader, "yres", yRes);
    AiNodeSetInt(fluid_shader, "zres", zRes);
    
-   AiNodeSetFlt(fluid_shader, "xdim", (float)xDim);
-   AiNodeSetFlt(fluid_shader, "ydim", (float)yDim);
-   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);  
-   
+   AiNodeSetVec(fluid_shader, "min", mn.x, mn.y, mn.z);
+   AiNodeSetVec(fluid_shader, "max", mx.x, mx.y, mx.z);
+      
    ProcessParameter(fluid_shader, "color_texture", AI_TYPE_BOOLEAN, "colorTexture");
    ProcessParameter(fluid_shader, "incand_texture", AI_TYPE_BOOLEAN, "incandTexture");
    ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");

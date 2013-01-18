@@ -44,9 +44,8 @@ node_parameters
    AiParameterInt("yres", 0);
    AiParameterInt("zres", 0);
    
-   AiParameterFlt("xdim", 0.f);
-   AiParameterFlt("ydim", 0.f);
-   AiParameterFlt("zdim", 0.f);
+   AiParameterVec("min", 0.f, 0.f, 0.f);
+   AiParameterVec("max", 0.f, 0.f, 0.f);
    
    AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
@@ -133,9 +132,8 @@ enum MayaFluidParams{
    p_yres,
    p_zres,
 
-   p_xdim,
-   p_ydim,
-   p_zdim,
+   p_min,
+   p_max,
    
    p_density,
    p_fuel,
@@ -238,7 +236,7 @@ struct MayaFluidData{
    float phaseFunc;
    
    int xres, yres, zres;
-   float xdim, ydim, zdim;
+   AtVector dmin, dmax;
    float stepSize;
    
    bool colorTexture;
@@ -402,9 +400,9 @@ node_update
       return;
    }
    
-   data->xdim = AiNodeGetFlt(node, "xdim");
-   data->ydim = AiNodeGetFlt(node, "ydim");
-   data->zdim = AiNodeGetFlt(node, "zdim");
+   data->dmin = AiNodeGetVec(node, "min");
+   data->dmax = AiNodeGetVec(node, "max");
+   data->dmax = data->dmax - data->dmin;
    
    ReadArray(node, "density", numVoxels, data->density);
    ReadArray(node, "fuel", numVoxels, data->fuel);
@@ -521,12 +519,10 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
 AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
-   lPt.x = cPt.x + data->xdim / 2;
-   lPt.y = cPt.y + data->ydim / 2;
-   lPt.z = cPt.z + data->zdim / 2;
-   lPt.x = CLAMP(lPt.x / data->xdim, 0.f, 1.f);
-   lPt.y = CLAMP(lPt.y / data->ydim, 0.f, 1.f);
-   lPt.z = CLAMP(lPt.z / data->zdim, 0.f, 1.f);
+   lPt = (cPt - data->dmin) / data->dmax;
+   lPt.x = CLAMP(lPt.x, 0.f, 1.f);
+   lPt.y = CLAMP(lPt.y, 0.f, 1.f);
+   lPt.z = CLAMP(lPt.z, 0.f, 1.f);
    return lPt;
 }
 
