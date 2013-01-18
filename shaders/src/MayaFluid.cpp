@@ -580,10 +580,8 @@ shader_evaluate
 {
 #if AI_VERSION_MINOR_NUM > 11
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
-   
-   AtVector lRo;
-   AiM4PointByMatrixMult(&lRo, sg->Minv, &sg->Ro);
-   const AtVector lPt = ConvertToLocalSpace(data, lRo);
+
+   const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
