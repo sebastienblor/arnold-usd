@@ -237,7 +237,11 @@
         softmax             FLOAT   1.0
     [attr indirect]
         softmin             FLOAT   0.0
-        softmax             FLOAT   1.0        
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -276,6 +280,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node spot_light]
     maya.name               STRING  "spotLight"
@@ -324,6 +332,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node skydome_light]
     maya.name               STRING  "aiSkyDomeLight"
@@ -363,6 +375,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -404,6 +420,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node cylinder_light]
     maya.name               STRING  "aiAreaLight"
@@ -441,6 +461,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node disk_light]
     maya.name               STRING  "aiAreaLight"
@@ -478,6 +502,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+[attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 # light filters
 
