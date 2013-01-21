@@ -22,6 +22,8 @@ void *LibraryLoad(const char *filename)
 {
    void *result;
    int len = strlen(filename);
+   UINT errorMode = GetErrorMode();
+   SetErrorMode(SEM_NOOPENFILEERRORBOX); // or maybe SetThreadedErrorMode?
    // Remove trailing .so if found (LoadLibrary will automatically add ".dll" to that name)
    if (filename && (len > 3) && !strcmp(filename + len - 3, ".so"))
    {
@@ -35,6 +37,7 @@ void *LibraryLoad(const char *filename)
    {
       result = LoadLibrary(filename);
    }
+   SetErrorMode(errorMode);
 
    return (void *) result;
 }
