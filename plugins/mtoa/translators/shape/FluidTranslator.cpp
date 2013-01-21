@@ -15,11 +15,6 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_step_size";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.FLT = 1.f;
-   data.name = "aiShadowDensity";
-   data.shortName = "ai_shadow_density";
-   helper.MakeInputFloat(data);
-   
    data.defaultValue.FLT = 0.f;
    data.name = "aiPhaseFunc";
    data.shortName = "aiPhaseFunc";
@@ -111,6 +106,20 @@ void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samp
    }
 }
 
+enum GradientType{
+   GT_CONSTANT = 0,
+   GT_X_GRADIENT,
+   GT_Y_GRADIENT,
+   GT_Z_GRADIENT,
+   GT_CENTER_GRADIENT,
+   GT_DENSITY,
+   GT_TEMPERATURE,
+   GT_FUEL,
+   GT_PRESSURE,
+   GT_SPEED,
+   GT_DENSITY_AND_FUEL
+};
+
 void CFluidTranslator::Export(AtNode* fluid)
 {
    MFnFluid mayaFluid(GetMayaObject());
@@ -139,17 +148,16 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    mayaFluid.getResolution(xRes, yRes, zRes);
    mayaFluid.getDimensions(xDim, yDim, zDim);
+   plug = mayaFluid.findPlug("dynamicOffset");
+   float dynOffX = plug.child(0).asFloat();
+   float dynOffY = plug.child(1).asFloat();
+   float dynOffZ = plug.child(2).asFloat();
+   
+   const AtVector mn = {-0.5f * (float)xDim + dynOffX, -0.5f * (float)yDim + dynOffY, -0.5f * (float)zDim + dynOffZ};
+   const AtVector mx = {0.5f * (float)xDim + dynOffX, 0.5f * (float)yDim + dynOffY, 0.5f * (float)zDim + dynOffZ};
 
-   AiNodeSetPnt(fluid, "min", -0.5f * (float)xDim, -0.5f * (float)yDim, -0.5f * (float)zDim);
-   AiNodeSetPnt(fluid, "max", 0.5f * (float)xDim, 0.5f * (float)yDim, 0.5f * (float)zDim);
-   
-   float shadowDensity = 1.f;
-   
-   plug = FindMayaPlug("aiShadowDensity");
-   if (!plug.isNull())
-      shadowDensity = plug.asFloat();
-   
-   AiNodeSetFlt(fluid_shader, "shadow_density", shadowDensity);
+   AiNodeSetPnt(fluid, "min", mn.x, mn.y, mn.z);
+   AiNodeSetPnt(fluid, "max", mx.x, mx.y, mx.z);
    
    plug = FindMayaPlug("transparency");
    if (!plug.isNull())
@@ -171,28 +179,82 @@ void CFluidTranslator::Export(AtNode* fluid)
          AiNodeSetPtr(fluid_shader, "volume_noise", volumeNoise);
       }
    }
+   
+   bool exportDensity = false;
+   bool exportFuel = false;
+   bool exportTemperature = false;
+   bool exportPressure = false;
+   bool exportVelocity = false;
+   bool exportColors = false;
 
+   const int colorGradientType = mayaFluidNode.findPlug("colorInput").asShort();
+   if (colorGradientType == GT_DENSITY)
+      exportDensity = true;
+   else if (colorGradientType == GT_TEMPERATURE)
+      exportTemperature = true;
+   else if (colorGradientType == GT_FUEL)
+      exportFuel = true;
+   else if (colorGradientType == GT_PRESSURE)
+      exportFuel = true;
+   else if (colorGradientType == GT_SPEED)
+      exportVelocity = true;
+   else if (colorGradientType == GT_DENSITY_AND_FUEL)
+   {
+      exportDensity = true;
+      exportFuel = true;
+   }
    AiNodeSetFlt(fluid_shader, "step_size", stepSize);
    ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);
-   AiNodeSetInt(fluid_shader, "color_gradient_type", mayaFluidNode.findPlug("colorInput").asShort());
+   AiNodeSetInt(fluid_shader, "color_gradient_type", colorGradientType);
    AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
    
+   const int incandescenceGradientType = mayaFluidNode.findPlug("incandescenceInput").asShort();
+   if (incandescenceGradientType == GT_DENSITY)
+      exportDensity = true;
+   else if (incandescenceGradientType == GT_TEMPERATURE)
+      exportTemperature = true;
+   else if (incandescenceGradientType == GT_FUEL)
+      exportFuel = true;
+   else if (incandescenceGradientType == GT_PRESSURE)
+      exportFuel = true;
+   else if (incandescenceGradientType == GT_SPEED)
+      exportVelocity = true;
+   else if (incandescenceGradientType == GT_DENSITY_AND_FUEL)
+   {
+      exportDensity = true;
+      exportFuel = true;
+   }
    ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid_shader, "incandescence_gradient", 1024);
-   AiNodeSetInt(fluid_shader, "incandescence_gradient_type", mayaFluidNode.findPlug("incandescenceInput").asShort());
+   AiNodeSetInt(fluid_shader, "incandescence_gradient_type", incandescenceGradientType);
    AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());
    
+   const int opacityGradientType = mayaFluidNode.findPlug("opacityInput").asShort();
+   if (opacityGradientType == GT_DENSITY)
+      exportDensity = true;
+   else if (opacityGradientType == GT_TEMPERATURE)
+      exportTemperature = true;
+   else if (opacityGradientType == GT_FUEL)
+      exportFuel = true;
+   else if (opacityGradientType == GT_PRESSURE)
+      exportFuel = true;
+   else if (opacityGradientType == GT_SPEED)
+      exportVelocity = true;
+   else if (opacityGradientType == GT_DENSITY_AND_FUEL)
+   {
+      exportDensity = true;
+      exportFuel = true;
+   }
    ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient", 1024);   
-   AiNodeSetInt(fluid_shader, "opacity_gradient_type", mayaFluidNode.findPlug("opacityInput").asShort());
+   AiNodeSetInt(fluid_shader, "opacity_gradient_type", opacityGradientType);
    AiNodeSetFlt(fluid_shader, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias").asFloat());
    
    AiNodeSetInt(fluid_shader, "xres", xRes);
    AiNodeSetInt(fluid_shader, "yres", yRes);
    AiNodeSetInt(fluid_shader, "zres", zRes);
    
-   AiNodeSetFlt(fluid_shader, "xdim", (float)xDim);
-   AiNodeSetFlt(fluid_shader, "ydim", (float)yDim);
-   AiNodeSetFlt(fluid_shader, "zdim", (float)zDim);  
-   
+   AiNodeSetVec(fluid_shader, "min", mn.x, mn.y, mn.z);
+   AiNodeSetVec(fluid_shader, "max", mx.x, mx.y, mx.z);
+      
    ProcessParameter(fluid_shader, "color_texture", AI_TYPE_BOOLEAN, "colorTexture");
    ProcessParameter(fluid_shader, "incand_texture", AI_TYPE_BOOLEAN, "incandTexture");
    ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");
@@ -207,10 +269,10 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "amplitude", AI_TYPE_FLOAT, "amplitude");
    ProcessParameter(fluid_shader, "ratio", AI_TYPE_FLOAT, "ratio");
    ProcessParameter(fluid_shader, "frequency_ratio", AI_TYPE_FLOAT, "frequencyRatio");
-   ProcessParameter(fluid_shader, "depthMax", AI_TYPE_INT, "depthMax");
+   ProcessParameter(fluid_shader, "depth_max", AI_TYPE_INT, "depthMax");
    
    ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
-   ProcessParameter(fluid_shader, "inflection", AI_TYPE_INT, "inflection");
+   ProcessParameter(fluid_shader, "inflection", AI_TYPE_BOOLEAN, "inflection");
    
    ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
    ProcessParameter(fluid_shader, "zoom_factor", AI_TYPE_FLOAT, "zoomFactor");
@@ -230,7 +292,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
    ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
-   AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
+   ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
+   ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
    
    // first getting a simple color information from the color gradient
    
@@ -249,24 +312,25 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    mayaFluid.getDensityMode(fluidMethod, fluidGradient);
    
-   if (fluidMethod != MFnFluid::kZero)
+   if ((fluidMethod != MFnFluid::kZero) && exportDensity)
       ExportFloatGrid(fluid_shader, mayaFluid.density(), "density", numVoxels);
    
    mayaFluid.getFuelMode(fluidMethod, fluidGradient);
    
-   if (fluidMethod != MFnFluid::kZero)
+   if ((fluidMethod != MFnFluid::kZero) && exportFuel)
       ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
    
    mayaFluid.getTemperatureMode(fluidMethod, fluidGradient);
    
-   if (fluidMethod != MFnFluid::kZero)
+   if ((fluidMethod != MFnFluid::kZero) && exportTemperature)
       ExportFloatGrid(fluid_shader, mayaFluid.temperature(), "temperature", numVoxels);
    
-   ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
+   if (exportPressure)
+      ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
    
    mayaFluid.getVelocityMode(fluidMethod, fluidGradient);
    
-   if (fluidMethod != MFnFluid::kZero)
+   if ((fluidMethod != MFnFluid::kZero) && exportVelocity)
    {
       float* x; float* y; float* z;
       mayaFluid.getVelocity(x, y, z);
@@ -288,7 +352,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    mayaFluid.getColorMode(colorMethod);
    
-   if (colorMethod != MFnFluid::kUseShadingColor)
+   if ((colorMethod != MFnFluid::kUseShadingColor) && exportColors)
    {
       float* r; float* g; float* b;
       mayaFluid.getColors(r, g, b);
@@ -310,11 +374,4 @@ void CFluidTranslator::Export(AtNode* fluid)
 void CFluidTranslator::ExportMotion(AtNode* fluid, unsigned int step)
 {
    ExportMatrix(fluid, step);
-   
-   AtNode* fluid_shader = (AtNode*)AiNodeGetPtr(fluid, "shader");
-   
-   if (fluid_shader != 0)
-   {
-      AiNodeSetArray(fluid_shader, "matrix", AiArrayCopy(AiNodeGetArray(fluid, "matrix")));
-   }
 }

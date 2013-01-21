@@ -7,6 +7,7 @@ from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
 from mtoa.lightFilters import getLightFilterClassification
 import mtoa.callbacks as callbacks
+import arnold as ai
 
 def getSourcePlug(plugname, index):
     conns = []
@@ -176,15 +177,17 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     def commonLightAttributes(self):        
         self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")        
         self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
-        self.addControl("aiVolumeSamples", label="Volume Samples")
         
-        self.addSeparator()
+        if int(ai.AiGetVersion()[2]) > 11:
+            self.addControl("aiVolumeSamples", label="Volume Samples")
+        
+            self.addSeparator()
     
-        self.addControl("aiDiffuse", label="Diffuse")
-        self.addControl("aiSpecular", label="Specular")
-        self.addControl("aiSss", label="SSS")
-        self.addControl("aiIndirect", label="Indirect")
-        self.addControl("aiMaxBounces", label="Max Bounces")
+            self.addControl("aiDiffuse", label="Diffuse")
+            self.addControl("aiSpecular", label="Specular")
+            self.addControl("aiSss", label="SSS")
+            self.addControl("aiIndirect", label="Indirect")
+            self.addControl("aiMaxBounces", label="Max Bounces")
 
         self.lightFiltersLayout()
         

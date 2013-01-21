@@ -301,16 +301,17 @@ Arnold testsuite - %s
             or '''file'''))
     
     for new, ref, dif in results:
+        bgcolor = os.path.exists(dif) and '#ffa0a0' or '#ececec'
         f.write('''
             <tr>
-            <td bgcolor="#ececec">
+            <td bgcolor="%s">
                 <center>
                 <font face="Arial">
                 &nbsp;%s&nbsp;
                 </font>
                 </center>
             </td>
-            <td bgcolor="#ececec">
+            <td bgcolor="%s">
                 <center>
                 <font face="Arial">
                 &nbsp;%s&nbsp;
@@ -334,21 +335,23 @@ Arnold testsuite - %s
                 </font>
             </td>
             </tr>''' % (
+                  bgcolor,
                   test_name,
+                  bgcolor,
                   os.path.exists(dif) and ''' FAILED ''' or '''OK''',
                   len(references) < 2 and
-                    ( '''<td bgcolor="#ececec">
+                    ( '''<td bgcolor="%s">
                          &nbsp;
                          <pre>
                          %s
                          </pre>
                          &nbsp;
-                         </td>''' % readme)
-                    or ( '''<td bgcolor="#ececec">
+                         </td>''' % (bgcolor, readme))
+                    or ( '''<td bgcolor="%s">
                         &nbsp;
                         %s
                         &nbsp;
-                        </td>''' % ref),
+                        </td>''' % (bgcolor, ref)),
                   os.path.exists(new) and ('''<img src="%s" border="0" hspace="1" width="160" height="120" alt="new image" />''' % new)
                                                       or '''&nbsp;''',
                   os.path.exists(ref) and ('''<img src="%s" border="0" hspace="1" width="160" height="120" alt="ref image" />''' % ref)

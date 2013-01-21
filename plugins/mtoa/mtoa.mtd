@@ -213,6 +213,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -237,7 +238,11 @@
         softmax             FLOAT   1.0
     [attr indirect]
         softmin             FLOAT   0.0
-        softmax             FLOAT   1.0        
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -251,6 +256,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -276,6 +282,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node spot_light]
     maya.name               STRING  "spotLight"
@@ -289,6 +299,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -324,6 +335,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node skydome_light]
     maya.name               STRING  "aiSkyDomeLight"
@@ -347,6 +362,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     0
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr color]
@@ -363,6 +379,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -382,6 +402,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -404,6 +425,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node cylinder_light]
     maya.name               STRING  "aiAreaLight"
@@ -427,6 +452,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     0
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr diffuse]
@@ -441,6 +467,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node disk_light]
     maya.name               STRING  "aiAreaLight"
@@ -464,6 +494,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr diffuse]
@@ -478,6 +509,10 @@
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 # light filters
 
