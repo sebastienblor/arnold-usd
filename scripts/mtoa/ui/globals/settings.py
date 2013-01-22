@@ -900,7 +900,9 @@ def createArnoldLogSettings():
     pm.separator()
 
     pm.attrControlGrp('os_shader_nan_checks',
-                   label="Warn on Not a Number",
+                   label="Warn on Shader NaN's",
+                   annotation='Print warning when a shader returns a value that is not a number. ' \
+                              'Enabling this may adversely affect performance.',
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
 
     pm.setParent('..')
