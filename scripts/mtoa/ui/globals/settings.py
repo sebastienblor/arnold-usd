@@ -226,7 +226,7 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_skip_license_check',
                    label="Skip License Check",
                    attribute='defaultArnoldRenderOptions.skip_license_check')
-                   
+
     pm.attrControlGrp('os_enable_swatch_render',
                    label="Enable Swatch Render",
                    attribute='defaultArnoldRenderOptions.enable_swatch_render')
@@ -896,6 +896,14 @@ def createArnoldLogSettings():
     pm.attrControlGrp('log_file_verbosity',
                         label="File Verbosity Level",
                         attribute='defaultArnoldRenderOptions.log_file_verbosity')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_shader_nan_checks',
+                   label="Warn on Shader NaN's",
+                   annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
+                              'Enabling this may adversely affect performance.',
+                   attribute='defaultArnoldRenderOptions.shaderNanChecks')
 
     pm.setParent('..')
 
