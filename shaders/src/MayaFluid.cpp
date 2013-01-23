@@ -467,40 +467,43 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescript
       return GetDefaultValue<T>();
    if (arrayDesc.single)
       return *arrayDesc.data;   
-   float fcx = lPt.x * (float)data->xres;
-   float fcy = lPt.y * (float)data->yres;
-   float fcz = lPt.z * (float)data->zres;
+   const float fcx = lPt.x * (float)data->xres;
+   const float fcy = lPt.y * (float)data->yres;
+   const float fcz = lPt.z * (float)data->zres;
    
-   int lcx = CLAMP((int)floorf(fcx), 0, data->xres - 1);
-   int lcy = CLAMP((int)floorf(fcy), 0, data->yres - 1);
-   int lcz = CLAMP((int)floorf(fcz), 0, data->zres - 1);
+   const int lcx = CLAMP((int)floorf(fcx), 0, data->xres - 1);
+   const int lcy = CLAMP((int)floorf(fcy), 0, data->yres - 1);
+   const int lcz = CLAMP((int)floorf(fcz), 0, data->zres - 1);
    
-   int hcx = MIN(lcx + 1, data->xres - 1);
-   int hcy = MIN(lcy + 1, data->yres - 1);
-   int hcz = MIN(lcz + 1, data->zres - 1);
+   const int hcx = MIN(lcx + 1, data->xres - 1);
+   const int hcy = MIN(lcy + 1, data->yres - 1);
+   const int hcz = MIN(lcz + 1, data->zres - 1);
    
-   float pcx = fcx - (float)lcx;
-   float pcy = fcy - (float)lcy;
-   float pcz = fcz - (float)lcz;
+   const float pcx = fcx - (float)lcx;
+   const float pcy = fcy - (float)lcy;
+   const float pcz = fcz - (float)lcz;
    
-   float npcx = 1.f - pcx;
-   float npcy = 1.f - pcy;
-   float npcz = 1.f - pcz;
-   int xmy = data->xres * data->yres;
-   int c000 = lcx + lcy * data->xres + lcz * xmy;
-   int c010 = lcx + hcy * data->xres + lcz * xmy;
-   int c001 = lcx + lcy * data->xres + hcz * xmy;
-   int c011 = lcx + hcy * data->xres + hcz * xmy;
-   int c100 = hcx + lcy * data->xres + lcz * xmy;
-   int c110 = hcx + hcy * data->xres + lcz * xmy;
-   int c101 = hcx + lcy * data->xres + hcz * xmy;
-   int c111 = hcx + hcy * data->xres + hcz * xmy;
+   const float npcx = 1.f - pcx;
+   const float npcy = 1.f - pcy;
+   const float npcz = 1.f - pcz;
+   const int xmy = data->xres * data->yres;
+   const int lczx = lcz * xmy;
+   const int hczx = hcz * xmy;
+   const int lcyx = lcy * data->xres;
+   const int hcyx = hcy * data->xres;
+   const int c000 = lcx + lcyx + lczx;
+   const int c010 = lcx + hcyx + lczx;
+   const int c001 = lcx + lcyx + hczx;
+   const int c011 = lcx + hcyx + hczx;
+   const int c100 = hcx + lcyx + lczx;
+   const int c110 = hcx + hcyx + lczx;
+   const int c101 = hcx + lcyx + hczx;
+   const int c111 = hcx + hcyx + hczx;
    
-   // TODO : rearrange the multiplications to save some code
-   return (arrayDesc.data[c000] * npcx * npcy + arrayDesc.data[c110] * pcx * pcy +
-           arrayDesc.data[c100] * pcx * npcy + arrayDesc.data[c010] * npcx * pcy) * npcz +
-           (arrayDesc.data[c001] * npcx * npcy + arrayDesc.data[c111] * pcx * pcy +
-           arrayDesc.data[c101] * pcx * npcy + arrayDesc.data[c011] * npcx * pcy) * pcz;   
+   return ((arrayDesc.data[c000] * npcy + arrayDesc.data[c010] * pcy) * npcx + 
+           (arrayDesc.data[c110] * pcy + arrayDesc.data[c100] * npcy) * pcx) * npcz +
+          ((arrayDesc.data[c001] * npcy  + arrayDesc.data[c011] * pcy) * npcx +
+           (arrayDesc.data[c111] * pcy + arrayDesc.data[c101] * npcy) * pcx ) * pcz;   
 }
 
 inline float ApplyBias(const float& value, const float& bias)
