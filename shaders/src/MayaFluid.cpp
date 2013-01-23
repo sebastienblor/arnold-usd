@@ -32,6 +32,13 @@ enum textureType{
    TT_MANDELBROT
 };
 
+const char* coordinateMethodEnums[] = {"Fixed", "Grid"};
+
+enum coordinateMethod{
+   CM_FIXED,
+   CM_GRID
+};
+
 node_parameters
 {
    AiParameterRGB("color", 1.f, 1.f, 1.f);
@@ -55,6 +62,8 @@ node_parameters
    AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   
+   AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
    static const char* gradientTypes[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
       "Center Gradient", "Density", "Temperature", "Fuel", "Pressure", "Speed",
@@ -111,6 +120,8 @@ node_parameters
    
    AiParameterNode("volume_texture", 0);
    
+   AiParameterEnum("coordinate_method", 0, coordinateMethodEnums);
+   
    AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
    
    AiParameterFlt("shadow_opacity", 0.5f);
@@ -141,6 +152,7 @@ enum MayaFluidParams{
    p_pressure,
    p_velocity,
    p_colors,
+   p_coordinates,
    
    p_color_gradient_type,
    p_color_gradient,
@@ -192,6 +204,7 @@ enum MayaFluidParams{
    p_noise_affect_opacity,
    
    p_volume_noise,
+   p_coordinate_method,
    
    p_matrix,
    
@@ -227,6 +240,7 @@ struct MayaFluidData{
    ArrayDescription<float> pressure;
    ArrayDescription<AtVector> velocity;
    ArrayDescription<AtRGB> colors;
+   ArrayDescription<AtVector> coordinates;
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
@@ -253,6 +267,7 @@ struct MayaFluidData{
    AtNode* volumeTexture;
    
    bool textureDisabledInShadows;
+   int coordinateMethod;
    
    ~MayaFluidData()
    {
@@ -262,6 +277,7 @@ struct MayaFluidData{
       pressure.release();
       velocity.release();
       colors.release();
+      coordinates.release();
       incandescenceGradient.release();
       opacityGradient.release();
    }
@@ -415,6 +431,7 @@ node_update
    ReadArray(node, "pressure", numVoxels, data->pressure);
    ReadArray(node, "velocity", numVoxels, data->velocity);
    ReadArray(node, "colors", numVoxels, data->colors);
+   ReadArray(node, "coordinates", numVoxels, data->coordinates);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
@@ -454,6 +471,10 @@ node_update
       if (!data->opacityTexture)
          data->textureDisabledInShadows = true;
    }
+   
+   data->coordinateMethod = AiNodeGetInt(node, "coordinate_method");
+   if (data->coordinateMethod == CM_GRID && (data->coordinates.data == 0))
+      data->coordinateMethod = CM_FIXED;
 }
 
 node_finish
@@ -610,7 +631,25 @@ shader_evaluate
    float opacityNoise = 1.f;
    if (data->volumeTexture)
    {
-      AiShaderEvaluate(data->volumeTexture, sg);
+      if (data->coordinateMethod == CM_GRID)
+      {
+         const AtVector oldP = sg->P;
+         const AtVector oldPo = sg->Po;
+         sg->P = GetFilteredValue(data, lPt, data->coordinates);
+         sg->Po = sg->P;
+         AtMatrix oldM, oldMinv;
+         AiM4Copy(oldM, sg->M);
+         AiM4Copy(oldMinv, sg->Minv);
+         AiM4Identity(sg->M);
+         AiM4Identity(sg->Minv);
+         AiShaderEvaluate(data->volumeTexture, sg);
+         sg->P = oldP;
+         sg->Po = oldPo;
+         AiM4Copy(sg->M, oldM);
+         AiM4Copy(sg->Minv, oldMinv);
+      }
+      else
+         AiShaderEvaluate(data->volumeTexture, sg);
       float volumeNoise = sg->out.FLT;
       if (data->textureAffectColor)
          colorNoise = volumeNoise;
@@ -621,7 +660,11 @@ shader_evaluate
    }
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
    {
-      AtVector P = sg->P;
+      AtVector P;
+      if (data->coordinateMethod == CM_GRID)
+         P = GetFilteredValue(data, lPt, data->coordinates);
+      else
+         P = sg->P;
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
       
       AtVector textureScale = AiShaderEvalParamVec(p_texture_scale);

@@ -48,6 +48,14 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_volume_texture";
    helper.MakeInputNode(data);   
    
+   MStringArray strArr;
+   strArr.append("Fixed");
+   strArr.append("Grid");
+   data.enums = strArr;
+   data.defaultValue.INT = 0;
+   data.name = "aiTextureCoordinateMethod";
+   data.shortName = "ai_texture_coordinate_method";
+   helper.MakeInputEnum(data);
    
 }
 
@@ -173,6 +181,12 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (!plug.isNull())
       AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
    
+   MFnFluid::CoordinateMethod coordinateMode;
+   
+   mayaFluid.getCoordinateMode(coordinateMode);
+   
+   bool exportCoordinates = false;
+   
    if (FindMayaPlug("aiOverrideTextures").asBool())   
    {
       plug = FindMayaPlug("aiVolumeTexture");
@@ -190,6 +204,10 @@ void CFluidTranslator::Export(AtNode* fluid)
       ProcessParameter(fluid_shader, "texture_affect_color", AI_TYPE_BOOLEAN, "aiTextureAffectColor");
       ProcessParameter(fluid_shader, "texture_affect_incand", AI_TYPE_BOOLEAN, "aiTextureAffectIncand");
       ProcessParameter(fluid_shader, "texture_affect_opacity", AI_TYPE_BOOLEAN, "aiTextureAffectOpacity");
+      ProcessParameter(fluid_shader, "coordinate_method", AI_TYPE_INT, "aiTextureCoordinateMethod");
+      const int coordinateMethod = AiNodeGetInt(fluid_shader, "coordinate_method");
+      if ((coordinateMethod == 1) && (coordinateMode == MFnFluid::kGrid))
+         exportCoordinates = true;
    }
    else
    {
@@ -198,6 +216,10 @@ void CFluidTranslator::Export(AtNode* fluid)
       ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");
 
       ProcessParameter(fluid_shader, "texture_type", AI_TYPE_INT, "textureType");
+      ProcessParameter(fluid_shader, "coordinate_method", AI_TYPE_INT, "coordinateMethod");
+      const int coordinateMethod = AiNodeGetInt(fluid_shader, "coordinate_method");
+      if ((coordinateMethod == 1) && (coordinateMode == MFnFluid::kGrid))
+         exportCoordinates = true;
 
       ProcessParameter(fluid_shader, "color_tex_gain", AI_TYPE_FLOAT, "colorTexGain");
       ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
@@ -354,6 +376,21 @@ void CFluidTranslator::Export(AtNode* fluid)
             cVector.y = cVector.y < AI_EPSILON ? 0.f : cVector.y;
             cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
             AiArraySetVec(array, i, cVector);
+         }
+      }
+   }
+   
+   if (exportCoordinates)
+   {
+      float* u; float* v; float* w;
+      mayaFluid.getCoordinates(u, v, w);
+      if (u != 0 && v != 0 && w != 0)
+      {
+         AtArray* array = GetArray(fluid_shader, "coordinates", numVoxels, AI_TYPE_VECTOR);
+         for (unsigned int i = 0; i < numVoxels; ++i)
+         {
+            AtVector cCoord = {u[i], v[i], w[i]};
+            AiArraySetVec(array, i, cCoord);
          }
       }
    }
