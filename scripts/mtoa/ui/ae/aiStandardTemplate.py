@@ -57,6 +57,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         # self.addControl("Phong_exponent", label="Glossiness")
         self.addSeparator()
         self.addControl("specular_Fresnel", changeCommand=self.checkSpecularFresnel, label="Fresnel")
+        self.addControl("Fresnel_use_IOR", label="Fresnel use IOR")
         self.addControl("Ksn", label="Reflectance at Normal")
 
         self.beginLayout("Extended Controls", collapse=True)
