@@ -189,6 +189,41 @@ void CFluidTranslator::Export(AtNode* fluid)
       ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
       ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    }
+   else
+   {
+      ProcessParameter(fluid_shader, "color_texture", AI_TYPE_BOOLEAN, "colorTexture");
+      ProcessParameter(fluid_shader, "incand_texture", AI_TYPE_BOOLEAN, "incandTexture");
+      ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");
+
+      ProcessParameter(fluid_shader, "texture_type", AI_TYPE_INT, "textureType");
+
+      ProcessParameter(fluid_shader, "color_tex_gain", AI_TYPE_FLOAT, "colorTexGain");
+      ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
+      ProcessParameter(fluid_shader, "opacity_tex_gain", AI_TYPE_FLOAT, "opacityTexGain");
+
+      ProcessParameter(fluid_shader, "threshold", AI_TYPE_FLOAT, "threshold");
+      ProcessParameter(fluid_shader, "amplitude", AI_TYPE_FLOAT, "amplitude");
+      ProcessParameter(fluid_shader, "ratio", AI_TYPE_FLOAT, "ratio");
+      ProcessParameter(fluid_shader, "frequency_ratio", AI_TYPE_FLOAT, "frequencyRatio");
+      ProcessParameter(fluid_shader, "depth_max", AI_TYPE_INT, "depthMax");
+
+      ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
+      ProcessParameter(fluid_shader, "inflection", AI_TYPE_BOOLEAN, "inflection");
+
+      ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
+      ProcessParameter(fluid_shader, "zoom_factor", AI_TYPE_FLOAT, "zoomFactor");
+      ProcessParameter(fluid_shader, "frequency", AI_TYPE_FLOAT, "frequency");
+
+      ProcessParameter(fluid_shader, "texture_origin_x", AI_TYPE_FLOAT, "textureOriginX");
+      ProcessParameter(fluid_shader, "texture_origin_y", AI_TYPE_FLOAT, "textureOriginY");
+      ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
+
+      ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
+      ProcessParameter(fluid_shader, "texture_rotate", AI_TYPE_VECTOR, "textureRotate");
+
+      ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
+      ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");
+   }
    
    bool exportDensity = false;
    bool exportFuel = false;
@@ -264,39 +299,6 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    AiNodeSetVec(fluid_shader, "min", mn.x, mn.y, mn.z);
    AiNodeSetVec(fluid_shader, "max", mx.x, mx.y, mx.z);
-      
-   ProcessParameter(fluid_shader, "color_texture", AI_TYPE_BOOLEAN, "colorTexture");
-   ProcessParameter(fluid_shader, "incand_texture", AI_TYPE_BOOLEAN, "incandTexture");
-   ProcessParameter(fluid_shader, "opacity_texture", AI_TYPE_BOOLEAN, "opacityTexture");
-   
-   ProcessParameter(fluid_shader, "texture_type", AI_TYPE_INT, "textureType");
-   
-   ProcessParameter(fluid_shader, "color_tex_gain", AI_TYPE_FLOAT, "colorTexGain");
-   ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
-   ProcessParameter(fluid_shader, "opacity_tex_gain", AI_TYPE_FLOAT, "opacityTexGain");
-   
-   ProcessParameter(fluid_shader, "threshold", AI_TYPE_FLOAT, "threshold");
-   ProcessParameter(fluid_shader, "amplitude", AI_TYPE_FLOAT, "amplitude");
-   ProcessParameter(fluid_shader, "ratio", AI_TYPE_FLOAT, "ratio");
-   ProcessParameter(fluid_shader, "frequency_ratio", AI_TYPE_FLOAT, "frequencyRatio");
-   ProcessParameter(fluid_shader, "depth_max", AI_TYPE_INT, "depthMax");
-   
-   ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
-   ProcessParameter(fluid_shader, "inflection", AI_TYPE_BOOLEAN, "inflection");
-   
-   ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
-   ProcessParameter(fluid_shader, "zoom_factor", AI_TYPE_FLOAT, "zoomFactor");
-   ProcessParameter(fluid_shader, "frequency", AI_TYPE_FLOAT, "frequency");
-   
-   ProcessParameter(fluid_shader, "texture_origin_x", AI_TYPE_FLOAT, "textureOriginX");
-   ProcessParameter(fluid_shader, "texture_origin_y", AI_TYPE_FLOAT, "textureOriginY");
-   ProcessParameter(fluid_shader, "texture_origin_z", AI_TYPE_FLOAT, "textureOriginZ");
-   
-   ProcessParameter(fluid_shader, "texture_scale", AI_TYPE_VECTOR, "textureScale");
-   ProcessParameter(fluid_shader, "texture_rotate", AI_TYPE_VECTOR, "textureRotate");
-   
-   ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
-   ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");
    
    ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
