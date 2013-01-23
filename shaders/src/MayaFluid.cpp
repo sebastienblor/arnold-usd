@@ -405,6 +405,9 @@ node_update
    data->dmin = AiNodeGetVec(node, "min");
    data->dmax = AiNodeGetVec(node, "max");
    data->dmax = data->dmax - data->dmin;
+   data->dmax.x = 1.f / data->dmax.x;
+   data->dmax.y = 1.f / data->dmax.y;
+   data->dmax.z = 1.f / data->dmax.z;
    
    ReadArray(node, "density", numVoxels, data->density);
    ReadArray(node, "fuel", numVoxels, data->fuel);
@@ -525,10 +528,10 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
    if (gradient.resolution == 0)
       return GetDefaultValue<T>();
    const float _v = ApplyBias(v, bias);
-   float p = _v * gradient.resolution;
+   const float p = _v * gradient.resolution;
    float pf = floorf(p);
-   int b = CLAMP((int)pf, 0, gradient.resolution - 1);
-   int e = MIN(b + 1, gradient.resolution - 1);
+   const int b = CLAMP((int)pf, 0, gradient.resolution - 1);
+   const int e = MIN(b + 1, gradient.resolution - 1);
    pf = p - pf;
    return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
@@ -536,7 +539,7 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
 AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
-   lPt = (cPt - data->dmin) / data->dmax;
+   lPt = (cPt - data->dmin) * data->dmax;
    lPt.x = CLAMP(lPt.x, 0.f, 1.f);
    lPt.y = CLAMP(lPt.y, 0.f, 1.f);
    lPt.z = CLAMP(lPt.z, 0.f, 1.f);
