@@ -252,6 +252,8 @@ struct MayaFluidData{
    
    AtNode* volumeNoise;
    
+   bool noiseDisabledInShadows;
+   
    ~MayaFluidData()
    {
       density.release();
@@ -437,6 +439,18 @@ node_update
    
    if (!(data->noiseAffectColor || data->noiseAffectOpacity || data->noiseAffectOpacity))
       data->volumeNoise = 0;
+   
+   data->noiseDisabledInShadows = false;
+   if (data->volumeNoise)
+   {
+      if (!data->noiseAffectOpacity)
+         data->noiseDisabledInShadows = true;
+   }
+   else if (data->textureNoise)
+   {
+      if (!data->opacityTexture)
+         data->noiseDisabledInShadows = true;
+   }
 }
 
 node_finish
@@ -578,6 +592,12 @@ shader_evaluate
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
 
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
+   if (data->noiseDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
+   {
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity); 
+      AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
+      return;
+   }
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
