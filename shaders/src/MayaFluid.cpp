@@ -541,7 +541,7 @@ AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
 }
 
 template <typename T>
-T GetValue(MayaFluidData* data, const AtVector& lPt, GradientDescription<T>& gradient)
+T GetValue(MayaFluidData* data, const AtVector& lPt, const GradientDescription<T>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    switch (gradient.type)

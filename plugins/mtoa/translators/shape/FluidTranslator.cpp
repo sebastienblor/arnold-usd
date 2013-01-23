@@ -43,6 +43,10 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiVolumeNoise";
    data.shortName = "ai_volume_noise";
    helper.MakeInputNode(data);   
+   
+   data.name = "aiOverrideTextures";
+   data.shortName = "ai_override_textures";
+   helper.MakeInputBoolean(data);
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -167,17 +171,23 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (!plug.isNull())
       AiNodeSetFlt(fluid_shader, "phase_func", plug.asFloat());
    
-   
-   plug = FindMayaPlug("aiVolumeNoise");
-   if (!plug.isNull())
+   if (FindMayaPlug("aiOverrideTextures").asBool())   
    {
-      MPlugArray volumeNoisePlug;
-      plug.connectedTo(volumeNoisePlug, true, false);
-      if (volumeNoisePlug.length() > 0)
+      plug = FindMayaPlug("aiVolumeNoise");
+      if (!plug.isNull())
       {
-         AtNode* volumeNoise = ExportRootShader(volumeNoisePlug[0]);
-         AiNodeSetPtr(fluid_shader, "volume_noise", volumeNoise);
+         MPlugArray volumeNoisePlug;
+         plug.connectedTo(volumeNoisePlug, true, false);
+         if (volumeNoisePlug.length() > 0)
+         {
+            AtNode* volumeNoise = ExportRootShader(volumeNoisePlug[0]);
+            AiNodeSetPtr(fluid_shader, "volume_noise", volumeNoise);
+         }
       }
+      
+      ProcessParameter(fluid_shader, "noise_affect_color", AI_TYPE_BOOLEAN, "aiNoiseAffectColor");
+      ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
+      ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    }
    
    bool exportDensity = false;
@@ -287,10 +297,6 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
    ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");
-   
-   ProcessParameter(fluid_shader, "noise_affect_color", AI_TYPE_BOOLEAN, "aiNoiseAffectColor");
-   ProcessParameter(fluid_shader, "noise_affect_incand", AI_TYPE_BOOLEAN, "aiNoiseAffectIncand");
-   ProcessParameter(fluid_shader, "noise_affect_opacity", AI_TYPE_BOOLEAN, "aiNoiseAffectOpacity");
    
    ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");

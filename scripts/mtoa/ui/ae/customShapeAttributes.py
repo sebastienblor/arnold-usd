@@ -151,6 +151,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.beginLayout("Custom Noise", collapse=True)
+        self.addControl("aiOverrideTextures", label="Override Textures")
         self.addControl("aiNoiseAffectColor", label="Affect Color")
         self.addControl("aiNoiseAffectIncand", label="Affect Incandescence")
         self.addControl("aiNoiseAffectOpacity", label="Affect Opacity")
