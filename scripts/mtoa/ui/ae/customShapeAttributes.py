@@ -141,21 +141,21 @@ templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def volumeNoiseCreate(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        cmds.attrNavigationControlGrp("FluidTemplateVolumeNoise", attribute=attrName, label="Noise Shader")
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", attribute=attrName, label="Texture")
         cmds.setUITemplate(popTemplate=True)
 
     def volumeNoiseUpdate(self, attrName):
-        cmds.attrNavigationControlGrp("FluidTemplateVolumeNoise", edit=True, attribute=attrName)
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", edit=True, attribute=attrName)
         
     def setup(self):    
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
-        self.beginLayout("Custom Noise", collapse=True)
-        self.addControl("aiOverrideTextures", label="Override Textures")
-        self.addControl("aiNoiseAffectColor", label="Affect Color")
-        self.addControl("aiNoiseAffectIncand", label="Affect Incandescence")
-        self.addControl("aiNoiseAffectOpacity", label="Affect Opacity")
-        self.addCustom("aiVolumeNoise", self.volumeNoiseCreate, self.volumeNoiseUpdate)
+        self.beginLayout("Custom Texture", collapse=True)
+        self.addControl("aiOverrideTextures", label="Override Built-In Textures")
+        self.addControl("aiTextureAffectColor", label="Affect Color")
+        self.addControl("aiTextureAffectIncand", label="Affect Incandescence")
+        self.addControl("aiTextureAffectOpacity", label="Affect Opacity")
+        self.addCustom("aiVolumeTexture", self.volumeNoiseCreate, self.volumeNoiseUpdate)
         self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")

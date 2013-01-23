@@ -105,11 +105,11 @@ node_parameters
    AiParameterFlt("implode", 0.f);
    AiParameterVec("implode_center", 0.f, 0.f, 0.f);
    
-   AiParameterBool("noise_affect_color", false);
-   AiParameterBool("noise_affect_incand", false);
-   AiParameterBool("noise_affect_opacity", false);
+   AiParameterBool("texture_affect_color", false);
+   AiParameterBool("texture_affect_incand", false);
+   AiParameterBool("texture_affect_opacity", false);
    
-   AiParameterNode("volume_noise", 0);
+   AiParameterNode("volume_texture", 0);
    
    AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
    
@@ -246,13 +246,13 @@ struct MayaFluidData{
    
    int textureType;
    
-   bool noiseAffectColor;
-   bool noiseAffectIncand;
-   bool noiseAffectOpacity;
+   bool textureAffectColor;
+   bool textureAffectIncand;
+   bool textureAffectOpacity;
    
-   AtNode* volumeNoise;
+   AtNode* volumeTexture;
    
-   bool noiseDisabledInShadows;
+   bool textureDisabledInShadows;
    
    ~MayaFluidData()
    {
@@ -431,25 +431,25 @@ node_update
    
    data->textureType = AiNodeGetInt(node, "texture_type");
    
-   data->volumeNoise = (AtNode*) AiNodeGetPtr(node, "volume_noise");
+   data->volumeTexture = (AtNode*) AiNodeGetPtr(node, "volume_texture");
    
-   data->noiseAffectColor = AiNodeGetBool(node, "noise_affect_color");
-   data->noiseAffectIncand = AiNodeGetBool(node, "noise_affect_incand");
-   data->noiseAffectOpacity = AiNodeGetBool(node, "noise_affect_opacity");
+   data->textureAffectColor = AiNodeGetBool(node, "texture_affect_color");
+   data->textureAffectIncand = AiNodeGetBool(node, "texture_affect_incand");
+   data->textureAffectOpacity = AiNodeGetBool(node, "texture_affect_opacity");
    
-   if (!(data->noiseAffectColor || data->noiseAffectOpacity || data->noiseAffectOpacity))
-      data->volumeNoise = 0;
+   if (!(data->textureAffectColor || data->textureAffectOpacity || data->textureAffectOpacity))
+      data->volumeTexture = 0;
    
-   data->noiseDisabledInShadows = false;
-   if (data->volumeNoise)
+   data->textureDisabledInShadows = false;
+   if (data->volumeTexture)
    {
-      if (!data->noiseAffectOpacity)
-         data->noiseDisabledInShadows = true;
+      if (!data->textureAffectOpacity)
+         data->textureDisabledInShadows = true;
    }
    else if (data->textureNoise)
    {
       if (!data->opacityTexture)
-         data->noiseDisabledInShadows = true;
+         data->textureDisabledInShadows = true;
    }
 }
 
@@ -592,7 +592,7 @@ shader_evaluate
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
 
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
-   if (data->noiseDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
+   if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
       const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity); 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
@@ -602,15 +602,15 @@ shader_evaluate
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
    float opacityNoise = 1.f;
-   if (data->volumeNoise)
+   if (data->volumeTexture)
    {
-      AiShaderEvaluate(data->volumeNoise, sg);
+      AiShaderEvaluate(data->volumeTexture, sg);
       float volumeNoise = sg->out.FLT;
-      if (data->noiseAffectColor)
+      if (data->textureAffectColor)
          colorNoise = volumeNoise;
-      if (data->noiseAffectIncand)
+      if (data->textureAffectIncand)
          incandNoise = volumeNoise;
-      if (data->noiseAffectOpacity)
+      if (data->textureAffectOpacity)
          opacityNoise = volumeNoise;
    }
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
