@@ -664,7 +664,7 @@ shader_evaluate
       if (data->coordinateMethod == CM_GRID)
          P = GetFilteredValue(data, lPt, data->coordinates);
       else
-         P = sg->P;
+         P = sg->Po;
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
       
       AtVector textureScale = AiShaderEvalParamVec(p_texture_scale);
@@ -689,7 +689,7 @@ shader_evaluate
       
       for (int i = 0; i < depthMax; ++i)
       {
-         float noise = AiPerlin4(sg->P, textureTime);
+         float noise = AiPerlin4(P, textureTime);
          if (inflection)
             noise = ABS(noise);
          
