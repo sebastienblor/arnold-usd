@@ -106,9 +106,17 @@ def ArnoldStandInTemplateDsoNew(nodeName) :
 def ArnoldStandInTemplateDataNew(nodeName) :
     print 'ArnoldStandInTemplateDataNew',nodeName
     cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'right', 0)], columnWidth=(1,145) )
-    cmds.text('standInDataLabel', label='Data ', enable=False)
+    cmds.text('standInDataLabel', label='Data ')
     path = cmds.textField('standInData',changeCommand=ArnoldStandInDataEdit)
-    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName), enable=False)
+    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName))
+    filePath=cmds.getAttr(nodeName.replace('.data','.dso'))
+    if filePath:
+        if '.so' in filePath or '.dll' in filePath or '.dylib' in filePath:
+            cmds.text('standInDataLabel', edit=True, enable=True)
+            cmds.textField('standInData', edit=True, enable=True)
+    else:
+        cmds.text('standInDataLabel', edit=True, enable=False)
+        cmds.textField('standInData', edit=True, enable=False)
 
 def ArnoldStandInTemplateDsoReplace(plugName) :
     cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(plugName, *args))
@@ -118,6 +126,14 @@ def ArnoldStandInTemplateDsoReplace(plugName) :
 def ArnoldStandInTemplateDataReplace(plugName) :
     print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( 'standInData', edit=True, text=cmds.getAttr(plugName) )
+    filePath=cmds.getAttr(plugName.replace('.data','.dso'))
+    if filePath:
+        if '.so' in filePath or '.dll' in filePath or '.dylib' in filePath:
+            cmds.text('standInDataLabel', edit=True, enable=True)
+            cmds.textField('standInData', edit=True, enable=True)
+    else:
+        cmds.text('standInDataLabel', edit=True, enable=False)
+        cmds.textField('standInData', edit=True, enable=False)
 
 def deferStandinLoadChange(nodeName):
     status = cmds.getAttr(nodeName+'.deferStandinLoad')
