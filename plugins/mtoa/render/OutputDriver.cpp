@@ -77,7 +77,11 @@ node_parameters
 node_initialize
 {
    s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
-   InitializeDisplayUpdateQueue("", "renderView");
+   MString cameraName = "";
+   AtNode* cameraNode = AiUniverseGetCamera();
+   if (cameraNode != 0)
+      cameraName = AiNodeGetName(cameraNode);
+   InitializeDisplayUpdateQueue(cameraName, "renderView");
 
    if (m_driver_lock == NULL)
       AiCritSecInit(&m_driver_lock);
