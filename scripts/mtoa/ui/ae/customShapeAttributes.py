@@ -341,6 +341,7 @@ class CameraTemplate(templates.AttributeTemplate):
 
     def addCommonAttributes(self):
         self.addControl("aiExposure")
+        self.addControl("aiFiltermap")
         
     def addDOFAttributes(self):
         self.addSeparator()

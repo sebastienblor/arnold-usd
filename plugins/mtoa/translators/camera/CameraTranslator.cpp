@@ -458,6 +458,17 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    {
       AiNodeSetMatrix(camera, "matrix", matrix);
    }
+   MPlug plug = FindMayaPlug("aiFiltermap");
+   if (!plug.isNull())
+   {
+      MPlugArray filtermapPlug;
+      plug.connectedTo(filtermapPlug, true, false);
+      if (filtermapPlug.length() > 0)
+      {
+         AtNode* filtermap = ExportNode(filtermapPlug[0]);
+         AiNodeSetPtr(camera, "filtermap", filtermap);
+      }
+   }
 }
 
 void CCameraTranslator::ExportCameraMBData(AtNode *camera, unsigned int step)
@@ -628,6 +639,7 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("aperture_blades");
    helper.MakeInput("aperture_blade_curvature");
    helper.MakeInput("aperture_rotation");
+   helper.MakeInput("filtermap");
 
    CAttrData data;
    data.defaultValue.BOOL = false;
