@@ -573,12 +573,45 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    s_outputDriverData.rendering  = true;
 }
 
+enum RenderViewOptionVars{
+   RV_SHOW_FRAME_NUMBER = 0,
+   RV_SHOW_RENDER_TIME,
+   RV_SHOW_CAMERA_NAME,
+   RV_SHOW_LAYER_NAME,
+   RV_SHOW_RENDER_TARGET_NAME,
+   RV_OPTION_VAR_COUNT
+};
+
+static void ReadRenderViewOptionVars(int* optionVars)
+{
+   for (int i = 0; i < RV_OPTION_VAR_COUNT; ++i) optionVars[i] = 0;
+   int optionVarValue = 0;
+   bool exists = false;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowFrameNumber", &exists);
+   if (exists)
+      optionVars[RV_SHOW_FRAME_NUMBER] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowRenderTime", &exists);
+   if (exists)
+      optionVars[RV_SHOW_RENDER_TIME] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowCameraName", &exists);
+   if (exists)
+      optionVars[RV_SHOW_CAMERA_NAME] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowLayerName", &exists);
+   if (exists)
+      optionVars[RV_SHOW_LAYER_NAME] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowRenderTargetName", &exists);
+   if (exists)
+      optionVars[RV_SHOW_RENDER_TARGET_NAME] = optionVarValue;
+}
+
 void RenderEnd()
 {
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
    // And ram used
    const AtUInt64 mem_used = AiMsgUtilGetUsedMemory() / 1024 / 1024;
+   int renderViewOptionVars[RV_OPTION_VAR_COUNT];
+   ReadRenderViewOptionVars(renderViewOptionVars);
 
    // Format a bit of info for the renderview.
    if (s_panel_name != "")
@@ -586,14 +619,19 @@ void RenderEnd()
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       
       const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-      rvInfo += "Frame: ";
-      rvInfo += int(frame);
+      if (renderViewOptionVars[RV_SHOW_FRAME_NUMBER])
+      {
+         rvInfo += "Frame: ";
+         rvInfo += int(frame);
+         rvInfo += "    ";
+      }      
       
-      rvInfo += "    Memory: ";
+      rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
+      rvInfo += "    ";
 
-      rvInfo += "    Sampling: ";
+      rvInfo += "Sampling: ";
       rvInfo += "[";
       rvInfo += s_AA_Samples;
       rvInfo += "/";
@@ -603,19 +641,27 @@ void RenderEnd()
       rvInfo += "/";
       rvInfo += s_sss_sample_factor;
       rvInfo += "]";
+      rvInfo += "    ";
 
-      rvInfo += "    Render Time: ";
-      rvInfo += int(elapsed / 60);
-      rvInfo += ":";
-      const int secondsPart = int(elapsed % 60);
-      if (secondsPart < 10)
-         rvInfo += "0";
-      rvInfo += secondsPart;
-
-      if (s_camera_name != "")
+      if (renderViewOptionVars[RV_SHOW_RENDER_TIME])
       {
-         rvInfo += "    Camera: ";
-         rvInfo += s_camera_name;
+         rvInfo += "Render Time: ";
+         rvInfo += int(elapsed / 60);
+         rvInfo += ":";
+         const int secondsPart = int(elapsed % 60);
+         if (secondsPart < 10)
+            rvInfo += "0";
+         rvInfo += secondsPart;
+         rvInfo += "    ";
+      }
+      
+      if (renderViewOptionVars[RV_SHOW_CAMERA_NAME])
+      {
+         if (s_camera_name != "")
+         {
+            rvInfo += "Camera: ";
+            rvInfo += s_camera_name;
+         }
       }
 
       rvInfo += "\") " + s_panel_name;
@@ -709,17 +755,24 @@ void EndImage()
    // Format a bit of info for the renderview.
    if (s_panel_name != "")
    {
+      int renderViewOptionVars[RV_OPTION_VAR_COUNT];
+      ReadRenderViewOptionVars(renderViewOptionVars);
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       
       const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-      rvInfo += "Frame: ";
-      rvInfo += int(frame);
+      if (renderViewOptionVars[RV_SHOW_FRAME_NUMBER])
+      {
+         rvInfo += "Frame: ";
+         rvInfo += int(frame);
+         rvInfo += "    ";
+      }
       
-      rvInfo += "    Memory: ";
+      rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
+      rvInfo += "    ";
 
-      rvInfo += "    Sampling: ";
+      rvInfo += "Sampling: ";
       rvInfo += "[";
       rvInfo += s_AA_Samples;
       rvInfo += "/";
@@ -729,19 +782,27 @@ void EndImage()
       rvInfo += "/";
       rvInfo += s_sss_sample_factor;
       rvInfo += "]";
+      rvInfo += "    ";
 
-      rvInfo += "    Render Time: ";
-      rvInfo += int(elapsed / 60);
-      rvInfo += ":";
-      const int secondsPart = int(elapsed % 60);
-      if (secondsPart < 10)
-         rvInfo += "0";
-      rvInfo += secondsPart;
-
-      if (s_camera_name != "")
+      if (renderViewOptionVars[RV_SHOW_RENDER_TIME])
       {
-         rvInfo += "    Camera: ";
-         rvInfo += s_camera_name;
+         rvInfo += "Render Time: ";
+         rvInfo += int(elapsed / 60);
+         rvInfo += ":";
+         const int secondsPart = int(elapsed % 60);
+         if (secondsPart < 10)
+            rvInfo += "0";
+         rvInfo += secondsPart;
+         rvInfo += "    ";
+      }
+      
+      if (renderViewOptionVars[RV_SHOW_CAMERA_NAME])
+      {
+         if (s_camera_name != "")
+         {
+            rvInfo += "Camera: ";
+            rvInfo += s_camera_name;
+         }
       }
 
       rvInfo += "\") " + s_panel_name;
