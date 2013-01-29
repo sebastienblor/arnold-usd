@@ -392,6 +392,8 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
    // Temporary until it is exposed somewhere
    AtNode * const options = AiUniverseGetOptions();
    AiNodeSetBool(options, "skip_license_check", true);
+   AiNodeSetBool(options, "texture_automip", false);
+   AiNodeSetInt(options, "texture_autotile", 0);
 
    // Read whatever "swatch" attribute we find on the node
    MStatus status;
