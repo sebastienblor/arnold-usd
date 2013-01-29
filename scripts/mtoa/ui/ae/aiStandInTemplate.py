@@ -169,7 +169,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('overrideLightLinking', label='Override StandIn Light Linking')
         self.addControl('overrideShaders', label='Override StandIn Shaders')
         self.addSeparator()
-        self.addControl('deferStandinLoad', label='Defern StandIn Load', changeCommand=deferStandinLoadChange)
+        self.addControl('deferStandinLoad', label='Defer StandIn Load', changeCommand=deferStandinLoadChange)
         self.addCustom('bboxScale', ArnoldStandInTemplateBBoxScaleNew, ArnoldStandInTemplateBBoxScaleReplace)
         self.addControl('MaxBoundingBox')
         self.endLayout()
