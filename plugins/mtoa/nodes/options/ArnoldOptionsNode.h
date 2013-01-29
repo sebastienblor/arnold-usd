@@ -47,6 +47,7 @@ public:
    static MObject s_bucket_scanning;
    static MObject s_clear_before_render;
    static MObject s_force_scene_update_before_IPR_refresh;
+   static MObject s_force_texture_cache_flush_after_render;
    static MObject s_plugins_path;
 
    static MObject s_use_sample_clamp;

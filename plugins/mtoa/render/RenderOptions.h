@@ -197,6 +197,7 @@ private:
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
    bool     m_forceSceneUpdateBeforeIPRRefresh;
+   bool     m_forceTextureCacheFlushAfterRender;
 
    float    m_startFrame;
    float    m_endFrame;

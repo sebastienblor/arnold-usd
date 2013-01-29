@@ -88,9 +88,21 @@ void ArnoldUniverseEnd()
          AiRenderInterrupt();
       if (AiRendering())
          AiRenderAbort();
-      AiUniverseCacheFlush(AI_CACHE_TEXTURE);
       AiEnd();
       // MtoaSetupLogging();
       // AiMsgResetCallback();
+   }
+}
+
+void ArnoldUniverseEndAndFlush(int cache_flags)
+{
+   if (AiUniverseIsActive())
+   {
+      if (AiRendering())
+         AiRenderInterrupt();
+      if (AiRendering())
+         AiRenderAbort();
+      AiUniverseCacheFlush(cache_flags);
+      AiEnd();
    }
 }
