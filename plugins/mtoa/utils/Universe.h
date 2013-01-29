@@ -17,3 +17,4 @@ DLLEXPORT bool ArnoldUniverseBegin(int logFlags = DEFAULT_LOG_FLAGS);
 DLLEXPORT bool ArnoldUniverseOnlyBegin();
 DLLEXPORT void ArnoldUniverseLoadPluginsAndMetadata();
 DLLEXPORT void ArnoldUniverseEnd();
+DLLEXPORT void ArnoldUniverseEndAndFlush(int cache_flags);

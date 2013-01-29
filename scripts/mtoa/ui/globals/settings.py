@@ -183,7 +183,11 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_force_scene_update_before_IPR_refresh',
                    label='Force Scene Update On IPR Refresh',
                    attribute='defaultArnoldRenderOptions.force_scene_update_before_IPR_refresh')
-
+    
+    pm.attrControlGrp('os_force_texture_cache_flush_after_render',
+                   label='Force Texture Cache Flush After Render',
+                   attribute='defaultArnoldRenderOptions.force_texture_cache_flush_after_render')
+    
     pm.separator()
 
     pm.checkBoxGrp('os_threads_autodetect',

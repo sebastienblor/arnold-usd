@@ -32,6 +32,7 @@ MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
 MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
+MObject CArnoldOptionsNode::s_force_texture_cache_flush_after_render;
 MObject CArnoldOptionsNode::s_threads;
 MObject CArnoldOptionsNode::s_threads_autodetect;
 MObject CArnoldOptionsNode::s_bucket_scanning;
@@ -209,6 +210,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_force_scene_update_before_IPR_refresh = nAttr.create("force_scene_update_before_IPR_refresh", "rec_before_IPR", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
    addAttribute(s_force_scene_update_before_IPR_refresh);
+   
+   s_force_texture_cache_flush_after_render = nAttr.create("force_texture_cache_flush_after_render", "force_texture_flush", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_force_texture_cache_flush_after_render);
+   
    
    s_attributes.MakeInput("abort_on_error");
    s_attributes.MakeInput("abort_on_license_fail");

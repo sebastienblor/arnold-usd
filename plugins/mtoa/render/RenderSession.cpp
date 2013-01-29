@@ -77,7 +77,14 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
       InterruptRender();
-      ArnoldUniverseEnd();
+      if (options.m_forceTextureCacheFlushAfterRender)
+      {
+         ArnoldUniverseEndAndFlush(AI_CACHE_TEXTURE);
+      }
+      else
+      {
+         ArnoldUniverseEnd();
+      }
    }
 
    // Begin the Arnold universe, read metadata file and load plugins
@@ -137,7 +144,14 @@ MStatus CRenderSession::End()
    }
    else
    {
-      ArnoldUniverseEnd();
+      if (m_renderOptions.m_forceTextureCacheFlushAfterRender)
+      {
+         ArnoldUniverseEndAndFlush(AI_CACHE_TEXTURE);
+      }
+      else
+      {
+         ArnoldUniverseEnd();
+      }
    }
    m_is_active = false;
    AiCritSecClose(&m_render_lock);
