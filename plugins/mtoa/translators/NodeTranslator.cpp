@@ -499,6 +499,7 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 {
    assert(AiUniverseIsActive());
    AtNode* node = GetArnoldNode("");
+   m_step = step;
 
    if (node != NULL)
    {
