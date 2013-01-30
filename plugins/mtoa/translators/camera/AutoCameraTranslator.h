@@ -12,4 +12,6 @@ public:
    
    virtual void Export(AtNode* camera);
    virtual void ExportMotion(AtNode* camera, unsigned int step);
+protected:
+   float GetFOV(AtNode* camera);
 };
