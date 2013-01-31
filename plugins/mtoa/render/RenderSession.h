@@ -88,6 +88,9 @@ public:
 
    /// Set the ass output mask
    inline void SetOutputAssMask(unsigned int mask) { m_renderOptions.SetOutputAssMask(mask); }
+   
+   /// Set Expand Procedurals
+   inline void SetExpandProcedurals(bool expand_procedurals) { m_renderOptions.SetExpandProcedurals(expand_procedurals); }
 
    /// Set the resolution of the render.
    /// \param width width in pixels.

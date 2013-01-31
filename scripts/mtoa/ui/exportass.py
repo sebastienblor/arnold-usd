@@ -116,6 +116,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('mask', cmds.getAttr('%s.output_ass_mask' % optionsNode))
         settings.setdefault('lightLinks', cmds.getAttr('%s.lightLinking' % optionsNode))
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
+        settings.setdefault('expand_procedurals', False)
         
     return settings
 
@@ -155,6 +156,9 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.checkBoxGrp('oa_binary_ass',
                          label1='Use Binary Encoding',
                          value1=not settings.get('asciiAss', False))
+        cmds.checkBoxGrp('oa_expandProcedurals',
+                         label1='Expand Procedurals',
+                         value1=False)
 
         cmds.setParent('..')
         cmds.separator(style='none')
@@ -260,9 +264,11 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
             settings['startFrame'] = cmds.floatField("oa_exportStart", query=True, value=True)
             settings['endFrame']   = cmds.floatField("oa_exportEnd", query=True, value=True)
             settings['frameStep']  = cmds.floatField("oa_exportStep", query=True, value=True)        
-
-                
-        currentOptions = buildSettingsString(settings)        
+         
+        settings['expandProcedurals'] = cmds.checkBoxGrp('oa_expandProcedurals', query=True, value1=True)
+        
+        currentOptions = buildSettingsString(settings)
+        print currentOptions
         # print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1

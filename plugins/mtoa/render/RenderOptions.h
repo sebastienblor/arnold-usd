@@ -96,10 +96,20 @@ public:
    {
       return m_outputAssMask;
    }
+   
+   bool expandProcedurals() const
+   {
+      return m_expandProcedurals;
+   }
 
    void SetOutputAssMask(unsigned int mask)
    {
       m_outputAssMask = mask;
+   }
+   
+   void SetExpandProcedurals(bool expand_procedurals)
+   {
+      m_expandProcedurals = expand_procedurals;
    }
 
    void SetCamera(MDagPath& camera);
@@ -236,6 +246,7 @@ private:
 
    bool     m_outputAssBoundingBox;
    unsigned int   m_outputAssMask;
+   bool m_expandProcedurals;
 
    MString  m_log_filename;
    unsigned int   m_log_max_warnings;

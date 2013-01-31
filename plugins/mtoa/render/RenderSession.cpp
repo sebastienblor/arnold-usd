@@ -498,7 +498,8 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
 
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
-      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
+      std::cerr << "----------------" << m_renderOptions.expandProcedurals() << std::endl;
+      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals());
    }
 }
 

@@ -38,6 +38,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("m", "mask", MSyntax::kUnsigned);
    syntax.addFlag("ll", "lightLinks", MSyntax::kUnsigned);
    syntax.addFlag("sl", "shadowLinks", MSyntax::kUnsigned);
+   syntax.addFlag("ep", "expandProcedurals");
 
    syntax.setObjectType(MSyntax::kSelectionList);
    return syntax;
@@ -106,14 +107,15 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString optionsName = "";
    MString assExtension = "ass";
 
-   bool writeBox = false;
-   bool createDirectory = true;
-   bool isSequence = false;
-   bool subFrames = false;
-   bool compressed = false;
-   bool asciiAss   = true;
-   int mask = -1;
-   int lightLinks = -1;
+   bool writeBox          = false;
+   bool createDirectory   = true;
+   bool isSequence        = false;
+   bool subFrames         = false;
+   bool compressed        = false;
+   bool asciiAss          = true;
+   bool expandProcedurals = false;
+   int mask        = -1;
+   int lightLinks  = -1;
    int shadowLinks = -1;
    double startframe, endframe, framestep;
 
@@ -229,6 +231,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       asciiAss = false;
    }
+   // Expand Procedurals
+   
+   if (argDB.isFlagSet("expandProcedurals"))
+   {
+      expandProcedurals = true;
+   }
 
    // Get Maya scene information
    MString sceneName = MFileIO::currentFile();
@@ -292,6 +300,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          renderSession->SetOutputAssMask(mask);
       }
+      renderSession->SetExpandProcedurals(expandProcedurals);
       // Set light linking mode or use Arnold Render Globals if not passed
       if (lightLinks != -1)
       {
