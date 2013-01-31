@@ -116,7 +116,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('mask', cmds.getAttr('%s.output_ass_mask' % optionsNode))
         settings.setdefault('lightLinks', cmds.getAttr('%s.lightLinking' % optionsNode))
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
-        settings.setdefault('expand_procedurals', False)
+        settings.setdefault('expandProcedurals', cmds.getAttr('%s.expandProcedurals' % optionsNode))
         
     return settings
 
