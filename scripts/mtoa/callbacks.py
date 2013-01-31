@@ -60,7 +60,7 @@ def _makeNodeAddedCB(nodeType):
             if apiArgs:
                 func(obj)
             else:
-                node = pm.nt.DependNode(obj)
+                node = pm.PyNode(obj)
                 func(node)
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 

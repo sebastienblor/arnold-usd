@@ -1702,7 +1702,7 @@ def updateArnoldResolution(*args):
     pm.optionMenuGrp('resolutionMenu', edit=True, sl=whichRes)
 
     pm.checkBoxGrp('aspectLockCheck', edit=True, v1=pm.getAttr('defaultResolution.aspectLock'))
-    resNode = pm.nt.DependNode('defaultResolution')
+    resNode = pm.PyNode('defaultResolution')
     pm.floatFieldGrp('resRatio', edit=True, v1=aspect)
     adjustArnoldPixelAspect(resNode)
     resNode.pixelAspect.set(pm.floatFieldGrp('pixRatio', q=True, v1=True))
@@ -1916,7 +1916,7 @@ def changeArnoldAspectLockWidth(*args):
 
     gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
 
-    resNode = pm.nt.DependNode('defaultResolution')
+    resNode = pm.PyNode('defaultResolution')
     dpi = resNode.dotsPerInch.get()
     sizeUnits = resNode.imageSizeUnits.get()
 
@@ -1965,7 +1965,7 @@ def changeArnoldAspectLockHeight(*args):
 
     gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
 
-    resNode = pm.nt.DependNode('defaultResolution')
+    resNode = pm.PyNode('defaultResolution')
     dpi = resNode.dotsPerInch.get()
     sizeUnits = resNode.imageSizeUnits.get()
 
@@ -2048,7 +2048,7 @@ def updateArnoldPixelAspectRatio(*args):
 
     oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
-    resNode = pm.nt.DependNode('defaultResolution')
+    resNode = pm.PyNode('defaultResolution')
     resNode.pixelAspect.set(pm.floatFieldGrp('pixRatio', q=True, v1=True))
     adjustArnoldDeviceAspect(resNode)
     updateArnoldResolution()
@@ -2062,7 +2062,7 @@ def updateArnoldDeviceAspectRatio(*args):
     setParentToArnoldCommonTab()
 
     pm.setAttr('defaultResolution.deviceAspectRatio', pm.floatFieldGrp('resRatio', q=True, v1=True))
-    adjustArnoldPixelAspect(pm.nt.DependNode('defaultResolution'))
+    adjustArnoldPixelAspect(pm.PyNode('defaultResolution'))
     updateArnoldResolution()
 
     pm.setParent(oldParent)
