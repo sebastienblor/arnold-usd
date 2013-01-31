@@ -210,12 +210,16 @@ def createArnoldRenderSettings():
     pm.separator()
                     
     pm.attrControlGrp('os_outputAssBoundingBox',
-                   label="Export Bounding Box",
-                   attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
+                      label="Export Bounding Box",
+                      attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
+                   
+    pm.attrControlGrp('os_expandProcedurals',
+                      label='Expand Procedurals',
+                      attribute='defaultArnoldRenderOptions.expandProcedurals')
 
     pm.attrControlGrp('os_preserve_scene_data',
-                   label='Preserve Scene Data',
-                   attribute='defaultArnoldRenderOptions.preserveSceneData')
+                      label='Preserve Scene Data',
+                      attribute='defaultArnoldRenderOptions.preserveSceneData')
 
     pm.separator()
 

@@ -104,5 +104,7 @@ public:
    static MObject s_shader_searchpath;
    
    static MObject s_user_options;
+   
+   static MObject s_expand_procedurals;
 
 };  // class CArnoldOptionsNode

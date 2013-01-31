@@ -80,6 +80,7 @@ MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
 MObject CArnoldOptionsNode::s_shader_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
+MObject CArnoldOptionsNode::s_expand_procedurals;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -518,6 +519,11 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setReadable(false);
    mAttr.setIndexMatters(false);
    addAttribute(s_drivers);
+   
+   s_expand_procedurals = nAttr.create("expandProcedurals", "expand_procedurals", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_expand_procedurals);
 
    return MS::kSuccess;
 }
