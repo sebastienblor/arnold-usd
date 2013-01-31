@@ -61,6 +61,7 @@ public:
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();
+   static MStatus Restart();
 
    static bool IsArnoldLight(const MObject & object);
    static MObject GetSceneArnoldRenderOptionsNode();
