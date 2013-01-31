@@ -158,7 +158,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
                          value1=not settings.get('asciiAss', False))
         cmds.checkBoxGrp('oa_expandProcedurals',
                          label1='Expand Procedurals',
-                         value1=False)
+                         value1=settings.get('expandProcedurals', False))
 
         cmds.setParent('..')
         cmds.separator(style='none')
@@ -268,7 +268,6 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         settings['expandProcedurals'] = cmds.checkBoxGrp('oa_expandProcedurals', query=True, value1=True)
         
         currentOptions = buildSettingsString(settings)
-        print currentOptions
         # print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1
