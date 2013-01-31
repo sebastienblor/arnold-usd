@@ -1,5 +1,7 @@
 #include "CurveTranslator.h"
 
+#include "scene/MayaScene.h"
+
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
 #include <maya/MDagPathArray.h>
@@ -105,31 +107,37 @@ void CCurveTranslator::Update( AtNode *curve )
 
 
    // Check if we using a custom curve shader.
-   AtNode* shader = NULL;
-   MPlugArray curveShaderPlugs;
-   plug = FindMayaPlug("aiCurveShader");
-   if (!plug.isNull())
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
    {
-      plug.connectedTo(curveShaderPlugs, true, false);
-      if (curveShaderPlugs.length() > 0)
+      AtNode* shader = NULL;
+      MPlugArray curveShaderPlugs;
+      plug = FindMayaPlug("aiCurveShader");
+      if (!plug.isNull())
       {
-         shader = ExportRootShader(curveShaderPlugs[0]);
+         plug.connectedTo(curveShaderPlugs, true, false);
+         if (curveShaderPlugs.length() > 0)
+         {
+            shader = ExportRootShader(curveShaderPlugs[0]);
+         }
       }
-   }
+      
+      if (shader == NULL)
+      {
+         shader = AiNode("hair");
+         MString hairShaderName = fnDepNodeCurve.name();
+         hairShaderName += "_hairShader";
+         AiNodeSetStr(shader, "name", hairShaderName.asChar());
 
-   if (shader == NULL)
-   {
-      shader = AiNode("hair");
-      MString hairShaderName = fnDepNodeCurve.name();
-      hairShaderName += "_hairShader";
-      AiNodeSetStr(shader, "name", hairShaderName.asChar());
+         // Add shader uparam and vparam names
+         AiNodeSetStr(shader, "uparam", "uparamcoord");
+         AiNodeSetStr(shader, "vparam", "vparamcoord");
 
-      // Add shader uparam and vparam names
-      AiNodeSetStr(shader, "uparam", "uparamcoord");
-      AiNodeSetStr(shader, "vparam", "vparamcoord");
-
-      shader = ExportRootShader(shader);
-   }
+         shader = ExportRootShader(shader);
+      }
+      
+      // Assign shader
+      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+   }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate
    int numPoints = 0;
@@ -167,10 +175,6 @@ void CCurveTranslator::Update( AtNode *curve )
 
    // Extra attributes
    AiNodeDeclare(curve, "colors",                  "uniform  ARRAY RGB");
-
-
-   // Assign shader
-   if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
 
 
    // curve specific Arnold render settings.

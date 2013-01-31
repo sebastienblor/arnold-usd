@@ -2,6 +2,7 @@
 #include "ParticleTranslator.h"
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
+#include "scene/MayaScene.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
@@ -1271,7 +1272,8 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
 {
    if (step == 0)
    {
-      ExportParticleShaders(particle);
+      if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+         ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);
    }
