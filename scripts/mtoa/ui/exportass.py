@@ -156,9 +156,6 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.checkBoxGrp('oa_binary_ass',
                          label1='Use Binary Encoding',
                          value1=not settings.get('asciiAss', False))
-        cmds.checkBoxGrp('oa_expandProcedurals',
-                         label1='Expand Procedurals',
-                         value1=settings.get('expandProcedurals', False))
 
         cmds.setParent('..')
         cmds.separator(style='none')
@@ -178,7 +175,10 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         setMaskValues(settings.get('mask', 255))
         
         cmds.text("oa_exportSeparator",label="")
-     
+        cmds.checkBoxGrp('oa_expandProcedurals',
+                         label1='Expand Procedurals',
+                         value1=settings.get('expandProcedurals', False))
+        cmds.text("oa_exportSeparatorOther",label="")
         lightsOn = cmds.checkBoxGrp('oa_export_lights', query=True, value1=True)
         
         cmds.optionMenuGrp('oa_export_light_links', label='Light Linking')
