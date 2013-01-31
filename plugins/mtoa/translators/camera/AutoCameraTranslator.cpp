@@ -7,23 +7,48 @@ AtNode* CAutoCameraTranslator::CreateArnoldNodes()
 
 void CAutoCameraTranslator::Export(AtNode* camera)
 {
+   const AtNodeEntry* nentry = AiNodeGetNodeEntry(camera);
+   const AtParamEntry* pentry = AiNodeEntryLookUpParameter(nentry, "fov");
+   if (pentry != 0)
+   {
+      if (AiParamGetType(pentry) == AI_TYPE_FLOAT)
+      {
+         m_exportFOV = true;
+         m_fovAnimated = false;
+      }
+      else if (AiParamGetType(pentry) == AI_TYPE_ARRAY)
+      {
+         const AtParamValue* pvalue = AiParamGetDefault(pentry);
+         if (pvalue->ARRAY->type == AI_TYPE_FLOAT)
+         {
+            m_exportFOV = true;
+            m_fovAnimated = true;
+         }
+      }
+   }
    CNodeTranslator::Export(camera);
    ExportCameraData(camera);
-   if (RequiresMotionData())
+   if (m_exportFOV)
    {
-      AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(fovs, 0, GetFOV(camera));
-      AiNodeSetArray(camera, "fov", fovs);
+      if (RequiresMotionData() && m_fovAnimated)
+      {
+         AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
+         AiArraySetFlt(fovs, 0, GetFOV(camera));
+         AiNodeSetArray(camera, "fov", fovs);
+      }
+      else
+         AiNodeSetFlt(camera, "fov", GetFOV(camera));
    }
-   else
-      AiNodeSetFlt(camera, "fov", GetFOV(camera));
 }
 
 void CAutoCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
 {
-   ExportCameraMBData(camera, step);
-   AtArray* fovs = AiNodeGetArray(camera, "fov");
-   AiArraySetFlt(fovs, step, GetFOV(camera));
+   if (m_fovAnimated)
+   {
+      ExportCameraMBData(camera, step);
+      AtArray* fovs = AiNodeGetArray(camera, "fov");
+      AiArraySetFlt(fovs, step, GetFOV(camera));
+   }
 }
 
 float CAutoCameraTranslator::GetFOV(AtNode* camera)
