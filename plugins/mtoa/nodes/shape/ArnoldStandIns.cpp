@@ -247,6 +247,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                {
                   geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox));
                }
+               if (AiNodeIs(node, "points"))
+               {
+                  geom->m_geometryList.push_back(new CArnoldPointsGeometry(node, total_matrix, inherit_xform, geom->bbox));
+               }
             }
          }
          geom->IsGeomLoaded = true;

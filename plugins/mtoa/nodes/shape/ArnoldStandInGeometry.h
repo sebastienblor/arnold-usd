@@ -49,3 +49,17 @@ public:
    void DrawNormalAndPolygons() const;
    void DrawBoundingBox() const;
 };
+
+class CArnoldPointsGeometry : public CArnoldStandInGeometry{
+private:
+   
+public:
+   CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xfrom, MBoundingBox& bbox);
+   ~CArnoldPointsGeometry();
+   
+   void DrawPolygons() const;
+   void DrawWireframe() const;
+   void DrawPoints() const;
+   void DrawNormalAndPolygons() const;
+   void DrawBoundingBox() const;
+};

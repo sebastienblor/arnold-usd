@@ -15,7 +15,8 @@ CArnoldStandInGeometry::~CArnoldStandInGeometry()
 
 CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox)
 {
-   AtMatrix matrix;  
+   AtMatrix matrix;
+   AiM4Identity(matrix);
    
    if (inherit_xform)
    {
@@ -208,4 +209,39 @@ void CArnoldPolymeshGeometry::DrawBoundingBox() const
    glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
    
    glEnd();
+}
+
+CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xfrom, MBoundingBox& bbox)
+{
+   
+}
+
+CArnoldPointsGeometry::~CArnoldPointsGeometry()
+{
+   
+}
+
+void CArnoldPointsGeometry::DrawPolygons() const
+{
+   
+}
+
+void CArnoldPointsGeometry::DrawWireframe() const
+{
+   
+}
+
+void CArnoldPointsGeometry::DrawPoints() const
+{
+   
+}
+
+void CArnoldPointsGeometry::DrawNormalAndPolygons() const
+{
+   
+}
+
+void CArnoldPointsGeometry::DrawBoundingBox() const
+{
+   
 }
