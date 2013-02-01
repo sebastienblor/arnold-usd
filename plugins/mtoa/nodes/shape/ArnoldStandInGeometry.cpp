@@ -5,7 +5,13 @@
 
 CArnoldStandInGeometry::CArnoldStandInGeometry()
 {
+   m_BBMin.x = AI_BIG;
+   m_BBMin.y = AI_BIG;
+   m_BBMin.z = AI_BIG;
    
+   m_BBMax.x = -AI_BIG;
+   m_BBMax.y = -AI_BIG;
+   m_BBMax.z = -AI_BIG;
 }
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
@@ -13,7 +19,51 @@ CArnoldStandInGeometry::~CArnoldStandInGeometry()
    
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox)
+void CArnoldStandInGeometry::DrawBoundingBox() const
+{
+   glBegin(GL_LINES);
+   
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   
+   glEnd();
+}
+
+CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, 
+                                                 bool inherit_xform, MBoundingBox& bbox) : CArnoldStandInGeometry()
 {
    AtMatrix matrix;
    AiM4Identity(matrix);
@@ -26,15 +76,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
    else
       AiM4Copy(matrix, inherited_matrix);
    
-   AtArray* vlist = AiNodeGetArray(node, "vlist");
-   
-   m_BBMin.x = AI_BIG;
-   m_BBMin.y = AI_BIG;
-   m_BBMin.z = AI_BIG;
-   
-   m_BBMax.x = -AI_BIG;
-   m_BBMax.y = -AI_BIG;
-   m_BBMax.z = -AI_BIG;
+   AtArray* vlist = AiNodeGetArray(node, "vlist");  
    
    if (vlist->nelements)
    {
@@ -168,52 +210,43 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
    }
 }
 
-void CArnoldPolymeshGeometry::DrawBoundingBox() const
-{
-   glBegin(GL_LINES);
+CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, 
+                                             bool inherit_xform, MBoundingBox& bbox) : CArnoldStandInGeometry()
+{   
+   AtMatrix matrix;
+   AiM4Identity(matrix);
    
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   if (inherit_xform)
+   {
+      AiNodeGetMatrix(node, "matrix", matrix);
+      AiM4Mult(matrix, matrix, inherited_matrix);
+   }
+   else
+      AiM4Copy(matrix, inherited_matrix);
    
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   AtArray* points = AiNodeGetArray(node, "points");
    
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   
-   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
-   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
-   
-   glEnd();
-}
-
-CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xfrom, MBoundingBox& bbox)
-{
-   
+   if (points->nelements > 0)
+   {
+      m_points.resize(points->nelements);
+      for (AtUInt32 i = 0; i < points->nelements; ++i)
+      {
+         AtVector pnt = AiArrayGetVec(points, i);
+         
+         AtPoint tmpPnt;
+         AiM4PointByMatrixMult(&tmpPnt, matrix, &pnt);
+         
+         m_BBMin.x = MIN(m_BBMin.x, tmpPnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, tmpPnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, tmpPnt.z);
+         
+         m_BBMax.x = MAX(m_BBMax.x, tmpPnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, tmpPnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, tmpPnt.z);
+         
+         m_points[i] = tmpPnt;
+      }
+   }
 }
 
 CArnoldPointsGeometry::~CArnoldPointsGeometry()
@@ -223,25 +256,26 @@ CArnoldPointsGeometry::~CArnoldPointsGeometry()
 
 void CArnoldPointsGeometry::DrawPolygons() const
 {
-   
+   DrawPoints();
 }
 
 void CArnoldPointsGeometry::DrawWireframe() const
 {
-   
+   DrawPoints();
 }
 
 void CArnoldPointsGeometry::DrawPoints() const
 {
+   glEnableClientState(GL_VERTEX_ARRAY);
    
+   glVertexPointer(3, GL_FLOAT, 0, &m_points[0]);
+   glDrawArrays(GL_POINTS, 0, (GLsizei)m_points.size());
+   
+   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void CArnoldPointsGeometry::DrawNormalAndPolygons() const
 {
-   
+   DrawPoints();
 }
 
-void CArnoldPointsGeometry::DrawBoundingBox() const
-{
-   
-}

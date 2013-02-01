@@ -12,6 +12,8 @@
 class CArnoldStandInGeometry{
 protected:
    CArnoldStandInGeometry();
+   
+   AtVector m_BBMin, m_BBMax;
 public:
    virtual ~CArnoldStandInGeometry();
    
@@ -28,7 +30,7 @@ public:
    virtual void DrawNormalAndPolygons() const = 0;
    
    // bounding box mode
-   virtual void DrawBoundingBox() const = 0;
+   void DrawBoundingBox() const;
 };
 
 class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{
@@ -37,8 +39,7 @@ private:
    std::vector<AtUInt> m_vidxs;
    std::vector<AtVector> m_nlist;
    std::vector<AtUInt> m_nidxs;
-   std::vector<AtUInt> m_nsides;
-   AtVector m_BBMin, m_BBMax;
+   std::vector<AtUInt> m_nsides;   
 public:
    CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox);
    ~CArnoldPolymeshGeometry();
@@ -47,19 +48,18 @@ public:
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
-   void DrawBoundingBox() const;
 };
 
 class CArnoldPointsGeometry : public CArnoldStandInGeometry{
 private:
-   
+   std::vector<AtVector> m_points;
+   AtVector m_BBMin, m_BBMax;
 public:
-   CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xfrom, MBoundingBox& bbox);
+   CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox);
    ~CArnoldPointsGeometry();
    
    void DrawPolygons() const;
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
-   void DrawBoundingBox() const;
 };
