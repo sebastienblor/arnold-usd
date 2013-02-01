@@ -43,7 +43,6 @@ node_parameters
 {
    AiParameterRGB("color", 1.f, 1.f, 1.f);
    
-   AiParameterFlt("step_size", 0.1f);
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiParameterFlt("phase_func", 0.f);
    
@@ -135,7 +134,6 @@ node_parameters
 enum MayaFluidParams{
    p_color=0,
    
-   p_step_size,
    p_transparency,
    p_phase_func,
    
@@ -251,7 +249,6 @@ struct MayaFluidData{
    
    int xres, yres, zres;
    AtVector dmin, dmax;
-   float stepSize;
    
    bool colorTexture;
    bool incandTexture;
@@ -403,7 +400,6 @@ node_update
    data->yres = AiNodeGetInt(node, "yres");
    data->zres = AiNodeGetInt(node, "zres");
    
-   data->stepSize = AiNodeGetFlt(node, "step_size");
    data->transparency = AiNodeGetRGB(node, "transparency");
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);

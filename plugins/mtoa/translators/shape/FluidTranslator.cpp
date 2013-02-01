@@ -272,7 +272,6 @@ void CFluidTranslator::Export(AtNode* fluid)
       exportDensity = true;
       exportFuel = true;
    }
-   AiNodeSetFlt(fluid_shader, "step_size", stepSize);
    ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);
    AiNodeSetInt(fluid_shader, "color_gradient_type", colorGradientType);
    AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
