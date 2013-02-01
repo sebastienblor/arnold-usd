@@ -175,7 +175,11 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    plug = FindMayaPlug("transparency");
    if (!plug.isNull())
-      AiNodeSetRGB(fluid_shader, "transparency", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   {
+      AiNodeSetFlt(fluid_shader, "transparency_r", plug.child(0).asFloat());
+      AiNodeSetFlt(fluid_shader, "transparency_g", plug.child(1).asFloat());
+      AiNodeSetFlt(fluid_shader, "transparency_b", plug.child(2).asFloat());
+   }
    
    plug = FindMayaPlug("aiPhaseFunc");
    if (!plug.isNull())

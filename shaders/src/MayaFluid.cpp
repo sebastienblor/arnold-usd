@@ -40,10 +40,10 @@ enum coordinateMethod{
 };
 
 node_parameters
-{
-   AiParameterRGB("color", 1.f, 1.f, 1.f);
-   
-   AiParameterRGB("transparency", .1f, .1f, .1f);
+{   
+   AiParameterFlt("transparency_r", .1f);
+   AiParameterFlt("transparency_g", .1f);
+   AiParameterFlt("transparency_b", .1f);
    AiParameterFlt("phase_func", 0.f);
    
    AiParameterInt("xres", 0);
@@ -131,10 +131,11 @@ node_parameters
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1E);
 }
 
-enum MayaFluidParams{
-   p_color=0,
+enum MayaFluidParams{   
+   p_transparency_r,
+   p_transparency_g,
+   p_transparency_b,
    
-   p_transparency,
    p_phase_func,
    
    p_xres,
@@ -400,7 +401,9 @@ node_update
    data->yres = AiNodeGetInt(node, "yres");
    data->zres = AiNodeGetInt(node, "zres");
    
-   data->transparency = AiNodeGetRGB(node, "transparency");
+   data->transparency.r = AiNodeGetFlt(node, "transparency_r");
+   data->transparency.g = AiNodeGetFlt(node, "transparency_g");
+   data->transparency.b = AiNodeGetFlt(node, "transparency_b");
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
