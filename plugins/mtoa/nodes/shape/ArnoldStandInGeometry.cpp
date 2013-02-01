@@ -247,6 +247,9 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_ma
          m_points[i] = tmpPnt;
       }
    }
+   
+   bbox.expand(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z));
+   bbox.expand(MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 }
 
 CArnoldPointsGeometry::~CArnoldPointsGeometry()
