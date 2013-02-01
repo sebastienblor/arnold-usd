@@ -42,6 +42,11 @@ inline MString CArnoldAssTranslator::defaultExtension() const
    return MString(fileExtension);
 }
 
+inline MString CArnoldAssTranslator::filter() const
+{
+   return MString("*.ass *.ass.gz");
+}
+
 void* CArnoldAssTranslator::importCreator()
 {
    CArnoldAssTranslator* at = new CArnoldAssTranslator();
@@ -89,7 +94,8 @@ MPxFileTranslator::MFileKind CArnoldAssTranslator::identifyFile(const MFileObjec
 
       if ((startOfExtension > 0)
       &&	(startOfExtension < fileNameLen)
-      &&	(fileName.substring(startOfExtension, fileNameLen) == fileExtension))
+      &&	(fileName.substring(startOfExtension, fileNameLen) == fileExtension ||
+          fileName.substring(startOfExtension, fileNameLen) == "gz"))
       {
          return kIsMyFileType;
       }
