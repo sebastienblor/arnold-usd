@@ -78,12 +78,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
+   bool expandProcedurals = false;
    if (list.length() > 0)
    {
       list.getDependNode(0, node);
       MFnDependencyNode fnArnoldRenderOptions(node);
       renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
+      expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -97,11 +99,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (exportSelected)
       {
          cmdStr += " -s";
-      }
-      if (outputAssBoundingBox)
+      }      
+      if (renderType == MTOA_RENDER_EXPORTASS)
       {
-         cmdStr += " -bb";
+         if (expandProcedurals)
+            cmdStr += " -ep";
+         if (outputAssBoundingBox)
+            cmdStr += " -bb";
       }
+      
       if (renderGlobals.isAnimated())
       {
          float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
