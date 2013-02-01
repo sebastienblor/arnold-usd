@@ -44,6 +44,7 @@ node_parameters
    AiParameterRGB("color", 1.f, 1.f, 1.f);
    
    AiParameterRGB("transparency", .1f, .1f, .1f);
+   AiMetaDataSetBool(mds, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
    
    AiParameterInt("xres", 0);
