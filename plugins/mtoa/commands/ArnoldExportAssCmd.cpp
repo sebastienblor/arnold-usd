@@ -273,10 +273,15 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
    MString curfilename;
    MString tocfilename;
+   
+   MComputation computation;
+   computation.beginComputation();
 
    // customFileName is a prefix, need to add frame and extension
    for (double curframe = startframe; curframe <= endframe; curframe += framestep)
    {
+      if (computation.isInterruptRequested())
+         break;
       MGlobal::viewFrame(curframe);
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
@@ -384,6 +389,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
    }
+   computation.endComputation();
 
 
    return status;
