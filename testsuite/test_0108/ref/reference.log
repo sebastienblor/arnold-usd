@@ -1,11 +1,11 @@
 
 Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
 
-00:00:00   155MB         | log started Thu Jan 24 20:19:33 2013
-00:00:00   155MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 23 2013 18:20:36)
+00:00:00   155MB         | log started Fri Feb  1 20:44:08 2013
+00:00:00   155MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Feb  1 2013 13:49:39)
 00:00:00   155MB         | running on samadpc003
 00:00:00   155MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   155MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-5.fc17.x86_64
+00:00:00   155MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.7.3-101.fc17.x86_64
 00:00:00   155MB         |  
 00:00:00   155MB         | Successfully registered Arnold ass file exporter
 00:00:00   155MB         | Successfully registered Arnold ass file importer
@@ -139,13 +139,13 @@ File read in 0 seconds.
 Warning: line 1: This file contains an uncached fluid; rewind and playback to see correct current state.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 Result: /work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0108/test.ma
-Warning: file: /usr/tmp/ASTMPS16ota.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPS16ota.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   248MB         | log started Thu Jan 24 20:19:35 2013
-00:00:00   248MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 23 2013 18:20:36)
+Warning: file: /usr/tmp/ASTMPzB4U9u.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMPzB4U9u.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   248MB         | log started Fri Feb  1 20:44:10 2013
+00:00:00   248MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Feb  1 2013 13:49:39)
 00:00:00   249MB         | running on samadpc003
 00:00:00   249MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   249MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-5.fc17.x86_64
+00:00:00   249MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.7.3-101.fc17.x86_64
 00:00:00   249MB         |  
 00:00:00   249MB         | loading plugin: /work/mtoa-deploy/20135/shaders/mtoa_shaders.so ...
 00:00:00   249MB         | loaded 78 plugins from 1 lib(s) in 0:00.00
@@ -168,11 +168,11 @@ Warning: file: /usr/tmp/ASTMPS16ota.mel line 9: The flag "-renderType" is obsole
 00:00:00   251MB         |  starting 1 bucket workers of size 64x64 ...
 00:00:01   252MB         |    20% done - 14 rays/pixel
 00:00:03   252MB         |    40% done - 16 rays/pixel
-00:00:07   252MB         |    60% done - 17 rays/pixel
+00:00:08   252MB         |    60% done - 17 rays/pixel
 00:00:10   252MB         |    80% done - 16 rays/pixel
-00:00:10   252MB         |    90% done - 16 rays/pixel
+00:00:11   252MB         |    90% done - 16 rays/pixel
 00:00:11   252MB         |   100% done - 15 rays/pixel
-00:00:11   252MB         |  bucket workers done in 0:11.04
+00:00:11   252MB         |  bucket workers done in 0:11.45
 00:00:11   252MB         | render done
 00:00:11   252MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0108/testrender.tif'
 00:00:11   252MB         |  

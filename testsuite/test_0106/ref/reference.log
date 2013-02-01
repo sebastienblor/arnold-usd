@@ -1,11 +1,11 @@
 
 Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
 
-00:00:00   155MB         | log started Thu Jan 17 19:36:32 2013
-00:00:00   155MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 17 2013 17:14:16)
+00:00:00   155MB         | log started Fri Feb  1 20:41:07 2013
+00:00:00   155MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Feb  1 2013 13:49:39)
 00:00:00   155MB         | running on samadpc003
 00:00:00   155MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   155MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-1.fc17.x86_64
+00:00:00   155MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.7.3-101.fc17.x86_64
 00:00:00   155MB         |  
 00:00:00   155MB         | Successfully registered Arnold ass file exporter
 00:00:00   155MB         | Successfully registered Arnold ass file importer
@@ -32,26 +32,26 @@ Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
 00:00:00   155MB         | [mtoa] [<built-in>] Generated 16 new Maya nodes for Arnold built-in nodes.
 00:00:00   155MB         | [mtoa] [<built-in>] Generated 44 translators for 28 Maya nodes (16 new and 12 existing) for Arnold built-in nodes.
 00:00:00   155MB         | loading plugin: /work/mtoa-deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   155MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaClamp uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaCondition uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaReverse uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaFile uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaRamp uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaProjection uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MeshInfo uses Arnold 4.0.12.0.dev
-00:00:00   155MB         |  mtoa_shaders.so: MayaChecker uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaClamp uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaCondition uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaReverse uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaFile uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaRamp uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaProjection uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MeshInfo uses Arnold 4.0.12.0.dev
+00:00:00   156MB         |  mtoa_shaders.so: MayaChecker uses Arnold 4.0.12.0.dev
 00:00:00   156MB         |  mtoa_shaders.so: MayaBulge uses Arnold 4.0.12.0.dev
 00:00:00   156MB         |  mtoa_shaders.so: MayaCloth uses Arnold 4.0.12.0.dev
 00:00:00   156MB         |  mtoa_shaders.so: MayaGrid uses Arnold 4.0.12.0.dev
@@ -139,13 +139,13 @@ File read in 0 seconds.
 Warning: line 1: This file contains an uncached fluid; rewind and playback to see correct current state.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 Result: /work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0106/test.ma
-Warning: file: /usr/tmp/ASTMPeRQKHQ.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPeRQKHQ.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   248MB         | log started Thu Jan 17 19:36:34 2013
-00:00:00   248MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 17 2013 17:14:16)
+Warning: file: /usr/tmp/ASTMPHvt7I2.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMPHvt7I2.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   248MB         | log started Fri Feb  1 20:41:09 2013
+00:00:00   248MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Feb  1 2013 13:49:39)
 00:00:00   249MB         | running on samadpc003
 00:00:00   249MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   249MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-1.fc17.x86_64
+00:00:00   249MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.7.3-101.fc17.x86_64
 00:00:00   249MB         |  
 00:00:00   249MB         | loading plugin: /work/mtoa-deploy/20135/shaders/mtoa_shaders.so ...
 00:00:00   249MB         | loaded 78 plugins from 1 lib(s) in 0:00.00
@@ -172,7 +172,7 @@ Warning: file: /usr/tmp/ASTMPeRQKHQ.mel line 9: The flag "-renderType" is obsole
 00:00:00   253MB         |    80% done - 20 rays/pixel
 00:00:00   253MB         |    90% done - 19 rays/pixel
 00:00:00   253MB         |   100% done - 18 rays/pixel
-00:00:00   253MB         |  bucket workers done in 0:00.81
+00:00:00   253MB         |  bucket workers done in 0:00.75
 00:00:00   253MB         | render done
 00:00:00   253MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0106/testrender.tif'
 00:00:00   253MB         |  
