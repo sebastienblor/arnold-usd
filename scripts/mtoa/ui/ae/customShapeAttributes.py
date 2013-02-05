@@ -149,6 +149,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         
     def setup(self):    
         self.addControl("aiStepSize", label="Step Size")
+        self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.beginLayout("Custom Texture", collapse=True)
         self.addControl("aiOverrideTextures", label="Override Fluid Texture")

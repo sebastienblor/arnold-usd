@@ -57,6 +57,15 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_texture_coordinate_method";
    helper.MakeInputEnum(data);
    
+   strArr.clear();
+   strArr.append("Closest");
+   strArr.append("Linear");
+   strArr.append("Cubic");
+   data.enums = strArr;
+   data.defaultValue.INT = 1;
+   data.name = "aiFilterType";
+   data.shortName = "ai_filter_type";
+   helper.MakeInputEnum(data);   
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -327,12 +336,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
    
    // first getting a simple color information from the color gradient
-   
-   MRampAttribute colorRamp(mayaFluidNode.findPlug("color"));
-   MColor color;
-   colorRamp.getColorAtPosition(0.f, color);
-   
-   AiNodeSetRGB(fluid_shader, "color", (float)color.r, (float)color.g, (float)color.b);
+   ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
    
    const unsigned int numVoxels = xRes * yRes * zRes;
    

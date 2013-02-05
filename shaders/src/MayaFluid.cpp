@@ -39,8 +39,18 @@ enum coordinateMethod{
    CM_GRID
 };
 
+const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic"};
+
+enum filterTypes{
+   FT_CLOSEST = 0,
+   FT_LINEAR,
+   FT_CUBIC
+};
+
 node_parameters
-{   
+{
+   AiParameterEnum("filter_type", FT_LINEAR, filterTypeEnums);
+   
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiMetaDataSetBool(mds, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
@@ -131,6 +141,8 @@ node_parameters
 }
 
 enum MayaFluidParams{
+   p_filter_type,
+   
    p_transparency,
    p_phase_func,
    
@@ -476,12 +488,6 @@ node_finish
    
    delete data;
 }
-
-enum FilterTypes{
-   FT_CLOSEST = 0,
-   FT_LINEAR,
-   FT_CUBIC
-};
 
 static const unsigned int filterType = FT_CUBIC;
 
