@@ -481,47 +481,154 @@ node_finish
    delete data;
 }
 
-template<typename T>
-T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
-{
-   if (arrayDesc.data == 0)
+enum FilterTypes{
+   FT_SINGLE = 0,
+   FT_LINEAR,
+   FT_CUBIC
+};
+
+static const unsigned int filterType = FT_LINEAR;
+
+template <unsigned ft, typename T>
+class Filter{
+public:
+   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
+   {
       return GetDefaultValue<T>();
-   if (arrayDesc.single)
-      return *arrayDesc.data;
-   // position in the voxel grid
-   const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
-   
-   // lower voxel coordiantes
-   const int lcx = CLAMP((int)floorf(fc.x), 0, data->xres - 1);
-   const int lcy = CLAMP((int)floorf(fc.y), 0, data->yres - 1);
-   const int lcz = CLAMP((int)floorf(fc.z), 0, data->zres - 1);
-   
-   // higher voxel coordinates
-   const int hcx = MIN(lcx + 1, data->xres - 1);
-   const int hcy = MIN(lcy + 1, data->yres - 1);
-   const int hcz = MIN(lcz + 1, data->zres - 1);
-   
-   // weight for the lower coordinates
-   const AtVector pc = {fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz};
-   // weight for the upper coordinates
-   const AtVector npc = {1.f - pc.x, 1.f - pc.y, 1.f - pc.z};
-   const int xres = data->xres;
-   const int xyres = xres * data->yres;
-   // sample coordinates
-   const int c000 = lcx + lcy * xres + lcz * xyres;
-   const int c010 = lcx + hcy * xres + lcz * xyres;
-   const int c001 = lcx + lcy * xres + hcz * xyres;
-   const int c011 = lcx + hcy * xres + hcz * xyres;
-   const int c100 = hcx + lcy * xres + lcz * xyres;
-   const int c110 = hcx + hcy * xres + lcz * xyres;
-   const int c101 = hcx + lcy * xres + hcz * xyres;
-   const int c111 = hcx + hcy * xres + hcz * xyres;
-   
-   return ((arrayDesc.data[c000] * npc.y + arrayDesc.data[c010] * pc.y) * npc.x + 
-           (arrayDesc.data[c110] * pc.y + arrayDesc.data[c100] * npc.y) * pc.x) * npc.z +
-          ((arrayDesc.data[c001] * npc.y  + arrayDesc.data[c011] * pc.y) * npc.x +
-           (arrayDesc.data[c111] * pc.y + arrayDesc.data[c101] * npc.y) * pc.x ) * pc.z;   
+   }
+};
+
+template<typename T>
+class Filter<FT_SINGLE, T>{
+public:
+   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
+   {
+      if (arrayDesc.data == 0)
+         return GetDefaultValue<T>();
+      if (arrayDesc.single)
+         return *arrayDesc.data;
+      // position in the voxel grid
+      const AtVector fc = {lPt.x * (float)data->xres, lPt.y * (float)data->yres, lPt.z * (float)data->zres};
+      // voxel coordiantes
+      const int lcx = CLAMP((int)fc.x, 0, data->xres - 1);
+      const int lcy = CLAMP((int)fc.y, 0, data->yres - 1);
+      const int lcz = CLAMP((int)fc.z, 0, data->zres - 1);
+      return arrayDesc.data[lcx + lcy * data->xres + lcz * data->xres * data->yres];
+   }
+};
+
+template<typename T>
+class Filter<FT_LINEAR, T>{
+public:
+   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
+   {
+      if (arrayDesc.data == 0)
+         return GetDefaultValue<T>();
+      if (arrayDesc.single)
+         return *arrayDesc.data;
+      // position in the voxel grid
+      const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
+
+      // lower voxel coordiantes
+      const int lcx = CLAMP((int)fc.x, 0, data->xres - 1);
+      const int lcy = CLAMP((int)fc.y, 0, data->yres - 1);
+      const int lcz = CLAMP((int)fc.z, 0, data->zres - 1);
+
+      // higher voxel coordinates
+      const int hcx = MIN(lcx + 1, data->xres - 1);
+      const int hcy = MIN(lcy + 1, data->yres - 1);
+      const int hcz = MIN(lcz + 1, data->zres - 1);
+
+      // weight for the lower coordinates
+      const AtVector pc = {fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz};
+      // weight for the upper coordinates
+      const AtVector npc = {1.f - pc.x, 1.f - pc.y, 1.f - pc.z};
+      const int xres = data->xres;
+      const int xyres = xres * data->yres;
+      // sample coordinates
+      const int c000 = lcx + lcy * xres + lcz * xyres;
+      const int c010 = lcx + hcy * xres + lcz * xyres;
+      const int c001 = lcx + lcy * xres + hcz * xyres;
+      const int c011 = lcx + hcy * xres + hcz * xyres;
+      const int c100 = hcx + lcy * xres + lcz * xyres;
+      const int c110 = hcx + hcy * xres + lcz * xyres;
+      const int c101 = hcx + lcy * xres + hcz * xyres;
+      const int c111 = hcx + hcy * xres + hcz * xyres;
+
+      return ((arrayDesc.data[c000] * npc.y + arrayDesc.data[c010] * pc.y) * npc.x + 
+              (arrayDesc.data[c110] * pc.y + arrayDesc.data[c100] * npc.y) * pc.x) * npc.z +
+             ((arrayDesc.data[c001] * npc.y  + arrayDesc.data[c011] * pc.y) * npc.x +
+              (arrayDesc.data[c111] * pc.y + arrayDesc.data[c101] * npc.y) * pc.x ) * pc.z;   
+   }
+};
+
+
+template <typename T>
+T MonotonicCubicInterpolant(const T& f1, const T& f2, const T& f3, const T& f4,
+                          float t)
+{
+   return GetDefaultValue<T>();
 }
+
+template <>
+float MonotonicCubicInterpolant<float>(const float& f1, const float& f2, const float& f3, const float& f4, 
+                                       float t)
+{
+  float d_k = .5f * (f3 - f1);
+  float d_k1 = .5f * (f4 - f2);
+  const float delta_k = f3 - f2;
+
+  if (delta_k == 0.f) {
+    d_k = 0.f;
+    d_k1 = 0.f;
+  }
+
+  const float a0 = f2;
+  const float a1 = d_k;
+  const float a2 = (3.f * delta_k) - (2.f * d_k) - d_k1;
+  const float a3 = d_k + d_k1 - (2.f * delta_k);
+
+  const float t1 = t;
+  const float t2 = t1 * t1;
+  const float t3 = t2 * t1;
+
+  return a3 * t3 + a2 * t2 + a1 * t1 + a0;
+}
+
+template <> // specialize this later, maybe the compiler can use SSE better that way
+AtRGB MonotonicCubicInterpolant(const AtRGB& f1, const AtRGB& f2, const AtRGB& f3, const AtRGB& f4,
+                                float t)
+{
+   AtRGB ret = {MonotonicCubicInterpolant(f1.r, f2.r, f3.r, f4.r, t),
+      MonotonicCubicInterpolant(f1.g, f2.g, f3.g, f4.g, t),
+      MonotonicCubicInterpolant(f1.b, f2.b, f3.b, f4.b, t)
+   };
+   return ret;
+}
+
+template <>
+AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const AtVector& f3, const AtVector& f4,
+                                float t)
+{
+   AtVector ret = {MonotonicCubicInterpolant(f1.x, f2.x, f3.x, f4.x, t),
+      MonotonicCubicInterpolant(f1.y, f2.y, f3.y, f4.y, t),
+      MonotonicCubicInterpolant(f1.z, f2.z, f3.z, f4.z, t)
+   };
+   return ret;
+}
+
+template<typename T>
+class Filter<FT_CUBIC, T>{
+public:
+   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
+   {
+      if (arrayDesc.data == 0)
+         return GetDefaultValue<T>();
+      if (arrayDesc.single)
+         return *arrayDesc.data;
+      return GetDefaultValue<T>();
+   }
+};
 
 inline float ApplyBias(const float& value, const float& bias)
 {
@@ -577,15 +684,15 @@ T GetValue(MayaFluidData* data, const AtVector& lPt, const GradientDescription<T
       case GT_CENTER_GRADIENT:
          return GetGradientValue(gradient, 1.0f - AiV3Length(lPt - middlePoint), gradient.inputBias);
       case GT_DENSITY:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->density), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->density), gradient.inputBias);
       case GT_TEMPERATURE:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->temperature), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->temperature), gradient.inputBias);
       case GT_FUEL:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->fuel), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->fuel), gradient.inputBias);
       case GT_PRESSURE:
-         return GetGradientValue(gradient, GetFilteredValue(data, lPt, data->pressure), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->pressure), gradient.inputBias);
       case GT_SPEED:
-         return GetGradientValue(gradient, AiV3Length(GetFilteredValue(data, lPt, data->velocity)), gradient.inputBias);
+         return GetGradientValue(gradient, AiV3Length(Filter<filterType, AtVector>()(data, lPt, data->velocity)), gradient.inputBias);
       default:
          return GetDefaultValue<T>();
    }
@@ -628,7 +735,7 @@ shader_evaluate
       {
          const AtVector oldP = sg->P;
          const AtVector oldPo = sg->Po;
-         sg->P = GetFilteredValue(data, lPt, data->coordinates);
+         sg->P = Filter<filterType, AtVector>()(data, lPt, data->coordinates);
          sg->Po = sg->P;
          AtMatrix oldM, oldMinv;
          AiM4Copy(oldM, sg->M);
@@ -655,7 +762,7 @@ shader_evaluate
    {
       AtVector P;
       if (data->coordinateMethod == CM_GRID)
-         P = GetFilteredValue(data, lPt, data->coordinates);
+         P = Filter<filterType, AtVector>()(data, lPt, data->coordinates);
       else
          P = sg->Po;
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
