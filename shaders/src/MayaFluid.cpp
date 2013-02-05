@@ -487,26 +487,19 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescript
    if (arrayDesc.data == 0)
       return GetDefaultValue<T>();
    if (arrayDesc.single)
-      return *arrayDesc.data;   
-   const float fcx = lPt.x * (float)data->xres;
-   const float fcy = lPt.y * (float)data->yres;
-   const float fcz = lPt.z * (float)data->zres;
+      return *arrayDesc.data;
+   const AtVector fc = {lPt.x * (float)data->xres, lPt.y * (float)data->yres, lPt.z * (float)data->zres};
    
-   const int lcx = CLAMP((int)floorf(fcx), 0, data->xres - 1);
-   const int lcy = CLAMP((int)floorf(fcy), 0, data->yres - 1);
-   const int lcz = CLAMP((int)floorf(fcz), 0, data->zres - 1);
+   const int lcx = CLAMP((int)floorf(fc.x), 0, data->xres - 1);
+   const int lcy = CLAMP((int)floorf(fc.y), 0, data->yres - 1);
+   const int lcz = CLAMP((int)floorf(fc.z), 0, data->zres - 1);
    
    const int hcx = MIN(lcx + 1, data->xres - 1);
    const int hcy = MIN(lcy + 1, data->yres - 1);
    const int hcz = MIN(lcz + 1, data->zres - 1);
    
-   const float pcx = fcx - (float)lcx;
-   const float pcy = fcy - (float)lcy;
-   const float pcz = fcz - (float)lcz;
-   
-   const float npcx = 1.f - pcx;
-   const float npcy = 1.f - pcy;
-   const float npcz = 1.f - pcz;
+   const AtVector pc = {fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz};
+   const AtVector npc = {1.f - pc.x, 1.f - pc.y, 1.f - pc.z};
    const int xmy = data->xres * data->yres;
    const int lczx = lcz * xmy;
    const int hczx = hcz * xmy;
@@ -521,10 +514,10 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescript
    const int c101 = hcx + lcyx + hczx;
    const int c111 = hcx + hcyx + hczx;
    
-   return ((arrayDesc.data[c000] * npcy + arrayDesc.data[c010] * pcy) * npcx + 
-           (arrayDesc.data[c110] * pcy + arrayDesc.data[c100] * npcy) * pcx) * npcz +
-          ((arrayDesc.data[c001] * npcy  + arrayDesc.data[c011] * pcy) * npcx +
-           (arrayDesc.data[c111] * pcy + arrayDesc.data[c101] * npcy) * pcx ) * pcz;   
+   return ((arrayDesc.data[c000] * npc.y + arrayDesc.data[c010] * pc.y) * npc.x + 
+           (arrayDesc.data[c110] * pc.y + arrayDesc.data[c100] * npc.y) * pc.x) * npc.z +
+          ((arrayDesc.data[c001] * npc.y  + arrayDesc.data[c011] * pc.y) * npc.x +
+           (arrayDesc.data[c111] * pc.y + arrayDesc.data[c101] * npc.y) * pc.x ) * pc.z;   
 }
 
 inline float ApplyBias(const float& value, const float& bias)
