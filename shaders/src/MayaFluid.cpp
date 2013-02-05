@@ -488,7 +488,7 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescript
       return GetDefaultValue<T>();
    if (arrayDesc.single)
       return *arrayDesc.data;
-   const AtVector fc = {lPt.x * (float)data->xres, lPt.y * (float)data->yres, lPt.z * (float)data->zres};
+   const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
    
    const int lcx = CLAMP((int)floorf(fc.x), 0, data->xres - 1);
    const int lcy = CLAMP((int)floorf(fc.y), 0, data->yres - 1);
