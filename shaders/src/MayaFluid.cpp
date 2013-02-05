@@ -482,7 +482,7 @@ node_finish
 }
 
 enum FilterTypes{
-   FT_SINGLE = 0,
+   FT_CLOSEST = 0,
    FT_LINEAR,
    FT_CUBIC
 };
@@ -499,7 +499,7 @@ public:
 };
 
 template<typename T>
-class Filter<FT_SINGLE, T>{
+class Filter<FT_CLOSEST, T>{
 public:
    T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
    {
@@ -622,11 +622,119 @@ class Filter<FT_CUBIC, T>{
 public:
    T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
    {
-      if (arrayDesc.data == 0)
+       if (arrayDesc.data == 0)
          return GetDefaultValue<T>();
       if (arrayDesc.single)
          return *arrayDesc.data;
-      return GetDefaultValue<T>();
+      // position in the voxel grid
+      const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
+      // lower voxel coordiantes
+      const int t2x = CLAMP((int)fc.x, 0, data->xres - 1);
+      const int t2y = CLAMP((int)fc.y, 0, data->yres - 1);
+      const int t2z = CLAMP((int)fc.z, 0, data->zres - 1);
+      
+      const AtVector t = {fc.x - (float)t2x, fc.y - (float)t2y, fc.z - (float)t2z};
+      
+      const int t1x = MAX(t2x - 1, 0);
+      const int t1y = MAX(t2y - 1, 0);
+      const int t1z = MAX(t2z - 1, 0);
+      
+      const int t3x = MIN(t2x + 1, data->xres - 1);
+      const int t3y = MIN(t2y + 1, data->yres - 1);
+      const int t3z = MIN(t2z + 1, data->zres - 1);
+      
+      const int t4x = MIN(t3x + 1, data->xres - 1);
+      const int t4y = MIN(t3y + 1, data->yres - 1);
+      const int t4z = MIN(t3z + 1, data->zres - 1);
+      const int xres = data->xres;
+      const int xyres = xres * data->yres;
+      
+      const T z11 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t1y * xres + t1z * xyres],
+              arrayDesc.data[t1x + t1y * xres + t2z * xyres],
+              arrayDesc.data[t1x + t1y * xres + t3z * xyres],
+              arrayDesc.data[t1x + t1y * xres + t4z * xyres], t.z);
+      
+      const T z12 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t2y * xres + t1z * xyres],
+              arrayDesc.data[t1x + t2y * xres + t2z * xyres],
+              arrayDesc.data[t1x + t2y * xres + t3z * xyres],
+              arrayDesc.data[t1x + t2y * xres + t4z * xyres], t.z);
+      
+      const T z13 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t3y * xres + t1z * xyres],
+              arrayDesc.data[t1x + t3y * xres + t2z * xyres],
+              arrayDesc.data[t1x + t3y * xres + t3z * xyres],
+              arrayDesc.data[t1x + t3y * xres + t4z * xyres], t.z);
+      
+      const T z14 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t4y * xres + t1z * xyres],
+              arrayDesc.data[t1x + t4y * xres + t2z * xyres],
+              arrayDesc.data[t1x + t4y * xres + t3z * xyres],
+              arrayDesc.data[t1x + t4y * xres + t4z * xyres], t.z);
+      
+      const T z21 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t1y * xres + t1z * xyres],
+              arrayDesc.data[t2x + t1y * xres + t2z * xyres],
+              arrayDesc.data[t2x + t1y * xres + t3z * xyres],
+              arrayDesc.data[t2x + t1y * xres + t4z * xyres], t.z);
+      
+      const T z22 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t2y * xres + t1z * xyres],
+              arrayDesc.data[t2x + t2y * xres + t2z * xyres],
+              arrayDesc.data[t2x + t2y * xres + t3z * xyres],
+              arrayDesc.data[t2x + t2y * xres + t4z * xyres], t.z);
+      
+      const T z23 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t3y * xres + t1z * xyres],
+              arrayDesc.data[t2x + t3y * xres + t2z * xyres],
+              arrayDesc.data[t2x + t3y * xres + t3z * xyres],
+              arrayDesc.data[t2x + t3y * xres + t4z * xyres], t.z);
+      
+      const T z24 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t4y * xres + t1z * xyres],
+              arrayDesc.data[t2x + t4y * xres + t2z * xyres],
+              arrayDesc.data[t2x + t4y * xres + t3z * xyres],
+              arrayDesc.data[t2x + t4y * xres + t4z * xyres], t.z);
+      
+      const T z31 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t1y * xres + t1z * xyres],
+              arrayDesc.data[t3x + t1y * xres + t2z * xyres],
+              arrayDesc.data[t3x + t1y * xres + t3z * xyres],
+              arrayDesc.data[t3x + t1y * xres + t4z * xyres], t.z);
+      
+      const T z32 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t2y * xres + t1z * xyres],
+              arrayDesc.data[t3x + t2y * xres + t2z * xyres],
+              arrayDesc.data[t3x + t2y * xres + t3z * xyres],
+              arrayDesc.data[t3x + t2y * xres + t4z * xyres], t.z);
+      
+      const T z33 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t3y * xres + t1z * xyres],
+              arrayDesc.data[t3x + t3y * xres + t2z * xyres],
+              arrayDesc.data[t3x + t3y * xres + t3z * xyres],
+              arrayDesc.data[t3x + t3y * xres + t4z * xyres], t.z);
+      
+      const T z34 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t4y * xres + t1z * xyres],
+              arrayDesc.data[t3x + t4y * xres + t2z * xyres],
+              arrayDesc.data[t3x + t4y * xres + t3z * xyres],
+              arrayDesc.data[t3x + t4y * xres + t4z * xyres], t.z);
+      
+      const T z41 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t1y * xres + t1z * xyres],
+              arrayDesc.data[t4x + t1y * xres + t2z * xyres],
+              arrayDesc.data[t4x + t1y * xres + t3z * xyres],
+              arrayDesc.data[t4x + t1y * xres + t4z * xyres], t.z);
+      
+      const T z42 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t2y * xres + t1z * xyres],
+              arrayDesc.data[t4x + t2y * xres + t2z * xyres],
+              arrayDesc.data[t4x + t2y * xres + t3z * xyres],
+              arrayDesc.data[t4x + t2y * xres + t4z * xyres], t.z);
+      
+      const T z43 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t3y * xres + t1z * xyres],
+              arrayDesc.data[t4x + t3y * xres + t2z * xyres],
+              arrayDesc.data[t4x + t3y * xres + t3z * xyres],
+              arrayDesc.data[t4x + t3y * xres + t4z * xyres], t.z);
+      
+      const T z44 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t4y * xres + t1z * xyres],
+              arrayDesc.data[t4x + t4y * xres + t2z * xyres],
+              arrayDesc.data[t4x + t4y * xres + t3z * xyres],
+              arrayDesc.data[t4x + t4y * xres + t4z * xyres], t.z);
+      
+      const T y1 = MonotonicCubicInterpolant(z11, z12, z13, z14, t.y);
+      const T y2 = MonotonicCubicInterpolant(z21, z22, z23, z24, t.y);
+      const T y3 = MonotonicCubicInterpolant(z31, z32, z33, z34, t.y);
+      const T y4 = MonotonicCubicInterpolant(z41, z42, z43, z44, t.y);
+      
+      return MonotonicCubicInterpolant(y1, y2, y3, y4, t.x);
    }
 };
 
