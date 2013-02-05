@@ -284,6 +284,7 @@ struct MayaFluidData{
       velocity.release();
       colors.release();
       coordinates.release();
+      colorGradient.release();
       incandescenceGradient.release();
       opacityGradient.release();
    }
