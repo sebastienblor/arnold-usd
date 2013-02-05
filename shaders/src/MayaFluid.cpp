@@ -254,26 +254,26 @@ struct MayaFluidData{
    GradientDescription<float> opacityGradient;  
    
    AtRGB transparency; 
+   
+   AtVector dmin, dmax;
+   
+   AtNode* volumeTexture;
+   
    float phaseFunc;
    
-   int xres, yres, zres;
-   AtVector dmin, dmax;
+   int filterType;   
+   int xres, yres, zres;      
+   int textureType;
+   int coordinateMethod;
    
    bool colorTexture;
    bool incandTexture;
    bool opacityTexture;
-   bool textureNoise;
-   
-   int textureType;
-   
+   bool textureNoise;   
    bool textureAffectColor;
    bool textureAffectIncand;
    bool textureAffectOpacity;
-   
-   AtNode* volumeTexture;
-   
-   bool textureDisabledInShadows;
-   int coordinateMethod;
+   bool textureDisabledInShadows;   
    
    ~MayaFluidData()
    {
@@ -405,6 +405,8 @@ node_update
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
+   data->filterType = AiNodeGetInt(node, "filter_type");
+   
    data->xres = AiNodeGetInt(node, "xres");
    data->yres = AiNodeGetInt(node, "yres");
    data->zres = AiNodeGetInt(node, "zres");
@@ -489,12 +491,10 @@ node_finish
    delete data;
 }
 
-static const unsigned int filterType = FT_CUBIC;
-
 template <unsigned ft, typename T>
 class Filter{
 public:
-   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
+   T operator()(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
    {
       return GetDefaultValue<T>();
    }
@@ -503,7 +503,7 @@ public:
 template<typename T>
 class Filter<FT_CLOSEST, T>{
 public:
-   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
+   T operator()(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
    {
       if (arrayDesc.data == 0)
          return GetDefaultValue<T>();
@@ -522,7 +522,7 @@ public:
 template<typename T>
 class Filter<FT_LINEAR, T>{
 public:
-   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
+   T operator()(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
    {
       if (arrayDesc.data == 0)
          return GetDefaultValue<T>();
@@ -622,7 +622,7 @@ AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const
 template<typename T>
 class Filter<FT_CUBIC, T>{
 public:
-   T operator()(MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
+   T operator()(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc) // simple linear interpolation
    {
        if (arrayDesc.data == 0)
          return GetDefaultValue<T>();
@@ -767,7 +767,7 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
    return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
 
-AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
+AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
    lPt = (cPt - data->dmin) * data->dmax;
@@ -777,8 +777,8 @@ AtVector ConvertToLocalSpace(MayaFluidData* data, const AtVector& cPt)
    return lPt;
 }
 
-template <typename T>
-T GetValue(MayaFluidData* data, const AtVector& lPt, const GradientDescription<T>& gradient)
+template <unsigned ft, typename T>
+T GetValue(const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    switch (gradient.type)
@@ -794,15 +794,15 @@ T GetValue(MayaFluidData* data, const AtVector& lPt, const GradientDescription<T
       case GT_CENTER_GRADIENT:
          return GetGradientValue(gradient, 1.0f - AiV3Length(lPt - middlePoint), gradient.inputBias);
       case GT_DENSITY:
-         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->density), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<ft, float>()(data, lPt, data->density), gradient.inputBias);
       case GT_TEMPERATURE:
-         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->temperature), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<ft, float>()(data, lPt, data->temperature), gradient.inputBias);
       case GT_FUEL:
-         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->fuel), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<ft, float>()(data, lPt, data->fuel), gradient.inputBias);
       case GT_PRESSURE:
-         return GetGradientValue(gradient, Filter<filterType, float>()(data, lPt, data->pressure), gradient.inputBias);
+         return GetGradientValue(gradient, Filter<ft, float>()(data, lPt, data->pressure), gradient.inputBias);
       case GT_SPEED:
-         return GetGradientValue(gradient, AiV3Length(Filter<filterType, AtVector>()(data, lPt, data->velocity)), gradient.inputBias);
+         return GetGradientValue(gradient, AiV3Length(Filter<ft, AtVector>()(data, lPt, data->velocity)), gradient.inputBias);
       default:
          return GetDefaultValue<T>();
    }
@@ -823,15 +823,15 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
    }
 }
 
-shader_evaluate
-{
 #if AI_VERSION_MINOR_NUM > 11
-   MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
 
+template <unsigned filterType>
+void ShaderEvaluate(AtNode* node, AtShaderGlobals* sg, const MayaFluidData* data)
+{
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity); 
+      const float opacity = GetValue<filterType>(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity); 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -933,17 +933,36 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity); 
+      const float opacity = GetValue<filterType>(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity); 
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
    
-   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * opacityNoise; 
-   const AtRGB color = GetValue(data, lPt, data->colorGradient) * colorNoise;
-   const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient) * incandNoise;
+   const AtRGB opacity = GetValue<filterType>(data, lPt, data->opacityGradient) * data->transparency * opacityNoise; 
+   const AtRGB color = GetValue<filterType>(data, lPt, data->colorGradient) * colorNoise;
+   const AtRGB incandescence = GetValue<filterType>(data, lPt, data->incandescenceGradient) * incandNoise;
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
    AiShaderGlobalsSetVolumeScattering(sg, opacity * color, data->phaseFunc);
-#endif
 }
+
+shader_evaluate
+{
+   const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
+   
+   if (data->filterType == FT_CLOSEST)
+      ShaderEvaluate<FT_CLOSEST>(node, sg, data);
+   else if (data->filterType == FT_LINEAR)
+      ShaderEvaluate<FT_LINEAR>(node, sg, data);
+   else
+      ShaderEvaluate<FT_CUBIC>(node, sg, data);
+}
+
+#else
+shader_evaluate
+{
+   
+}
+
+#endif
