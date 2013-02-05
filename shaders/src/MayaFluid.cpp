@@ -488,31 +488,34 @@ T GetFilteredValue(MayaFluidData* data, const AtVector& lPt, const ArrayDescript
       return GetDefaultValue<T>();
    if (arrayDesc.single)
       return *arrayDesc.data;
+   // position in the voxel grid
    const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
    
+   // lower voxel coordiantes
    const int lcx = CLAMP((int)floorf(fc.x), 0, data->xres - 1);
    const int lcy = CLAMP((int)floorf(fc.y), 0, data->yres - 1);
    const int lcz = CLAMP((int)floorf(fc.z), 0, data->zres - 1);
    
+   // higher voxel coordinates
    const int hcx = MIN(lcx + 1, data->xres - 1);
    const int hcy = MIN(lcy + 1, data->yres - 1);
    const int hcz = MIN(lcz + 1, data->zres - 1);
    
+   // weight for the lower coordinates
    const AtVector pc = {fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz};
+   // weight for the upper coordinates
    const AtVector npc = {1.f - pc.x, 1.f - pc.y, 1.f - pc.z};
-   const int xmy = data->xres * data->yres;
-   const int lczx = lcz * xmy;
-   const int hczx = hcz * xmy;
-   const int lcyx = lcy * data->xres;
-   const int hcyx = hcy * data->xres;
-   const int c000 = lcx + lcyx + lczx;
-   const int c010 = lcx + hcyx + lczx;
-   const int c001 = lcx + lcyx + hczx;
-   const int c011 = lcx + hcyx + hczx;
-   const int c100 = hcx + lcyx + lczx;
-   const int c110 = hcx + hcyx + lczx;
-   const int c101 = hcx + lcyx + hczx;
-   const int c111 = hcx + hcyx + hczx;
+   const int xres = data->xres;
+   const int xyres = xres * data->yres;
+   // sample coordinates
+   const int c000 = lcx + lcy * xres + lcz * xyres;
+   const int c010 = lcx + hcy * xres + lcz * xyres;
+   const int c001 = lcx + lcy * xres + hcz * xyres;
+   const int c011 = lcx + hcy * xres + hcz * xyres;
+   const int c100 = hcx + lcy * xres + lcz * xyres;
+   const int c110 = hcx + hcy * xres + lcz * xyres;
+   const int c101 = hcx + lcy * xres + hcz * xyres;
+   const int c111 = hcx + hcy * xres + hcz * xyres;
    
    return ((arrayDesc.data[c000] * npc.y + arrayDesc.data[c010] * pc.y) * npc.x + 
            (arrayDesc.data[c110] * pc.y + arrayDesc.data[c100] * npc.y) * pc.x) * npc.z +
