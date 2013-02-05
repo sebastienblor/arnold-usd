@@ -40,9 +40,7 @@ enum coordinateMethod{
 };
 
 node_parameters
-{
-   AiParameterRGB("color", 1.f, 1.f, 1.f);
-   
+{   
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiMetaDataSetBool(mds, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
@@ -133,8 +131,6 @@ node_parameters
 }
 
 enum MayaFluidParams{
-   p_color=0,
-   
    p_transparency,
    p_phase_func,
    
@@ -487,7 +483,7 @@ enum FilterTypes{
    FT_CUBIC
 };
 
-static const unsigned int filterType = FT_LINEAR;
+static const unsigned int filterType = FT_CUBIC;
 
 template <unsigned ft, typename T>
 class Filter{
