@@ -302,8 +302,7 @@ struct MayaFluidData{
 
 node_initialize
 {
-   MayaFluidData* data = new MayaFluidData();
-   AiNodeSetLocalData(node, data);
+   AiNodeSetLocalData(node, new MayaFluidData());
 }
 
 template <typename T>
@@ -961,6 +960,7 @@ shader_evaluate
 }
 
 #else
+
 shader_evaluate
 {
    
