@@ -7,20 +7,6 @@
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
-enum GradientType{
-   GT_CONSTANT = 0,
-   GT_X_GRADIENT,
-   GT_Y_GRADIENT,
-   GT_Z_GRADIENT,
-   GT_CENTER_GRADIENT,
-   GT_DENSITY,
-   GT_TEMPERATURE,
-   GT_FUEL,
-   GT_PRESSURE,
-   GT_SPEED,
-   GT_DENSITY_AND_FUEL
-};
-
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
 
 enum textureType{
@@ -41,10 +27,29 @@ enum coordinateMethod{
 
 const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic"};
 
-enum filterTypes{
+enum filterType{
    FT_CLOSEST = 0,
    FT_LINEAR,
    FT_CUBIC
+};
+
+const char* gradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient",
+                                    "Z Gradient", "Center Gradient", "Density",
+                                    "Temperature", "Fuel", "Pressure", "Speed",
+                                    "Density And Fuel", 0};
+
+enum gradientType{
+   GT_CONSTANT = 0,
+   GT_X_GRADIENT,
+   GT_Y_GRADIENT,
+   GT_Z_GRADIENT,
+   GT_CENTER_GRADIENT,
+   GT_DENSITY,
+   GT_TEMPERATURE,
+   GT_FUEL,
+   GT_PRESSURE,
+   GT_SPEED,
+   GT_DENSITY_AND_FUEL
 };
 
 node_parameters
@@ -73,19 +78,15 @@ node_parameters
    
    AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
-   static const char* gradientTypes[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
-      "Center Gradient", "Density", "Temperature", "Fuel", "Pressure", "Speed",
-      "Density And Fuel", 0};
-   
-   AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypes);
+   AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
    AiParameterArray("color_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    AiParameterFlt("color_gradient_input_bias", 0.0f);
    
-   AiParameterEnum("incandescence_gradient_type", GT_TEMPERATURE, gradientTypes);
+   AiParameterEnum("incandescence_gradient_type", GT_TEMPERATURE, gradientTypeEnums);
    AiParameterArray("incandescence_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    AiParameterFlt("incandescence_gradient_input_bias", 0.0f);
    
-   AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypes);
+   AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypeEnums);
    AiParameterArray("opacity_gradient", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    AiParameterFlt("opacity_gradient_input_bias", 0.0f);   
    
@@ -740,7 +741,8 @@ public:
    }
 };
 
-inline float ApplyBias(const float& value, const float& bias)
+inline
+float ApplyBias(const float& value, const float& bias)
 {
    if (bias == 0.f)
       return value;
@@ -767,6 +769,7 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
    return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
 
+inline
 AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
@@ -808,6 +811,7 @@ T GetValue(const MayaFluidData* data, const AtVector& lPt, const GradientDescrip
    }
 }
 
+inline
 void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
 {
    if ((implode > AI_EPSILON) || (implode < -AI_EPSILON))
@@ -825,13 +829,13 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
 
 #if AI_VERSION_MINOR_NUM > 11
 
-template <unsigned filterType>
+template <unsigned ft>
 void ShaderEvaluate(AtNode* node, AtShaderGlobals* sg, const MayaFluidData* data)
 {
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = GetValue<filterType>(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity); 
+      const float opacity = GetValue<ft>(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -845,7 +849,7 @@ void ShaderEvaluate(AtNode* node, AtShaderGlobals* sg, const MayaFluidData* data
       {
          const AtVector oldP = sg->P;
          const AtVector oldPo = sg->Po;
-         sg->P = Filter<filterType, AtVector>()(data, lPt, data->coordinates);
+         sg->P = Filter<ft, AtVector>()(data, lPt, data->coordinates);
          sg->Po = sg->P;
          AtMatrix oldM, oldMinv;
          AiM4Copy(oldM, sg->M);
@@ -872,7 +876,7 @@ void ShaderEvaluate(AtNode* node, AtShaderGlobals* sg, const MayaFluidData* data
    {
       AtVector P;
       if (data->coordinateMethod == CM_GRID)
-         P = Filter<filterType, AtVector>()(data, lPt, data->coordinates);
+         P = Filter<ft, AtVector>()(data, lPt, data->coordinates);
       else
          P = sg->Po;
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
@@ -933,14 +937,14 @@ void ShaderEvaluate(AtNode* node, AtShaderGlobals* sg, const MayaFluidData* data
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue<filterType>(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity); 
+      const float opacity = GetValue<ft>(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }  
    
-   const AtRGB opacity = GetValue<filterType>(data, lPt, data->opacityGradient) * data->transparency * opacityNoise; 
-   const AtRGB color = GetValue<filterType>(data, lPt, data->colorGradient) * colorNoise;
-   const AtRGB incandescence = GetValue<filterType>(data, lPt, data->incandescenceGradient) * incandNoise;
+   const AtRGB opacity = GetValue<ft>(data, lPt, data->opacityGradient) * data->transparency * opacityNoise;
+   const AtRGB color = GetValue<ft>(data, lPt, data->colorGradient) * colorNoise;
+   const AtRGB incandescence = GetValue<ft>(data, lPt, data->incandescenceGradient) * incandNoise;
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
