@@ -781,10 +781,17 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
       return GetDefaultValue<T>();
    const float _v = ApplyBias(v, bias);
    const float p = _v * gradient.resolution;
+#ifdef ENABLE_OPTIMIZATIONS
+   const int pi = (int)p;
+   const int b = CLAMP(pi, 0, gradient.resolution - 1);
+   const int e = MIN(b + 1, gradient.resolution - 1);
+   const float pf = p - (float)pi;
+#else
    float pf = floorf(p);
    const int b = CLAMP((int)pf, 0, gradient.resolution - 1);
    const int e = MIN(b + 1, gradient.resolution - 1);
    pf = p - pf;
+#endif
    return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
 
