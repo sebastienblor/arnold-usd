@@ -851,16 +851,9 @@ void ShaderEvaluate(AtNode* node, AtShaderGlobals* sg, const MayaFluidData* data
          const AtVector oldPo = sg->Po;
          sg->P = Filter<ft, AtVector>()(data, lPt, data->coordinates);
          sg->Po = sg->P;
-         AtMatrix oldM, oldMinv;
-         AiM4Copy(oldM, sg->M);
-         AiM4Copy(oldMinv, sg->Minv);
-         AiM4Identity(sg->M);
-         AiM4Identity(sg->Minv);
          AiShaderEvaluate(data->volumeTexture, sg);
          sg->P = oldP;
          sg->Po = oldPo;
-         AiM4Copy(sg->M, oldM);
-         AiM4Copy(sg->Minv, oldMinv);
       }
       else
          AiShaderEvaluate(data->volumeTexture, sg);
