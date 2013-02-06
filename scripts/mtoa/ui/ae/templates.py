@@ -67,9 +67,12 @@ def getNodeTemplate(nodeType):
     """
     global _templates
     try:
-        return _templates[nodeType]
+        # has one been explicitly registered?
+        templateClass, nodeType, args, kwargs = _templates[nodeType]
     except KeyError:
-        pass
+        return
+    else:
+        return templateClass(nodeType, *args, **kwargs)
 
 #-------------------------------------------------
 # AE templates
@@ -797,7 +800,7 @@ def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     global _templates
     if nodeType not in _templates:
         try:
-            _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
+            _templates[nodeType] = (templateClass, nodeType, args, kwargs)
             arnold.AiMsgDebug("registered attribute template for %s" % nodeType)
         except:
             arnold.AiMsgError("Failed to instantiate AE Template %s" % templateClass)
@@ -928,12 +931,8 @@ def loadArnoldTemplate(nodeName):
     if core.isMtoaNode(nodeType):
         return
 
-    try:
-        # has one been explicitly registered?
-        template = _templates[nodeType]
-    except KeyError:
-        pass
-    else:
+    template = getNodeTemplate(nodeType)
+    if template:
         pm.cmds.editorTemplate(beginLayout='Arnold', collapse=True)
         template._doSetup(nodeName)
         if hasattr(template, '_attributes'):
