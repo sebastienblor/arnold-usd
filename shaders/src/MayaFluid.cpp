@@ -5,7 +5,7 @@
 
 #include "RandomNoise.h"
 
-#define ENABLE_FAST_MATH
+#define ENABLE_OPTIMIZATIONS
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
@@ -54,6 +54,7 @@ enum gradientType{
    GT_DENSITY_AND_FUEL
 };
 
+#ifdef ENABLE_OPTIMIZATIONS
 // http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
 inline float FastPow(float a, float b) {
    union {
@@ -64,6 +65,7 @@ inline float FastPow(float a, float b) {
    u.x[0] = 0;
    return (float)u.d;
 }
+#endif
 
 node_parameters
 {
@@ -764,7 +766,7 @@ float ApplyBias(const float& value, const float& bias)
       const float b = bias < -.99f ? -.99f : bias;
       const float x = value < 0.f ? 0.f : value;
       
-#ifdef ENABLE_FAST_MATH
+#ifdef ENABLE_OPTIMIZATIONS
       return FastPow(x, (b - 1.f) / (-b - 1.f));
 #else
       return powf(x, (b - 1.f) / (-b - 1.f));
@@ -837,7 +839,7 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
       const float dist = AiV3Length(v);
       if (dist > AI_EPSILON)
       {
-#ifdef ENABLE_FAST_MATH
+#ifdef ENABLE_OPTIMIZATIONS
          const float fac = FastPow(dist, 1.f - implode) / dist;
 #else
          const float fac = powf(dist, 1.f - implode) / dist;
