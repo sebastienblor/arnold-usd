@@ -5,6 +5,8 @@
 
 #include "RandomNoise.h"
 
+#define ENABLE_FAST_MATH
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
@@ -51,6 +53,17 @@ enum gradientType{
    GT_SPEED,
    GT_DENSITY_AND_FUEL
 };
+
+// http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
+inline float FastPow(float a, float b) {
+   union {
+      double d;
+      int x[2];
+   } u = { (double)a };
+   u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
+   u.x[0] = 0;
+   return (float)u.d;
+}
 
 node_parameters
 {
@@ -751,7 +764,11 @@ float ApplyBias(const float& value, const float& bias)
       const float b = bias < -.99f ? -.99f : bias;
       const float x = value < 0.f ? 0.f : value;
       
+#ifdef ENABLE_FAST_MATH
+      return FastPow(x, (b - 1.f) / (-b - 1.f));
+#else
       return powf(x, (b - 1.f) / (-b - 1.f));
+#endif
    }
 }
 
@@ -820,7 +837,11 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
       const float dist = AiV3Length(v);
       if (dist > AI_EPSILON)
       {
+#ifdef ENABLE_FAST_MATH
+         const float fac = FastPow(dist, 1.f - implode) / dist;
+#else
          const float fac = powf(dist, 1.f - implode) / dist;
+#endif
          v *= fac;
       }
       v += implodeCenter;
