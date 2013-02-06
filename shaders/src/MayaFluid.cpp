@@ -793,9 +793,11 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
    lPt = (cPt - data->dmin) * data->dmax;
+#ifndef ENABLE_OPTIMIZATIONS
    lPt.x = CLAMP(lPt.x, 0.f, 1.f);
    lPt.y = CLAMP(lPt.y, 0.f, 1.f);
    lPt.z = CLAMP(lPt.z, 0.f, 1.f);
+#endif
    return lPt;
 }
 
