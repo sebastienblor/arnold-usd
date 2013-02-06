@@ -409,7 +409,7 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
       cmd += "progressBar -edit -progress ";
       cmd += progress;
       cmd += " $gMainProgressBar;";
-      MGlobal::executeCommand(cmd);
+      MGlobal::executeCommand(cmd, false);
    }
    else
    {
@@ -446,7 +446,7 @@ void RefreshRenderViewBBox()
    cmd += "progressBar -edit -progress ";
    cmd += progress;
    cmd += " $gMainProgressBar;";
-   MGlobal::executeCommand(cmd);
+   MGlobal::executeCommand(cmd, false);
 }
 
 // Please note: this function flips the Y as the resulting
@@ -746,7 +746,7 @@ void BeginImage()
    MString cmd;
    cmd += "global string $gMainProgressBar;";
    cmd += "progressBar -edit -beginProgress -status \"Arnold Render ...\" -maxValue 100 -progress 0 $gMainProgressBar;";
-   MGlobal::executeCommand(cmd);
+   MGlobal::executeCommand(cmd, false);
 }
 
 void EndImage()
@@ -818,7 +818,7 @@ void EndImage()
       MMessage::removeCallback(s_timer_cb);
       s_timer_cb = 0;
    }
-   MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;");
+   MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;", false);
 }
 
 // return false if render is done
