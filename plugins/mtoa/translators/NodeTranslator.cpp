@@ -473,7 +473,6 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
       else
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                     GetMayaNodeName().asChar(), GetTranslatorName().asChar());
-      ExportOverrideSets();
       ComputeAOVs();
       Export(node);
       ExportUserAttribute(node);
@@ -516,7 +515,6 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 
    if (step == 0)
    {
-      ExportOverrideSets();
       Update(node);
       ExportUserAttribute(node);
    }
