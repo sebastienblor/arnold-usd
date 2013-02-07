@@ -432,10 +432,10 @@ if system.os() == 'windows':
                                             '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
                                             '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
                                             '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
-                                 variant = ['Debug_MSVC|Win64',
-                                            'Debug_ICC|Win64',
-                                            'Opt_MSVC|Win64',
-                                            'Opt_ICC|Win64'],
+                                 variant = ['Debug_MSVC|x64',
+                                            'Debug_ICC|x64',
+                                            'Opt_MSVC|x64',
+                                            'Opt_ICC|x64'],
                                  auto_build_solution = 0,
                                  nokeep = 1)
    
@@ -445,10 +445,10 @@ if system.os() == 'windows':
                                            os.path.join('shaders', 'src', 'mtoa_shaders') + env['MSVS']['PROJECTSUFFIX'],
                                            'install' + env['MSVS']['PROJECTSUFFIX']],  ## TODO: Find a clean way of getting these project paths
                                dependencies = [[], [], [], ['mtoa', 'mtoa_api', 'mtoa_shaders']],
-                               variant = ['Debug_MSVC|Win64',
-                                          'Debug_ICC|Win64',
-                                          'Opt_MSVC|Win64',
-                                          'Opt_ICC|Win64'])
+                               variant = ['Debug_MSVC|x64',
+                                          'Debug_ICC|x64',
+                                          'Opt_MSVC|x64',
+                                          'Opt_ICC|x64'])
 else:
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
