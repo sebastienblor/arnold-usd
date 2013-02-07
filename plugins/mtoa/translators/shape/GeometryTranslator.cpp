@@ -197,10 +197,20 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
       tangentFn.setObject(dp);
    }
    else
-      tangentFn.setObject(fnMesh.object());
+      tangentFn.setObject(fnMesh.object());  
+   
+   MFloatVectorArray mayaTangents;
+   MFloatVectorArray mayaBitangents;
+   
+   status = tangentFn.getTangents(mayaTangents, space);
+   if (!status)
+      return false;
+   status = tangentFn.getBinormals(mayaBitangents, space);
+   if (!status)
+      return false;
 
    int nverts = fnMesh.numVertices();
-
+   
    tangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
    bitangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
    
@@ -208,13 +218,7 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
    {
       AiArraySetVec(tangents, i, AI_V3_ZERO);
       AiArraySetVec(bitangents, i, AI_V3_ZERO);
-   }
-   
-   MFloatVectorArray mayaTangents;
-   MFloatVectorArray mayaBitangents;
-   
-   tangentFn.getTangents(mayaTangents, space);
-   tangentFn.getBinormals(mayaBitangents, space);
+   }  
    
    std::vector<int> weights;
    weights.resize(nverts, 0);
