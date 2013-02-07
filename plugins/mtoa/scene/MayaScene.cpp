@@ -336,13 +336,16 @@ MStatus CMayaScene::ExportAndRenderSequence( ArnoldSessionMode mode,
 MStatus CMayaScene::ExecuteScript(const MString &str, bool echo, bool idle)
 {
    MStatus status = MStatus::kSuccess;
+   MString str2 = "catchQuiet(`";
+   str2 += str;
+   str2 += "`);";
 
    if (str.length() > 0)
    {
       if (idle)
-         status = MGlobal::executeCommandOnIdle(str, echo);
+         status = MGlobal::executeCommandOnIdle(str2, echo);
       else
-         status = MGlobal::executeCommand(str, echo);
+         status = MGlobal::executeCommand(str2, echo);
    }
 
    return status;
