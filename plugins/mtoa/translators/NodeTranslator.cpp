@@ -1815,35 +1815,39 @@ void CDagTranslator::ExportMotion(AtNode* node, unsigned int step)
 
 /// get override sets containing the passed Maya dag path
 /// and add them to the passed MObjectArray
+/// and we also need to check the parent nodes, so groups are handled properly
 MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
 {
    MStatus status;
-
-   MFnDagNode fnDag(path);
-   unsigned int instNum = path.instanceNumber();
-   MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
-   CHECK_MSTATUS(status)
-   MPlugArray connections;
-   MFnSet fnSet;
-   // MString plugName = instObjGroups.name();
-   if (instObjGroups.connectedTo(connections, false, true, &status))
+   MDagPath pathRec = path;
+   for(;pathRec.length();pathRec.pop(1))
    {
-      unsigned int nc = connections.length();
-      for (unsigned int i=0; i<nc; i++)
+      MFnDagNode fnDag(pathRec);
+      unsigned int instNum = pathRec.instanceNumber();
+      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
+      CHECK_MSTATUS(status)
+      MPlugArray connections;
+      MFnSet fnSet;
+      // MString plugName = instObjGroups.name();
+      if (instObjGroups.connectedTo(connections, false, true, &status))
       {
-         MObject set = connections[i].node();
-         MFnDependencyNode setDNode(set);
-         if (setDNode.typeName() == MString("objectSet"))
+         unsigned int nc = connections.length();
+         for (unsigned int i=0; i<nc; i++)
          {
-            if (!fnSet.setObject(set))
-               continue;
-            // MString setName = fnSet.name();
-            // Also add sets with override turned off to allow chaining
-            // on these as well
-            MPlug p = fnSet.findPlug("aiOverride", true, &status);
-            if ((MStatus::kSuccess == status) && !p.isNull())
+            MObject set = connections[i].node();
+            MFnDependencyNode setDNode(set);
+            if (setDNode.typeName() == MString("objectSet"))
             {
-               overrideSets.append(set);
+               if (!fnSet.setObject(set))
+                  continue;
+               // MString setName = fnSet.name();
+               // Also add sets with override turned off to allow chaining
+               // on these as well
+               MPlug p = fnSet.findPlug("aiOverride", true, &status);
+               if ((MStatus::kSuccess == status) && !p.isNull())
+               {
+                  overrideSets.append(set);
+               }
             }
          }
       }
