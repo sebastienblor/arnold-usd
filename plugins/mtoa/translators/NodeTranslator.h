@@ -124,6 +124,7 @@ protected:
    {
       m_session = session;
       m_handle = object;
+      ExportOverrideSets();
       return DoCreateArnoldNodes();
    }
    CNodeAttrHandle GetMayaHandle() const { return m_handle; }
@@ -234,7 +235,7 @@ public:
    {
       m_dagPath = dagPath;
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      AtNode * tmpRet = CNodeTranslator::Init(session, CNodeAttrHandle(dagPath, outputAttr));
+      AtNode * tmpRet = CNodeTranslator::Init(session, CNodeAttrHandle(dagPath, outputAttr));      
       return tmpRet;
    }
 
