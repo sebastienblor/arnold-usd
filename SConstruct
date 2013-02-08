@@ -44,6 +44,7 @@ vars.AddVariables(
       EnumVariable('MODE'       , 'Set compiler configuration', 'debug'             , allowed_values=('opt', 'debug', 'profile')),
       EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
       EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
+      ('COMPILER_VERSION'       , 'Version of compiler to use', ''),
       BoolVariable('MULTIPROCESS','Enable multiprocessing in the testsuite', True),
       BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
       PathVariable('LINK', 'Linker to use', None),
@@ -197,8 +198,7 @@ print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
-print 'Host arch.     : %s' % (system.host_arch())
-print 'Target arch.   : %s' % (system.target_arch())
+print 'Compiler       : %s' % (env['COMPILER'] + env['COMPILER_VERSION'])
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
@@ -257,6 +257,10 @@ if env['COMPILER'] == 'gcc':
       ## tell gcc to compile a 64 bit binary
       env.Append(CCFLAGS = Split('-arch x86_64'))
       env.Append(LINKFLAGS = Split('-arch x86_64'))
+   compiler_version = env['COMPILER_VERSION']
+   if compiler_version != '':
+      env['CC']  = 'gcc' + compiler_version
+      env['CXX'] = 'g++' + compiler_version
 
 elif env['COMPILER'] == 'msvc':
    MSVC_FLAGS  = " /W3"         # Warning level : 3
