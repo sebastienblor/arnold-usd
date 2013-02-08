@@ -198,7 +198,8 @@ print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
-print 'Compiler       : %s' % (env['COMPILER'] + env['COMPILER_VERSION'])
+if system.os() == 'linux':
+   print 'Compiler       : %s' % (env['COMPILER'] + env['COMPILER_VERSION'])
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
