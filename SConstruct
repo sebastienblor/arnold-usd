@@ -1,6 +1,7 @@
 # vim: filetype=python
 
 ## first we extend the module path to load our own modules
+import subprocess
 import sys, os
 sys.path = ["tools/python"] + sys.path
 
@@ -199,7 +200,12 @@ print 'Maya version   : %s' % maya_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 if system.os() == 'linux':
-   print 'Compiler       : %s' % (env['COMPILER'] + env['COMPILER_VERSION'])
+   try:
+      p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
+      compiler_version, err = p.communicate()
+      print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+   except:
+      pass
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
@@ -217,6 +223,10 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
+   compiler_version = env['COMPILER_VERSION']
+   if compiler_version != '':
+      env['CC']  = 'gcc' + compiler_version
+      env['CXX'] = 'g++' + compiler_version
    # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
    if env['MODE'] == 'opt': 
@@ -258,10 +268,6 @@ if env['COMPILER'] == 'gcc':
       ## tell gcc to compile a 64 bit binary
       env.Append(CCFLAGS = Split('-arch x86_64'))
       env.Append(LINKFLAGS = Split('-arch x86_64'))
-   compiler_version = env['COMPILER_VERSION']
-   if compiler_version != '':
-      env['CC']  = 'gcc' + compiler_version
-      env['CXX'] = 'g++' + compiler_version
 
 elif env['COMPILER'] == 'msvc':
    MSVC_FLAGS  = " /W3"         # Warning level : 3
