@@ -336,9 +336,9 @@ MStatus CMayaScene::ExportAndRenderSequence( ArnoldSessionMode mode,
 MStatus CMayaScene::ExecuteScript(const MString &str, bool echo, bool idle)
 {
    MStatus status = MStatus::kSuccess;
-   MString str2 = "catchQuiet(`";
+   MString str2 = "proc CMayaSceneExecuteScript(){";
    str2 += str;
-   str2 += "`);";
+   str2 += ";}catchQuiet(`CMayaSceneExecuteScript()`);";
 
    if (str.length() > 0)
    {
