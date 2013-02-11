@@ -77,15 +77,10 @@ AtArray* GetArray(AtNode* node, const char* paramName, unsigned int size, int ty
 {
    AtArray* arr = AiNodeGetArray(node, paramName);
    if (arr == 0)
-   {
       arr = AiArrayAllocate(size, 1, type);
-      AiNodeSetArray(node, paramName, arr);
-   }
    else if (arr->nelements != size)
-   {
       arr = AiArrayAllocate(size, 1, type);
-      AiNodeSetArray(node, paramName, arr);
-   }
+   AiNodeSetArray(node, paramName, arr);      
    return arr;
 }
 
