@@ -62,6 +62,9 @@ vars.AddVariables(
       PathVariable('MAYA_ROOT',
                    'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
                    get_default_path('MAYA_LOCATION', '.')),
+      PathVariable('MAYA_INCLUDE_PATH',
+                   'Directory where Maya SDK headers are installed',
+                   '.'),
       PathVariable('EXTERNAL_PATH',
                    'External dependencies are found here', 
                    '.', PathVariable.PathIsDir),
@@ -163,10 +166,12 @@ if env['COLOR_CMDS']:
 
 #define shortcuts for the above paths, with substitution of environment variables
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
-if system.os() == 'darwin':
-    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
-else:
-    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+MAYA_INCLUDE_PATH = env.subst(env['MAYA_INCLUDE_PATH'])
+if env['MAYA_INCLUDE_PATH'] == '.':
+	if system.os() == 'darwin':
+	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
+	else:
+	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
 EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
