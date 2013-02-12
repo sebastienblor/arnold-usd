@@ -79,18 +79,11 @@ AtNode* CFluidTranslator::CreateArnoldNodes()
    return AddArnoldNode("box");
 }
 
-AtArray* GetArray(AtNode* node, const char* paramName, unsigned int size, int type)
-{
-   AtArray* arr = AiArrayAllocate(size, 1, type);
-   AiNodeSetArray(node, paramName, arr);
-   return arr;
-}
-
 void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsigned int numVoxels)
 {
    if (values == 0)
       return;
-   AtArray* array = GetArray(fluid, paramName, numVoxels, AI_TYPE_FLOAT);
+   AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_FLOAT);
    for (unsigned int i = 0; i < numVoxels; ++i)
    {
       const float cVoxel = values[i];
@@ -99,24 +92,26 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
       else
          AiArraySetFlt(array, i, cVoxel);
    }
+   AiNodeSetArray(fluid, paramName, array);
 }
 
 void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
 {
    MRampAttribute ramp(plug);
-   AtArray* array = GetArray(node, paramName, samplingResolution, AI_TYPE_FLOAT);
+   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_FLOAT);
    for (int i = 0; i < samplingResolution; ++i)
    {
       float v;
       ramp.getValueAtPosition((float)i / (float)(samplingResolution - 1), v);
       AiArraySetFlt(array, i, v);
    }
+   AiNodeSetArray(node, paramName, array);
 }
 
 void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
 {
    MRampAttribute ramp(plug);
-   AtArray* array = GetArray(node, paramName, samplingResolution, AI_TYPE_RGB);
+   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_RGB);
    for (int i = 0; i < samplingResolution; ++i)
    {
       MColor v;
@@ -124,6 +119,7 @@ void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samp
       AtRGB rgb = {(float)v.r, (float)v.g, (float)v.b};
       AiArraySetRGB(array, i, rgb);
    }
+   AiNodeSetArray(node, paramName, array);
 }
 
 enum GradientType{
@@ -368,7 +364,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       mayaFluid.getVelocity(x, y, z);
       if (x != 0 && y != 0 && z != 0)
       {
-         AtArray* array = GetArray(fluid_shader, "velocity", numVoxels, AI_TYPE_VECTOR);
+         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
             AtVector cVector = {x[i], y[i], z[i]};
@@ -377,6 +373,7 @@ void CFluidTranslator::Export(AtNode* fluid)
             cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
             AiArraySetVec(array, i, cVector);
          }
+         AiNodeSetArray(fluid_shader, "velocity", array);
       }
    }
    
@@ -386,12 +383,13 @@ void CFluidTranslator::Export(AtNode* fluid)
       mayaFluid.getCoordinates(u, v, w);
       if (u != 0 && v != 0 && w != 0)
       {
-         AtArray* array = GetArray(fluid_shader, "coordinates", numVoxels, AI_TYPE_VECTOR);
+         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
             AtVector cCoord = {u[i], v[i], w[i]};
             AiArraySetVec(array, i, cCoord);
          }
+         AiNodeSetArray(fluid_shader, "coordinates", array);
       }
    }
    
@@ -405,7 +403,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       mayaFluid.getColors(r, g, b);
       if (r != 0 && g != 0 && b != 0)
       {
-         AtArray* array = GetArray(fluid_shader, "colors", numVoxels, AI_TYPE_RGB);
+         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_RGB);
          for (unsigned int i = 0; i < numVoxels; ++i)
          {
             AtColor cColor = {r[i], g[i], b[i]};
@@ -414,6 +412,7 @@ void CFluidTranslator::Export(AtNode* fluid)
             cColor.b = cColor.b < AI_EPSILON ? 0.f : cColor.b;
             AiArraySetRGB(array, i, cColor);
          }
+         AiNodeSetArray(fluid_shader, "colors", array);
       }
    }
 }
