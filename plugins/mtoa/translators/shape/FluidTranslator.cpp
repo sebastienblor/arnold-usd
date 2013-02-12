@@ -10,17 +10,23 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper = CExtensionAttrHelper("fluidShape");
    
    CAttrData data;
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT = 0.1f;
+   data.hasMin = true;
+   data.hasSoftMax = true;
+   data.min.FLT = 0.f;
+   data.softMax.FLT = 2.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    helper.MakeInputFloat(data);
    
+   data.hasSoftMax = false;
+   
    data.defaultValue.FLT = 0.f;
+   data.hasMax = true;
    data.name = "aiPhaseFunc";
    data.shortName = "aiPhaseFunc";
-   data.hasMin = true;
+   
    data.min.FLT = -1.f;
-   data.hasMax = true;
    data.max.FLT = 1.f;
    helper.MakeInputFloat(data);
    
