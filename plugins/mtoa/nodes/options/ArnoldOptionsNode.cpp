@@ -218,6 +218,8 @@ MStatus CArnoldOptionsNode::initialize()
    
    
    s_attributes.MakeInput("abort_on_error");
+   s_attributes.MakeInput("error_color_bad_texture");
+   s_attributes.MakeInput("error_color_bad_pixel");
    s_attributes.MakeInput("abort_on_license_fail");
 
    s_attributes.MakeInput("skip_license_check");
