@@ -137,8 +137,10 @@ class ColorTemperatureTemplate:
     def createLightColorTemperatureUI(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         uiCmds = self.getColorTemperatureCommands()
+        cmds.rowLayout(numberOfColumns=1, columnWidth1=300, columnAttach1='right')
         aeUtils.attrBoolControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
                                    label='Use Color Temperature', changeCommand=uiCmds[0])
+        cmds.setParent('..')
         cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
         cmds.canvas(self.canvasName, width=65, height=12)
         cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, 
