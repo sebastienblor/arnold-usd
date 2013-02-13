@@ -178,16 +178,17 @@ class ColorTemperatureTemplate:
         cmds.canvas(self.canvasName, enable=isEnabled, width=65, height=12)
         cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled, precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=self.updateColorTemperature)
         cmds.setParent('..')
-        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
-        colorTemp = cmds.arnoldTemperatureToColor(temperature)
+        colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
         cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
         cmds.setUITemplate(popTemplate=True)
 
     def updateLightColorTemperatureUI(self, attrName):
-        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
-        cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
-        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
-        colorTemp = cmds.arnoldTemperatureToColor(self.nodeAttr('aiColorTemperature'))
+        cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
+                            changeCommand=self.updateUseColorTemperature)
+        cmds.attrFieldSliderGrp(self.sliderName, edit=True, 
+                                attribute=self.nodeAttr('aiColorTemperature'), enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')),
+                                changeCommand=self.updateColorTemperature)
+        colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
         cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
             
     def setupColorTemperature(self, lightType=""):
@@ -195,8 +196,6 @@ class ColorTemperatureTemplate:
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
         self.addCustom('aiUseColorTemperature', self.createLightColorTemperatureUI, self.updateLightColorTemperatureUI)
-        #self.addControl("aiUseColorTemperature", changeCommand=self.updateUseColorTemperature)
-        #self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
         
         self.addSeparator()
 
