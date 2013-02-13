@@ -149,9 +149,9 @@ class ColorTemperatureTemplate:
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
         cmds.canvas(self.canvasName, edit=True, enable=isEnabled, rgbValue=colorTemp)
         
-    def updateUseColorTemperature(self):
+    def updateUseColorTemperature(self, nodeName=""):
         try:
-            cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeName+".aiUseColorTemperature"))
+            cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(nodeName+".aiUseColorTemperature"))
         except:
             pass
             
