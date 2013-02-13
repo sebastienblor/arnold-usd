@@ -113,7 +113,7 @@ class LightFilterWindow(object):
 from functools import partial
 
 class ColorTemperatureTemplate:
-    def updateUseColorTemperature(self):
+    def updateUseColorTemperature(self, *args):
         try:
             cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
         except:
@@ -137,8 +137,8 @@ class ColorTemperatureTemplate:
     def createLightColorTemperatureUI(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         uiCmds = self.getColorTemperatureCommands()
-        cmds.attrControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
-                            label='Use Color Temperature', changeCommand=uiCmds[0])
+        aeUtils.attrBoolControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
+                                   label='Use Color Temperature', changeCommand=uiCmds[0])
         cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
         cmds.canvas(self.canvasName, width=65, height=12)
         cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, 
@@ -152,8 +152,8 @@ class ColorTemperatureTemplate:
 
     def updateLightColorTemperatureUI(self, attrName):
         uiCmds = self.getColorTemperatureCommands()
-        cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
-                            changeCommand=uiCmds[0])
+        aeUtils.attrBoolControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
+                                   changeCommand=uiCmds[0])
         cmds.attrFieldSliderGrp(self.sliderName, edit=True, 
                                 attribute=self.nodeAttr('aiColorTemperature'), enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')),
                                 changeCommand=uiCmds[1])

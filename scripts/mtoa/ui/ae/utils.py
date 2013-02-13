@@ -159,6 +159,44 @@ def attrTextFieldGrp(*args, **kwargs):
                                                               text=pm.getAttr(attribute))])
         return ctrl
 
+def attrBoolControlGrp(*args, **kwargs):
+    attribute = kwargs.pop('attribute', kwargs.pop('a', None))
+    assert attribute is not None, "You must passed an attribute"
+    changeCommand = kwargs.pop('changeCommand', kwargs.pop('cc', None))
+    if changeCommand:
+        def cc(newVal):
+            pm.setAttr(attribute, newVal)
+            changeCommand(newVal)
+    else:
+        cc = lambda newVal: pm.setAttr(attribute, newVal)
+
+    if kwargs.pop('edit', kwargs.pop('e', False)):
+        ctrl = args[0]
+        pm.checkBoxGrp(ctrl, edit=True,
+                       value1=pm.getAttr(attribute),
+                       changeCommand=cc)
+        pm.scriptJob(parent=ctrl,
+                     replacePrevious=True,
+                     attributeChange=[attribute,
+                                      lambda: pm.checkBoxGrp(ctrl, edit=True,
+                                                             value1=pm.getAttr(attribute))])
+    elif kwargs.pop('query', kwargs.pop('q', False)):
+        # query
+        pass
+    else:
+        # create
+        labelText = kwargs.pop('label', None)
+        if not labelText:
+            labelText = pm.mel.interToUI(attribute.split('.')[-1])
+        ctrl = args[0]
+        pm.checkBoxGrp(ctrl,  label=labelText,
+                              value1=pm.getAttr(attribute),
+                              changeCommand=cc)
+        pm.scriptJob(parent=ctrl,
+                     attributeChange=[attribute,
+                                      lambda: pm.checkBoxGrp(ctrl, edit=True,
+                                                             value1=pm.getAttr(attribute))])
+
 class AttrControlGrp(object):
     UI_TYPES = {
         'float':  pm.cmds.attrFieldSliderGrp,
