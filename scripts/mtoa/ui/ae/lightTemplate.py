@@ -113,7 +113,7 @@ class LightFilterWindow(object):
 from functools import partial
 
 class ColorTemperatureTemplate:
-    @staticmethod
+    '''@staticmethod
     def updateColorTemperature(attrName, canvasName, *args, **kwargs):
         temperature = cmds.getAttr(attrName)
         colorTemp = cmds.arnoldTemperatureToColor(temperature)
@@ -154,13 +154,49 @@ class ColorTemperatureTemplate:
             cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(nodeName+".aiUseColorTemperature"))
         except:
             pass
+    '''
+
+    def updateUseColorTemperature(self):
+        try:
+            cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
+        except:
+            pass
+
+    def updateColorTemperature(self, *args, **kwargs):
+        try:
+            temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+            colorTemp = cmds.arnoldTemperatureToColor(temperature)
+            cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+        except:
+            pass
+
+    def createLightColorTemperatureUI(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.attrControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'), label='Use Color Temperature', changeCommand=self.updateUseColorTemperature)
+        cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
+        cmds.canvas(self.canvasName, enable=isEnabled, width=65, height=12)
+        cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled, precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=self.updateColorTemperature)
+        cmds.setParent('..')
+        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+        colorTemp = cmds.arnoldTemperatureToColor(temperature)
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+        cmds.setUITemplate(popTemplate=True)
+
+    def updateLightColorTemperatureUI(self, attrName):
+        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+        cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
+        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+        colorTemp = cmds.arnoldTemperatureToColor(self.nodeAttr('aiColorTemperature'))
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
             
     def setupColorTemperature(self, lightType=""):
         self.sliderName = '%s_LightColorTemperature' % lightType
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
-        self.addControl("aiUseColorTemperature", changeCommand=self.updateUseColorTemperature)
-        self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
+        self.addCustom('aiUseColorTemperature', self.createLightColorTemperatureUI, self.updateLightColorTemperatureUI)
+        #self.addControl("aiUseColorTemperature", changeCommand=self.updateUseColorTemperature)
+        #self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
         
         self.addSeparator()
 
