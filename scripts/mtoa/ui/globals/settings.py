@@ -3,6 +3,7 @@ from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
 import arnold as ai
+import maya.cmds as cmds
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -885,17 +886,37 @@ def createArnoldLicensingSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def LoadFilenameButtonPush(*args):
+    import os
+    basicFilter = 'All Files (*.*)'
+    initFolder = cmds.textFieldButtonGrp("ls_log_filename", query=True, text=True)
+    if "$MTOA_LOG_PATH" in initFolder:
+        logPath = pm.mel.eval('getenv "MTOA_LOG_PATH"')
+        if not logPath:
+            logPath = pm.workspace(query=True, rootDirectory=True)
+        resolvedFolder = initFolder.replace("$MTOA_LOG_PATH",logPath)
+    else:
+        resolvedFolder = initFolder
+    resolvedFolder = os.path.split(resolvedFolder)
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Select Log File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
+    if ret is not None and len(ret):
+        cmds.textFieldButtonGrp("ls_log_filename", edit=True, text=ret[0])
+        cmds.setAttr("defaultArnoldRenderOptions.log_filename", ret[0], type="string")
+    
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.textFieldGrp('log_filename',
-                      label='Filename',
-                      cc=updateLogSettings)
-    pm.connectControl('log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
-    pm.connectControl('log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
-
+    
+    path = cmds.textFieldButtonGrp("ls_log_filename",
+                                   label="Filename",
+                                   cc=updateLogSettings,
+                                   width=300)
+    cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...", buttonCommand=LoadFilenameButtonPush)
+    pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
+    pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
+    
     '''
     pm.attrControlGrp('log_filename',
                         label="Filename",

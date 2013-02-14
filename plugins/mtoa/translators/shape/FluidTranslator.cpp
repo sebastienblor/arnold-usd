@@ -327,11 +327,19 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    ProcessParameter(fluid, "self_shadows", AI_TYPE_BOOLEAN, "selfShadowing");
    ProcessParameter(fluid_shader, "shadow_opacity", AI_TYPE_FLOAT, "shadowOpacity");
+
+   ProcessParameter(fluid_shader, "dropoff_shape", AI_TYPE_INT, "dropoffShape");
+   ProcessParameter(fluid_shader, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");
    
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
    
    const unsigned int numVoxels = xRes * yRes * zRes;
+   
+   if (AiNodeGetInt(fluid_shader, "dropoff_shape") == 11)
+   {
+      ExportFloatGrid(fluid_shader, mayaFluid.falloff(), "falloff", numVoxels);
+   }
    
    // support for gradient mode
    

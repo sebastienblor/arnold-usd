@@ -212,6 +212,19 @@ void CRenderOptions::SetupLog() const
             logPath = result + m_log_filename.substringW(15, m_log_filename.length());
          }
       }
+      int extPos = logPath.rindexW('.');
+      int frame;
+      MGlobal::executeCommand("currentTime -q", frame);
+      if (extPos > 0) // The file name has extension
+         logPath = logPath.substringW(0, extPos) + frame + logPath.substringW(extPos, logPath.length());
+      else
+      {
+         unsigned int slashPos = logPath.rindexW('/');
+         if (slashPos+1 < logPath.length()) // File name without extension
+            logPath = logPath +"."+ frame + ".log";
+         else // No file name
+            logPath = logPath + frame + ".log";
+      }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
    }
    
