@@ -923,7 +923,7 @@ shader_evaluate
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
 
-   float opacityNoise = CalculateDropoff(data, lPt - AI_V3_HALF);
+   float opacityNoise = CalculateDropoff(data, (lPt - AI_V3_HALF) * 2.f);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
@@ -954,7 +954,7 @@ shader_evaluate
       if (data->textureAffectIncand)
          incandNoise = volumeNoise;
       if (data->textureAffectOpacity)
-         opacityNoise = volumeNoise;
+         opacityNoise *= volumeNoise;
    }
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
    {
@@ -1016,7 +1016,7 @@ shader_evaluate
       if (data->incandTexture)
          incandNoise = AiShaderEvalParamFlt(p_incand_tex_gain) * volumeNoise;
       if (data->opacityTexture)
-         opacityNoise = AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
+         opacityNoise *= AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
    }
    
    if (sg->Rt & AI_RAY_SHADOW)
@@ -1024,7 +1024,7 @@ shader_evaluate
       const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
-   }  
+   }
    
    const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * opacityNoise;
    const AtRGB color = GetValue(data, lPt, data->colorGradient) * colorNoise;
