@@ -20,14 +20,14 @@ enum textureType{
    TT_MANDELBROT
 };
 
-const char* coordinateMethodEnums[] = {"Fixed", "Grid"};
+const char* coordinateMethodEnums[] = {"Fixed", "Grid", 0};
 
 enum coordinateMethod{
    CM_FIXED,
    CM_GRID
 };
 
-const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic"};
+const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic", 0};
 
 enum filterType{
    FT_CLOSEST = 0,
@@ -52,6 +52,26 @@ enum gradientType{
    GT_PRESSURE,
    GT_SPEED,
    GT_DENSITY_AND_FUEL
+};
+
+const char* dropoffShapeEnums[] = {"Off", "Sphere", "Cube", "Cone", "Double Cone",
+                                   "X Gradient", "Y Gradient", "Z Gradient",
+                                   "-X Gradient", "-Y Gradient", "-Z Gradient",
+                                   "Use Falloff Grid", 0};
+
+enum dropoffShape{
+   DS_OFF = 0,
+   DS_SPHERE,
+   DS_CUBE,
+   DS_CONE,
+   DS_DOUBLE_CONE,
+   DS_X_GRADIENT,
+   DS_Y_GRADIENT,
+   DS_Z_GRADIENT,
+   DS_NX_GRADIENT,
+   DS_NY_GRADIENT,
+   DS_NZ_GRADIENT,
+   DS_USE_FALLOFF_GRID
 };
 
 #ifdef ENABLE_OPTIMIZATIONS
@@ -149,6 +169,9 @@ node_parameters
    AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
    
    AiParameterFlt("shadow_opacity", 0.5f);
+
+   AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
+   AiParameterFlt("edge_dropoff", 0.05f);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -232,6 +255,9 @@ enum MayaFluidParams{
    p_matrix,
    
    p_shadow_opacity,
+
+   p_dropoff_shape,
+   p_edge_dropoff
 };
 
 template<typename T>
