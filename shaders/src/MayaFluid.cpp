@@ -3,8 +3,6 @@
 #include <memory.h>
 #include <cmath>
 
-#include "RandomNoise.h"
-
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
