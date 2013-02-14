@@ -3,10 +3,6 @@
 #include <memory.h>
 #include <cmath>
 
-#include "RandomNoise.h"
-
-#define ENABLE_OPTIMIZATIONS
-
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
@@ -20,14 +16,14 @@ enum textureType{
    TT_MANDELBROT
 };
 
-const char* coordinateMethodEnums[] = {"Fixed", "Grid"};
+const char* coordinateMethodEnums[] = {"Fixed", "Grid", 0};
 
 enum coordinateMethod{
    CM_FIXED,
    CM_GRID
 };
 
-const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic"};
+const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic", 0};
 
 enum filterType{
    FT_CLOSEST = 0,
@@ -54,7 +50,26 @@ enum gradientType{
    GT_DENSITY_AND_FUEL
 };
 
-#ifdef ENABLE_OPTIMIZATIONS
+const char* dropoffShapeEnums[] = {"Off", "Sphere", "Cube", "Cone", "Double Cone",
+                                   "X Gradient", "Y Gradient", "Z Gradient",
+                                   "-X Gradient", "-Y Gradient", "-Z Gradient",
+                                   "Use Falloff Grid", 0};
+
+enum dropoffShape{
+   DS_OFF = 0,
+   DS_SPHERE,
+   DS_CUBE,
+   DS_CONE,
+   DS_DOUBLE_CONE,
+   DS_X_GRADIENT,
+   DS_Y_GRADIENT,
+   DS_Z_GRADIENT,
+   DS_NX_GRADIENT,
+   DS_NY_GRADIENT,
+   DS_NZ_GRADIENT,
+   DS_USE_FALLOFF_GRID
+};
+
 // http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
 inline float FastPow(float a, float b) {
    union {
@@ -65,7 +80,6 @@ inline float FastPow(float a, float b) {
    u.x[0] = 0;
    return (float)u.d;
 }
-#endif
 
 node_parameters
 {
@@ -92,6 +106,8 @@ node_parameters
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    
    AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
+   
+   AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
    
    AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
    AiParameterArray("color_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
@@ -149,6 +165,9 @@ node_parameters
    AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
    
    AiParameterFlt("shadow_opacity", 0.5f);
+
+   AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
+   AiParameterFlt("edge_dropoff", 0.05f);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -176,6 +195,7 @@ enum MayaFluidParams{
    p_velocity,
    p_colors,
    p_coordinates,
+   p_falloff,
    
    p_color_gradient_type,
    p_color_gradient,
@@ -232,6 +252,9 @@ enum MayaFluidParams{
    p_matrix,
    
    p_shadow_opacity,
+
+   p_dropoff_shape,
+   p_edge_dropoff
 };
 
 template<typename T>
@@ -264,6 +287,7 @@ struct MayaFluidData{
    ArrayDescription<AtVector> velocity;
    ArrayDescription<AtRGB> colors;
    ArrayDescription<AtVector> coordinates;
+   ArrayDescription<float> falloff;
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
@@ -276,11 +300,13 @@ struct MayaFluidData{
    AtNode* volumeTexture;
    
    float phaseFunc;
+   float edgeDropoff;
    
    int filterType;   
    int xres, yres, zres;      
    int textureType;
    int coordinateMethod;
+   int dropoffShape;
    
    bool colorTexture;
    bool incandTexture;
@@ -432,6 +458,12 @@ node_update
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
    data->phaseFunc = AiNodeGetFlt(node, "phase_func");
+
+   data->edgeDropoff = AiNodeGetFlt(node, "edge_dropoff");
+   if (ABS(data->edgeDropoff) > AI_EPSILON)
+      data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
+   else
+      data->dropoffShape = DS_OFF;
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -455,6 +487,7 @@ node_update
    ReadArray(node, "velocity", numVoxels, data->velocity);
    ReadArray(node, "colors", numVoxels, data->colors);
    ReadArray(node, "coordinates", numVoxels, data->coordinates);
+   ReadArray(node, "falloff", numVoxels, data->falloff);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
@@ -746,11 +779,7 @@ float ApplyBias(const float& value, const float& bias)
       const float b = bias < -.99f ? -.99f : bias;
       const float x = value < 0.f ? 0.f : value;
       
-#ifdef ENABLE_OPTIMIZATIONS
       return FastPow(x, (b - 1.f) / (-b - 1.f));
-#else
-      return powf(x, (b - 1.f) / (-b - 1.f));
-#endif
    }
 }
 
@@ -761,17 +790,10 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
       return GetDefaultValue<T>();
    const float _v = ApplyBias(v, bias);
    const float p = _v * gradient.resolution;
-#ifdef ENABLE_OPTIMIZATIONS
    const int pi = (int)p;
    const int b = CLAMP(pi, 0, gradient.resolution - 1);
    const int e = MIN(b + 1, gradient.resolution - 1);
    const float pf = p - (float)pi;
-#else
-   float pf = floorf(p);
-   const int b = CLAMP((int)pf, 0, gradient.resolution - 1);
-   const int e = MIN(b + 1, gradient.resolution - 1);
-   pf = p - pf;
-#endif
    return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
 
@@ -780,11 +802,6 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
    lPt = (cPt - data->dmin) * data->dmax;
-#ifndef ENABLE_OPTIMIZATIONS
-   lPt.x = CLAMP(lPt.x, 0.f, 1.f);
-   lPt.y = CLAMP(lPt.y, 0.f, 1.f);
-   lPt.z = CLAMP(lPt.z, 0.f, 1.f);
-#endif
    return lPt;
 }
 
@@ -840,14 +857,65 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
       const float dist = AiV3Length(v);
       if (dist > AI_EPSILON)
       {
-#ifdef ENABLE_OPTIMIZATIONS
          const float fac = FastPow(dist, 1.f - implode) / dist;
-#else
-         const float fac = powf(dist, 1.f - implode) / dist;
-#endif
          v *= fac;
       }
       v += implodeCenter;
+   }
+}
+
+inline
+float DropoffGradient(float value, float edgeDropoff)
+{
+   float ret;
+   if (edgeDropoff < .5f)
+      ret = (1.f - value - (1.f - 2.f * edgeDropoff)) / (2.f * edgeDropoff);
+   else
+      ret = (value - (2.f* (edgeDropoff - .5f))) / (1.f - 2.f * (edgeDropoff - .5f));
+	return CLAMP(ret, 0.f, 1.f);
+}
+
+inline
+float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
+{
+   if (data->dropoffShape == DS_OFF)
+      return 1.f;
+   const AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
+   const float edgeDropoff = data->edgeDropoff;
+   switch(data->dropoffShape)
+   {
+      case DS_SPHERE:
+         return 1.f - CLAMP((AiV3Length(cPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
+      case DS_CUBE:
+         {
+            AtVector p = {(ABS(cPt.x) - 1.f - edgeDropoff) / edgeDropoff,
+                          (ABS(cPt.y) - 1.f - edgeDropoff) / edgeDropoff,
+                          (ABS(cPt.z) - 1.f - edgeDropoff) / edgeDropoff};
+            p.x = CLAMP(p.x, 0.f, 1.f);
+            p.y = CLAMP(p.y, 0.f, 1.f);
+            p.z = CLAMP(p.z, 0.f, 1.f);
+            return 1.f - CLAMP(AiV3Length(p), 0.f, 1.f);
+         }
+      case DS_CONE:
+         return 1.f;
+      case DS_DOUBLE_CONE:         
+         return 1.f;
+      case DS_X_GRADIENT:
+         return DropoffGradient(.5f - cPt.x * .5f, edgeDropoff);
+      case DS_Y_GRADIENT:
+         return DropoffGradient(.5f - cPt.y * .5f, edgeDropoff);
+      case DS_Z_GRADIENT:
+         return DropoffGradient(.5f - cPt.z * .5f, edgeDropoff);
+      case DS_NX_GRADIENT:
+         return DropoffGradient(cPt.x * .5f + .5f, edgeDropoff);
+      case DS_NY_GRADIENT:
+         return DropoffGradient(cPt.y * .5f + .5f, edgeDropoff);
+      case DS_NZ_GRADIENT:
+         return DropoffGradient(cPt.z * .5f + .5f, edgeDropoff);
+      case DS_USE_FALLOFF_GRID:
+         return Filter(data, lPt, data->falloff);
+      default:
+         return 1.f;
    }
 }
 
@@ -858,16 +926,18 @@ shader_evaluate
    const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
+
+   float opacityNoise = CalculateDropoff(data, lPt);
+
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
-   float opacityNoise = 1.f;
    if (data->volumeTexture)
    {
       if (data->coordinateMethod == CM_GRID)
@@ -888,7 +958,7 @@ shader_evaluate
       if (data->textureAffectIncand)
          incandNoise = volumeNoise;
       if (data->textureAffectOpacity)
-         opacityNoise = volumeNoise;
+         opacityNoise *= volumeNoise;
    }
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
    {
@@ -950,7 +1020,7 @@ shader_evaluate
       if (data->incandTexture)
          incandNoise = AiShaderEvalParamFlt(p_incand_tex_gain) * volumeNoise;
       if (data->opacityTexture)
-         opacityNoise = AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
+         opacityNoise *= AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
    }
    
    if (sg->Rt & AI_RAY_SHADOW)
@@ -958,7 +1028,7 @@ shader_evaluate
       const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
-   }  
+   }
    
    const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * opacityNoise;
    const AtRGB color = GetValue(data, lPt, data->colorGradient) * colorNoise;
