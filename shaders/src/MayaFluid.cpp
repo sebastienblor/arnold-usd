@@ -5,8 +5,6 @@
 
 #include "RandomNoise.h"
 
-#define ENABLE_OPTIMIZATIONS
-
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
@@ -74,7 +72,6 @@ enum dropoffShape{
    DS_USE_FALLOFF_GRID
 };
 
-#ifdef ENABLE_OPTIMIZATIONS
 // http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
 inline float FastPow(float a, float b) {
    union {
@@ -85,7 +82,6 @@ inline float FastPow(float a, float b) {
    u.x[0] = 0;
    return (float)u.d;
 }
-#endif
 
 node_parameters
 {
@@ -780,11 +776,7 @@ float ApplyBias(const float& value, const float& bias)
       const float b = bias < -.99f ? -.99f : bias;
       const float x = value < 0.f ? 0.f : value;
       
-#ifdef ENABLE_OPTIMIZATIONS
       return FastPow(x, (b - 1.f) / (-b - 1.f));
-#else
-      return powf(x, (b - 1.f) / (-b - 1.f));
-#endif
    }
 }
 
@@ -795,17 +787,10 @@ T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const
       return GetDefaultValue<T>();
    const float _v = ApplyBias(v, bias);
    const float p = _v * gradient.resolution;
-#ifdef ENABLE_OPTIMIZATIONS
    const int pi = (int)p;
    const int b = CLAMP(pi, 0, gradient.resolution - 1);
    const int e = MIN(b + 1, gradient.resolution - 1);
    const float pf = p - (float)pi;
-#else
-   float pf = floorf(p);
-   const int b = CLAMP((int)pf, 0, gradient.resolution - 1);
-   const int e = MIN(b + 1, gradient.resolution - 1);
-   pf = p - pf;
-#endif
    return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
 }
 
@@ -814,11 +799,6 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
    lPt = (cPt - data->dmin) * data->dmax;
-#ifndef ENABLE_OPTIMIZATIONS
-   lPt.x = CLAMP(lPt.x, 0.f, 1.f);
-   lPt.y = CLAMP(lPt.y, 0.f, 1.f);
-   lPt.z = CLAMP(lPt.z, 0.f, 1.f);
-#endif
    return lPt;
 }
 
@@ -874,11 +854,7 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
       const float dist = AiV3Length(v);
       if (dist > AI_EPSILON)
       {
-#ifdef ENABLE_OPTIMIZATIONS
          const float fac = FastPow(dist, 1.f - implode) / dist;
-#else
-         const float fac = powf(dist, 1.f - implode) / dist;
-#endif
          v *= fac;
       }
       v += implodeCenter;
