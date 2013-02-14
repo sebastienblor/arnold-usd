@@ -219,7 +219,7 @@ void CRenderOptions::SetupLog() const
          logPath = logPath.substringW(0, extPos) + frame + logPath.substringW(extPos, logPath.length());
       else
       {
-         int slashPos = logPath.rindexW('/');
+         unsigned int slashPos = logPath.rindexW('/');
          if (slashPos+1 < logPath.length()) // File name without extension
             logPath = logPath +"."+ frame + ".log";
          else // No file name
