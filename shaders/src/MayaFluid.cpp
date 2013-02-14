@@ -302,11 +302,13 @@ struct MayaFluidData{
    AtNode* volumeTexture;
    
    float phaseFunc;
+   float edgeFalloff;
    
    int filterType;   
    int xres, yres, zres;      
    int textureType;
    int coordinateMethod;
+   int dropoffShape;
    
    bool colorTexture;
    bool incandTexture;
@@ -458,6 +460,12 @@ node_update
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
    data->phaseFunc = AiNodeGetFlt(node, "phase_func");
+
+   data->edgeFalloff = AiNodeGetFlt(node, "edge_falloff");
+   if (ABS(data->edgeFalloff) > AI_EPSILON)
+      data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
+   else
+      data->dropoffShape = DS_OFF;
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -877,6 +885,11 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
    }
 }
 
+void CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float& opacity)
+{
+
+}
+
 #if AI_VERSION_MINOR_NUM > 11
 
 shader_evaluate
@@ -884,16 +897,20 @@ shader_evaluate
    const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
+
+   float opacityNoise = 1.f;
+
+   CalculateDropoff(data, lPt, opacityNoise);
+
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
-   float opacityNoise = 1.f;
    if (data->volumeTexture)
    {
       if (data->coordinateMethod == CM_GRID)
