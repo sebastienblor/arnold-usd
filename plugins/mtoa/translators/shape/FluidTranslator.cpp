@@ -336,6 +336,11 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    const unsigned int numVoxels = xRes * yRes * zRes;
    
+   if (AiNodeGetInt(fluid_shader, "dropoff_shape") == 11)
+   {
+      ExportFloatGrid(fluid_shader, mayaFluid.falloff(), "falloff", numVoxels);
+   }
+   
    // support for gradient mode
    
    MFnFluid::FluidMethod fluidMethod;

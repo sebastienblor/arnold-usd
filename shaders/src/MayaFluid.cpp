@@ -109,6 +109,8 @@ node_parameters
    
    AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
+   AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   
    AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
    AiParameterArray("color_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    AiParameterFlt("color_gradient_input_bias", 0.0f);
@@ -195,6 +197,7 @@ enum MayaFluidParams{
    p_velocity,
    p_colors,
    p_coordinates,
+   p_falloff,
    
    p_color_gradient_type,
    p_color_gradient,
@@ -286,6 +289,7 @@ struct MayaFluidData{
    ArrayDescription<AtVector> velocity;
    ArrayDescription<AtRGB> colors;
    ArrayDescription<AtVector> coordinates;
+   ArrayDescription<float> falloff;
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
@@ -485,6 +489,7 @@ node_update
    ReadArray(node, "velocity", numVoxels, data->velocity);
    ReadArray(node, "colors", numVoxels, data->colors);
    ReadArray(node, "coordinates", numVoxels, data->coordinates);
+   ReadArray(node, "falloff", numVoxels, data->falloff);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
@@ -877,16 +882,17 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
 {
    if (data->dropoffShape == DS_OFF)
       return 1.f;
+   const AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
    const float edgeDropoff = data->edgeDropoff;
    switch(data->dropoffShape)
    {
       case DS_SPHERE:
-         return 1.f - CLAMP((AiV3Length(lPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
+         return 1.f - CLAMP((AiV3Length(cPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
       case DS_CUBE:
          {
-            AtVector p = {(ABS(lPt.x) - 1.f - edgeDropoff) / edgeDropoff,
-                          (ABS(lPt.y) - 1.f - edgeDropoff) / edgeDropoff,
-                          (ABS(lPt.z) - 1.f - edgeDropoff) / edgeDropoff};
+            AtVector p = {(ABS(cPt.x) - 1.f - edgeDropoff) / edgeDropoff,
+                          (ABS(cPt.y) - 1.f - edgeDropoff) / edgeDropoff,
+                          (ABS(cPt.z) - 1.f - edgeDropoff) / edgeDropoff};
             p.x = CLAMP(p.x, 0.f, 1.f);
             p.y = CLAMP(p.y, 0.f, 1.f);
             p.z = CLAMP(p.z, 0.f, 1.f);
@@ -897,19 +903,19 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
       case DS_DOUBLE_CONE:         
          return 1.f;
       case DS_X_GRADIENT:
-         return DropoffGradient(.5f - lPt.x * .5f, edgeDropoff);
+         return DropoffGradient(.5f - cPt.x * .5f, edgeDropoff);
       case DS_Y_GRADIENT:
-         return DropoffGradient(.5f - lPt.y * .5f, edgeDropoff);
+         return DropoffGradient(.5f - cPt.y * .5f, edgeDropoff);
       case DS_Z_GRADIENT:
-         return DropoffGradient(.5f - lPt.z * .5f, edgeDropoff);
+         return DropoffGradient(.5f - cPt.z * .5f, edgeDropoff);
       case DS_NX_GRADIENT:
-         return DropoffGradient(lPt.x * .5f + .5f, edgeDropoff);
+         return DropoffGradient(cPt.x * .5f + .5f, edgeDropoff);
       case DS_NY_GRADIENT:
-         return DropoffGradient(lPt.y * .5f + .5f, edgeDropoff);
+         return DropoffGradient(cPt.y * .5f + .5f, edgeDropoff);
       case DS_NZ_GRADIENT:
-         return DropoffGradient(lPt.z * .5f + .5f, edgeDropoff);
+         return DropoffGradient(cPt.z * .5f + .5f, edgeDropoff);
       case DS_USE_FALLOFF_GRID:
-         return 1.f;
+         return Filter(data, lPt, data->falloff);
       default:
          return 1.f;
    }
@@ -923,7 +929,7 @@ shader_evaluate
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
 
-   float opacityNoise = CalculateDropoff(data, (lPt - AI_V3_HALF) * 2.f);
+   float opacityNoise = CalculateDropoff(data, lPt);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
