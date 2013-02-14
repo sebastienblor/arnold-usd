@@ -172,13 +172,13 @@ def attrBoolControlGrp(*args, **kwargs):
 
     if kwargs.pop('edit', kwargs.pop('e', False)):
         ctrl = args[0]
-        pm.checkBoxGrp(ctrl, edit=True,
-                       value1=pm.getAttr(attribute),
-                       changeCommand=cc)
+        pm.checkBox(ctrl, edit=True,
+                    value=pm.getAttr(attribute),
+                    changeCommand=cc)
         pm.scriptJob(parent=ctrl,
                      replacePrevious=True,
                      attributeChange=[attribute,
-                                      lambda: pm.checkBoxGrp(ctrl, edit=True, value1=pm.getAttr(attribute))])
+                                      lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
     elif kwargs.pop('query', kwargs.pop('q', False)):
         # query
         pass
@@ -188,13 +188,12 @@ def attrBoolControlGrp(*args, **kwargs):
         if not labelText:
             labelText = pm.mel.interToUI(attribute.split('.')[-1])
         ctrl = args[0]
-        pm.checkBoxGrp(ctrl, label=labelText,
-                       value1=pm.getAttr(attribute),
-                       columnAttach=[(1, 'right', 0), (2, 'left', 0)],
-                       changeCommand=cc)
+        pm.checkBox(ctrl, label=labelText,
+                    value=pm.getAttr(attribute),
+                    changeCommand=cc)
         pm.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
-                     lambda: pm.checkBoxGrp(ctrl, edit=True, value1=pm.getAttr(attribute))])
+                     lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
 
 class AttrControlGrp(object):
     UI_TYPES = {
