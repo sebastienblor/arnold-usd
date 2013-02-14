@@ -188,9 +188,11 @@ def attrBoolControlGrp(*args, **kwargs):
         if not labelText:
             labelText = pm.mel.interToUI(attribute.split('.')[-1])
         ctrl = args[0]
+        pm.rowLayout(numberOfColumns=1, columnWidth1=285, columnAttach1='right')
         pm.checkBox(ctrl, label=labelText,
                     value=pm.getAttr(attribute),
                     changeCommand=cc)
+        pm.setParent('..')
         pm.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
                      lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
