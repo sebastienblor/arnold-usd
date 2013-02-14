@@ -892,11 +892,10 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
             p.z = CLAMP(p.z, 0.f, 1.f);
             return 1.f - CLAMP(AiV3Length(p), 0.f, 1.f);
          }
-         break;
       case DS_CONE:
-         break;
-      case DS_DOUBLE_CONE:
-         break;
+         return 1.f;
+      case DS_DOUBLE_CONE:         
+         return 1.f;
       case DS_X_GRADIENT:
          return DropoffGradient(.5f - lPt.x * .5f, edgeDropoff);
       case DS_Y_GRADIENT:
