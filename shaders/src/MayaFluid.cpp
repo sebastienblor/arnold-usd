@@ -907,7 +907,15 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
                return 1.f;
          }
       case DS_DOUBLE_CONE:         
-         return 1.f;
+         {
+            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + ABS(cPt.z);
+            if (d < 0.f)
+               return 0.f;
+            else if (d < edgeDropoff)
+               return 0.5f * sinf((float)AI_PI * d / edgeDropoff - .5f) + .5f;
+            else
+               return 1.f;
+         }
       case DS_X_GRADIENT:
          return DropoffGradient(.5f - cPt.x * .5f, edgeDropoff);
       case DS_Y_GRADIENT:
