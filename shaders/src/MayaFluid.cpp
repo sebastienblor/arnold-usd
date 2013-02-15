@@ -929,7 +929,13 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
       case DS_NZ_GRADIENT:
          return DropoffGradient(cPt.z * .5f + .5f, edgeDropoff);
       case DS_USE_FALLOFF_GRID:
-         return Filter(data, lPt, data->falloff);
+         {
+            const float d = Filter(data, lPt, data->falloff);
+            if (d > 0.f && edgeDropoff < 0.9999f)
+               return powf(d, edgeDropoff / (1.f - edgeDropoff));
+            else
+               return 0.f;
+         }
       default:
          return 1.f;
    }
