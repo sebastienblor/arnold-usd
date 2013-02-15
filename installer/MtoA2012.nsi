@@ -111,8 +111,8 @@ Section "MtoA for Maya 2012 Env Variables" MtoA2012EnvVariables
     FileClose $0
     
     ;Add new enviroment variables to Maya.env
-    FileWrite $1 "$\nMAYA_RENDER_DESC_PATH = $R0"
-    FileWrite $1 "$\nPATH = %PATH%;$R0\bin;$\n"
+    FileWrite $1 "$\r$\nMAYA_RENDER_DESC_PATH = $R0"
+    FileWrite $1 "$\r$\nPATH = %PATH%;$R0\bin;$\r$\n"
     FileClose $1
 
 SectionEnd
