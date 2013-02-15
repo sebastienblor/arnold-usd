@@ -7,6 +7,8 @@
 
 #include <maya/MPlugArray.h>
 
+#include <common/UtilityFunctions.h>
+
 void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
 {
    if (!traceSetsPlug.isNull())
@@ -37,7 +39,18 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    ProcessParameter(node, "opaque", AI_TYPE_BOOLEAN, "aiOpaque");
    ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
    ProcessParameter(node, "sss_sample_distribution", AI_TYPE_INT, "aiSssSampleDistribution");
-   ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, "aiSssSampleSpacing");
+   ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, "aiSssSampleSpacing");   
+   MStatus status;
+   plug = FindMayaPlug("aiSssSetname", &status);
+   if (status && !plug.isNull())
+   {
+      MString setname = plug.asString();
+      if (setname != "")
+      {
+         AiNodeDeclareConstant(node, "sss_setname", AI_TYPE_STRING);
+         AiNodeSetStr(node, "sss_setname", setname.asChar());
+      }
+   }   
    
    ExportTraceSets(node, FindMayaPlug("aiTraceSets"));
 }
@@ -70,6 +83,12 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    data.shortName = "trace_sets";
    data.type = AI_TYPE_STRING;
    
+   helper.MakeInput(data);
+   
+   data.stringDefault = "";
+   data.name = "aiSssSetname";
+   data.shortName = "ai_sss_setname";
+   data.type = AI_TYPE_STRING;
    helper.MakeInput(data);
 
    MakeArnoldVisibilityFlags(helper);
