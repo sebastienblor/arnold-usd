@@ -885,6 +885,15 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
    switch(data->dropoffShape)
    {
       case DS_SPHERE:
+         {
+            const float d = 1.f - AiV3Length(cPt);
+            if (d < 0.f)
+               return 0.f;
+            else if (d < edgeDropoff)
+               return 0.5f * sinf((float)AI_PI * (d / edgeDropoff - .5f)) + .5f;
+            else
+               return 1.f;
+         }
          return 1.f - CLAMP((AiV3Length(cPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
       case DS_CUBE:
          {
