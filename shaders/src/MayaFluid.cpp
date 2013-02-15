@@ -880,7 +880,7 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
 {
    if (data->dropoffShape == DS_OFF)
       return 1.f;
-   const AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
+   AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
    const float edgeDropoff = data->edgeDropoff;
    switch(data->dropoffShape)
    {
