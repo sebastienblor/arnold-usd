@@ -84,7 +84,7 @@ typedef struct AtImageData
    
    static void* operator new(size_t s)
    {
-      return AiMalloc(s);
+      return AiMalloc((unsigned long)s);
    }
    
    static void operator delete(void* p)
