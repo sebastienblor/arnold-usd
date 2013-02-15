@@ -880,26 +880,63 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
 {
    if (data->dropoffShape == DS_OFF)
       return 1.f;
-   const AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
+   AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
    const float edgeDropoff = data->edgeDropoff;
    switch(data->dropoffShape)
    {
       case DS_SPHERE:
+         {
+            const float d = 1.f - AiV3Length(cPt);
+            if (d < 0.f)
+               return 0.f;
+            else if (d < edgeDropoff)
+               return 0.5f * sinf((float)AI_PI * (d / edgeDropoff - .5f)) + .5f;
+            else
+               return 1.f;
+         }
          return 1.f - CLAMP((AiV3Length(cPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
       case DS_CUBE:
+         cPt.x = (1.f - ABS(cPt.x)) / edgeDropoff;
+         cPt.y = (1.f - ABS(cPt.y)) / edgeDropoff;
+         cPt.z = (1.f - ABS(cPt.z)) / edgeDropoff;
+         if (cPt.x < 0.f || cPt.y < 0.f || cPt.z < 0.f)
+            return 0.f;
+         else
          {
-            AtVector p = {(ABS(cPt.x) - 1.f - edgeDropoff) / edgeDropoff,
-                          (ABS(cPt.y) - 1.f - edgeDropoff) / edgeDropoff,
-                          (ABS(cPt.z) - 1.f - edgeDropoff) / edgeDropoff};
-            p.x = CLAMP(p.x, 0.f, 1.f);
-            p.y = CLAMP(p.y, 0.f, 1.f);
-            p.z = CLAMP(p.z, 0.f, 1.f);
-            return 1.f - CLAMP(AiV3Length(p), 0.f, 1.f);
+            if (cPt.x < 1.f)
+               cPt.x = .5f * sinf((float)AI_PI * (cPt.x - .5f)) + .5f;
+            else
+               cPt.x = 1.f;
+            if (cPt.y < 1.f)
+               cPt.y = .5f * sinf((float)AI_PI * (cPt.y - .5f)) + .5f;
+            else
+               cPt.y = 1.f;
+            if (cPt.z < 1.f)
+               cPt.z = .5f * sinf((float)AI_PI * (cPt.z - .5f)) + .5f;
+            else
+               cPt.z = 1.f;
+            return cPt.x * cPt.y * cPt.z;
          }
       case DS_CONE:
-         return 1.f;
+         {
+            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + ABS(cPt.z + 1.f);
+            if (d < 0.f)
+               return 0.f;
+            else if (d < edgeDropoff)
+               return 0.5f * sinf((float)AI_PI * (d / edgeDropoff - .5f)) + .5f;
+            else
+               return 1.f;
+         }
       case DS_DOUBLE_CONE:         
-         return 1.f;
+         {
+            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + ABS(cPt.z);
+            if (d < 0.f)
+               return 0.f;
+            else if (d < edgeDropoff)
+               return 0.5f * sinf((float)AI_PI * (d / edgeDropoff - .5f)) + .5f;
+            else
+               return 1.f;
+         }
       case DS_X_GRADIENT:
          return DropoffGradient(.5f - cPt.x * .5f, edgeDropoff);
       case DS_Y_GRADIENT:
@@ -913,7 +950,13 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
       case DS_NZ_GRADIENT:
          return DropoffGradient(cPt.z * .5f + .5f, edgeDropoff);
       case DS_USE_FALLOFF_GRID:
-         return Filter(data, lPt, data->falloff);
+         {
+            const float d = Filter(data, lPt, data->falloff);
+            if (d > 0.f && edgeDropoff < 0.9999f)
+               return powf(d, edgeDropoff / (1.f - edgeDropoff));
+            else
+               return 0.f;
+         }
       default:
          return 1.f;
    }
