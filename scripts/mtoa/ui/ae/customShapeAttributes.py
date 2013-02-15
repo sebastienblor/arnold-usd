@@ -26,6 +26,8 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
         self.addSeparator()
+        self.addControl('aiStepSize', label="Step Size")
+        self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
         
 templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
