@@ -896,14 +896,26 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
          }
          return 1.f - CLAMP((AiV3Length(cPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
       case DS_CUBE:
+         cPt.x = (1.f - ABS(cPt.x)) / edgeDropoff;
+         cPt.y = (1.f - ABS(cPt.y)) / edgeDropoff;
+         cPt.z = (1.f - ABS(cPt.z)) / edgeDropoff;
+         if (cPt.x < 0.f || cPt.y < 0.f || cPt.z < 0.f)
+            return 0.f;
+         else
          {
-            AtVector p = {(ABS(cPt.x) - 1.f - edgeDropoff) / edgeDropoff,
-                          (ABS(cPt.y) - 1.f - edgeDropoff) / edgeDropoff,
-                          (ABS(cPt.z) - 1.f - edgeDropoff) / edgeDropoff};
-            p.x = CLAMP(p.x, 0.f, 1.f);
-            p.y = CLAMP(p.y, 0.f, 1.f);
-            p.z = CLAMP(p.z, 0.f, 1.f);
-            return 1.f - CLAMP(AiV3Length(p), 0.f, 1.f);
+            if (cPt.x < 1.f)
+               cPt.x = .5f * sinf((float)AI_PI * (cPt.x - .5f)) + .5f;
+            else
+               cPt.x = 1.f;
+            if (cPt.y < 1.f)
+               cPt.y = .5f * sinf((float)AI_PI * (cPt.y - .5f)) + .5f;
+            else
+               cPt.y = 1.f;
+            if (cPt.z < 1.f)
+               cPt.z = .5f * sinf((float)AI_PI * (cPt.z - .5f)) + .5f;
+            else
+               cPt.z = 1.f;
+            return cPt.x * cPt.y * cPt.z;
          }
       case DS_CONE:
          {
@@ -911,7 +923,7 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
             if (d < 0.f)
                return 0.f;
             else if (d < edgeDropoff)
-               return 0.5f * sinf((float)AI_PI * d / edgeDropoff - .5f) + .5f;
+               return 0.5f * sinf((float)AI_PI * (d / edgeDropoff - .5f)) + .5f;
             else
                return 1.f;
          }
@@ -921,7 +933,7 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
             if (d < 0.f)
                return 0.f;
             else if (d < edgeDropoff)
-               return 0.5f * sinf((float)AI_PI * d / edgeDropoff - .5f) + .5f;
+               return 0.5f * sinf((float)AI_PI * (d / edgeDropoff - .5f)) + .5f;
             else
                return 1.f;
          }
