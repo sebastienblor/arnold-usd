@@ -193,16 +193,15 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")        
         self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
         
-        if int(ai.AiGetVersion()[2]) > 11:
-            self.addControl("aiVolumeSamples", label="Volume Samples")
+        self.addControl("aiVolumeSamples", label="Volume Samples")
         
-            self.addSeparator()
+        self.addSeparator()
     
-            self.addControl("aiDiffuse", label="Diffuse")
-            self.addControl("aiSpecular", label="Specular")
-            self.addControl("aiSss", label="SSS")
-            self.addControl("aiIndirect", label="Indirect")
-            self.addControl("aiMaxBounces", label="Max Bounces")
+        self.addControl("aiDiffuse", label="Diffuse")
+        self.addControl("aiSpecular", label="Specular")
+        self.addControl("aiSss", label="SSS")
+        self.addControl("aiIndirect", label="Indirect")
+        self.addControl("aiMaxBounces", label="Max Bounces")
 
         self.lightFiltersLayout()
         

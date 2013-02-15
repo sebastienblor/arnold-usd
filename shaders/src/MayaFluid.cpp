@@ -962,8 +962,6 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
    }
 }
 
-#if AI_VERSION_MINOR_NUM > 11
-
 shader_evaluate
 {
    const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
@@ -1081,12 +1079,3 @@ shader_evaluate
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
    AiShaderGlobalsSetVolumeScattering(sg, opacity * color, data->phaseFunc);
 }
-
-#else
-
-shader_evaluate
-{
-   
-}
-
-#endif
