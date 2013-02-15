@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+import pymel.core as pm
 import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
@@ -25,6 +25,8 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
+        self.addSeparator()
+        self.addControl('aiStepSize', label="Step Size")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
         
@@ -91,31 +93,31 @@ templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def shaderCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
 
     def shaderUpdate(self, attrName):
         cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
 
     def minPixelCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
+        cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True,
+        cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
 
     def modeChanged(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
-                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
+                cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
             else:
-                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
+                cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
         except RuntimeError:
             # this callback runs immediately, before HairTemplateMinPixelWidth exists
             pass
@@ -138,25 +140,49 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
+class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
+    def volumeNoiseCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", attribute=attrName, label="Texture")
+        cmds.setUITemplate(popTemplate=True)
+
+    def volumeNoiseUpdate(self, attrName):
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", edit=True, attribute=attrName)
+        
+    def setup(self):    
+        self.addControl("aiStepSize", label="Step Size")
+        self.addControl("aiFilterType", label="Filter Type")
+        self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
+        self.beginLayout("Custom Texture", collapse=True)
+        self.addControl("aiOverrideTextures", label="Override Fluid Texture")
+        self.addControl("aiTextureCoordinateMethod", label="Coordinate Method")
+        self.addControl("aiTextureAffectColor", label="Texture Color")
+        self.addControl("aiTextureAffectIncand", label="Texture Incandescence")
+        self.addControl("aiTextureAffectOpacity", label="Texture Opacity")
+        self.addCustom("aiVolumeTexture", self.volumeNoiseCreate, self.volumeNoiseUpdate)
+        self.endLayout()
+        self.addControl("aiUserOptions", label="User Options")
+templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")
+
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
     def minPixelCreate(self, attrName):
-        cmds.columnLayout()
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
+        cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
                             attribute=attrName, enable=isEnabled)
-        cmds.setParent('..')
+        cmds.setUITemplate(popTemplate=True)
     
     def minPixelUpdate(self, attrName):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
-        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
+        cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
 
     def modeChanged(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
-                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
+                cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
             else:
-                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
+                cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
         except RuntimeError:
             # this callback runs immediately, before NurbsCurveTemplateMinPixelWidth exists
             pass
@@ -182,6 +208,7 @@ templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
+        self.setupColorTemperature("Ambient")
         self.addControl("aiNormalize")  
 
         self.addSeparator()
@@ -195,6 +222,7 @@ templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
+        self.setupColorTemperature("Directional")
         self.addControl("aiExposure")
         self.addControl("aiAngle")
         
@@ -207,14 +235,15 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
         
         self.addControl("aiCastShadows")
         self.addControl("aiShadowDensity")
-
-        self.addSeparator()
-
+        
+        self.addSeparator()                
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
+        self.setupColorTemperature("Point")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -231,14 +260,13 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-        self.addSeparator()
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
+        self.setupColorTemperature("Spot")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -255,21 +283,18 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-
-        self.addSeparator()
-
         self.addControl("aiAspectRatio")
         self.addControl("aiLensRadius")
 
         self.addSeparator()
 
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
+        self.setupColorTemperature("Area")
         self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
@@ -289,12 +314,8 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-
-        self.addSeparator()
-
         self.commonLightAttributes()
+
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 # Actually currently connecting the other way round, filter's decayRate
@@ -323,6 +344,7 @@ class CameraTemplate(templates.AttributeTemplate):
 
     def addCommonAttributes(self):
         self.addControl("aiExposure")
+        self.addControl("aiFiltermap")
         
     def addDOFAttributes(self):
         self.addSeparator()
@@ -447,14 +469,14 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
 def registerDriverTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
 
 def registerFilterTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVFilter"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVFilter', 'gaussian')
 

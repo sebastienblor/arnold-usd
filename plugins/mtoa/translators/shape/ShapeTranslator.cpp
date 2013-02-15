@@ -7,6 +7,24 @@
 
 #include <maya/MPlugArray.h>
 
+void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
+{
+   if (!traceSetsPlug.isNull())
+   {
+      MString traceSets = traceSetsPlug.asString();
+      if (traceSets != "")
+      {
+         MStringArray traceSetArray;
+         traceSets.split(' ', traceSetArray);
+         const unsigned int numSets = traceSetArray.length();
+         AtArray* array = AiArrayAllocate(numSets, 1, AI_TYPE_STRING);
+         for (unsigned int i = 0; i < numSets; ++i)
+            AiArraySetStr(array, i, traceSetArray[i].asChar());
+         AiNodeSetArray(node, "trace_sets", array);
+      }
+   }
+}
+
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
@@ -20,6 +38,8 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
    ProcessParameter(node, "sss_sample_distribution", AI_TYPE_INT, "aiSssSampleDistribution");
    ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, "aiSssSampleSpacing");
+   
+   ExportTraceSets(node, FindMayaPlug("aiTraceSets"));
 }
 
 
@@ -43,6 +63,14 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");
+   
+   CAttrData data;
+   data.stringDefault = "";
+   data.name = "aiTraceSets";
+   data.shortName = "trace_sets";
+   data.type = AI_TYPE_STRING;
+   
+   helper.MakeInput(data);
 
    MakeArnoldVisibilityFlags(helper);
 }

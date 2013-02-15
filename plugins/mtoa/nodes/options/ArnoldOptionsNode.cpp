@@ -26,11 +26,13 @@ MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
 MObject CArnoldOptionsNode::s_driver;
+MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
 MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
+MObject CArnoldOptionsNode::s_force_texture_cache_flush_after_render;
 MObject CArnoldOptionsNode::s_threads;
 MObject CArnoldOptionsNode::s_threads_autodetect;
 MObject CArnoldOptionsNode::s_bucket_scanning;
@@ -78,6 +80,7 @@ MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
 MObject CArnoldOptionsNode::s_shader_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
+MObject CArnoldOptionsNode::s_expand_procedurals;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -209,7 +212,14 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_force_scene_update_before_IPR_refresh);
    
+   s_force_texture_cache_flush_after_render = nAttr.create("force_texture_cache_flush_after_render", "force_texture_flush", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_force_texture_cache_flush_after_render);
+   
+   
    s_attributes.MakeInput("abort_on_error");
+   s_attributes.MakeInput("error_color_bad_texture");
+   s_attributes.MakeInput("error_color_bad_pixel");
    s_attributes.MakeInput("abort_on_license_fail");
 
    s_attributes.MakeInput("skip_license_check");
@@ -375,6 +385,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("show_samples");
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("shadow_terminator_fix");
+   s_attributes.MakeInput("shader_nan_checks");
 
    // textures
    s_attributes.MakeInput("texture_automip");
@@ -405,6 +416,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
+   
+   s_attributes.MakeInput("volume_indirect_samples");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
@@ -429,6 +442,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(100000);
+   nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
    s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
@@ -445,6 +459,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_background);
 
    s_atmosphere = eAttr.create("atmosphere", "atm", 0);
@@ -460,7 +475,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("RGBA"));
+   tAttr.setDefault(sData.create("beauty"));
    addAttribute(s_displayAOV);
 
    s_attributes.MakeInput("binary_ass");
@@ -488,15 +503,29 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_driver = mAttr.create("driver", "drvr");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_driver);
 
    s_filter = mAttr.create("filter", "filt");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_filter);
    
    s_user_options = tAttr.create("aiUserOptions", "ai_user_options", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_user_options);
+
+   s_drivers = mAttr.create("drivers", "drivers");
+   mAttr.setKeyable(false);
+   mAttr.setArray(true);
+   mAttr.setReadable(false);
+   mAttr.setIndexMatters(false);
+   addAttribute(s_drivers);
+   
+   s_expand_procedurals = nAttr.create("expandProcedurals", "expand_procedurals", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_expand_procedurals);
 
    return MS::kSuccess;
 }

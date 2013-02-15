@@ -14,6 +14,7 @@
 #include <ai_msg.h>
 #include <ai_nodes.h>
 #include "ai_node_entry.h"
+#include "ExtensionsManager.h"
 
 #include <maya/MSceneMessage.h>
 #include <maya/MNodeMessage.h>
@@ -186,24 +187,6 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
                         0,
                         m_extensionName,
                         m_extensionFile);
-
-   // TODO: Make this code more general for hidden nodes
-   if (mayaTypeName == "lambert")
-   {
-		   
-	   CAOVData data;
-	   data.attribute = "aov_direct_diffuse";
-	   data.name = "direct_diffuse";
-	   data.type = AI_TYPE_RGB;
-	   mayaNode.m_aovs.push_back(data);
-
-	   CAOVData data2;
-	   data2.attribute = "aov_indirect_diffuse";
-	   data2.name = "indirect_diffuse";
-	   data2.type = AI_TYPE_RGB;
-	   mayaNode.m_aovs.push_back(data2);
-
-   }
 
    MString transName;
    if (translatorName.numChars() != 0)
@@ -435,7 +418,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          CPxTranslator translator("",
                                   m_extensionName,
                                   m_extensionFile);
-         translator.ReadMetaData(nentry);
+         translator.ReadMetaData(nentry, MFnPlugin::isNodeRegistered(mayaNode.name));
 
          // Each arnold node may be processed in several ways:
          // - generate a new Maya node and a translator
@@ -466,7 +449,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
             status = nodeStatus;
          }
          // Warning for Arnold nodes that are from plugins and not translated
-         if (m_extensionName != "<built-in>" && MStatus::kNotImplemented == translatorStatus)
+         if (m_extensionName != BUILTIN && MStatus::kNotImplemented == translatorStatus)
          {
             AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
                m_extensionName.asChar(), arnoldNode.name.asChar());
@@ -830,6 +813,12 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
       AiMsgWarning("[mtoa] [%s] [node %s] Failed to register translator %s for Maya node %s.",
             m_extensionName.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
    }
+   else
+   {
+      MString defaultTranslator = CExtensionsManager::GetDefaultTranslator(mayaNode.name);
+      if (defaultTranslator == "")
+         CExtensionsManager::SetDefaultTranslator(mayaNode.name, translator.name);
+   }
    return status;
 }
 
@@ -947,12 +936,15 @@ MStringArray CExtension::FindLibraries(const MString &path,
 /// @param path  the resolved file name of Arnold plugin
 bool CExtension::IsArnoldPluginLoaded(const MString &file)
 {
-   std::string file_str(file.asChar());
-   LoadedArnoldPluginsSet::iterator pluginIt;
-   pluginIt = s_allLoadedArnoldPlugins.find(file_str);
-   if (pluginIt != s_allLoadedArnoldPlugins.end())
+   MFileObject fo;
+   fo.setRawFullName(file);
+   MString rawName = fo.rawName();
+   for (LoadedArnoldPluginsSet::iterator it = s_allLoadedArnoldPlugins.begin() ; it != s_allLoadedArnoldPlugins.end(); ++it)
    {
-      return true;
+      MFileObject fo2;
+      fo2.setRawFullName((*it).c_str());
+      if (rawName == fo2.rawName())
+         return true;
    }
    return false;
 }

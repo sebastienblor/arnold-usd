@@ -1,38 +1,34 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiVolumeScatteringTemplate(nodeName):
+class AEaiVolumeScatteringTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        
+        self.beginScrollLayout()
+        
+        self.beginLayout('Volume Attributes', collapse=False)
+        self.addControl('rgb_density', label='Color')
+        self.addControl('density', label='Density')
+        self.addSeparator()
+        self.addControl('rgb_attenuation', label='Attenuation Color')
+        self.addControl('attenuation', label='Attenuation')
+        self.addSeparator()
+        self.addControl('eccentricity', label='Anisotropy')
+        self.addSeparator()
+        self.addControl('importance_sampling', label='Importance Sampling')
+        self.addControl('sampling_pattern', label='Sampling Pattern')
+        self.addControl('samples', label='Samples')
+        self.endLayout()
+        
+        self.beginLayout('Contribution Attributes')
+        self.addControl('affect_camera', Label='Camera')
+        self.addControl('affect_diffuse', Label='Diffuse')
+        self.addControl('affect_reflection', label='Reflection')
+        self.endLayout()
+        
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    aiSwatchDisplay(nodeName)
-
-    cmds.editorTemplate(beginScrollLayout=True)
-
-    cmds.editorTemplate(beginLayout="Volume Attributes", collapse=False)
-    cmds.editorTemplate("rgb_density", label="Color", addControl=True)
-    cmds.editorTemplate("density", label="Density", addControl=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("rgb_attenuation", label="Attenuation Color", addControl=True)
-    cmds.editorTemplate("attenuation", label="Attenuation", addControl=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("eccentricity", label="Eccentricity", addControl=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("importance_sampling", label="Importance Sampling", addControl=True)
-    cmds.editorTemplate("sampling_pattern", label="Sampling Pattern", addControl=True)
-    cmds.editorTemplate("samples", label="Samples", addControl=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("mscattering_depth", label="Mscattering Depth", addControl=True)
-    cmds.editorTemplate("mscattering_samples", label="Mscattering Samples", addControl=True)
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Contribution Attributes", collapse=False)
-    cmds.editorTemplate("affect_camera", label="Camera", addControl=True)
-    cmds.editorTemplate("affect_diffuse", label="Diffuse", addControl=True)
-    cmds.editorTemplate("affect_reflection", label="Reflection", addControl=True)
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    
-    cmds.editorTemplate(addExtraControls=True)
-    cmds.editorTemplate(endScrollLayout=True)

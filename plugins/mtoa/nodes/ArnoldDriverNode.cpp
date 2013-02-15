@@ -15,6 +15,7 @@ MTypeId CArnoldDriverNode::id(ARNOLD_NODEID_DRIVER);
 MObject CArnoldDriverNode::s_mergeAOVs;
 MObject CArnoldDriverNode::s_driver;
 MObject CArnoldDriverNode::s_prefix;
+MObject CArnoldDriverNode::s_outputMode;
 
 void* CArnoldDriverNode::creator()
 {
@@ -42,6 +43,13 @@ MStatus CArnoldDriverNode::initialize()
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_prefix);
+
+   s_outputMode = eAttr.create("outputMode", "output_mode", 2);
+   eAttr.addField("GUI Only", 0);
+   eAttr.addField("Batch Only", 1);
+   eAttr.addField("GUI and Batch", 2);
+   tAttr.setKeyable(false);
+   addAttribute(s_outputMode);
 
    return MStatus::kSuccess;
 }

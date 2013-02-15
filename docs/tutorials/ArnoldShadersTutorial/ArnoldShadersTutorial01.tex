@@ -2,19 +2,125 @@
 
 \subsection{Pre-requisites}
 
-To be able to create Arnold shaders, you need to meet the following pre-requisites
+To be able to create Arnold shaders, you need these three components installed: a C++ compiler,
+the Arnold SDK and the MtoA plugin.
+
+\subsubsection{Installing a C++ Compiler}
+You will need a C++ compiler to create your shaders. If you work in Windows, Visual Studio 2008
+or 2010 will be required.
+
+\subsubsection{Installing Arnold SDK}
+You will need to download and extract the Arnold SDK to the folder of your choice.
+For the purposes of this tutorial,
+we will assume that you will set the environment variable \texttt{ARNOLD\_PATH} to the path where
+the Arnold SDK is located. For example, in Windows, if you have installed Arnold in this folder:\\
+\verb|C:\solidangle\releases\Arnold-X.X.X.X-platform|\\
+You will set \texttt{ARNOLD\_PATH} to that folder using this command:\\
+{\footnotesize \verb|set ARNOLD_PATH="C:\solidangle\releases\Arnold-X.X.X.X-platform"| }
+
+
+\subsubsection{Installing MtoA}
+The first thing you have to do is to install MtoA, that is the Maya plugin for Arnold in your system. Depending on your OS, follow the corresponding steps to install it.
+
 
 \begin{description}
 
-\item[Arnold SDK] \hfill \\
-You will need to download and install the Arnold SDK. For the purposes of this tutorial, we will assume that you will set the environment variable \texttt{ARNOLD\_PATH} to the path where the Arnold SDK is located. For example, in Windows, if you have installed Arnold in this folder:\\
-\verb|C:\solidAngle\releases\Arnold-X.X.X.X-platform|\\
-You will set \texttt{ARNOLD\_PATH} to that folder using this command:\\
-{\footnotesize \verb|set ARNOLD_PATH="C:\solidAngle\releases\Arnold-X.X.X.X-platform"| }
+\item[Windows] \hfill \\
+In order to install MtoA in windows, you will have to download the required version package, for example: \texttt{MtoA-0.20.0-win64-2012.exe}, and you will have two options:
+\begin{enumerate}
+\item You can use the installer with the two component \textbf{MtoA for Maya 20XX} and \textbf{MtoA for Maya 20XX Env Variables} selected.
+\item You can use the installer with only the component \textbf{MtoA for Maya 20XX} selected. In this case you will need to add these definitions to your Maya.env file
 
-\item[C++ Compiler] \hfill \\
-You will need a C++ compiler to create your shaders. If you work in Windows, Visual Studio 2008 will be required. Visual Studio 2010 may also work but it is currently not supported.
+Edit this file:\\
+\verb|C:\Users\<User_Name>\Documents\maya\20XX-x64\Maya.env|\\
+and add these definitions:
+{\footnotesize \begin{verbatim}
+MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\20XX
+PATH = %PATH%;C:\solidangle\mtoadeploy\20XX\bin
+\end{verbatim}}
+
+\end{enumerate}
+
 \end{description}
+
+Now, when you start Maya, you will be able to load MtoA in the Plug-in Manager.\\
+
+Of course you can select another folder that suits you better, so for the rest of the tutorial, we will assume that you have set the environment variable \texttt{MTOA\_PATH} to the path where the MtoA plugin is located. In this case, you should have to execute this command:\\
+\verb|set MTOA_PATH="C:\solidangle\mtoadeploy\20XX"|
+
+\subsubsection{Installing MtoA --- Troubleshooting}
+If after following these instructions, MtoA does not work, try these steps:
+
+\begin{description}
+
+\item[If you cannot see the MtoA plugin in Maya Plug-in Manager] \hfill \\
+
+If MtoA plugin does not appear atumatically in the Maya Plug-in Manager, try these steps:
+
+\begin{enumerate}
+\item Check that a file \texttt{mtoa.mod} exists in this folder:\\
+\verb|C:\Users\<User_Name>\Documents\maya\20XX-x64\modules|\\
+And it contains this text:\\
+\verb|+ mtoa any C:\solidangle\mtoadeploy\20XX|\\
+
+\item Try to set the following environment variables in your system:
+{\footnotesize \begin{verbatim}
+MAYA_PLUG_IN_PATH=C:\solidangle\mtoadeploy\20XX\plug-ins
+MAYA_SCRIPT_PATH=C:\solidangle\mtoadeploy\20XX\scripts
+XBMLANGPATH=C:\solidangle\mtoadeploy\20XX\icons
+\end{verbatim}}
+\end{enumerate}
+
+\item[If you can see the MtoA plugin, but it does not load] \hfill \\
+If you can see the MtoA plugin but it does not load or it crashes when trying to load, try these steps:
+\begin{enumerate}
+\item Set the following environment variable:\\
+\verb|PYTHONPATH=C:\solidangle\mtoadeploy\20XX\scripts|
+
+\item Create the following global environment variables
+{\footnotesize \begin{verbatim}
+ARNOLD_PLUGIN_PATH    = C:\solidangle\mtoadeploy\20XX\shaders
+MTOA_EXTENSIONS_PATH  = C:\solidangle\mtoadeploy\20XX\extensions
+MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\20XX
+PATH = %PATH%;C:\solidangle\mtoadeploy\20XX\bin
+\end{verbatim}}
+
+\item Remove (and backup) your Maya preferences folder:\\
+\verb|C:\Users\<User_Name>\Documents\maya\20XX-x64\prefs|
+
+\item Try MtoA using a clean Maya installation
+
+\item Try MtoA using a clean configured computer
+
+\end{enumerate}
+
+\end{description}
+
+\subsubsection{Installing MtoA and Arnold in separate folders (Advanced)}
+If you wish to install MtoA and Arnold in separate folders you can do this by following the next steps
+after you have installed Arnold and MtoA.
+\paragraph{Windows}
+\begin{enumerate}
+\item Remove Arnold from MtoA. This will involve two things:
+\begin{itemize}
+   \item Remove Arnold libs (\texttt{ai.dll}, \texttt{OpenImageIO.dll} and \texttt{tbb.dll}) from \texttt{\%MTOA\_PATH\%\textbackslash bin}
+   \item Remove Arnold Python bindings deleting the folders \texttt{arnold} and \texttt{pykick} from \texttt{\%MTOA\_PATH\%\textbackslash scripts}
+\end{itemize}
+\item Add the Arnold \texttt{bin} folder (\texttt{\%ARNOLD\_PATH\textbackslash bin}) you want to use to the \texttt{PATH} environment variable.
+\item Add the Arnold \texttt{python} folder (\texttt{\%ARNOLD\_PATH\textbackslash python}) to the \texttt{PYTHONPATH} environment variable.
+\end{enumerate}
+
+\paragraph{Linux}
+\begin{enumerate}
+\item Follow the same steps as in Windows, but the Arnold libs to remove in the first step would be: \texttt{libai.so}.
+\item Add the Arnold \texttt{bin} folder (\texttt{\%ARNOLD\_PATH\textbackslash bin}) you want to use to the \texttt{LD\_LIBRARY\_PATH} environment variable.
+\end{enumerate}
+
+\paragraph{Mac}
+\begin{enumerate}
+\item Follow the same steps as in Windows, but the Arnold libs to remove in the first step would be: \texttt{libai.dylib} and \texttt{libOpenImageIO.dylib}.
+\item Add the Arnold \texttt{bin} folder (\texttt{\%ARNOLD\_PATH\textbackslash bin}) you want to use to the \texttt{DYLD\_LIBRARY\_PATH} environment variable.
+\end{enumerate}
 
 \subsection{Creating a shader}
 
@@ -35,11 +141,18 @@ To compile the shader, do the following depending on your OS:
 
 \begin{description}
 
-\item[In Windows] \hfill \\
+\item[Windows] \hfill \\
 Open a Visual Studio command prompt and execute the following command:\\
 \verb|cl /LD /I %ARNOLD_PATH%\include /EHsc simpleShader.cpp|\\
 \verb|       /link /LIBPATH:%ARNOLD_PATH%\lib ai.lib|\\
 Of course you can also create a Visual Studio project and adjust the settings to specify the include folder, the lib folder, add the ai.lib, and set it to create a .dll file
+
+\item[Linux] \hfill \\
+Execute the following commands in a console:\\
+\verb|g++ -o simpleShader.os -c -fPIC -D_LINUX|\\
+\verb|    -I$ARNOLD_PATH/include simpleShader.cpp|\\
+\verb|g++ -o simpleShader.so -shared simpleShader.os|\\
+\verb|    -L$ARNOLD_PATH/bin -lai|\\
 
 \end{description}
 
@@ -98,77 +211,6 @@ And this image:
 \end{figure}
 
 \subsection{Using the shader in Maya}
-\subsubsection{Installing MtoA}
-The first thing you have to do is to install MtoA, that is the Maya plugin for Arnold in your system. Depending on your OS, follow the corresponding steps to install it.
-\paragraph{Windows}
-
-In order to install MtoA in windows, you will have to download the required version package, for example: \texttt{MtoA-0.15.0-win64-2012.rar}.\\
-
-Unpack it to this folder:\\
-\verb|C:\solidAngle\mtoadeploy\2012\|\\
-
-Check that the path in the file:\\
-\verb|C:\solidAngle\mtoadeploy\2012\mtoa.mod|\\
-points to the folder where you have unrar the plugin:\\
-\verb|+ mtoa any C:\solidAngle\mtoadeploy\2012\|\\
-
-
-Edit this file:\\
-\verb|C:\Users\<User_Name>\Documents\maya\2012-x64\Maya.env|\\
-and add these definitions:
-{\footnotesize \begin{verbatim}
-MAYA_MODULE_PATH      = C:\solidangle\mtoadeploy\2012
-ARNOLD_PLUGIN_PATH    = C:\solidangle\mtoadeploy\2012\shaders
-MTOA_EXTENSIONS_PATH  = C:\solidangle\mtoadeploy\2012\extensions
-MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\2012
-PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
-\end{verbatim}}
-
-Now, when you start Maya, you will be able to load MtoA in the Plug-in Manager.\\
-
-Of course you can select another folder that suits you better, so for the rest of the tutorial, we will assume that you have set the environment variable \texttt{MTOA\_PATH} set to the path where the MtoA plugin is located. In this case, you should have to execute this command:\\
-\verb|set MTOA_PATH="C:\solidAngle\mtoadeploy\2012"|
-
-\subsubsection{Installing MtoA --- Troubleshooting}
-If after following these instructions, MtoA does not work, try these steps:
-
-\begin{description}
-
-\item[If you cannot see the MtoA plugin in Maya Plug-in Manager] \hfill \\
-Try to set the following environment variables in your system:
-{\footnotesize \begin{verbatim}
-MAYA_PLUG_IN_PATH=C:\solidAngle\mtoadeploy\2012\plug-ins
-MAYA_SCRIPT_PATH=C:\solidAngle\mtoadeploy\2012\scripts
-XBMLANGPATH=C:\solidAngle\mtoadeploy\2012\icons
-\end{verbatim}}
-
-\item[If you can see the MtoA plugin, but it does not load] \hfill \\
-If you can see the MtoA plugin but it does not load or it crashes when trying to load, try these steps:
-\begin{enumerate}
-\item Set the following environment variable:\\
-\verb|PYTHONPATH=C:\solidangle\mtoadeploy\2012\scripts|
-
-\item Create global environment variables for the definitions in the file\\
-\verb|C:\Users\<User_Name>\Documents\maya\2012-x64\Maya.env|\\
-
-{\footnotesize \begin{verbatim}
-MAYA_MODULE_PATH      = C:\solidangle\mtoadeploy\2012
-ARNOLD_PLUGIN_PATH    = C:\solidangle\mtoadeploy\2012\shaders
-MTOA_EXTENSIONS_PATH  = C:\solidangle\mtoadeploy\2012\extensions
-MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\2012
-PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
-\end{verbatim}}
-
-\item Remove (and backup) your Maya preferences folder:\\
-\verb|C:\Users\<User_Name>\Documents\maya\2012-x64\prefs|
-
-\item Try MtoA using a clean Maya installation
-
-\item Try MtoA using a clean configured computer
-
-\end{enumerate}
-
-\end{description}
 
 \subsubsection{Adding Maya Metadata to your shader with a metadata file}
 In order that your shader is correctly recognized by Maya, you need to add some metadata to it.
@@ -187,6 +229,8 @@ fontsize=\footnotesize,
 tabsize=3,
 label=simpleShader.mtd]
 {mtd}{simpleShader.mtd}
+
+If you do not give it a \texttt{maya.name} metadata, it will be assigned a name that is its Arnold name prefixed by \texttt{ai}. In this case it would be \texttt{aiSimple}.
 
 You should have to follow instructions from section 1.3.6 to name and place this metadata file.
 
@@ -208,13 +252,14 @@ avoid future conflicts.
 Plug-ins that are intended to be shared between sites will need to
 have a globally unique id. The Autodesk Developer Network (ADN) will
 provide such id's in blocks of 256. You will be assigned one or more
-24-bit prefixes. Once this has been obtained, used the MTypeId
+24-bit prefixes. Once this has been obtained, use the MTypeId
 constructor that takes 2 unsigned int parameters. The prefix goes in
 the first parameter, and you are responsible for managing the
 allocation of the 256 ids that go into the second parameter.
 \end{quotation}
 
-For the purposes of this text, we will use IDs begining from 0x70000, but feel free to use the ones that could suit you better.
+For the purposes of this text, we will use IDs begining from 0x70000,
+but feel free to use the IDs that could suit you better.
 Also, if you are developing a quality shader that you would like to share with the MtoA comunity, feel free to ask us for an ID granted by Autodesk to MtoA.
 
 \subsubsection{Creating the Maya interface for your shader}
@@ -229,10 +274,13 @@ framesep=2mm,
 baselinestretch=1,
 fontsize=\footnotesize,
 tabsize=3,
-label=aiSimpleTemplate.py]
-{python}{aiSimpleTemplate.py}
+label=mySimpleTemplate.py]
+{python}{mySimpleTemplate.py}
 
-Note that the name of the defined class should be: \verb|AE<shader_name>Template| where \verb|<shader_name>| is the value of the \verb|maya.name| metadata of the shader.
+In the \texttt{addControl} method, the first argument is the shader attribute name or the \texttt{maya.name} metadata of that attribute.
+So in this case the parameter could be: \texttt{constantColor} or \texttt{color}.
+
+Note that the name of the defined class should be: \verb|AE<shader_name>Template| and the file name \verb|<shader_name>Template.py| where \verb|<shader_name>| is the value of the \verb|maya.name| metadata of the shader.
 
 \subsubsection{Where to place your files}
 
@@ -241,18 +289,22 @@ In order that your shader works correctly in Maya, it is very important that you
 \begin{description}
 
 \item[Compiled Shader] \hfill \\
-This is the shader you compiled, and it will be responsible of the shader behaviour. In this example, it is \fcolorbox{backGroundColor}{backGroundColor}{\texttt{simpleShader.dll}} in Windows. You should copy it to:
-\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash shaders\textbackslash}}\\
+This is the shader you compiled, and it will be responsible for the shader behaviour. In this example, it is \fcolorbox{backGroundColor}{backGroundColor}{\texttt{simpleShader.dll}}
+in Windows. You can copy it to:
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash shaders\textbackslash}} or to any other folder that is included in the environment variable
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%ARNOLD\_PLUGIN\_PATH\%}}\\
 
 \item[Metadata File] \hfill \\
 This is the file where all the metadata information is located. This will add information that Maya needs about the shader. The name of this file must be thes same as the shader,
-but with a \texttt{.mtd} extension. In this example its name will be \fcolorbox{backGroundColor}{backGroundColor}{\texttt{simpleShader.mtd}}. This file will have to be copied also to this folder:
-\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash shaders\textbackslash}}\\
+but with a \texttt{.mtd} extension. In this example its name will be \fcolorbox{backGroundColor}{backGroundColor}{\texttt{simpleShader.mtd}}. This file will have to be copied to the same folder
+where the Compiled Shader is located.\\
 
 \item[Template File] \hfill \\
-This is the file where the Maya Template for this shader is defined. The name of this file is not important as the class name inside it follows the rules from previous section.
-But for clarity, we will name it \fcolorbox{backGroundColor}{backGroundColor}{\texttt{aiSimpleTemplate.py}}. This file must be copied to this folder:
-\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash scripts\textbackslash mtoa\textbackslash ui\textbackslash  ae\textbackslash }}\\
+This is the file where the Maya Template for this shader is defined. The name of this file and the class name inside it has to follow the rules from previous section.
+In this example it is \fcolorbox{backGroundColor}{backGroundColor}{\texttt{mySimpleTemplate.py}}. This file can be copied to this folder:
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash scripts\textbackslash mtoa\textbackslash ui\textbackslash  ae\textbackslash }}
+or to any other folder that is included in the environment variable
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_TEMPLATES\_PATH\%}}\\
 
 \end{description}
 
@@ -265,12 +317,14 @@ Now, with everything in its correct place, when you use the aiSimple shader in M
 \label{SimpleTemplate}
 \end{figure}
 
+
 \subsubsection{Adding Maya Metadata to your shader in its source code (Advanced)}
 
 It is also possible, though not recommended, to place Maya metadata
 in the code, instead of using a metadata file. The following example
 code shows the syntax for this; but remember that
 a separate metadata file is more flexible.
+A good use for this method could be to add needed metadata that is not specific to any plugin.
 
 \inputminted[mathescape,
 numbersep=5pt,

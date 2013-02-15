@@ -43,11 +43,21 @@ def attributeExists(attribute, nodeName):
 
 def loadAETemplates():
     templates = []
-    for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
+    customTemplatePaths = []
+    
+    if (os.getenv('MTOA_TEMPLATES_PATH')):
+        import sys
+        customTemplatePaths = os.getenv('MTOA_TEMPLATES_PATH').split(os.pathsep)
+        sys.path += customTemplatePaths
+        
+    pathsList = mtoa.ui.ae.__path__ + customTemplatePaths
+    
+    for importer, modname, ispkg in pkgutil.iter_modules(pathsList):
         # module name must end in "Template"
         if modname.endswith('Template') and modname not in templates:
             # TODO: use importer?
             mod = __import__(modname, globals(), locals(), [], -1)
+            
             procName = 'AE%s' % modname
             if hasattr(mod, modname):
                 # a function named after the module
@@ -137,7 +147,10 @@ def attrTextFieldGrp(*args, **kwargs):
         pass
     else:
         # create
-        ctrl = pm.textFieldGrp(label=pm.mel.interToUI(attribute.split('.')[-1]),
+        labelText = kwargs.pop('label', None)
+        if not labelText:
+            labelText = pm.mel.interToUI(attribute.split('.')[-1])
+        ctrl = pm.textFieldGrp(label=labelText,
                                text=pm.getAttr(attribute),
                                changeCommand=cc)
         pm.scriptJob(parent=ctrl,
@@ -145,6 +158,44 @@ def attrTextFieldGrp(*args, **kwargs):
                                       lambda: pm.textFieldGrp(ctrl, edit=True,
                                                               text=pm.getAttr(attribute))])
         return ctrl
+
+def attrBoolControlGrp(*args, **kwargs):
+    attribute = kwargs.pop('attribute', kwargs.pop('a', None))
+    assert attribute is not None, "You must passed an attribute"
+    changeCommand = kwargs.pop('changeCommand', kwargs.pop('cc', None))
+    if changeCommand:
+        def cc(newVal):
+            pm.setAttr(attribute, newVal)
+            changeCommand(newVal)
+    else:
+        cc = lambda newVal: pm.setAttr(attribute, newVal)
+
+    if kwargs.pop('edit', kwargs.pop('e', False)):
+        ctrl = args[0]
+        pm.checkBox(ctrl, edit=True,
+                    value=pm.getAttr(attribute),
+                    changeCommand=cc)
+        pm.scriptJob(parent=ctrl,
+                     replacePrevious=True,
+                     attributeChange=[attribute,
+                                      lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
+    elif kwargs.pop('query', kwargs.pop('q', False)):
+        # query
+        pass
+    else:
+        # create
+        labelText = kwargs.pop('label', None)
+        if not labelText:
+            labelText = pm.mel.interToUI(attribute.split('.')[-1])
+        ctrl = args[0]
+        pm.rowLayout(numberOfColumns=1, columnWidth1=285, columnAttach1='right')
+        pm.checkBox(ctrl, label=labelText,
+                    value=pm.getAttr(attribute),
+                    changeCommand=cc)
+        pm.setParent('..')
+        pm.scriptJob(parent=ctrl,
+                     attributeChange=[attribute,
+                     lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
 
 class AttrControlGrp(object):
     UI_TYPES = {

@@ -1,5 +1,4 @@
-#ifndef RENDEROPTIONS_H
-#define RENDEROPTIONS_H
+#pragma once
 
 #include "platform/Platform.h"
 #include "AOV.h"
@@ -97,10 +96,20 @@ public:
    {
       return m_outputAssMask;
    }
+   
+   bool expandProcedurals() const
+   {
+      return m_expandProcedurals;
+   }
 
    void SetOutputAssMask(unsigned int mask)
    {
       m_outputAssMask = mask;
+   }
+   
+   void SetExpandProcedurals(bool expand_procedurals)
+   {
+      m_expandProcedurals = expand_procedurals;
    }
 
    void SetCamera(MDagPath& camera);
@@ -198,6 +207,7 @@ private:
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
    bool     m_forceSceneUpdateBeforeIPRRefresh;
+   bool     m_forceTextureCacheFlushAfterRender;
 
    float    m_startFrame;
    float    m_endFrame;
@@ -236,11 +246,10 @@ private:
 
    bool     m_outputAssBoundingBox;
    unsigned int   m_outputAssMask;
+   bool m_expandProcedurals;
 
    MString  m_log_filename;
    unsigned int   m_log_max_warnings;
    unsigned int   m_log_console_verbosity;
    unsigned int   m_log_file_verbosity;
 };
-
-#endif // RENDEROPTIONS_H

@@ -35,11 +35,11 @@ MStatus CSessionOptions::GetFromMaya()
       // Motion blur options
       if (fnArnoldRenderOptions.findPlug("mb_en").asBool())
       {
-         m_motion.enable_mask   = fnArnoldRenderOptions.findPlug("mb_len").asBool() * MTOA_MBLUR_LIGHT
-                                + fnArnoldRenderOptions.findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA
-                                + fnArnoldRenderOptions.findPlug("mb_oen").asBool() * MTOA_MBLUR_OBJECT
-                                + fnArnoldRenderOptions.findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM
-                                + fnArnoldRenderOptions.findPlug("mb_sen").asBool() * MTOA_MBLUR_SHADER;
+         m_motion.enable_mask   = (fnArnoldRenderOptions.findPlug("mb_len").asBool() * MTOA_MBLUR_LIGHT)
+                                | (fnArnoldRenderOptions.findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA)
+                                | (fnArnoldRenderOptions.findPlug("mb_oen").asBool() * MTOA_MBLUR_OBJECT)
+                                | (fnArnoldRenderOptions.findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM)
+                                | (fnArnoldRenderOptions.findPlug("mb_sen").asBool() * MTOA_MBLUR_SHADER);
       }
       else
       {

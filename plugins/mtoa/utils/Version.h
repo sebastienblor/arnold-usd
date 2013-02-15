@@ -1,12 +1,11 @@
-#ifndef VERSION_H
-#define VERSION_H
+#pragma once
 
 #define MTOA_VAL(str) #str
 #define MTOA_TOSTRING(str) MTOA_VAL(str)
 
 #define MTOA_VENDOR "SolidAngle"
 #define MTOA_MAJOR_VERSION_NUM 0
-#define MTOA_MINOR_VERSION_NUM 20
+#define MTOA_MINOR_VERSION_NUM 22
 #define MTOA_FIX_VERSION "0.dev"
 
 
@@ -18,5 +17,3 @@
 #ifndef MAYA_VERSION
    #define MAYA_VERSION "Any"
 #endif
-
-#endif // VERSION_H

@@ -3,6 +3,7 @@
 #include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/Components.h"
+#include "common/UtilityFunctions.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -167,8 +168,8 @@ MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* Retu
 /// Get a plug for that attribute name on the maya override sets, if any
 MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
 {
-   MStatus status(MStatus::kSuccess);
    MPlug plug;
+   MStatus status(MStatus::kSuccess);   
    // Check if a set override this plug's value
    std::vector<CNodeTranslator*>::iterator it;
    std::vector<CNodeTranslator*> translators;
@@ -176,7 +177,7 @@ MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* Re
    for (unsigned int i=0; i<novr; i++)
    {
       CNodeTranslator* translator = m_overrideSets[i];
-
+      
       // MString setName = translator->GetMayaObjectName();
       // Search only on active translators
       if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
@@ -238,8 +239,11 @@ MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideS
       for (unsigned int i=0; i<nc; i++)
       {
          MObject set = connections[i].node();
-         if (MStatus::kSuccess == fnSet.setObject(set))
+         MFnDependencyNode setDNode(set);
+         if (setDNode.typeName() == MString("objectSet"))
          {
+            if (!fnSet.setObject(set))
+               continue;
             // MString setName = fnSet.name();
             // Also add sets with override turned off to allow chaining
             // on these as well
@@ -469,7 +473,6 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
       else
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                     GetMayaNodeName().asChar(), GetTranslatorName().asChar());
-      ExportOverrideSets();
       ComputeAOVs();
       Export(node);
       ExportUserAttribute(node);
@@ -495,6 +498,7 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 {
    assert(AiUniverseIsActive());
    AtNode* node = GetArnoldNode("");
+   m_step = step;
 
    if (node != NULL)
    {
@@ -511,7 +515,6 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 
    if (step == 0)
    {
-      ExportOverrideSets();
       Update(node);
       ExportUserAttribute(node);
    }
@@ -521,6 +524,19 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    }
 
    return GetArnoldRootNode();
+}
+
+void CNodeTranslator::Export(AtNode* node)
+{
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (strcmp(paramName, "name") != 0) ProcessParameter(node, paramName, AiParamGetType(paramEntry));
+   }
+   AiParamIteratorDestroy(nodeParam);
 }
 
 AtNode* CNodeTranslator::DoCreateArnoldNodes()
@@ -780,20 +796,6 @@ enum EAttributeDeclarationType{
    DECLARATION_VARYING = 3
 };
 
-static const char* declStrings[][4] = {
-   {"constant BYTE", "constant ARRAY BYTE", "uniform BYTE", "varying BYTE"}, // AI_TYPE_BYTE
-   {"constant INT", "constant ARRAY INT", "uniform INT", "varying INT"}, // AI_TYPE_INT
-   {"constant UINT", "constant ARRAY UINT", "uniform UINT", "varying UINT"}, // AI_TYPE_UINT
-   {"constant BOOL", "constant ARRAY BOOL", "uniform BOOL", "varying BOOL"}, // AI_TYPE_BOOLEAN
-   {"constant FLOAT", "constant ARRAY FLOAT", "uniform FLOAT", "varying FLOAT"}, // AI_TYPE_FLOAT
-   {"constant RGB", "constant ARRAY RGB", "uniform RGB", "varying RGB"}, // AI_TYPE_RGB
-   {"constant RGBA", "constant ARRAY RGBA", "uniform RGBA", "varying RGBA"}, // AI_TYPE_RGBA
-   {"constant VECTOR", "constant ARRAY VECTOR", "uniform VECTOR", "varying VECTOR"}, // AI_TYPE_VECTOR
-   {"constant POINT", "constant ARRAY POINT", "uniform POINT", "varying POINT"}, // AI_TYPE_POINT
-   {"constant POINT2", "constant ARRAY POINT2", "uniform POINT2", "varying POINT2"}, // AI_TYPE_POINT2
-   {"constant STRING", "constant ARRAY STRING", "uniform STRING", "varying STRING"}, // AI_TYPE_STRING
-};
-
 template <signed ATTR>
 void TExportArrayAttribute(AtArray* arr, MPlug& plug, unsigned int element) { }
 
@@ -930,10 +932,19 @@ void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* att
    AiNodeSetStr(node, attrName, plug.asString().asChar());
 }
 
+typedef bool (*declarationPointer)(AtNode*, const char*, unsigned int);
+
+static declarationPointer declarationPointers[] = {
+   0,
+   AiNodeDeclareConstantArray,
+   AiNodeDeclareUniform,
+   AiNodeDeclareVarying
+};
+
 template <signed ATTR>
 void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
 {
-   if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+   if (declarationPointers[declType](node, attrName, ATTR))
    {
       const unsigned int numElements = plug.numElements();
       AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
@@ -950,7 +961,7 @@ void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttr
       TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
    else
    {
-      if (AiNodeDeclare(node, attrName, declStrings[ATTR][0]))
+      if (AiNodeDeclareConstant(node, attrName, ATTR))
          TExportAttribute<ATTR>(node, plug, attrName);
    }
 }
@@ -1012,7 +1023,7 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
 {
    if (!plug.isArray())
    {
-      if (AiNodeDeclare(node, attrName, declStrings[ATTR][declType]))
+      if (declarationPointers[declType](node, attrName, ATTR))
       {
          T data(plug.asMObject());
          const unsigned int length = data.length();
@@ -1158,8 +1169,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    }
    
    // Exporting the UnexposedOptions parameter
-   
-   MPlug plug = fnDepNode.findPlug("aiUserOptions");
+   MPlug plug = FindMayaPlug("aiUserOptions");
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
@@ -1350,10 +1360,14 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
 
    bool acceptLinks = false;
-   // if the linkable metadata is not set, then only link if the node is a shader
+   // if the linkable metadata is not set, then only link if the node is a shader or param type is Node pointer
    if (!AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), arnoldParamName, "linkable", &acceptLinks))
-      acceptLinks = ((AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) & AI_NODE_SHADER) != 0) ? true : false;
-
+   {
+      if (arnoldParamType == AI_TYPE_NODE)
+         acceptLinks = true;
+      else
+         acceptLinks = (AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) & AI_NODE_SHADER) != 0;
+   }
    // ignoreWhenRendering flag
    if (acceptLinks && plug.isIgnoredWhenRendering()) return NULL;
 
@@ -1760,35 +1774,83 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
    } // switch
 }
 
+/// for automatically creating parameters
+void CNodeTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, context.arnold);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeEntryLookUp(context.arnold.asChar()));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+      if (!helper.IsHidden(paramName))
+         helper.MakeInput(paramName);
+   }
+   AiParamIteratorDestroy(nodeParam);
+}
+
 //------------ CDagTranslator ------------//
+
+void CDagTranslator::Export(AtNode* node)
+{
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (strcmp(paramName, "name") != 0)
+      {
+         if (strcmp(paramName, "matrix") == 0)
+            ExportMatrix(node, 0);
+         else
+            ProcessParameter(node, paramName, AiParamGetType(paramEntry));
+      }
+   }
+   AiParamIteratorDestroy(nodeParam);
+}
+
+void CDagTranslator::ExportMotion(AtNode* node, unsigned int step)
+{
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), "matrix"))
+      ExportMatrix(node, step);
+}
+
 /// get override sets containing the passed Maya dag path
 /// and add them to the passed MObjectArray
+/// and we also need to check the parent nodes, so groups are handled properly
 MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
 {
    MStatus status;
-
-   MFnDagNode fnDag(path);
-   unsigned int instNum = path.instanceNumber();
-   MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
-   CHECK_MSTATUS(status)
-   MPlugArray connections;
-   MFnSet fnSet;
-   // MString plugName = instObjGroups.name();
-   if (instObjGroups.connectedTo(connections, false, true, &status))
+   MDagPath pathRec = path;
+   for(;pathRec.length();pathRec.pop(1))
    {
-      unsigned int nc = connections.length();
-      for (unsigned int i=0; i<nc; i++)
+      MFnDagNode fnDag(pathRec);
+      unsigned int instNum = pathRec.instanceNumber();
+      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
+      CHECK_MSTATUS(status)
+      MPlugArray connections;
+      MFnSet fnSet;
+      // MString plugName = instObjGroups.name();
+      if (instObjGroups.connectedTo(connections, false, true, &status))
       {
-         MObject set = connections[i].node();
-         if (MStatus::kSuccess == fnSet.setObject(set))
+         unsigned int nc = connections.length();
+         for (unsigned int i=0; i<nc; i++)
          {
-            // MString setName = fnSet.name();
-            // Also add sets with override turned off to allow chaining
-            // on these as well
-            MPlug p = fnSet.findPlug("aiOverride", true, &status);
-            if ((MStatus::kSuccess == status) && !p.isNull())
+            MObject set = connections[i].node();
+            MFnDependencyNode setDNode(set);
+            if (setDNode.typeName() == MString("objectSet"))
             {
-               overrideSets.append(set);
+               if (!fnSet.setObject(set))
+                  continue;
+               // MString setName = fnSet.name();
+               // Also add sets with override turned off to allow chaining
+               // on these as well
+               MPlug p = fnSet.findPlug("aiOverride", true, &status);
+               if ((MStatus::kSuccess == status) && !p.isNull())
+               {
+                  overrideSets.append(set);
+               }
             }
          }
       }

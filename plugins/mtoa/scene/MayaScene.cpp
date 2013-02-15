@@ -1,4 +1,3 @@
-#include "platform/Platform.h"
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
@@ -41,6 +40,8 @@ MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
+AtCritSec CMayaScene::s_lock = NULL;
+bool CMayaScene::s_active = false;
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -53,10 +54,15 @@ CArnoldSession* CMayaScene::GetArnoldSession()
    return s_arnoldSession;
 }
 
-bool CMayaScene::IsActive()
+bool CMayaScene::IsActive(ArnoldSessionMode mode)
 {
-   return (s_arnoldSession != NULL && s_arnoldSession->IsActive())
-         && (s_renderSession != NULL && s_renderSession->IsActive());
+   if (mode != MTOA_SESSION_ANY && mode != GetSessionMode())
+      return false;
+   AiCritSecEnter(&s_lock);
+   bool active = (s_arnoldSession != NULL && s_arnoldSession->IsActive())
+         || (s_renderSession != NULL && s_renderSession->IsActive());
+   AiCritSecLeave(&s_lock);
+   return active;
 }
 
 ArnoldSessionMode CMayaScene::GetSessionMode()
@@ -77,6 +83,16 @@ bool CMayaScene::IsExportingMotion()
 
 MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 {
+   AiCritSecEnter(&s_lock);
+   // prevent this from running twice
+   if (s_active)
+   {
+      AiCritSecLeave(&s_lock);
+      return MStatus::kSuccess;
+   }
+   s_active = true;
+   AiCritSecLeave(&s_lock);
+
    MStatus status = MStatus::kSuccess;
 
    // FIXME: raise an error if Begin is called on active session
@@ -134,6 +150,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       // FIXME: default or use swatch defaults
       // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
+      sessionOptions.SetProgressive(false);
    }
    else if (mode == MTOA_SESSION_ASS)
    {
@@ -148,6 +165,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    {
       // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
+      sessionOptions.SetProgressive(false);
    }
    else if (mode == MTOA_SESSION_BATCH)
    {
@@ -165,6 +183,16 @@ MStatus CMayaScene::End()
 {
    MStatus status = MStatus::kSuccess;
 
+   AiCritSecEnter(&s_lock);
+   // prevent this from running twice
+   if (!s_active)
+   {
+      AiCritSecLeave(&s_lock);
+      return MStatus::kSuccess;
+   }
+   s_active = false;
+   AiCritSecLeave(&s_lock);
+
    ClearIPRCallbacks();
    if (s_renderSession != NULL)
    {
@@ -180,6 +208,24 @@ MStatus CMayaScene::End()
    }
 
    return status;
+}
+
+MStatus CMayaScene::Restart()
+{
+   CRenderOptions options = s_renderSession->m_renderOptions;
+   CSessionOptions optionss = s_arnoldSession->m_sessionOptions;
+
+   s_renderSession->End();
+   s_arnoldSession->End();
+
+   s_renderSession->Begin(options);
+   s_arnoldSession->Begin(optionss);
+
+   s_arnoldSession->Export();
+         
+   s_renderSession->m_renderOptions.UpdateImageDimensions();
+
+   return MStatus::kSuccess;
 }
 
 bool CMayaScene::IsArnoldLight(const MObject & object)
@@ -287,13 +333,19 @@ MStatus CMayaScene::ExportAndRenderSequence( ArnoldSessionMode mode,
    return MStatus::kSuccess;
 }
 
-MStatus CMayaScene::ExecuteScript(const MString &str, bool echo)
+MStatus CMayaScene::ExecuteScript(const MString &str, bool echo, bool idle)
 {
    MStatus status = MStatus::kSuccess;
+   MString str2 = "proc CMayaSceneExecuteScript(){";
+   str2 += str;
+   str2 += ";}catchQuiet(`CMayaSceneExecuteScript()`);";
 
    if (str.length() > 0)
    {
-      status = MGlobal::executeCommand(str, echo);
+      if (idle)
+         status = MGlobal::executeCommandOnIdle(str2, echo);
+      else
+         status = MGlobal::executeCommand(str2, echo);
    }
 
    return status;
@@ -313,6 +365,10 @@ MStatus CMayaScene::UpdateIPR()
 
    return status;
 }
+
+void CMayaScene::Init() {AiCritSecInit((void**)&s_lock);}
+
+void CMayaScene::DeInit()  {AiCritSecClose((void**)&s_lock);}
 
 // Private Methods
 
@@ -416,9 +472,7 @@ void CMayaScene::IPRIdleCallback(void *)
             
       if(forceUpdate)
       {
-         CMayaScene::End();
-         CMayaScene::Begin(MTOA_SESSION_IPR);
-         CMayaScene::Export();
+         CMayaScene::Restart();
       }
       else
       {

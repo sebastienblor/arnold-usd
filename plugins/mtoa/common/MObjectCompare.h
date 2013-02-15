@@ -1,5 +1,4 @@
-#ifndef MOBJECTCOMPARE_H
-#define MOBJECTCOMPARE_H
+#pragma once
 
 #include <cstring>
 
@@ -138,5 +137,3 @@ private :
    MString m_attrName;
    int m_instanceNum;
 };
-
-#endif // MOBJECTCOMPARE_H

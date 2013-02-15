@@ -2,8 +2,11 @@
 
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
+#include "translators/AutoDagTranslator.h"
+#include "translators/camera/AutoCameraTranslator.h"
 #include "translators/shader/ShaderTranslator.h"
 #include "translators/driver/DriverTranslator.h"
+#include "translators/filter/FilterTranslator.h"
 
 // A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -21,7 +24,7 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
    initialize = nodeInitFunction;
 }
 
-MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
+MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool mappedMayaNode)
 {
    arnold = AiNodeEntryGetName(arnoldNodeEntry);
    // If no name was specified, use metadata, or by default the extension name
@@ -45,8 +48,9 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       if (arnoldNodeTypeName ==  "camera")
       {
          // TODO : define a non virtual generic CCameraTranslator
-         // creator = CCameraTranslator::creator;
-         // initialize = CCameraTranslator::NodeInitializer;
+         creator = CAutoCameraTranslator::creator;
+         if (mappedMayaNode)
+            initialize = CNodeTranslator::NodeInitializer;
       }
       else if (arnoldNodeTypeName == "light")
       {
@@ -57,13 +61,15 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       else if (arnoldNodeTypeName == "shader")
       {
          creator = CShaderTranslator::creator;
-         // initialize = CShaderTranslator::NodeInitializer;
+         if (mappedMayaNode)
+            initialize = CNodeTranslator::NodeInitializer;
       }
       else if (arnoldNodeTypeName == "shape")
       {
          // TODO : define a non virtual generic CShapeTranslator or Geo
-         // creator = CShapeTranslator::creator;
-         // initialize = CShapeTranslator::NodeInitializer;
+         creator = CAutoDagTranslator::creator;
+         if (mappedMayaNode)
+            initialize = CNodeTranslator::NodeInitializer;
       }
       else if (arnoldNodeTypeName == "driver")
       {
@@ -72,8 +78,8 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "filter")
       {
-         creator = CDriverTranslator::creator;
-         initialize = CDriverTranslator::NodeInitializer;
+         creator = CFilterTranslator::creator;
+         initialize = CFilterTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

@@ -1,5 +1,4 @@
-#ifndef ABTRANSLATOR_H
-#define ABTRANSLATOR_H
+#pragma once
 
 #include <maya/MString.h>
 
@@ -28,6 +27,3 @@ public:
    MString maya;
    MString provider;
 };
-
-
-#endif // ABTRANSLATOR_H

@@ -3,6 +3,7 @@
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
+#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -131,7 +132,8 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
 
    m_DagNode.setObject(masterInstance);
    
-   if (m_DagNode.findPlug("overrideShaders").asBool())
+   if (m_DagNode.findPlug("overrideShaders").asBool() &&
+      (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER))
    {
       ExportStandinsShaders(instance);
    }

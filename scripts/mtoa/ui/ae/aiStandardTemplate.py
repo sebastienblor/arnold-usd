@@ -25,25 +25,31 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginScrollLayout()
 
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+        
+        self.beginLayout("Matte", collapse=True)
+        self.addControl("aiEnableMatte", label="Enable Matte")
+        self.addControl("aiMatteColor", label="Matte Color")
+        self.addControl("aiMatteColorA", label="Matte Alpha")
+        self.endLayout()
 
         self.beginLayout("Diffuse", collapse=False)
         self.addControl("color",  label="Color", annotation="Diffuse Color")
         self.addControl("Kd", label="Weight")
         self.addControl("diffuse_roughness", label="Roughness")
-        self.addControl("Kb", label="Backlight")
+        self.addControl("Kb", label="Backlighting")
         self.addSeparator()
         self.addControl("Fresnel_affect_diff", label="Fresnel affects Diffuse")
 
         self.beginLayout("Extended Controls", collapse=True)
-        self.addControl("direct_diffuse", label="Direct Diffuse")
-        self.addControl("indirect_diffuse", label="Indirect Diffuse")
+        self.addControl("direct_diffuse", label="Direct Diffuse Scale")
+        self.addControl("indirect_diffuse", label="Indirect Diffuse Scale")
         self.endLayout()
         self.endLayout()#End Diffuse Layout
 
         self.beginLayout("Specular", collapse=False)
         self.addControl("Ks_color", label="Color")
         self.addControl("Ks", label="Weight")
-        self.addControl("specular_brdf", changeCommand=self.checkSpecularBrdf, label="Brdf")
+        self.addControl("specular_brdf", changeCommand=self.checkSpecularBrdf, label="BRDF")
         self.addControl("specular_roughness", label="Roughness")
         self.addControl("specular_anisotropy", label="Anisotropy")
         self.addControl("specular_rotation", label="Rotation")        
@@ -51,34 +57,40 @@ class AEaiStandardTemplate(ShaderAETemplate):
         # self.addControl("Phong_exponent", label="Glossiness")
         self.addSeparator()
         self.addControl("specular_Fresnel", changeCommand=self.checkSpecularFresnel, label="Fresnel")
-        self.addControl("Ksn", label="Fresnel Coefficient")
+        self.addControl("Ksn", label="Reflectance at Normal")
 
         self.beginLayout("Extended Controls", collapse=True)
-        self.addControl("direct_specular", label="Direct Specularity")
-        self.addControl("indirect_specular", label="Indirect Specularity")
+        self.addControl("direct_specular", label="Direct Specular Scale")
+        self.addControl("indirect_specular", label="Indirect Specular Scale")
         self.endLayout()
         self.endLayout()# End Specular Layout
 
         self.beginLayout("Reflection", collapse=True)
         self.addControl("Kr_color", label="Color")
         self.addControl("Kr", label="Weight")
+        self.addControl("enable_internal_reflections", label="Enable Internal Reflections")
         self.addSeparator()
         self.addControl("Fresnel", changeCommand=self.checkReflectionFresnel, label="Fresnel")
-        self.addControl("Krn", label="Fresnel Coefficient")
         self.addSeparator()
-        self.addControl("reflection_exit_use_environment", label="Reflection Exit Use Environment")
-        self.addControl("reflection_exit_color", label="Reflection Exit Color")
+        self.addControl("Krn", label="Reflectance at Normal")
+        self.beginLayout("Exit Color", collapse=True)
+        self.addControl("reflection_exit_use_environment", label="Use Environment")
+        self.addControl("reflection_exit_color", label="Color")
+        self.endLayout() # End Exit Color Layout
         self.endLayout() # End Reflection Layout
 
         self.beginLayout("Refraction", collapse=True)
-        self.addControl("IOR", label="Index of Refraction")
-        self.addControl("transmittance", label="Transmittance")
         self.addControl("Kt_color", label="Color")
-        self.addControl("Kt", label="Transparency")
+        self.addControl("Kt", label="Weight")
+        self.addControl("IOR", label="IOR")
         self.addControl("refraction_roughness", label="Roughness")
-        self.addSeparator()
-        self.addControl("refraction_exit_use_environment", label="Refraction Exit Use Environment")
-        self.addControl("refraction_exit_color", label="Refraction Exit Color")
+        self.addControl("Fresnel_use_IOR", label="Fresnel use IOR")                
+        self.addControl("transmittance", label="Transmittance")
+        self.addControl("opacity", label="Opacity")        
+        self.beginLayout("Exit Color", collapse=True)
+        self.addControl("refraction_exit_use_environment", label="Use Environment")
+        self.addControl("refraction_exit_color", label="Color")
+        self.endLayout() # End Exit Color Layout
         self.endLayout() # End Refraction Layout
 
         self.addBumpLayout()
@@ -99,20 +111,19 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("enable_glossy_caustics", label="Enable Glossy Caustics")
         self.addControl("enable_reflective_caustics", label="Enable Reflective Caustics")
         self.addControl("enable_refractive_caustics", label="Enable Refractive Caustics")
-        self.addControl("enable_internal_reflections", label="Enable Internal Reflections")
         self.endNoOptimize()
         self.endLayout() # End Caustics Layout
 
         self.beginLayout("Advanced", collapse=True)
         self.addControl("bounce_factor", label="Bounce Factor")
-        self.addControl("opacity", label="Opacity")
         self.endLayout() # End Advanced Layout
 
         self.beginLayout("Hardware Texturing", collapse=True)
         pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
         self.endLayout()
 
-        self.addAOVLayout()
+        self.addAOVLayout(aovReorder = ['direct_diffuse', 'indirect_diffuse', 'direct_specular', 'indirect_specular',
+                                        'reflection', 'refraction', 'emission', 'sss'])
 
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

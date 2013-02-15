@@ -1,5 +1,4 @@
-#ifndef PXUTILS_H
-#define PXUTILS_H
+#pragma once
 
 #include "PxMayaNode.h"
 #include "PxArnoldNode.h"
@@ -23,5 +22,5 @@ typedef std::multimap<CPxArnoldNode, CPxMayaNode> ArnoldNodeToMayaNodeMap;
 typedef std::set<CPxTranslator> TranslatorsSet;
 // Maya node to Translator map
 typedef std::map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
-
-#endif // PXUTILS_H
+// Storing the default translator value
+typedef std::map<std::string, MString> DefaultTranslatorMap;

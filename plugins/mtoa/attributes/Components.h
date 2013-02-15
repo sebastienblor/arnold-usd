@@ -1,5 +1,4 @@
-#ifndef COMPONENTS_H_
-#define COMPONENTS_H_
+#pragma once
 
 #include <ai_nodes.h>
 
@@ -33,6 +32,3 @@ MString GetComponentName(int arnoldParamType, const MPlug &plug);
 int GetFloatComponentIndex(const MPlug &plug);
 ComponentType ResolveFloatComponent(const MPlug &plug, MPlug &attrResult);
 AtNode* InsertConversionNodes(const MPlug &shaderOutputPlug, ComponentType compMode, AtNode* shader);
-
-
-#endif

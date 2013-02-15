@@ -1,5 +1,4 @@
-#ifndef EXTENSIONSMANAGER_H
-#define EXTENSIONSMANAGER_H
+#pragma once
 
 #define MNoVersionString
 #define MNoPluginEntry
@@ -65,7 +64,10 @@ public:
    static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
    static MCallbackId CreatePluginLoadedCallback();
    static MStatus RemovePluginLoadedCallback();
-   static const bool IsRegisteredMayaNode(const MString &mayaNodeType);
+   static const bool IsRegisteredMayaNode(const MString &mayaNodeType);      
+   static void SetDefaultTranslator(const MString &mayaTypeName,
+                                const MString &translatorName);
+   static MString GetDefaultTranslator(const MString& nodeName);
 
 protected:
    static MStatus DoUnloadExtension(CExtension* extension);
@@ -87,12 +89,10 @@ private:
 
    static MayaNodesSet s_registeredMayaNodes;
    static MayaNodeToTranslatorsMap s_registeredTranslators;
+   static DefaultTranslatorMap s_defaultTranslators;
 
    static MObject s_plugin;
    static ExtensionsList s_extensions;
 
    static MCallbackId s_pluginLoadedCallbackId;
 };
-
-
-#endif  // EXTENSIONSMANAGER_H

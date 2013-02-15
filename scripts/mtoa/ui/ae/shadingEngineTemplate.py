@@ -59,7 +59,6 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
 
     def setup(self):
         self.addCustom("aiSurfaceShader", self.surfaceShaderCreate, self.surfaceShaderUpdate)
-        self.addControl("aiUserOptions")
         self.addCustom("aiCustomAOVs", self.buildAOVFrame, self.updateAOVFrame)
 
     def update(self):

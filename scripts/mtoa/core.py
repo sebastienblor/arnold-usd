@@ -5,6 +5,7 @@ functions for dealing with mtoa node types and classifications
 import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
+import maya.cmds as cmds
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -139,10 +140,10 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     print "[mtoa] upgrading to new AOV driver/filter setup"
     aovNodes = pm.ls(type='aiAOV')
     if defaultDriver is None:
-        defaultDriver = pm.nt.DependNode('defaultArnoldDriver')
+        defaultDriver = pm.PyNode('defaultArnoldDriver')
         
     if defaultFilter is None:
-        defaultFilter = pm.nt.DependNode('defaultArnoldFilter')
+        defaultFilter = pm.PyNode('defaultArnoldFilter')
 
     driver = options.imageFormat.get()
     if driver:
@@ -197,9 +198,10 @@ def createOptions():
     options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
     driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
+    displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
     if (filterNode or driverNode) and not options:
-        options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        options = pm.PyNode('defaultArnoldRenderOptions')
         # options previously existed, so we need to upgrade
         upgradeAOVOutput(options, filterNode, driverNode)
 
@@ -208,24 +210,35 @@ def createOptions():
         # newly created default filter
         hooks.setupFilter(filterNode)
     else:
-        filterNode = pm.nt.DependNode('defaultArnoldFilter')
+        filterNode = pm.PyNode('defaultArnoldFilter')
 
     if driverNode:
         # newly created default driver
         hooks.setupDriver(driverNode)
     else:
-        driverNode = pm.nt.DependNode('defaultArnoldDriver')
+        driverNode = pm.PyNode('defaultArnoldDriver')
 
     if options:
         # newly created options
         hooks.setupDefaultAOVs(aovs.AOVInterface(options))
         hooks.setupOptions(options)
     else:
-        options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        options = pm.PyNode('defaultArnoldRenderOptions')
+        if displayDriverNode:
+            # options exist, but not display driver: upgrade from older version of mtoa
+            hooks.setupDefaultAOVs(aovs.AOVInterface(options))
 
+    if displayDriverNode:
+        # newly created default driver
+        displayDriverNode.aiTranslator.set('maya')
+        # GUI only
+        displayDriverNode.outputMode.set(0)
+        hooks.setupDriver(displayDriverNode)
+        displayDriverNode.message.connect(options.drivers, nextAvailable=True)
+    elif not options.drivers.inputs():
+        pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
     filterNode.message.connect(options.filter, force=True)
     driverNode.message.connect(options.driver, force=True)
-
 
 
 #-------------------------------------------------
@@ -256,6 +269,8 @@ def registerDefaultTranslator(nodeType, default):
     _defaultTranslators[nodeType] = default
 
     isFunc = callable(default)
+    if not isFunc:
+      cmds.arnoldPlugins(setDefaultTranslator=(nodeType, default))    
     if arnoldIsCurrentRenderer():
         it = pm.api.MItDependencyNodes()
         while not it.isDone():

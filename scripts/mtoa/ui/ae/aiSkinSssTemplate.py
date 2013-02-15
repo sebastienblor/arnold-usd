@@ -20,7 +20,7 @@ class AEaiSkinSssTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout("SSS", collapse=False)
-        self.addControl("sss_weight")
+        self.addControl("sss_weight", label="SSS Weight")
         self.endLayout()
 
         self.beginLayout("Shallow Scatter", collapse=False)
@@ -48,7 +48,7 @@ class AEaiSkinSssTemplate(ShaderAETemplate):
         self.addControl("primary_reflection_specular_weight", label="Specular Weight")
         self.addControl("primary_reflection_reflection_weight", label="Reflection Weight")
         self.addControl("primary_reflection_enable_fresnel_falloff", label="Enable Fresnel Falloff")
-        self.addControl("primary_reflection_fresnel_coefficient", label="Fresnel Coefficient")
+        self.addControl("primary_reflection_fresnel_coefficient", label="Reflectance at normal incidence")
         self.endLayout()
         
         self.beginLayout("Secondary Reflection", collapse=False)
@@ -58,7 +58,7 @@ class AEaiSkinSssTemplate(ShaderAETemplate):
         self.addControl("secondary_reflection_specular_weight", label="Specular Weight")
         self.addControl("secondary_reflection_reflection_weight", label="Reflection Weight")
         self.addControl("secondary_reflection_enable_fresnel_falloff", label="Enable Fresnel Falloff")
-        self.addControl("secondary_reflection_fresnel_coefficient", label="Fresnel Coefficient")
+        self.addControl("secondary_reflection_fresnel_coefficient", label="Reflectance at normal incidence")
         self.endLayout()
         
         self.beginLayout("Options", collapse=True)

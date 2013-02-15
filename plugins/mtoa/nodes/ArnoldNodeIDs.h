@@ -1,5 +1,4 @@
-#ifndef ARNOLDNODEIDS_H
-#define ARNOLDNODEIDS_H
+#pragma once
 
 // We have 5 blocks of 512 IDs each
 
@@ -8,10 +7,6 @@
 // 0x00116000 - 0x001161FF
 // 0x00115E00 - 0x00115FFF
 // Arnolds internal ids are 0x00115C00 - 0x00115DFF
-
-
-
-
 
 // Arnold Nodes in Maya
 #define ARNOLD_NODEID_RENDER_OPTIONS            0x00115C00
@@ -51,14 +46,14 @@
 #define ARNOLD_NODEID_USER_DATA_VECTOR          0x00115D13
 #define ARNOLD_NODEID_USER_DATA_COLOR           0x00115D14
 #define ARNOLD_NODEID_USER_DAT_ASTRING          0x00115D15
+#define ARNOLD_NODEID_SKIN                      0x00115D16
 #define ARNOLD_NODEID_USER_DATA_BOOL            0x00115D18
 #define ANROLD_NODEID_SHADOW_CATCHER            0x00115D19
 #define ARNOLD_NODEID_MAYA_HAIR                 0x00115D1A
 #define ARNOLD_NODEID_MESHLIGHT_MATERIAL        0x00115D1B
 #define ARNOLD_NODEID_USER_DATA_PNT2            0x00115D1C
 #define ARNOLD_NODEID_USER_DATA_INT             0x00115D1D
+#define ARNOLD_NODEID_MAYA_FLUID                0x00115D1E
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
-
-#endif // ARNOLDNODEIDS_H

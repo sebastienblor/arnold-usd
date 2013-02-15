@@ -197,10 +197,20 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
       tangentFn.setObject(dp);
    }
    else
-      tangentFn.setObject(fnMesh.object());
+      tangentFn.setObject(fnMesh.object());  
+   
+   MFloatVectorArray mayaTangents;
+   MFloatVectorArray mayaBitangents;
+   
+   status = tangentFn.getTangents(mayaTangents, space);
+   if (!status)
+      return false;
+   status = tangentFn.getBinormals(mayaBitangents, space);
+   if (!status)
+      return false;
 
    int nverts = fnMesh.numVertices();
-
+   
    tangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
    bitangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
    
@@ -208,13 +218,7 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
    {
       AiArraySetVec(tangents, i, AI_V3_ZERO);
       AiArraySetVec(bitangents, i, AI_V3_ZERO);
-   }
-   
-   MFloatVectorArray mayaTangents;
-   MFloatVectorArray mayaBitangents;
-   
-   tangentFn.getTangents(mayaTangents, space);
-   tangentFn.getBinormals(mayaBitangents, space);
+   }  
    
    std::vector<int> weights;
    weights.resize(nverts, 0);
@@ -683,9 +687,13 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       }
 
       int numMeshDisps = (int)meshDisps.size();
-      if (numMeshDisps > 0)
-      { 
-         AiNodeSetArray(polymesh, "disp_map", AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
+      for (int i = 0; i < numMeshDisps; ++i)
+      {
+         if (meshDisps[i] != 0)
+         {
+            AiNodeSetArray(polymesh, "disp_map", AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
+            break;
+         }
       }
 
       // Export face to shader indices
@@ -1027,9 +1035,10 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 
 AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
-   ExportMatrix(polymesh, 0);
+   ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);
-   ExportMeshShaders(polymesh, m_dagPath);
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+      ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
    m_motionDeform = m_motionDeform && IsGeoDeforming();
@@ -1055,71 +1064,73 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    int visibility = AiNodeGetInt(masterNode, "visibility");
    AiNodeSetInt(instance, "visibility", visibility);
 
-   //
-   // SHADERS
-   //
-   // MFnMesh           meshNode(m_dagPath.node());
-   MFnMesh meshNode(m_geometry);
-   MPlug plug = meshNode.findPlug("instObjGroups");
-   
-   MPlugArray conns0, connsI;
-   
-   bool shadersDifferent = false;
-   
-   // checking the connections from the master instance
-   plug.elementByLogicalIndex(0).connectedTo(conns0, false, true); 
-   // checking the connections from the actual instance
-   plug.elementByLogicalIndex(instanceNum).connectedTo(connsI, false, true); 
-   
-   // checking if it`s connected to a different shading network
-   // this should be enough, because arnold does not supports
-   // overriding per face assignment per instance
-   // it`s safe to ignore if the instanced object is
-   // using a different per face assignment
-   // If the original object has per face assignment
-   // then the length is zero (because the shading group is
-   // connected to a different place)
-   const unsigned int conns0Length = conns0.length();
-   const unsigned int connsILength = connsI.length();
-   if (conns0Length != connsILength)
-      shadersDifferent = true;
-   else
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
    {
-      if (conns0Length  > 0)
+      //
+      // SHADERS
+      //
+      // MFnMesh           meshNode(m_dagPath.node());
+      MFnMesh meshNode(m_geometry);
+      MPlug plug = meshNode.findPlug("instObjGroups");
+
+      MPlugArray conns0, connsI;
+
+      bool shadersDifferent = false;
+
+      // checking the connections from the master instance
+      plug.elementByLogicalIndex(0).connectedTo(conns0, false, true); 
+      // checking the connections from the actual instance
+      plug.elementByLogicalIndex(instanceNum).connectedTo(connsI, false, true); 
+
+      // checking if it`s connected to a different shading network
+      // this should be enough, because arnold does not supports
+      // overriding per face assignment per instance
+      // it`s safe to ignore if the instanced object is
+      // using a different per face assignment
+      // If the original object has per face assignment
+      // then the length is zero (because the shading group is
+      // connected to a different place)
+      const unsigned int conns0Length = conns0.length();
+      const unsigned int connsILength = connsI.length();
+      if (conns0Length != connsILength)
+         shadersDifferent = true;
+      else
       {
-         if (conns0[0].node() != connsI[0].node())
-            shadersDifferent = true;
-      }
-   }
-   
-   if (shadersDifferent)
-   {
-      MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
-         
-      // In case Instance has per face assignment, use first SG assigned to it
-      if(shadingGroupPlug.isNull())
-      {
-         MPlugArray        connections;
-         MFnDependencyNode fnDGNode(m_geometry);
-         MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
-         plug = plug.elementByLogicalIndex(instanceNum);
-         MObject obGr = GetMayaObjectAttribute("objectGroups");
-         plug = plug.child(obGr);
-         plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
-         if(connections.length() > 0)
+         if (conns0Length  > 0)
          {
-            shadingGroupPlug = connections[0];
+            if (conns0[0].node() != connsI[0].node())
+               shadersDifferent = true;
          }
       }
 
-      AtNode* shader = ExportNode(shadingGroupPlug);
-      AiNodeSetPtr(instance, "shader", shader);
-      // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
-      AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
-      AiNodeSetArray(instance, "mtoa_shading_groups",
-            AiArrayConvert(1, 1, AI_TYPE_NODE, shader));
-   }
+      if (shadersDifferent)
+      {
+         MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
 
+         // In case Instance has per face assignment, use first SG assigned to it
+         if(shadingGroupPlug.isNull())
+         {
+            MPlugArray        connections;
+            MFnDependencyNode fnDGNode(m_geometry);
+            MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
+            plug = plug.elementByLogicalIndex(instanceNum);
+            MObject obGr = GetMayaObjectAttribute("objectGroups");
+            plug = plug.child(obGr);
+            plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
+            if(connections.length() > 0)
+            {
+               shadingGroupPlug = connections[0];
+            }
+         }
+
+         AtNode* shader = ExportNode(shadingGroupPlug);
+         AiNodeSetPtr(instance, "shader", shader);
+         // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
+         AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
+         AiNodeSetArray(instance, "mtoa_shading_groups",
+               AiArrayConvert(1, 1, AI_TYPE_NODE, &shader));
+      }
+   }
    // Export light linking per instance
    ExportLightLinking(instance);
 

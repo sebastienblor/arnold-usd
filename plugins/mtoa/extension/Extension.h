@@ -1,5 +1,4 @@
-#ifndef EXTENSION_H
-#define EXTENSION_H
+#pragma once
 
 #include "extension/PxUtils.h"
 #include "extension/PathUtils.h"
@@ -86,6 +85,10 @@ public:
                               TCreatorFunction creatorFunction,
                               TNodeInitFunction nodeInitFunction=NULL);
 
+   // Register Maya nodes for all Arnold nodes declared with
+   // the given plugin, using metadata info
+   MStatus RegisterPluginNodesAndTranslators(const MString &plugin="");
+
    MStatus RegisterAOV(const MString &nodeType,
                        const MString &aovName,
                        int dataType,
@@ -102,10 +105,6 @@ protected :
    MStatus DoUnloadArnoldPlugin(const MString &resolved);
    MStatus NewArnoldPlugin(const MString &file);
    MStatus DeleteArnoldPlugin(const MString &file);
-
-   // Register Maya nodes for all Arnold nodes declared with
-   // the given plugin, using metadata info
-   MStatus RegisterPluginNodesAndTranslators(const MString &plugin="");
 
    // Register the Maya node for a givem Arnold node, using the node metadata
    MStatus RegisterNode(CPxMayaNode &mayaNode,
@@ -157,5 +156,3 @@ protected:
    static unsigned int s_autoNodeId;
    static LoadedArnoldPluginsSet s_allLoadedArnoldPlugins;
 };
-
-#endif // EXTENSION_H

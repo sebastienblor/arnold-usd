@@ -1,5 +1,4 @@
-#ifndef MAYAUTILS_H
-#define MAYAUTILS_H
+#pragma once
 
 #include <ai.h>
 
@@ -123,5 +122,3 @@ void RestoreNormals(AtShaderGlobals *sg, AtVector tmpNmrs);
 // some random tools from Borja
 float sfrand(unsigned int *seed);
 float rand01(unsigned int *seed);
-
-#endif // MAYAUTILS_H

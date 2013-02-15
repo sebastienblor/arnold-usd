@@ -18,7 +18,7 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         lightName = attr.split(".")[0]
         pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
     
-    def setup(self):
+    def setup(self):        
         self.addSwatch()
 
         self.beginScrollLayout()
@@ -27,7 +27,9 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
 
         self.addControl("color")
         self.addControl("intensity")
-        self.addControl("aiExposure", label = "Exposure")        
+        self.addControl("aiExposure", label = "Exposure")
+        self.addSeparator()        
+        self.setupColorTemperature("ArnoldArea")
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
@@ -57,11 +59,6 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiCastShadows")
         self.addControl("aiShadowDensity")
         self.addControl("aiShadowColor")
-
-        self.addSeparator()
-        
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
 
     def setup(self):
         self.addCommonParameters()       

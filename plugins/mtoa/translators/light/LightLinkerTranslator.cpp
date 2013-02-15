@@ -103,10 +103,11 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                if (object.hasFn(MFn::kDagNode))
                {
                   MFnDagNode fnDag(object);
-                  unsigned int instanceNumber = -1;
-                  instanceNumber = otherPlug.logicalIndex();
+                  MStatus status;
+                  unsigned int instanceNumber;
+                  instanceNumber = otherPlug.logicalIndex(&status);
                   MDagPath path;
-                  if (instanceNumber == -1)
+                  if (!status)
                   {
                      fnDag.getPath(path);
                   }

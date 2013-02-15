@@ -1,30 +1,27 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-def aiAmbientOcclusionTemplate(nodeName):
+class AEaiAmbientOcclusionTemplate(ShaderAETemplate):
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
 
-    aiSwatchDisplay(nodeName)
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
-    cmds.editorTemplate(beginScrollLayout=True)
-    cmds.editorTemplate('AEshaderTypeNew', 'AEshaderTypeReplace', 'message', callCustom=True)
+        self.beginLayout('Ambient Occlusion Attributes', collapse=False)
+        self.addControl('samples', label='Samples')
+        self.addControl('spread', label='Spread')
+        self.addControl('white', label='White')
+        self.addControl('black', label='Black')
+        self.addControl('falloff', label='Falloff')
+        self.addControl('near_clip', label='Near Clip')
+        self.addControl('far_clip', label='Far Clip')
+        self.addControl('opacity', label='Opacity')
+        self.addControl('invert_normals', label='Invert Normals')
+        self.endLayout()
 
-    cmds.editorTemplate(beginLayout="Ambient Occlusion Attributes", collapse=False)
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
-    cmds.editorTemplate("samples", addControl=True, label="Samples")
-    cmds.editorTemplate("white", addControl=True, label="Bright")
-    cmds.editorTemplate("black",  addControl=True, label="Dark")
-    cmds.editorTemplate("spread", addControl=True, label="Spread")
-    cmds.editorTemplate("falloff",  addControl=True, label="Falloff")
-    cmds.editorTemplate("near_clip",  addControl=True, label="Near Clip")
-    cmds.editorTemplate("far_clip", addControl=True, label="Far Clip")
-    cmds.editorTemplate("opacity", addControl=True, label="Opacity")
-    cmds.editorTemplate("invert_normals", addControl=True, label="Invert Normals")
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate("%s")'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-
-    cmds.editorTemplate(endScrollLayout=True)

@@ -78,12 +78,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
+   bool expandProcedurals = false;
    if (list.length() > 0)
    {
       list.getDependNode(0, node);
       MFnDependencyNode fnArnoldRenderOptions(node);
       renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
+      expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -97,11 +99,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (exportSelected)
       {
          cmdStr += " -s";
-      }
-      if (outputAssBoundingBox)
+      }      
+      if (renderType == MTOA_RENDER_EXPORTASS)
       {
-         cmdStr += " -bb";
+         if (expandProcedurals)
+            cmdStr += " -ep";
+         if (outputAssBoundingBox)
+            cmdStr += " -bb";
       }
+      
       if (renderGlobals.isAnimated())
       {
          float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
@@ -148,14 +154,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // NOTE: must be blocking when in batch mode, non blocking when in interractive mode
 
             MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
-            system(kickCmd.asChar());
+            int kickRet = system(kickCmd.asChar());            
+            if (kickRet)
+            {
+               MString msg = "[mtoa] Kick return code : ";
+               msg += kickRet;
+               MGlobal::displayWarning(msg);
+            }
 
             // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback?
-
-            // int ret = system(kickCmd.asChar());
-            // std::stringstream info;
-            // info << "[mtoa] Value returned by kick : " << ret;
-            // AiMsgInfo(info.str().c_str());
          }
       }
       else
@@ -281,11 +288,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MStringArray allPanelNames;
       MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
       if (allPanelNames.length() > 0) renderSession->SetRenderViewPanelName(allPanelNames[0]);
-      renderSession->DoInteractiveRender(); // Start the render.
+      // Start the render. CMayaScene::End will be called automatically
+      renderSession->DoInteractiveRender(renderGlobals.postRenderMel);
 
-      CMayaScene::End(); // Clean up.
-
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       // DEBUG_MEMORY;
    }
 

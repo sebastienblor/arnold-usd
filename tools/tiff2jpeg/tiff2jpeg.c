@@ -37,7 +37,7 @@ int main(int argc, char **argv)
    FILE *jpegout;
    char filename[1024];
    unsigned char **pic;
-   unsigned int i, j, width, height, row_stride;
+   unsigned int i, j, width, height;
    struct jpeg_compress_struct cinfo;
    struct jpeg_error_mgr jerr;
    JSAMPROW row_pointer[1];
@@ -116,7 +116,6 @@ int main(int argc, char **argv)
    
    jpeg_set_quality(&cinfo, 100, TRUE);
    jpeg_start_compress(&cinfo, TRUE);
-   row_stride = width * 3;
    
    while(cinfo.next_scanline < cinfo.image_height)
    {

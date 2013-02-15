@@ -8,7 +8,7 @@ AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 
 void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya);
+   CExtensionAttrHelper helper(context.maya, NULL, "ai_", false);
 
    std::vector<CAttrData> children(2);
 
@@ -29,7 +29,7 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    
    data.name = "aiSurfaceShader";
    data.shortName = "ai_surface_shader";
-   data.isArray = false;
+   data.isArray = false;   
    
    helper.MakeInputNode(data);
 }
@@ -88,6 +88,14 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    if (connections.length() > 0)
    {
       // export the root shading network, this fills m_shaders
+      MFnDependencyNode shaderNode(connections[0].node());
+      MStatus status;
+      MPlug mattePlug = shaderNode.findPlug("aiEnableMatte", &status);
+      if (status)
+         AiNodeSetBool(shadingEngine, "enable_matte", mattePlug.asBool());
+      MPlug matteColorPlug = shaderNode.findPlug("aiMatteColor", &status);
+      if (status)
+         ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, matteColorPlug);
       rootShader = ExportNode(connections[0]);
       AiNodeLink(rootShader, "beauty", shadingEngine);
 

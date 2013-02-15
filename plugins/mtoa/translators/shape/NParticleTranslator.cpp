@@ -44,7 +44,7 @@ void CNParticleTranslator::NodeInitializer(CAbTranslator context)
    enumNames.append("points");
    enumNames.append("spheres");
    enumNames.append("quads");
-   //data.defaultValue.ENUM = 0; /// how do you do a default in an enum?
+   data.defaultValue.INT = 0;
    data.name = "aiRenderPointsAs";
    data.shortName = "ai_render_points_as";
    data.enums= enumNames;
@@ -79,6 +79,15 @@ void CNParticleTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiInterpolateBlur";
    data.shortName = "ai_interpolate_blur";
    helper.MakeInputBoolean(data);
+   
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiStepSize";
+   data.shortName = "ai_step_size";
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 2.f;
+   helper.MakeInputFloat(data);
 
 #endif
 

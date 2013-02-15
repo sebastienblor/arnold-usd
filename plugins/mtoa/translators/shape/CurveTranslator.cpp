@@ -1,5 +1,7 @@
 #include "CurveTranslator.h"
 
+#include "scene/MayaScene.h"
+
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
 #include <maya/MDagPathArray.h>
@@ -23,7 +25,7 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "rcurve";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.FLT = 0.01;
+   data.defaultValue.FLT = 0.01f;
    data.name = "aiCurveWidth";
    data.shortName = "cwdth";
    helper.MakeInputFloat(data);
@@ -61,7 +63,7 @@ AtNode* CCurveTranslator::CreateArnoldNodes()
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());
 
-   plug = fnNode.findPlug("aiRenderCurve");
+   plug = FindMayaPlug("aiRenderCurve");
    if (!plug.isNull() && plug.asBool() == false)
    {
       return NULL;
@@ -80,7 +82,7 @@ void CCurveTranslator::Update( AtNode *curve )
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());
 
-   plug = fnNode.findPlug("aiRenderCurve");
+   plug = FindMayaPlug("aiRenderCurve");
    if (!plug.isNull() && plug.asBool() == false)
    {
       return;
@@ -105,31 +107,37 @@ void CCurveTranslator::Update( AtNode *curve )
 
 
    // Check if we using a custom curve shader.
-   AtNode* shader = NULL;
-   MPlugArray curveShaderPlugs;
-   plug = fnDepNodeCurve.findPlug("aiCurveShader");
-   if (!plug.isNull())
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
    {
-      plug.connectedTo(curveShaderPlugs, true, false);
-      if (curveShaderPlugs.length() > 0)
+      AtNode* shader = NULL;
+      MPlugArray curveShaderPlugs;
+      plug = FindMayaPlug("aiCurveShader");
+      if (!plug.isNull())
       {
-         shader = ExportRootShader(curveShaderPlugs[0]);
+         plug.connectedTo(curveShaderPlugs, true, false);
+         if (curveShaderPlugs.length() > 0)
+         {
+            shader = ExportRootShader(curveShaderPlugs[0]);
+         }
       }
-   }
+      
+      if (shader == NULL)
+      {
+         shader = AiNode("hair");
+         MString hairShaderName = fnDepNodeCurve.name();
+         hairShaderName += "_hairShader";
+         AiNodeSetStr(shader, "name", hairShaderName.asChar());
 
-   if (shader == NULL)
-   {
-      shader = AiNode("hair");
-      MString hairShaderName = fnDepNodeCurve.name();
-      hairShaderName += "_hairShader";
-      AiNodeSetStr(shader, "name", hairShaderName.asChar());
+         // Add shader uparam and vparam names
+         AiNodeSetStr(shader, "uparam", "uparamcoord");
+         AiNodeSetStr(shader, "vparam", "vparamcoord");
 
-      // Add shader uparam and vparam names
-      AiNodeSetStr(shader, "uparam", "uparamcoord");
-      AiNodeSetStr(shader, "vparam", "vparamcoord");
-
-      shader = ExportRootShader(shader);
-   }
+         shader = ExportRootShader(shader);
+      }
+      
+      // Assign shader
+      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+   }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate
    int numPoints = 0;
@@ -167,10 +175,6 @@ void CCurveTranslator::Update( AtNode *curve )
 
    // Extra attributes
    AiNodeDeclare(curve, "colors",                  "uniform  ARRAY RGB");
-
-
-   // Assign shader
-   if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
 
 
    // curve specific Arnold render settings.
@@ -271,7 +275,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
    MPlug plug;
    float globalWidth = 1.0;
    MFnDependencyNode fnNode(GetMayaObject());
-   plug = fnNode.findPlug("aiCurveWidth");
+   plug = FindMayaPlug("aiCurveWidth");
    if (!plug.isNull())
    {
      globalWidth =  plug.asFloat();
@@ -299,7 +303,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       unsigned int sampleRate = 5;
       double incPerSample;
 
-      plug = fnNode.findPlug("aiSampleRate");
+      plug = FindMayaPlug("aiSampleRate");
       if (!plug.isNull())
       {
         sampleRate =  plug.asInt();
@@ -308,13 +312,13 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       }
       
       nurbsCurve.getKnotDomain(start, end);
-      numcvs = std::ceil((end - start) * sampleRate); 
+      numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
       incPerSample = 1.0 / sampleRate;
 
       MPoint point;
-      for(int i = 0; i < numcvs - 1; i++)
+      for(unsigned int i = 0; i < numcvs - 1; i++)
       {
-         nurbsCurve.getPointAtParam(start + incPerSample*i, point, MSpace::kWorld);
+         nurbsCurve.getPointAtParam(start + incPerSample * (double)i, point, MSpace::kWorld);
          cvs.append(point);
       }
       nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);

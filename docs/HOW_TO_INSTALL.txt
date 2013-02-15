@@ -1,112 +1,211 @@
 Before you can use Arnold in Maya you will need to install the MtoA plug-in and
 tell Maya to use it.
 
- 
 Note that there is one plug-in for each version supported version of Maya, per
 supported operating system:
 
- 
  - Maya 2011, Windows 64 bit
  - Maya 2011, Linux 64 bit
+ - Maya 2011, Mac OS X (64 bit 10.6 Snow Leopard or later)
+ 
  - Maya 2012, Windows 64 bit
  - Maya 2012, Linux 64 bit
-
+ - Maya 2012, Mac OS X (64 bit 10.6 Snow Leopard or later)
  
- == Installation under Windows == 
+ - Maya 2013, Windows 64 bit
+ - Maya 2013, Linux 64 bit
+ - Maya 2013, Mac OS X (64 bit 10.6 Snow Leopard or later)
  
- Download the correct MtoA pack (note that it is distributed as a compressed 
- archive, there is no installer to run), unpack it, and place it somewhere
- convenient on your machine. The following instructions assume that you are
- using Windows and have unpacked the archive to the following location:
+ == Installation under Windows using the Installer == 
  
-    C:\solidangle\mtoadeploy
+From 0.17, MtoA for Windows is distributed via an installer. Download the installer .exe,
+and run it.
  
- Note : if you are using 2 different version of Maya (ie 2011 and 2012) and need
- to keep 2 different installations of MtoA, you can use:
+The installer has the option to set up environment variables for you, and copy the correct
+information into the mtoa.mod file. This option is enabled by default, and will copy the
+mtoa.mod file to the user documents folder, where Maya will read on launch. Then, the
+corresponding variables are appended to the maya.env (MAYA_RENDER_DESC_PATH and PATH).
+Alternatively, you can set up environment variables yourself (see 'Installing by hand'
+section below for more details about environment variables).
  
- C:\solidangle\mtoadeploy\2011
+Be careful if you have a previous installation of MtoA with variables defined in the
+maya.env file. In this situation, you should remove them before installing the new MtoA.
+If the Maya environment files option is disabled, users will have to configure the variables
+in the usual way until now.
  
- In that case replace C:\solidangle\mtoadeploy by C:\solidangle\mtoadeploy\2011 in
- the instructions below.
-
-
- First, locate the mtoa.mod file from the download pack:
+After selecting the components to install, click Next, select the destination folder on the
+next dialog, and click next again. You'll then have the option to add a shortcut to your Start
+Menu if you wish, before commencing the installation by clicking the Install button.
  
-    C:\solidangle\mtoadeploy\mtoa.mod
-   
-    Open this file in a text editor and make sure the single line contains the correct path, like so:
+ == Uninstalling == 
+
+If you have already installed a previous version of MtoA using the installer, then the installer
+will detect this and tell you that the old installation must be uninstalled before you can install
+the new one. You can do this in several ways;
  
-    + mtoa any C:\solidangle\mtoadeploy
-    
-    Note : it should be MtoA version number in place of "any", but Maya modules seem to choke
-    on 2 digit versions, so the module path is not correctly set for MtoA versions 0.10.0 and above.
-    Using 'any' will work just as well as 0.9.0.
-
+ • if the installer finds the old installation where it expects to, it will run the uninstall
+   program for you - you will then be able to run the installer a second time and complete the
+   new installation
+ 
+ • alternatively, you can remove the old version by finding the MtoA group in the Windows Start
+   menu, and selecting Uninstall
+ 
+ • or by locating the Uninstall.exe file in the folder where you installed the previous version
+   of MtoA to, and executing that yourself
+ 
+ • or by using the Add/Remove programs function in Windows.
  
 
- There are two ways in which to point Maya to the Arnold plugin. One waya involves adding the 
- following text to Maya's .env file (typically found in C:\Users\"USER NAME"\Documents\maya\2012-x64):
+ == Installing by hand == 
 
- ARNOLD_PLUGIN_PATH = C:\solidangle\mtoadeploy\2012\shaders
- MAYA_MODULE_PATH = C:\solidangle\mtoadeploy\2012
- MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\2012
- PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
-
-
- Using the Maya.env file is recommended so that you don’t clutter the standard environment 
- settings with Maya-specific variables. Maya.env can be set up as a roaming profile to be 
- shared by many machines. This can be useful, for example, when you are performing distributed 
- rendering among several Windows machines. Search for "Setting environment variables using 
- Maya.env" in the Maya documentation for more information on where the .env file is located 
- and how to fill it.
-
-
-
- The alternative method of pointing Maya to the Arnold plugin is a little bit more complicated 
- and involves adding user environment variables:
-
+If you prefer, you can install to a temporary folder and then copy the installation folder
+contents manually. This might be useful, for example, if you wish to install across a network.
  
- 1. Create an environment variable MAYA_MODULE_PATH and set it to point
-    to your C:\solidangle\mtoadeploy folder (the folder where mtoa.mod is located).
+To do this, make sure you uncheck the option 'Configure Environment Variables' on the installer,
+and select a suitable temporary folder to install to. The following instructions assume that you
+are using Windows and Maya 2012 and have copied the contents of your temporary install folder to
+the following target location:
  
- 2. Then, create another environment variable MAYA_RENDER_DESC_PATH and set that to
-    point at the location of the arnoldRenderer.xml file (in this example,
-    C:\solidangle\mtoadeploy).
-    
- 3. Create a third environment variable ARNOLD_PLUGIN_PATH and set it to point
-    to the shaders folder, for example:
-    
-    C:\solidangle\mtoadeploy\shaders    
-
- 4. Create an environment variable MTOA_EXTENSIONS_PATH and set it to point to
-    the extensions folder:
-
-    C:\solidangle\mtoadeploy\extensions
-    
- 5. Finally, you also need to add the location of the Arnold binaries to your
-    path. Edit the PATH environment variable and append the bin folder path,
-    for example:
-    
-    C:\solidangle\mtoadeploy\bin
-    
- 6. Now, run Maya. Go to Window > Settings/Preferences > 
-    Plug-in Manager. If you don't yet see the MtoA plug-in listed, click on the
-    Browse button and locate the mtoa.mll file (under
-    C:\solidangle\mtoadeploy\plugins).
-
-
- Now you should be able to choose the Arnold renderer. There several ways to do
- this:
+   C:\solidangle\mtoadeploy\2012
  
- . Click Render > Render Using, then choose the Arnold renderer.
- . Select Arnold from the drop-down list in Render View (Window > 
-   Rendering Editors > Render View).
- . Select Arnold from the drop-down list in the Render Settings window.
-
-
+Next, complete the following steps:
  
- == Installation under Linux == 
+ 1.First, locate the mtoa.mod file:
+ 
+     C:\Users\<User_Name>\Documents\maya\20XX-x64\modules\mtoa.mod
+ 
+   Open this file in a text editor and make sure the single line contains the correct path,
+   like so:
+ 
+     + mtoa any C:\solidangle\mtoadeploy\2012
+ 
+ 2.Then, create another environment variable MAYA_RENDER_DESC and set that to point at the location
+   of the arnoldRenderer.xml file (in this example, C:\solidangle\mtoadeploy\2012).
+ 
+ 3.Finally, you also need to add the location of the Arnold binaries to your path. Edit the PATH
+   environment variable and add the bin folder to the path, for example:
+ 
+     C:\solidangle\mtoadeploy\2012\bin
+ 
+ 4.Now, run Maya. You should see the Arnold Renderer listed under the Render > Render Using menu.
+   If not, go to Window > Settings/Preferences > Plug-in Manager. If you don't yet see the MtoA
+   plug-in listed, click on the Browse button and locate the mtoa.mll file
+   (under C:\solidangle\mtoa\2012\plug-ins). 
+ 
+ == Linux users == 
 
- To install under Linux you will need to follow the same steps following Linux
- conventions.
+The Linux distribution does not have an installer, so o install under Linux you will need to
+download, unpack and copy the contents to the appropriate location, then set environment variables,
+etc. T do this, follow the above steps described for installing on Windows by hand, but using Linux
+conventions (use LD_LIBRARY_PATH to add the path).
+
+
+ == Mac OS X users ==
+
+The following instructions assume that your session user is solidangle, you are using MtoA 0.21.0
+or higher, Autodesk Maya 2012 and have uncompressed the package to the following location:
+ 
+   /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012/
+ 
+Locate mtoa.mod in
+ 
+   /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012/
+ 
+Open the file with TextEdit and check the path is pointing to the folder where MtoA is located. In
+this case it should be:
+ 
+   + mtoa any /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012
+ 
+Then, there are several environment variables you need to fill.
+ 
+MAYA_MODULE_PATH and MAYA_RENDER_DESC_PATH should point to the root folder of the MtoA distribution,
+and PATH should append the current path with the bin folder of the MtoA distribution
+ 
+In this particular example:
+ 
+   MAYA_MODULE_PATH = /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012
+   MAYA_RENDER_DESC_PATH = /Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012
+   PATH = %PATH%:/Users/solidangle/Development/MtoA/MtoA-0.21.0-darwin64-2012/bin
+ 
+You can set the environment variables manually (or using environment.plist file), with a script, 
+or using maya.env file (located in /Users/solidangle/Library/Preferences/Autodesk/maya/2012-x64/). 
+
+
+ == Rendering with Arnold ==
+
+Now you should be able to choose the Arnold renderer. There are several ways to do this:
+ 
+ • Click Render > Render Using, then choose the Arnold Renderer.
+ 
+ • Select Arnold from the drop-down list in Render View (Window > Rendering Editors > Render View).
+ 
+ • Select Arnold from the drop-down list in the Render Settings window.
+ 
+To make Arnold the default renderer:
+ 
+ 1.Click Window > Settings/Preferences > Preferences.
+ 
+ 2.Select the Rendering category and set the Preferred Renderer option.
+ 
+ 
+At this point rendering with Arnold is possible, but rendered images will be watermarked. To remove the
+watermarking, you need to set up an Arnold's licence server.
+ 
+If you are still having trouble with installation, consult the Troubleshooting topic which follows.
+
+
+ == Installing MtoA - Troubleshooting ==
+
+If you followed the installation instructions (in the previous section of this help), and are still
+having problems, then try these steps:
+ 
+ 
+-If the installer says MtoA is already installed, but doesn't uninstall it for you-
+ 
+The installer will try to run the uninstall program for the previous installation if it detects that
+a previous version is already installed. However, if for some reason you moved, deleted or renamed the
+old install folder before running the installer, it will not be able to find the old uninstaller. You
+will need to either locate and run the Uninstall.exe program for the old installation yourself, if you
+still have it, or failing that uninstall by either finding the uninstall option in the MtoA folder of
+the Windows Start menu, or using Add/Remove programs in Windows.
+ 
+ 
+-If you cannot see the MtoA plugin in Maya Plug-in Manager-
+ 
+ 1. Check that a file mtoa.mod exists in this folder:
+      C:\Users\<User_Name>\Documents\maya\2012-x64\modules
+    And it contains this text:
+      + mtoa any C:\solidangle\mtoadeploy\2012
+ 
+ 2. Try to set the following environment variables in your system:
+ 
+      MAYA_PLUG_IN_PATH=C:\solidangle\mtoadeploy\2012\plug-ins
+      MAYA_SCRIPT_PATH=C:\solidangle\mtoadeploy\2012\scripts
+      XBMLANGPATH=C:\solidangle\mtoadeploy\2012\icons
+ 
+ 
+-If you can see the MtoA plugin, but it does not load-
+ 
+In this case, or if the plugin crashes when trying to load, try the following steps:
+ 
+ 1.Set the following environment variable:
+ 
+      PYTHONPATH=C:\solidangle\mtoadeploy\2012\scripts
+ 
+ 2.Create global environment variables for the definitions in the
+   C:\Users\<User_Name>\Documents\maya\2012-x64\Maya.env
+ 
+      ARNOLD_PLUGIN_PATH = C:\solidangle\mtoadeploy\2012\shaders
+      MTOA_EXTENSIONS_PATH = C:\solidangle\mtoadeploy\2012\extensions
+      MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\2012
+      PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
+ 
+ 3.Remove (and backup) your Maya preferences folder:
+ 
+      C:\Users\<User_Name>\Documents\maya\2012-x64\prefs
+ 
+ 4.Try MtoA using a clean Maya installation
+ 
+ 5.Try MtoA using a clean or newly configured computer
+
 

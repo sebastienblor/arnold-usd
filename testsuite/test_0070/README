@@ -1,5 +1,5 @@
 Add file path tokens that are expanded during render.
 
-Add file path tokens that are expanded during render. (Ticket #204) Test <udim> and <tile> tokens.
+Add file path tokens that are expanded during render. (Ticket #204) Test <udim>, <tile>, <attr>, <shapeName> and <shapePath> tokens.
 
 author: borja@solidangle.com pedro@solidangle.com

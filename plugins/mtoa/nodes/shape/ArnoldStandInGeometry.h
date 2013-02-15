@@ -1,11 +1,9 @@
-#ifndef ARNOLDSTANDINGEOMETRY_H
-#define	ARNOLDSTANDINGEOMETRY_H
+#pragma once
 
 #include <ai.h>
 
 #include <vector>
 
-#include <maya/MGLFunctionTable.h>
 #include <maya/MBoundingBox.h>
 
 // interface for drawing
@@ -14,7 +12,6 @@
 class CArnoldStandInGeometry{
 protected:
    CArnoldStandInGeometry();
-   static MGLFunctionTable* g_GLFT;
 public:
    virtual ~CArnoldStandInGeometry();
    
@@ -32,8 +29,6 @@ public:
    
    // bounding box mode
    virtual void DrawBoundingBox() const = 0;
-   
-   static void setGLFTable(MGLFunctionTable* table);
 };
 
 class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{
@@ -54,6 +49,3 @@ public:
    void DrawNormalAndPolygons() const;
    void DrawBoundingBox() const;
 };
-
-#endif	/* ARNOLDSTANDINGEOMETRY_H */
-

@@ -67,9 +67,12 @@ def getNodeTemplate(nodeType):
     """
     global _templates
     try:
-        return _templates[nodeType]
+        # has one been explicitly registered?
+        templateClass, nodeType, args, kwargs = _templates[nodeType]
     except KeyError:
-        pass
+        return
+    else:
+        return templateClass(nodeType, *args, **kwargs)
 
 #-------------------------------------------------
 # AE templates
@@ -223,7 +226,12 @@ class AttributeTemplate(BaseTemplate):
 
     @modeAttrMethod
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False):
+                   preventOverride=False, dynamic=False, enumeratedItem=None):
+        pass
+        
+            
+    @modeMethod
+    def suppress(self, attr):
         pass
 
     @modeMethod
@@ -348,7 +356,7 @@ class AEChildMode(BaseMode):
         self.addCustom(attr, template._doSetup, template._doUpdate)
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False):
+                   preventOverride=False, dynamic=False, enumeratedItem=None):
         # TODO: lookup label and descr from metadata
         if not label:
             label = prettify(attr)
@@ -361,6 +369,8 @@ class AEChildMode(BaseMode):
             kwargs['annotation'] = annotation
         if changeCommand:
             kwargs['changeCommand'] = changeCommand
+        if enumeratedItem:
+            kwargs['enumeratedItem'] = enumeratedItem
         parent = self._layoutStack[-1]
         pm.setParent(parent)
         control = AttrControlGrp(**kwargs)
@@ -467,7 +477,7 @@ class AERootMode(BaseMode):
                           callCustom=True)
 
     def addControl(self, attr, label=None, changeCommand=None, annotation=None,
-                   preventOverride=False, dynamic=False):
+                   preventOverride=False, dynamic=False, enumeratedItem=None):
         if not label:
             label = prettify(attr)
             if label.startswith('Ai '):
@@ -478,7 +488,7 @@ class AERootMode(BaseMode):
         if dynamic:
             kwargs['addDynamicControl'] = True
         else:
-            kwargs['addControl'] = True
+            kwargs['addControl'] = True        
         if changeCommand:
             if hasattr(changeCommand, '__call__'):
                 changeCommand = aeCallback(changeCommand)
@@ -488,6 +498,9 @@ class AERootMode(BaseMode):
         if annotation:
             kwargs['annotation'] = annotation
         pm.cmds.editorTemplate(*args, **kwargs)
+        
+    def suppress(self, attr):
+        pm.cmds.editorTemplate(suppress=attr)
 
     def addCustom(self, attr, newFunc, replaceFunc):
         # TODO: support multiple attributes passed
@@ -550,6 +563,7 @@ class ShapeMixin(object):
         self.addControl("aiOpaque", label="Opaque")
         self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
         self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.addControl("aiTraceSets", label="Trace Sets")
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
@@ -786,7 +800,7 @@ def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     global _templates
     if nodeType not in _templates:
         try:
-            _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
+            _templates[nodeType] = (templateClass, nodeType, args, kwargs)
             arnold.AiMsgDebug("registered attribute template for %s" % nodeType)
         except:
             arnold.AiMsgError("Failed to instantiate AE Template %s" % templateClass)
@@ -870,7 +884,7 @@ def createTranslatorMenu(node, label=None, nodeType=None, default=None, optionMe
     if nodeType is None:
         nodeType = pm.nodeType(node)
     kwargs = {}
-    if label:
+    if label is not None:
         kwargs['label'] = label
     if optionMenuName:
         kwargs['optionMenuName'] = optionMenuName
@@ -917,12 +931,8 @@ def loadArnoldTemplate(nodeName):
     if core.isMtoaNode(nodeType):
         return
 
-    try:
-        # has one been explicitly registered?
-        template = _templates[nodeType]
-    except KeyError:
-        pass
-    else:
+    template = getNodeTemplate(nodeType)
+    if template:
         pm.cmds.editorTemplate(beginLayout='Arnold', collapse=True)
         template._doSetup(nodeName)
         if hasattr(template, '_attributes'):

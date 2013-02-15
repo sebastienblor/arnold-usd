@@ -30,7 +30,8 @@ void CDirectionalLightTranslator::Export(AtNode* light)
    CLightTranslator::Export(light);
 
    AiNodeSetFlt(light, "angle", FindMayaPlug("aiAngle").asFloat());
-
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CDirectionalLightTranslator::NodeInitializer(CAbTranslator context)
@@ -40,6 +41,8 @@ void CDirectionalLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    // directional light attributes
    helper.MakeInput("angle");
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
 }
 // PointLight
 //
@@ -235,6 +238,14 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
 
    AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
    AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
+   if (!shadowColorPlug.isNull())
+   {
+      AiNodeSetRGB(light, "shadow_color", shadowColorPlug.child(0).asFloat(), 
+              shadowColorPlug.child(1).asFloat(), shadowColorPlug.child(2).asFloat());
+   }
 }
 
 void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
@@ -242,6 +253,9 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "skydome_light");
    // Cannot be created both on Node and here
    MakeCommonAttributes(helper);
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("shadow_color");
 }
 
 double CalculateTriangleArea(const AtVector& p0, 

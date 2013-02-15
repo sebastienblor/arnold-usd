@@ -3,7 +3,12 @@
 ## load our own python modules
 import system
 
-import os, string, platform, subprocess, shutil
+import os
+import string
+import platform
+import subprocess
+import shutil
+import glob
 
 ALIASES = ''
 def top_level_alias(env, name, targets):
@@ -66,8 +71,9 @@ def saferemove(path):
    '''
    handy function to remove files only if they exist
    '''
-   if os.path.exists(path):
-      os.remove(path)
+   for p in glob.glob(path):
+      if os.path.isfile(p):
+          os.remove(p)
 
 def copy_file_or_link(src, target):
    '''
@@ -189,19 +195,19 @@ def get_latest_revision():
    '''
    This function will give us the information we need about the latest snv revision of the root arnold directory
    '''
-   p = subprocess.Popen('svn info .', shell=True, stdout = subprocess.PIPE)
+   p = subprocess.Popen('hg summary', shell=True, stdout = subprocess.PIPE)
    retcode = p.wait()
   
    revision = 'not found'
-   url      = 'not found'
+   branch   = 'not found'
    
    for line in p.stdout:
-      if line.startswith('URL:'):
-         url = line[5:].strip()
-      elif line.startswith('Last Changed Rev:'):
-         revision = 'r' + line[18:].strip()
+      if line.startswith('branch:'):
+         branch = line[8:].strip()
+      elif line.startswith('parent:'):
+         revision = line[8:].strip()
 
-   return (revision, url)
+   return (revision, branch)
 
 ## Hacky replacement for the string partition method which is only available from Python 2.5
 def strpartition(string, sep):

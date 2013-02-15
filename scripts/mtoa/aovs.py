@@ -6,18 +6,18 @@ from itertools import groupby
 import arnold.ai_params
 
 BUILTIN_AOVS = (
-                ('P',       'point'),
-                ('Z',       'float'),
-                ('N',       'vector'),
-                ('opacity', 'rgb'),
+                ('P',            'point'),
+                ('Z',            'float'),
+                ('N',            'vector'),
+                ('opacity',      'rgb'),
                 ('motionvector', 'rgb'),
-                ('Pref',    'rgb'),
-                ('raycount','float'),
-                ('cputime', 'float'),
-                ('RGB',     'rgb'),
-                ('RGBA',    'rgba'),
+                ('Pref',         'rgb'),
+                ('raycount',     'float'),
+                ('cputime',      'float'),
+                ('beauty',       'rgba'),
+                ('ID',           'int'),
+                ('texturetime',  'float'),
 #                ('A',       'float'),
-#                ('ID',      'int'),
 #                ('OBJECT',  'node'),
 #                ('SHADER',  'node'),
                 )

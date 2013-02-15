@@ -34,7 +34,7 @@ void InstallNodes()
       AiNodeEntryInstall(AI_NODE_DRIVER,
                          AI_TYPE_NONE,
                          "renderview_display",
-                         NULL,
+                         "mtoa",
                          (AtNodeMethods*) mtoa_driver_mtd,
                          AI_VERSION);
    }
@@ -64,6 +64,22 @@ bool ArnoldUniverseBegin(int logFlags)
    return false;
 }
 
+bool ArnoldUniverseOnlyBegin()
+{
+   if (!AiUniverseIsActive())
+   {
+      AiBegin();
+      return true;
+   }
+   return false;
+}
+
+void ArnoldUniverseLoadPluginsAndMetadata()
+{
+   LoadPlugins();
+   ReadMetafile();
+}
+
 void ArnoldUniverseEnd()
 {
    if (AiUniverseIsActive())
@@ -75,5 +91,18 @@ void ArnoldUniverseEnd()
       AiEnd();
       // MtoaSetupLogging();
       // AiMsgResetCallback();
+   }
+}
+
+void ArnoldUniverseEndAndFlush(int cache_flags)
+{
+   if (AiUniverseIsActive())
+   {
+      if (AiRendering())
+         AiRenderInterrupt();
+      if (AiRendering())
+         AiRenderAbort();
+      AiUniverseCacheFlush(cache_flags);
+      AiEnd();
    }
 }

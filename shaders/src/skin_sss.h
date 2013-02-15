@@ -7,8 +7,6 @@
 //#include <string>
 //using namespace std;
 
-#define MAX_NB_THREADS 256 // maybe wasting a little memory, better be sure
-
 // OPTIONS 
 class COptions
 {
@@ -159,11 +157,11 @@ public:
 class CStandard : public CNode
 {
 public:
-   CStandardParams params[MAX_NB_THREADS];
+   CStandardParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode *p_Ksss, *p_Ksss_color, *p_sss_radius;
 
-   CStandardOutput outputs[MAX_NB_THREADS];
+   CStandardOutput outputs[AI_MAX_THREADS];
 
    CStandard() 
    {
@@ -203,7 +201,7 @@ public:
 class CRaySwitch : public CNode
 {
 public:
-   CRaySwitchParams params[MAX_NB_THREADS];
+   CRaySwitchParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode *p_camera;
    CNode *p_shadow;
@@ -212,7 +210,7 @@ public:
    CNode *p_diffuse;
    CNode *p_glossy;
 
-   AtColor          outputs[MAX_NB_THREADS];
+   AtColor          outputs[AI_MAX_THREADS];
 
    CRaySwitch() 
    {
@@ -244,10 +242,10 @@ public:
 class CColorSwitch : public CNode
 {
 public:
-   CColorSwitchParams params[MAX_NB_THREADS];
+   CColorSwitchParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode              *p_input1, *p_input2;
-   AtColor            outputs[MAX_NB_THREADS];
+   AtColor            outputs[AI_MAX_THREADS];
 
    CColorSwitch() 
    {
@@ -275,10 +273,10 @@ public:
 class CScalarToColor : public CNode
 {
 public:
-   CScalarToColorParams params[MAX_NB_THREADS];
+   CScalarToColorParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode                *p_input;
-   AtColor              outputs[MAX_NB_THREADS];
+   AtColor              outputs[AI_MAX_THREADS];
 
    CScalarToColor() 
    {
@@ -306,10 +304,10 @@ public:
 class CScalarMultiply : public CNode
 {
 public:
-   CScalarMultiplyParams params[MAX_NB_THREADS];
+   CScalarMultiplyParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode                 *p_input1, *p_input2;
-   float                 outputs[MAX_NB_THREADS];
+   float                 outputs[AI_MAX_THREADS];
 
    CScalarMultiply() 
    {
@@ -337,10 +335,10 @@ public:
 class CScalarAdd : public CNode
 {
 public:
-   CScalarAddParams params[MAX_NB_THREADS];
+   CScalarAddParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode          *p_input1, *p_input2;
-   float          outputs[MAX_NB_THREADS];
+   float          outputs[AI_MAX_THREADS];
 
    CScalarAdd() 
    {
@@ -371,10 +369,10 @@ public:
 class CColorsAdd : public CNode
 {
 public:
-   CColorsAddParams params[MAX_NB_THREADS];
+   CColorsAddParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode            *p_baseColor, *p_color1, *p_color2, *p_color3, *p_color4;
-   AtColor          outputs[MAX_NB_THREADS];
+   AtColor          outputs[AI_MAX_THREADS];
 
    CColorsAdd() 
    {
@@ -402,10 +400,10 @@ public:
 class CColorClip : public CNode
 {
 public:
-   CColorClipParams params[MAX_NB_THREADS];
+   CColorClipParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode            *p_color;
-   AtColor          outputs[MAX_NB_THREADS];
+   AtColor          outputs[AI_MAX_THREADS];
 
    CColorClip() 
    {
@@ -436,10 +434,10 @@ public:
 class CColorsScreen : public CNode
 {
 public:
-   CColorsScreenParams params[MAX_NB_THREADS];
+   CColorsScreenParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode               *p_baseColor, *p_color1, *p_color2, *p_color3, *p_color4;
-   AtColor             outputs[MAX_NB_THREADS];
+   AtColor             outputs[AI_MAX_THREADS];
 
    CColorsScreen() 
    {
@@ -468,10 +466,10 @@ public:
 class CColorsDivide : public CNode
 {
 public:
-   CColorsDivideParams params[MAX_NB_THREADS];
+   CColorsDivideParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode               *p_color1, *p_color2;
-   AtColor             outputs[MAX_NB_THREADS];
+   AtColor             outputs[AI_MAX_THREADS];
 
    CColorsDivide() 
    {
@@ -500,10 +498,10 @@ public:
 class CColorStoreInChannel : public CNode
 {
 public:
-   CColorStoreInChannelParams params[MAX_NB_THREADS];
+   CColorStoreInChannelParams params[AI_MAX_THREADS];
    // parameters that get a connection in the compound
    CNode   *p_input;
-   AtRGBA  outputs[MAX_NB_THREADS];
+   AtRGBA  outputs[AI_MAX_THREADS];
 
    CColorStoreInChannel() 
    {
@@ -559,6 +557,7 @@ enum SSSParams {
    p_aov_deep_scatter
 };
 
+class CInstanceData;
 
 class CSSSParams
 {
@@ -596,6 +595,8 @@ public:
    bool  sample_sss_only_in_glossy_rays;
    
    void Evaluate(AtNode *node, AtShaderGlobals *sg);
+   void CopyTo(CInstanceData *iData, AtShaderGlobals *sg);
+   void CopyFrom(CInstanceData *iData, AtShaderGlobals *sg);
 };
 
 

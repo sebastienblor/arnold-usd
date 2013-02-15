@@ -1,5 +1,4 @@
-#ifndef LIGHT_TRANSLATOR_H
-#define LIGHT_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -17,13 +16,12 @@ public:
    {
       return m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
    }
+   static AtRGB ConvertKelvinToRGB(float kelvin);
 protected:
    virtual bool IsMayaTypeLight() { return true; }
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, unsigned int step);
    virtual void ExportLightFilters(AtNode* light, const MPlugArray &filters);
    virtual void Delete();
-   static void MakeCommonAttributes(CBaseAttrHelper& helper);
+   static void MakeCommonAttributes(CBaseAttrHelper& helper);   
 };
-
-#endif // LIGHT_TRANSLATOR_H

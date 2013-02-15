@@ -1,109 +1,101 @@
-import maya.cmds as cmds
-import maya.mel as mel
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
-from mtoa.ui.ae.utils import aeCallback
+import pymel.core as pm
+import mtoa.ui.ae.lightTemplate as lightTemplate
+import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
+import mtoa.ui.ae.templates as templates
 
-def ArnoldMakeLightExclusive(attr):
-    lightName = attr.split(".")[0]
-    cmds.rowLayout(nc=2, cal=[2, 'left'])
-    cmds.text(label="")
-    cmds.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
-    cmds.setParent('..')
-    
-def ArnoldReplaceLightExclusive(attr):
-    lightName = attr.split(".")[0]
-    cmds.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
+class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
+    def addSwatch(self):
+        self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
+        
+    def makeLightExclusive(self, attr):
+        lightName = attr.split(".")[0]
+        pm.rowLayout(nc=2, cal=[2, 'left'])
+        pm.text(label="")
+        pm.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
+        pm.setParent('..')
+        
+    def replaceLightExclusive(self, attr):
+        lightName = attr.split(".")[0]
+        pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
+        
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        
+        self.beginLayout('SkyDomeLight Attributes', collapse=False)        
+        self.addControl('color', label='Color')
+        self.addControl('intensity', label='Intensity')
+        self.addControl('resolution', label='Resolution')
+        self.addSeparator()
+        self.setupColorTemperature("ArnoldSkyDome")
+        self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
+        self.addControl('emitDiffuse', label='Emit Diffuse')
+        self.addControl('emitSpecular', label='Emit Specular')
+        self.addSeparator()
+        self.addControl('format', label='Format')
+        self.addControl('aiExposure', label='Exposure')
+        self.addControl('aiSamples', label='Samples')
+        self.addControl('aiNormalize', label='Normalize')
+        self.addSeparator()
+        self.addControl('aiCastShadows', label='Cast Shadows')
+        self.addControl('aiShadowColor', label='Shadow Color')
+        self.addSeparator()
+        self.commonLightAttributes()
+        self.endLayout()
+        
+        self.beginLayout('Hardware Texturing', collapse=True)
+        self.addControl('sampling', label='Texture Resolution')
+        self.addControl('hwtexalpha', label='Opacity')
+        self.endLayout()
+        
+        self.beginLayout('Viewport', collapse=True)
+        self.addControl('skyRadius', label='Sky Radius')
+        self.endLayout()
 
-def aiSkyDomeLightTemplate(nodeName):
+        # Do not show extra attributes
+        extras = ["visibility",
+                  "intermediateObject",
+                  "template",
+                  "ghosting",
+                  "instObjGroups",
+                  "useObjectColor",
+                  "objectColor",
+                  "drawOverride",
+                  "lodVisibility",
+                  "renderInfo",
+                  "renderLayerInfo",
+                  "ghostingControl",
+                  "ghostCustomSteps",
+                  "ghostFrames",
+                  "ghostRangeStart",
+                  "ghostRangeEnd",
+                  "ghostDriver",
+                  "motionBlur",
+                  "visibleInReflections",
+                  "visibleInRefractions",
+                  "castsShadows",
+                  "receiveShadows",
+                  "maxVisibilitySamplesOverride",
+                  "maxVisibilitySamples",
+                  "geometryAntialiasingOverride",
+                  "antialiasingLevel",
+                  "shadingSamplesOverride",
+                  "shadingSamples",
+                  "maxShadingSamples",
+                  "volumeSamplesOverride",
+                  "volumeSamples",
+                  "depthJitter",
+                  "ignoreSelfShadowing",
+                  "primaryVisibility",
+                  "compInstObjGroups",
+                  "localPosition",
+                  "localScale"]
 
-    aiSwatchDisplay(nodeName)
+        for extra in extras:
+            self.suppress(extra)
+        
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
-    cmds.editorTemplate(beginScrollLayout=True)
+        self.addExtraControls()
+        self.endScrollLayout()
 
-    cmds.editorTemplate(beginLayout="SkyDomeLight Attributes", collapse=False)
-
-    cmds.editorTemplate("color", addControl=True, label="Color")
-    cmds.editorTemplate("intensity", addControl=True, label="Intensity")
-    cmds.editorTemplate("resolution", addControl=True, label="Resolution")
-    cmds.editorTemplate(aeCallback(ArnoldMakeLightExclusive), aeCallback(ArnoldReplaceLightExclusive), "instObjGroups", callCustom=True)
-    cmds.editorTemplate("emitDiffuse", addControl=True, label="Emit Diffuse")
-    cmds.editorTemplate("emitSpecular",addControl=True, label="Emit Specular")
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("format", addControl=True, label="Format")
-    cmds.editorTemplate("aiExposure", addControl=True, label="Exposure")
-    cmds.editorTemplate("aiSamples", addControl=True, label="Samples")
-    cmds.editorTemplate("aiNormalize", addControl=True, label="Normalize")
-
-
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("aiCastShadows", addControl=True, label="Cast Shadows")
-
-    # FIXME: use light template code here
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
-    cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
-    
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("aiUserOptions", addControl=True, label="User Options")
-    
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
-
-    cmds.editorTemplate("sampling", addControl=True, label="Texture Resolution")
-    cmds.editorTemplate("hwtexalpha", addControl=True, label="Opacity")
-
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Viewport", collapse=True)
-
-    cmds.editorTemplate("skyRadius", addControl=True, label="Sky Radius")
-    cmds.editorTemplate(endLayout=True)
-
-    # Do not show extra attributes
-    extras = ["visibility",
-             "intermediateObject",
-             "template",
-             "ghosting",
-             "instObjGroups",
-             "useObjectColor",
-             "objectColor",
-             "drawOverride",
-             "lodVisibility",
-             "renderInfo",
-             "renderLayerInfo",
-             "ghostingControl",
-             "ghostCustomSteps",
-             "ghostFrames",
-             "ghostRangeStart",
-             "ghostRangeEnd",
-             "ghostDriver",
-             "motionBlur",
-             "visibleInReflections",
-             "visibleInRefractions",
-             "castsShadows",
-             "receiveShadows",
-             "maxVisibilitySamplesOverride",
-             "maxVisibilitySamples",
-             "geometryAntialiasingOverride",
-             "antialiasingLevel",
-             "shadingSamplesOverride",
-             "shadingSamples",
-             "maxShadingSamples",
-             "volumeSamplesOverride",
-             "volumeSamples",
-             "depthJitter",
-             "ignoreSelfShadowing",
-             "primaryVisibility",
-             "compInstObjGroups",
-             "localPosition",
-             "localScale"]
-
-    for extra in extras:
-        cmds.editorTemplate(nodeName, suppress=extra)
-    
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-    cmds.editorTemplate(endScrollLayout=True)

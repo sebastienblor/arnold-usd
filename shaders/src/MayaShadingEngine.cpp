@@ -7,7 +7,9 @@ enum ShadingGroupParams
 {
    p_beauty,
    p_aov_inputs,
-   p_aov_names
+   p_aov_names,
+   p_enable_matte,
+   p_matte_color
 };
 
 };
@@ -15,7 +17,6 @@ enum ShadingGroupParams
 AI_SHADER_NODE_EXPORT_METHODS(MayaShadingEngineMtd);
 
 #define MAiArrayGetNode(arr, i) (AtNode*)AiArrayGetPtr(arr, i)
-
 
 node_parameters
 {
@@ -26,17 +27,24 @@ node_parameters
    AiParameterRGBA("beauty", 0, 0, 0, 0);
    AiParameterARRAY("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
    AiParameterARRAY("aov_names", AiArray(0, 0, AI_TYPE_STRING));
+   AiParameterBool("enable_matte", false);
+   AiParameterRGBA("matte_color", 0.f, 0.f, 0.f, 0.f);
 }
 
 shader_evaluate
 {
+   if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))
+   {
+      sg->out.RGBA = AiShaderEvalParamRGBA(p_matte_color);
+      return;
+   }
    AtArray *inputs = AiShaderEvalParamArray(p_aov_inputs);
 //   AtArray *names = AiShaderEvalParamArray(p_aov_names);
 //   if (inputs->nelements != names->nelements)
 //   {
 //      AiMsgWarning("inputs and names are not the same length");
 //      return;
-//   }
+//   }       
    if (inputs == NULL)
    {
       AiMsgWarning("%s.aov_inputs is NULL", AiNodeGetName(node));

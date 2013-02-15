@@ -1,5 +1,4 @@
-#ifndef HAIRTRANSLATOR_H
-#define HAIRTRANSLATOR_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -29,7 +28,7 @@ public:
    }
    
 private:                         
-   AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
+   AtVector2 GetHairRootUVs(const MVector& lineStart, MFnMesh& mesh, MMatrix shapeTransform);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
    void GetHairLines(MObject& hair, MRenderLineArray& mainLines, bool firstStep = true);
 
@@ -42,5 +41,3 @@ private:
    MDagPath         m_pfxHairPath;
    unsigned int     m_numPointsInterpolation;
 };
-
-#endif // HAIRTRANSLATOR_H

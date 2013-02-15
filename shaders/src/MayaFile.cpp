@@ -34,7 +34,6 @@ enum TokenModes
    USER_PARAM
 };
 
-
 enum MayaFileParams
 {
    p_coverage = 0,
@@ -52,6 +51,8 @@ enum MayaFileParams
    p_noise,
    p_mip_bias,
    p_uvset_name,
+   p_filter,
+   p_use_default_color,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -92,6 +93,8 @@ typedef struct AtImageData
    }
 } AtImageData;
 
+static const char* filterNames[] = {"closest", "bilinear", "bicubic", "smart_bicubic", 0};
+
 node_parameters
 {
    AiParameterPNT2("coverage", 1.0f, 1.0f);
@@ -109,6 +112,8 @@ node_parameters
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
    AiParameterINT("mipBias", 0);
    AiParameterSTR("uvSetName", "");
+   AiParameterENUM("filter", 3, filterNames);
+   AiParameterBOOL("useDefaultColor", true);
    AddMayaColorBalanceParams(params, mds);   
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -235,8 +240,9 @@ node_update
                TokenData data;
                data.mode = USER_PARAM;
                data.position = (int) newfname.size();
-               data.extra = AiMalloc((unsigned long)attr.size());
+               data.extra = AiMalloc((unsigned long)attr.size() + 1);
                strcpy((char*)data.extra, attr.c_str());
+               ((char*)data.extra)[attr.size()] = 0;
                data.nextSize = 0;
                // If a previous token broke the file path chunk, update its "nextSize" attribute
                if (prevToken >= 0)
@@ -305,7 +311,9 @@ node_update
       if (tokens.size())
       {
          idata->tokens = (TokenData*) AiMalloc((unsigned long) (sizeof(TokenData) * tokens.size()));
-         std::copy(tokens.begin(), tokens.end(), idata->tokens);
+         int k = 0;
+         for (std::vector<TokenData>::const_iterator it = tokens.begin(); it != tokens.end(); ++it, ++k)
+            idata->tokens[k] = *it;
 
          idata->origPath = (char*) AiMalloc((unsigned long)newfname.size() + 1);
          strcpy(idata->origPath, newfname.c_str());
@@ -545,15 +553,18 @@ shader_evaluate
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
-      if (sg->Rt & AI_RAY_DIFFUSE)
+      texparams.filter = AiShaderEvalParamInt(p_filter);
+      if ((sg->Rt & AI_RAY_DIFFUSE) && (texparams.filter > AI_TEXTURE_BILINEAR))
          texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
+      bool useDefaultColor = AiShaderEvalParamBool(p_use_default_color);
+      bool* successP = useDefaultColor ? &success : 0;
       if (idata->ntokens > 0)
       {
          TokenData* token = idata->tokens;
          unsigned int pos = 0;
          pos = idata->startPos;
-         for (unsigned int i=0; i < idata->ntokens; i++, token++)
+         for (unsigned int i=0; (i < idata->ntokens) && success; i++, token++)
          {
             switch(token->mode)
             {
@@ -562,17 +573,26 @@ shader_evaluate
                {
                   // short shape name
                   AtNode* shape = sg->Op;
-                  std::string shapeName = AiNodeGetName(shape);
-                  size_t sep = shapeName.rfind('|');
-                  if (sep != std::string::npos)
+                  
+                  const char* shapeName = AiNodeGetName(shape);
+                  int lastSep = -1;
+                  int it = 0;
+                  for(char c = '0';((c = (shapeName[it])) != '\0') && (c != '@');++it)
                   {
-                     memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),sep);
-                     pos += (unsigned int) sep;
+                     if (c == '|')
+                        lastSep = it;
+                  }
+                  if (lastSep == -1)
+                  {
+                     memcpy(&(idata->processPath[sg->tid][pos]),shapeName,it);
+                     pos += (unsigned int) it;
                   }
                   else
                   {
-                     memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),shapeName.size());
-                     pos += (unsigned int) shapeName.size();
+                     lastSep += 1;
+                     const unsigned int memcpySize = (unsigned int)(it - lastSep);
+                     memcpy(&(idata->processPath[sg->tid][pos]), shapeName + lastSep, memcpySize);
+                     pos += memcpySize;
                   }
                   // Copy next text chunk to the "processPath"
                   memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
@@ -585,15 +605,14 @@ shader_evaluate
                {
                   // full path with underscores for illegal characters
                   AtNode* shape = sg->Op;
-                  std::string shapeName = AiNodeGetName(shape);
-                  std::string::size_type found=shapeName.find_first_of("|:");
-                  while (found != std::string::npos)
+                  const char* shapeName = AiNodeGetName(shape);
+                  char c;
+                  while(((c = *(shapeName++)) != '\0') && (c != '@'))
                   {
-                     shapeName[found]='_';
-                     found=shapeName.find("|:", found + 1);
+                     if ((c == '|') || (c == ':'))
+                        c = '_';
+                     idata->processPath[sg->tid][pos++] = c;
                   }
-                  memcpy(&(idata->processPath[sg->tid][pos]),shapeName.c_str(),shapeName.size());
-                  pos += (unsigned int) shapeName.size();
                   // Copy next text chunk to the "processPath"
                   memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
                   pos += token->nextSize;
@@ -620,7 +639,10 @@ shader_evaluate
                   {
                      // TODO: only warn once
                      // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
+                     idata->processPath[sg->tid][pos] = 0;
                      success = false;
+                     const char* shapeName = AiNodeGetName(sg->shader);
+                     AiMsgWarning("[MayaFile] Could not find user attribute %s for file node %s, setting to default color", (const char*)token->extra, shapeName);
                   }
                   break;
                }
@@ -675,22 +697,22 @@ shader_evaluate
 
          if (success)
          {
-            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, &success);
+            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
          }
          //AiMsgInfo("FILE: new name: %s", newfname.c_str());
       }
       else if (idata->texture_handle != NULL)
       {
-         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, &success);
+         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, successP);
       }
       else
       {       
-         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, &success);
+         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
       }
-      if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
-      else
+      if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      else if (success)
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals
       sg->u = oldU;

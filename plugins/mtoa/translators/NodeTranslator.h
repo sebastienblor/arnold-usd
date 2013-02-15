@@ -1,5 +1,4 @@
-#ifndef NODETRANSLATOR_H
-#define NODETRANSLATOR_H
+#pragma once
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
@@ -47,6 +46,8 @@ private:
 
 public:
    MString GetTranslatorName() {return m_abstract.name;}
+   /// for translators that are associated with a specific arnold node
+   MString GetArnoldNodeType() {return m_abstract.arnold;};
 
    virtual ~CNodeTranslator()
    {}
@@ -96,6 +97,8 @@ public:
    // Used by the Update callbacks.
    virtual void RequestUpdate(void * clientData = NULL);
 
+   static void NodeInitializer(CAbTranslator context);
+
 protected:
    CNodeTranslator()  :
       m_abstract(CAbTranslator()),
@@ -121,11 +124,12 @@ protected:
    {
       m_session = session;
       m_handle = object;
+      ExportOverrideSets();
       return DoCreateArnoldNodes();
    }
    CNodeAttrHandle GetMayaHandle() const { return m_handle; }
 
-   virtual void Export(AtNode* atNode) = 0;
+   virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}
    // Update runs during IPR for step==0 (calls Export by default)
    virtual void Update(AtNode* atNode){Export(atNode);}
@@ -156,7 +160,7 @@ protected:
 
    // session info
    inline double GetExportFrame() const {return m_session->GetExportFrame();}
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_session->IsMotionBlurEnabled(type); }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_session->IsMotionBlurEnabled(type); }
    bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);
@@ -231,7 +235,7 @@ public:
    {
       m_dagPath = dagPath;
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      AtNode * tmpRet = CNodeTranslator::Init(session, CNodeAttrHandle(dagPath, outputAttr));
+      AtNode * tmpRet = CNodeTranslator::Init(session, CNodeAttrHandle(dagPath, outputAttr));      
       return tmpRet;
    }
 
@@ -255,6 +259,8 @@ public:
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
+   virtual void Export(AtNode* atNode);
+   virtual void ExportMotion(AtNode* atNode, unsigned int step);
    virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
    virtual MStatus ExportOverrideSets();
    virtual bool IsMasterInstance(MDagPath &masterDag);
@@ -272,6 +278,3 @@ protected:
 protected:
    MDagPath m_dagPath;
 };
-
-
-#endif // NODETRANSLATOR_H

@@ -7,6 +7,9 @@
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldPluginCmd.h"
+#include "commands/ArnoldListAttributesCmd.h"
+#include "commands/ArnoldTemperatureCmd.h"
+#include "commands/ArnoldFlushCmd.h"
 
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -38,6 +41,7 @@
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
+#include "translators/shape/FluidTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
@@ -57,12 +61,17 @@
 
 namespace // <anonymous>
 {
-#ifdef WIN32
-   static void setenv(const char* env, const char* val, bool)
+
+   static void SetEnv(const MString& env, const MString& val)
    {
-      putenv((MString(env) + MString("=") + MString(val)).asChar());
+#ifdef WIN32
+      MString val2 = val;
+      MString envStr = env + MString("=") + val2.toLowerCase();
+      _putenv(envStr.asChar());
+#else
+      setenv(env.asChar(), val.asChar(), true);
+#endif      
    }
-#endif
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
@@ -224,15 +233,19 @@ namespace // <anonymous>
                                    "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
+       builtin->RegisterTranslator("fluidShape",
+                                   "",
+                                   CFluidTranslator::creator,
+                                   CFluidTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
-                                   CPerspCameraTranslator::creator,
-                                   CPerspCameraTranslator::NodeInitializer);
+                                   CStandardCameraTranslator::creator,
+                                   CStandardCameraTranslator::NodeInitializer);
        builtin->RegisterTranslator("camera",
                                    "orthographic",
-                                   COrthoCameraTranslator::creator,
-                                   COrthoCameraTranslator::NodeInitializer);
+                                   CStandardCameraTranslator::creator,
+                                   CStandardCameraTranslator::NodeInitializer);
        builtin->RegisterTranslator("camera",
                                    "fisheye",
                                    CFishEyeCameraTranslator::creator,
@@ -249,12 +262,12 @@ namespace // <anonymous>
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
                                   "perspective",
-                                  CPerspCameraTranslator::creator,
-                                  CPerspCameraTranslator::NodeInitializer);
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
                                   "orthographic",
-                                  COrthoCameraTranslator::creator,
-                                  COrthoCameraTranslator::NodeInitializer);
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
                                   "fisheye",
                                   CFishEyeCameraTranslator::creator,
@@ -311,14 +324,14 @@ namespace // <anonymous>
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
          if (envVar != 0)
-            setenv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath).asChar(), true);
+            SetEnv("ARNOLD_PLUGIN_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + modulePluginPath));
          else
-            setenv("ARNOLD_PLUGIN_PATH", modulePluginPath.asChar(), true);
-         envVar = getenv("MTOA_EXTENSIONS");
+            SetEnv("ARNOLD_PLUGIN_PATH", modulePluginPath);
+         envVar = getenv("MTOA_EXTENSIONS_PATH");
          if (envVar != 0)
-            setenv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath).asChar(), true);
+            SetEnv("MTOA_EXTENSIONS_PATH", (MString(envVar) + MString(PATH_SEPARATOR) + moduleExtensionPath));
          else
-            setenv("MTOA_EXTENSIONS_PATH", moduleExtensionPath.asChar(), true);
+            SetEnv("MTOA_EXTENSIONS_PATH", moduleExtensionPath);
       }
       
       shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", PLUGIN_SEARCH, &status);
@@ -326,6 +339,10 @@ namespace // <anonymous>
       // Overrides for mtoa_shaders if load was successful
       if (MStatus::kSuccess == status)
       {
+         // Register nodes built into mtoa (display driver)
+         InstallNodes();
+         shaders->RegisterPluginNodesAndTranslators("mtoa");
+
          shaders->RegisterTranslator("lambert",
                                      "",
                                      CLambertTranslator::creator);
@@ -344,7 +361,8 @@ namespace // <anonymous>
                                      CPlace2DTextureTranslator::creator);
          shaders->RegisterTranslator("bump2d",
                                      "",
-                                     CBump2DTranslator::creator);
+                                     CBump2DTranslator::creator,
+                                     CBump2DTranslator::NodeInitializer);
          shaders->RegisterTranslator("bump3d",
                                      "",
                                      CBump3DTranslator::creator);
@@ -471,7 +489,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString metafile = loadpath + "/" + "mtoa.mtd";
    SetMetafile(metafile);
 
-   ArnoldUniverseBegin();
+   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
 
    // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
@@ -600,6 +618,48 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+   
+   status = plugin.registerCommand("arnoldListAttributes", CArnoldListAttributesCmd::creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldListAttributes' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldListAttributes' command");
+      MGlobal::displayError("Failed to register 'arnoldListAttributes' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+   
+   status = plugin.registerCommand("arnoldTemperatureToColor", CArnoldTemperatureCmd::creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldTemperatureToColor' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldTemperatureToColor' command");
+      MGlobal::displayError("Failed to register 'arnoldTemperatureToColor' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+   
+   status = plugin.registerCommand("arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldFlushCache' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldFlushCache' command");
+      MGlobal::displayError("Failed to register 'arnoldFlushCache' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
 
    status = RegisterArnoldNodes(object);
    if (MStatus::kSuccess == status)
@@ -663,6 +723,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    ArnoldUniverseEnd();
 
+   CMayaScene::Init();
    return returnStatus;
 }
 
@@ -681,7 +742,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    // Should be done when render finishes
    CMayaScene::End();
 
-   ArnoldUniverseBegin();
+   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
@@ -764,6 +825,19 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       AiMsgError("Failed to deregister 'arnoldRender' command");
       MGlobal::displayError("Failed to deregister 'arnoldRender' command");
    }
+   status = plugin.deregisterCommand("arnoldFlushCache");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldFlushCache' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldFlushCache' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldFlushCache' command");
+      MGlobal::displayError("Failed to deregister 'arnoldFlushCache' command");
+   }
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
    CHECK_MSTATUS(status);
@@ -825,5 +899,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    ArnoldUniverseEnd();
 
+   CMayaScene::DeInit();
    return returnStatus;
 }

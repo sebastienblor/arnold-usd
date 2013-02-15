@@ -43,7 +43,8 @@ try:
     import mtoa.ui.nodeTreeLister as nodeTreeLister
     import mtoa.ui.globals.common
     from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
+    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings, createArnoldRendererOverrideTab, updateArnoldRendererOverrideTab
+    from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab
     from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu
@@ -198,7 +199,10 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
         createProcs = ['createMayaSoftwareCommonGlobalsTab',
                           'createMayaSoftwareGlobalsTab',
                           'createArnoldRendererCommonGlobalsTab',
-                          'createArnoldRendererGlobalsTab']
+                          'createArnoldRendererGlobalsTab',
+                          'createArnoldRendererSystemTab',
+                          'createArnoldRendererOverrideTab',
+                          'createArnoldRendererDiagnosticsTab']
 
         if createProc in createProcs:
             pm.mel.eval(createProc)
@@ -251,9 +255,18 @@ def _register():
     pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
                                                       utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
                                                       utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('System', 
+                                                      utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
                                                       utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
+                                                      utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Override', 
+                                                      utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     utils.pyToMelProc(updateBackgroundSettings, useName=True)
     #We have to source this file otherwise maya will override

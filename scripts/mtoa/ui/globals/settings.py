@@ -2,6 +2,8 @@
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
+import arnold as ai
+import maya.cmds as cmds
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -157,13 +159,7 @@ def createArnoldRenderSettings():
                    label="Render Type",
                    attribute='defaultArnoldRenderOptions.renderType')
 
-    pm.attrControlGrp('os_progressive_rendering',
-                   label='Progressive Rendering',
-                   attribute='defaultArnoldRenderOptions.progressive_rendering')
-
-    pm.attrControlGrp('os_progressive_initial_level',
-                    label="Progressive Initial Level",
-                    attribute='defaultArnoldRenderOptions.progressive_initial_level')
+    
 
     pm.separator()
 
@@ -175,14 +171,8 @@ def createArnoldRenderSettings():
                    label="Bucket Size",
                    attribute='defaultArnoldRenderOptions.bucketSize')
 
-    pm.attrControlGrp('os_clear_before_render',
-                   label="Clear Before Render",
-                   attribute='defaultArnoldRenderOptions.clear_before_render')
-                   
-    pm.attrControlGrp('os_force_scene_update_before_IPR_refresh',
-                   label='Force Scene Update On IPR Refresh',
-                   attribute='defaultArnoldRenderOptions.force_scene_update_before_IPR_refresh')
-
+    
+    
     pm.separator()
 
     pm.checkBoxGrp('os_threads_autodetect',
@@ -205,32 +195,15 @@ def createArnoldRenderSettings():
     pm.separator()
                     
     pm.attrControlGrp('os_outputAssBoundingBox',
-                   label="Export Bounding Box",
-                   attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
-
-    pm.attrControlGrp('os_preserve_scene_data',
-                   label='Preserve Scene Data',
-                   attribute='defaultArnoldRenderOptions.preserveSceneData')
+                      label="Export Bounding Box",
+                      attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
+                   
+    pm.attrControlGrp('os_expandProcedurals',
+                      label='Expand Procedurals',
+                      attribute='defaultArnoldRenderOptions.expandProcedurals')
 
     pm.separator()
 
-    pm.attrControlGrp('os_abort_on_error',
-                   label="Abort On Error",
-                   attribute='defaultArnoldRenderOptions.abortOnError')
-
-    pm.attrControlGrp('os_abort_on_license_fail',
-                   label="Abort On License Fail",
-                   attribute='defaultArnoldRenderOptions.abortOnLicenseFail')
-
-    pm.attrControlGrp('os_skip_license_check',
-                   label="Skip License Check",
-                   attribute='defaultArnoldRenderOptions.skip_license_check')
-                   
-    pm.attrControlGrp('os_enable_swatch_render',
-                   label="Enable Swatch Render",
-                   attribute='defaultArnoldRenderOptions.enable_swatch_render')
-                   
-    pm.separator()
     
     pm.attrControlGrp('os_user_options',
                    label="User Options",
@@ -244,7 +217,7 @@ def createArnoldRenderSettings():
 def updateArnoldFilterOptions(*args):
     pass
 
-def raytracedSSSChanged(someArg):
+def raytracedSSSChanged(someArg=None):
     enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
     pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
     pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
@@ -353,8 +326,7 @@ def createArnoldSamplingSettings():
     pm.frameLayout(label="Diffusion SSS", collapse=False)
     
     pm.checkBoxGrp('ss_enable_raytraced_SSS',
-                   label="Raytraced",
-                   cc=raytracedSSSChanged)
+                   label="Raytraced")
                    
     pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=1)
     pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=2)
@@ -370,8 +342,17 @@ def createArnoldSamplingSettings():
                    label="PointCloud Sample Factor",
                    enable=not enableRaytracedSSS,
                    attribute='defaultArnoldRenderOptions.sss_sample_factor')
+                   
+    pm.scriptJob(ac=['defaultArnoldRenderOptions.enable_raytraced_SSS', raytracedSSSChanged])
     
     pm.setParent('..')
+    
+    if int(ai.AiGetVersion()[2]) > 11:    
+        pm.frameLayout(label="Volumes", collapse=False)                      
+        pm.attrControlGrp('ss_volume_indirect_samples',
+                          label='Indirect Samples',
+                          attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
+        pm.setParent('..')
     
     pm.frameLayout(label="Clamping", collapse=True)
 
@@ -763,12 +744,6 @@ def createArnoldTextureSettings():
                         label="Max Open Files",
                         attribute='defaultArnoldRenderOptions.textureMaxOpenFiles')
 
-    pm.separator()
-
-    pm.attrControlGrp('texture_per_file_stats',
-                        label="Per File Stats",
-                        attribute='defaultArnoldRenderOptions.texturePerFileStats')
-
     cmds.separator() 
 
     cmds.attrControlGrp('texture_diffuse_blur', 
@@ -819,13 +794,13 @@ def createArnoldOverrideSettings():
                         attribute='defaultArnoldRenderOptions.ignore_motion_blur')
 
     pm.attrControlGrp('ignore_sss',
-                        attribute='defaultArnoldRenderOptions.ignore_sss')
+                        attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore SSS')
     					
     pm.attrControlGrp('ignore_mis',
-                        attribute='defaultArnoldRenderOptions.ignore_mis')
+                        attribute='defaultArnoldRenderOptions.ignore_mis', label='Ignore MIS')
                         
     pm.attrControlGrp('ignore_dof',
-                        attribute='defaultArnoldRenderOptions.ignore_dof')
+                        attribute='defaultArnoldRenderOptions.ignore_dof', label='Ignore DOF')
 
     pm.setParent('..')
 
@@ -858,17 +833,90 @@ def createArnoldPathSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def createArnoldMayaintegrationSettings():
+
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(adjustableColumn=True)
+    
+    pm.attrControlGrp('os_progressive_rendering',
+                   label='Progressive Refinement',
+                   attribute='defaultArnoldRenderOptions.progressive_rendering')
+
+    pm.attrControlGrp('os_progressive_initial_level',
+                    label="Initial Sampling Level",
+                    attribute='defaultArnoldRenderOptions.progressive_initial_level')
+                    
+    pm.separator()
+                    
+    pm.attrControlGrp('os_clear_before_render',
+                   label="Clear Before Render",
+                   attribute='defaultArnoldRenderOptions.clear_before_render')
+                   
+    pm.attrControlGrp('os_force_scene_update_before_IPR_refresh',
+                   label='Force Scene Update On IPR Refresh',
+                   attribute='defaultArnoldRenderOptions.force_scene_update_before_IPR_refresh')
+    
+    pm.attrControlGrp('os_force_texture_cache_flush_after_render',
+                   label='Force Texture Cache Flush After Render',
+                   attribute='defaultArnoldRenderOptions.force_texture_cache_flush_after_render')
+                   
+    pm.separator()
+                  
+    pm.attrControlGrp('os_enable_swatch_render',
+                   label="Enable Swatch Render",
+                   attribute='defaultArnoldRenderOptions.enable_swatch_render')
+
+    pm.setParent('..')
+
+    pm.setUITemplate(popTemplate=True)
+    
+def createArnoldLicensingSettings():
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(adjustableColumn=True)
+    
+    pm.attrControlGrp('os_abort_on_license_fail',
+                   label="Abort On License Fail",
+                   attribute='defaultArnoldRenderOptions.abortOnLicenseFail')
+
+    pm.attrControlGrp('os_skip_license_check',
+                   label="Skip License Check",
+                   attribute='defaultArnoldRenderOptions.skip_license_check')
+
+    pm.setParent('..')
+
+    pm.setUITemplate(popTemplate=True)
+
+def LoadFilenameButtonPush(*args):
+    import os
+    basicFilter = 'All Files (*.*)'
+    initFolder = cmds.textFieldButtonGrp("ls_log_filename", query=True, text=True)
+    if "$MTOA_LOG_PATH" in initFolder:
+        logPath = pm.mel.eval('getenv "MTOA_LOG_PATH"')
+        if not logPath:
+            logPath = pm.workspace(query=True, rootDirectory=True)
+        resolvedFolder = initFolder.replace("$MTOA_LOG_PATH",logPath)
+    else:
+        resolvedFolder = initFolder
+    resolvedFolder = os.path.split(resolvedFolder)
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Select Log File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
+    if ret is not None and len(ret):
+        cmds.textFieldButtonGrp("ls_log_filename", edit=True, text=ret[0])
+        cmds.setAttr("defaultArnoldRenderOptions.log_filename", ret[0], type="string")
+    
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.textFieldGrp('log_filename',
-                      label='Filename',
-                      cc=updateLogSettings)
-    pm.connectControl('log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
-    pm.connectControl('log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
-
+    
+    path = cmds.textFieldButtonGrp("ls_log_filename",
+                                   label="Filename",
+                                   cc=updateLogSettings,
+                                   width=300)
+    cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...", buttonCommand=LoadFilenameButtonPush)
+    pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
+    pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
+    
     '''
     pm.attrControlGrp('log_filename',
                         label="Filename",
@@ -888,10 +936,162 @@ def createArnoldLogSettings():
                         label="File Verbosity Level",
                         attribute='defaultArnoldRenderOptions.log_file_verbosity')
 
+    pm.separator()
+
+    pm.attrControlGrp('os_shader_nan_checks',
+                   label="Warn on Shader NaN's",
+                   annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
+                              'Enabling this may adversely affect performance.',
+                   attribute='defaultArnoldRenderOptions.shaderNanChecks')
+                   
+
+    pm.attrControlGrp('texture_per_file_stats',
+                        label="Detailed Texture Stats",
+                        attribute='defaultArnoldRenderOptions.texturePerFileStats')
+
+    pm.setParent('..')
+
+    pm.setUITemplate(popTemplate=True)
+    
+def createArnoldErrorHandlingSettings():
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(adjustableColumn=True)
+
+    pm.attrControlGrp('os_abort_on_error',
+                   label="Abort On Error",
+                   attribute='defaultArnoldRenderOptions.abortOnError')
+                   
+    pm.separator()
+    
+    pm.attrControlGrp('os_error_color_bad_texture',
+                   label="Texture Error Color",
+                   attribute='defaultArnoldRenderOptions.errorColorBadTexture')
+                   
+    pm.attrControlGrp('os_error_color_bad_pixel',
+                   label="NaN Error Color",
+                   attribute='defaultArnoldRenderOptions.errorColorBadPixel')
+
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
 
+    
+def createArnoldRendererOverrideTab():
+
+    # Make sure the aiOptions node exists
+    #core.createOptions()
+
+    parentForm = pm.setParent(query=True)
+    
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.scrollLayout('arnoldOverrideScrollLayout', horizontalScrollBarThickness=0)
+    pm.columnLayout('arnoldOverrideColumn', adjustableColumn=True)
+
+    # Overrides
+    #
+    pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
+    createArnoldOverrideSettings()
+    pm.setParent('..')
+    
+    # Subdivision Surfaces
+    #
+    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=0)
+    createArnoldSubdivSettings()
+    pm.setParent('..')
+    
+
+    pm.formLayout(parentForm,
+               edit=True,
+               af=[('arnoldOverrideScrollLayout', "top", 0),
+                   ('arnoldOverrideScrollLayout', "bottom", 0),
+                   ('arnoldOverrideScrollLayout', "left", 0),
+                   ('arnoldOverrideScrollLayout', "right", 0)])
+
+    pm.setParent(parentForm)
+    
+def updateArnoldRendererOverrideTab(*args):
+    pass
+
+    
+def createArnoldRendererDiagnosticsTab():
+
+    # Make sure the aiOptions node exists
+    #core.createOptions()
+
+    parentForm = pm.setParent(query=True)
+    
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.scrollLayout('arnoldDiagnosticsScrollLayout', horizontalScrollBarThickness=0)
+    pm.columnLayout('arnoldDiagnosticsColumn', adjustableColumn=True)
+
+    # Log
+    #
+    pm.frameLayout('arnoldLogSettings', label="Log", cll=True, cl=0)
+    createArnoldLogSettings()
+    pm.setParent('..')
+    
+    # Error handling
+    #
+    pm.frameLayout('arnoldErrorHandlingSettings', label="Error Handling", cll=True, cl=0)
+    createArnoldErrorHandlingSettings()
+    pm.setParent('..')
+    
+
+    pm.formLayout(parentForm,
+               edit=True,
+               af=[('arnoldDiagnosticsScrollLayout', "top", 0),
+                   ('arnoldDiagnosticsScrollLayout', "bottom", 0),
+                   ('arnoldDiagnosticsScrollLayout', "left", 0),
+                   ('arnoldDiagnosticsScrollLayout', "right", 0)])
+
+    pm.setParent(parentForm)
+    
+def updateArnoldRendererDiagnosticsTab(*args):
+    updateLogSettings()
+    
+def createArnoldRendererSystemTab():
+
+    # Make sure the aiOptions node exists
+    #core.createOptions()
+
+    parentForm = pm.setParent(query=True)
+    
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.scrollLayout('arnoldSystemScrollLayout', horizontalScrollBarThickness=0)
+    pm.columnLayout('arnoldSystemColumn', adjustableColumn=True)
+
+    
+    # Maya Integration
+    #
+    pm.frameLayout('arnoldMayaIntegrationSettings', label="Maya Integration", cll=True, cl=0)
+    createArnoldMayaintegrationSettings()
+    pm.setParent('..')
+    
+    # Search paths
+    #
+    pm.frameLayout('arnoldPathSettings', label="Search Paths", cll=True, cl=0)
+    createArnoldPathSettings()
+    pm.setParent('..')
+    
+    # Licensing
+    #
+    pm.frameLayout('arnoldLicensingSettings', label="Licensing", cll=True, cl=0)
+    createArnoldLicensingSettings()
+    pm.setParent('..')
+    
+    
+
+    pm.formLayout(parentForm,
+               edit=True,
+               af=[('arnoldSystemScrollLayout', "top", 0),
+                   ('arnoldSystemScrollLayout', "bottom", 0),
+                   ('arnoldSystemScrollLayout', "left", 0),
+                   ('arnoldSystemScrollLayout', "right", 0)])
+
+    pm.setParent(parentForm)
+    
+def updateArnoldRendererSystemTab(*args):
+    pass
 
 def createArnoldRendererGlobalsTab():
 
@@ -940,12 +1140,6 @@ def createArnoldRendererGlobalsTab():
     createArnoldLightSettings()
     pm.setParent('..')
 
-    # Subdivision Surfaces
-    #
-    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=1)
-    createArnoldSubdivSettings()
-    pm.setParent('..')
-
     # Render
     #
     pm.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=1)
@@ -964,23 +1158,6 @@ def createArnoldRendererGlobalsTab():
     createArnoldTextureSettings()
     pm.setParent('..')
 
-    # Overrides
-    #
-    pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True, cl=1)
-    createArnoldOverrideSettings()
-    pm.setParent('..')
-
-    # Search path
-    #
-    pm.frameLayout('arnoldPathSettings', label="Search Path", cll=True, cl=1)
-    createArnoldPathSettings()
-    pm.setParent('..')
-
-    # Log
-    #
-    pm.frameLayout('arnoldLogSettings', label="Log", cll=True, cl=1)
-    createArnoldLogSettings()
-    pm.setParent('..')
 
     pm.setParent('..')
 
@@ -1004,4 +1181,4 @@ def updateArnoldRendererGlobalsTab(*args):
     updateRenderSettings()
     updateSamplingSettings()
     updateMotionBlurSettings()
-    updateLogSettings()
+    

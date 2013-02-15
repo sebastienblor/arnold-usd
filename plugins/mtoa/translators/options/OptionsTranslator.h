@@ -1,5 +1,4 @@
-#ifndef OPTIONSTRANSLATOR_H
-#define OPTIONSTRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -60,11 +59,15 @@ protected:
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();
    void CreateFileDirectory(const MString &filename) const;
-   AtNode * CreateDefaultFilter();
-   inline AtNode * CreateDisplayDriver(MString& prefix, bool& singleLayer);
-   unsigned int GetDriversAndFilters(const CAOV& aov,
+   unsigned int GetOutputArray(const CAOV& aov,
                                      std::vector<CAOVOutput>& outputs);
-   AtNode* ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer);
+   bool GetOutput(const MPlug& driverPlug,
+                  const MPlug& filterPlug,
+                  CAOVOutput& output);
+   AtNode* ExportDriver(const MPlug& driverPlug,
+                        MString& prefix,
+                        bool& mergeAOVs,
+                        bool& singleLayer);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
 protected:
@@ -74,5 +77,3 @@ protected:
    bool m_aovsInUse;
    std::map<std::string, AtNode*> m_multiDriverMap;
 };
-
-#endif // OPTIONSTRANSLATOR_H

@@ -1,6 +1,4 @@
-#ifndef ARNOLDIPRCMD_H
-#define ARNOLDIPRCMD_H
-
+#pragma once
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
@@ -23,5 +21,3 @@ public:
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldIprCmd
-
-#endif // ARNOLDIPRCMD_H

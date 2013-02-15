@@ -1,0 +1,5 @@
+Extend testsuite to support multiple output per test (Ticket #866)
+
+Test AOV output
+
+author: chadrik

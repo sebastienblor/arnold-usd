@@ -5,7 +5,12 @@ from mtoa.ui.ae.shaderTemplate import ShaderMixin
 
 class ShaveHairTemplate(AttributeTemplate, ShapeMixin, ShaderMixin):
     def setup(self):
-        self.commonShapeAttributes()
+        self.addControl("primaryVisibility")
+        self.addControl("castsShadows")
+        self.addControl("visibleInReflections")
+        self.addControl("visibleInRefractions")
+        self.addSeparator()
+        self.commonShapeAttributes()        
         self.addSeparator()
 
         self.addControl("aiOverrideHair")
@@ -21,6 +26,9 @@ class ShaveHairTemplate(AttributeTemplate, ShapeMixin, ShaderMixin):
         self.addControl("aiDiffuseCache")
         self.addControl("aiIndirect")
         self.addControl("aiDirectDiffuse")
+        
+        self.addControl("aiExportHairColors")
+        self.addControl("aiExportHairIDs")
 
         self.addAOVLayout()
 

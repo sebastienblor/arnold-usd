@@ -2,6 +2,8 @@ import pymel.core as pm
 import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
+import maya.cmds as cmds
+import re
 
 class AttributeListWindow(object):
     
@@ -19,7 +21,10 @@ class AttributeListWindow(object):
                     sizeable=True,
                     resizeToFitChildren=False)
         #pm.windowPref(removeAll=True)
-        form = pm.formLayout('form')    
+        form = pm.formLayout('form')
+        filterText = pm.textField('alf_filter_text', height=20)
+        self.filterText = filterText
+        pm.textField(self.filterText, edit=True, changeCommand=Callback(self.filterAttributes))
         if pm.mel.getApplicationVersionAsFloat() < 2013:
             list = pm.textScrollList('alf_attribute_list', nr=10, ams=True)
         else:
@@ -54,10 +59,25 @@ class AttributeListWindow(object):
         pm.setParent('..')
         
         pm.formLayout(form, edit=True,
-                attachForm=[(list, 'top', 5), (list, 'left', 5), (list, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
-                attachControl=[(list, 'bottom', 5, row)])
+                attachForm=[(filterText, 'top', 5), (filterText, 'left', 5), (filterText, 'right', 5), (list, 'left', 5), (list, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
+                attachControl=[(list, 'bottom', 5, row), (list, 'top', 5, filterText)])
 
         pm.showWindow(self.win)
+        
+    def filterAttributes(self):
+        pm.textScrollList(self.scrollList, edit=True, removeAll=True)        
+        if self._attributes is None:
+            return
+        filterText = pm.textField(self.filterText, query=True, text=True)
+        labels = self._attributes.keys()
+        labels.sort()
+        if filterText == "":
+            for attr in labels:
+                pm.textScrollList(self.scrollList, edit=True, append=attr)       
+        else:
+            for attr in labels:
+                if re.search(filterText, attr) is not None:
+                    pm.textScrollList(self.scrollList, edit=True, append=attr)
 
     def addAttrAndHide(self):
         pm.window(self.win, edit=True, visible=False)
@@ -110,23 +130,15 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         pass
 
     def getCandidateAttributes(self):
+        attributeList = cmds.arnoldListAttributes(self.nodeName)
         candidates = {}
-        elts = pm.sets(self.nodeName, query=True)
-        for elt in elts :
-            dag = pm.listRelatives(elt, allDescendents=True)
-            dag.append(elt)
-            for node in dag:                
-                attrs = node.listAttr(write=True, visible=True)
-                for attr in attrs :
-                    name = attr.longName(fullPath=True)
-                    # Too restrictive, missing useful attributes like "primary visibility" on shapes
-                    # or "Out Matte Opacity" on surface shader for instance.
-                    # Why it's not marked as render source or affects appearance beats me but point
-                    # is these distinctions don't seem reliable enough in Maya yet to filter useful attrs
-                    # fnAttr = om.MFnAttribute(attr.__apimobject__())
-                    # if (fnAttr.isRenderSource() or fnAttr.affectsAppearance() or fnAttr.hasCategory('arnold')) :                       
-                    if not name in candidates :
-                        candidates[name] = attr
+        if attributeList:
+            for attrName in attributeList:
+                try:
+                    attr = pm.general.Attribute(attrName)
+                    candidates[attr.longName(fullPath=True)] = attr
+                except:
+                    pass
         return candidates
 
     def getExistingAttributes(self):
@@ -136,14 +148,21 @@ class ObjectSetTemplate(templates.AttributeTemplate):
             name = attr.longName(fullPath=True)
             if not name in existing :
                 existing[name] = attr
-        return existing   
+        return existing
+        
+    @staticmethod
+    def getAttrParent(attr):
+        if pm.mel.getApplicationVersionAsFloat() > 2011:
+            return attr.getParent(-1, True)
+        else:
+            return attr.getParent(-1)
         
     def addAttr(self, attrs):    
         # print "addAttr %r" % attrs
         for attr in attrs:
             # must add from top parent
-            parent = attr.getParent(-1, True)
-            self._doAdd(parent.node(), parent.attrName(longName=True), None)
+            parent = ObjectSetTemplate.getAttrParent(attr)
+            self._doAdd(parent.node(), parent.name(longName=True, includeNode=False), None)
        
     def _doAdd(self, srcNode, attrName, parentName):
         dstNode = pm.PyNode(self.nodeName)
@@ -168,13 +187,18 @@ class ObjectSetTemplate(templates.AttributeTemplate):
                 args['defaultValue']    = defaultValue[0]
             except:
                 pass           
-        if pm.mel.getApplicationVersionAsFloat() < 2013:
-            args['attributeType']    = pm.getAttr("%s.%s" % (srcNode, attrName), type=True)
-            # silly 2012 bug, returns float3 as type on surfaceShader attribute
-            if (args['attributeType'] == 'float3' and not children):
-                args['attributeType'] = 'typed'
+        
+        attributeType = pm.getAttr("%s.%s" % (srcNode, attrName), type=True)
+        # silly 2012 bug, returns float3 as type on surfaceShader attribute
+        if attributeType == 'string' or attributeType == 'float2':
+            args['attributeType'] = None
+            args['dataType'] = attributeType            
         else:
-            args['attributeType']    = pm.attributeQuery(attrName, node=srcNode, attributeType=True)
+            args['attributeType'] = attributeType
+            if pm.mel.getApplicationVersionAsFloat() < 2013:
+                if (args['attributeType'] == 'float3' and not children):
+                    args['attributeType'] = 'typed'
+            
         # args['dataType']       = None
         try:
             args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)
@@ -240,7 +264,7 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         # print "removeAttr %r" % attrs
         for attr in attrs:
             # Can only delete top parent of compound / multi attributes
-            parent = attr.getParent(-1, True)
+            parent = ObjectSetTemplate.getAttrParent(attr)
             # print "remove %r will need to remove %r" % (attr, parent)
             parent.delete()
             

@@ -1,5 +1,4 @@
-#ifndef OBJECT_SET_TRANSLATOR_H
-#define OBJECT_SET_TRANSLATOR_H
+#pragma once
 
 #include "NodeTranslator.h"
 #include <maya/MNodeMessage.h>
@@ -26,6 +25,3 @@ protected:
    static void SetMembersChangedCallback(MObject &node, void *clientData);
    virtual void RequestUpdate(void *clientData);
 };
-
-
-#endif // OBJECT_SET_TRANSLATOR_H

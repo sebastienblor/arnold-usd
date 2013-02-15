@@ -1,5 +1,4 @@
-#ifndef ARNOLDSTANDINS_H_
-#define ARNOLDSTANDINS_H_
+#pragma once
 
 #include "attributes/AttrHelper.h"
 
@@ -114,5 +113,3 @@ public:
    };
 
 }; // class CArnoldStandInShapeUI
-
-#endif // ARNOLDSTANDINS_H_

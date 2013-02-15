@@ -1,7 +1,7 @@
 !include "MUI2.nsh"
 
-Name "MtoA 0.17.0 Maya 2011"
-OutFile "MtoA-0.17.0-win64-2011.exe"
+Name "MtoA 0.20.0 Maya 2011"
+OutFile "MtoA-0.20.0-win64-2011.exe"
 
 ;Default installation folder
 InstallDir "C:\solidangle\mtoadeploy\2011"
@@ -25,7 +25,7 @@ Var StartMenuFolder
 !define MUI_ABORTWARNING
 
 !insertmacro MUI_PAGE_WELCOME
-;!insertmacro MUI_PAGE_LICENSE "MtoAEULA.txt"
+!insertmacro MUI_PAGE_LICENSE "MtoAEULA.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
@@ -59,6 +59,13 @@ Section "MtoA for Maya 2011" MtoA2011
   SetOutPath "$INSTDIR"
   File /r /x *.nsi *.*
 
+  ;Add a mtoa.mod file in the Maya modules folder
+  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+  CreateDirectory "$R1\maya\2011-x64\modules"
+  FileOpen $0 "$R1\maya\2011-x64\modules\mtoa.mod" w
+  FileWrite $0 "+ mtoa any $INSTDIR"
+  FileClose $0
+  
   ;Store installation folder
   SetRegView 32
   WriteRegStr HKCU "Software\MtoA2011" "" $INSTDIR
@@ -76,7 +83,7 @@ Section "MtoA for Maya 2011" MtoA2011
   
   SetRegView 64
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA2011" \
-                 "DisplayName" "MtoA 0.17.0 Maya 2011"
+                 "DisplayName" "MtoA 0.20.0 Maya 2011"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA2011" \
                  "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
 
@@ -89,13 +96,7 @@ Section "MtoA for Maya 2011 Env Variables" MtoA2011EnvVariables
    ;Create .mod file
     SetRegView 64
     ReadRegStr $R0 HKCU "Software\MtoA2011" ""
-    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
     
-    File "mtoa.mod"
-    CreateDirectory "$R1\maya\2011-x64\modules"
-    FileOpen $0 "$R1\maya\2011-x64\modules\mtoa.mod" w
-    FileWrite $0 "+ mtoa any $R0"
-    FileClose $0
     
     ;Create a backup of Maya.env
     CreateDirectory "$PROFILE\Documents\maya\2011-x64\MtoA_backup"
@@ -110,8 +111,8 @@ Section "MtoA for Maya 2011 Env Variables" MtoA2011EnvVariables
     FileClose $0
     
     ;Add new enviroment variables to Maya.env
-    FileWrite $1 "$\nMAYA_RENDER_DESC_PATH = $R0"
-    FileWrite $1 "$\nPATH = %PATH%;$R0\bin;$\n"
+    FileWrite $1 "$\r$\nMAYA_RENDER_DESC_PATH = $R0"
+    FileWrite $1 "$\r$\nPATH = %PATH%;$R0\bin;$\r$\n"
     FileClose $1
 
 SectionEnd

@@ -1,6 +1,7 @@
 #include "ArnoldStandInGeometry.h"
 
-MGLFunctionTable* CArnoldStandInGeometry::g_GLFT = 0;
+#include <maya/MPxSurfaceShape.h>
+#include <maya/MPxSurfaceShapeUI.h>
 
 CArnoldStandInGeometry::CArnoldStandInGeometry()
 {
@@ -10,11 +11,6 @@ CArnoldStandInGeometry::CArnoldStandInGeometry()
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
 {
    
-}
-
-void CArnoldStandInGeometry::setGLFTable(MGLFunctionTable* table)
-{
-   g_GLFT = table;
 }
 
 CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox)
@@ -113,13 +109,13 @@ void CArnoldPolymeshGeometry::DrawPolygons() const
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
       const AtUInt ns = m_nsides[i];
-      g_GLFT->glBegin(MGL_POLYGON);
+      glBegin(GL_POLYGON);
       for (AtUInt j = 0; j < ns; ++j)
       {
          const AtUInt vid = m_vidxs[id++];
-         g_GLFT->glVertex3fv(&m_vlist[vid].x);
+         glVertex3fv(&m_vlist[vid].x);
       }
-      g_GLFT->glEnd();
+      glEnd();
    }
 }
 
@@ -128,24 +124,24 @@ void CArnoldPolymeshGeometry::DrawWireframe() const
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
       const AtUInt ns = m_nsides[i];
-      g_GLFT->glBegin(MGL_LINE_STRIP);
+      glBegin(GL_LINE_STRIP);
       for (AtUInt j = 0; j < ns; ++j, ++id)
       {
          const AtUInt vid = m_vidxs[id];
-         g_GLFT->glVertex3fv(&m_vlist[vid].x);
+         glVertex3fv(&m_vlist[vid].x);
       }
-      g_GLFT->glEnd();
+      glEnd();
    }
 }
 
 void CArnoldPolymeshGeometry::DrawPoints() const
 {
-   g_GLFT->glEnableClientState(MGL_VERTEX_ARRAY);
+   glEnableClientState(GL_VERTEX_ARRAY);
    
-   g_GLFT->glVertexPointer(3, MGL_FLOAT, 0, &m_vlist[0]);
-   g_GLFT->glDrawArrays(MGL_POINTS, 0, m_vlist.size());
+   glVertexPointer(3, GL_FLOAT, 0, &m_vlist[0]);
+   glDrawArrays(GL_POINTS, 0, (GLsizei)m_vlist.size());
    
-   g_GLFT->glDisableClientState(MGL_VERTEX_ARRAY);
+   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
@@ -159,57 +155,57 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
       const AtUInt ns = m_nsides[i];
-      g_GLFT->glBegin(MGL_POLYGON);
+      glBegin(GL_POLYGON);
       for (AtUInt j = 0; j < ns; ++j, ++id)
       {
          const AtUInt vid = m_vidxs[id];
          const AtUInt nid = m_nidxs[id];
-         g_GLFT->glVertex3fv(&m_vlist[vid].x);
-         g_GLFT->glNormal3fv(&m_nlist[nid].x);
+         glVertex3fv(&m_vlist[vid].x);
+         glNormal3fv(&m_nlist[nid].x);
       }
-      g_GLFT->glEnd();
+      glEnd();
    }
 }
 
 void CArnoldPolymeshGeometry::DrawBoundingBox() const
 {
-   g_GLFT->glBegin(MGL_LINES);
+   glBegin(GL_LINES);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
    
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMin.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMin.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMin.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMin.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMin.y, m_BBMax.z);
    
-   g_GLFT->glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
-   g_GLFT->glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMin.x, m_BBMax.y, m_BBMax.z);
+   glVertex3f(m_BBMax.x, m_BBMax.y, m_BBMax.z);
    
-   g_GLFT->glEnd();
+   glEnd();
 }

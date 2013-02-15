@@ -36,24 +36,31 @@ tabsize=3]
 
 extern AtNodeMethods* ParametersShaderMtd;
 
+enum{
+   MY_SHADER_1 = 0,
+   MY_SHADER_2,
+   PARAMETERS_SHADER
+};
 ...
 
-case 2:
-      node->methods      = ParametersShaderMtd;
-      node->output_type  = AI_TYPE_RGB;
-      node->name         = "parametersShader";
-      node->node_type    = AI_NODE_SHADER;
-      break;
+case PARAMETERS_SHADER:
+   node->methods      = ParametersShaderMtd;
+   node->output_type  = AI_TYPE_RGB;
+   node->name         = "parametersShader";
+   node->node_type    = AI_NODE_SHADER;
+   break;
 
 \end{minted}
 
 You will be able to compile the loader again as described in the previous section,
-check that Arnold can load the shader correctly, and copy the compiled shader to the correct folder in the plugin so that Maya can use it.
-But if you do so, you will discover that it is usable but not well integrated in Maya.
+check that Arnold can load the shader correctly, and copy the compiled shader to the
+correct folder so that Maya can use it.
+If you do so, you will discover that it is usable but not well integrated in Maya.
 
 \subsection{Integrating the shader in Maya}
 
-To integrate this new shader, we can, as in the first section, add information to the metadata file and create a template script for this shader.
+To integrate this new shader, we can, as in the first section, add information to the
+metadata file and create a template script for this shader.
 
 \subsubsection{Adding metadata information}
 
@@ -73,14 +80,19 @@ firstline=25,
 firstnumber=25]
 {mtd}{loader2.mtd}
 
-This describes attributes that will be used for the Maya representation of the parameters as name, shortname, slider limits, descriptions and default values.
+This describes attributes that will be used for the Maya representation of the parameters as name,
+shortname, slider limits, descriptions and default values.
 
 \subsubsection{Adding a Maya template}
 
-The last task to do is to create a Maya template for this shader. This is similar to the one created in the first section, but adding the rest of the controls. The correct control for each attribute will be created automatically.
+The last task to do is to create a Maya template for this shader. This is similar to the one created
+in the first section: \texttt{self.addControl(parameterName, label="Parameter Label")}.
+But adding the rest of the controls. The correct control for each attribute will
+be created automatically.
 
-Create an \texttt{aiParametersShaderTemplate.py} file in this folder:\\
-\verb|%MTOA_PATH%\scripts\mtoa\ui\ae\|\\
+Create an \texttt{aiParametersShaderTemplate.py} file in\\
+\verb|%MTOA_PATH%\scripts\mtoa\ui\ae\| or in any folder that is definded in \verb|%MTOA_TEMPLATES_PATH%|
+\\
 
 \inputminted[mathescape,
 linenos,
@@ -103,3 +115,360 @@ When you use the ParametersShader in Maya, you will be able to see this Attribut
 \end{figure}
 
 Now you will be able to configure your shader's input parameters from Maya.
+
+\subsubsection{Avoid Space Optimization in the Template}
+Maya automatically tries to optimize the layout space, for example, if in the previous code you change from this:
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+        ...
+        self.addControl("uinteger",  label="Unsigned Int Param")
+        self.addControl("bool",  label="Bool param")
+        self.addControl("float",  label="Float param")
+        ...
+\end{minted}
+To this:
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+        ...
+        self.addControl("uinteger",  label="Unsigned Int Param")
+        self.addControl("bool",  label="Bool param 1")
+        self.addControl("bool",  label="Bool param 2")
+        self.addControl("float",  label="Float param")
+        ...
+\end{minted}
+
+You will see this result:
+
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=9cm]{UIOptimized.png}}
+\caption{Optimized Template}
+\label{Optimized Template}
+\end{figure}
+
+To avoid this, we can use this code instead:
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+        ...
+        self.addControl("uinteger",  label="Unsigned Int Param")
+        self.beginNoOptimize()
+        self.addControl("bool",  label="Bool param 1")
+        self.addControl("bool",  label="Bool param 2")
+        self.endNoOptimize()
+        self.addControl("float",  label="Float param")
+        ...
+\end{minted}
+
+And you will get this result:
+
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=9cm]{UINoOptimized.png}}
+\caption{Optimized Template}
+\label{Optimized Template}
+\end{figure}
+
+
+\subsubsection{Method called when an attribute is changed}
+Sometimes we may need a certain action to be performed everytime an attribute is changed. For example
+to evaluate that the introduced value is correct.
+
+Let's imagine we require that the value of the \texttt{uinteger} attribute is always greater or equal
+to the \texttt{integer} attribute. We can try to achieve thit with the following code.
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+import pymel.core as pm
+import maya.cmds as cmds
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+class AEaiParametersShaderTemplate(ShaderAETemplate):
+    def checkInteger(self, nodeName):
+        intAttr = self.nodeAttr('integer')
+        uintAttr = self.nodeAttr('uinteger')
+        intValue = cmds.getAttr(intAttr)
+        uintValue = cmds.getAttr(uintAttr)
+        if intValue > uintValue:
+            cmds.setAttr(uintAttr,intValue)
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew',
+                       'AEshaderTypeReplace')
+
+        self.beginLayout("Parameters list", collapse=False)
+        self.addControl("integer",  label="Integer Param",
+            changeCommand=self.checkInteger)
+        self.addControl("uinteger",  label="Unsigned Int Param")
+        ...
+\end{minted}
+
+Now everytime that that the \texttt{integer} attribute is updated, if it has a value greater that the
+\texttt{uinteger} value, this will be increased to be equals to that value. But, of course, if you decrease
+the \texttt{uinteger} parameter, this could be lower than the \texttt{integer} one. To deal also with this case
+we can easily write this code:
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+import pymel.core as pm
+import maya.cmds as cmds
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+class AEaiParametersShaderTemplate(ShaderAETemplate):
+    def checkInteger(self, nodeName):
+        intAttr = self.nodeAttr('integer')
+        uintAttr = self.nodeAttr('uinteger')
+        intValue = cmds.getAttr(intAttr)
+        uintValue = cmds.getAttr(uintAttr)
+        if intValue > uintValue:
+            cmds.setAttr(uintAttr,intValue)
+    def checkUinteger(self, nodeName):
+        intAttr = self.nodeAttr('integer')
+        uintAttr = self.nodeAttr('uinteger')
+        intValue = cmds.getAttr(intAttr)
+        uintValue = cmds.getAttr(uintAttr)
+        if intValue > uintValue:
+            cmds.setAttr(intAttr,uintValue)
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew',
+                       'AEshaderTypeReplace')
+
+        self.beginLayout("Parameters list", collapse=False)
+        self.addControl("integer",  label="Integer Param",
+            changeCommand=self.checkInteger)
+        self.addControl("uinteger",  label="Unsigned Int Param",
+            changeCommand=self.checkUinteger)
+        ...
+\end{minted}
+
+
+\subsubsection{Enabling and Disabling a Control}
+Sometimes some parameters does not have any meaning depending on other attributes values. For example, let's
+imagine that the \texttt{float} attribute only makes sense when the \texttt{bool} attribute is true. We
+can make this clear for the user if disabling the \texttt{float} attribute when \texttt{bool} is false.
+To do this, first we can define a \texttt{changeCommand} method as in the previous section, and use
+there the \texttt{arnoldDimControlIfFalse} method to disable the attribute. Here is an example:
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+import pymel.core as pm
+import maya.cmds as cmds
+import mtoa.ui.ae.utils as aeUtils
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+class AEaiParametersShaderTemplate(ShaderAETemplate):
+    def changeBool(self, nodeName):
+        aeUtils.arnoldDimControlIfFalse(nodeName, "float", "bool")
+        
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew',
+                       'AEshaderTypeReplace')
+
+        self.beginLayout("Parameters list", collapse=False)
+        self.addControl("integer",  label="Integer Param")
+        self.addControl("uinteger",  label="Unsigned Int Param")
+        self.addControl("bool",  label="Bool param",
+            changeCommand=self.changeBool)
+        self.addControl("float",  label="Float param")
+        ...
+\end{minted}
+
+If we want the opposite, making the \texttt{float} attribute to be enabled only when \texttt{bool} if
+false, you can use \texttt{aeUtils.arnoldDimControlIfTrue} instead of \texttt{aeUtils.arnoldDimControlIfFalse}.
+But in some cases the condition to enable or dissable an attribute could be more complex. 
+For example we may enable the \texttt{float} value only in the case that the red component of \texttt{color} is
+greater than 0.
+You can write a code like this for that case:
+
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+import pymel.core as pm
+import maya.cmds as cmds
+import mtoa.ui.ae.utils as aeUtils
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+class AEaiParametersShaderTemplate(ShaderAETemplate):       
+    def changeColor(self, nodeName):
+        redAttr = self.nodeAttr('colorR')
+        redValue = pm.getAttr(redAttr)
+        dim = not (redValue > 0)
+        pm.editorTemplate(dimControl=(nodeName, "float", dim))
+    
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew',
+                       'AEshaderTypeReplace')
+
+        self.beginLayout("Parameters list", collapse=False)
+        self.addControl("integer",  label="Integer Param")
+        self.addControl("uinteger",  label="Unsigned Int Param")
+        self.addControl("bool",  label="Bool param")
+        self.addControl("float",  label="Float param")
+        self.addControl("color",  label="Color param",
+            changeCommand=self.changeColor)
+        ...
+\end{minted}
+
+\subsubsection{Creating a custom control}
+MtoA will automatically create a control for the attributes based on its type, but sometimes you may need
+more flexibility and create a custom control for a certain attribute. For example, let's imagine that the
+\texttt{string} attribute in the previous example is used to point to a file. Then you may want a control
+with a button that shows a file explorer so you can enter the file name in a more intuitive way.
+Here is an example to get that behavior:
+
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=aiParametersShaderTemplate.py,
+tabsize=3]
+{python}
+import pymel.core as pm
+import maya.cmds as cmds
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+
+class AEaiParametersShaderTemplate(ShaderAETemplate):
+    def filenameEdit(self, mData) :
+        attr = self.nodeAttr('string')
+        cmds.setAttr(attr,mData,type="string")
+
+    def LoadFilenameButtonPush(self, *args):
+        basicFilter = 'All Files (*.*)'
+        ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,
+                               cap='Load File',okc='Load',fm=4)
+        if ret is not None and len(ret):
+            self.filenameEdit(ret[0])
+            cmds.textFieldButtonGrp("filenameGrp", edit=True, text=ret[0])
+
+    def filenameNew(self, nodeName):
+        path = cmds.textFieldButtonGrp("filenameGrp", label="File Name",
+                                       changeCommand=self.filenameEdit, width=300)
+        cmds.textFieldButtonGrp(path, edit=True, text=cmds.getAttr(nodeName))
+        cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...",
+                                buttonCommand=self.LoadFilenameButtonPush)
+
+    def filenameReplace(self, nodeName):
+        cmds.textFieldButtonGrp("filenameGrp", edit=True,
+                                text=cmds.getAttr(nodeName) )
+    
+    def setup(self):
+        self.addSwatch()
+        self.beginScrollLayout()
+        self.addCustom('message', 'AEshaderTypeNew',
+                       'AEshaderTypeReplace')
+
+        self.beginLayout("Parameters list", collapse=False)
+        ...
+        self.addCustom('string', self.filenameNew, self.filenameReplace)
+        ...
+\end{minted}
+
+\subsubsection{Summary of Template Commands}
+Here we will summarize all the previously used template methods and add some new ones:
+
+\begin{description}
+
+\item[addSwatch] \hfill \\
+As previously seen, this command creates a Swatch in the Attribute Editor that shows a preview of the Shader.
+
+\item[beginScrollLayout endScrollLayout] \hfill \\
+Begins and ends a Vertical Scroll Layout where you can place sections and attributes.
+
+\item[beginLayout endLayout] \hfill \\
+Begins and ends a Layout. You can give it a name and define if it will be collapsed or not by default.
+
+\texttt{self.beginLayout("Section Name", collapse=False)}
+
+\item[addControl] \hfill \\
+Creates a control for a shader attribute. It automatically creates the correct control depending
+on the type of attribute. You can define a label and a changeCommand.
+
+\texttt{self.addControl("attrname", label="My Attr",}\\
+\texttt{changeCommand=self.changeAttr])}
+
+\item[addCustom] \hfill \\
+Creates a custom control for a shader attribute.
+
+\texttt{self.addCustom(attrName, newMethod, replaceMethod)}
+
+\item[addSeparator] \hfill \\
+Adds a separator in the layout.
+
+\item[beginNoOptimize endNoOptimize] \hfill \\
+Stops and starts again the layout space optimization.
+
+\item[addBumpLayout] \hfill \\
+Creates a section that will allow you to connect a bump normal mapping to the shader.
+
+\item[addExtraControls] \hfill \\
+All extra attributes will be grouped in an "Extra Controls" section
+
+
+\item[addCustom('message','AEshaderTypeNew','AEshaderTypeReplace')] \hfill \\
+Creates a "Type" scroll list where you can change the shader type of the node.
+
+\item[pm.mel.AEdependNodeTemplate(self.nodeName)] \hfill \\
+Creates the "Node Behavior" section in the shader template.
+
+\end{description}
+
+

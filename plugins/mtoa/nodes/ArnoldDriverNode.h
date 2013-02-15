@@ -1,5 +1,4 @@
-#ifndef ARNOLD_DRIVER_NODE_H
-#define ARNOLD_DRIVER_NODE_H
+#pragma once
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
@@ -24,7 +23,6 @@ public:
    static MObject s_mergeAOVs;
    static MObject s_driver;
    static MObject s_prefix;
+   static MObject s_outputMode;
 
 };  // class CArnoldDriverNode
-
-#endif // ARNOLD_DRIVER_NODE_H

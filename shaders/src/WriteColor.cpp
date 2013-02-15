@@ -5,12 +5,13 @@
 namespace
 {
 
-enum WriteColorParams
-{
-   p_beauty,
-   p_input,
-   p_name
-};
+   enum WriteColorParams
+   {
+      p_beauty,
+      p_input,
+      p_name,
+      p_blend
+   };
 
 };
 
@@ -27,6 +28,7 @@ node_parameters
    AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterSTR("aov_name", "");
+   AiParameterBOOL("blend", false);
 }
 
 shader_evaluate
@@ -34,7 +36,10 @@ shader_evaluate
    sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
 
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamRGBA(p_input));
+   {
+      const AtRGBA input = AiShaderEvalParamRGBA(p_input);
+      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), input);
+   }
 }
 
 node_initialize
@@ -43,6 +48,8 @@ node_initialize
 
 node_update
 {
+   if (AiNodeGetBool(node, "blend"))
+      AiAOVRegister(AiNodeGetStr(node, "aov_name"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
 node_finish

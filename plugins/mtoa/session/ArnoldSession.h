@@ -1,5 +1,4 @@
-#ifndef ARNOLDSESSION_H
-#define ARNOLDSESSION_H
+#pragma once
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
@@ -113,11 +112,12 @@ public:
    // Arnoldrender options
    inline const MObject& GetArnoldRenderOptions() const { return m_sessionOptions.GetArnoldRenderOptions(); }
    
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
    inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
+   inline bool isProgressive() const { return m_sessionOptions.isProgressive(); }
 
    // Light linker
    inline void FlagLightLinksDirty(bool flag=true) { m_lightLinksDirty = flag; }
@@ -234,5 +234,3 @@ protected:
    bool                 m_is_active;
    //AOVSet m_aovs;
 };  // class CArnoldSession
-
-#endif // ARNOLDSESSION_H

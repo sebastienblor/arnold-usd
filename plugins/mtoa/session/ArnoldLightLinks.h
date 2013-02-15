@@ -1,5 +1,4 @@
-#ifndef ARNOLDLIGHTLINKS_H
-#define	ARNOLDLIGHTLINKS_H
+#pragma once
 
 #include <maya/MFnDependencyNode.h>
 
@@ -34,7 +33,7 @@ private:
    void HandleLightLinker(MPlug& conn, 
       size_t& numLinkedLights, size_t& numLinkedShadows,
       NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
-   void CheckMessage(MFnDependencyNode& dNode, 
+   bool CheckMessage(MFnDependencyNode& dNode, 
       size_t& numLinkedLights, size_t& numLinkedShadows,
       NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
    // saving the lights here for faster access
@@ -48,6 +47,3 @@ private:
    int m_lightMode;
    int m_shadowMode;
 };
-
-#endif	/* ARNOLDLIGHTLINKS_H */
-

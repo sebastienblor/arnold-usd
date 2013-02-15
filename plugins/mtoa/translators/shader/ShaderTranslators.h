@@ -1,5 +1,4 @@
-#ifndef SHADER_TRANSLATORS_H
-#define SHADER_TRANSLATORS_H
+#pragma once
 
 #include "ShaderTranslator.h"
 
@@ -54,6 +53,7 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 class CBump2DTranslator : public CNodeTranslator
 {
 public:
+   static void NodeInitializer(CAbTranslator context);
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
@@ -77,6 +77,3 @@ public:
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
 };
-
-
-#endif // SHADER_TRANSLATORS_H

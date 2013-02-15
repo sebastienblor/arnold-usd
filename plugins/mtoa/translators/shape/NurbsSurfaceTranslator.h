@@ -1,5 +1,4 @@
-#ifndef NURBSSURFACETRANSLATOR_H
-#define NURBSSURFACETRANSLATOR_H
+#pragma once
 
 #include "GeometryTranslator.h"
 
@@ -33,5 +32,3 @@ private:
                         MFnNurbsSurface & surface);
 
 };
-
-#endif // NURBSSURFACETRANSLATOR_H

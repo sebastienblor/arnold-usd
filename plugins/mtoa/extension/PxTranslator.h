@@ -1,5 +1,4 @@
-#ifndef PXTRANSLATOR_H
-#define PXTRANSLATOR_H
+#pragma once
 
 #include <cstring>
 #include <maya/MString.h>
@@ -32,7 +31,7 @@ public:
    inline bool operator<(const CPxTranslator& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
    inline bool IsNull() const {return (name == "");}
-   MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry);
+   MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry, bool mappedMayaNode);
 
 private:
    MString name;
@@ -42,5 +41,3 @@ private:
    TCreatorFunction creator;
    TNodeInitFunction initialize;
 };
-
-#endif // PXTRANSLATOR_H

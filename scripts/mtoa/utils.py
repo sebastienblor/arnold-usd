@@ -163,7 +163,11 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
     for i, tok in enumerate(parts):
         if even(i):
             try:
-                result.append(tokens[tok])
+                tokn = tokens[tok]
+                if tokn is None:
+                    result.append('<%s>' % tok)
+                else:
+                    result.append(tokn.replace(':', '_'))
             except KeyError:
                 if allOrNothing:
                     if leaveUnmatchedTokens:
@@ -171,7 +175,7 @@ def _substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=False):
                     else:
                         return ''
                 elif leaveUnmatchedTokens:
-                        result.append('<%s>' % tok)
+                    result.append('<%s>' % tok)
                 else:
                     result.append('')
         else:
@@ -399,8 +403,15 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     result = result.replace("\\", "/")
     if createDirectory:
         dir =  os.path.dirname(result)
-        if not os.path.exists(dir):
+        try:
             os.makedirs(dir)
+        except OSError as exc:
+            import errno
+            # if directory already exists we ignore the exception
+            # NOTE that we do not use os.path.exists to avoid potential race conditions
+            # on render farms
+            if exc.errno != errno.EEXIST:
+                raise
     return result
 
 registerFileToken(fileTokenScene, 'Scene')
