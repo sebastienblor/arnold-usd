@@ -129,7 +129,7 @@ class ColorTemperatureTemplate:
 
     def getColorTemperatureCommands(self):
         if pm.mel.getApplicationVersionAsFloat() == 2011:
-            return ('$t = `getAttr %s`; attrFieldSliderGrp -e -enable $t %s' % (self.nodeAttr('aiUseColorTemperature'), self.sliderName), 
+            return (None, 
                     '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; canvas -e -rgbValue $c[0] $c[1] $c[2] "%s"' % (self.nodeAttr('aiColorTemperature'), self.canvasName))
         else:
             return (self.updateUseColorTemperature, self.updateColorTemperature)
@@ -137,14 +137,19 @@ class ColorTemperatureTemplate:
     def createLightColorTemperatureUI(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
         uiCmds = self.getColorTemperatureCommands()
-        aeUtils.attrBoolControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
-                                   label='Use Color Temperature', changeCommand=uiCmds[0])
-        cmds.setParent('..')
+        isEnabled = True
+        if pm.mel.getApplicationVersionAsFloat() > 2011:
+            isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+            aeUtils.attrBoolControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
+                                       label='Use Color Temperature', changeCommand=uiCmds[0])
+        else:
+            cmds.attrControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'), label='Use Color Temperature')
+        cmds.setParent('..')        
         cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
         cmds.canvas(self.canvasName, width=65, height=12)
         cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, 
                                 attribute=self.nodeAttr('aiColorTemperature'),
-                                enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')),
+                                enable=isEnabled,
                                 precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=uiCmds[1])
         cmds.setParent('..')
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
@@ -153,10 +158,15 @@ class ColorTemperatureTemplate:
 
     def updateLightColorTemperatureUI(self, attrName):
         uiCmds = self.getColorTemperatureCommands()
-        aeUtils.attrBoolControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
-                                   changeCommand=uiCmds[0])
+        isEnabled = True
+        if pm.mel.getApplicationVersionAsFloat() > 2011:
+            isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+            aeUtils.attrBoolControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
+                                       changeCommand=uiCmds[0])
+        else:
+            cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'))
         cmds.attrFieldSliderGrp(self.sliderName, edit=True, 
-                                attribute=self.nodeAttr('aiColorTemperature'), enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')),
+                                attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled,
                                 changeCommand=uiCmds[1])
         colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
         cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
