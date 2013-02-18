@@ -64,7 +64,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
         self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
-        self.addControl("aiSssSetname", label="SSS Set Name")
+        self.addControl("aiSssSetname", label="Raytraced SSS Set Name")
         
         self.beginLayout('Subdivision', collapse=False)
         self.addControl("aiSubdivType", label="Type")
