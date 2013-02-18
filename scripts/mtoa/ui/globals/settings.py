@@ -1122,6 +1122,8 @@ def createArnoldRendererSystemTab():
 
     pm.setParent(parentForm)
     
+    updateRenderSettings()
+    
 def updateArnoldRendererSystemTab(*args):
     updateRenderSettings()
 
