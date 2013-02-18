@@ -192,22 +192,16 @@ def createArnoldRenderSettings():
                    label='Binary Ass Export',
                    attribute='defaultArnoldRenderOptions.binaryAss')
     
-    pm.separator()
                     
     pm.attrControlGrp('os_outputAssBoundingBox',
-                      label="Export Bounding Box",
+                      label="Bounding Box Export",
                       attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
                    
     pm.attrControlGrp('os_expandProcedurals',
                       label='Expand Procedurals',
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
-    pm.separator()
-
     
-    pm.attrControlGrp('os_user_options',
-                   label="User Options",
-                   attribute='defaultArnoldRenderOptions.aiUserOptions')
              
     pm.setParent('..')
 
@@ -719,6 +713,16 @@ def createArnoldTextureSettings():
     pm.attrControlGrp('texture_automip',
                         label="Auto Mipmap",
                         attribute='defaultArnoldRenderOptions.textureAutomip')
+                        
+    pm.attrControlGrp('texture_accept_unmipped',
+                        label="Accept Unmipped",
+                        attribute='defaultArnoldRenderOptions.textureAcceptUnmipped')
+                        
+    cmds.separator()
+    
+    pm.attrControlGrp('texture_autotile',
+                        label="Auto Tile Size",
+                        attribute='defaultArnoldRenderOptions.textureAutotile')
 
     pm.attrControlGrp('texture_accept_untiled',
                         label="Accept Untiled",
@@ -728,13 +732,9 @@ def createArnoldTextureSettings():
                         label="Use Existing Tiled Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
     
-    pm.attrControlGrp('texture_accept_unmipped',
-                        label="Accept Unmipped",
-                        attribute='defaultArnoldRenderOptions.textureAcceptUnmipped')
     
-    pm.attrControlGrp('texture_autotile',
-                        label="Auto Tile Size",
-                        attribute='defaultArnoldRenderOptions.textureAutotile')
+    cmds.separator()
+    
 
     pm.attrControlGrp('texture_max_memory_MB',
                         label="Max Cache Size (MB)",
@@ -975,6 +975,17 @@ def createArnoldErrorHandlingSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def createArnoldUserOptionsSettings():
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(adjustableColumn=True)
+    
+    pm.attrControlGrp('os_user_options',
+                   label="Options",
+                   attribute='defaultArnoldRenderOptions.aiUserOptions')
+    pm.setParent('..')
+    
+    pm.setUITemplate(popTemplate=True)
+
     
 def createArnoldRendererOverrideTab():
 
@@ -987,6 +998,15 @@ def createArnoldRendererOverrideTab():
     pm.scrollLayout('arnoldOverrideScrollLayout', horizontalScrollBarThickness=0)
     pm.columnLayout('arnoldOverrideColumn', adjustableColumn=True)
 
+    
+
+    
+    # User Options
+    #
+    pm.frameLayout('arnoldUserOptionsSettings', label="User Options", cll=True,  cl=0)
+    createArnoldUserOptionsSettings()
+    pm.setParent('..')
+    
     # Overrides
     #
     pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
@@ -1036,6 +1056,12 @@ def createArnoldRendererDiagnosticsTab():
     createArnoldErrorHandlingSettings()
     pm.setParent('..')
     
+    # Sub-Surface Scattering
+    #
+    pm.frameLayout('arnoldSSSSettings', label="Sub-Surface Scattering", cll= True, cl=0)
+    createArnoldSSSSettings()
+    pm.setParent('..')
+    
 
     pm.formLayout(parentForm,
                edit=True,
@@ -1067,6 +1093,12 @@ def createArnoldRendererSystemTab():
     createArnoldMayaintegrationSettings()
     pm.setParent('..')
     
+    # Render
+    #
+    pm.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=0)
+    createArnoldRenderSettings()
+    pm.setParent('..')
+    
     # Search paths
     #
     pm.frameLayout('arnoldPathSettings', label="Search Paths", cll=True, cl=0)
@@ -1091,7 +1123,7 @@ def createArnoldRendererSystemTab():
     pm.setParent(parentForm)
     
 def updateArnoldRendererSystemTab(*args):
-    pass
+    updateRenderSettings()
 
 def createArnoldRendererGlobalsTab():
 
@@ -1128,11 +1160,6 @@ def createArnoldRendererGlobalsTab():
     createArnoldMotionBlurSettings()
     pm.setParent('..')
 
-    # Sub-Surface Scattering
-    #
-    pm.frameLayout('arnoldSSSSettings', label="Sub-Surface Scattering", cll= True, cl=1)
-    createArnoldSSSSettings()
-    pm.setParent('..')
 
     # Light Linking
     #
@@ -1140,11 +1167,6 @@ def createArnoldRendererGlobalsTab():
     createArnoldLightSettings()
     pm.setParent('..')
 
-    # Render
-    #
-    pm.frameLayout('arnoldRenderSettings', label="Render Settings", cll= True, cl=1)
-    createArnoldRenderSettings()
-    pm.setParent('..')
 
     # Gamma correction
     #
@@ -1178,7 +1200,6 @@ def updateBackgroundSettings(*args):
 
 def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
-    updateRenderSettings()
     updateSamplingSettings()
     updateMotionBlurSettings()
     

@@ -172,7 +172,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setMin(-10);
    nAttr.setMax(100);
-   nAttr.setSoftMin(-10);
+   nAttr.setSoftMin(-3);
    nAttr.setSoftMax(10);
    addAttribute(s_progressive_initial_level);
 
