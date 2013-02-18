@@ -825,7 +825,7 @@ T GetValue(const MayaFluidData* data, const AtVector& lPt, const GradientDescrip
          gradientValue = 1.f - lPt.z;
          break;
       case GT_CENTER_GRADIENT:
-         gradientValue = 1.f - AiV3Length(lPt - middlePoint);
+         gradientValue = 1.f - (float)AI_PIOVER2 * AiV3Length(lPt - middlePoint);
          break;
       case GT_DENSITY:
          gradientValue = Filter(data, lPt, data->density);
