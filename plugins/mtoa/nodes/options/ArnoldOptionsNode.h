@@ -80,6 +80,7 @@ public:
    
    static MObject s_enable_raytraced_SSS;
    
+   static MObject s_autotile;
    static MObject s_use_existing_tiled_textures;
 
    static MObject s_output_ass_filename;

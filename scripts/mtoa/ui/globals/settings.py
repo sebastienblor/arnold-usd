@@ -8,6 +8,12 @@ import maya.cmds as cmds
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
+    
+def updateAutotileSettings(*args):
+    flag = pm.getAttr('defaultArnoldRenderOptions.autotile')
+    #if flag:
+        
+    pm.attrControlGrp('ts_texture_autotile', edit=True, enable=flag)
 
 def updateSamplingSettings(*args):
     flag = (pm.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True) 
@@ -189,12 +195,12 @@ def createArnoldRenderSettings():
     pm.separator()
 
     pm.attrControlGrp('os_binary_ass',
-                   label='Binary Ass Export',
+                   label='Binary-encode ASS Files',
                    attribute='defaultArnoldRenderOptions.binaryAss')
     
                     
     pm.attrControlGrp('os_outputAssBoundingBox',
-                      label="Bounding Box Export",
+                      label="Export Bounding Box (.asstoc)",
                       attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
                    
     pm.attrControlGrp('os_expandProcedurals',
@@ -711,7 +717,7 @@ def createArnoldTextureSettings():
     pm.columnLayout(adjustableColumn=True)
 
     pm.attrControlGrp('texture_automip',
-                        label="Auto Mipmap",
+                        label="Auto-mipmap",
                         attribute='defaultArnoldRenderOptions.textureAutomip')
                         
     pm.attrControlGrp('texture_accept_unmipped',
@@ -720,16 +726,36 @@ def createArnoldTextureSettings():
                         
     cmds.separator()
     
-    pm.attrControlGrp('texture_autotile',
-                        label="Auto Tile Size",
-                        attribute='defaultArnoldRenderOptions.textureAutotile')
+    
+    pm.checkBoxGrp('ts_autotile',
+                     cc=updateAutotileSettings,
+                     label='',
+                     label1='Auto-tile')
+                     
+    pm.connectControl('ts_autotile', 'defaultArnoldRenderOptions.autotile', index=2)
+    
+    pm.intSliderGrp('ts_texture_autotile',
+                        label="Tile Size",
+                        minValue = 16,
+                        maxValue = 64,
+                        fieldMinValue=16,
+                        fieldMaxValue=1024
+                        )
+
+    pm.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=1)
+    pm.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=2)
+    pm.connectControl('ts_texture_autotile', 'defaultArnoldRenderOptions.textureAutotile', index=3)
+    
+    '''pm.attrControlGrp('texture_autotile',
+                        label="Auto-tile Size",
+                        attribute='defaultArnoldRenderOptions.textureAutotile')'''
 
     pm.attrControlGrp('texture_accept_untiled',
                         label="Accept Untiled",
                         attribute='defaultArnoldRenderOptions.textureAcceptUntiled')
 
     pm.attrControlGrp('use_existing_tiled_textures', 
-                        label="Use Existing Tiled Textures", 
+                        label="Use Existing .tx Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
     
     
@@ -788,19 +814,21 @@ def createArnoldOverrideSettings():
                         attribute='defaultArnoldRenderOptions.ignore_bump')
 
     pm.attrControlGrp('ignore_smoothing',
-                        attribute='defaultArnoldRenderOptions.ignore_smoothing')
+                        attribute='defaultArnoldRenderOptions.ignore_smoothing', label='Ignore Normal Smoothing')
                         
     pm.attrControlGrp('ignore_motion_blur',
                         attribute='defaultArnoldRenderOptions.ignore_motion_blur')
 
+    pm.attrControlGrp('ignore_dof',
+                        attribute='defaultArnoldRenderOptions.ignore_dof', label='Ignore Depth of Field')
+                        
     pm.attrControlGrp('ignore_sss',
-                        attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore SSS')
+                        attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
     					
     pm.attrControlGrp('ignore_mis',
-                        attribute='defaultArnoldRenderOptions.ignore_mis', label='Ignore MIS')
+                        attribute='defaultArnoldRenderOptions.ignore_mis', label='Ignore Multiple Importance Sampling')
                         
-    pm.attrControlGrp('ignore_dof',
-                        attribute='defaultArnoldRenderOptions.ignore_dof', label='Ignore DOF')
+    
 
     pm.setParent('..')
 
@@ -1058,7 +1086,7 @@ def createArnoldRendererDiagnosticsTab():
     
     # Sub-Surface Scattering
     #
-    pm.frameLayout('arnoldSSSSettings', label="Sub-Surface Scattering", cll= True, cl=0)
+    pm.frameLayout('arnoldSSSSettings', label="Pointcloud Sub-Surface Scattering", cll= True, cl=0)
     createArnoldSSSSettings()
     pm.setParent('..')
     
@@ -1204,4 +1232,5 @@ def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
     updateSamplingSettings()
     updateMotionBlurSettings()
+    updateAutotileSettings()
     

@@ -63,6 +63,7 @@ MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
 MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
+MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
@@ -398,6 +399,13 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
    s_attributes.MakeInput("texture_glossy_blur");
+   
+   
+   
+   s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_autotile);
+   
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);

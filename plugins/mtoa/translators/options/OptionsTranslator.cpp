@@ -458,6 +458,10 @@ void COptionsTranslator::Export(AtNode *options)
          {
             ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
          }
+         else if (strcmp(paramName, "texture_autotile") == 0)
+         {
+            AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
+         }
          else
          {
             // Process parameter automatically

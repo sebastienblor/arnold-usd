@@ -100,6 +100,7 @@
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
         maya.keyable        BOOL    False
+        default             FLOAT   1024
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
         maya.keyable        BOOL    False
