@@ -894,7 +894,6 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
             else
                return 1.f;
          }
-         return 1.f - CLAMP((AiV3Length(cPt) - 1.f + edgeDropoff) / edgeDropoff, 0.f, 1.f);
       case DS_CUBE:
          cPt.x = (1.f - ABS(cPt.x)) / edgeDropoff;
          cPt.y = (1.f - ABS(cPt.y)) / edgeDropoff;
