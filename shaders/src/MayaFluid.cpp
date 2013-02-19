@@ -111,14 +111,23 @@ node_parameters
    
    AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
    AiParameterArray("color_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterArray("color_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("color_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterArray("color_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
    AiParameterFlt("color_gradient_input_bias", 0.0f);
    
    AiParameterEnum("incandescence_gradient_type", GT_TEMPERATURE, gradientTypeEnums);
    AiParameterArray("incandescence_gradient", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterArray("incandescence_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("incandescence_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterArray("incandescence_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
    AiParameterFlt("incandescence_gradient_input_bias", 0.0f);
    
    AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypeEnums);
    AiParameterArray("opacity_gradient", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("opacity_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("opacity_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("opacity_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
    AiParameterFlt("opacity_gradient_input_bias", 0.0f);   
    
    AiParameterBool("color_texture", false);
@@ -199,14 +208,23 @@ enum MayaFluidParams{
    
    p_color_gradient_type,
    p_color_gradient,
+   p_color_gradient_positions,
+   p_color_gradient_values,
+   p_color_gradient_interps,   
    p_color_gradient_input_bias,
    
    p_incandescence_gradient_type,
    p_incandescence_gradient,
+   p_incandescence_gradient_positions,
+   p_incandescence_gradient_values,
+   p_incandescence_gradient_interps,   
    p_incandescence_gradient_input_bias,
    
    p_opacity_gradient_type,
    p_opacity_gradient,
+   p_opacity_gradient_positions,
+   p_opacity_gradient_values,
+   p_opacity_gradient_interps,   
    p_opacity_gradient_input_bias,
    
    p_color_texture,
