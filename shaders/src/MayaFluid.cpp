@@ -327,6 +327,33 @@ AtVector ReadFromArray(AtArray* array, int element)
    return AiArrayGetVec(array, element);
 }
 
+template <typename T>
+T GetValueFromSG(AtShaderGlobals* sg)
+{
+   return GetDefaultValue<T>();
+}
+
+template <>
+float GetValueFromSG(AtShaderGlobals* sg)
+{
+   return sg->out.FLT;
+}
+
+template <>
+AtRGB GetValueFromSG(AtShaderGlobals* sg)
+{
+   return sg->out.RGB;
+}
+
+#define PROPER_LOOKUP
+
+enum gradientInterps{
+   GI_NONE = 0,
+   GI_LINEAR,
+   GI_SMOOTH,
+   GI_SPLINE
+};
+
 template<typename T>
 class GradientDescription{
 public:
@@ -372,8 +399,20 @@ public:
       }
    }
    
-   T GetValue(float v) const
+   inline T GetElement(AtShaderGlobals* sg, AtUInt32 elem) const
    {
+      if (elements[elem].node != 0)
+      {
+         AiShaderEvaluate(elements[elem].node, sg);
+         return GetValueFromSG<T>(sg);
+      }
+      else
+         return elements[elem].value;
+   }
+   
+   T GetValue(AtShaderGlobals* sg, float v) const
+   {
+#ifndef PROPER_LOOKUP
       if (resolution == 0)
          return GetDefaultValue<T>();
       const float _v = ApplyBias(v, inputBias);
@@ -383,6 +422,62 @@ public:
       const int e = MIN(b + 1, resolution - 1);
       const float pf = p - (float)pi;
       return data[b] * (1.f - pf) + data[e] * pf;
+#else
+      if (elements == 0)
+         return GetDefaultValue<T>();
+      if (nelements == 1)
+         return GetElement(sg, 0);
+      
+      v = ApplyBias(v, inputBias);
+      
+      // look for the proper segment
+      AtUInt32 index = nelements;
+      for (AtUInt32 i = 0; i < nelements; ++i)
+      {
+         if (v < elements[i].position)
+         {
+            index = i;
+            break;
+         }
+      }
+      
+      // return the first value
+      if (index == 0)
+         return GetElement(sg, 0);
+      
+      // return the last value
+      if (index == nelements)
+         return GetElement(sg, nelements - 1);
+      
+      // interpolate between two values
+      const AtUInt32 prevIndex = index - 1;
+      const int interp = elements[prevIndex].interp;
+      switch(interp)
+      {
+         case GI_NONE:
+            return GetElement(sg, prevIndex);
+            break;
+         case GI_LINEAR:
+            {
+               const float interpValue = (v - elements[prevIndex].position) /
+                                         (elements[index].position - elements[prevIndex].position);
+               if (interpValue < AI_EPSILON)
+                  return GetElement(sg, prevIndex);
+               else if (interpValue > (1.f - AI_EPSILON))
+                  return GetElement(sg, index);
+               else
+                  return GetElement(sg, prevIndex) * (1.f - interpValue) + GetElement(sg, index) * interpValue;
+            }
+            break;
+         case GI_SMOOTH:
+            break;
+         case GI_SPLINE:
+            break;
+         default:
+            break;
+      }
+      return GetDefaultValue<T>();
+#endif
    }
    
    void ReadValues(AtNode* node, const char* name, AtArray* positionsArray, AtArray* valuesArray, AtArray* interpsArray)
@@ -875,7 +970,7 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 }
 
 template <typename T>
-T GetValue(const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T>& gradient)
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
@@ -914,7 +1009,7 @@ T GetValue(const MayaFluidData* data, const AtVector& lPt, const GradientDescrip
       default:
          return GetDefaultValue<T>();
    }
-   return gradient.GetValue(gradientValue);
+   return gradient.GetValue(sg, gradientValue);
 }
 
 inline
@@ -1040,7 +1135,7 @@ shader_evaluate
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
+      const float opacity = GetValue(sg, data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -1134,14 +1229,14 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = GetValue(sg, data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = GetValue(data, lPt, data->opacityGradient) * data->transparency * opacityNoise;
-   const AtRGB color = GetValue(data, lPt, data->colorGradient) * colorNoise;
-   const AtRGB incandescence = GetValue(data, lPt, data->incandescenceGradient) * incandNoise;
+   const AtRGB opacity = GetValue(sg, data, lPt, data->opacityGradient) * data->transparency * opacityNoise;
+   const AtRGB color = GetValue(sg, data, lPt, data->colorGradient) * colorNoise;
+   const AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient) * incandNoise;
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
