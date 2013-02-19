@@ -5,6 +5,7 @@
 
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
@@ -416,10 +417,12 @@ public:
             std::stringstream ss;
             ss << name << "_values[" << i << "]";
             elements[i].node = AiNodeGetLink(node, ss.str().c_str());
-            if (elements[i].node != 0)
+            if (elements[i].node == 0)
                elements[i].value = ReadFromArray<T>(valuesArray, i);
          }
-      }      
+         if (nelements > 1)
+            std::sort(elements, elements + nelements, CompareElements);
+      }
    }
 };
 
