@@ -3,6 +3,9 @@
 #include <memory.h>
 #include <cmath>
 
+#include <string>
+#include <sstream>
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
@@ -275,16 +278,149 @@ enum MayaFluidParams{
    p_edge_dropoff
 };
 
+template <typename T>
+T GetDefaultValue()
+{
+   return 0;
+}
+
+template <>
+float GetDefaultValue<float>()
+{
+   return 0.f;
+}
+
+template <>
+AtRGB GetDefaultValue<AtRGB>()
+{
+   return AI_RGB_BLACK;
+}
+
+template <>
+AtVector GetDefaultValue<AtVector>()
+{
+   return AI_V3_ZERO;
+}
+
+template <typename T>
+T ReadFromArray(AtArray* array, int element)
+{
+   return GetDefaultValue<T>();
+}
+
+template <>
+float ReadFromArray(AtArray* array, int element)
+{
+   return AiArrayGetFlt(array, element);
+}
+
+template <>
+AtRGB ReadFromArray(AtArray* array, int element)
+{
+   return AiArrayGetRGB(array, element);
+}
+
+template <>
+AtVector ReadFromArray(AtArray* array, int element)
+{
+   return AiArrayGetVec(array, element);
+}
+
 template<typename T>
-struct GradientDescription{
+class GradientDescription{
+public:
+   struct GradientDescriptionElement{
+      AtNode* node;
+      T value;
+      float position;
+      int interp;
+   };
+   GradientDescriptionElement* elements;
+   AtUInt32 nelements;
+   bool single;
+   
    T* data;
    float inputBias;
    int type;
-   int resolution;
+   int resolution;  
    
-   GradientDescription() : data(0) {}
+   GradientDescription() : elements(0), data(0) {}
    
-   void release() {if(data) AiFree(data);}
+   void Release() 
+   {
+      if(data) AiFree(data); data = 0;
+      if(elements) AiFree(elements); elements = 0;
+   }
+   
+   static bool CompareElements(const GradientDescriptionElement& a,
+                               const GradientDescriptionElement& b)
+   {
+      return a.position < b.position;
+   }
+   
+   static inline float ApplyBias(const float& value, const float& bias)
+   {
+      if (bias == 0.f)
+         return value;
+      else
+      {
+         const float b = bias < -.99f ? -.99f : bias;
+         const float x = value < 0.f ? 0.f : value;
+
+         return FastPow(x, (b - 1.f) / (-b - 1.f));
+      }
+   }
+   
+   T GetValue(float v) const
+   {
+      if (resolution == 0)
+         return GetDefaultValue<T>();
+      const float _v = ApplyBias(v, inputBias);
+      const float p = _v * resolution;
+      const int pi = (int)p;
+      const int b = CLAMP(pi, 0, resolution - 1);
+      const int e = MIN(b + 1, resolution - 1);
+      const float pf = p - (float)pi;
+      return data[b] * (1.f - pf) + data[e] * pf;
+   }
+   
+   void ReadValues(AtNode* node, const char* name, AtArray* positionsArray, AtArray* valuesArray, AtArray* interpsArray)
+   {
+      AtArray* array = AiNodeGetArray(node, name);
+   
+      Release();
+
+      if (array->nelements)
+      {
+         resolution = (int)array->nelements;
+         data = (T*)AiMalloc(sizeof(T) * resolution);
+         for (int i = 0; i < resolution; ++i)
+            data[i] = ReadFromArray<T>(array, i);
+      }
+      else
+      {
+         resolution = 0;
+         data = 0;
+      }
+      
+      nelements = positionsArray->nelements;
+      if (nelements == 0)
+         elements = 0;
+      else
+      {
+         elements = (GradientDescriptionElement*)AiMalloc(sizeof(GradientDescriptionElement) * nelements);
+         for (AtUInt32 i = 0; i < nelements; ++i)
+         {
+            elements[i].position = AiArrayGetFlt(positionsArray, i);
+            elements[i].interp = AiArrayGetInt(interpsArray, i);
+            std::stringstream ss;
+            ss << name << "_values[" << i << "]";
+            elements[i].node = AiNodeGetLink(node, ss.str().c_str());
+            if (elements[i].node != 0)
+               elements[i].value = ReadFromArray<T>(valuesArray, i);
+         }
+      }      
+   }
 };
 
 template<typename T>
@@ -344,9 +480,9 @@ struct MayaFluidData{
       velocity.release();
       colors.release();
       coordinates.release();
-      colorGradient.release();
-      incandescenceGradient.release();
-      opacityGradient.release();
+      colorGradient.Release();
+      incandescenceGradient.Release();
+      opacityGradient.Release();
    }
    
    static void* operator new(size_t size)
@@ -363,75 +499,6 @@ struct MayaFluidData{
 node_initialize
 {
    AiNodeSetLocalData(node, new MayaFluidData());
-}
-
-template <typename T>
-T GetDefaultValue()
-{
-   return 0;
-}
-
-template <>
-float GetDefaultValue<float>()
-{
-   return 0.f;
-}
-
-template <>
-AtRGB GetDefaultValue<AtRGB>()
-{
-   return AI_RGB_BLACK;
-}
-
-template <>
-AtVector GetDefaultValue<AtVector>()
-{
-   return AI_V3_ZERO;
-}
-
-template <typename T>
-T ReadFromArray(AtArray* array, int element)
-{
-   return GetDefaultValue<T>();
-}
-
-template <>
-float ReadFromArray(AtArray* array, int element)
-{
-   return AiArrayGetFlt(array, element);
-}
-
-template <>
-AtRGB ReadFromArray(AtArray* array, int element)
-{
-   return AiArrayGetRGB(array, element);
-}
-
-template <>
-AtVector ReadFromArray(AtArray* array, int element)
-{
-   return AiArrayGetVec(array, element);
-}
-
-template <typename T>
-void ReadGradient(AtNode* node, const char* name, GradientDescription<T>& gradient)
-{
-   AtArray* array = AiNodeGetArray(node, name);
-   
-   gradient.release();
-    
-   if (array->nelements)
-   {
-      gradient.resolution = (int)array->nelements;
-      gradient.data = (T*)AiMalloc(sizeof(T) * gradient.resolution);
-      for (int i = 0; i < gradient.resolution; ++i)
-         gradient.data[i] = ReadFromArray<T>(array, i);
-   }
-   else
-   {
-      gradient.resolution = 0;
-      gradient.data = 0;
-   }
 }
 
 template <typename T>
@@ -509,13 +576,22 @@ node_update
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
-   ReadGradient(node, "color_gradient", data->colorGradient);
+   data->colorGradient.ReadValues(node, "color_gradient",
+                                  AiNodeGetArray(node, "color_gradient_positions"),
+                                  AiNodeGetArray(node, "color_gradient_values"),
+                                  AiNodeGetArray(node, "color_gradient_interps"));
    data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");
    data->incandescenceGradient.inputBias = AiNodeGetFlt(node, "incandescence_gradient_input_bias");
-   ReadGradient(node, "incandescence_gradient", data->incandescenceGradient);
-   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");
+   data->incandescenceGradient.ReadValues(node, "incandescence_gradient",
+                                          AiNodeGetArray(node, "incandescence_gradient_positions"),
+                                          AiNodeGetArray(node, "incandescence_gradient_values"),
+                                          AiNodeGetArray(node, "incandescence_gradient_interps"));
+   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");   
    data->opacityGradient.inputBias = AiNodeGetFlt(node, "opacity_gradient_input_bias");
-   ReadGradient(node, "opacity_gradient", data->opacityGradient);
+   data->opacityGradient.ReadValues(node, "opacity_gradient",
+                                    AiNodeGetArray(node, "opacity_gradient_positions"),
+                                    AiNodeGetArray(node, "opacity_gradient_values"),
+                                    AiNodeGetArray(node, "opacity_gradient_interps"));
    
    data->colorTexture = AiNodeGetBool(node, "color_texture");
    data->incandTexture = AiNodeGetBool(node, "incand_texture");
@@ -788,34 +864,6 @@ T Filter(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<
 }
 
 inline
-float ApplyBias(const float& value, const float& bias)
-{
-   if (bias == 0.f)
-      return value;
-   else
-   {
-      const float b = bias < -.99f ? -.99f : bias;
-      const float x = value < 0.f ? 0.f : value;
-      
-      return FastPow(x, (b - 1.f) / (-b - 1.f));
-   }
-}
-
-template <typename T>
-T GetGradientValue(const GradientDescription<T>& gradient, const float& v, const float& bias = 0.f)
-{
-   if (gradient.resolution == 0)
-      return GetDefaultValue<T>();
-   const float _v = ApplyBias(v, bias);
-   const float p = _v * gradient.resolution;
-   const int pi = (int)p;
-   const int b = CLAMP(pi, 0, gradient.resolution - 1);
-   const int e = MIN(b + 1, gradient.resolution - 1);
-   const float pf = p - (float)pi;
-   return gradient.data[b] * (1.f - pf) + gradient.data[e] * pf;
-}
-
-inline
 AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 {
    AtVector lPt;
@@ -863,7 +911,7 @@ T GetValue(const MayaFluidData* data, const AtVector& lPt, const GradientDescrip
       default:
          return GetDefaultValue<T>();
    }
-   return GetGradientValue(gradient, gradientValue, gradient.inputBias);
+   return gradient.GetValue(gradientValue);
 }
 
 inline
