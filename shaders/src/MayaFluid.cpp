@@ -470,6 +470,20 @@ public:
             }
             break;
          case GI_SMOOTH:
+            {
+               const float interpValue = (v - elements[prevIndex].position) /
+                                         (elements[index].position - elements[prevIndex].position);
+               const float interpValue2 = interpValue * interpValue;
+               const float interpValue3 = interpValue * interpValue2;
+               const float w0 =  2.f * interpValue3 - 3.f * interpValue2 + 1.f;
+               const float w1 = -2.f * interpValue3 + 3.f * interpValue2 ;
+               T ret = GetDefaultValue<T>();
+               if (w0 > AI_EPSILON)
+                  ret += GetElement(sg, prevIndex) * w0;
+               if (w1 > AI_EPSILON)
+                  ret += GetElement(sg, index) * w1;
+               return ret;
+            }
             break;
          case GI_SPLINE:
             break;
