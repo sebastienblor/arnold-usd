@@ -173,6 +173,13 @@
         softmin             INT     1
         softmax             INT     10        
         default             INT     4
+    [attr sss_bssrdf_samples]
+        maya.keyable        BOOL    False
+        min                 INT     1
+        max                 INT     100
+        softmin             INT     3
+        softmax             INT     10        
+        default             INT     3		
     [attr volume_indirect_samples]
         maya.keyable        BOOL    False
         min                 INT     0
