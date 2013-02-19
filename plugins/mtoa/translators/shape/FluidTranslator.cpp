@@ -141,15 +141,41 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
    const MString positions_name = MString(paramName) + MString("_positions");
    const MString values_name = MString(paramName) + MString("_values");
    const MString interps_name = MString(paramName) + MString("_interps");   
+   // check for the existing links, and unlink them
+   // this is required to be able to change the connections in ipr
+   AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
+   for (AtUInt32 i = 0; i < valuesOld->nelements; i++)
+   {
+      MString attributeName = values_name + MString("[");
+      attributeName += i;
+      attributeName += "]";
+      AtNode* linkedNode = AiNodeGetLink(node, attributeName.asChar());
+      if (linkedNode != 0)
+         AiNodeUnlink(node, attributeName.asChar());
+   }
    for (unsigned int i = 0; i < numElements; ++i)
    {
       MPlug plugElement = plug.elementByLogicalIndex(plugArrayIndices[i]);
       AiArraySetFlt(positions, i, plugElement.child(0).asFloat());
       MPlug colorPlug = plugElement.child(1);
-      AtRGB color = {colorPlug.child(0).asFloat(),
-                     colorPlug.child(1).asFloat(),
-                     colorPlug.child(2).asFloat()};
-      AiArraySetRGB(values, i, color);
+      MPlugArray conns;
+      MStatus status;
+      colorPlug.connectedTo(conns, true, false, &status);
+      if (status && conns.length())
+      {
+         AtNode* connectedColor = ExportRootShader(conns[0]);
+         MString attributeName = values_name + MString("[");
+         attributeName += i;
+         attributeName += "]";
+         AiNodeSetPtr(node, attributeName.asChar(), connectedColor);
+      }
+      else
+      {
+         AtRGB color = {colorPlug.child(0).asFloat(),
+                        colorPlug.child(1).asFloat(),
+                        colorPlug.child(2).asFloat()};
+         AiArraySetRGB(values, i, color);
+      }
       AiArraySetInt(interps, i, plugElement.child(2).asFloat());
    }
    AiNodeSetArray(node, positions_name.asChar(), positions);
