@@ -456,7 +456,6 @@ public:
       {
          case GI_NONE:
             return GetElement(sg, prevIndex);
-            break;
          case GI_LINEAR:
             {
                const float interpValue = (v - elements[prevIndex].position) /
@@ -468,7 +467,6 @@ public:
                else
                   return GetElement(sg, prevIndex) * (1.f - interpValue) + GetElement(sg, index) * interpValue;
             }
-            break;
          case GI_SMOOTH:
             {
                const float interpValue = (v - elements[prevIndex].position) /
@@ -484,13 +482,67 @@ public:
                   ret += GetElement(sg, index) * w1;
                return ret;
             }
-            break;
          case GI_SPLINE:
+            {
+               const T v1 = GetElement(sg, prevIndex);
+               const T v2 = GetElement(sg, index);
+               const float p1 = elements[prevIndex].position;
+               const float p2 = elements[index].position;
+               const float dp = p2 - p1;
+               const T dv = v2 - v1;
+
+               T v0, v3;
+               float p0, p3;
+
+               if (prevIndex == 0)
+               {
+                  p0 = p1 - dp;
+                  v0 = v1;
+               }
+               else
+               {
+                  p0 = elements[prevIndex - 1].position;
+                  v0 = elements[prevIndex - 1].value;
+               }
+
+               if (index == (nelements - 1))
+               {
+                  p3 = p2 + dp;
+                  v3 = v2;
+               }
+               else
+               {
+                  p3 = elements[index + 1].position;
+                  v3 = elements[index + 1].value;
+               }
+
+               const float tanSize = .2f;
+               const float tx = MAX(tanSize * dp, AI_EPSILON);
+
+               float sx = MAX(p2 - p0, AI_EPSILON);
+               T sy = v2 - v0;
+
+               sy *= tanSize * dp / sx;
+               T m1 = sy / tx;
+               sx = MAX(p3 - p1, AI_EPSILON);
+               sy = v3 - v1;
+
+               sy *= tanSize * dp / sx;
+               T m2 = sy / tx;
+
+               float tFromP1 = (v - p1);
+               float length = 1.f / (dp * dp);
+               T d1 = dp * m1;
+               T d2 = dp * m2;
+
+               T c0 = (d1 + d2 - 2.f * dv) * length / dp;
+               T c1 = (3.f * dv - 2.f * d1 - d2) * length;
+               return tFromP1 * (tFromP1 * (tFromP1 * c0 + c1) + m1) + v1;
+            }
             break;
          default:
-            break;
+            return GetDefaultValue<T>();
       }
-      return GetDefaultValue<T>();
 #endif
    }
    
