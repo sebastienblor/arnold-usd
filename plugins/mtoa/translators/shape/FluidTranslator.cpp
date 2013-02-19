@@ -167,7 +167,7 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
          MString attributeName = values_name + MString("[");
          attributeName += i;
          attributeName += "]";
-         AiNodeSetPtr(node, attributeName.asChar(), connectedColor);
+         AiNodeLink(connectedColor, attributeName.asChar(), node);
       }
       else
       {
