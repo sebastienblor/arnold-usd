@@ -354,7 +354,20 @@ enum gradientInterps{
    GI_SPLINE
 };
 
-template<typename T, bool M = true>
+template <typename T>
+void GammaCorrect(T& d, float gamma)
+{
+   
+}
+
+template <>
+void GammaCorrect<AtRGB>(AtRGB& d, float gamma)
+{
+   if (gamma != 1.f)
+      AiColorGamma(&d, gamma);
+}
+
+template<typename T, bool M = true, bool G = true>
 class GradientDescription{
 public:
    struct GradientDescriptionElement{
@@ -369,6 +382,7 @@ public:
    
    T* data;
    float inputBias;
+   float gamma;
    int type;
    int resolution;  
    
@@ -452,21 +466,24 @@ public:
       // interpolate between two values
       const AtUInt32 prevIndex = index - 1;
       const int interp = elements[prevIndex].interp;
+      T ret = GetDefaultValue<T>();
       switch(interp)
       {
          case GI_NONE:
-            return GetElement(sg, prevIndex);
+            ret = GetElement(sg, prevIndex);
+            break;
          case GI_LINEAR:
             {
                const float interpValue = (v - elements[prevIndex].position) /
                                          (elements[index].position - elements[prevIndex].position);
                if (interpValue < AI_EPSILON)
-                  return GetElement(sg, prevIndex);
+                  ret = GetElement(sg, prevIndex);
                else if (interpValue > (1.f - AI_EPSILON))
-                  return GetElement(sg, index);
+                  ret = GetElement(sg, index);
                else
-                  return GetElement(sg, prevIndex) * (1.f - interpValue) + GetElement(sg, index) * interpValue;
+                  ret = GetElement(sg, prevIndex) * (1.f - interpValue) + GetElement(sg, index) * interpValue;
             }
+            break;
          case GI_SMOOTH:
             {
                const float interpValue = (v - elements[prevIndex].position) /
@@ -475,13 +492,12 @@ public:
                const float interpValue3 = interpValue * interpValue2;
                const float w0 =  2.f * interpValue3 - 3.f * interpValue2 + 1.f;
                const float w1 = -2.f * interpValue3 + 3.f * interpValue2 ;
-               T ret = GetDefaultValue<T>();
                if (w0 > AI_EPSILON)
                   ret += GetElement(sg, prevIndex) * w0;
                if (w1 > AI_EPSILON)
                   ret += GetElement(sg, index) * w1;
-               return ret;
             }
+            break;
          case GI_SPLINE:
             {
                const T v1 = GetElement(sg, prevIndex);
@@ -537,12 +553,15 @@ public:
 
                const T c0 = (d1 + d2 - 2.f * dv) * length / dp;
                const T c1 = (3.f * dv - 2.f * d1 - d2) * length;
-               return tFromP1 * (tFromP1 * (tFromP1 * c0 + c1) + m1) + v1;
+               ret = tFromP1 * (tFromP1 * (tFromP1 * c0 + c1) + m1) + v1;
             }
             break;
          default:
-            return GetDefaultValue<T>();
+            break;
       }
+      if (G)
+         GammaCorrect(ret, gamma);
+      return ret;
 #endif
    }
    
@@ -565,6 +584,13 @@ public:
          data = 0;
       }
       
+      AtNode* options = AiUniverseGetOptions();
+      const float invGamma = AiNodeGetFlt(options, "shader_gamma");
+      if (invGamma == 1.f)
+         gamma = 1.f;
+      else
+         gamma = 1.f / invGamma;
+      
       nelements = positionsArray->nelements;
       if (nelements == 0)
          elements = 0;
@@ -575,6 +601,7 @@ public:
          {
             elements[i].position = AiArrayGetFlt(positionsArray, i);
             elements[i].interp = AiArrayGetInt(interpsArray, i);
+            elements[i].value = GetDefaultValue<T>();
             if (M)
             {
                std::stringstream ss;
@@ -585,7 +612,7 @@ public:
             }
             else
                elements[i].value = ReadFromArray<T>(valuesArray, i);
-            
+            GammaCorrect(elements[i].value, invGamma);
          }
          if (nelements > 1)
             std::sort(elements, elements + nelements, CompareElements);
@@ -615,7 +642,7 @@ struct MayaFluidData{
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
-   GradientDescription<float, false> opacityGradient;  
+   GradientDescription<float, false, false> opacityGradient;  
    
    AtRGB transparency; 
    
@@ -1041,8 +1068,8 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
    return lPt;
 }
 
-template <typename T, bool M>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M>& gradient)
+template <typename T, bool M, bool G>
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
