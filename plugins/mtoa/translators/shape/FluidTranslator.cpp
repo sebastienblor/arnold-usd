@@ -95,31 +95,80 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
    AiNodeSetArray(fluid, paramName, array);
 }
 
-void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
+void CFluidTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName)
 {
-   MRampAttribute ramp(plug);
-   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_FLOAT);
-   for (int i = 0; i < samplingResolution; ++i)
+   MIntArray plugArrayIndices;
+   plug.getExistingArrayAttributeIndices(plugArrayIndices);
+   unsigned int numElements = plugArrayIndices.length();
+   AtArray* positions = AiArrayAllocate(numElements, 1, AI_TYPE_FLOAT);
+   AtArray* values = AiArrayAllocate(numElements, 1, AI_TYPE_FLOAT);
+   AtArray* interps = AiArrayAllocate(numElements, 1, AI_TYPE_INT);
+   const MString positions_name = MString(paramName) + MString("_positions");
+   const MString values_name = MString(paramName) + MString("_values");
+   const MString interps_name = MString(paramName) + MString("_interps");   
+   for (unsigned int i = 0; i < numElements; ++i)
    {
-      float v;
-      ramp.getValueAtPosition((float)i / (float)(samplingResolution - 1), v);
-      AiArraySetFlt(array, i, v);
+      MPlug plugElement = plug.elementByLogicalIndex(plugArrayIndices[i]);
+      AiArraySetFlt(positions, i, plugElement.child(0).asFloat());
+      AiArraySetFlt(values, i, plugElement.child(1).asFloat());
+      AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
-   AiNodeSetArray(node, paramName, array);
+   AiNodeSetArray(node, positions_name.asChar(), positions);
+   AiNodeSetArray(node, values_name.asChar(), values);
+   AiNodeSetArray(node, interps_name.asChar(), interps);
 }
 
-void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName, int samplingResolution)
+void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName)
 {
-   MRampAttribute ramp(plug);
-   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_RGB);
-   for (int i = 0; i < samplingResolution; ++i)
+   MIntArray plugArrayIndices;
+   plug.getExistingArrayAttributeIndices(plugArrayIndices);
+   unsigned int numElements = plugArrayIndices.length();
+   AtArray* positions = AiArrayAllocate(numElements, 1, AI_TYPE_FLOAT);
+   AtArray* values = AiArrayAllocate(numElements, 1, AI_TYPE_RGB);
+   AtArray* interps = AiArrayAllocate(numElements, 1, AI_TYPE_INT);
+   const MString positions_name = MString(paramName) + MString("_positions");
+   const MString values_name = MString(paramName) + MString("_values");
+   const MString interps_name = MString(paramName) + MString("_interps");   
+   // check for the existing links, and unlink them
+   // this is required to be able to change the connections in ipr
+   AtArray* valuesOld = AiNodeGetArray(node, values_name.asChar());
+   for (AtUInt32 i = 0; i < valuesOld->nelements; i++)
    {
-      MColor v;
-      ramp.getColorAtPosition((float)i / (float)(samplingResolution - 1), v);
-      AtRGB rgb = {(float)v.r, (float)v.g, (float)v.b};
-      AiArraySetRGB(array, i, rgb);
+      MString attributeName = values_name + MString("[");
+      attributeName += i;
+      attributeName += "]";
+      AtNode* linkedNode = AiNodeGetLink(node, attributeName.asChar());
+      if (linkedNode != 0)
+         AiNodeUnlink(node, attributeName.asChar());
    }
-   AiNodeSetArray(node, paramName, array);
+   for (unsigned int i = 0; i < numElements; ++i)
+   {
+      MPlug plugElement = plug.elementByLogicalIndex(plugArrayIndices[i]);
+      AiArraySetFlt(positions, i, plugElement.child(0).asFloat());
+      MPlug colorPlug = plugElement.child(1);
+      MPlugArray conns;
+      MStatus status;
+      colorPlug.connectedTo(conns, true, false, &status);
+      if (status && conns.length())
+      {
+         AtNode* connectedColor = ExportRootShader(conns[0]);
+         MString attributeName = values_name + MString("[");
+         attributeName += i;
+         attributeName += "]";
+         AiNodeLink(connectedColor, attributeName.asChar(), node);
+      }
+      else
+      {
+         AtRGB color = {colorPlug.child(0).asFloat(),
+                        colorPlug.child(1).asFloat(),
+                        colorPlug.child(2).asFloat()};
+         AiArraySetRGB(values, i, color);
+      }
+      AiArraySetInt(interps, i, plugElement.child(2).asInt());
+   }
+   AiNodeSetArray(node, positions_name.asChar(), positions);
+   AiNodeSetArray(node, values_name.asChar(), values);
+   AiNodeSetArray(node, interps_name.asChar(), interps);
 }
 
 enum GradientType{
@@ -274,7 +323,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       exportDensity = true;
       exportFuel = true;
    }
-   ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient", 1024);
+   ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient");
    AiNodeSetInt(fluid_shader, "color_gradient_type", colorGradientType);
    AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
    
@@ -294,7 +343,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       exportDensity = true;
       exportFuel = true;
    }
-   ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid_shader, "incandescence_gradient", 1024);
+   ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid_shader, "incandescence_gradient");
    AiNodeSetInt(fluid_shader, "incandescence_gradient_type", incandescenceGradientType);
    AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());
    
@@ -314,7 +363,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       exportDensity = true;
       exportFuel = true;
    }
-   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient", 1024);   
+   ExportFloatGradient(mayaFluidNode.findPlug("opacity"), fluid_shader, "opacity_gradient");
    AiNodeSetInt(fluid_shader, "opacity_gradient_type", opacityGradientType);
    AiNodeSetFlt(fluid_shader, "opacity_gradient_input_bias", mayaFluidNode.findPlug("opacityInputBias").asFloat());
    
