@@ -557,8 +557,6 @@ public:
    
    void ReadValues(AtNode* node, const char* name, AtArray* positionsArray, AtArray* valuesArray, AtArray* interpsArray)
    {
-      AtArray* array = AiNodeGetArray(node, name);
-   
       Release();
       
       AtNode* options = AiUniverseGetOptions();
