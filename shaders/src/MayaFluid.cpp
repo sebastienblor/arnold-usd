@@ -365,7 +365,7 @@ void GammaCorrect<AtRGB>(AtRGB& d, float gamma)
       AiColorGamma(&d, gamma);
 }
 
-template<typename T, bool M = true, bool G = true, bool C = false>
+template<typename T, bool M = true, bool G = true>
 class GradientDescription{
 public:
    struct GradientDescriptionElement{
@@ -423,7 +423,7 @@ public:
    
    T GetValue(AtShaderGlobals* sg, float v) const
    {
-      if (C && (data != 0))
+      if (data != 0)
       {
          v = ApplyBias(v, inputBias);
          const float p = v * resolution;
@@ -603,9 +603,9 @@ public:
          if (nelements > 1)
             std::sort(elements, elements + nelements, CompareElements);
          
-         if (C && !isConnected && (nelements > 2))
+         if (!isConnected && (nelements > 1))
          {
-            resolution = 512;
+            resolution = 1024;
             T* _data = (T*)AiMalloc(resolution * sizeof(T));
             for (int i = 0; i < resolution; ++i)
             {
@@ -641,7 +641,7 @@ struct MayaFluidData{
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
-   GradientDescription<float, false, false, false> opacityGradient;  
+   GradientDescription<float, false, false> opacityGradient;  
    
    AtRGB transparency; 
    
@@ -1067,8 +1067,8 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
    return lPt;
 }
 
-template <typename T, bool M, bool G, bool C>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G, C>& gradient)
+template <typename T, bool M, bool G>
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
