@@ -516,27 +516,27 @@ public:
                   v3 = elements[index + 1].value;
                }
 
-               const float tanSize = .2f;
+               const static float tanSize = .2f;
                const float tx = MAX(tanSize * dp, AI_EPSILON);
 
                float sx = MAX(p2 - p0, AI_EPSILON);
                T sy = v2 - v0;
 
                sy *= tanSize * dp / sx;
-               T m1 = sy / tx;
+               const T m1 = sy / tx;
                sx = MAX(p3 - p1, AI_EPSILON);
                sy = v3 - v1;
 
                sy *= tanSize * dp / sx;
-               T m2 = sy / tx;
+               const T m2 = sy / tx;
 
                float tFromP1 = (v - p1);
                float length = 1.f / (dp * dp);
-               T d1 = dp * m1;
-               T d2 = dp * m2;
+               const T d1 = dp * m1;
+               const T d2 = dp * m2;
 
-               T c0 = (d1 + d2 - 2.f * dv) * length / dp;
-               T c1 = (3.f * dv - 2.f * d1 - d2) * length;
+               const T c0 = (d1 + d2 - 2.f * dv) * length / dp;
+               const T c1 = (3.f * dv - 2.f * d1 - d2) * length;
                return tFromP1 * (tFromP1 * (tFromP1 * c0 + c1) + m1) + v1;
             }
             break;
