@@ -97,8 +97,6 @@ void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsign
 
 void CFluidTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName)
 {
-   int samplingResolution = 1024;
-   MRampAttribute ramp(plug);   
    MIntArray plugArrayIndices;
    plug.getExistingArrayAttributeIndices(plugArrayIndices);
    unsigned int numElements = plugArrayIndices.length();
@@ -118,20 +116,10 @@ void CFluidTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char*
    AiNodeSetArray(node, positions_name.asChar(), positions);
    AiNodeSetArray(node, values_name.asChar(), values);
    AiNodeSetArray(node, interps_name.asChar(), interps);
-   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_FLOAT);
-   for (int i = 0; i < samplingResolution; ++i)
-   {
-      float v;
-      ramp.getValueAtPosition((float)i / (float)(samplingResolution - 1), v);
-      AiArraySetFlt(array, i, v);
-   }
-   AiNodeSetArray(node, paramName, array);
 }
 
 void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName)
 {
-   int samplingResolution = 1024;
-   MRampAttribute ramp(plug);
    MIntArray plugArrayIndices;
    plug.getExistingArrayAttributeIndices(plugArrayIndices);
    unsigned int numElements = plugArrayIndices.length();
@@ -181,15 +169,6 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
    AiNodeSetArray(node, positions_name.asChar(), positions);
    AiNodeSetArray(node, values_name.asChar(), values);
    AiNodeSetArray(node, interps_name.asChar(), interps);
-   AtArray* array = AiArrayAllocate(samplingResolution, 1, AI_TYPE_RGB);
-   for (int i = 0; i < samplingResolution; ++i)
-   {
-      MColor v;
-      ramp.getColorAtPosition((float)i / (float)(samplingResolution - 1), v);
-      AtRGB rgb = {(float)v.r, (float)v.g, (float)v.b};
-      AiArraySetRGB(array, i, rgb);
-   }
-   AiNodeSetArray(node, paramName, array);
 }
 
 enum GradientType{
