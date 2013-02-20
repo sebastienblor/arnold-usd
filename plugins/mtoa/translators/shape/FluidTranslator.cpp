@@ -113,7 +113,7 @@ void CFluidTranslator::ExportFloatGradient(MPlug plug, AtNode* node, const char*
       MPlug plugElement = plug.elementByLogicalIndex(plugArrayIndices[i]);
       AiArraySetFlt(positions, i, plugElement.child(0).asFloat());
       AiArraySetFlt(values, i, plugElement.child(1).asFloat());
-      AiArraySetInt(interps, i, plugElement.child(2).asFloat());
+      AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
    AiNodeSetArray(node, positions_name.asChar(), positions);
    AiNodeSetArray(node, values_name.asChar(), values);
@@ -176,7 +176,7 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
                         colorPlug.child(2).asFloat()};
          AiArraySetRGB(values, i, color);
       }
-      AiArraySetInt(interps, i, plugElement.child(2).asFloat());
+      AiArraySetInt(interps, i, plugElement.child(2).asInt());
    }
    AiNodeSetArray(node, positions_name.asChar(), positions);
    AiNodeSetArray(node, values_name.asChar(), values);
