@@ -345,8 +345,6 @@ AtRGB GetValueFromSG(AtShaderGlobals* sg)
    return sg->out.RGB;
 }
 
-#define PROPER_LOOKUP
-
 enum gradientInterps{
    GI_NONE = 0,
    GI_LINEAR,
@@ -367,7 +365,7 @@ void GammaCorrect<AtRGB>(AtRGB& d, float gamma)
       AiColorGamma(&d, gamma);
 }
 
-template<typename T, bool M = true, bool G = true>
+template<typename T, bool M = true, bool G = true, bool C = false>
 class GradientDescription{
 public:
    struct GradientDescriptionElement{
@@ -378,11 +376,10 @@ public:
    };
    GradientDescriptionElement* elements;
    AtUInt32 nelements;
-   bool single;
-   
-   T* data;
    float inputBias;
    float gamma;
+   
+   T* data;   
    int type;
    int resolution;  
    
@@ -426,17 +423,17 @@ public:
    
    T GetValue(AtShaderGlobals* sg, float v) const
    {
-#ifndef PROPER_LOOKUP
-      if (resolution == 0)
-         return GetDefaultValue<T>();
-      const float _v = ApplyBias(v, inputBias);
-      const float p = _v * resolution;
-      const int pi = (int)p;
-      const int b = CLAMP(pi, 0, resolution - 1);
-      const int e = MIN(b + 1, resolution - 1);
-      const float pf = p - (float)pi;
-      return data[b] * (1.f - pf) + data[e] * pf;
-#else
+      if (C && (data != 0))
+      {
+         v = ApplyBias(v, inputBias);
+         const float p = v * resolution;
+         const int pi = (int)p;
+         const int b = CLAMP(pi, 0, resolution - 1);
+         const int e = MIN(b + 1, resolution - 1);
+         const float pf = p - (float)pi;
+         return data[b] * (1.f - pf) + data[e] * pf;
+      }
+      
       if (elements == 0)
          return GetDefaultValue<T>();
       if (nelements == 1)
@@ -562,7 +559,6 @@ public:
       if (G)
          GammaCorrect(ret, gamma);
       return ret;
-#endif
    }
    
    void ReadValues(AtNode* node, const char* name, AtArray* positionsArray, AtArray* valuesArray, AtArray* interpsArray)
@@ -570,19 +566,6 @@ public:
       AtArray* array = AiNodeGetArray(node, name);
    
       Release();
-
-      if (array->nelements)
-      {
-         resolution = (int)array->nelements;
-         data = (T*)AiMalloc(sizeof(T) * resolution);
-         for (int i = 0; i < resolution; ++i)
-            data[i] = ReadFromArray<T>(array, i);
-      }
-      else
-      {
-         resolution = 0;
-         data = 0;
-      }
       
       AtNode* options = AiUniverseGetOptions();
       const float invGamma = AiNodeGetFlt(options, "shader_gamma");
@@ -591,11 +574,12 @@ public:
       else
          gamma = 1.f / invGamma;
       
-      nelements = positionsArray->nelements;
+      nelements = positionsArray->nelements;      
       if (nelements == 0)
          elements = 0;
       else
       {
+         bool isConnected = false;
          elements = (GradientDescriptionElement*)AiMalloc(sizeof(GradientDescriptionElement) * nelements);
          for (AtUInt32 i = 0; i < nelements; ++i)
          {
@@ -609,6 +593,8 @@ public:
                elements[i].node = AiNodeGetLink(node, ss.str().c_str());
                if (elements[i].node == 0)
                   elements[i].value = ReadFromArray<T>(valuesArray, i);
+               else
+                  isConnected = true;
             }
             else
                elements[i].value = ReadFromArray<T>(valuesArray, i);
@@ -616,7 +602,20 @@ public:
          }
          if (nelements > 1)
             std::sort(elements, elements + nelements, CompareElements);
-      }
+         
+         if (C && !isConnected && (nelements > 2))
+         {
+            resolution = 512;
+            T* _data = (T*)AiMalloc(resolution * sizeof(T));
+            for (int i = 0; i < resolution; ++i)
+            {
+               const float v = (float) i / (float)(resolution - 1);
+               _data[i] = GetValue(0, v);
+            }
+
+            data = _data;
+         }
+      }      
    }
 };
 
@@ -642,7 +641,7 @@ struct MayaFluidData{
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
-   GradientDescription<float, false, false> opacityGradient;  
+   GradientDescription<float, false, false, false> opacityGradient;  
    
    AtRGB transparency; 
    
@@ -1068,8 +1067,8 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
    return lPt;
 }
 
-template <typename T, bool M, bool G>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G>& gradient)
+template <typename T, bool M, bool G, bool C>
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G, C>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
