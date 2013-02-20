@@ -1234,7 +1234,7 @@ shader_evaluate
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = GetValue(sg, data, lPt, data->opacityGradient) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
+      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -1328,12 +1328,12 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = GetValue(sg, data, lPt, data->opacityGradient) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = GetValue(sg, data, lPt, data->opacityGradient) * data->transparency * opacityNoise;
+   const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * data->transparency * opacityNoise;
    const AtRGB color = GetValue(sg, data, lPt, data->colorGradient) * colorNoise;
    const AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient) * incandNoise;
    
