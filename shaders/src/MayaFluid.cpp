@@ -354,7 +354,7 @@ enum gradientInterps{
    GI_SPLINE
 };
 
-template<typename T>
+template<typename T, bool M = true>
 class GradientDescription{
 public:
    struct GradientDescriptionElement{
@@ -401,7 +401,7 @@ public:
    
    inline T GetElement(AtShaderGlobals* sg, AtUInt32 elem) const
    {
-      if (elements[elem].node != 0)
+      if (M && (elements[elem].node != 0))
       {
          AiShaderEvaluate(elements[elem].node, sg);
          return GetValueFromSG<T>(sg);
@@ -575,11 +575,17 @@ public:
          {
             elements[i].position = AiArrayGetFlt(positionsArray, i);
             elements[i].interp = AiArrayGetInt(interpsArray, i);
-            std::stringstream ss;
-            ss << name << "_values[" << i << "]";
-            elements[i].node = AiNodeGetLink(node, ss.str().c_str());
-            if (elements[i].node == 0)
+            if (M)
+            {
+               std::stringstream ss;
+               ss << name << "_values[" << i << "]";
+               elements[i].node = AiNodeGetLink(node, ss.str().c_str());
+               if (elements[i].node == 0)
+                  elements[i].value = ReadFromArray<T>(valuesArray, i);
+            }
+            else
                elements[i].value = ReadFromArray<T>(valuesArray, i);
+            
          }
          if (nelements > 1)
             std::sort(elements, elements + nelements, CompareElements);
@@ -609,7 +615,7 @@ struct MayaFluidData{
    
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
-   GradientDescription<float> opacityGradient;  
+   GradientDescription<float, false> opacityGradient;  
    
    AtRGB transparency; 
    
@@ -1035,8 +1041,8 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
    return lPt;
 }
 
-template <typename T>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T>& gradient)
+template <typename T, bool M>
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M>& gradient)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
