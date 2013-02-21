@@ -1382,29 +1382,23 @@ shader_evaluate
                }
             }
             break;
+         case TT_WISPY:
+            P += AiPerlin3(P / 2.0f) * 1.3f;
+            if (inflection)
+               volumeNoise = amplitude * fTurbulence(sg, P, textureTime, 1.0f, frequencyRatio, depth, ratio, ripples);
+            else
+               volumeNoise = fBm(sg, P, textureTime, amplitude, depth, 1.0f, frequencyRatio, ratio);
+         break;
+         case TT_SPACE_TIME:
+            if (inflection)
+               volumeNoise = amplitude * fTurbulence(sg, P, textureTime, 1.0f, frequencyRatio, depth, ratio, ripples);
+            else
+               volumeNoise = fBm(sg, P, textureTime, amplitude, depth, 1.0f, frequencyRatio, ratio);
+            break;
          default:
             volumeNoise = 1.f;
             break;
       }
-      /*for (int i = 0; i < depthMax; ++i)
-      {
-         float noise = AiPerlin4(P, textureTime);
-         if (inflection)
-            noise = ABS(noise);
-         
-         volumeNoise += amp * noise;
-         
-         amp *= ratio;
-         P *= frequencyRatio;
-         textureTime *= timeRatio;
-      }
-      
-      const float threshold = AiShaderEvalParamFlt(p_threshold);
-      if (inflection)
-         volumeNoise += threshold;
-      else
-         volumeNoise = (volumeNoise * .5f + .5f) + threshold;
-      */
       if (volumeNoise > 1.f)
          volumeNoise = 1.f;
       else if (volumeNoise < 0.f)
