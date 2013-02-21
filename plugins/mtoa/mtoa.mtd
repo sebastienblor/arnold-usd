@@ -108,6 +108,9 @@
     [attr texture_autotile]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "tx_at"
+    [attr texture_glossy_blur]
+        maya.keyable        BOOL    False
+        default             FLOAT   0
     [attr GI_diffuse_depth]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -172,7 +175,7 @@
         min                 INT     1
         max                 INT     100
         softmin             INT     1
-        softmax             INT     10        
+        softmax             INT     10
         default             INT     4
     [attr sss_bssrdf_samples]
         maya.keyable        BOOL    False
@@ -180,12 +183,12 @@
         max                 INT     100
         softmin             INT     3
         softmax             INT     10        
-        default             INT     3		
+        default             INT     3
     [attr volume_indirect_samples]
         maya.keyable        BOOL    False
         min                 INT     0
         softmax             INT     10
-        default             INT     0		
+        default             INT     0
     [attr low_light_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
@@ -1081,7 +1084,7 @@
         desc                STRING  "Scattering number of samples."
         min                 INT     1
         softmax             INT     64
-		max					INT		100
+        max                 INT     100
 
 # dag nodes
 
