@@ -46,13 +46,13 @@ def arnoldAboutDialog():
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
     w = cmds.window("AboutArnold", title="About")
-    cmds.window("AboutArnold", edit=True, width=390, height=280)
-    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,20), (2, 40), (3, 50), (4, 280)] )
+    cmds.window("AboutArnold", edit=True, width=402, height=280)
+    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,20), (2, 52), (3, 50), (4, 280)] )
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
 
     cmds.text(label="")
-    cmds.image(width=190,height=190,image="MtoA_Logo.png")
+    cmds.image(image="MtoA_Logo.png")
     cmds.text(label="")
     cmds.text(align="left",label=arnoldAboutText)
 
