@@ -1106,7 +1106,7 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          break;
       case GT_CENTER_GRADIENT:
          // we need to divide the value by sqrtf 3 * 0.5 * 0.5
-         gradientValue = 1.f - 1.1547 * AiV3Length(lPt - middlePoint);
+         gradientValue = 1.f - 1.1547f * AiV3Length(lPt - middlePoint);
          break;
       case GT_DENSITY:
          gradientValue = Filter(data, lPt, data->density);
