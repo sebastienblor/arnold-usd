@@ -1336,13 +1336,13 @@ shader_evaluate
                float amp = amplitude;
                const float timeRatio = 1.0f / frequencyRatio;
                textureTime *= (float)AI_PITIMES2;
-               const int numWaves = AiShaderEvalParamFlt(p_num_waves);
+               const int numWaves = AiShaderEvalParamInt(p_num_waves);
 
-               for (int i=0; i<depthMax; ++i)
+               for (int i=0; i < depthMax; ++i)
                {
                  float waveVal = 0.0f;
 
-                 for (int j=0; j<numWaves; ++j)
+                 for (int j=0; j < numWaves; ++j)
                  {
                     float tmp = (float)AI_PITIMES2 * (0.5f * (1 + i) * (1 + j));
 
@@ -1359,7 +1359,7 @@ shader_evaluate
 
                     AiV3Normalize(d, d);
 
-                    waveVal += (float)cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
+                    waveVal += cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
                  }
 
                  waveVal /= numWaves;
