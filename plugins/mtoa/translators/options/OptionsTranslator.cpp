@@ -411,6 +411,8 @@ void COptionsTranslator::Export(AtNode *options)
    ExportAOVs();
 
    SetCamera(options);
+   
+   AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
 
    MStatus status;
 
