@@ -582,9 +582,11 @@ public:
       return ret;
    }
    
-   void ReadValues(AtNode* node, const char* name, AtArray* positionsArray, AtArray* valuesArray, AtArray* interpsArray)
+   void ReadValues(AtNode* node, const char* valuesName, AtArray* positionsArray, AtArray* interpsArray)
    {
       Release();
+      
+      AtArray* valuesArray = AiNodeGetArray(node, valuesName);
       
       AtNode* options = AiUniverseGetOptions();
       const float invGamma = AiNodeGetFlt(options, "shader_gamma");
@@ -608,7 +610,7 @@ public:
             if (M)
             {
                std::stringstream ss;
-               ss << name << "_values[" << i << "]";
+               ss << valuesName << "[" << i << "]";
                elements[i].node = AiNodeGetLink(node, ss.str().c_str());
                if (elements[i].node == 0)
                   elements[i].value = ReadFromArray<T>(valuesArray, i);
@@ -791,21 +793,18 @@ node_update
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
-   data->colorGradient.ReadValues(node, "color_gradient",
+   data->colorGradient.ReadValues(node, "color_gradient_values",
                                   AiNodeGetArray(node, "color_gradient_positions"),
-                                  AiNodeGetArray(node, "color_gradient_values"),
                                   AiNodeGetArray(node, "color_gradient_interps"));
    data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");
    data->incandescenceGradient.inputBias = AiNodeGetFlt(node, "incandescence_gradient_input_bias");
-   data->incandescenceGradient.ReadValues(node, "incandescence_gradient",
+   data->incandescenceGradient.ReadValues(node, "incandescence_gradient_values",
                                           AiNodeGetArray(node, "incandescence_gradient_positions"),
-                                          AiNodeGetArray(node, "incandescence_gradient_values"),
                                           AiNodeGetArray(node, "incandescence_gradient_interps"));
    data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");   
    data->opacityGradient.inputBias = AiNodeGetFlt(node, "opacity_gradient_input_bias");
-   data->opacityGradient.ReadValues(node, "opacity_gradient",
+   data->opacityGradient.ReadValues(node, "opacity_gradient_values",
                                     AiNodeGetArray(node, "opacity_gradient_positions"),
-                                    AiNodeGetArray(node, "opacity_gradient_values"),
                                     AiNodeGetArray(node, "opacity_gradient_interps"));
    
    data->colorTexture = AiNodeGetBool(node, "color_texture");
