@@ -45,7 +45,7 @@ def arnoldAboutDialog():
 
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
-    w = cmds.window("AboutArnold", title="About MtoA", iconName='Short Name')
+    w = cmds.window("AboutArnold", title="About")
     cmds.window("AboutArnold", edit=True, width=390, height=280)
     cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,20), (2, 40), (3, 50), (4, 280)] )
 
@@ -97,6 +97,6 @@ def createArnoldMenu():
         pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All",
                     c=lambda *args: cmds.arnoldFlushCache(flushall=True))
                     
-        pm.menuItem('ArnoldAbout', label='About MtoA', parent='ArnoldMenu',
+        pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
 
