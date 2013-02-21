@@ -298,6 +298,14 @@ void CFluidTranslator::Export(AtNode* fluid)
 
       ProcessParameter(fluid_shader, "implode", AI_TYPE_FLOAT, "implode");
       ProcessParameter(fluid_shader, "implode_center", AI_TYPE_VECTOR, "implodeCenter");
+      
+      ProcessParameter(fluid_shader, "billow_density", AI_TYPE_FLOAT, "billowDensity");
+      ProcessParameter(fluid_shader, "spottyness", AI_TYPE_FLOAT, "spottyness");
+      ProcessParameter(fluid_shader, "size_rand", AI_TYPE_FLOAT, "sizeRand");
+      ProcessParameter(fluid_shader, "randomness", AI_TYPE_FLOAT, "randomness");
+      ProcessParameter(fluid_shader, "billow_falloff", AI_TYPE_INT, "falloff");
+      
+      ProcessParameter(fluid_shader, "num_waves", AI_TYPE_INT, "numWaves");
    }
    
    bool exportDensity = false;

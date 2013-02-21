@@ -7,6 +7,8 @@
 #include <sstream>
 #include <algorithm>
 
+#include "MayaUtils.h"
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
@@ -72,6 +74,15 @@ enum dropoffShape{
    DS_NY_GRADIENT,
    DS_NZ_GRADIENT,
    DS_USE_FALLOFF_GRID
+};
+
+const char* billowFalloffEnums[] = {"Linear", "Smooth", "Fast", "Bubble", 0};
+
+enum billowFalloff{
+   BF_LINEAR = 0,
+   BF_SMOOTH,
+   BF_FAST,
+   BF_BUBBLE
 };
 
 // http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
@@ -163,6 +174,14 @@ node_parameters
    
    AiParameterFlt("implode", 0.f);
    AiParameterVec("implode_center", 0.f, 0.f, 0.f);
+   
+   AiParameterFlt("billow_density", 1.f);
+   AiParameterFlt("spottyness", 0.1f);
+   AiParameterFlt("size_rand", 0.f);
+   AiParameterFlt("randomness", 1.f);
+   AiParameterEnum("billow_falloff", 2, billowFalloffEnums);
+   
+   AiParameterInt("num_waves", 5);
    
    AiParameterBool("texture_affect_color", false);
    AiParameterBool("texture_affect_incand", false);
@@ -257,6 +276,14 @@ enum MayaFluidParams{
    
    p_implode,
    p_implode_center,
+   
+   p_billow_density,
+   p_spottyness,
+   p_size_rand,
+   p_randomness,
+   p_billow_falloff,
+   
+   p_num_waves,
    
    p_noise_affect_color,
    p_noise_affect_incand,
@@ -1274,16 +1301,92 @@ shader_evaluate
       P.x += AiShaderEvalParamFlt(p_texture_origin_x);
       P.y += AiShaderEvalParamFlt(p_texture_origin_y);
       P.z += AiShaderEvalParamFlt(p_texture_origin_z);
-      float amp = AiShaderEvalParamFlt(p_amplitude);
+      const float amplitude = AiShaderEvalParamFlt(p_amplitude);
       float volumeNoise = 0.f;
       const float frequencyRatio = AiShaderEvalParamFlt(p_frequency_ratio);
       const float ratio = AiShaderEvalParamFlt(p_ratio);
-      const float timeRatio = sqrtf(frequencyRatio);
       float textureTime = AiShaderEvalParamFlt(p_texture_time);
       const int depthMax = AiShaderEvalParamInt(p_depth_max);
       const bool inflection = AiShaderEvalParamBool(p_inflection);
       
-      for (int i = 0; i < depthMax; ++i)
+      int depth[2] = {0, depthMax};
+      float ripples[3] = {1.0f, 1.0f, 1.0f};
+      
+      switch (data->textureType)
+      {
+         case TT_PERLIN_NOISE:
+            if (inflection)
+               volumeNoise = amplitude * fTurbulence(sg, P, textureTime, 1.0f, frequencyRatio, depth, ratio, ripples);
+            else
+               volumeNoise = fBm(sg, P, textureTime, amplitude, depth, 1.0f, frequencyRatio, ratio);
+            break;
+         case TT_BILLOW:
+            {               
+               const float billow_density = AiShaderEvalParamFlt(p_billow_density);
+               const float radius = sqrt(.5f * billow_density);
+               const float sizeRand = AiShaderEvalParamFlt(p_size_rand);
+               const float randomness = AiShaderEvalParamFlt(p_randomness);
+               const float billowFalloff = AiShaderEvalParamFlt(p_billow_falloff);
+               const float spottyness = AiShaderEvalParamFlt(p_spottyness);
+               volumeNoise = BillowNoise(P, textureTime, 3, radius, sizeRand, randomness, billowFalloff, spottyness, depthMax, frequencyRatio, ratio, amplitude);
+            }
+            break;
+         case TT_VOLUME_WAVE:
+            {
+               float amp = amplitude;
+               const float timeRatio = 1.0f / frequencyRatio;
+               textureTime *= (float)AI_PITIMES2;
+               const int numWaves = AiShaderEvalParamFlt(p_num_waves);
+
+               for (int i=0; i<depthMax; ++i)
+               {
+                 float waveVal = 0.0f;
+
+                 for (int j=0; j<numWaves; ++j)
+                 {
+                    float tmp = (float)AI_PITIMES2 * (0.5f * (1 + i) * (1 + j));
+
+                    AtVector v, d;
+
+                    AiV3Create(v, tmp, 0, 0);
+                    d.x = AiPerlin3(v);
+
+                    AiV3Create(v, 0, tmp, 0);
+                    d.y = AiPerlin3(v);
+
+                    AiV3Create(v, 0, 0, tmp);
+                    d.z = AiPerlin3(v);
+
+                    AiV3Normalize(d, d);
+
+                    waveVal += (float)cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
+                 }
+
+                 waveVal /= numWaves;
+
+                 if (inflection)
+                 {
+                    waveVal = fabs(waveVal);
+                 }
+
+                 volumeNoise += amp * waveVal;
+
+                 amp *= ratio;
+                 P *= frequencyRatio;
+                 textureTime *= timeRatio;
+               }
+
+               if (!inflection)
+               {
+                 volumeNoise = 0.5f * volumeNoise + 0.5f;
+               }
+            }
+            break;
+         default:
+            volumeNoise = 1.f;
+            break;
+      }
+      /*for (int i = 0; i < depthMax; ++i)
       {
          float noise = AiPerlin4(P, textureTime);
          if (inflection)
@@ -1301,7 +1404,7 @@ shader_evaluate
          volumeNoise += threshold;
       else
          volumeNoise = (volumeNoise * .5f + .5f) + threshold;
-      
+      */
       if (volumeNoise > 1.f)
          volumeNoise = 1.f;
       else if (volumeNoise < 0.f)
