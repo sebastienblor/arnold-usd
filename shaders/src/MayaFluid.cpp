@@ -675,6 +675,8 @@ struct MayaFluidData{
    int textureType;
    int coordinateMethod;
    int dropoffShape;
+   int numWaves;
+   int depthMax;
    
    bool colorTexture;
    bool incandTexture;
@@ -684,6 +686,8 @@ struct MayaFluidData{
    bool textureAffectIncand;
    bool textureAffectOpacity;
    bool textureDisabledInShadows;   
+   bool inflection;
+   bool invertTexture;
    
    ~MayaFluidData()
    {
@@ -820,6 +824,11 @@ node_update
    data->textureAffectColor = AiNodeGetBool(node, "texture_affect_color");
    data->textureAffectIncand = AiNodeGetBool(node, "texture_affect_incand");
    data->textureAffectOpacity = AiNodeGetBool(node, "texture_affect_opacity");
+   
+   data->numWaves = AiNodeGetInt(node, "num_waves");
+   data->depthMax = AiNodeGetInt(node, "depth_max");
+   data->inflection = AiNodeGetBool(node, "inflection");
+   data->invertTexture = AiNodeGetBool(node, "invert_texture");   
    
    if (!(data->textureAffectColor || data->textureAffectOpacity || data->textureAffectOpacity))
       data->volumeTexture = 0;
@@ -1306,16 +1315,14 @@ shader_evaluate
       const float frequencyRatio = AiShaderEvalParamFlt(p_frequency_ratio);
       const float ratio = AiShaderEvalParamFlt(p_ratio);
       float textureTime = AiShaderEvalParamFlt(p_texture_time);
-      const int depthMax = AiShaderEvalParamInt(p_depth_max);
-      const bool inflection = AiShaderEvalParamBool(p_inflection);
       
-      int depth[2] = {0, depthMax};
+      int depth[2] = {0, data->depthMax};
       float ripples[3] = {1.0f, 1.0f, 1.0f};
       
       switch (data->textureType)
       {
          case TT_PERLIN_NOISE:
-            if (inflection)
+            if (data->inflection)
                volumeNoise = amplitude * fTurbulence(sg, P, textureTime, 1.0f, frequencyRatio, depth, ratio, ripples);
             else
                volumeNoise = fBm(sg, P, textureTime, amplitude, depth, 1.0f, frequencyRatio, ratio);
@@ -1328,7 +1335,7 @@ shader_evaluate
                const float randomness = AiShaderEvalParamFlt(p_randomness);
                const float billowFalloff = AiShaderEvalParamFlt(p_billow_falloff);
                const float spottyness = AiShaderEvalParamFlt(p_spottyness);
-               volumeNoise = BillowNoise(P, textureTime, 3, radius, sizeRand, randomness, billowFalloff, spottyness, depthMax, frequencyRatio, ratio, amplitude);
+               volumeNoise = BillowNoise(P, textureTime, 3, radius, sizeRand, randomness, billowFalloff, spottyness, data->depthMax, frequencyRatio, ratio, amplitude);
             }
             break;
          case TT_VOLUME_WAVE:
@@ -1336,13 +1343,12 @@ shader_evaluate
                float amp = amplitude;
                const float timeRatio = 1.0f / frequencyRatio;
                textureTime *= (float)AI_PITIMES2;
-               const int numWaves = AiShaderEvalParamInt(p_num_waves);
 
-               for (int i=0; i < depthMax; ++i)
+               for (int i=0; i < data->depthMax; ++i)
                {
                  float waveVal = 0.0f;
 
-                 for (int j=0; j < numWaves; ++j)
+                 for (int j=0; j < data->numWaves; ++j)
                  {
                     float tmp = (float)AI_PITIMES2 * (0.5f * (1 + i) * (1 + j));
 
@@ -1362,9 +1368,9 @@ shader_evaluate
                     waveVal += cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
                  }
 
-                 waveVal /= numWaves;
+                 waveVal /= (float)data->numWaves;
 
-                 if (inflection)
+                 if (data->inflection)
                  {
                     waveVal = fabs(waveVal);
                  }
@@ -1376,7 +1382,7 @@ shader_evaluate
                  textureTime *= timeRatio;
                }
 
-               if (!inflection)
+               if (!data->inflection)
                {
                  volumeNoise = 0.5f * volumeNoise + 0.5f;
                }
@@ -1384,13 +1390,13 @@ shader_evaluate
             break;
          case TT_WISPY:
             P += AiPerlin3(P / 2.0f) * 1.3f;
-            if (inflection)
+            if (data->inflection)
                volumeNoise = amplitude * fTurbulence(sg, P, textureTime, 1.0f, frequencyRatio, depth, ratio, ripples);
             else
                volumeNoise = fBm(sg, P, textureTime, amplitude, depth, 1.0f, frequencyRatio, ratio);
          break;
          case TT_SPACE_TIME:
-            if (inflection)
+            if (data->inflection)
                volumeNoise = amplitude * fTurbulence(sg, P, textureTime, 1.0f, frequencyRatio, depth, ratio, ripples);
             else
                volumeNoise = fBm(sg, P, textureTime, amplitude, depth, 1.0f, frequencyRatio, ratio);
@@ -1404,7 +1410,7 @@ shader_evaluate
       else if (volumeNoise < 0.f)
          volumeNoise = 0.f;
       
-      if (AiShaderEvalParamBool(p_invert_texture))
+      if (data->invertTexture)
          volumeNoise = MAX(1.f - volumeNoise, 0.f);
       if (data->colorTexture)
          colorNoise = data->colorTexGain * volumeNoise;
