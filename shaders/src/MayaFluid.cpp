@@ -377,7 +377,12 @@ template <>
 void GammaCorrect<AtRGB>(AtRGB& d, float gamma)
 {
    if (gamma != 1.f)
+   {
+      d.r = MAX(0.f, d.r);
+      d.g = MAX(0.f, d.g);
+      d.b = MAX(0.f, d.b);
       AiColorGamma(&d, gamma);
+   }
 }
 
 template<typename T, bool M = true, bool G = true>
@@ -530,7 +535,7 @@ public:
                else
                {
                   p0 = elements[prevIndex - 1].position;
-                  v0 = elements[prevIndex - 1].value;
+                  v0 = GetElement(sg, prevIndex - 1);
                }
 
                if (index == (nelements - 1))
@@ -541,7 +546,7 @@ public:
                else
                {
                   p3 = elements[index + 1].position;
-                  v3 = elements[index + 1].value;
+                  v3 = GetElement(sg, index + 1);
                }
 
                const static float tanSize = .2f;
@@ -559,7 +564,7 @@ public:
                const T m2 = sy / tx;
 
                float tFromP1 = (v - p1);
-               float length = 1.f / (dp * dp);
+               float length = MIN(1.f / (dp * dp), AI_BIG);
                const T d1 = dp * m1;
                const T d2 = dp * m2;
 
@@ -1429,8 +1434,14 @@ shader_evaluate
    }
    
    const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * data->transparency * opacityNoise;
-   const AtRGB color = GetValue(sg, data, lPt, data->colorGradient) * colorNoise;
-   const AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient) * incandNoise;
+   AtRGB color = GetValue(sg, data, lPt, data->colorGradient) * colorNoise;
+   color.r = MAX(0.f, color.r);
+   color.g = MAX(0.f, color.g);
+   color.b = MAX(0.f, color.b);
+   AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient) * incandNoise;
+   incandescence.r = MAX(0.f, incandescence.r);
+   incandescence.g = MAX(0.f, incandescence.g);
+   incandescence.b = MAX(0.f, incandescence.b);
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
