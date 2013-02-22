@@ -677,6 +677,7 @@ struct MayaFluidData{
    int dropoffShape;
    int numWaves;
    int depthMax;
+   int billowFalloff;
    
    bool colorTexture;
    bool incandTexture;
@@ -827,6 +828,7 @@ node_update
    
    data->numWaves = AiNodeGetInt(node, "num_waves");
    data->depthMax = AiNodeGetInt(node, "depth_max");
+   data->billowFalloff = AiNodeGetInt(node, "billow_falloff");
    data->inflection = AiNodeGetBool(node, "inflection");
    data->invertTexture = AiNodeGetBool(node, "invert_texture");   
    
@@ -1333,9 +1335,8 @@ shader_evaluate
                const float radius = sqrt(.5f * billow_density);
                const float sizeRand = AiShaderEvalParamFlt(p_size_rand);
                const float randomness = AiShaderEvalParamFlt(p_randomness);
-               const float billowFalloff = AiShaderEvalParamFlt(p_billow_falloff);
                const float spottyness = AiShaderEvalParamFlt(p_spottyness);
-               volumeNoise = BillowNoise(P, textureTime, 3, radius, sizeRand, randomness, billowFalloff, spottyness, data->depthMax, frequencyRatio, ratio, amplitude);
+               volumeNoise = BillowNoise(P, textureTime, 3, radius, sizeRand, randomness, data->billowFalloff, spottyness, data->depthMax, frequencyRatio, ratio, amplitude);
             }
             break;
          case TT_VOLUME_WAVE:
