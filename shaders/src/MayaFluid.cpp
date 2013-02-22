@@ -666,6 +666,9 @@ struct MayaFluidData{
    
    float phaseFunc;
    float edgeDropoff;
+   float colorTexGain;
+   float incandTexGain;
+   float opacityTexGain;
    
    int filterType;   
    int xres, yres, zres;      
@@ -804,6 +807,9 @@ node_update
    data->colorTexture = AiNodeGetBool(node, "color_texture");
    data->incandTexture = AiNodeGetBool(node, "incand_texture");
    data->opacityTexture = AiNodeGetBool(node, "opacity_texture");
+   data->colorTexGain = AiNodeGetFlt(node, "color_tex_gain");
+   data->incandTexGain = AiNodeGetFlt(node, "incand_tex_gain");
+   data->opacityTexGain = AiNodeGetFlt(node, "opacity_tex_gain");
    
    data->textureNoise = data->colorTexture || data->incandTexture || data->opacityTexture;
    
@@ -1401,11 +1407,11 @@ shader_evaluate
       if (AiShaderEvalParamBool(p_invert_texture))
          volumeNoise = MAX(1.f - volumeNoise, 0.f);
       if (data->colorTexture)
-         colorNoise = AiShaderEvalParamFlt(p_color_tex_gain) * volumeNoise;
+         colorNoise = data->colorTexGain * volumeNoise;
       if (data->incandTexture)
-         incandNoise = AiShaderEvalParamFlt(p_incand_tex_gain) * volumeNoise;
+         incandNoise = data->incandTexGain * volumeNoise;
       if (data->opacityTexture)
-         opacityNoise *= AiShaderEvalParamFlt(p_opacity_tex_gain) * volumeNoise;
+         opacityNoise *= data->opacityTexGain * volumeNoise;
    }
    
    if (sg->Rt & AI_RAY_SHADOW)
