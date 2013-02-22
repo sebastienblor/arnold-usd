@@ -285,7 +285,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       ProcessParameter(fluid_shader, "invert_texture", AI_TYPE_BOOLEAN, "invertTexture");
       ProcessParameter(fluid_shader, "inflection", AI_TYPE_BOOLEAN, "inflection");
 
-      //ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
+      ProcessParameter(fluid_shader, "texture_time", AI_TYPE_FLOAT, "textureTime");
       ProcessParameter(fluid_shader, "zoom_factor", AI_TYPE_FLOAT, "zoomFactor");
       ProcessParameter(fluid_shader, "frequency", AI_TYPE_FLOAT, "frequency");
 
@@ -307,15 +307,6 @@ void CFluidTranslator::Export(AtNode* fluid)
       
       ProcessParameter(fluid_shader, "num_waves", AI_TYPE_INT, "numWaves");
    }
-   
-   if (IsMotionBlurEnabled(MTOA_MBLUR_SHADER))
-   {
-      AtArray* textureTimeArray = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AiArraySetFlt(textureTimeArray, 0, FindMayaPlug("textureTime").asFloat());
-      AiNodeSetArray(fluid_shader, "texture_time", textureTimeArray);
-   }
-   else
-      AiNodeSetFlt(fluid_shader, "texture_time", FindMayaPlug("textureTime").asFloat());
    
    bool exportDensity = false;
    bool exportFuel = false;
@@ -493,12 +484,5 @@ void CFluidTranslator::Export(AtNode* fluid)
 
 void CFluidTranslator::ExportMotion(AtNode* fluid, unsigned int step)
 {
-   ExportMatrix(fluid, step);   
-   if (IsMotionBlurEnabled(MTOA_MBLUR_SHADER))
-   {
-      AtNode* fluid_shader = (AtNode*)AiNodeGetPtr(fluid, "shader");
-      AtArray* textureTimeArray = AiArrayCopy(AiNodeGetArray(fluid_shader, "texture_time"));
-      AiArraySetFlt(textureTimeArray, step, FindMayaPlug("textureTime").asFloat());
-      AiNodeSetArray(fluid_shader, "texture_time", textureTimeArray);
-   }
+   ExportMatrix(fluid, step);
 }

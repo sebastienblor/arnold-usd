@@ -161,7 +161,7 @@ node_parameters
    AiParameterBool("invert_texture", false);
    AiParameterBool("inflection", false);
    
-   AiParameterArray("texture_time", AiArray(1, 1, AI_TYPE_FLOAT, 0.f));
+   AiParameterFlt("texture_time", 0.f);
    AiParameterFlt("zoom_factor", 1.f);
    AiParameterFlt("frequency", 1.f);
    
@@ -658,8 +658,6 @@ struct MayaFluidData{
    GradientDescription<AtRGB> incandescenceGradient;
    GradientDescription<float, false, false> opacityGradient;  
    
-   AtArray* textureTime;
-   
    AtRGB transparency; 
    
    AtVector dmin, dmax;
@@ -817,8 +815,6 @@ node_update
    data->colorTexGain = AiNodeGetFlt(node, "color_tex_gain");
    data->incandTexGain = AiNodeGetFlt(node, "incand_tex_gain");
    data->opacityTexGain = AiNodeGetFlt(node, "opacity_tex_gain");
-   
-   data->textureTime = AiNodeGetArray(node, "texture_time");
    
    data->textureNoise = data->colorTexture || data->incandTexture || data->opacityTexture;
    
@@ -1320,7 +1316,7 @@ shader_evaluate
       float volumeNoise = 0.f;
       const float frequencyRatio = AiShaderEvalParamFlt(p_frequency_ratio);
       const float ratio = AiShaderEvalParamFlt(p_ratio);
-      float textureTime = AiArrayInterpolateFlt(data->textureTime, sg->time, 0);
+      float textureTime = AiShaderEvalParamFlt(p_texture_time);
       
       int depth[2] = {0, data->depthMax};
       float ripples[3] = {1.0f, 1.0f, 1.0f};
