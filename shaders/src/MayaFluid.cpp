@@ -191,8 +191,6 @@ node_parameters
    
    AiParameterEnum("coordinate_method", 0, coordinateMethodEnums);
    
-   AiParameterArray("matrix", AiArrayAllocate(0, 1, AI_TYPE_MATRIX));
-   
    AiParameterFlt("shadow_opacity", 0.5f);
 
    AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
@@ -291,8 +289,6 @@ enum MayaFluidParams{
    
    p_volume_noise,
    p_coordinate_method,
-   
-   p_matrix,
    
    p_shadow_opacity,
 
