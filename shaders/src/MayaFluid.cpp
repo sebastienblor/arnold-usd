@@ -196,10 +196,8 @@ node_parameters
    AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
    AiParameterFlt("edge_dropoff", 0.05f);
    
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaFluid");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1E);
 }
 
 enum MayaFluidParams{
