@@ -38,7 +38,7 @@ def doCreateMeshLight():
 
     
 def arnoldAboutDialog():
-    arnoldAboutText =  u"Arnold for Maya\n\nMtoA 0.22.0\nArnold Core 4.0.12.0\n\n"
+    arnoldAboutText =  u"Arnold for Maya\n\n\n"
     arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2013\nSolid Angle SL\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard,\nYannick Puech, Borja Morales, Nicolas Dumay,\nPedro Fernando Gomez, Pál Mezei\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, \nChad Dombrova, Gaetan Guidet, Gaël Honorez,\nDiego Garcés, Kevin Tureski, Frédéric Servant"
@@ -46,7 +46,7 @@ def arnoldAboutDialog():
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
     w = cmds.window("AboutArnold", title="About")
-    cmds.window("AboutArnold", edit=True, width=402, height=280)
+    cmds.window("AboutArnold", edit=True, width=402, height=260)
     cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,20), (2, 52), (3, 50), (4, 280)] )
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
