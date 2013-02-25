@@ -1226,7 +1226,8 @@ def createArnoldRendererGlobalsTab():
 
 def updateBackgroundSettings(*args):
     background = getBackgroundShader()
-    pm.textField('defaultArnoldRenderOptionsBackgroundTextField', edit=True, text=background)
+    if pm.textField( 'defaultArnoldRenderOptionsBackgroundTextField', query=True, exists=True):
+        pm.textField('defaultArnoldRenderOptionsBackgroundTextField', edit=True, text=background)
 
 def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
