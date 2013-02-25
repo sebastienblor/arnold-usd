@@ -22,8 +22,7 @@ void *LibraryLoad(const char *filename)
 {
    void *result;
    int len = strlen(filename);
-   UINT errorMode = GetErrorMode();
-   SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS); // or maybe SetThreadedErrorMode?
+   UINT errorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS); // SetThreadedErrorMode is Win7+
    // Remove trailing .so if found (LoadLibrary will automatically add ".dll" to that name)
    if (filename && (len > 3) && !strcmp(filename + len - 3, ".so"))
    {
