@@ -35,7 +35,10 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.beginLayout('Extra', collapse=False)
         self.addControl('opacity', label='Opacity')
         self.endLayout()
+
+        self.addAOVLayout()
         
+        # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
         
         self.addExtraControls()
