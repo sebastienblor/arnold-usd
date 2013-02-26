@@ -237,6 +237,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("sss_bssrdf_samples");
    s_attributes.MakeInput("sss_sample_factor");
    
+   s_attributes.MakeInput("region_min_x");
+   s_attributes.MakeInput("region_max_x");
+   s_attributes.MakeInput("region_min_y");   
+   s_attributes.MakeInput("region_max_y");
+   
    s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, true);
    nAttr.setKeyable(false);
    addAttribute(s_enable_raytraced_SSS);

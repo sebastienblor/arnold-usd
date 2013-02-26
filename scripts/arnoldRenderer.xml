@@ -65,6 +65,7 @@
     <attr n="y" s="defaultResolution.height" t="int" h="Set Y resolution of the final image"/>
     <mel n="percentRes" s="$resize=%1" p="1" t="float" h="Renders the image using percent of the resolution"/>
     <attr n="ard" s="defaultResolution.deviceAspectRatio" t="float" h="Device aspect ratio for the rendered image"/>
+    <mel n="ai:reg" s="setAttr defaultArnoldRenderOptions.regionMinX %1;setAttr defaultArnoldRenderOptions.regionMaxX %2;setAttr defaultArnoldRenderOptions.regionMinY %3;setAttr defaultArnoldRenderOptions.regionMaxY %4;" p="4" t="int" h="Set render region"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Samples options"/>
