@@ -8,12 +8,10 @@ class AEaiHairTemplate(ShaderAETemplate):
         
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
-        self.beginLayout('Color', collapse=False)
+        self.beginLayout('Diffuse', collapse=False)
         self.addControl('rootcolor', label='Root Color')
         self.addControl('tipcolor', label='Tip Color')
-        self.endLayout()
-        
-        self.beginLayout('Diffuse', collapse=False)
+        self.addSeparator()
         self.addControl('diffuse_cache', label='Diffuse Cache')
         self.addControl('ambdiff', label='Ambient Diffuse')
         self.addControl('kd_ind', label='Indirect Diffuse')
