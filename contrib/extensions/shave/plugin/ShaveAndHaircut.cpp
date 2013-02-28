@@ -1,5 +1,7 @@
 #include "ShaveAndHaircut.h"
 
+#include <maya/shaveAPI.h>
+
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
 
@@ -8,6 +10,8 @@
 #include "utils/time.h"
 
 class CExtensionAttrHelper;
+
+shaveAPI::HairInfo CShaveTranslator::m_hairInfo;
 
 MStatus CShaveTranslator::UpdateHairInfo()
 {
