@@ -11,7 +11,7 @@
 
 class CExtensionAttrHelper;
 
-shaveAPI::HairInfo CShaveTranslator::m_hairInfo;
+shaveAPI::HairInfo* CShaveTranslator::p_hairInfo = new shaveAPI::HairInfo();
 
 MStatus CShaveTranslator::UpdateHairInfo()
 {
@@ -22,7 +22,7 @@ MStatus CShaveTranslator::UpdateHairInfo()
 
    // Export shaveAndHaircut info into a variable
    //
-   status = shaveAPI::exportHair(hairNodes, &m_hairInfo);
+   status = shaveAPI::exportHair(hairNodes, p_hairInfo);
    return status;
 }
 
@@ -158,15 +158,15 @@ void CShaveTranslator::Update(AtNode* curve)
    }
    
    // The numPoints array (int array the size of numLines, no motionsteps)
-   AtArray* curveNumPoints             = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_INT);
+   AtArray* curveNumPoints             = AiArrayAllocate(p_hairInfo->numHairs, 1, AI_TYPE_INT);
 
    // The root and tip color array
    AtArray* rootColor = NULL;
    AtArray* tipColor = NULL;
    if(export_curve_color)
    {
-      rootColor = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_RGB);
-      tipColor  = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_RGB);
+      rootColor = AiArrayAllocate(p_hairInfo->numHairs, 1, AI_TYPE_RGB);
+      tipColor  = AiArrayAllocate(p_hairInfo->numHairs, 1, AI_TYPE_RGB);
    }
 
    plug = FindMayaPlug("aiExportHairIDs");
@@ -179,39 +179,39 @@ void CShaveTranslator::Update(AtNode* curve)
    AtArray * curveID = NULL;
    if (export_curve_id)
    {
-      curveID = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_UINT);
+      curveID = AiArrayAllocate(p_hairInfo->numHairs, 1, AI_TYPE_UINT);
    }
    
 
    // The U and V paramcoords array
-   AtArray* curveUParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_FLOAT);
-   AtArray* curveVParamCoord          = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_FLOAT);
+   AtArray* curveUParamCoord          = AiArrayAllocate(p_hairInfo->numHairs, 1, AI_TYPE_FLOAT);
+   AtArray* curveVParamCoord          = AiArrayAllocate(p_hairInfo->numHairs, 1, AI_TYPE_FLOAT);
 
-   for (int i = 0; i < m_hairInfo.numHairs; ++i)
+   for (int i = 0; i < p_hairInfo->numHairs; ++i)
    {
-      int hairRootIndex = m_hairInfo.hairStartIndices[i];
+      int hairRootIndex = p_hairInfo->hairStartIndices[i];
 
       // Set numPoints
-      int numRenderLineCVs = m_hairInfo.hairEndIndices[i] - hairRootIndex;
+      int numRenderLineCVs = p_hairInfo->hairEndIndices[i] - hairRootIndex;
       AiArraySetInt(curveNumPoints, i, (numRenderLineCVs+2));
 
       // Set UV
-      AiArraySetFlt(curveUParamCoord, i, m_hairInfo.uvws[hairRootIndex].x);
-      AiArraySetFlt(curveVParamCoord, i, m_hairInfo.uvws[hairRootIndex].y);
+      AiArraySetFlt(curveUParamCoord, i, p_hairInfo->uvws[hairRootIndex].x);
+      AiArraySetFlt(curveVParamCoord, i, p_hairInfo->uvws[hairRootIndex].y);
 
       // Root and tip colours for the ShaveHair shader.
       // TODO: Make exporting all the info for the ShaveHair shader an option.
       if (export_curve_color)
       {
          AtColor shaveRootColors;
-         shaveRootColors.r = m_hairInfo.rootColors[i].r;
-         shaveRootColors.g = m_hairInfo.rootColors[i].g;
-         shaveRootColors.b = m_hairInfo.rootColors[i].b;
+         shaveRootColors.r = p_hairInfo->rootColors[i].r;
+         shaveRootColors.g = p_hairInfo->rootColors[i].g;
+         shaveRootColors.b = p_hairInfo->rootColors[i].b;
    
          AtColor shaveTipColors;
-         shaveTipColors.r = m_hairInfo.tipColors[i].r;
-         shaveTipColors.g = m_hairInfo.tipColors[i].g;
-         shaveTipColors.b = m_hairInfo.tipColors[i].b;
+         shaveTipColors.r = p_hairInfo->tipColors[i].r;
+         shaveTipColors.g = p_hairInfo->tipColors[i].g;
+         shaveTipColors.b = p_hairInfo->tipColors[i].b;
 
          AiArraySetRGB(rootColor, i, shaveRootColors);
          AiArraySetRGB(tipColor,  i, shaveTipColors);
@@ -242,9 +242,9 @@ void CShaveTranslator::Update(AtNode* curve)
    // It seems (though I have yet to confirm with SA) that the discrepancy is due to duplicate knots at the
    // beginning and end of each strand in arnold curves, which are not considered in the "radius" array.
    // Shave does not include these extra knots in its HairInfo.vertices array.
-   AtArray* curveWidths = AiArrayAllocate(m_hairInfo.numHairVertices, 1, AI_TYPE_FLOAT);
+   AtArray* curveWidths = AiArrayAllocate(p_hairInfo->numHairVertices, 1, AI_TYPE_FLOAT);
 
-   int numPointsInterpolation = m_hairInfo.numHairVertices + (m_hairInfo.numHairs * 2);
+   int numPointsInterpolation = p_hairInfo->numHairVertices + (p_hairInfo->numHairs * 2);
 
    AtArray* curvePoints = NULL;
    // TODO: Change this to use RequiresMotionDeformData()
@@ -301,7 +301,7 @@ void CShaveTranslator::Update(AtNode* curve)
                     curveNumPoints,
                     curveWidths);
 
-   m_hairInfo.clear();
+   p_hairInfo->clear();
 }
 
 void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
@@ -323,7 +323,7 @@ void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
                        AiNodeGetArray(curve, "num_points"),
                        AiNodeGetArray(curve, "radius"));
 
-      m_hairInfo.clear();
+      p_hairInfo->clear();
    }
 }
 
@@ -333,20 +333,20 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
                                         AtArray* curveWidths)
 {
    // Get number of CVs per hair/line/strand.
-   const int numPointsPerStep = m_hairInfo.numHairVertices + (m_hairInfo.numHairs * 2);
+   const int numPointsPerStep = p_hairInfo->numHairVertices + (p_hairInfo->numHairs * 2);
 
    // Tells us where the nextline starts.
    int curveLineInterpStartsIdx = 0;
    int curveLineStartsIdx       = 0;
 
    // Process all hair lines
-   for (int strand = 0; strand < m_hairInfo.numHairs; ++strand)
+   for (int strand = 0; strand < p_hairInfo->numHairs; ++strand)
    {
-      int numHairPoints = m_hairInfo.hairEndIndices[strand] - m_hairInfo.hairStartIndices[strand];
+      int numHairPoints = p_hairInfo->hairEndIndices[strand] - p_hairInfo->hairStartIndices[strand];
 
       // Curve radius
-      const float rootRadius = m_hairInfo.rootRadii[strand];
-      const float tipRadius  = m_hairInfo.tipRadii[strand];
+      const float rootRadius = p_hairInfo->rootRadii[strand];
+      const float tipRadius  = p_hairInfo->tipRadii[strand];
       const float radiusStepSize = (rootRadius - tipRadius) / (numHairPoints-2);
 
       float curveSize = rootRadius;
@@ -354,7 +354,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
 
       // This is a pointer to the first vertex in the hair strand.
       // It's incremement in the for loop below.
-      shaveAPI::Vertex * vertex = &(m_hairInfo.vertices[m_hairInfo.hairStartIndices[strand]]);
+      shaveAPI::Vertex * vertex = &(p_hairInfo->vertices[p_hairInfo->hairStartIndices[strand]]);
 
       AtPoint arnoldCurvePoint;
       AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
@@ -365,8 +365,8 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
                     arnoldCurvePoint);
       
       // Loop through all the hair strand indices.
-      for (int j = m_hairInfo.hairStartIndices[strand];
-           j < m_hairInfo.hairEndIndices[strand];
+      for (int j = p_hairInfo->hairStartIndices[strand];
+           j < p_hairInfo->hairEndIndices[strand];
            ++j, ++index, ++vertex)
       {
          // Add the point.

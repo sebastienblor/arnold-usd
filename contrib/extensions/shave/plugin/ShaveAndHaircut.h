@@ -24,5 +24,5 @@ private:
                          AtArray* curveNumPoints,
                          AtArray* curveWidths);
    MStatus UpdateHairInfo();
-   static shaveAPI::HairInfo m_hairInfo;
+   static shaveAPI::HairInfo* p_hairInfo;
 };
