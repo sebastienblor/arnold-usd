@@ -82,15 +82,10 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
    AiNodeSetInt(light,  "volume_samples",  FindMayaPlug("aiVolumeSamples").asInt());
    
-   if (FindMayaPlug("emitDiffuse").asBool())
-      AiNodeSetFlt(light, "diffuse", FindMayaPlug("aiDiffuse").asFloat());
-   else
-      AiNodeSetFlt(light, "diffuse", 0.f);
-   
-   if (FindMayaPlug("emitSpecular").asBool())
-      AiNodeSetFlt(light, "specular", FindMayaPlug("aiSpecular").asFloat());
-   else
-      AiNodeSetFlt(light, "specular", 0.f);
+   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
+   AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
+   AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
  
    MStatus status;
    MPlug pFilters = FindMayaPlug("aiFilters");
