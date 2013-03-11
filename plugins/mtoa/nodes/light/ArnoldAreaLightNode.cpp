@@ -171,13 +171,15 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Quad
    if (areaType == "quad")
    {
-      glBegin(GL_QUADS);
-      glVertex3f(-1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f,-1.0f, 0.0f);
-      glVertex3f(-1.0f,-1.0f, 0.0f);
-      glEnd();
       glBegin(GL_LINES);
+      glVertex3f(-1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f, 1.0f, 0.0f);      
+      glVertex3f( 1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f,-1.0f, 0.0f);      
+      glVertex3f( 1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f,-1.0f, 0.0f);      
+      glVertex3f(-1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f, 1.0f, 0.0f);      
       glVertex3f(-1.0f, 1.0f, 0.0f);
       glVertex3f( 1.0f,-1.0f, 0.0f);
       glVertex3f(-1.0f,-1.0f, 0.0f);
