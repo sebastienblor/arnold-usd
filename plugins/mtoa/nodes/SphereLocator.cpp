@@ -55,6 +55,7 @@ bool CSphereLocator::isAbstractClass()
 {
    return true;
 }
+
 void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format)
 {
 
@@ -151,6 +152,47 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    }
    m_goUVSample = false;
    glEnd();
+}
+
+void SphereVertex(float radius, float phi, float theta)
+{
+   float y = cosf(theta) * radius;
+   float t = sinf(theta) * radius;
+   float x = t * sinf(phi);
+   float z = t * cosf(phi);
+   glVertex3f(x, y, z);
+} 
+
+void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divisionsY)
+{
+   glRotatef(-90.0, 1.0, 0.0, 0.0);
+   glBegin(GL_LINES);
+   
+   for (int x = 0; x < divisionsX; ++x)
+   {
+      float phiB = (float)AI_PITIMES2 * (float)x / (float)divisionsX;
+      float phiE = (float)AI_PITIMES2 * (float)(x + 1) / (float)divisionsX;
+      for (int y = 0; y < divisionsY; ++y)
+      {
+         float thetaB = (float)AI_PI * (float)y / (float)divisionsY;
+         float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisionsY;
+
+         SphereVertex(radius, phiB, thetaB);
+         SphereVertex(radius, phiE, thetaB);
+         
+         SphereVertex(radius, phiB, thetaE);
+         SphereVertex(radius, phiE, thetaE);
+         
+         SphereVertex(radius, phiB, thetaB);
+         SphereVertex(radius, phiB, thetaE);
+         
+         SphereVertex(radius, phiE, thetaB);
+         SphereVertex(radius, phiE, thetaE);
+      }
+   }
+   
+   glEnd();
+   glRotatef(90.0, 1.0, 0.0, 0.0);
 }
 
 void CSphereLocator::SampleSN(MPlug &colorPlug)
@@ -282,13 +324,12 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    MPlug facingPlug  = fn.findPlug("skyFacing");
    facingPlug.getValue(facing);
 
-   GLUquadricObj *quadratic;
-   GLuint texture;
-
    // do not write to the z buffer.
    glDepthMask(0);
+   
+   GLuint texture;
 
-   quadratic=gluNewQuadric();
+   GLUquadricObj *quadratic = gluNewQuadric();
    gluQuadricNormals(quadratic, GLU_FLAT);
    gluQuadricTexture(quadratic, GL_TRUE);
    glRotatef(90.0, 1.0, 0.0, 0.0);
@@ -304,13 +345,11 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       MPlug skyColorPlug  = fn.findPlug("color");
       MPlugArray conn;
       skyColorPlug.connectedTo(conn, true, false);
-
       glEnable(GL_CULL_FACE);
       if (facing == 0 || facing == 2)
          glCullFace(GL_FRONT);
       else if (facing == 1)
          glCullFace(GL_BACK);
-
 
 
       // If there is a connection
@@ -361,7 +400,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       // else, there is a plain colour
       else
       {
-         glPolygonMode(GL_BACK, GL_FILL);
          glColor4f(skyColorPlug.child(0).asFloat(), skyColorPlug.child(1).asFloat(), skyColorPlug.child(2).asFloat(), 0.6f);
          gluSphere(quadratic, radius, divisions, divisions);
       }
@@ -372,25 +410,18 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       // If it's selected, draw also wireframe
       if (displayStatusInt == 8)
       {
-         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
          glColor4f(1, 1, 0, 0.2f);
-         gluSphere(quadratic, radius, divisions, divisions);
+         DrawSphereWireframe(radius, divisions, divisions);
       }
 
    }
    else
    {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      // If it's selected
       if (displayStatusInt == 8)
-      {
          glColor4f(1, 1, 0, 0.2f);
-      }
       else
-      {
          glColor4f(0.75, 0, 0, 0.2f);
-      }
-      gluSphere(quadratic, radius, divisions, divisions);
+      DrawSphereWireframe(radius, divisions, divisions);
    }
 
    // re-enable depth writes
