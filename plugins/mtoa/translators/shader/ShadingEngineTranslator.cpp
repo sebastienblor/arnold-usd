@@ -32,6 +32,11 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.isArray = false;   
    
    helper.MakeInputNode(data);
+   
+   data.name = "aiVolumeShader";
+   data.shortName = "ai_volume_shader";
+   
+   helper.MakeInputNode(data);
 }
 
 /// Compute the shading engine's AOVs. these are connected to aiCustomAOVs compound array.
@@ -120,6 +125,24 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    else
       AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
             GetTranslatorName().asChar(), GetMayaNodeName().asChar());
+   
+   connections.clear();
+   MPlug volumeShaderPlug = FindMayaPlug("aiVolumeShader");
+   volumeShaderPlug.connectedTo(connections, true, false);
+   if (connections.length() == 0)
+   {
+      volumeShaderPlug = FindMayaPlug("volumeShader");
+      AiMsgDebug("[mtoa] CShadingEngineTranslator::Export found volumeShader plug %s", volumeShaderPlug.name().asChar());
+      volumeShaderPlug.connectedTo(connections, true, false);
+   }
+   if (connections.length() > 0)
+   {
+      // export the root shading network, this fills m_shaders
+      MFnDependencyNode shaderNode(connections[0].node());
+      MStatus status;
+      rootShader = ExportNode(connections[0]);
+      AiNodeLink(rootShader, "volume", shadingEngine);
+   }
 
    AddAOVDefaults(shadingEngine, aovShaders); // modifies aovShaders list
 }

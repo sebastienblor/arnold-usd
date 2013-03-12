@@ -57,8 +57,18 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
     def surfaceShaderUpdate(self, attrName):
         cmds.attrNavigationControlGrp("ShadingEngineSurfaceShader", edit=True, attribute=attrName)
 
+    def volumeShaderCreate(self, attrName):
+        cmds.columnLayout()
+        cmds.attrNavigationControlGrp('ShadingEngineVolumeShader', label = 'Volume Shader',
+                                     attribute=attrName)
+        cmds.setParent('..')
+
+    def volumeShaderUpdate(self, attrName):
+        cmds.attrNavigationControlGrp('ShadingEngineVolumeShader', edit=True, attribute=attrName)
+
     def setup(self):
         self.addCustom("aiSurfaceShader", self.surfaceShaderCreate, self.surfaceShaderUpdate)
+        self.addCustom("aiVolumeShader", self.volumeShaderCreate, self.volumeShaderUpdate)
         self.addCustom("aiCustomAOVs", self.buildAOVFrame, self.updateAOVFrame)
 
     def update(self):
