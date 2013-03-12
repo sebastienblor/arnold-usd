@@ -83,6 +83,10 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
+        self.beginLayout('Volume Attributes', collapse=False)
+        self.addControl('aiStepSize', label='Step Size')
+        self.addControl('aiVolumeContainerMode', label='Container Mode')
+        self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!

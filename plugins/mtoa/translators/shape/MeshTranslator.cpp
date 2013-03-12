@@ -105,7 +105,11 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
-      return AddArnoldNode("polymesh");
+      const short volumeContainerMode = FindMayaPlug("aiVolumeContainerMode").asShort();
+      if (volumeContainerMode == 1)
+         return AddArnoldNode("box");
+      else
+         return AddArnoldNode("polymesh");
    }
    else
    {
