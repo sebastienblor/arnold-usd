@@ -323,6 +323,20 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
 
    MPlug facingPlug  = fn.findPlug("skyFacing");
    facingPlug.getValue(facing);
+   
+   int renderMode;
+   glGetIntegerv(GL_RENDER_MODE, &renderMode);
+   // only render a wireframe representation, when in select mode
+   // this gets rid most of the problems, and still lets the users select
+   // the skydome light, the same way as mental ray ibl does
+   
+   glRotatef(90.0, 1.0, 0.0, 0.0);
+   
+   if (renderMode == GL_SELECT)
+   {
+      DrawSphereWireframe(radius, divisions, divisions);
+      return;
+   }
 
    // do not write to the z buffer.
    glDepthMask(0);
@@ -331,8 +345,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
 
    GLUquadricObj *quadratic = gluNewQuadric();
    gluQuadricNormals(quadratic, GLU_FLAT);
-   gluQuadricTexture(quadratic, GL_TRUE);
-   glRotatef(90.0, 1.0, 0.0, 0.0);
+   gluQuadricTexture(quadratic, GL_TRUE);  
 
    int displayStyle  = view.displayStyle();
    int displayStatusInt = displayStatus;
