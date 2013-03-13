@@ -837,7 +837,7 @@ node_update
    data->inflection = AiNodeGetBool(node, "inflection");
    data->invertTexture = AiNodeGetBool(node, "invert_texture");   
    
-   if (!(data->textureAffectColor || data->textureAffectOpacity || data->textureAffectOpacity))
+   if (!(data->textureAffectColor || data->textureAffectIncand || data->textureAffectOpacity))
       data->volumeTexture = 0;
    
    data->textureDisabledInShadows = false;
