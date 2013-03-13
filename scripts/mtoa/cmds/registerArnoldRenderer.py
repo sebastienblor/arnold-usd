@@ -320,6 +320,12 @@ def registerArnoldRenderer():
             import mtoa.core as core
             core.installCallbacks()
 
+            import maya.cmds as cmds
+
+            # opening a command port for different tools and maya batch progress messages
+            if not cmds.commandPort(':4700', query=True) and not pm.about(batch=True):
+                cmds.commandPort(name=':4700')
+
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
