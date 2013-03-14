@@ -263,7 +263,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
-      double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
       // FIXME: at scene open the animation bar in Maya maybe be off sync,
       // ie it shows 0 but currentTime -q returns 1. Render is correct as it's indeed
       // done for frame 1
@@ -278,7 +277,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
-      arnoldSession->SetExportFrame(currentFrame);
       if (MStatus::kSuccess == sel.getDagPath(0, camera)) arnoldSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
       renderSession->SetResolution(width, height);
