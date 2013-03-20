@@ -652,35 +652,64 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
-   // Only find for frame extension files if this option is true
-   if (fGeometry.useFrameExtension)
+   // If changed framestep, useFrameExtension or dso
+   if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
    {
-      // If changed framestep, useFrameExtension or dso
-      if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
-      {
-         MString frameNumber = "0";
+      MString frameNumber = "0";
          
-         bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-         char frameExtWithHash[64];
-         char frameExtWithDot[64];
-         char frameExt[64];
-         if (subFrames || fGeometry.useSubFrame)
+      bool subFrames = ((framestep - floor(framestep)) >= 0.001);
+      char frameExtWithHash[64];
+      char frameExtWithDot[64];
+      char frameExt[64];
+         
+      int start = 0;
+      int end = 0;
+      MStringArray pattern;
+      MString newDso = "";
+      int framePadding = 0;
+      int subFramePadding = 0;
+      bool resolved = false;
+
+      start = fGeometry.dso.index('#');
+      end = fGeometry.dso.rindex('#');
+
+      if(start >= 0)
+      {
+
+         fGeometry.dso.substring(start,end).split('.',pattern);
+         newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+         fGeometry.dso = newDso;
+         MString a, b;
+         
+
+         if(pattern.length() > 0)
+         {
+            framePadding = pattern[0].length();
+            a = pattern[0];
+         }
+         if(pattern.length() > 1)
+         {
+            subFramePadding = pattern[1].length();
+            b = pattern[1];
+         }
+
+         if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
          {
             int fullFrame = (int) floor(framestep);
             int subFrame = (int) floor((framestep - fullFrame) * 1000);
-            sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
-            sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
-            sprintf(frameExt, "%04d.%03d", fullFrame, subFrame);
+            sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+            sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+            sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
          }
          else
          {
-            sprintf(frameExtWithHash, "_%04d", (int) framestep);
-            sprintf(frameExtWithDot, ".%04d", (int) framestep);
-            sprintf(frameExt, "%04d", (int) framestep);
+            sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
+            sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
+            sprintf(frameExt, "%0*d", framePadding, (int) framestep);
          }
          frameNumber = frameExtWithDot;
 
-         bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+         resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
                frameNumber, fGeometry.filename);
 
          if (!resolved)
@@ -702,16 +731,12 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
                frameNumber, fGeometry.filename);
             }
          }
-
-         if (!resolved)
-         {
-            fGeometry.filename = fGeometry.dso;
-         }
       }
-   }
-   else
-   {
-      fGeometry.filename = fGeometry.dso;
+
+      if (!resolved)
+      {
+         fGeometry.filename = fGeometry.dso;
+      }
    }
    
    if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale)
