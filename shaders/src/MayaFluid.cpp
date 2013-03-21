@@ -85,17 +85,6 @@ enum billowFalloff{
    BF_BUBBLE
 };
 
-// http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
-inline float FastPow(float a, float b) {
-   union {
-      double d;
-      int x[2];
-   } u = { (double)a };
-   u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
-   u.x[0] = 0;
-   return (float)u.d;
-}
-
 node_parameters
 {
    AiParameterEnum("filter_type", FT_LINEAR, filterTypeEnums);
@@ -426,7 +415,7 @@ public:
          const float b = bias < -.99f ? -.99f : bias;
          const float x = value < 0.f ? 0.f : value;
 
-         return FastPow(x, (b - 1.f) / (-b - 1.f));
+         return powf(x, (b - 1.f) / (-b - 1.f));
       }
    }
    
@@ -1154,7 +1143,7 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
       const float dist = AiV3Length(v);
       if (dist > AI_EPSILON)
       {
-         const float fac = FastPow(dist, 1.f - implode) / dist;
+         const float fac = powf(dist, 1.f - implode) / dist;
          v *= fac;
       }
       v += implodeCenter;
