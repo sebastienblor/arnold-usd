@@ -71,7 +71,9 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.INT = 1;
    data.name = "aiFilterType";
    data.shortName = "ai_filter_type";
-   helper.MakeInputEnum(data);   
+   helper.MakeInputEnum(data);
+
+   MakeArnoldVisibilityFlags(helper);
 }
 
 AtNode* CFluidTranslator::CreateArnoldNodes()
@@ -191,6 +193,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    MFnDependencyNode mayaFluidNode(GetMayaObject());
    
    ExportMatrix(fluid, 0);
+   ProcessRenderFlags(fluid);
    
    AtNode* fluid_shader = (AtNode*)AiNodeGetPtr(fluid, "shader");
    MString shader_name = MString(AiNodeGetStr(fluid, "name")) + MString("_shader");
