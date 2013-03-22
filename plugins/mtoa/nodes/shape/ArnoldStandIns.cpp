@@ -669,18 +669,16 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       int framePadding = 0;
       int subFramePadding = 0;
       bool resolved = false;
+      MString a, b;
 
       start = fGeometry.dso.index('#');
       end = fGeometry.dso.rindex('#');
 
       if(start >= 0)
       {
-
          fGeometry.dso.substring(start,end).split('.',pattern);
          newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
          fGeometry.dso = newDso;
-         MString a, b;
-         
 
          if(pattern.length() > 0)
          {
@@ -692,44 +690,44 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
             subFramePadding = pattern[1].length();
             b = pattern[1];
          }
+      }
 
-         if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
-         {
-            int fullFrame = (int) floor(framestep);
-            int subFrame = (int) floor((framestep - fullFrame) * 1000);
-            sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
-            sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
-            sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
-         }
-         else
-         {
-            sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
-            sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
-            sprintf(frameExt, "%0*d", framePadding, (int) framestep);
-         }
-         frameNumber = frameExtWithDot;
+      if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
+      {
+         int fullFrame = (int) floor(framestep);
+         int subFrame = (int) floor((framestep - fullFrame) * 1000);
+         sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+      }
+      else
+      {
+         sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
+         sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
+         sprintf(frameExt, "%0*d", framePadding, (int) framestep);
+      }
+      frameNumber = frameExtWithDot;
 
+      resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+            frameNumber, fGeometry.filename);
+
+      if (!resolved)
+      {
+         frameNumber = frameExtWithHash;
          resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-               frameNumber, fGeometry.filename);
+            frameNumber, fGeometry.filename);
+      }
 
-         if (!resolved)
+      if (!resolved)
+      {
+         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         //  find the file.
+         int len = fGeometry.dso.length();
+         if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
          {
-            frameNumber = frameExtWithHash;
-            resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-               frameNumber, fGeometry.filename);
-         }
-
-         if (!resolved)
-         {
-            // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
-            //  find the file.
-            int len = fGeometry.dso.length();
-            if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
-            {
-               MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
-               resolved = MRenderUtil::exactFileTextureName(baseName, false,
-               frameNumber, fGeometry.filename);
-            }
+            MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            resolved = MRenderUtil::exactFileTextureName(baseName, false,
+            frameNumber, fGeometry.filename);
          }
       }
 

@@ -238,19 +238,17 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       int framePadding = 0;
       int subFramePadding = 0;
       bool resolved = false;
-
+      MString a, b;
+      
       start = dso.index('#');
       end = dso.rindex('#');
 
       if(start >= 0)
       {
-
          dso.substring(start,end).split('.',pattern);
          newDso = dso.substring(0,start-1) + "#" + dso.substring(end+1,dso.length());
          dso = newDso;
-         MString a, b;
          
-
          if(pattern.length() > 0)
          {
             framePadding = pattern[0].length();
@@ -261,41 +259,41 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
             subFramePadding = pattern[1].length();
             b = pattern[1];
          }
+      }
 
-         if (subFrames || useSubFrame || (subFramePadding != 0))
-         {
-            int fullFrame = (int) floor(framestep);
-            int subFrame = (int) floor((framestep - fullFrame) * 1000);
-            sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
-            sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
-            sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
-         }
-         else
-         {
-            sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
-            sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
-            sprintf(frameExt, "%0*d", framePadding, (int) framestep);
-         }
-         frameNumber = frameExtWithDot;
+      if (subFrames || useSubFrame || (subFramePadding != 0))
+      {
+         int fullFrame = (int) floor(framestep);
+         int subFrame = (int) floor((framestep - fullFrame) * 1000);
+         sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+      }
+      else
+      {
+         sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
+         sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
+         sprintf(frameExt, "%0*d", framePadding, (int) framestep);
+      }
+      frameNumber = frameExtWithDot;
 
+      resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+   
+      if (!resolved)
+      {
+         frameNumber = frameExtWithHash;
          resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
-      
-         if (!resolved)
+      }
+   
+      if (!resolved)
+      {
+         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         //  find the file.
+         int len = dso.length();
+         if (len > 8 && dso.substring(len - 7, len - 1) == ".ass.gz")
          {
-            frameNumber = frameExtWithHash;
-            resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
-         }
-      
-         if (!resolved)
-         {
-            // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
-            //  find the file.
-            int len = dso.length();
-            if (len > 8 && dso.substring(len - 7, len - 1) == ".ass.gz")
-            {
-               MString baseName = dso.substring(0, len - 9) + frameExt + ".ass.gz";
-               resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, filename);
-            }
+            MString baseName = dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, filename);
          }
       }
 
