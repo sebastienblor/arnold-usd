@@ -61,7 +61,7 @@ node_initialize
    status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
    if (status == -1)
    {
-      AiMsgInfo("Error connecting to the maya commandPort 1234.");
+      AiMsgInfo("Error connecting to the maya commandPort.");
       g_socketFd = -1;
       return;
    }
@@ -124,7 +124,7 @@ driver_open
    if (g_socketFd != -1)
    {
       std::stringstream ss;
-      ss << "print \"Starting render of Frame : " << ++g_frameNumber << "\\n\";";
+      ss << "print \"Started Render of Frame : " << ++g_frameNumber << "\\n\";";
       SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
    }
 }
