@@ -321,10 +321,18 @@ def registerArnoldRenderer():
             core.installCallbacks()
 
             import maya.cmds as cmds
-
-            # opening a command port for different tools and maya batch progress messages
-            if not cmds.commandPort(':4700', query=True) and not pm.about(batch=True):
-                cmds.commandPort(name=':4700')
+            if not pm.about(batch=True):
+                commandPortBase = 4700
+                try:
+                    commandPortBase = int(os.environ['MTOA_COMMAND_PORT'])
+                except:
+                    commandPortBase = 4700
+                # opening a command port for different tools and maya batch progress messages
+                for port in range(commandPortBase, commandPortBase + 100):
+                    commandPortName = ':%i' % port
+                    if not cmds.commandPort(commandPortName, query=True):
+                        cmds.commandPort(name=commandPortName)
+                        break
 
     except:
         import traceback
