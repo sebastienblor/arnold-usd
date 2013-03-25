@@ -6,17 +6,12 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
     core.createOptions()
     cmds.arnoldRender(cam=camera, w=width, h=height) 
-
 def arnoldBatchRenderOptionsString():
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']
-        if cmds.objExists('defaultResolution'):
-            if not cmds.objExists('defaultResolution.mtoaCommandPort'):
-                cmds.addAttr('defaultResolution', longName='mtoaCommandPort', shortName='mtoa_comport', attributeType='long')
-            cmds.setAttr('defaultResolution.mtoaCommandPort', port)
-        return ''
+        return ' -r arnold -ai:port %i ' % port
     except:
-        return ''
+        return ' -r arnold '
 
 def arnoldBatchRender(option):
     # Make sure the aiOptions node exists
@@ -24,9 +19,9 @@ def arnoldBatchRender(option):
     # Parse option string
     kwargs = {}
     options = option.split(" ")
-    if cmds.objExists('defaultResolution.mtoaCommandPort'):
-        kwargs['port'] = cmds.getAttr('defaultResolution.mtoaCommandPort')
     i, n = 0, len(options)
+    if cmds.optionVar(exists='mtoaCommandPort'):
+        kwargs['port'] = cmds.optionVar(q='mtoaCommandPort')
     while i < n:
         if options[i] in ["-w", "-width"]:
             i += 1
@@ -45,11 +40,6 @@ def arnoldBatchRender(option):
             if i >= n:
                 break
             kwargs["camera"] = options[i]
-        elif options[i] in ['-p', '-port']:
-            i += 1
-            if i >= n:
-                break
-            kwargs['port'] = options[i]
         i += 1
     try:
         cmds.arnoldRender(batch=True, **kwargs)

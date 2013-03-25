@@ -44,7 +44,6 @@ node_initialize
    
    if (socketFd == -1)
    {
-      AiMsgInfo("Error creating socket for maya commandPort connection.");
       return;
    }
    
@@ -61,7 +60,6 @@ node_initialize
    status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
    if (status == -1)
    {
-      AiMsgInfo("Error connecting to the maya commandPort.");
       g_socketFd = -1;
       return;
    }
@@ -141,7 +139,7 @@ driver_write_bucket
       g_calculatedPixels += bucket_size_x * bucket_size_y;
       std::stringstream ss;
       ss << "print \"Render progress : " << (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) << "%\\n\";";
-      //SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
+      SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
    }
 }
 
