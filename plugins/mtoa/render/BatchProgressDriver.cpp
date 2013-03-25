@@ -65,7 +65,6 @@ node_initialize
       g_socketFd = -1;
       return;
    }
-   AiMsgInfo("Opened socket for maya command port : %i", AiNodeGetInt(node, "port"));
 }
 
 void SendSocket(SOCKET socketFd, const void* data, int dataSize)
@@ -142,7 +141,7 @@ driver_write_bucket
       g_calculatedPixels += bucket_size_x * bucket_size_y;
       std::stringstream ss;
       ss << "print \"Render progress : " << (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) << "%\\n\";";
-      SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
+      //SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
    }
 }
 

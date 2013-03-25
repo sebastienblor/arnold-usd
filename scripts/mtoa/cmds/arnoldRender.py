@@ -10,10 +10,12 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
 def arnoldBatchRenderOptionsString():
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']
-        print 'Command port is %i ' % port
-        return ' -port %i ' % port
+        if cmds.objExists('defaultResolution'):
+            if not cmds.objExists('defaultResolution.mtoaCommandPort'):
+                cmds.addAttr('defaultResolution', longName='mtoaCommandPort', shortName='mtoa_comport', attributeType='long')
+            cmds.setAttr('defaultResolution.mtoaCommandPort', port)
+        return ''
     except:
-        print 'No command port variable present!'
         return ''
 
 def arnoldBatchRender(option):
@@ -22,7 +24,8 @@ def arnoldBatchRender(option):
     # Parse option string
     kwargs = {}
     options = option.split(" ")
-    print 'Options string ', option
+    if cmds.objExists('defaultResolution.mtoaCommandPort'):
+        kwargs['port'] = cmds.getAttr('defaultResolution.mtoaCommandPort')
     i, n = 0, len(options)
     while i < n:
         if options[i] in ["-w", "-width"]:

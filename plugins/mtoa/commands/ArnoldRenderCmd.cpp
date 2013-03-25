@@ -271,6 +271,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
                AtNode* progressDriver = AiNode("batch_progress_driver");
                AiNodeSetStr(progressDriver, "name", "progress_driver");
+               AiNodeSetInt(progressDriver, "port", port);
 
                AiArraySetStr(newOutputs, oldCount, "Z FLOAT progress_driver_filter progress_driver");
                AiNodeSetArray(options, "outputs", newOutputs);
