@@ -334,9 +334,10 @@ def registerArnoldRenderer():
                     if not cmds.commandPort(commandPortName, query=True):
                         cmds.commandPort(name=commandPortName)
                         core.MTOA_GLOBALS['COMMAND_PORT'] = port
-                        break
-
-
+                        if cmds.objExists('defaultResolution'):
+                            if not cmds.objExists('defaultResolution.mtoaCommandPort'):
+                                cmds.addAttr('defaultResolution', longName='mtoaCommandPort', shortName='mtoa_comport', attributeType='long')
+                            cmds.setAttr('defaultResolution.mtoaCommandPort', port)                        
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)

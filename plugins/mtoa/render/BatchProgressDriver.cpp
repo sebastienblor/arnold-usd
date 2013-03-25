@@ -65,6 +65,7 @@ node_initialize
       g_socketFd = -1;
       return;
    }
+   AiMsgInfo("Opened socket for maya command port : %i", AiNodeGetInt(node, "port"));
 }
 
 void SendSocket(SOCKET socketFd, const void* data, int dataSize)

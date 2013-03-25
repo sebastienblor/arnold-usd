@@ -14,6 +14,8 @@ def arnoldBatchRender(option):
     kwargs = {}
     options = option.split(" ")
     i, n = 0, len(options)
+    if cmds.objExists('defaultResolution.mtoaCommandPort'):
+        kwargs['port'] = cmds.getAttr('defaultResolution.mtoaCommandPort')
     while i < n:
         if options[i] in ["-w", "-width"]:
             i += 1
