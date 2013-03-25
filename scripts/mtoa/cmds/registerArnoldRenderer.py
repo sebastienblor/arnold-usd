@@ -331,12 +331,12 @@ def registerArnoldRenderer():
                 # opening a command port for different tools and maya batch progress messages
                 for port in range(commandPortBase, commandPortBase + 100):
                     commandPortName = ':%i' % port
-                    if not cmds.commandPort(commandPortName, query=True):
+                    try:
                         cmds.commandPort(name=commandPortName)
                         core.MTOA_GLOBALS['COMMAND_PORT'] = port
                         break
-
-
+                    except:
+                        pass
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
