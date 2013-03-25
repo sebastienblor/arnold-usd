@@ -1,5 +1,4 @@
-#ifndef EXTENSIONSMANAGER_H
-#define EXTENSIONSMANAGER_H
+#pragma once
 
 #define MNoVersionString
 #define MNoPluginEntry
@@ -97,6 +96,3 @@ private:
 
    static MCallbackId s_pluginLoadedCallbackId;
 };
-
-
-#endif  // EXTENSIONSMANAGER_H

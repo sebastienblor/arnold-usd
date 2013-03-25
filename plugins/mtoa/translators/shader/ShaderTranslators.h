@@ -1,5 +1,4 @@
-#ifndef SHADER_TRANSLATORS_H
-#define SHADER_TRANSLATORS_H
+#pragma once
 
 #include "ShaderTranslator.h"
 
@@ -78,6 +77,3 @@ public:
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
 };
-
-
-#endif // SHADER_TRANSLATORS_H

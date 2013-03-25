@@ -1,5 +1,4 @@
-#ifndef MAYASCENE_H
-#define MAYASCENE_H
+#pragma once
 
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
@@ -62,6 +61,7 @@ public:
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();
+   static MStatus Restart();
 
    static bool IsArnoldLight(const MObject & object);
    static MObject GetSceneArnoldRenderOptionsNode();
@@ -103,5 +103,3 @@ private:
    static AtCritSec s_lock;
    static bool s_active;
 };  // class CMayaScene
-
-#endif // MAYASCENE_H

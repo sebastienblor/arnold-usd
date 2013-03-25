@@ -32,7 +32,6 @@ if 'pymel' in globals():
 
 import pymel.core as pm
 import pymel.versions as versions
-import maya.cmds as cmds
 
 if hasattr(pymel, '_mtoaPatch') :
     print "Patched pymel version %s loaded" % pymel.__version__
@@ -44,7 +43,8 @@ try:
     import mtoa.ui.nodeTreeLister as nodeTreeLister
     import mtoa.ui.globals.common
     from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
+    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings, createArnoldRendererOverrideTab, updateArnoldRendererOverrideTab
+    from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab
     from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu
@@ -199,7 +199,10 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
         createProcs = ['createMayaSoftwareCommonGlobalsTab',
                           'createMayaSoftwareGlobalsTab',
                           'createArnoldRendererCommonGlobalsTab',
-                          'createArnoldRendererGlobalsTab']
+                          'createArnoldRendererGlobalsTab',
+                          'createArnoldRendererSystemTab',
+                          'createArnoldRendererOverrideTab',
+                          'createArnoldRendererDiagnosticsTab']
 
         if createProc in createProcs:
             pm.mel.eval(createProc)
@@ -252,9 +255,18 @@ def _register():
     pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
                                                       utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
                                                       utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('System', 
+                                                      utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
                                                       utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
+                                                      utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Override', 
+                                                      utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     utils.pyToMelProc(updateBackgroundSettings, useName=True)
     #We have to source this file otherwise maya will override
@@ -307,14 +319,26 @@ def registerArnoldRenderer():
             # callbacks
             import mtoa.core as core
             core.installCallbacks()
+            core.MTOA_GLOBALS['COMMAND_PORT'] = None
+
+            import maya.cmds as cmds
+            if not pm.about(batch=True):
+                commandPortBase = 4700
+                try:
+                    commandPortBase = int(os.environ['MTOA_COMMAND_PORT'])
+                except:
+                    commandPortBase = 4700
+                # opening a command port for different tools and maya batch progress messages
+                for port in range(commandPortBase, commandPortBase + 100):
+                    commandPortName = ':%i' % port
+                    if not cmds.commandPort(commandPortName, query=True):
+                        cmds.commandPort(name=commandPortName)
+                        core.MTOA_GLOBALS['COMMAND_PORT'] = port
+                        break
+
+
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
         raise
-    try:
-	    # opening a command port for batch render messaging
-        if not cmds.commandPort(':1234', query=True) and not pm.about(batch=True):
-            cmds.commandPort(name=':1234')
-    except:
-	    pass
 

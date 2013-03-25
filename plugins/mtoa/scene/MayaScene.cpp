@@ -210,6 +210,26 @@ MStatus CMayaScene::End()
    return status;
 }
 
+MStatus CMayaScene::Restart()
+{
+   CRenderOptions options = s_renderSession->m_renderOptions;
+   CSessionOptions optionss = s_arnoldSession->m_sessionOptions;
+
+   s_renderSession->End();
+   s_arnoldSession->End();
+
+   optionss.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+
+   s_renderSession->Begin(options);
+   s_arnoldSession->Begin(optionss);
+
+   s_arnoldSession->Export();
+         
+   s_renderSession->m_renderOptions.UpdateImageDimensions();
+
+   return MStatus::kSuccess;
+}
+
 bool CMayaScene::IsArnoldLight(const MObject & object)
 {
    MFnDependencyNode depFn(object);
@@ -451,9 +471,7 @@ void CMayaScene::IPRIdleCallback(void *)
             
       if(forceUpdate)
       {
-         CMayaScene::End();
-         CMayaScene::Begin(MTOA_SESSION_IPR);
-         CMayaScene::Export();
+         CMayaScene::Restart();
       }
       else
       {

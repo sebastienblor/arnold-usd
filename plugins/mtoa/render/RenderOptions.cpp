@@ -44,6 +44,7 @@ CRenderOptions::CRenderOptions()
 ,  m_multiCameraRender(false)
 ,  m_use_existing_tiled_textures(true)
 ,  m_outputAssMask(AI_NODE_ALL)
+,  m_expandProcedurals(false)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(DEFAULT_LOG_FLAGS)
@@ -171,6 +172,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_sss_sample_factor        = fnArnoldRenderOptions.findPlug("sss_sample_factor").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
       m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
+      m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
       
       m_use_existing_tiled_textures = fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
 
@@ -209,6 +211,19 @@ void CRenderOptions::SetupLog() const
             MGlobal::executeCommand("workspace -q -directory", result);
             logPath = result + m_log_filename.substringW(15, m_log_filename.length());
          }
+      }
+      int extPos = logPath.rindexW('.');
+      int frame;
+      MGlobal::executeCommand("currentTime -q", frame);
+      if (extPos > 0) // The file name has extension
+         logPath = logPath.substringW(0, extPos) + frame + logPath.substringW(extPos, logPath.length());
+      else
+      {
+         unsigned int slashPos = logPath.rindexW('/');
+         if (slashPos+1 < logPath.length()) // File name without extension
+            logPath = logPath +"."+ frame + ".log";
+         else // No file name
+            logPath = logPath + frame + ".log";
       }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
    }

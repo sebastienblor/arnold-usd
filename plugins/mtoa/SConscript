@@ -21,6 +21,7 @@ for subdir in ['commands', 'nodes', 'translators'] :
 
 #Remove files to be exported by the API from 'nodes' and 'translators' folder
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
+                    os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'light', 'LightTranslator.cpp'),
                     os.path.join('translators', 'options', 'OptionsTranslator.cpp'),
@@ -28,6 +29,7 @@ source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp')]
 include_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
+                     os.path.join('translators', 'camera', 'AutoCameraTranslator.h'),
                      os.path.join('translators', 'camera', 'CameraTranslator.h'),
                      os.path.join('translators', 'light', 'LightTranslator.h'),
                      os.path.join('translators', 'options', 'OptionsTranslator.h'),
@@ -67,10 +69,10 @@ if system.os() == 'windows':
                                                '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
                                                '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
                                                '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
-                                    variant = ['Debug_MSVC|Win64',
-                                               'Debug_ICC|Win64',
-                                               'Opt_MSVC|Win64',
-                                               'Opt_ICC|Win64'],
+                                    variant = ['Debug_MSVC|x64',
+                                               'Debug_ICC|x64',
+                                               'Opt_MSVC|x64',
+                                               'Opt_ICC|x64'],
                                     auto_build_solution = 0,
                                     nokeep = 1)
 

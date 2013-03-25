@@ -513,6 +513,8 @@ shader_evaluate
    case PT_TRIPLANAR:
       if (wrap || IsInsideBox(P))
       {
+         AtVector tmpNrm;
+         bool useNref = SetRefererenceNormals(sg, tmpNrm);
          // In local use camera space
          AtVector N = sg->N;
          AtMatrix camm, *pcamm = 0;
@@ -531,6 +533,7 @@ shader_evaluate
          stx = TriPlanarMapping(ComputePoint(sg, TP_SAMPLE_DX, local, mappingCoordinate, pcamm), N);
          sty = TriPlanarMapping(ComputePoint(sg, TP_SAMPLE_DY, local, mappingCoordinate, pcamm), N);
          mapped = true;
+         if (useNref) RestoreNormals(sg, tmpNrm);
       }
       break;
    case PT_CONCENTRIC:

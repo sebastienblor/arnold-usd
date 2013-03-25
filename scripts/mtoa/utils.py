@@ -403,13 +403,15 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     result = result.replace("\\", "/")
     if createDirectory:
         dir =  os.path.dirname(result)
-        if not os.path.exists(dir):
-            try:
-                os.makedirs(dir)
-            except OSError as exc:
-                if exc.errno == 17:
-                    pass
-                else: raise
+        try:
+            os.makedirs(dir)
+        except OSError as exc:
+            import errno
+            # if directory already exists we ignore the exception
+            # NOTE that we do not use os.path.exists to avoid potential race conditions
+            # on render farms
+            if exc.errno != errno.EEXIST:
+                raise
     return result
 
 registerFileToken(fileTokenScene, 'Scene')

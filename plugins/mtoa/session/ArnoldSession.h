@@ -1,5 +1,4 @@
-#ifndef ARNOLDSESSION_H
-#define ARNOLDSESSION_H
+#pragma once
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
@@ -145,7 +144,7 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
-   DagFiltered FilteredStatus(const MDagPath &dagPath, MDGContext &ctx=MDGContext::fsNormal, const CMayaExportFilter *filter=NULL) const;  
+   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const;  
    
    
 /*
@@ -235,5 +234,3 @@ protected:
    bool                 m_is_active;
    //AOVSet m_aovs;
 };  // class CArnoldSession
-
-#endif // ARNOLDSESSION_H

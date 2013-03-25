@@ -93,3 +93,16 @@ void ArnoldUniverseEnd()
       // AiMsgResetCallback();
    }
 }
+
+void ArnoldUniverseEndAndFlush(int cache_flags)
+{
+   if (AiUniverseIsActive())
+   {
+      if (AiRendering())
+         AiRenderInterrupt();
+      if (AiRendering())
+         AiRenderAbort();
+      AiUniverseCacheFlush(cache_flags);
+      AiEnd();
+   }
+}

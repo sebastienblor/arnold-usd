@@ -72,15 +72,20 @@ void CLightTranslator::Export(AtNode* light)
    ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
    ProcessParameter(light, "shadow_color", AI_TYPE_RGB);
 
-   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
-   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
    AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
    AiNodeSetFlt(light,  "shadow_density",  FindMayaObjectPlug("aiShadowDensity").asFloat());
    AiNodeSetFlt(light,  "exposure",        FindMayaPlug("aiExposure").asFloat());
    AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
    AiNodeSetBool(light, "normalize",       FindMayaPlug("aiNormalize").asBool());
-   AiNodeSetInt(light,  "bounces",         FindMayaPlug("aiBounces").asInt());
-   AiNodeSetFlt(light,  "bounce_factor",   FindMayaPlug("aiBounceFactor").asFloat());
+   AiNodeSetFlt(light,  "sss",             FindMayaPlug("aiSss").asFloat());
+   AiNodeSetFlt(light,  "indirect",        FindMayaPlug("aiIndirect").asFloat());
+   AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
+   AiNodeSetInt(light,  "volume_samples",  FindMayaPlug("aiVolumeSamples").asInt());
+   
+   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
+   AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
+   AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
  
    MStatus status;
    MPlug pFilters = FindMayaPlug("aiFilters");
@@ -132,9 +137,13 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("exposure");
    helper.MakeInput("samples");
    helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
    helper.MakeInput("filters");
+   helper.MakeInput("diffuse");
+   helper.MakeInput("specular");
+   helper.MakeInput("sss");
+   helper.MakeInput("indirect");
+   helper.MakeInput("max_bounces");
+   helper.MakeInput("volume_samples");
    
    CAttrData data;
    data.defaultValue.BOOL = false;

@@ -100,6 +100,7 @@
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
         maya.keyable        BOOL    False
+        default             FLOAT   1024
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
         maya.keyable        BOOL    False
@@ -107,6 +108,9 @@
     [attr texture_autotile]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "tx_at"
+    [attr texture_glossy_blur]
+        maya.keyable        BOOL    False
+        default             FLOAT   0
     [attr GI_diffuse_depth]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -171,8 +175,20 @@
         min                 INT     1
         max                 INT     100
         softmin             INT     1
+        softmax             INT     10
+        default             INT     4
+    [attr sss_bssrdf_samples]
+        maya.keyable        BOOL    False
+        min                 INT     1
+        max                 INT     100
+        softmin             INT     3
         softmax             INT     10        
-        default             INT     4        
+        default             INT     3
+    [attr volume_indirect_samples]
+        maya.keyable        BOOL    False
+        min                 INT     0
+        softmax             INT     10
+        default             INT     0
     [attr low_light_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
@@ -208,6 +224,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -221,6 +238,22 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -234,6 +267,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -247,6 +281,22 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node spot_light]
     maya.name               STRING  "spotLight"
@@ -260,6 +310,7 @@
         softmax             FLOAT   10.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -283,6 +334,22 @@
         max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node skydome_light]
     maya.name               STRING  "aiSkyDomeLight"
@@ -306,10 +373,27 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     0
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr color]
         linkable            BOOL    True
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -329,6 +413,7 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -339,6 +424,22 @@
         max                 INT     10000
     [attr color]
         linkable            BOOL    True
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node cylinder_light]
     maya.name               STRING  "aiAreaLight"
@@ -362,8 +463,25 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     0
+        softmax             INT     10
         max                 INT     100
         default             INT     1
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 [node disk_light]
     maya.name               STRING  "aiAreaLight"
@@ -387,8 +505,25 @@
         softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
+        softmax             INT     10
         max                 INT     100
         default             INT     1
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
 
 # light filters
 
@@ -461,7 +596,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -662,7 +797,7 @@
         softmax             FLOAT   1.0
     [attr Kt]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0
+        max                 FLOAT   1.0
     [attr Phong_exponent]
         min                 FLOAT   0.0
         max                 FLOAT   5000.0
@@ -802,7 +937,7 @@
     desc                    STRING  "Image"
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "texture"
 
 [node motion_vector]
     desc                    STRING  "Motion vectors"
@@ -844,9 +979,15 @@
         label               STRING  "Glossy"
         min                 FLOAT   0.0
         max                 FLOAT   5000.0
-        softmin             FLOAT   0.0
         softmax             FLOAT   2000.0
         default             FLOAT   10.0
+    [attr gloss2]
+        desc                STRING  "Glossiness."
+        label               STRING  "Glossy"
+        min                 FLOAT   0.0
+        max                 FLOAT   5000.0
+        softmax             FLOAT   2000.0
+        default             FLOAT   7.0
     [attr kd_ind]
         desc                STRING  "Indirect diffuse strength."
         label               STRING  "Indirect Diffuse"
@@ -866,6 +1007,15 @@
     [attr tipcolor]
         desc                STRING  "Color at hair tip."
         label               STRING  "Tip Color"
+    [attr spec_shift]
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   -5.0
+    [attr spec2]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr spec2_shift]
+        softmin             FLOAT   7.5
+        softmax             FLOAT   15.0
         
     # AOVs
     [attr aov_direct_diffuse]
@@ -934,7 +1084,7 @@
         desc                STRING  "Scattering number of samples."
         min                 INT     1
         softmax             INT     64
-		max					INT		100
+        max                 INT     100
 
 # dag nodes
 

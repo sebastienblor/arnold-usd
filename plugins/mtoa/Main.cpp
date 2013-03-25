@@ -9,6 +9,7 @@
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
+#include "commands/ArnoldFlushCmd.h"
 
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -232,10 +233,10 @@ namespace // <anonymous>
                                    "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
-       /*builtin->RegisterTranslator("fluidShape",
+       builtin->RegisterTranslator("fluidShape",
                                    "",
                                    CFluidTranslator::creator,
-                                   CFluidTranslator::NodeInitializer);*/
+                                   CFluidTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
@@ -645,6 +646,20 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+   
+   status = plugin.registerCommand("arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldFlushCache' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldFlushCache' command");
+      MGlobal::displayError("Failed to register 'arnoldFlushCache' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
 
    status = RegisterArnoldNodes(object);
    if (MStatus::kSuccess == status)
@@ -809,6 +824,19 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       returnStatus = MStatus::kFailure;
       AiMsgError("Failed to deregister 'arnoldRender' command");
       MGlobal::displayError("Failed to deregister 'arnoldRender' command");
+   }
+   status = plugin.deregisterCommand("arnoldFlushCache");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldFlushCache' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldFlushCache' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldFlushCache' command");
+      MGlobal::displayError("Failed to deregister 'arnoldFlushCache' command");
    }
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);

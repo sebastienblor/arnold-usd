@@ -1,6 +1,7 @@
 
 
 #include "HairTranslator.h"
+#include "scene/MayaScene.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -84,28 +85,10 @@ void CHairTranslator::Update( AtNode *curve )
 
    MFnDependencyNode fnDepNodeHair(hairSystemObject);
    
-   // The shader nodes
-   // TODO: Kill these and export it properly.
-   AtNode* shader       = NULL;
-   
    // Set curve matrix for step 0   
    ExportMatrix(curve, 0);
 
-   MPlug plug;
-   plug = fnDepNodeHair.findPlug("aiOverrideHair");
-   if (!plug.isNull() && plug.asBool())
-   {
-      MPlugArray curveShaderPlug;
-      plug = fnDepNodeHair.findPlug("aiHairShader");
-      if (!plug.isNull())
-      {
-         plug.connectedTo(curveShaderPlug, true, false);
-         if (curveShaderPlug.length() > 0)
-         {
-            shader = ExportRootShader(curveShaderPlug[0]);
-         }
-      }
-   }
+   MPlug plug;  
    
    plug = fnDepNodeHair.findPlug("aiExportHairIDs");
    m_export_curve_id = true;
@@ -119,71 +102,91 @@ void CHairTranslator::Update( AtNode *curve )
    //ProcessRenderFlags(curve);
    ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
    int visibility = ComputeVisibility(m_dagPath);
-
-   // Default to the Hair shader if nothing else has been set.
-   if (shader == NULL)
+   
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
    {
-      shader = AiNode("MayaHair");
-      MString hairShaderName = fnDepNodeHair.name();
-      hairShaderName += "_hairShader";
-      AiNodeSetStr(shader, "name", hairShaderName.asChar());
-      ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
-      ProcessParameter(shader, "opacity", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("opacity"));
-      ProcessParameter(shader, "translucence", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("translucence"));
-      ProcessParameter(shader, "specularColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
-      ProcessParameter(shader, "specularPower", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularPower"));
-      plug = fnDepNodeHair.findPlug("castShadows");
+      // The shader nodes
+      // TODO: Kill these and export it properly.
+      AtNode* shader = NULL;
       
-      if (plug.asBool())
-         visibility = visibility | AI_RAY_SHADOW;
-      else
-         visibility = visibility & ~AI_RAY_SHADOW;
-      
-      const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
-      const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
-      const bool hueRandConnected = ProcessParameter(shader, "hueRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("hueRand")) != 0;
-      const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
-      const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
-      
-      // if any of the random parameters are not zero, we need to export the ids
-      // for the hashing functions
-      // export when either diffuseRand or specularRand is enabled
-      // AND when at least one of the components are randomized
-      // otherwise we won`t need the curve id data
-      if ((diffuseRandConnected || (AiNodeGetFlt(shader, "diffuseRand") > AI_EPSILON) ||
-          specularRandConnected || (AiNodeGetFlt(shader, "specularRand") > AI_EPSILON)) &&
-          (hueRandConnected || (AiNodeGetFlt(shader, "hueRand") > AI_EPSILON) ||
-          satRandConnected || (AiNodeGetFlt(shader, "satRand") > AI_EPSILON) ||
-          valRandConnected || (AiNodeGetFlt(shader, "valRand") > AI_EPSILON)))
-         m_export_curve_id = true;
-      
-      MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale"), &status);
-      if (status)
+      plug = fnDepNodeHair.findPlug("aiOverrideHair");
+      if (!plug.isNull() && plug.asBool())
       {
-         // add some treshold later
-         // if the two of the closest point are closer than 1.f / 512.f
-         // increase the Frequency to have at least 8-16-32 samples 
-         // between any point
-         const int sampleFrequency = 512; 
-         const float sampleFrequencyDiv = 1.f / (float)(sampleFrequency - 1);
-         AtArray* rampArr = AiArrayAllocate(512, 1, AI_TYPE_RGB);
-         for (int i = 0; i < sampleFrequency; ++i)
+         MPlugArray curveShaderPlug;
+         plug = fnDepNodeHair.findPlug("aiHairShader");
+         if (!plug.isNull())
          {
-            MColor color(1.0, 1.0, 1.0, 1.0);
-            rampAttr.getColorAtPosition((float)i * sampleFrequencyDiv, color);
-            AtRGB aColor = {(float)color.r , (float)color.g, (float)color.b};
-            AiArraySetRGB(rampArr, i, aColor);
+            plug.connectedTo(curveShaderPlug, true, false);
+            if (curveShaderPlug.length() > 0)
+            {
+               shader = ExportRootShader(curveShaderPlug[0]);
+            }
          }
-         AiNodeSetArray(shader, "hairColorScale", rampArr);
       }
-      
-      shader = ExportRootShader(shader);
+      // Default to the Hair shader if nothing else has been set.
+      if (shader == NULL)
+      {
+         shader = AiNode("MayaHair");
+         MString hairShaderName = fnDepNodeHair.name();
+         hairShaderName += "_hairShader";
+         AiNodeSetStr(shader, "name", hairShaderName.asChar());
+         ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
+         ProcessParameter(shader, "opacity", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("opacity"));
+         ProcessParameter(shader, "translucence", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("translucence"));
+         ProcessParameter(shader, "specularColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
+         ProcessParameter(shader, "specularPower", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularPower"));
+         plug = fnDepNodeHair.findPlug("castShadows");
+
+         if (plug.asBool())
+            visibility = visibility | AI_RAY_SHADOW;
+         else
+            visibility = visibility & ~AI_RAY_SHADOW;
+
+         const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
+         const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
+         const bool hueRandConnected = ProcessParameter(shader, "hueRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("hueRand")) != 0;
+         const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
+         const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
+
+         // if any of the random parameters are not zero, we need to export the ids
+         // for the hashing functions
+         // export when either diffuseRand or specularRand is enabled
+         // AND when at least one of the components are randomized
+         // otherwise we won`t need the curve id data
+         if ((diffuseRandConnected || (AiNodeGetFlt(shader, "diffuseRand") > AI_EPSILON) ||
+             specularRandConnected || (AiNodeGetFlt(shader, "specularRand") > AI_EPSILON)) &&
+             (hueRandConnected || (AiNodeGetFlt(shader, "hueRand") > AI_EPSILON) ||
+             satRandConnected || (AiNodeGetFlt(shader, "satRand") > AI_EPSILON) ||
+             valRandConnected || (AiNodeGetFlt(shader, "valRand") > AI_EPSILON)))
+            m_export_curve_id = true;
+
+         MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale"), &status);
+         if (status)
+         {
+            // add some treshold later
+            // if the two of the closest point are closer than 1.f / 512.f
+            // increase the Frequency to have at least 8-16-32 samples 
+            // between any point
+            const int sampleFrequency = 512; 
+            const float sampleFrequencyDiv = 1.f / (float)(sampleFrequency - 1);
+            AtArray* rampArr = AiArrayAllocate(512, 1, AI_TYPE_RGB);
+            for (int i = 0; i < sampleFrequency; ++i)
+            {
+               MColor color(1.0, 1.0, 1.0, 1.0);
+               rampAttr.getColorAtPosition((float)i * sampleFrequencyDiv, color);
+               AtRGB aColor = {(float)color.r , (float)color.g, (float)color.b};
+               AiArraySetRGB(rampArr, i, aColor);
+            }
+            AiNodeSetArray(shader, "hairColorScale", rampArr);
+         }
+
+         shader = ExportRootShader(shader);
+      }
+      // Assign shader
+      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
    }
    
-   AiNodeSetInt(curve, "visibility", visibility);
-   
-   // Assign shader
-   if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+   AiNodeSetInt(curve, "visibility", visibility);  
    
    // Export hair data   
    MRenderLineArray mainLines;
@@ -215,6 +218,7 @@ void CHairTranslator::Update( AtNode *curve )
    // The U and V param coords arrays
    AtArray* curveUParamCoord = NULL;
    AtArray* curveVParamCoord = NULL;
+   MMatrix shapeTransform;
    if (m_export_curve_uvs)
    {
       curveUParamCoord = AiArrayAllocate(numLines, 1, AI_TYPE_FLOAT);
@@ -231,8 +235,8 @@ void CHairTranslator::Update( AtNode *curve )
          MDagPath shapePath = connectedShapes[0];
          MObject shapeNode = shapePath.node();
          const MMatrix matrix = shapePath.inclusiveMatrix();
-         m_meshInt.create(shapeNode, matrix);
-         m_mesh.setObject(shapeNode);
+         shapeTransform = matrix.inverse();
+         m_mesh.setObject(shapePath);
       }
    }
 
@@ -327,7 +331,7 @@ void CHairTranslator::Update( AtNode *curve )
          AtVector2 uvparam(AI_P2_ZERO);
          // TODO : leave an option to use exact but slow method?
          if (m_hasConnectedShapes)
-            uvparam = GetHairRootUVs(line[0], m_meshInt, m_mesh);
+            uvparam = GetHairRootUVs(line[0], m_mesh, shapeTransform);
          AiArraySetFlt(curveUParamCoord, i, uvparam.x);
          AiArraySetFlt(curveVParamCoord, i, uvparam.y);
       }
@@ -417,7 +421,7 @@ void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
    mainLines.deleteArray();
 }
  
-AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh)
+AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MFnMesh& mesh, MMatrix shapeTransform)
 {
    // Find the closest point on mesh from hair lineStart
    // And returns the UV at this point
@@ -430,6 +434,8 @@ AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshInterse
    // From the API documentation : "Find the point closet to the given point, 
    // and return the UV value at that point."
    MPoint point(lineStart.x, lineStart.y, lineStart.z);
+   // We need to transalte the point to object space as "mesh" does not have any transformation matrix
+   point *= shapeTransform;
    
    MString currentUVSet = mesh.currentUVSetName();
    mesh.getUVAtPoint(point, uv, MSpace::kObject, &currentUVSet);

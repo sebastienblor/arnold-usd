@@ -1,5 +1,4 @@
-#ifndef CAMERA_TRANSLATORS_H
-#define CAMERA_TRANSLATORS_H
+#pragma once
 
 #include "CameraTranslator.h"
 
@@ -79,4 +78,3 @@ protected:
    // return FOV
    void ExportFilmback(AtNode* camera);
 };
-#endif // CAMERA_TRANSLATORS_H

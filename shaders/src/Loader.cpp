@@ -76,7 +76,6 @@ extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
 extern AtNodeMethods* MeshLightMaterialMtd;
-extern AtNodeMethods* SocketDriverMtd;
 extern AtNodeMethods* UserDataPnt2Mtd;
 extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
@@ -156,7 +155,6 @@ enum{
    SHADER_SHADOWCATCHER,
    SHADER_HAIR,
    SHADER_LIGHTMATERIAL,
-   SHADER_SOCKETDRIVER,
    SHADER_USERDATAPNT2,
    SHADER_USERDATAINT,
    SHADER_BUMP2D,
@@ -677,11 +675,6 @@ node_loader
       node->name        = "meshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
       break;
-   case SHADER_SOCKETDRIVER:
-      node->methods     = SocketDriverMtd;
-      node->name        = "driver_socket";
-      node->node_type   = AI_NODE_DRIVER;
-      break;   
 
    case SHADER_USERDATAPNT2:
       node->methods     = UserDataPnt2Mtd;
@@ -697,7 +690,7 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
       
-   case SHADER_BUMP2D :
+   case SHADER_BUMP2D:
       node->methods     = MayaBump2DMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "mayaBump2D";

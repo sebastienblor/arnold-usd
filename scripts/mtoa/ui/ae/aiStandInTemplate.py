@@ -11,64 +11,36 @@ def LoadStandInButtonPush(nodeName):
     projectDir = cmds.workspace(query=True, directory=True)     
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4, startingDirectory=projectDir)
     if ret is not None and len(ret):
-        ArnoldStandInDsoEdit(nodeName, ret[0])
+        ArnoldStandInDsoEdit(nodeName, ret[0], True)
 
-def ArnoldStandInDsoEdit(nodeName, mPath) :
+def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
     mArchivePath = ''
     nodeName = nodeName.replace('.dso','')
     
-    # Sequence of .ass.gz
-    if re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass.gz)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass.gz)',mPath).groups()
-        mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
-        if '.' in m_groups[2]:
-            cmds.setAttr(nodeName+'.useSubFrame',True)
-        else:
+    expression = r''
+    if replace:
+        # Expression to replace frame numbers by #
+        expression = r'(.*?)([\.\_]?)([0-9#]*)([\.]?)([0-9#]*)(.ass.gz|.ass|.obj|.ply)'
+    else:
+        expression = r'(.*?)([\.\_]?)([#]*)([\.]?)([#]*)(.ass.gz|.ass|.obj|.ply)'
+
+    # If it is a recogniced format
+    if re.search(expression,mPath) != None:
+        m_groups = re.search(expression,mPath).groups()
+        # Single file
+        if not m_groups[2]:
+            mArchivePath = mPath
+            cmds.setAttr(nodeName+'.useFrameExtension',False)
+        # Sequence without subframes    
+        elif not m_groups[3]:
+            cmds.setAttr(nodeName+'.useFrameExtension',True)
+            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
             cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .ass.gz
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass.gz)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
-    # Sequence of .ass
-    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass)',mPath).groups()
-        mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
-        if '.' in m_groups[2]:
-            cmds.setAttr(nodeName+'.useSubFrame',True)
+        # Sequence with subframes
         else:
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .ass
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
-    # Sequence of .obj
-    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.obj)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.obj)',mPath).groups()
-        mArchivePath = m_groups[0]+'.#'+m_groups[2]
-        if '.' in m_groups[1]:
+            cmds.setAttr(nodeName+'.useFrameExtension',True)
+            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
             cmds.setAttr(nodeName+'.useSubFrame',True)
-        else:
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .obj
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.obj)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
-    # Sequence of .ply
-    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ply)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ply)',mPath).groups()
-        mArchivePath = m_groups[0]+'.#'+m_groups[2]
-        if '.' in m_groups[1]:
-            cmds.setAttr(nodeName+'.useSubFrame',True)
-        else:
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .ply
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ply)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
     # Other
     else:
         mArchivePath = mPath
@@ -106,9 +78,17 @@ def ArnoldStandInTemplateDsoNew(nodeName) :
 def ArnoldStandInTemplateDataNew(nodeName) :
     print 'ArnoldStandInTemplateDataNew',nodeName
     cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'right', 0)], columnWidth=(1,145) )
-    cmds.text('standInDataLabel', label='Data ', enable=False)
+    cmds.text('standInDataLabel', label='Data ')
     path = cmds.textField('standInData',changeCommand=ArnoldStandInDataEdit)
-    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName), enable=False)
+    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName))
+    filePath=cmds.getAttr(nodeName.replace('.data','.dso'))
+    if filePath:
+        if '.so' in filePath or '.dll' in filePath or '.dylib' in filePath:
+            cmds.text('standInDataLabel', edit=True, enable=True)
+            cmds.textField('standInData', edit=True, enable=True)
+    else:
+        cmds.text('standInDataLabel', edit=True, enable=False)
+        cmds.textField('standInData', edit=True, enable=False)
 
 def ArnoldStandInTemplateDsoReplace(plugName) :
     cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(plugName, *args))
@@ -118,6 +98,14 @@ def ArnoldStandInTemplateDsoReplace(plugName) :
 def ArnoldStandInTemplateDataReplace(plugName) :
     print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( 'standInData', edit=True, text=cmds.getAttr(plugName) )
+    filePath=cmds.getAttr(plugName.replace('.data','.dso'))
+    if filePath:
+        if '.so' in filePath or '.dll' in filePath or '.dylib' in filePath:
+            cmds.text('standInDataLabel', edit=True, enable=True)
+            cmds.textField('standInData', edit=True, enable=True)
+    else:
+        cmds.text('standInDataLabel', edit=True, enable=False)
+        cmds.textField('standInData', edit=True, enable=False)
 
 def deferStandinLoadChange(nodeName):
     status = cmds.getAttr(nodeName+'.deferStandinLoad')
@@ -153,7 +141,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addControl('overrideLightLinking', label='Override StandIn Light Linking')
         self.addControl('overrideShaders', label='Override StandIn Shaders')
         self.addSeparator()
-        self.addControl('deferStandinLoad', label='Defern StandIn Load', changeCommand=deferStandinLoadChange)
+        self.addControl('deferStandinLoad', label='Defer StandIn Load', changeCommand=deferStandinLoadChange)
         self.addCustom('bboxScale', ArnoldStandInTemplateBBoxScaleNew, ArnoldStandInTemplateBBoxScaleReplace)
         self.addControl('MaxBoundingBox')
         self.endLayout()

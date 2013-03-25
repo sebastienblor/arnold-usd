@@ -14,7 +14,7 @@ class AEaiVolumeScatteringTemplate(ShaderAETemplate):
         self.addControl('rgb_attenuation', label='Attenuation Color')
         self.addControl('attenuation', label='Attenuation')
         self.addSeparator()
-        self.addControl('eccentricity', label='Eccentricity')
+        self.addControl('eccentricity', label='Anisotropy')
         self.addSeparator()
         self.addControl('importance_sampling', label='Importance Sampling')
         self.addControl('sampling_pattern', label='Sampling Pattern')
@@ -22,8 +22,8 @@ class AEaiVolumeScatteringTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout('Contribution Attributes')
-        self.addControl('affect_camera', Label='Camera')
-        self.addControl('affect_diffuse', Label='Diffuse')
+        self.addControl('affect_camera', label='Camera')
+        self.addControl('affect_diffuse', label='Diffuse')
         self.addControl('affect_reflection', label='Reflection')
         self.endLayout()
         

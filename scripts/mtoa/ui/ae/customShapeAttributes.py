@@ -26,6 +26,8 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
         self.addSeparator()
+        self.addControl('aiStepSize', label="Volume Step Size")
+        self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
         
 templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
@@ -62,6 +64,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
         self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        self.addControl("aiSssSetname", label="SSS Set Name")
         
         self.beginLayout('Subdivision', collapse=False)
         self.addControl("aiSubdivType", label="Type")
@@ -139,10 +142,29 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
+    def volumeNoiseCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", attribute=attrName, label="Texture")
+        cmds.setUITemplate(popTemplate=True)
+
+    def volumeNoiseUpdate(self, attrName):
+        cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", edit=True, attribute=attrName)
+        
     def setup(self):
         self.addControl("aiStepSize", label="Step Size")
-        self.addControl("aiShadowDensity", label="Shadow Density")
+        self.addControl("aiFilterType", label="Filter Type")
+        self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.addSeparator()
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.beginLayout("Custom Texture", collapse=False)
+        self.addControl("aiOverrideTextures", label="Override Fluid Texture")        
+        self.addControl("aiTextureAffectColor", label="Texture Color")
+        self.addControl("aiTextureAffectIncand", label="Texture Incandescence")
+        self.addControl("aiTextureAffectOpacity", label="Texture Opacity")
+        self.addControl("aiTextureCoordinateMethod", label="Coordinate Method")
+        self.addCustom("aiVolumeTexture", self.volumeNoiseCreate, self.volumeNoiseUpdate)
+        self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(FLuidShapeTemplate, "fluidShape")
 
@@ -217,11 +239,6 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
         
         self.addControl("aiCastShadows")
         self.addControl("aiShadowDensity")
-
-        self.addSeparator()
-        
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
         
         self.addSeparator()                
         self.commonLightAttributes()
@@ -247,10 +264,6 @@ class PointLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-        
-        self.addSeparator()
         self.commonLightAttributes()
 
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
@@ -271,11 +284,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
 
         self.addControl("aiCastShadows")
         self.addControl("aiShadowDensity")
-
-        self.addSeparator()
-
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
 
         self.addSeparator()
 
@@ -310,11 +318,6 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         
         self.addSeparator()
 
-        self.addControl("aiAffectVolumetrics")
-        self.addControl("aiCastVolumetricShadows")
-
-        self.addSeparator()
-
         self.commonLightAttributes()
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
@@ -345,6 +348,7 @@ class CameraTemplate(templates.AttributeTemplate):
 
     def addCommonAttributes(self):
         self.addControl("aiExposure")
+        self.addControl("aiFiltermap")
         
     def addDOFAttributes(self):
         self.addSeparator()

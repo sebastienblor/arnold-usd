@@ -240,22 +240,25 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
          MPlug colorPlug;
          MPlugArray conn;
 
-         //AtNode* imagePlaneShader = AiNode("MayaImagePlane");
-         AtNode* imagePlaneShader = AiNode("flat");
+         AtNode* imagePlaneShader = AiNode("MayaImagePlane");
+         //AtNode* imagePlaneShader = AiNode("flat");
          char nodeName[MAX_NAME_SIZE];
          AiNodeSetStr(imagePlaneShader, "name", NodeUniqueName(imagePlaneShader, nodeName));
 
          if (type == 0)
          {
+            /*
             AtNode* file = AiNode("image");
             AiNodeSetStr(file, "name", NodeUniqueName(file, nodeName));
             AiNodeSetStr(file, "filename", imageName.asChar());
             AiNodeLink(file, "color", imagePlaneShader);
-            /*
+            */
+            
+            
             AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
-            AiNodeSetPnt2(imagePlaneShader, "coverage", ipCoverageX, ipCoverageY);
-            AiNodeSetPnt2(imagePlaneShader, "translate", ipTranslateX, ipTranslateY);
+            //AiNodeSetPnt2(imagePlaneShader, "coverage", coverageX, coverageY);
+            //AiNodeSetPnt2(imagePlaneShader, "translate", coverageOriginX, coverageOriginY);
 
             colorPlug  = fnRes.findPlug("colorGain");
             colorPlug.connectedTo(conn, true, false);
@@ -264,7 +267,7 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
             else
             {
                MPlug outputPlug = conn[0];
-               AiNodeLink(ExportShader(outputPlug), "colorGain", imagePlaneShader);
+               ExportNode(outputPlug);
             }
 
             colorPlug  = fnRes.findPlug("colorOffset");
@@ -274,12 +277,12 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
             else
             {
                MPlug outputPlug = conn[0];
-               AiNodeLink(ExportShader(outputPlug), "colorOffset", imagePlaneShader);
+               ExportNode(outputPlug);
             }
 
             float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
             AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
-            */
+            
          }
          else if (type == 1)
          {
@@ -455,6 +458,17 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    {
       AiNodeSetMatrix(camera, "matrix", matrix);
    }
+   MPlug plug = FindMayaPlug("aiFiltermap");
+   if (!plug.isNull())
+   {
+      MPlugArray filtermapPlug;
+      plug.connectedTo(filtermapPlug, true, false);
+      if (filtermapPlug.length() > 0)
+      {
+         AtNode* filtermap = ExportNode(filtermapPlug[0]);
+         AiNodeSetPtr(camera, "filtermap", filtermap);
+      }
+   }
 }
 
 void CCameraTranslator::ExportCameraMBData(AtNode *camera, unsigned int step)
@@ -625,6 +639,7 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("aperture_blades");
    helper.MakeInput("aperture_blade_curvature");
    helper.MakeInput("aperture_rotation");
+   helper.MakeInput("filtermap");
 
    CAttrData data;
    data.defaultValue.BOOL = false;

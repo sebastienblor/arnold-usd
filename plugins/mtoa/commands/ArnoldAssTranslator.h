@@ -1,5 +1,4 @@
-#ifndef ARNOLD_ASS_TRANSLATOR_H
-#define ARNOLD_ASS_TRANSLATOR_H
+#pragma once
 
 #include <maya/MPxFileTranslator.h>
 #include <maya/MItDag.h>
@@ -23,33 +22,30 @@ public:
    static char optionScriptExport[];
    static char optionDefault[];
 
-   bool		haveReadMethod() const;
-   bool		haveWriteMethod() const;
-   bool		canBeOpened() const;
-   MString		defaultExtension() const;
+   bool     haveReadMethod() const;
+   bool     haveWriteMethod() const;
+   bool     canBeOpened() const;
+   MString     defaultExtension() const;
+   MString     filter() const;
 
-   MFileKind	identifyFile(const MFileObject& file,
+   MFileKind   identifyFile(const MFileObject& file,
                const char* buffer,
                short size) const;
 
-   MStatus		reader(const MFileObject& file,
+   MStatus     reader(const MFileObject& file,
                const MString& options,
                FileAccessMode mode);
 
-   MStatus		writer(const MFileObject& file,
+   MStatus     writer(const MFileObject& file,
                const MString& options,
                FileAccessMode mode);
 
    MStatus     IterSelection(MSelectionList& selected);
 
-   static void*	importCreator();
-   static void*	exportCreator();
+   static void*   importCreator();
+   static void*   exportCreator();
 
 protected:
    bool m_isImporter;
 
 }; // class CArnoldAssTranslator
-
-
-
-#endif // ARNOLD_ASS_TRANSLATOR_H

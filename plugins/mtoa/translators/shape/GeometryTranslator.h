@@ -1,5 +1,4 @@
-#ifndef GEOMETRYTRANSLATOR_H
-#define GEOMETRYTRANSLATOR_H
+#pragma once
 
 #include "ShapeTranslator.h"
 
@@ -100,6 +99,3 @@ protected:
    MDagPath m_dagPathRef;
    MDagPath m_masterDag;
 };
-
-
-#endif // GEOMETRYTRANSLATOR_H

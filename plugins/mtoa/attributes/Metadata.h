@@ -1,8 +1,5 @@
-#ifndef METADATA_H
-#define METADATA_H
+#pragma once
 
 #include <ai_metadata.h>
 
 AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry);
-
-#endif // METADATA_H

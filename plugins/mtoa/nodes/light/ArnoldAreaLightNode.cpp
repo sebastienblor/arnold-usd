@@ -11,7 +11,6 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
 #include <maya/MHardwareRenderer.h>
-#include <maya/MGLFunctionTable.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
 
@@ -127,12 +126,7 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
 }
 
 void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
-{
-   // Initialize GL function table first time through
-   static MGLFunctionTable *gGLFT = NULL;
-   if (gGLFT == NULL)
-      gGLFT = MHardwareRenderer::theRenderer()->glFunctionTable();
-      
+{    
    M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
    //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //
@@ -168,7 +162,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       break;
    */
    default:
-      gGLFT->glColor4f(0.75, 0, 0, 0.2f);
+      glColor4f(0.75, 0, 0, 0.2f);
       break;
    }
    GLUquadricObj *qobj;
@@ -177,35 +171,37 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Quad
    if (areaType == "quad")
    {
-      gGLFT->glBegin(GL_QUADS);
-      gGLFT->glVertex3f(-1.0f, 1.0f, 0.0f);
-      gGLFT->glVertex3f( 1.0f, 1.0f, 0.0f);
-      gGLFT->glVertex3f( 1.0f,-1.0f, 0.0f);
-      gGLFT->glVertex3f(-1.0f,-1.0f, 0.0f);
-      gGLFT->glEnd();
-      gGLFT->glBegin(GL_LINES);
-      gGLFT->glVertex3f(-1.0f, 1.0f, 0.0f);
-      gGLFT->glVertex3f( 1.0f,-1.0f, 0.0f);
-      gGLFT->glVertex3f(-1.0f,-1.0f, 0.0f);
-      gGLFT->glVertex3f( 1.0f, 1.0f, 0.0f);
+      glBegin(GL_LINES);
+      glVertex3f(-1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f, 1.0f, 0.0f);      
+      glVertex3f( 1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f,-1.0f, 0.0f);      
+      glVertex3f( 1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f,-1.0f, 0.0f);      
+      glVertex3f(-1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f, 1.0f, 0.0f);      
+      glVertex3f(-1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f,-1.0f, 0.0f);
+      glVertex3f( 1.0f, 1.0f, 0.0f);
       // Done Drawing The direction
-      gGLFT->glVertex3f( 0.0f, 0.0f, 0.0f);
-      gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
-      gGLFT->glEnd();
+      glVertex3f( 0.0f, 0.0f, 0.0f);
+      glVertex3f( 0.0f, 0.0f,-1.0f);
+      glEnd();
    }
    // Disk
    else if (areaType == "disk")
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
-      gGLFT->glPushMatrix();
+      glPushMatrix();
       gluDisk(qobj, 0.0f, 1.0f, 20, 1);
-      gGLFT->glPopMatrix();
-      gGLFT->glBegin(GL_LINES);
+      glPopMatrix();
+      glBegin(GL_LINES);
       // Done Drawing The direction
-      gGLFT->glVertex3f( 0.0f, 0.0f, 0.0f);
-      gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
-      gGLFT->glEnd();
+      glVertex3f( 0.0f, 0.0f, 0.0f);
+      glVertex3f( 0.0f, 0.0f,-1.0f);
+      glEnd();
    }
    // Mesh
    else if (areaType == "mesh")
@@ -221,11 +217,11 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
-      gGLFT->glPushMatrix();
-      gGLFT->glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-      gGLFT->glTranslatef(0.0f, 0.0f, -1.0f);
+      glPushMatrix();
+      glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+      glTranslatef(0.0f, 0.0f, -1.0f);
       gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
-      gGLFT->glPopMatrix();
+      glPopMatrix();
    }
    
    // There is a reason for this
@@ -235,7 +231,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       m_boundingBox = MBoundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0));
    
    // Restore all GL bits
-   gGLFT->glPopAttrib();
+   glPopAttrib();
    view.endGL();
 }
 

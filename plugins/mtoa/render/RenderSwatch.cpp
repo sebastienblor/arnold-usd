@@ -392,6 +392,8 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
    // Temporary until it is exposed somewhere
    AtNode * const options = AiUniverseGetOptions();
    AiNodeSetBool(options, "skip_license_check", true);
+   AiNodeSetBool(options, "texture_automip", false);
+   AiNodeSetInt(options, "texture_autotile", 0);
 
    // Read whatever "swatch" attribute we find on the node
    MStatus status;
@@ -505,8 +507,8 @@ bool CRenderSwatchGenerator::doIteration()
             // with no proper stack info on what caused it
             unsigned int iWidth, iHeight;
             image().getSize(iWidth, iHeight);
-            assert(resolution() == iWidth);
-            assert(resolution() == iHeight);
+            assert(resolution() == (int)iWidth);
+            assert(resolution() == (int)iHeight);
             assert(MImage::kFloat == image().pixelType());
 #endif
             image().convertPixelFormat(MImage::kByte);

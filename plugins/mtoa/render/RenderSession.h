@@ -1,5 +1,4 @@
-#ifndef RENDERSESSION_H
-#define RENDERSESSION_H
+#pragma once
 
 #include "render/RenderOptions.h"
 
@@ -89,6 +88,9 @@ public:
 
    /// Set the ass output mask
    inline void SetOutputAssMask(unsigned int mask) { m_renderOptions.SetOutputAssMask(mask); }
+   
+   /// Set Expand Procedurals
+   inline void SetExpandProcedurals(bool expand_procedurals) { m_renderOptions.SetExpandProcedurals(expand_procedurals); }
 
    /// Set the resolution of the render.
    /// \param width width in pixels.
@@ -167,5 +169,3 @@ private:
    MString        m_postRenderMel;
 
 }; // class CRenderSession
-
-#endif // RENDERSESSION_H

@@ -116,6 +116,7 @@ def parseSettingsString(settingsString):
         settings.setdefault('mask', cmds.getAttr('%s.output_ass_mask' % optionsNode))
         settings.setdefault('lightLinks', cmds.getAttr('%s.lightLinking' % optionsNode))
         settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
+        settings.setdefault('expandProcedurals', cmds.getAttr('%s.expandProcedurals' % optionsNode))
         
     return settings
 
@@ -174,7 +175,10 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         setMaskValues(settings.get('mask', 255))
         
         cmds.text("oa_exportSeparator",label="")
-     
+        cmds.checkBoxGrp('oa_expandProcedurals',
+                         label1='Expand Procedurals',
+                         value1=settings.get('expandProcedurals', False))
+        cmds.text("oa_exportSeparatorOther",label="")
         lightsOn = cmds.checkBoxGrp('oa_export_lights', query=True, value1=True)
         
         cmds.optionMenuGrp('oa_export_light_links', label='Light Linking')
@@ -260,9 +264,10 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
             settings['startFrame'] = cmds.floatField("oa_exportStart", query=True, value=True)
             settings['endFrame']   = cmds.floatField("oa_exportEnd", query=True, value=True)
             settings['frameStep']  = cmds.floatField("oa_exportStep", query=True, value=True)        
-
-                
-        currentOptions = buildSettingsString(settings)        
+         
+        settings['expandProcedurals'] = cmds.checkBoxGrp('oa_expandProcedurals', query=True, value1=True)
+        
+        currentOptions = buildSettingsString(settings)
         # print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1

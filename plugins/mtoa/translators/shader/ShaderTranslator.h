@@ -1,5 +1,4 @@
-#ifndef SHADER_TRANSLATOR_H
-#define SHADER_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
@@ -37,5 +36,3 @@ protected:
 protected:
    std::map<std::string, MPlugArray> m_aovShadingGroups;
 };
-
-#endif // SHADER_TRANSLATOR_H

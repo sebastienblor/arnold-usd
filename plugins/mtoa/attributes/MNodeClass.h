@@ -1,5 +1,4 @@
-#ifndef M_NODE_CLASS_H
-#define M_NODE_CLASS_H
+#pragma once
 
 #include "platform/Platform.h"
 
@@ -55,7 +54,5 @@ private:
    static ExtensionAttrMap s_attrs;
    static ExtensionAttrDataMap s_attrData;
 };
-
-#endif
 
 #endif

@@ -1,5 +1,4 @@
-#ifndef ARNOLDSKYDOMELIGHTNODE_H
-#define ARNOLDSKYDOMELIGHTNODE_H
+#pragma once
 
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
@@ -60,5 +59,3 @@ public:
    static MObject aLightBlindData;
    static MObject aLightData;
 };  // class CArnoldSkyDomeLightNode
-
-#endif // ARNOLDSKYDOMELIGHTNODE_H

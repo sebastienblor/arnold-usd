@@ -1,12 +1,8 @@
-#ifndef FILTER_TRANSLATOR_H
-#define FILTER_TRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 
-
-
 //--------------- FilterTranslator ------------------------------------------
-
 
 class DLLEXPORT CFilterTranslator
    :  public CNodeTranslator
@@ -25,6 +21,3 @@ protected:
    virtual void AddUpdateCallbacks();
    virtual void RemoveUpdateCallbacks();
 };
-
-
-#endif // FILTER_TRANSLATOR_H

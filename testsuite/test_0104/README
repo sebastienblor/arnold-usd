@@ -1,0 +1,3 @@
+Testing the behavior of emit diffuse and emit specular using diffuse and specular controls on arnold lights. (Ticket #1188)
+
+author: Pal

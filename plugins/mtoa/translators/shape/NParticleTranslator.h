@@ -1,6 +1,4 @@
-#ifndef NPARTICLE_H
-#define NPARTICLE_H
-
+#pragma once
 
 #include "ParticleTranslator.h"
 
@@ -36,5 +34,3 @@ public:
 
    virtual bool IsCached();
 };
-
-#endif // NPARTICLE_H

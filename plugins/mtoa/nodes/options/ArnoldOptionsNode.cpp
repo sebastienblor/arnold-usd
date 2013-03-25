@@ -32,6 +32,7 @@ MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
 MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_force_scene_update_before_IPR_refresh;
+MObject CArnoldOptionsNode::s_force_texture_cache_flush_after_render;
 MObject CArnoldOptionsNode::s_threads;
 MObject CArnoldOptionsNode::s_threads_autodetect;
 MObject CArnoldOptionsNode::s_bucket_scanning;
@@ -62,6 +63,7 @@ MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
 MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
+MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
@@ -79,6 +81,7 @@ MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
 MObject CArnoldOptionsNode::s_shader_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
+MObject CArnoldOptionsNode::s_expand_procedurals;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -170,7 +173,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setMin(-10);
    nAttr.setMax(100);
-   nAttr.setSoftMin(-10);
+   nAttr.setSoftMin(-3);
    nAttr.setSoftMax(10);
    addAttribute(s_progressive_initial_level);
 
@@ -210,7 +213,14 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_force_scene_update_before_IPR_refresh);
    
+   s_force_texture_cache_flush_after_render = nAttr.create("force_texture_cache_flush_after_render", "force_texture_flush", MFnNumericData::kBoolean, false);
+   nAttr.setKeyable(false);
+   addAttribute(s_force_texture_cache_flush_after_render);
+   
+   
    s_attributes.MakeInput("abort_on_error");
+   s_attributes.MakeInput("error_color_bad_texture");
+   s_attributes.MakeInput("error_color_bad_pixel");
    s_attributes.MakeInput("abort_on_license_fail");
 
    s_attributes.MakeInput("skip_license_check");
@@ -227,7 +237,12 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("sss_bssrdf_samples");
    s_attributes.MakeInput("sss_sample_factor");
    
-   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, 0);
+   s_attributes.MakeInput("region_min_x");
+   s_attributes.MakeInput("region_max_x");
+   s_attributes.MakeInput("region_min_y");   
+   s_attributes.MakeInput("region_max_y");
+   
+   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, true);
    nAttr.setKeyable(false);
    addAttribute(s_enable_raytraced_SSS);
 
@@ -376,6 +391,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("show_samples");
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("shadow_terminator_fix");
+   s_attributes.MakeInput("shader_nan_checks");
 
    // textures
    s_attributes.MakeInput("texture_automip");
@@ -388,6 +404,13 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
    s_attributes.MakeInput("texture_glossy_blur");
+   
+   
+   
+   s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_autotile);
+   
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);
@@ -406,6 +429,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
+   
+   s_attributes.MakeInput("volume_indirect_samples");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
@@ -509,6 +534,11 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setReadable(false);
    mAttr.setIndexMatters(false);
    addAttribute(s_drivers);
+   
+   s_expand_procedurals = nAttr.create("expandProcedurals", "expand_procedurals", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_expand_procedurals);
 
    return MS::kSuccess;
 }

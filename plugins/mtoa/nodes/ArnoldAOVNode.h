@@ -1,5 +1,4 @@
-#ifndef ARNOLDAOVNODE_H
-#define ARNOLDAOVNODE_H
+#pragma once
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
@@ -35,5 +34,3 @@ public:
    static MObject s_driver;
    static MObject s_filter;
 };  // class CArnoldAOVNode
-
-#endif // ARNOLDAOVNODE_H

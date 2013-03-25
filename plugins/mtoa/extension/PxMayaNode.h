@@ -1,5 +1,4 @@
-#ifndef PXMAYANODE_H
-#define PXMAYANODE_H
+#pragma once
 
 #include "render/AOV.h"
 
@@ -59,7 +58,3 @@ private:
    CAbMayaNode *abstract;
    std::vector<CAOVData> m_aovs;
 };
-
-
-
-#endif // PXMAYANODE_H

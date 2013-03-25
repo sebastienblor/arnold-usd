@@ -15,6 +15,8 @@ CATEGORY_TO_RUNTIME_CLASS = {
                 ('utility',):           'asUtility',
                 }
 
+MTOA_GLOBALS = {}
+
 def _processClass(nodeType):
     '''
     convert the passed node type's classification string to a tuple containing a formatted path string
@@ -140,10 +142,10 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     print "[mtoa] upgrading to new AOV driver/filter setup"
     aovNodes = pm.ls(type='aiAOV')
     if defaultDriver is None:
-        defaultDriver = pm.nt.DependNode('defaultArnoldDriver')
+        defaultDriver = pm.PyNode('defaultArnoldDriver')
         
     if defaultFilter is None:
-        defaultFilter = pm.nt.DependNode('defaultArnoldFilter')
+        defaultFilter = pm.PyNode('defaultArnoldFilter')
 
     driver = options.imageFormat.get()
     if driver:
@@ -201,7 +203,7 @@ def createOptions():
     displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
     if (filterNode or driverNode) and not options:
-        options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        options = pm.PyNode('defaultArnoldRenderOptions')
         # options previously existed, so we need to upgrade
         upgradeAOVOutput(options, filterNode, driverNode)
 
@@ -210,20 +212,20 @@ def createOptions():
         # newly created default filter
         hooks.setupFilter(filterNode)
     else:
-        filterNode = pm.nt.DependNode('defaultArnoldFilter')
+        filterNode = pm.PyNode('defaultArnoldFilter')
 
     if driverNode:
         # newly created default driver
         hooks.setupDriver(driverNode)
     else:
-        driverNode = pm.nt.DependNode('defaultArnoldDriver')
+        driverNode = pm.PyNode('defaultArnoldDriver')
 
     if options:
         # newly created options
         hooks.setupDefaultAOVs(aovs.AOVInterface(options))
         hooks.setupOptions(options)
     else:
-        options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        options = pm.PyNode('defaultArnoldRenderOptions')
         if displayDriverNode:
             # options exist, but not display driver: upgrade from older version of mtoa
             hooks.setupDefaultAOVs(aovs.AOVInterface(options))

@@ -1,5 +1,4 @@
-#ifndef SPHERELOCATOR_H
-#define SPHERELOCATOR_H
+#pragma once
 
 #include "nodes/ArnoldNodeIDs.h"
 #include <ai_types.h>
@@ -48,6 +47,8 @@ public:
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
+   void DrawSphereWireframe(float radius, int divisionsX, int divisionsY);
+   void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();
 
    // Input attributes
@@ -105,5 +106,3 @@ public:
    }
 
 };  // class CSphereLocator
-
-#endif // SPHERELOCATOR_H

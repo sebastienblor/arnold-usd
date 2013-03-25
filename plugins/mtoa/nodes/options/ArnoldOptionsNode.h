@@ -1,5 +1,4 @@
-#ifndef ARNOLDOPTIONSNODE_H
-#define ARNOLDOPTIONSNODE_H
+#pragma once
 
 #include "attributes/AttrHelper.h"
 
@@ -48,6 +47,7 @@ public:
    static MObject s_bucket_scanning;
    static MObject s_clear_before_render;
    static MObject s_force_scene_update_before_IPR_refresh;
+   static MObject s_force_texture_cache_flush_after_render;
    static MObject s_plugins_path;
 
    static MObject s_use_sample_clamp;
@@ -80,6 +80,7 @@ public:
    
    static MObject s_enable_raytraced_SSS;
    
+   static MObject s_autotile;
    static MObject s_use_existing_tiled_textures;
 
    static MObject s_output_ass_filename;
@@ -104,7 +105,7 @@ public:
    static MObject s_shader_searchpath;
    
    static MObject s_user_options;
+   
+   static MObject s_expand_procedurals;
 
 };  // class CArnoldOptionsNode
-
-#endif // ARNOLDOPTIONSNODE_H

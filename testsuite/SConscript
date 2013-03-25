@@ -131,14 +131,18 @@ author: --''' % testname)
 
 
 class MayaTestRunner(object):
+   """
+   Test a maya batch render.
+   Assumes you are rendering tif files.
+   """
    def __init__(self,
                 script = 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
                 plugin_dependencies = '',
-                output_image        = 'testrender.tif',     ## can be '' if the test does not generate an image
-                reference_image     = os.path.join('ref', 'reference.tif'),  ## can be '' if the test does not generate an image
+                output_basename        = 'testrender',     ## can be '' if the test does not generate an image
+                reference_basename     = os.path.join('ref', 'reference'),  ## can be '' if the test does not generate an image
                 force_result        = 'OK',
                 multiprocess        = True):
       ## save the params
@@ -150,11 +154,12 @@ class MayaTestRunner(object):
       self.program_sources = program_sources
       self.program_name = program_name
       self.plugin_dependencies = plugin_dependencies
-      self.output_image = output_image
-      self.reference_image = reference_image
+      self.output_image = output_basename
+      self.reference_image = reference_basename
       self.force_result = force_result
       self.multiprocess = multiprocess
       self.tests = []
+      self.test_results = []
       self.total_running_time = 0
       self.black_list = []
       self.install_files = []
@@ -325,7 +330,7 @@ class MayaTestRunner(object):
            lock = DummyLock()
            for test_name in self.tests:
                test_dir       = os.path.join(self.build_dir, test_name)
-               result = run_test(test_name,
+               t, files = run_test(test_name,
                            lock,
                            test_dir,
                            self.script,
@@ -333,8 +338,10 @@ class MayaTestRunner(object):
                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                            self.force_result,
                            test_env['UPDATE_REFERENCE'],
-                           show_test_output, test_env['COLOR_CMDS'])
-               self.total_running_time += result
+                           show_test_output,
+                           test_env['COLOR_CMDS'])
+               self.total_running_time += t
+               self.test_results.append(files)
        else:
            manager = multiprocessing.Manager()
            self.pool = multiprocessing.Pool(int(test_env['TEST_THREADS']))
@@ -355,7 +362,8 @@ class MayaTestRunner(object):
                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
                            self.force_result,
                            test_env['UPDATE_REFERENCE'],
-                           show_test_output, test_env['COLOR_CMDS']) )
+                           show_test_output,
+                           test_env['COLOR_CMDS']) )
     
            # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
            # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
@@ -370,7 +378,9 @@ class MayaTestRunner(object):
            try:
               while 1:
                   # timeout seconds per job
-                  self.total_running_time += results.next(timeout=600)
+                  t, files = results.next(timeout=600)
+                  self.total_running_time += t
+                  self.test_results.append(files)
            except StopIteration:
                self.pool.close()
                self.pool.join()
@@ -392,11 +402,11 @@ class MayaTestRunner(object):
        if previous_render_desc :
           os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
 
-       if len(self.tests) > 1:
-           arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
-       
-           #os.chdir(self.results_dir)
-           self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
+       arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
+   
+       #os.chdir(self.results_dir)
+       passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
+       return bool(failed)
 
 
    def process_results(self, html_index, arnold_version):
@@ -420,6 +430,9 @@ class MayaTestRunner(object):
        else:
           print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_red + ('%d failed!' % failed)
     
+       if len(self.tests) <= 1:
+           return passed, failed
+
        MTOA_VERSION    = '<not available>'
        ARNOLD_VERSION  = arnold_version
        (REVISION, URL) = get_latest_revision()
@@ -431,7 +444,7 @@ class MayaTestRunner(object):
     <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <head>
     <title>
-    Arnold testsuite
+    MtoA testsuite
     </title>
     </head>
     <body>
@@ -473,7 +486,7 @@ class MayaTestRunner(object):
     <th><font face="Arial">ref</font></th>
     </tr>
     ''')
-       for test_name in self.tests:
+       for test_name, test_files in zip(self.tests, self.test_results):
           test_dir = test_name
           test_results_dir = os.path.join(self.results_dir, test_dir)
           test_link = os.path.join(test_dir, test_dir + '.html')
@@ -486,51 +499,48 @@ class MayaTestRunner(object):
                   return dest
               #else:  print "does not exist", file
     
-          f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
-          status = f.readline() ## just one line
-          f.close()
           f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
           description = f.readline() ## just one line
           f.close()
-          bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
           
           if not os.path.exists(test_results_dir):
               os.mkdir(test_results_dir)
     
           copy_to_results(test_link)
     
-          # copy images to results directory
-          new_img = os.path.join(test_dir, 'new.jpg')
-          new_img_dest = copy_to_results(new_img)
-          new_img_exists = os.path.exists(new_img) and (new_img_dest is not None)
-          if new_img_exists:
-              new_img_exists = os.path.exists(new_img_dest)
-          
-          ref_img = os.path.join(test_dir, 'ref.jpg')
-          ref_img_dest = copy_to_results(ref_img)
+          for new, ref, dif in test_files:
+              # copy images to results directory
+              new_img_dest = copy_to_results(os.path.join(test_dir, new))
+              ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
+              copy_to_results(os.path.join(test_dir, dif))
+              
+              f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
+              status = f.readline() ## just one line
+              f.close()
+              bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
+    
+              outfile.write('''
+        <tr>
+          <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
+          <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
+          <td><a href="%s">%s</a></td>
+          <td><a href="%s">%s</a></td>
+        </tr>
+              ''' % (bgcolor,
+                     test_link,
+                     test_name,
+                     bgcolor,
+                     len(test_files) < 2 and
+                        description
+                        or description+': <small>'+ref+'</small>',
+                     test_link,
+                     new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
+                                              or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
+                     test_link,
+                     ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
+                                              or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
+                     ))
 
-          dif_img = os.path.join(test_dir, 'dif.jpg')
-          copy_to_results(dif_img)
-
-          outfile.write('''
-    <tr>
-      <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
-      <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
-      <td><a href="%s">%s</a></td>
-      <td><a href="%s">%s</a></td>
-    </tr>
-          ''' % (bgcolor,
-                 test_link,
-                 test_name,
-                 bgcolor,
-                 description,
-                 test_link,
-                 new_img_exists and '''<img src="%s/new.jpg" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name)
-                                          or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
-                 test_link,
-                 os.path.exists(ref_img_dest) and '''<img src="%s/ref.jpg" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name)
-                                          or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
-                 ))
        outfile.write('''
     </table>
     </body>
@@ -538,7 +548,7 @@ class MayaTestRunner(object):
        ''')
        outfile.close()
        print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
-       return None ## always succeeds
+       return passed, failed
 
 
 if __name__ == 'SCons.Script':
@@ -558,7 +568,7 @@ if __name__ == 'SCons.Script':
     # Disable multiprocess if the operating system is Windows or a Linux without multiprocessing 
     multiprocess = False
     if test_env['MULTIPROCESS'] == True:
-        if (system.os() != 'windows') and (int(test_env['TEST_THREADS']) > 1):
+        if system.os() != 'windows' and (int(test_env['TEST_THREADS']) > 1):
             try:
                 import multiprocessing
                 multiprocess = True

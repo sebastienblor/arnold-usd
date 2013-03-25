@@ -77,7 +77,11 @@ node_parameters
 node_initialize
 {
    s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
-   InitializeDisplayUpdateQueue("", "renderView");
+   MString cameraName = "";
+   AtNode* cameraNode = AiUniverseGetCamera();
+   if (cameraNode != 0)
+      cameraName = AiNodeGetName(cameraNode);
+   InitializeDisplayUpdateQueue(cameraName, "renderView");
 
    if (m_driver_lock == NULL)
       AiCritSecInit(&m_driver_lock);
@@ -97,6 +101,10 @@ driver_supports_pixel_type
    {
       case AI_TYPE_RGB:
       case AI_TYPE_RGBA:
+      case AI_TYPE_POINT:
+      case AI_TYPE_VECTOR:
+      case AI_TYPE_POINT2:
+      case AI_TYPE_FLOAT:
          return true;
       default:
          return false;
@@ -195,7 +203,7 @@ driver_write_bucket
    // get the first AOV layer
    if (!AiOutputIteratorGetNext(iterator, NULL, &pixel_type, &bucket_data))
       return;
-
+   
    RV_PIXEL* pixels = new RV_PIXEL[bucket_size_x * bucket_size_y];
    int minx = bucket_xo;
    int miny = bucket_yo;
@@ -204,13 +212,86 @@ driver_write_bucket
 
    switch(pixel_type)
    {
+      case AI_TYPE_FLOAT:
+      {
+         for (int j = miny; (j <= maxy); ++j)
+         {
+            for (int i = minx; (i <= maxx); ++i)
+            {
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
+               float flt = ((float*)bucket_data)[in_idx]; 
+
+               // Flip vertically
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
+
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
+               RV_PIXEL* pixel = &pixels[out_idx];
+
+               pixel->r = flt;
+               pixel->g = flt;
+               pixel->b = flt;
+               pixel->a = 0.f;
+            }
+         }
+         break;
+      }
+      case AI_TYPE_VECTOR:
+      case AI_TYPE_POINT:
+      {
+         for (int j = miny; (j <= maxy); ++j)
+         {
+            for (int i = minx; (i <= maxx); ++i)
+            {
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
+               AtVector vec = ((AtVector*)bucket_data)[in_idx]; 
+
+               // Flip vertically
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
+
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
+               RV_PIXEL* pixel = &pixels[out_idx];
+
+               pixel->r = vec.x;
+               pixel->g = vec.y;
+               pixel->b = vec.z;
+               pixel->a = 0.f;
+            }
+         }
+         break;
+      }
+      case AI_TYPE_POINT2:
+      {
+         for (int j = miny; (j <= maxy); ++j)
+         {
+            for (int i = minx; (i <= maxx); ++i)
+            {
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
+               AtPoint2 vec = ((AtPoint2*)bucket_data)[in_idx]; 
+
+               // Flip vertically
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
+
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
+               RV_PIXEL* pixel = &pixels[out_idx];
+
+               pixel->r = vec.x;
+               pixel->g = vec.y;
+               pixel->b = 0.f;
+               pixel->a = 0.f;
+            }
+         }
+         break;
+      }
       case AI_TYPE_RGB:
       {
          for (int j = miny; (j <= maxy); ++j)
          {
             for (int i = minx; (i <= maxx); ++i)
             {
-               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
                AtRGB  rgb = ((AtRGB*)bucket_data)[in_idx]; 
 
                // Flip vertically
@@ -225,19 +306,18 @@ driver_write_bucket
                pixel->r = rgb.r;
                pixel->g = rgb.g;
                pixel->b = rgb.b;
-               pixel->a = 0;
+               pixel->a = 0.f;
             }
          }
          break;
       }
-
       case AI_TYPE_RGBA:
       {
          for (int j = miny; (j <= maxy); ++j)
          {
             for (int i = minx; (i <= maxx); ++i)
             {
-               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j - bucket_yo) * bucket_size_x + (i-bucket_xo);
                AtRGBA  rgba = ((AtRGBA*)bucket_data)[in_idx]; 
 
                // Flip vertically
@@ -307,6 +387,9 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy,
                              msg.pixels, true);
    
+   const unsigned int num_pixels = (unsigned int)((msg.bucketRect.maxx - msg.bucketRect.minx + 1) * (msg.bucketRect.maxy - msg.bucketRect.miny + 1));
+   s_outputDriverData.renderedPixels += num_pixels;
+   
    if (!s_outputDriverData.clearBeforeRender)
    {
       unsigned int i = 0;
@@ -320,6 +403,13 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    if (refresh)
    {
       MRenderView::refresh(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy);
+      int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
+      MString cmd;
+      cmd += "global string $gMainProgressBar;";
+      cmd += "progressBar -edit -progress ";
+      cmd += progress;
+      cmd += " $gMainProgressBar;";
+      MGlobal::executeCommand(cmd, false);
    }
    else
    {
@@ -341,7 +431,7 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    {
       delete[] msg.pixels;
       msg.pixels = NULL;
-   }
+   }   
 }
 
 void RefreshRenderViewBBox()
@@ -350,6 +440,13 @@ void RefreshRenderViewBBox()
                         s_outputDriverData.refresh_bbox.maxx,
                         s_outputDriverData.refresh_bbox.miny,
                         s_outputDriverData.refresh_bbox.maxy);
+   int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
+   MString cmd;
+   cmd += "global string $gMainProgressBar;";
+   cmd += "progressBar -edit -progress ";
+   cmd += progress;
+   cmd += " $gMainProgressBar;";
+   MGlobal::executeCommand(cmd, false);
 }
 
 // Please note: this function flips the Y as the resulting
@@ -403,10 +500,9 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    s_outputDriverData.imageWidth = msg.imageWidth;
    s_outputDriverData.imageHeight = msg.imageHeight;
    const bool clearBeforeRender =  CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
-   s_outputDriverData.clearBeforeRender = clearBeforeRender;
    
    const unsigned int pixelCount = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
-   const static RV_PIXEL blackRVPixel = {0.f, 0.f, 0.f, 0.f};
+   const static RV_PIXEL blackRVPixel = {0.f, 0.f, 50.f / 255.f, 0.f};
    if (pixelCount != (unsigned int)s_outputDriverData.oldPixels.size())
    {
       s_outputDriverData.oldPixels.clear();
@@ -481,12 +577,45 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    s_outputDriverData.rendering  = true;
 }
 
+enum RenderViewOptionVars{
+   RV_SHOW_FRAME_NUMBER = 0,
+   RV_SHOW_RENDER_TIME,
+   RV_SHOW_CAMERA_NAME,
+   RV_SHOW_LAYER_NAME,
+   RV_SHOW_RENDER_TARGET_NAME,
+   RV_OPTION_VAR_COUNT
+};
+
+static void ReadRenderViewOptionVars(int* optionVars)
+{
+   for (int i = 0; i < RV_OPTION_VAR_COUNT; ++i) optionVars[i] = 0;
+   int optionVarValue = 0;
+   bool exists = false;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowFrameNumber", &exists);
+   if (exists)
+      optionVars[RV_SHOW_FRAME_NUMBER] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowRenderTime", &exists);
+   if (exists)
+      optionVars[RV_SHOW_RENDER_TIME] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowCameraName", &exists);
+   if (exists)
+      optionVars[RV_SHOW_CAMERA_NAME] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowLayerName", &exists);
+   if (exists)
+      optionVars[RV_SHOW_LAYER_NAME] = optionVarValue;
+   optionVarValue = MGlobal::optionVarIntValue("renderViewShowRenderTargetName", &exists);
+   if (exists)
+      optionVars[RV_SHOW_RENDER_TARGET_NAME] = optionVarValue;
+}
+
 void RenderEnd()
 {
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
    // And ram used
    const AtUInt64 mem_used = AiMsgUtilGetUsedMemory() / 1024 / 1024;
+   int renderViewOptionVars[RV_OPTION_VAR_COUNT];
+   ReadRenderViewOptionVars(renderViewOptionVars);
 
    // Format a bit of info for the renderview.
    if (s_panel_name != "")
@@ -494,14 +623,19 @@ void RenderEnd()
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       
       const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-      rvInfo += "Frame: ";
-      rvInfo += int(frame);
+      if (renderViewOptionVars[RV_SHOW_FRAME_NUMBER])
+      {
+         rvInfo += "Frame: ";
+         rvInfo += int(frame);
+         rvInfo += "    ";
+      }      
       
-      rvInfo += "    Memory: ";
+      rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
+      rvInfo += "    ";
 
-      rvInfo += "    Sampling: ";
+      rvInfo += "Sampling: ";
       rvInfo += "[";
       rvInfo += s_AA_Samples;
       rvInfo += "/";
@@ -511,19 +645,27 @@ void RenderEnd()
       rvInfo += "/";
       rvInfo += s_sss_sample_factor;
       rvInfo += "]";
+      rvInfo += "    ";
 
-      rvInfo += "    Render Time: ";
-      rvInfo += int(elapsed / 60);
-      rvInfo += ":";
-      const int secondsPart = int(elapsed % 60);
-      if (secondsPart < 10)
-         rvInfo += "0";
-      rvInfo += secondsPart;
-
-      if (s_camera_name != "")
+      if (renderViewOptionVars[RV_SHOW_RENDER_TIME])
       {
-         rvInfo += "    Camera: ";
-         rvInfo += s_camera_name;
+         rvInfo += "Render Time: ";
+         rvInfo += int(elapsed / 60);
+         rvInfo += ":";
+         const int secondsPart = int(elapsed % 60);
+         if (secondsPart < 10)
+            rvInfo += "0";
+         rvInfo += secondsPart;
+         rvInfo += "    ";
+      }
+      
+      if (renderViewOptionVars[RV_SHOW_CAMERA_NAME])
+      {
+         if (s_camera_name != "")
+         {
+            rvInfo += "Camera: ";
+            rvInfo += s_camera_name;
+         }
       }
 
       rvInfo += "\") " + s_panel_name;
@@ -582,12 +724,29 @@ void BeginImage()
                                                  NULL,
                                                  &status);
 
-   s_AA_Samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   s_GI_diffuse_samples = AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
-   s_GI_glossy_samples = AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
-   s_sss_sample_factor = AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor");
+   AtNode* options = AiUniverseGetOptions();
+   s_AA_Samples = AiNodeGetInt(options, "AA_samples");
+   s_GI_diffuse_samples = AiNodeGetInt(options, "GI_diffuse_samples");
+   s_GI_glossy_samples = AiNodeGetInt(options, "GI_glossy_samples");
+   s_sss_sample_factor = AiNodeGetInt(options, "sss_sample_factor");
 
    s_start_time = time(NULL);
+   if (s_outputDriverData.isRegion)
+   {
+      const int region_min_x = AiNodeGetInt(options, "region_min_x");
+      const int region_min_y = AiNodeGetInt(options, "region_min_y");
+      const int region_max_x = AiNodeGetInt(options, "region_max_x");
+      const int region_max_y = AiNodeGetInt(options, "region_max_y");
+      s_outputDriverData.totalPixels = (region_max_x - region_min_x + 1) * (region_max_y - region_min_y + 1);
+   }
+   else
+      s_outputDriverData.totalPixels = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
+   s_outputDriverData.renderedPixels = 0;
+   
+   MString cmd;
+   cmd += "global string $gMainProgressBar;";
+   cmd += "progressBar -edit -beginProgress -status \"Arnold Render ...\" -maxValue 100 -progress 0 $gMainProgressBar;";
+   MGlobal::executeCommand(cmd, false);
 }
 
 void EndImage()
@@ -600,17 +759,24 @@ void EndImage()
    // Format a bit of info for the renderview.
    if (s_panel_name != "")
    {
+      int renderViewOptionVars[RV_OPTION_VAR_COUNT];
+      ReadRenderViewOptionVars(renderViewOptionVars);
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       
       const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-      rvInfo += "Frame: ";
-      rvInfo += int(frame);
+      if (renderViewOptionVars[RV_SHOW_FRAME_NUMBER])
+      {
+         rvInfo += "Frame: ";
+         rvInfo += int(frame);
+         rvInfo += "    ";
+      }
       
-      rvInfo += "    Memory: ";
+      rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
+      rvInfo += "    ";
 
-      rvInfo += "    Sampling: ";
+      rvInfo += "Sampling: ";
       rvInfo += "[";
       rvInfo += s_AA_Samples;
       rvInfo += "/";
@@ -620,18 +786,27 @@ void EndImage()
       rvInfo += "/";
       rvInfo += s_sss_sample_factor;
       rvInfo += "]";
+      rvInfo += "    ";
 
-      rvInfo += "    Render Time: ";
-      rvInfo += int(elapsed / 60);
-      const int secondsPart = int(elapsed % 60);
-      if (secondsPart < 10)
-         rvInfo += "0";
-      rvInfo += secondsPart;
-
-      if (s_camera_name != "")
+      if (renderViewOptionVars[RV_SHOW_RENDER_TIME])
       {
-         rvInfo += "    Camera: ";
-         rvInfo += s_camera_name;
+         rvInfo += "Render Time: ";
+         rvInfo += int(elapsed / 60);
+         rvInfo += ":";
+         const int secondsPart = int(elapsed % 60);
+         if (secondsPart < 10)
+            rvInfo += "0";
+         rvInfo += secondsPart;
+         rvInfo += "    ";
+      }
+      
+      if (renderViewOptionVars[RV_SHOW_CAMERA_NAME])
+      {
+         if (s_camera_name != "")
+         {
+            rvInfo += "Camera: ";
+            rvInfo += s_camera_name;
+         }
       }
 
       rvInfo += "\") " + s_panel_name;
@@ -643,6 +818,7 @@ void EndImage()
       MMessage::removeCallback(s_timer_cb);
       s_timer_cb = 0;
    }
+   MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;", false);
 }
 
 // return false if render is done

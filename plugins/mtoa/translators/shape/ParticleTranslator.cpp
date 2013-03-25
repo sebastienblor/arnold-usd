@@ -1,7 +1,8 @@
-
 #include "ParticleTranslator.h"
+
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
+#include "scene/MayaScene.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
@@ -89,6 +90,14 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_interpolate_blur";
    helper.MakeInputBoolean(data);
 
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiStepSize";
+   data.shortName = "ai_step_size";
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 2.f;
+   helper.MakeInputFloat(data);
 }
 
 void CParticleTranslator::UpdateMotion(AtNode* anode, AtUInt step)
@@ -1271,9 +1280,11 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
 {
    if (step == 0)
    {
-      ExportParticleShaders(particle);
+      if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+         ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);
+      ProcessParameter(particle, "step_size", AI_TYPE_FLOAT, "aiStepSize");
    }
    else
    {

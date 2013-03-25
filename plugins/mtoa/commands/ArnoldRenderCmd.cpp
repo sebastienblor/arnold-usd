@@ -80,12 +80,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
+   bool expandProcedurals = false;
    if (list.length() > 0)
    {
       list.getDependNode(0, node);
       MFnDependencyNode fnArnoldRenderOptions(node);
       renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
+      expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -99,11 +101,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (exportSelected)
       {
          cmdStr += " -s";
-      }
-      if (outputAssBoundingBox)
+      }      
+      if (renderType == MTOA_RENDER_EXPORTASS)
       {
-         cmdStr += " -bb";
+         if (expandProcedurals)
+            cmdStr += " -ep";
+         if (outputAssBoundingBox)
+            cmdStr += " -bb";
       }
+      
       if (renderGlobals.isAnimated())
       {
          float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
@@ -150,14 +156,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // NOTE: must be blocking when in batch mode, non blocking when in interractive mode
 
             MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
-            system(kickCmd.asChar());
+            int kickRet = system(kickCmd.asChar());            
+            if (kickRet)
+            {
+               MString msg = "[mtoa] Kick return code : ";
+               msg += kickRet;
+               MGlobal::displayWarning(msg);
+            }
 
             // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback?
-
-            // int ret = system(kickCmd.asChar());
-            // std::stringstream info;
-            // info << "[mtoa] Value returned by kick : " << ret;
-            // AiMsgInfo(info.str().c_str());
          }
       }
       else
@@ -281,7 +288,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
-      double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
       // FIXME: at scene open the animation bar in Maya maybe be off sync,
       // ie it shows 0 but currentTime -q returns 1. Render is correct as it's indeed
       // done for frame 1
@@ -296,7 +302,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
-      arnoldSession->SetExportFrame(currentFrame);
       if (MStatus::kSuccess == sel.getDagPath(0, camera)) arnoldSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
       renderSession->SetResolution(width, height);

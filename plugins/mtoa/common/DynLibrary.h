@@ -1,5 +1,4 @@
-#ifndef DYNLIBRARY_H
-#define DYNLIBRARY_H
+#pragma once
 
 #include <ai_types.h>
 
@@ -50,5 +49,3 @@ void *LibrarySymbol(void *handle, const char *name);
  * a AiLibraryLoad/Unload/Symbol call.
  */
 char *LibraryLastError();
-
-#endif /* DYNLIBRARY_H */

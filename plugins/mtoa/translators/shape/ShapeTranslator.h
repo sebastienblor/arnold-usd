@@ -1,5 +1,4 @@
-#ifndef SHAPETRANSLATOR_H
-#define SHAPETRANSLATOR_H
+#pragma once
 
 #include "translators/NodeTranslator.h"
 #include <maya/MPlugArray.h>
@@ -38,6 +37,3 @@ protected:
 
 
 };
-
-#endif // SHAPETRANSLATOR_H
-

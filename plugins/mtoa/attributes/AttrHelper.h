@@ -1,5 +1,4 @@
-#ifndef ATTRHELPER_H
-#define ATTRHELPER_H
+#pragma once
 
 #include "platform/Platform.h"
 #include <ai_node_entry.h>
@@ -398,5 +397,3 @@ protected:
    MNodeClass m_class;
 
 };
-
-#endif // ATTRHELPER_H

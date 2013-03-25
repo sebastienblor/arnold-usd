@@ -7,6 +7,7 @@ from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
 from mtoa.lightFilters import getLightFilterClassification
 import mtoa.callbacks as callbacks
+import arnold as ai
 
 def getSourcePlug(plugname, index):
     conns = []
@@ -112,72 +113,69 @@ class LightFilterWindow(object):
 from functools import partial
 
 class ColorTemperatureTemplate:
-    @staticmethod
-    def updateColorTemperature(attrName, canvasName, *args, **kwargs):
-        temperature = cmds.getAttr(attrName)
-        colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.canvas(canvasName, edit=True, rgbValue=colorTemp)
-        
-    @staticmethod
-    def getChangeCommand(attrName, canvasName):
-        if pm.mel.getApplicationVersionAsFloat() == 2011:
-            return '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; canvas -e -rgbValue $c[0] $c[1] $c[2] "%s"' % (attrName, canvasName)
-        else:
-            return partial(ColorTemperatureTemplate.updateColorTemperature, attrName, canvasName)
-        
-    def colorTemperatureCreate(self, attrName):
-        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
-        cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,170), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -80)])
-        cmds.canvas(self.canvasName, enable=isEnabled, width=65, height=12)
-        cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=170,
-                            attribute=attrName, enable=isEnabled, precision=0, columnWidth=(2, 70),
-                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
-        cmds.setParent('..')
-        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
-        colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
-        cmds.setUITemplate(popTemplate=True)
-        
-    def colorTemperatureUpdate(self, attrName):
-        isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
-        cmds.attrFieldSliderGrp(self.sliderName, edit=True,
-                            attribute=attrName, enable=isEnabled,
-                            changeCommand=ColorTemperatureTemplate.getChangeCommand(attrName, self.canvasName))
-        temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
-        colorTemp = cmds.arnoldTemperatureToColor(temperature)
-        cmds.canvas(self.canvasName, edit=True, enable=isEnabled, rgbValue=colorTemp)
-        
-    @staticmethod
-    def updateUseColorTemperature(attrName, sliderName, *args, **kwargs):
+    def updateUseColorTemperature(self, *args):
         try:
-            cmds.attrFieldSliderGrp(sliderName, edit=True, enable=cmds.getAttr(attrName))
+            cmds.attrFieldSliderGrp(self.sliderName, edit=True, enable=cmds.getAttr(self.nodeAttr('aiUseColorTemperature')))
         except:
             pass
-    
-    @staticmethod
-    def getUseChangeCommand(attrName, sliderName):
+
+    def updateColorTemperature(self, *args, **kwargs):
+        try:
+            temperature = cmds.getAttr(self.nodeAttr('aiColorTemperature'))
+            colorTemp = cmds.arnoldTemperatureToColor(temperature)
+            cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
+        except:
+            pass
+
+    def getColorTemperatureCommands(self):
         if pm.mel.getApplicationVersionAsFloat() == 2011:
-            return '$t = `getAttr %s`; attrFieldSliderGrp -e -enable $t %s;' % (attrName, sliderName)
+            return (None, 
+                    '$t = `getAttr %s`; $c = `arnoldTemperatureToColor $t`; canvas -e -rgbValue $c[0] $c[1] $c[2] "%s"' % (self.nodeAttr('aiColorTemperature'), self.canvasName))
         else:
-            return partial(ColorTemperatureTemplate.updateUseColorTemperature, attrName, sliderName)
-            
-    def useColorTemperatureCreate(self, attrName):
+            return (self.updateUseColorTemperature, self.updateColorTemperature)
+
+    def createLightColorTemperatureUI(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-        cmds.attrControlGrp(self.checkBoxName, attribute=attrName, label='Use Color Temperature',
-                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))
+        uiCmds = self.getColorTemperatureCommands()
+        isEnabled = True
+        if pm.mel.getApplicationVersionAsFloat() > 2011:
+            isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+            aeUtils.attrBoolControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'),
+                                       label='Use Color Temperature', changeCommand=uiCmds[0])
+        else:
+            cmds.attrControlGrp(self.checkBoxName, attribute=self.nodeAttr('aiUseColorTemperature'), label='Use Color Temperature')
+        cmds.setParent('..')        
+        cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
+        cmds.canvas(self.canvasName, width=65, height=12)
+        cmds.attrFieldSliderGrp(self.sliderName, label='Temperature', width=220, 
+                                attribute=self.nodeAttr('aiColorTemperature'),
+                                enable=isEnabled,
+                                precision=0, columnWidth=[(1, 70), (2, 70), (3, 80)], changeCommand=uiCmds[1])
+        cmds.setParent('..')
+        colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
         cmds.setUITemplate(popTemplate=True)
-    
-    def useColorTemperatureUpdate(self, attrName):
-        cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=attrName,
-                            changeCommand=ColorTemperatureTemplate.getUseChangeCommand(attrName, self.sliderName))                            
+
+    def updateLightColorTemperatureUI(self, attrName):
+        uiCmds = self.getColorTemperatureCommands()
+        isEnabled = True
+        if pm.mel.getApplicationVersionAsFloat() > 2011:
+            isEnabled = cmds.getAttr(self.nodeAttr('aiUseColorTemperature'))
+            aeUtils.attrBoolControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'), 
+                                       changeCommand=uiCmds[0])
+        else:
+            cmds.attrControlGrp(self.checkBoxName, edit=True, attribute=self.nodeAttr('aiUseColorTemperature'))
+        cmds.attrFieldSliderGrp(self.sliderName, edit=True, 
+                                attribute=self.nodeAttr('aiColorTemperature'), enable=isEnabled,
+                                changeCommand=uiCmds[1])
+        colorTemp = cmds.arnoldTemperatureToColor(cmds.getAttr(self.nodeAttr('aiColorTemperature')))
+        cmds.canvas(self.canvasName, edit=True, rgbValue=colorTemp)
             
     def setupColorTemperature(self, lightType=""):
         self.sliderName = '%s_LightColorTemperature' % lightType
         self.checkBoxName = '%s_UseLightColorTemperature' % lightType
         self.canvasName = '%s_LightColorCanvas' % lightType
-        self.addCustom("aiUseColorTemperature", self.useColorTemperatureCreate, self.useColorTemperatureUpdate)
-        self.addCustom("aiColorTemperature", self.colorTemperatureCreate, self.colorTemperatureUpdate)
+        self.addCustom('aiUseColorTemperature', self.createLightColorTemperatureUI, self.updateLightColorTemperatureUI)
         
         self.addSeparator()
 
@@ -191,11 +189,19 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     def validFilters(self):
         return getLightFilterClassification(self.nodeType())
 
-    def commonLightAttributes(self):
-        self.addControl("aiBounceFactor")
-        self.addControl("aiBounces")
-
+    def commonLightAttributes(self):        
+        self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")        
+        self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
+        
+        self.addControl("aiVolumeSamples", label="Volume Samples")
+        
         self.addSeparator()
+    
+        self.addControl("aiDiffuse", label="Diffuse")
+        self.addControl("aiSpecular", label="Specular")
+        self.addControl("aiSss", label="SSS")
+        self.addControl("aiIndirect", label="Indirect")
+        self.addControl("aiMaxBounces", label="Max Bounces")
 
         self.lightFiltersLayout()
         
@@ -262,7 +268,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             #pm.mel.updateAE(newFilter)
         else: # MENU_NODE_INSTANCE
             # name is an existing node
-            self.connectLightFilter(pm.nt.DependNode(name))
+            self.connectLightFilter(pm.PyNode(name))
 
     def addLightFilter(self, filterNodeType):
         '''
@@ -344,15 +350,16 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
             pm.deleteUI(item)
         # rebuild
         pm.menuItem(label='<Add Filter>', parent=self.addOptionMenu)
-        for filterType in self.validFilters():
-            pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
-        connected = self.getConnectedLightFilters()
-        existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
-        if existing:
-            #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
-            pm.menuItem(divider=True, parent=self.addOptionMenu)
-            for filter in existing:
-                pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
+        if self.validFilters():
+            for filterType in self.validFilters():
+                pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
+            connected = self.getConnectedLightFilters()
+            existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
+            if existing:
+                #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
+                pm.menuItem(divider=True, parent=self.addOptionMenu)
+                for filter in existing:
+                    pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
 
     def customLightFiltersNew(self, attr):
         pm.rowLayout(numberOfColumns=3,

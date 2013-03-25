@@ -1,5 +1,4 @@
-#ifndef MAYA_UTILS_H
-#define MAYA_UTILS_H
+#pragma once
 
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MString.h>
@@ -16,5 +15,3 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      const MString& path="",
                      const bool* isSequence=NULL,
                      const bool* stricAOVs=NULL);
-
-#endif

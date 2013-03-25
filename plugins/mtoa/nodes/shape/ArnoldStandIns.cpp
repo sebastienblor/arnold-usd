@@ -38,9 +38,6 @@
 #include <fstream>
 #include <string>
 
-#include <maya/MHardwareRenderer.h>
-#include <maya/MGLFunctionTable.h>
-
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR       15 // white
 #define ACTIVE_AFFECTED_COLOR 8  // purple
@@ -655,66 +652,89 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
-   // Only find for frame extension files if this option is true
-   if (fGeometry.useFrameExtension)
+   // If changed framestep, useFrameExtension or dso
+   if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
    {
-      // If changed framestep, useFrameExtension or dso
-      if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
-      {
-         MString frameNumber = "0";
+      MString frameNumber = "0";
          
-         bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-         char frameExtWithHash[64];
-         char frameExtWithDot[64];
-         char frameExt[64];
-         if (subFrames || fGeometry.useSubFrame)
-         {
-            int fullFrame = (int) floor(framestep);
-            int subFrame = (int) floor((framestep - fullFrame) * 1000);
-            sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
-            sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
-            sprintf(frameExt, "%04d.%03d", fullFrame, subFrame);
-         }
-         else
-         {
-            sprintf(frameExtWithHash, "_%04d", (int) framestep);
-            sprintf(frameExtWithDot, ".%04d", (int) framestep);
-            sprintf(frameExt, "%04d", (int) framestep);
-         }
-         frameNumber = frameExtWithDot;
+      bool subFrames = ((framestep - floor(framestep)) >= 0.001);
+      char frameExtWithHash[64];
+      char frameExtWithDot[64];
+      char frameExt[64];
+         
+      int start = 0;
+      int end = 0;
+      MStringArray pattern;
+      MString newDso = "";
+      int framePadding = 0;
+      int subFramePadding = 0;
+      bool resolved = false;
+      MString a, b;
 
-         bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-               frameNumber, fGeometry.filename);
+      start = fGeometry.dso.index('#');
+      end = fGeometry.dso.rindex('#');
 
-         if (!resolved)
+      if(start >= 0)
+      {
+         fGeometry.dso.substring(start,end).split('.',pattern);
+         newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+         fGeometry.dso = newDso;
+
+         if(pattern.length() > 0)
          {
-            frameNumber = frameExtWithHash;
-            resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-               frameNumber, fGeometry.filename);
+            framePadding = pattern[0].length();
+            a = pattern[0];
          }
-
-         if (!resolved)
+         if(pattern.length() > 1)
          {
-            // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
-            //  find the file.
-            int len = fGeometry.dso.length();
-            if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
-            {
-               MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
-               resolved = MRenderUtil::exactFileTextureName(baseName, false,
-               frameNumber, fGeometry.filename);
-            }
-         }
-
-         if (!resolved)
-         {
-            fGeometry.filename = fGeometry.dso;
+            subFramePadding = pattern[1].length();
+            b = pattern[1];
          }
       }
-   }
-   else
-   {
-      fGeometry.filename = fGeometry.dso;
+
+      if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
+      {
+         int fullFrame = (int) floor(framestep);
+         int subFrame = (int) floor((framestep - fullFrame) * 1000);
+         sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+      }
+      else
+      {
+         sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
+         sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
+         sprintf(frameExt, "%0*d", framePadding, (int) framestep);
+      }
+      frameNumber = frameExtWithDot;
+
+      resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+            frameNumber, fGeometry.filename);
+
+      if (!resolved)
+      {
+         frameNumber = frameExtWithHash;
+         resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+            frameNumber, fGeometry.filename);
+      }
+
+      if (!resolved)
+      {
+         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         //  find the file.
+         int len = fGeometry.dso.length();
+         if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
+         {
+            MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            resolved = MRenderUtil::exactFileTextureName(baseName, false,
+            frameNumber, fGeometry.filename);
+         }
+      }
+
+      if (!resolved)
+      {
+         fGeometry.filename = fGeometry.dso;
+      }
    }
    
    if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale)
@@ -900,25 +920,17 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
 
 void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) const
 {
-   // Initialize GL function table first time through
-   static MGLFunctionTable *gGLFT = NULL;
-   if (gGLFT == NULL)
-   {
-      gGLFT = MHardwareRenderer::theRenderer()->glFunctionTable();
-      CArnoldStandInGeometry::setGLFTable(gGLFT);
-   }
-      
    MDrawData data = request.drawData();
    CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
    view.beginGL();
-   gGLFT->glPushAttrib(MGL_ALL_ATTRIB_BITS);
-   gGLFT->glEnable(MGL_DEPTH_TEST);
-   gGLFT->glDepthFunc(MGL_LESS);
+   glPushAttrib(GL_ALL_ATTRIB_BITS);
+   glEnable(GL_DEPTH_TEST);
+   glDepthFunc(GL_LESS);
 
    if (geom->updateView || geom->updateBBox)
    {
       if (geom->dList == 0)
-         geom->dList = gGLFT->glGenLists(2);
+         geom->dList = glGenLists(2);
 
       // Only show scaled BBox in this case
       if(geom->deferStandinLoad)
@@ -951,31 +963,31 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          float stopRightBack[3] =
          { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
                
-         gGLFT->glNewList(geom->dList+1, MGL_COMPILE);
-         gGLFT->glBegin(MGL_LINE_STRIP);
-         gGLFT->glVertex3fv(sbottomLeftFront);
-         gGLFT->glVertex3fv(sbottomLeftBack);
-         gGLFT->glVertex3fv(stopLeftBack);
-         gGLFT->glVertex3fv(stopLeftFront);
-         gGLFT->glVertex3fv(sbottomLeftFront);
-         gGLFT->glVertex3fv(sbottomRightFront);
-         gGLFT->glVertex3fv(sbottomRightBack);
-         gGLFT->glVertex3fv(stopRightBack);
-         gGLFT->glVertex3fv(stopRightFront);
-         gGLFT->glVertex3fv(sbottomRightFront);
-         gGLFT->glEnd();
+         glNewList(geom->dList+1, GL_COMPILE);
+         glBegin(GL_LINE_STRIP);
+         glVertex3fv(sbottomLeftFront);
+         glVertex3fv(sbottomLeftBack);
+         glVertex3fv(stopLeftBack);
+         glVertex3fv(stopLeftFront);
+         glVertex3fv(sbottomLeftFront);
+         glVertex3fv(sbottomRightFront);
+         glVertex3fv(sbottomRightBack);
+         glVertex3fv(stopRightBack);
+         glVertex3fv(stopRightFront);
+         glVertex3fv(sbottomRightFront);
+         glEnd();
          
-         gGLFT->glBegin(MGL_LINES);
-         gGLFT->glVertex3fv(sbottomLeftBack);
-         gGLFT->glVertex3fv(sbottomRightBack);
+         glBegin(GL_LINES);
+         glVertex3fv(sbottomLeftBack);
+         glVertex3fv(sbottomRightBack);
 
-         gGLFT->glVertex3fv(stopLeftBack);
-         gGLFT->glVertex3fv(stopRightBack);
+         glVertex3fv(stopLeftBack);
+         glVertex3fv(stopRightBack);
 
-         gGLFT->glVertex3fv(stopLeftFront);
-         gGLFT->glVertex3fv(stopRightFront);
-         gGLFT->glEnd();
-         gGLFT->glEndList();
+         glVertex3fv(stopLeftFront);
+         glVertex3fv(stopRightFront);
+         glEnd();
+         glEndList();
       }
       geom->updateBBox = false;
    }
@@ -1007,49 +1019,49 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       switch (geom->mode)
       {
       case DM_BOUNDING_BOX:
-         gGLFT->glNewList(geom->dList, MGL_COMPILE);
-         gGLFT->glBegin(MGL_LINE_STRIP);
+         glNewList(geom->dList, GL_COMPILE);
+         glBegin(GL_LINE_STRIP);
 
-         gGLFT->glVertex3fv(bottomLeftFront);
-         gGLFT->glVertex3fv(bottomLeftBack);
-         gGLFT->glVertex3fv(topLeftBack);
-         gGLFT->glVertex3fv(topLeftFront);
-         gGLFT->glVertex3fv(bottomLeftFront);
-         gGLFT->glVertex3fv(bottomRightFront);
-         gGLFT->glVertex3fv(bottomRightBack);
-         gGLFT->glVertex3fv(topRightBack);
-         gGLFT->glVertex3fv(topRightFront);
-         gGLFT->glVertex3fv(bottomRightFront);
-         gGLFT->glEnd();
+         glVertex3fv(bottomLeftFront);
+         glVertex3fv(bottomLeftBack);
+         glVertex3fv(topLeftBack);
+         glVertex3fv(topLeftFront);
+         glVertex3fv(bottomLeftFront);
+         glVertex3fv(bottomRightFront);
+         glVertex3fv(bottomRightBack);
+         glVertex3fv(topRightBack);
+         glVertex3fv(topRightFront);
+         glVertex3fv(bottomRightFront);
+         glEnd();
 
-         gGLFT->glBegin(MGL_LINES);
-         gGLFT->glVertex3fv(bottomLeftBack);
-         gGLFT->glVertex3fv(bottomRightBack);
+         glBegin(GL_LINES);
+         glVertex3fv(bottomLeftBack);
+         glVertex3fv(bottomRightBack);
 
-         gGLFT->glVertex3fv(topLeftBack);
-         gGLFT->glVertex3fv(topRightBack);
+         glVertex3fv(topLeftBack);
+         glVertex3fv(topRightBack);
 
-         gGLFT->glVertex3fv(topLeftFront);
-         gGLFT->glVertex3fv(topRightFront);
-         gGLFT->glEnd();
-         gGLFT->glEndList();
+         glVertex3fv(topLeftFront);
+         glVertex3fv(topRightFront);
+         glEnd();
+         glEndList();
          break;
       case DM_PER_OBJECT_BOUNDING_BOX:
-         gGLFT->glNewList(geom->dList, MGL_COMPILE);
+         glNewList(geom->dList, GL_COMPILE);
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
          {
             
             (*it)->DrawBoundingBox();
          }
-         gGLFT->glEndList();
+         glEndList();
          break;
       case DM_POLYWIRE: // filled polygon
-         gGLFT->glNewList(geom->dList, MGL_COMPILE);
-         gGLFT->glPushAttrib(MGL_CURRENT_BIT);
-         gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
+         glNewList(geom->dList, GL_COMPILE);
+         glPushAttrib(GL_CURRENT_BIT);
+         glEnable(GL_POLYGON_OFFSET_FILL);
          
-         gGLFT->glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
          
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
@@ -1058,7 +1070,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
             (*it)->DrawPolygons();
          }
          
-         gGLFT->glPopAttrib();
+         glPopAttrib();
          
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
@@ -1066,47 +1078,47 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
             (*it)->DrawWireframe();
          }
          
-         gGLFT->glEndList();
+         glEndList();
          break;
 
       case DM_WIREFRAME: // wireframe
-         gGLFT->glNewList(geom->dList, MGL_COMPILE);
+         glNewList(geom->dList, GL_COMPILE);
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
          {
             (*it)->DrawWireframe();
          }
-         gGLFT->glEndList();
+         glEndList();
          
          break;
 
       case DM_POINT_CLOUD: // points
-         gGLFT->glPushAttrib(MGL_CURRENT_BIT);
-         gGLFT->glEnable(MGL_POINT_SMOOTH);
+         glPushAttrib(GL_CURRENT_BIT);
+         glEnable(GL_POINT_SMOOTH);
          // Make round points, not square points and not working
-         gGLFT->glHint(MGL_POINT_SMOOTH_HINT, MGL_NICEST);
-         gGLFT->glEnable(MGL_BLEND);
-         gGLFT->glDepthMask(MGL_TRUE);
-         gGLFT->glBlendFunc(MGL_SRC_ALPHA, MGL_ONE_MINUS_SRC_ALPHA);
-         gGLFT->glNewList(geom->dList, MGL_COMPILE);
+         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+         glEnable(GL_BLEND);
+         glDepthMask(GL_TRUE);
+         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         glNewList(geom->dList, GL_COMPILE);
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
          {
             (*it)->DrawPoints(); // it's a bit unnecessary to call glBegin and glEnd
             // per geometry here, but I am doing this for consistency reasons
          }
-         gGLFT->glEndList();
+         glEndList();
          
-         gGLFT->glDisable(MGL_POINT_SMOOTH);
-         gGLFT->glPopAttrib();
+         glDisable(GL_POINT_SMOOTH);
+         glPopAttrib();
          break;
       case DM_SHADED: // shaded
-         gGLFT->glNewList(geom->dList, MGL_COMPILE);
-         gGLFT->glPushAttrib(MGL_ALL_ATTRIB_BITS);
-         gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
-         gGLFT->glEnable(MGL_LIGHTING);
+         glNewList(geom->dList, GL_COMPILE);
+         glPushAttrib(GL_ALL_ATTRIB_BITS);
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glEnable(GL_LIGHTING);
          
-         gGLFT->glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
          
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
@@ -1114,14 +1126,14 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
             
             (*it)->DrawNormalAndPolygons();
          }
-         gGLFT->glPopAttrib();
+         glPopAttrib();
          
          for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
                  it != geom->m_geometryList.end(); ++it)
          {
             (*it)->DrawWireframe();
          }         
-         gGLFT->glEndList();         
+         glEndList();         
          break;            
       }
       for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
@@ -1131,13 +1143,13 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       geom->updateView = false;
    }
    
-   gGLFT->glCallList(geom->dList);
+   glCallList(geom->dList);
    // Draw scaled BBox
    if(geom->deferStandinLoad)
    {
-      gGLFT->glCallList(geom->dList+1);
+      glCallList(geom->dList+1);
    }
-   gGLFT->glPopAttrib();
+   glPopAttrib();
    view.endGL();
 
 }
