@@ -319,6 +319,7 @@ def registerArnoldRenderer():
             # callbacks
             import mtoa.core as core
             core.installCallbacks()
+            core.MTOA_GLOBALS['COMMAND_PORT'] = None
 
             import maya.cmds as cmds
             if not pm.about(batch=True):
@@ -332,7 +333,9 @@ def registerArnoldRenderer():
                     commandPortName = ':%i' % port
                     if not cmds.commandPort(commandPortName, query=True):
                         cmds.commandPort(name=commandPortName)
+                        core.MTOA_GLOBALS['COMMAND_PORT'] = port
                         break
+
 
     except:
         import traceback
