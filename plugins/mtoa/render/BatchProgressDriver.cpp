@@ -20,7 +20,7 @@ AI_DRIVER_NODE_EXPORT_METHODS(batch_progress_driver_mtd);
 
 node_parameters
 {
-   AiParameterInt("port", 1234);
+   AiParameterInt("port", 4700);
 }
 
 static SOCKET g_socketFd;
