@@ -5,7 +5,16 @@ import mtoa.core as core
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
     core.createOptions()
-    cmds.arnoldRender(cam=camera, w=width, h=height)
+    cmds.arnoldRender(cam=camera, w=width, h=height) 
+
+def arnoldBatchRenderOptionsString():
+    try:
+        port = core.MTOA_GLOBALS['COMMAND_PORT']
+        print 'Command port is %i ' % port
+        return ' -port %i ' % port
+    except:
+        print 'No command port variable present!'
+        return ''
 
 def arnoldBatchRender(option):
     # Make sure the aiOptions node exists
@@ -13,6 +22,7 @@ def arnoldBatchRender(option):
     # Parse option string
     kwargs = {}
     options = option.split(" ")
+    print 'Options string ', option
     i, n = 0, len(options)
     while i < n:
         if options[i] in ["-w", "-width"]:
@@ -32,6 +42,11 @@ def arnoldBatchRender(option):
             if i >= n:
                 break
             kwargs["camera"] = options[i]
+        elif options[i] in ['-p', '-port']:
+            i += 1
+            if i >= n:
+                break
+            kwargs['port'] = options[i]
         i += 1
     try:
         cmds.arnoldRender(batch=True, **kwargs)

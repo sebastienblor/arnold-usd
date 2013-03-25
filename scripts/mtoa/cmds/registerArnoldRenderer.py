@@ -230,22 +230,23 @@ def _register():
     args['renderRegionProcedure'] = 'mayaRenderRegion'
     args['commandRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
-    args['batchRenderProcedure']      = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
+    args['batchRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
-    args['cancelBatchRenderProcedure']= utils.pyToMelProc(arnoldRender.arnoldBatchStop)
-    args['iprRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldIprRender,
+    args['batchRenderOptionsStringProcedure'] = utils.pyToMelProc(arnoldRender.arnoldBatchRenderOptionsString)
+    args['cancelBatchRenderProcedure']  = utils.pyToMelProc(arnoldRender.arnoldBatchStop)
+    args['iprRenderProcedure']          = utils.pyToMelProc(arnoldRender.arnoldIprRender,
                                                     [('int', 'width'), ('int', 'height'),
                                                      ('int', 'doShadows'), ('int', 'doGlowPass'),
                                                      ('string', 'camera')])
-    args['isRunningIprProcedure']     = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int')
-    args['startIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprStart,
+    args['isRunningIprProcedure']       = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int')
+    args['startIprRenderProcedure']     = utils.pyToMelProc(arnoldRender.arnoldIprStart,
                                                     [('string', 'editor'), ('int', 'resolutionX'),
                                                      ('int', 'resolutionY'), ('string', 'camera')])
-    args['stopIprRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprStop)
-    args['refreshIprRenderProcedure'] = utils.pyToMelProc(arnoldRender.arnoldIprRefresh)
-    args['pauseIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprPause,
+    args['stopIprRenderProcedure']      = utils.pyToMelProc(arnoldRender.arnoldIprStop)
+    args['refreshIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprRefresh)
+    args['pauseIprRenderProcedure']     =   utils.pyToMelProc(arnoldRender.arnoldIprPause,
                                                     [('string', 'editor'), ('int', 'pause')])
-    args['changeIprRegionProcedure']  = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
+    args['changeIprRegionProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
                                                     [('string', 'renderPanel')])
     pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
         
