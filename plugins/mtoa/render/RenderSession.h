@@ -37,6 +37,11 @@ public:
    // render levels. It should be used instead of AiRendering to prevent false
    // detection of rendering done.
    bool IsRendering();
+   
+   static void SetCallback(void* callback);
+   static void ClearCallbackId();
+   static MCallbackId GetCallbackId();
+   
 
    // Render Methods.
    /// Render into the Render View, not IPR.
@@ -63,8 +68,9 @@ public:
    AtBBox GetBoundingBox();
    MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
 
-   /// For interactive render, watch for interrupt or render end.
-   static void CheckForRenderInterrupt(void *data);
+   /// For interactive render, watch for interrupt, render end and process method
+   ///   provided to CRenderSession::SetCallback() in the driver.
+   static void InteractiveRenderCallback(void *data);
 
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
@@ -158,13 +164,17 @@ private:
    /// This is a special callback installed to update the render view while Arnold is rendering in IPR.
    /// \see AddIdleRenderViewCallback
    /// \see ClearIdleRenderViewCallback
-   MCallbackId    m_idle_cb;
+   static MCallbackId    m_idle_cb;
    MCallbackId    m_timer_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
    void*          m_render_thread;
    AtCritSec      m_render_lock;
    bool           m_rendering;
+   
+   static void*   m_renderCallback;
+   static MCallbackId    m_render_cb;
+   
    static MComputation   s_comp;
    MString        m_postRenderMel;
 
