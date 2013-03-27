@@ -37,8 +37,9 @@ public:
    // render levels. It should be used instead of AiRendering to prevent false
    // detection of rendering done.
    bool IsRendering();
-   
-   static void SetCallback(void* callback);
+
+   typedef void (*RenderCallbackType) (void*);   
+   static void SetCallback(RenderCallbackType callback);
    static void ClearCallbackId();
    static MCallbackId GetCallbackId();
    
@@ -70,7 +71,7 @@ public:
 
    /// For interactive render, watch for interrupt, render end and process method
    ///   provided to CRenderSession::SetCallback() in the driver.
-   static void InteractiveRenderCallback(void *data);
+   static void InteractiveRenderCallback(void* data);
 
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
@@ -172,8 +173,8 @@ private:
    AtCritSec      m_render_lock;
    bool           m_rendering;
    
-   static void*   m_renderCallback;
-   static MCallbackId    m_render_cb;
+   static RenderCallbackType   m_renderCallback;
+   static MCallbackId          m_render_cb;
    
    static MComputation   s_comp;
    MString        m_postRenderMel;

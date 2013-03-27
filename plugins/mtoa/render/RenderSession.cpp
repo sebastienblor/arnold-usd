@@ -41,10 +41,10 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
-MComputation CRenderSession::s_comp = MComputation();
-MCallbackId  CRenderSession::m_idle_cb = NULL;
-void*        CRenderSession::m_renderCallback = NULL;
-MCallbackId  CRenderSession::m_render_cb = NULL;
+MComputation                        CRenderSession::s_comp = MComputation();
+MCallbackId                         CRenderSession::m_idle_cb = NULL;
+CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
+MCallbackId                         CRenderSession::m_render_cb = NULL;
 
 namespace
 {
@@ -132,7 +132,7 @@ bool CRenderSession::IsRendering()
    return rendering;
 }
 
-void CRenderSession::SetCallback(void* callback)
+void CRenderSession::SetCallback(RenderCallbackType callback)
 {
    m_renderCallback = callback;
 }

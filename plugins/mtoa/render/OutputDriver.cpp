@@ -45,7 +45,6 @@ static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
 static MString                                 s_camera_name;
 static MString                                 s_panel_name;
-static MCallbackId                             s_idle_cb = 0;
 static MCallbackId                             s_timer_cb = 0;
 
 static int s_AA_Samples;
