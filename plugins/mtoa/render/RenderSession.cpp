@@ -375,7 +375,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
    // set progressive start point on AA
    const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   const int progressive_start = renderSession->m_renderOptions.progressiveInitialLevel();
+   const int progressive_start = MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel());
    const int steps = (progressive_start < 0) ? abs(progressive_start) + 1 : 1;
    int ai_status(AI_SUCCESS);
    renderSession->SetRendering(true);
