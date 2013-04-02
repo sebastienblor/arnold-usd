@@ -1583,6 +1583,7 @@ AtArray* CNodeTranslator::InitArrayParameter(unsigned int arnoldParamType, unsig
 
 void CNodeTranslator::SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array)
 {
+   // TODO: for IPR: call AiArrayDestroy on pre-existing arrays?
    AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
@@ -1591,7 +1592,7 @@ void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* 
    // connections:
    // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
    // there is no way of assigning the value of a message attribute other than via a connection.
-   // Therefore, we handle node/message connections in ProcessArrayElement
+   // Therefore, we handle node/message connections in ProcessConstantArrayElement
    if (arnoldParamType != AI_TYPE_NODE)
    {
       MString elemName = MString(arnoldParamName) + "[" + pos + "]";
@@ -1648,20 +1649,52 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 //            plug.getExistingArrayAttributeIndices(indices);
 
    // for now do all elements
-   unsigned int size = plug.numElements();
-   if (size > 0)
+   AtArray* array = NULL;
+   if (arnoldParamType == AI_TYPE_NODE)
    {
-      AtArray* array = InitArrayParameter(arnoldParamType, size);
-      MPlug elemPlug;
-      for (unsigned int i = 0; i < size; ++i)
-      {
-        // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-        //plug.selectAncestorLogicalIndex(i, plug.attribute());
-        elemPlug = plug[i];
+      MPlugArray inputs;
+      MPlugArray conn;
 
-        ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+      for (unsigned int i=0; i < plug.numElements(); ++i)
+      {
+         MPlug elemPlug = plug[i];
+         elemPlug.connectedTo(conn, true, false);
+         if (conn.length() == 1)
+            inputs.append(conn[0]);
       }
-      SetArrayParameter(arnoldNode, arnoldParamName, array);
+      unsigned int size = inputs.length();
+      if (size > 0)
+      {
+         array = InitArrayParameter(arnoldParamType, size);
+         for (unsigned int i=0; i < size; ++i)
+         {
+            AtNode* linkedNode = ExportNode(inputs[i]);
+            AiArraySetPtr(array, i, linkedNode);
+         }
+         SetArrayParameter(arnoldNode, arnoldParamName, array);
+      }
+      else
+         // TODO: Change this to: AiNodeSetArray(arnoldNode, arnoldParamName, NULL);
+         // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
+         AiNodeSetArray(arnoldNode, arnoldParamName, AiArrayAllocate(0,0, AI_TYPE_NODE));
+   }
+   else
+   {
+      unsigned int size = plug.numElements();
+      if (size > 0)
+      {
+         AtArray* array = InitArrayParameter(arnoldParamType, size);
+         MPlug elemPlug;
+         for (unsigned int i = 0; i < size; ++i)
+         {
+           // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+           //plug.selectAncestorLogicalIndex(i, plug.attribute());
+           elemPlug = plug[i];
+
+           ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+         }
+         SetArrayParameter(arnoldNode, arnoldParamName, array);
+      }
    }
 }
 

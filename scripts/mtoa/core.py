@@ -15,6 +15,8 @@ CATEGORY_TO_RUNTIME_CLASS = {
                 ('utility',):           'asUtility',
                 }
 
+MTOA_GLOBALS = {}
+
 def _processClass(nodeType):
     '''
     convert the passed node type's classification string to a tuple containing a formatted path string
