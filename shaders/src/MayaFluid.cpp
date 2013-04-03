@@ -1264,6 +1264,8 @@ shader_evaluate
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
+   const float old_area = sg->area;
+   sg->area = 0.f;
    if (data->volumeTexture)
    {
       if (data->coordinateMethod == CM_GRID)
@@ -1414,6 +1416,7 @@ shader_evaluate
       if (data->opacityTexture)
          opacityNoise *= data->opacityTexGain * volumeNoise;
    }
+   sg->area = old_area;
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
