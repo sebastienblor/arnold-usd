@@ -936,6 +936,13 @@ def createArnoldLogSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
+    pm.attrControlGrp('log_to_file',
+                      label='Log to File',
+                      attribute='defaultArnoldRenderOptions.log_to_file')
+
+    pm.attrControlGrp('log_to_console',
+                      label='Log to Console',
+                      attribute='defaultArnoldRenderOptions.log_to_console')
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
