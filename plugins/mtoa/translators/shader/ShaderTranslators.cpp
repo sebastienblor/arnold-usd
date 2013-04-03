@@ -201,9 +201,12 @@ void CFileTranslator::Export(AtNode* shader)
          size_t tokenPos = tx_filename_tokens.find("<udim>");
          if (tokenPos != std::string::npos)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
-         tokenPos = tx_filename_tokens.find("<tile>");
-         if (tokenPos != std::string::npos)
-            tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
+         else
+         {
+            tokenPos = tx_filename_tokens.find("<tile>");
+            if (tokenPos != std::string::npos)
+               tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
+         }
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
             resolvedFilename = tx_filename; 
