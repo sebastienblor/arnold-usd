@@ -41,7 +41,7 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
-MComputation                        CRenderSession::s_comp = MComputation();
+MComputation*                       CRenderSession::s_comp = NULL;
 MCallbackId                         CRenderSession::m_idle_cb = NULL;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
 MCallbackId                         CRenderSession::m_render_cb = NULL;
@@ -141,6 +141,11 @@ void CRenderSession::ClearCallbackId()
 {
    m_renderCallback = NULL;
    m_render_cb = 0;
+   if(s_comp != NULL)
+   {
+      s_comp->endComputation();
+      s_comp = NULL;
+   }
 }
 
 MCallbackId CRenderSession::GetCallbackId()
@@ -234,8 +239,10 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
 void CRenderSession::InteractiveRenderCallback(void *data)
 {
-   if (s_comp.isInterruptRequested() && AiRendering())
+   if (s_comp != NULL && s_comp->isInterruptRequested() && AiRendering())
    {
+      s_comp->endComputation();
+      s_comp = NULL;
       // This causes AiRender to break, after which the CMayaScene::End()
       // which clears this callback.
       AiRenderInterrupt();
@@ -246,6 +253,10 @@ void CRenderSession::InteractiveRenderCallback(void *data)
    
    if (m_render_cb == 0 && m_renderCallback != NULL)
    {
+      if(s_comp != NULL)
+         s_comp->endComputation();
+      s_comp = new MComputation();
+      s_comp->beginComputation();
       m_render_cb = MEventMessage::addEventCallback("idle",
                                                          (MMessage::MBasicFunction)m_renderCallback,
                                                          NULL);
@@ -583,7 +594,6 @@ AtUInt64 CRenderSession::GetUsedMemory()
 void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
-   s_comp.beginComputation();
 
    MMessage::removeCallback(renderSession->m_idle_cb);
    MStatus status;
@@ -592,7 +602,6 @@ void CRenderSession::DoAddIdleRenderViewCallback(void* data)
                                                 CRenderSession::InteractiveRenderCallback,
                                                 (void*)data,
                                                 &status);
-   s_comp.endComputation();
 }
 
 // there is a very strange bug with Maya where MComputation will lock up the GUI if
