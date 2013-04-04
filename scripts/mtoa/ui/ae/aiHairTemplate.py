@@ -32,8 +32,8 @@ class AEaiHairTemplate(ShaderAETemplate):
         
         self.endLayout()
         
-        self.beginLayout('Extra', collapse=False)
-        self.addControl('opacity', label='Opacity')
+        self.beginLayout('Opacity', collapse=False)
+        self.addControl('opacity', label='Color')
         self.endLayout()
 
         self.addAOVLayout()

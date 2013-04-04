@@ -11,64 +11,36 @@ def LoadStandInButtonPush(nodeName):
     projectDir = cmds.workspace(query=True, directory=True)     
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4, startingDirectory=projectDir)
     if ret is not None and len(ret):
-        ArnoldStandInDsoEdit(nodeName, ret[0])
+        ArnoldStandInDsoEdit(nodeName, ret[0], True)
 
-def ArnoldStandInDsoEdit(nodeName, mPath) :
+def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
     mArchivePath = ''
     nodeName = nodeName.replace('.dso','')
     
-    # Sequence of .ass.gz
-    if re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass.gz)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass.gz)',mPath).groups()
-        mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
-        if '.' in m_groups[2]:
-            cmds.setAttr(nodeName+'.useSubFrame',True)
-        else:
+    expression = r''
+    if replace:
+        # Expression to replace frame numbers by #
+        expression = r'(.*?)([\.\_]?)([0-9#]*)([\.]?)([0-9#]*)(.ass.gz|.ass|.obj|.ply)'
+    else:
+        expression = r'(.*?)([\.\_]?)([#]*)([\.]?)([#]*)(.ass.gz|.ass|.obj|.ply)'
+
+    # If it is a recogniced format
+    if re.search(expression,mPath) != None:
+        m_groups = re.search(expression,mPath).groups()
+        # Single file
+        if not m_groups[2]:
+            mArchivePath = mPath
+            cmds.setAttr(nodeName+'.useFrameExtension',False)
+        # Sequence without subframes    
+        elif not m_groups[3]:
+            cmds.setAttr(nodeName+'.useFrameExtension',True)
+            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[5]
             cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .ass.gz
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass.gz)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
-    # Sequence of .ass
-    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass)',mPath).groups()
-        mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
-        if '.' in m_groups[2]:
-            cmds.setAttr(nodeName+'.useSubFrame',True)
+        # Sequence with subframes
         else:
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .ass
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
-    # Sequence of .obj
-    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.obj)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.obj)',mPath).groups()
-        mArchivePath = m_groups[0]+'.#'+m_groups[2]
-        if '.' in m_groups[1]:
+            cmds.setAttr(nodeName+'.useFrameExtension',True)
+            mArchivePath = m_groups[0]+m_groups[1]+'#'*len(m_groups[2])+m_groups[3]+'#'*len(m_groups[4])+m_groups[5]
             cmds.setAttr(nodeName+'.useSubFrame',True)
-        else:
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .obj
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.obj)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
-    # Sequence of .ply
-    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ply)',mPath) != None:
-        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ply)',mPath).groups()
-        mArchivePath = m_groups[0]+'.#'+m_groups[2]
-        if '.' in m_groups[1]:
-            cmds.setAttr(nodeName+'.useSubFrame',True)
-        else:
-            cmds.setAttr(nodeName+'.useSubFrame',False)
-        cmds.setAttr(nodeName+'.useFrameExtension',True)
-    # Single .ply
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ply)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+'.useFrameExtension',False)
     # Other
     else:
         mArchivePath = mPath

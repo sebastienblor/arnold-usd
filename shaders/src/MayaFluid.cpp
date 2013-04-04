@@ -85,17 +85,6 @@ enum billowFalloff{
    BF_BUBBLE
 };
 
-// http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
-inline float FastPow(float a, float b) {
-   union {
-      double d;
-      int x[2];
-   } u = { (double)a };
-   u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
-   u.x[0] = 0;
-   return (float)u.d;
-}
-
 node_parameters
 {
    AiParameterEnum("filter_type", FT_LINEAR, filterTypeEnums);
@@ -426,7 +415,7 @@ public:
          const float b = bias < -.99f ? -.99f : bias;
          const float x = value < 0.f ? 0.f : value;
 
-         return FastPow(x, (b - 1.f) / (-b - 1.f));
+         return powf(x, (b - 1.f) / (-b - 1.f));
       }
    }
    
@@ -837,7 +826,7 @@ node_update
    data->inflection = AiNodeGetBool(node, "inflection");
    data->invertTexture = AiNodeGetBool(node, "invert_texture");   
    
-   if (!(data->textureAffectColor || data->textureAffectOpacity || data->textureAffectOpacity))
+   if (!(data->textureAffectColor || data->textureAffectIncand || data->textureAffectOpacity))
       data->volumeTexture = 0;
    
    data->textureDisabledInShadows = false;
@@ -1154,7 +1143,7 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
       const float dist = AiV3Length(v);
       if (dist > AI_EPSILON)
       {
-         const float fac = FastPow(dist, 1.f - implode) / dist;
+         const float fac = powf(dist, 1.f - implode) / dist;
          v *= fac;
       }
       v += implodeCenter;
@@ -1275,6 +1264,8 @@ shader_evaluate
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
+   const float old_area = sg->area;
+   sg->area = 0.f;
    if (data->volumeTexture)
    {
       if (data->coordinateMethod == CM_GRID)
@@ -1425,6 +1416,7 @@ shader_evaluate
       if (data->opacityTexture)
          opacityNoise *= data->opacityTexGain * volumeNoise;
    }
+   sg->area = old_area;
    
    if (sg->Rt & AI_RAY_SHADOW)
    {

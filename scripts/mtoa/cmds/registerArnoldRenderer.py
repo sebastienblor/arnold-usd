@@ -230,22 +230,23 @@ def _register():
     args['renderRegionProcedure'] = 'mayaRenderRegion'
     args['commandRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
-    args['batchRenderProcedure']      = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
+    args['batchRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
-    args['cancelBatchRenderProcedure']= utils.pyToMelProc(arnoldRender.arnoldBatchStop)
-    args['iprRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldIprRender,
+    args['batchRenderOptionsStringProcedure'] = utils.pyToMelProc(arnoldRender.arnoldBatchRenderOptionsString, returnType='string')
+    args['cancelBatchRenderProcedure']  = utils.pyToMelProc(arnoldRender.arnoldBatchStop)
+    args['iprRenderProcedure']          = utils.pyToMelProc(arnoldRender.arnoldIprRender,
                                                     [('int', 'width'), ('int', 'height'),
                                                      ('int', 'doShadows'), ('int', 'doGlowPass'),
                                                      ('string', 'camera')])
-    args['isRunningIprProcedure']     = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int')
-    args['startIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprStart,
+    args['isRunningIprProcedure']       = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int')
+    args['startIprRenderProcedure']     = utils.pyToMelProc(arnoldRender.arnoldIprStart,
                                                     [('string', 'editor'), ('int', 'resolutionX'),
                                                      ('int', 'resolutionY'), ('string', 'camera')])
-    args['stopIprRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprStop)
-    args['refreshIprRenderProcedure'] = utils.pyToMelProc(arnoldRender.arnoldIprRefresh)
-    args['pauseIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprPause,
+    args['stopIprRenderProcedure']      = utils.pyToMelProc(arnoldRender.arnoldIprStop)
+    args['refreshIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprRefresh)
+    args['pauseIprRenderProcedure']     =   utils.pyToMelProc(arnoldRender.arnoldIprPause,
                                                     [('string', 'editor'), ('int', 'pause')])
-    args['changeIprRegionProcedure']  = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
+    args['changeIprRegionProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
                                                     [('string', 'renderPanel')])
     pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
         
@@ -319,7 +320,24 @@ def registerArnoldRenderer():
             # callbacks
             import mtoa.core as core
             core.installCallbacks()
+            core.MTOA_GLOBALS['COMMAND_PORT'] = None
 
+            import maya.cmds as cmds
+            if not pm.about(batch=True):
+                commandPortBase = 4700
+                try:
+                    commandPortBase = int(os.environ['MTOA_COMMAND_PORT'])
+                except:
+                    commandPortBase = 4700
+                # opening a command port for different tools and maya batch progress messages
+                for port in range(commandPortBase, commandPortBase + 100):
+                    commandPortName = ':%i' % port
+                    try:
+                        cmds.commandPort(name=commandPortName)
+                        core.MTOA_GLOBALS['COMMAND_PORT'] = port
+                        break
+                    except:
+                        pass
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)

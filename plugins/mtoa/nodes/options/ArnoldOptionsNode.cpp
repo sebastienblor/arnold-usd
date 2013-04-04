@@ -68,6 +68,8 @@ MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
 MObject CArnoldOptionsNode::s_output_ass_mask;
+MObject CArnoldOptionsNode::s_log_to_file;
+MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
 MObject CArnoldOptionsNode::s_log_console_verbosity;
@@ -445,6 +447,14 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(0xFFFF);
    addAttribute(s_output_ass_mask);
+
+   s_log_to_file = nAttr.create("log_to_file", "ltofi", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_log_to_file);
+
+   s_log_to_console = nAttr.create("log_to_console", "ltocon", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_log_to_console);
 
    s_log_filename = tAttr.create("log_filename", "logf", MFnData::kString);
    tAttr.setKeyable(false);

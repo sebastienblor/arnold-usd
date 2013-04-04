@@ -248,7 +248,9 @@ private:
    unsigned int   m_outputAssMask;
    bool m_expandProcedurals;
 
-   MString  m_log_filename;
+   bool           m_log_to_file;
+   bool           m_log_to_console;
+   MString        m_log_filename;
    unsigned int   m_log_max_warnings;
    unsigned int   m_log_console_verbosity;
    unsigned int   m_log_file_verbosity;

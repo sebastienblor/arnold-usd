@@ -29,7 +29,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginLayout("Matte", collapse=True)
         self.addControl("aiEnableMatte", label="Enable Matte")
         self.addControl("aiMatteColor", label="Matte Color")
-        self.addControl("aiMatteColorA", label="Matte Alpha")
+        self.addControl("aiMatteColorA", label="Matte Opacity")
         self.endLayout()
 
         self.beginLayout("Diffuse", collapse=False)

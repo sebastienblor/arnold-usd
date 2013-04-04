@@ -652,8 +652,8 @@ shader_evaluate
 
                   int col = static_cast<int>(floorf(inU)) + 1;
                   int row = static_cast<int>(floorf(inV)) + 1;
-                  char buf[7];
-                  sprintf(buf, "u%d_v%d", col, row);
+                  char buf[16];
+                  sprintf(buf, "_u%d_v%d", col, row);
                   int len = (int) strlen(buf);
                   memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
                   pos += len;
@@ -668,10 +668,7 @@ shader_evaluate
          }
 
          if (success)
-         {
             sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
-         }
-         //AiMsgInfo("FILE: new name: %s", newfname.c_str());
       }
       else if (idata->texture_handle != NULL)
       {

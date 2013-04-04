@@ -154,10 +154,13 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def volumeNoiseUpdate(self, attrName):
         cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", edit=True, attribute=attrName)
         
-    def setup(self):    
+    def setup(self):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
+        self.addSeparator()
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
         self.beginLayout("Custom Texture", collapse=False)
         self.addControl("aiOverrideTextures", label="Override Fluid Texture")        
         self.addControl("aiTextureAffectColor", label="Texture Color")

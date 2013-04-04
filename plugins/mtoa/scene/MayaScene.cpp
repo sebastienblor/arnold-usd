@@ -218,6 +218,8 @@ MStatus CMayaScene::Restart()
    s_renderSession->End();
    s_arnoldSession->End();
 
+   optionss.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+
    s_renderSession->Begin(options);
    s_arnoldSession->Begin(optionss);
 
