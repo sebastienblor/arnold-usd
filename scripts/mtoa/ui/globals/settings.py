@@ -950,12 +950,12 @@ def createArnoldLogSettings():
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
 
     pm.attrControlGrp('log_to_console',
-                      label='Log to Console',
+                      label='Console',
                       changeCommand=ChangeLogToConsole,
                       attribute='defaultArnoldRenderOptions.log_to_console')
 
     pm.attrControlGrp('log_to_file',
-                      label='Log to File',
+                      label='File',
                       changeCommand=ChangeLogToFile,
                       attribute='defaultArnoldRenderOptions.log_to_file')   
     
