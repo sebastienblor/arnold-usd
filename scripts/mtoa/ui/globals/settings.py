@@ -957,7 +957,7 @@ def createArnoldLogSettings():
     pm.attrControlGrp('log_to_file',
                       label='File',
                       changeCommand=ChangeLogToFile,
-                      attribute='defaultArnoldRenderOptions.log_to_file')   
+                      attribute='defaultArnoldRenderOptions.log_to_file')
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
