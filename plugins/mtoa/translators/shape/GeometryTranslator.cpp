@@ -1003,16 +1003,29 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
 
       ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
-
    }
 }
 
 void CGeometryTranslator::ExportBBox(AtNode* polymesh)
 {
+   ExportMatrix(polymesh, 0);
+
+   if (FindMayaPlug("doubleSided").asBool())
+      AiNodeSetInt(polymesh, "sidedness", 65535);
+   else
+   {
+      AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
+      AiNodeSetInt(polymesh, "sidedness", 0);
+   }
+
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+      ExportMeshShaders(polymesh, m_dagPath);
+   ExportLightLinking(polymesh);
+
    MFnMesh fnMesh(m_geometry);
    MBoundingBox bbox = fnMesh.boundingBox();
-   AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-   AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
+   AiNodeSetPnt(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
+   AiNodeSetPnt(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
    AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
