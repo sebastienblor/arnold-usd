@@ -260,6 +260,7 @@ void CRenderSession::InteractiveRenderCallback(void *data)
       m_render_cb = MEventMessage::addEventCallback("idle",
                                                          (MMessage::MBasicFunction)m_renderCallback,
                                                          NULL);
+      s_comp->endComputation();
    }
       
    return;
