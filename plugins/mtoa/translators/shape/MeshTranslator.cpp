@@ -106,7 +106,8 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
    if (m_isMasterDag)
    {
       const short volumeContainerMode = FindMayaPlug("aiVolumeContainerMode").asShort();
-      if (volumeContainerMode == 1)
+      const float stepSize = FindMayaPlug("aiStepSize").asFloat();
+      if ((stepSize > AI_EPSILON) && (volumeContainerMode == 1))
          return AddArnoldNode("box");
       else
          return AddArnoldNode("polymesh");
@@ -133,7 +134,7 @@ void CMeshTranslator::Export(AtNode* anode)
    }
    else if (strcmp(nodeType, "box") == 0)
    {
-      ExportMesh(anode, false);  
+      ExportBBox(anode);  
    }
 }
 

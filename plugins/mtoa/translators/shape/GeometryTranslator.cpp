@@ -748,16 +748,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
    MFnMesh fnMesh(m_geometry);
    MObject geometry(m_geometry);
    
-   const short volumeContainerMode = FindMayaPlug("aiVolumeContainerMode").asShort();
-   if (volumeContainerMode == 1)
-   {
-      if (step > 0)
-         return;
-      MBoundingBox bbox = fnMesh.boundingBox();
-      AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
-      AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
-      AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
-   }
    //
    // GEOMETRY
    //   
@@ -1015,6 +1005,15 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
 
    }
+}
+
+void CGeometryTranslator::ExportBBox(AtNode* polymesh)
+{
+   MFnMesh fnMesh(m_geometry);
+   MBoundingBox bbox = fnMesh.boundingBox();
+   AiNodeSetVec(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
+   AiNodeSetVec(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
+   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
 AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
