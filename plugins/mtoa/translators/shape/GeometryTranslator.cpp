@@ -1009,6 +1009,8 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 void CGeometryTranslator::ExportBBox(AtNode* polymesh)
 {
    ExportMatrix(polymesh, 0);
+   // Visibility options
+   ProcessRenderFlags(polymesh);
 
    if (FindMayaPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
