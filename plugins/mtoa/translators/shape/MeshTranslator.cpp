@@ -131,6 +131,10 @@ void CMeshTranslator::Export(AtNode* anode)
          return;
       ExportMesh(anode, false);
    }
+   else if (strcmp(nodeType, "box") == 0)
+   {
+      ExportMesh(anode, false);  
+   }
 }
 
 void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
@@ -150,6 +154,10 @@ void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
             return;
          ExportMeshGeoData(anode, step);
       }
+   }
+   else if (strcmp(nodeType, "box") == 0)
+   {
+      ExportMatrix(anode, step);
    }
 }
 
