@@ -50,14 +50,92 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
+int CArnoldStandInsTranslator::ComputeOverrideVisibility()
+{
+   // Usually invisible nodes are not exported at all, just making sure here
+   if (false == m_session->IsRenderablePath(m_dagPath))
+      return AI_RAY_UNDEFINED;
+
+   int visibility = AI_RAY_ALL;
+   MPlug plug;
+
+   plug = FindMayaPlug("overrideCastsShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("castsShadows");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_SHADOW;
+      }
+   }
+
+   plug = FindMayaPlug("overridePrimaryVisibility");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("primaryVisibility");
+      MString plugName = plug.name();
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_CAMERA;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInReflections");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("visibleInReflections");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_REFLECTED;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInRefractions");
+   if (plug.isNull() || plug.asBool())
+      {
+      plug = FindMayaPlug("visibleInRefractions");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_REFRACTED;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInDiffuse");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInDiffuse");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_DIFFUSE;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInGlossy");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInGlossy");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_GLOSSY;
+      }
+   }
+   
+   return visibility;
+}
+
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetInt(node, "visibility", ComputeVisibility());
+   AiNodeSetInt(node, "visibility", ComputeOverrideVisibility());
 
    MPlug plug;
-   plug = FindMayaPlug("aiSelfShadows");
-   if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+   
+   plug = FindMayaPlug("overrideSelfShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiSelfShadows");
+      if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+   }
 
    // for standins, we check
    plug = FindMayaPlug("overrideOpaque");
@@ -66,9 +144,26 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("aiOpaque");
       if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
    }
-   plug = FindMayaPlug("receiveShadows");
-   if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
-
+   
+   plug = FindMayaPlug("overrideReceiveShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("receiveShadows");
+      if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
+   }
+   
+   plug = FindMayaPlug("overrideDoubleSided");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("doubleSided");
+      
+      if (!plug.isNull() && plug.asBool())
+         AiNodeSetInt(node, "sidedness", 65535);
+      else
+         AiNodeSetInt(node, "sidedness", 0);
+   }
+   
+   
    // Sub-Surface Scattering
    plug = FindMayaPlug("aiSssSampleDistribution");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
