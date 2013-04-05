@@ -200,13 +200,23 @@ void CFileTranslator::Export(AtNode* shader)
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
       renderOptions.GetFromMaya(); 
       if(renderOptions.useExistingTiledTextures()) 
-      { 
-         MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx")); 
-         std::ifstream ifile(tx_filename.asChar()); 
+      {
+         // check for <tile> and <udim> tags and replace them
+         // with _u1_v1 and 1001 
+         MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
+         std::string tx_filename_tokens = tx_filename.asChar();
+         size_t tokenPos = tx_filename_tokens.find("<udim>");
+         if (tokenPos != std::string::npos)
+            tx_filename_tokens.replace(tokenPos, 6, "1001");
+         else
+         {
+            tokenPos = tx_filename_tokens.find("<tile>");
+            if (tokenPos != std::string::npos)
+               tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
+         }
+         std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-         { 
             resolvedFilename = tx_filename; 
-         } 
       }
       
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 

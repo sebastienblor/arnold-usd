@@ -67,7 +67,7 @@ shader_evaluate
    float scale = AiShaderEvalParamFlt(p_scale);
    AtVector tangent = AiShaderEvalParamVec(p_tangent);
    
-   AtVector normal = sg->Nf;
+   AtVector normal = sg->N;
    
    AtVector totalDisp = normal * disp;
    
@@ -88,7 +88,7 @@ shader_evaluate
    case VS_TANGENT:
       AtVector T, B, N;
       
-      N = AiV3Normalize(sg->Nf);
+      N = AiV3Normalize(sg->N);
 
       if (!AiV3IsZero(tangent))
       {
@@ -106,7 +106,7 @@ shader_evaluate
          else
          {
             // no tangents given, compute a pair
-            AiBuildLocalFramePolar(&T, &B, &sg->Nf);
+            AiBuildLocalFramePolar(&T, &B, &sg->N);
          }
       }
       transformedVectorDisplacement = vectorDisp.x * T + vectorDisp.z * B + vectorDisp.y * N;

@@ -218,6 +218,8 @@ MStatus CMayaScene::Restart()
    s_renderSession->End();
    s_arnoldSession->End();
 
+   optionss.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+
    s_renderSession->Begin(options);
    s_arnoldSession->Begin(optionss);
 
@@ -336,16 +338,13 @@ MStatus CMayaScene::ExportAndRenderSequence( ArnoldSessionMode mode,
 MStatus CMayaScene::ExecuteScript(const MString &str, bool echo, bool idle)
 {
    MStatus status = MStatus::kSuccess;
-   MString str2 = "proc CMayaSceneExecuteScript(){";
-   str2 += str;
-   str2 += ";}catchQuiet(`CMayaSceneExecuteScript()`);";
 
    if (str.length() > 0)
    {
       if (idle)
-         status = MGlobal::executeCommandOnIdle(str2, echo);
+         status = MGlobal::executeCommandOnIdle(str, echo);
       else
-         status = MGlobal::executeCommand(str2, echo);
+         status = MGlobal::executeCommand(str, echo);
    }
 
    return status;

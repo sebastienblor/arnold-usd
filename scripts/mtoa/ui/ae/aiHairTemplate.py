@@ -8,15 +8,13 @@ class AEaiHairTemplate(ShaderAETemplate):
         
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
-        self.beginLayout('Color', collapse=False)
+        self.beginLayout('Diffuse', collapse=False)
         self.addControl('rootcolor', label='Root Color')
         self.addControl('tipcolor', label='Tip Color')
-        self.endLayout()
-        
-        self.beginLayout('Diffuse', collapse=False)
-        self.addControl('diffuse_cache', label='Diffuse Cache')
+        self.addSeparator()        
         self.addControl('ambdiff', label='Ambient Diffuse')
         self.addControl('kd_ind', label='Indirect Diffuse')
+        self.addControl('diffuse_cache', label='Diffuse Cache')
         self.endLayout()
         
         self.beginLayout('Specular', collapse=False)
@@ -34,10 +32,13 @@ class AEaiHairTemplate(ShaderAETemplate):
         
         self.endLayout()
         
-        self.beginLayout('Extra', collapse=False)
-        self.addControl('opacity', label='Opacity')
+        self.beginLayout('Opacity', collapse=False)
+        self.addControl('opacity', label='Color')
         self.endLayout()
+
+        self.addAOVLayout()
         
+        # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
         
         self.addExtraControls()

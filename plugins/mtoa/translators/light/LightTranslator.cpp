@@ -25,28 +25,6 @@
 #include <vector>
 #include <string>
 
-void CLightTranslator::ExportLightFilters(AtNode* light, const MPlugArray &filterNodes)
-{
-   std::vector<AtNode*> filters;
-
-   for (unsigned int i=0; i<filterNodes.length(); ++i)
-   {
-      AtNode* filter = ExportNode(filterNodes[i]);
-      filters.push_back(filter);
-   }
-
-   if (filters.size() > 0)
-   {
-      AiNodeSetArray(light, "filters", AiArrayConvert((int)filters.size(), 1, AI_TYPE_NODE, &filters[0]));
-   }
-   else
-   {
-      // TODO: Change this to: AiNodeSetArray(light, "filters", NULL);
-      // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
-      AiNodeSetArray(light, "filters", AiArrayAllocate(0,0, AI_TYPE_NODE));
-   }
-}
-
 void CLightTranslator::Export(AtNode* light)
 {
    MPlug plug;
@@ -82,38 +60,16 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
    AiNodeSetInt(light,  "volume_samples",  FindMayaPlug("aiVolumeSamples").asInt());
    
-   if (FindMayaPlug("emitDiffuse").asBool())
-      AiNodeSetFlt(light, "diffuse", FindMayaPlug("aiDiffuse").asFloat());
-   else
-      AiNodeSetFlt(light, "diffuse", 0.f);
-   
-   if (FindMayaPlug("emitSpecular").asBool())
-      AiNodeSetFlt(light, "specular", FindMayaPlug("aiSpecular").asFloat());
-   else
-      AiNodeSetFlt(light, "specular", 0.f);
- 
-   MStatus status;
-   MPlug pFilters = FindMayaPlug("aiFilters");
-   if (!pFilters.isNull())
-   {
-      MPlugArray filters;
-      MPlugArray pSources;
+   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
+   AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
+   AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
 
-      for (unsigned int i=0; i<pFilters.numElements(); ++i)
-      {
-         MPlug pFilter = pFilters[i];
-         pFilter.connectedTo(pSources, true, false);
-         if (pSources.length() == 1)
-         {
-            filters.append(pSources[0]);
-         }
-      }
 
-      ExportLightFilters(light, filters);
-   }
 
    GetMatrix(matrix);
 
+   ProcessParameter(light, "filters", AI_TYPE_ARRAY, FindMayaPlug("aiFilters"));
    if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);

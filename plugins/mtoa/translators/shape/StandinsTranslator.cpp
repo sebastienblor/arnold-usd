@@ -50,14 +50,92 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
+int CArnoldStandInsTranslator::ComputeOverrideVisibility()
+{
+   // Usually invisible nodes are not exported at all, just making sure here
+   if (false == m_session->IsRenderablePath(m_dagPath))
+      return AI_RAY_UNDEFINED;
+
+   int visibility = AI_RAY_ALL;
+   MPlug plug;
+
+   plug = FindMayaPlug("overrideCastsShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("castsShadows");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_SHADOW;
+      }
+   }
+
+   plug = FindMayaPlug("overridePrimaryVisibility");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("primaryVisibility");
+      MString plugName = plug.name();
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_CAMERA;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInReflections");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("visibleInReflections");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_REFLECTED;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInRefractions");
+   if (plug.isNull() || plug.asBool())
+      {
+      plug = FindMayaPlug("visibleInRefractions");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_REFRACTED;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInDiffuse");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInDiffuse");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_DIFFUSE;
+      }
+   }
+   
+   plug = FindMayaPlug("overrideVisibleInGlossy");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiVisibleInGlossy");
+      if (!plug.isNull() && !plug.asBool())
+      {
+         visibility &= ~AI_RAY_GLOSSY;
+      }
+   }
+   
+   return visibility;
+}
+
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetInt(node, "visibility", ComputeVisibility());
+   AiNodeSetInt(node, "visibility", ComputeOverrideVisibility());
 
    MPlug plug;
-   plug = FindMayaPlug("aiSelfShadows");
-   if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+   
+   plug = FindMayaPlug("overrideSelfShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiSelfShadows");
+      if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+   }
 
    // for standins, we check
    plug = FindMayaPlug("overrideOpaque");
@@ -66,9 +144,26 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("aiOpaque");
       if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
    }
-   plug = FindMayaPlug("receiveShadows");
-   if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
-
+   
+   plug = FindMayaPlug("overrideReceiveShadows");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("receiveShadows");
+      if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
+   }
+   
+   plug = FindMayaPlug("overrideDoubleSided");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("doubleSided");
+      
+      if (!plug.isNull() && plug.asBool())
+         AiNodeSetInt(node, "sidedness", 65535);
+      else
+         AiNodeSetInt(node, "sidedness", 0);
+   }
+   
+   
    // Sub-Surface Scattering
    plug = FindMayaPlug("aiSssSampleDistribution");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
@@ -230,30 +325,61 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       char frameExtWithHash[64];
       char frameExtWithDot[64];
       char frameExt[64];
-      if (subFrames || useSubFrame)
+
+      int start = 0;
+      int end = 0;
+      MStringArray pattern;
+      MString newDso = "";
+      int framePadding = 0;
+      int subFramePadding = 0;
+      bool resolved = false;
+      MString a, b;
+      
+      start = dso.index('#');
+      end = dso.rindex('#');
+
+      if(start >= 0)
+      {
+         dso.substring(start,end).split('.',pattern);
+         newDso = dso.substring(0,start-1) + "#" + dso.substring(end+1,dso.length());
+         dso = newDso;
+         
+         if(pattern.length() > 0)
+         {
+            framePadding = pattern[0].length();
+            a = pattern[0];
+         }
+         if(pattern.length() > 1)
+         {
+            subFramePadding = pattern[1].length();
+            b = pattern[1];
+         }
+      }
+
+      if (subFrames || useSubFrame || (subFramePadding != 0))
       {
          int fullFrame = (int) floor(framestep);
          int subFrame = (int) floor((framestep - fullFrame) * 1000);
-         sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
-         sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
-         sprintf(frameExt, "%04d.%03d", fullFrame, subFrame);
+         sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
       }
       else
       {
-         sprintf(frameExtWithHash, "_%04d", (int) framestep);
-         sprintf(frameExtWithDot, ".%04d", (int) framestep);
-         sprintf(frameExt, "%04d", (int) framestep);
+         sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
+         sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
+         sprintf(frameExt, "%0*d", framePadding, (int) framestep);
       }
       frameNumber = frameExtWithDot;
 
-      bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
-      
+      resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+   
       if (!resolved)
       {
          frameNumber = frameExtWithHash;
          resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
       }
-      
+   
       if (!resolved)
       {
          // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to

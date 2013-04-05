@@ -6,6 +6,7 @@ namespace
 enum ShadingGroupParams
 {
    p_beauty,
+   p_volume,
    p_aov_inputs,
    p_aov_names,
    p_enable_matte,
@@ -24,7 +25,8 @@ node_parameters
    //AiMetaDataSetStr(mds, NULL, "maya.name", "shadingEngine");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 
-   AiParameterRGBA("beauty", 0, 0, 0, 0);
+   AiParameterRGBA("beauty", 0.f, 0.f, 0.f, 0.f);
+   AiParameterRGB("volume", 0.f, 0.f, 0.f);
    AiParameterARRAY("aov_inputs", AiArray(0, 0, AI_TYPE_NODE));
    AiParameterARRAY("aov_names", AiArray(0, 0, AI_TYPE_STRING));
    AiParameterBool("enable_matte", false);
@@ -33,6 +35,11 @@ node_parameters
 
 shader_evaluate
 {
+   if (sg->sc & AI_CONTEXT_VOLUME)
+   {
+      sg->out.RGB = AiShaderEvalParamRGB(p_volume);
+      return;
+   }
    if (sg->Rt & AI_RAY_CAMERA && AiShaderEvalParamBool(p_enable_matte))
    {
       sg->out.RGBA = AiShaderEvalParamRGBA(p_matte_color);

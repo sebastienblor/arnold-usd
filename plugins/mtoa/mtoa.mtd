@@ -100,6 +100,7 @@
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
         maya.keyable        BOOL    False
+        default             FLOAT   1024
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
         maya.keyable        BOOL    False
@@ -107,6 +108,9 @@
     [attr texture_autotile]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "tx_at"
+    [attr texture_glossy_blur]
+        maya.keyable        BOOL    False
+        default             FLOAT   0
     [attr GI_diffuse_depth]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -171,13 +175,20 @@
         min                 INT     1
         max                 INT     100
         softmin             INT     1
-        softmax             INT     10        
+        softmax             INT     10
         default             INT     4
+    [attr sss_bssrdf_samples]
+        maya.keyable        BOOL    False
+        min                 INT     1
+        max                 INT     100
+        softmin             INT     3
+        softmax             INT     10        
+        default             INT     3
     [attr volume_indirect_samples]
         maya.keyable        BOOL    False
         min                 INT     0
         softmax             INT     10
-        default             INT     0		
+        default             INT     0
     [attr low_light_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
@@ -997,14 +1008,14 @@
         desc                STRING  "Color at hair tip."
         label               STRING  "Tip Color"
     [attr spec_shift]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   1.0
+        softmin             FLOAT   -10.0
+        softmax             FLOAT   -5.0
     [attr spec2]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
     [attr spec2_shift]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   1.0
+        softmin             FLOAT   7.5
+        softmax             FLOAT   15.0
         
     # AOVs
     [attr aov_direct_diffuse]
@@ -1073,7 +1084,7 @@
         desc                STRING  "Scattering number of samples."
         min                 INT     1
         softmax             INT     64
-		max					INT		100
+        max                 INT     100
 
 # dag nodes
 

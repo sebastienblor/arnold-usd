@@ -411,6 +411,8 @@ void COptionsTranslator::Export(AtNode *options)
    ExportAOVs();
 
    SetCamera(options);
+   
+   AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
 
    MStatus status;
 
@@ -457,6 +459,10 @@ void COptionsTranslator::Export(AtNode *options)
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
             ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+         }
+         else if (strcmp(paramName, "texture_autotile") == 0)
+         {
+            AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
          }
          else
          {

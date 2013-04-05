@@ -26,7 +26,7 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
         self.addSeparator()
-        self.addControl('aiStepSize', label="Step Size")
+        self.addControl('aiStepSize', label="Volume Step Size")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
         
@@ -64,6 +64,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
         self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        self.addControl("aiSssSetname", label="SSS Set Name")
         
         self.beginLayout('Subdivision', collapse=False)
         self.addControl("aiSubdivType", label="Type")
@@ -81,6 +82,10 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDispPadding", label="Bounds Padding")
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
+        self.endLayout()
+        self.beginLayout('Volume Attributes', collapse=False)
+        self.addControl('aiStepSize', label='Step Size')
+        self.addControl('aiVolumeContainerMode', label='Container Mode')
         self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
@@ -149,16 +154,19 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def volumeNoiseUpdate(self, attrName):
         cmds.attrNavigationControlGrp("FluidTemplateVolumeTexture", edit=True, attribute=attrName)
         
-    def setup(self):    
+    def setup(self):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
-        self.beginLayout("Custom Texture", collapse=True)
-        self.addControl("aiOverrideTextures", label="Override Fluid Texture")
-        self.addControl("aiTextureCoordinateMethod", label="Coordinate Method")
+        self.addSeparator()
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.beginLayout("Custom Texture", collapse=False)
+        self.addControl("aiOverrideTextures", label="Override Fluid Texture")        
         self.addControl("aiTextureAffectColor", label="Texture Color")
         self.addControl("aiTextureAffectIncand", label="Texture Incandescence")
         self.addControl("aiTextureAffectOpacity", label="Texture Opacity")
+        self.addControl("aiTextureCoordinateMethod", label="Coordinate Method")
         self.addCustom("aiVolumeTexture", self.volumeNoiseCreate, self.volumeNoiseUpdate)
         self.endLayout()
         self.addControl("aiUserOptions", label="User Options")

@@ -5,7 +5,7 @@
 
 #define MTOA_VENDOR "SolidAngle"
 #define MTOA_MAJOR_VERSION_NUM 0
-#define MTOA_MINOR_VERSION_NUM 22
+#define MTOA_MINOR_VERSION_NUM 23
 #define MTOA_FIX_VERSION "0.dev"
 
 

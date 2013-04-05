@@ -286,7 +286,11 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       while (AiLightsGetSample(sg))
       {
          if (AiLightGetAffectDiffuse(sg->Lp))
-            direct_diffuse += AiEvaluateLightSample(sg, oren_nayar_brdf, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF);
+         {
+            const float diffuseAffect = AiLightGetDiffuse(sg->Lp);
+            if (diffuseAffect > AI_EPSILON)
+               direct_diffuse += AiEvaluateLightSample(sg, oren_nayar_brdf, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF) * diffuseAffect;
+         }
       }
 
       // Evaluate translucent effects
@@ -301,7 +305,11 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
          while (AiLightsGetSample(sg))
          {
             if (AiLightGetAffectDiffuse(sg->Lp))
-               direct_diffuse += Kb * AiEvaluateLightSample(sg, oren_nayar_brdf, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF);
+            {
+               const float diffuseAffect = AiLightGetDiffuse(sg->Lp);
+               if(diffuseAffect > AI_EPSILON)
+                  direct_diffuse += Kb * AiEvaluateLightSample(sg, oren_nayar_brdf, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF) * diffuseAffect;
+            }
          }
          sg->Nf  = -sg->Nf;
          sg->Ngf = -sg->Ngf;
@@ -327,7 +335,11 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       while (AiLightsGetSample(sg))
       {
          if (AiLightGetAffectSpecular(sg->Lp))
-            direct_specular += AiEvaluateLightSample(sg, brdf_data, brdf_methods.sample_func, brdf_methods.brdf_func, brdf_methods.pdf_func);
+         {
+            const float affectSpecular = AiLightGetSpecular(sg->Lp);
+            if (affectSpecular > AI_EPSILON)
+               direct_specular += AiEvaluateLightSample(sg, brdf_data, brdf_methods.sample_func, brdf_methods.brdf_func, brdf_methods.pdf_func) * affectSpecular;
+         }         
       }
 
       direct_specular *= Ks * pParams->direct_specular;
