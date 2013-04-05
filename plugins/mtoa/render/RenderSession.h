@@ -176,7 +176,7 @@ private:
    static RenderCallbackType   m_renderCallback;
    static MCallbackId          m_render_cb;
    
-   static MComputation   s_comp;
+   static MComputation*   s_comp;
    MString        m_postRenderMel;
 
 }; // class CRenderSession

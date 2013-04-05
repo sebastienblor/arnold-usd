@@ -2,6 +2,7 @@
 #include "GeometryTranslator.h"
 
 #include <maya/MNodeMessage.h>
+#include <maya/MBoundingBox.h>
 
 #include <algorithm>
 
@@ -746,6 +747,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
    MFnMesh fnMesh(m_geometry);
    MObject geometry(m_geometry);
+   
    //
    // GEOMETRY
    //   
@@ -1001,8 +1003,32 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
 
       ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
-
    }
+}
+
+void CGeometryTranslator::ExportBBox(AtNode* polymesh)
+{
+   ExportMatrix(polymesh, 0);
+   // Visibility options
+   ProcessRenderFlags(polymesh);
+
+   if (FindMayaPlug("doubleSided").asBool())
+      AiNodeSetInt(polymesh, "sidedness", 65535);
+   else
+   {
+      AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
+      AiNodeSetInt(polymesh, "sidedness", 0);
+   }
+
+   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+      ExportMeshShaders(polymesh, m_dagPath);
+   ExportLightLinking(polymesh);
+
+   MFnMesh fnMesh(m_geometry);
+   MBoundingBox bbox = fnMesh.boundingBox();
+   AiNodeSetPnt(polymesh, "min", (float)bbox.min().x, (float)bbox.min().y, (float)bbox.min().z);
+   AiNodeSetPnt(polymesh, "max", (float)bbox.max().x, (float)bbox.max().y, (float)bbox.max().z);
+   AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
 AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
@@ -1221,5 +1247,21 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiExportRefTangents";
    data.shortName = "ai_exprtan";
    helper.MakeInputBoolean(data);
-
+   
+   data.defaultValue.INT = 0;
+   data.enums.clear();
+   data.enums.append("Mesh");
+   data.enums.append("Bounding Box");
+   data.name = "aiVolumeContainerMode";
+   data.shortName = "ai_volume_container_mode";
+   helper.MakeInputEnum(data);
+   
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiStepSize";
+   data.shortName = "ai_step_size";
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 1.f;
+   helper.MakeInputFloat(data);
 }

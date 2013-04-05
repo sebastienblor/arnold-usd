@@ -83,7 +83,8 @@ def updateMotionBlurSettings(*args):
 
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable= name != "")
+    logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
+    pm.attrControlGrp('log_file_verbosity', edit=True, enable= (name != "") and logToFile)
 
 def getBackgroundShader(*args):
     conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
@@ -930,15 +931,37 @@ def LoadFilenameButtonPush(*args):
     if ret is not None and len(ret):
         cmds.textFieldButtonGrp("ls_log_filename", edit=True, text=ret[0])
         cmds.setAttr("defaultArnoldRenderOptions.log_filename", ret[0], type="string")
-    
+
+def ChangeLogToConsole(*args):
+    logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
+    pm.attrControlGrp('log_console_verbosity', edit=True, enable=logToConsole)
+
+def ChangeLogToFile(*args):
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
+    cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
+    pm.attrControlGrp('log_file_verbosity', edit=True, enable=logToFile)
+
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
+    logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
+
+    pm.attrControlGrp('log_to_console',
+                      label='Console',
+                      changeCommand=ChangeLogToConsole,
+                      attribute='defaultArnoldRenderOptions.log_to_console')
+
+    pm.attrControlGrp('log_to_file',
+                      label='File',
+                      changeCommand=ChangeLogToFile,
+                      attribute='defaultArnoldRenderOptions.log_to_file')
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
+                                   enable=logToFile,
                                    cc=updateLogSettings,
                                    width=300)
     cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...", buttonCommand=LoadFilenameButtonPush)
@@ -958,10 +981,12 @@ def createArnoldLogSettings():
 
     pm.attrControlGrp('log_console_verbosity',
                         label="Console Verbosity Level",
+                        enable=logToConsole,
                         attribute='defaultArnoldRenderOptions.log_console_verbosity')
 
     pm.attrControlGrp('log_file_verbosity',
                         label="File Verbosity Level",
+                        enable=logToFile,
                         attribute='defaultArnoldRenderOptions.log_file_verbosity')
 
     pm.separator()
