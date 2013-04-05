@@ -332,21 +332,34 @@ AtVector ReadFromArray(AtArray* array, int element)
 }
 
 template <typename T>
-T GetValueFromSG(AtShaderGlobals* sg)
+T GetValueFromSG(AtShaderGlobals* sg, int outputType = AI_TYPE_RGB)
 {
    return GetDefaultValue<T>();
 }
 
 template <>
-float GetValueFromSG(AtShaderGlobals* sg)
+float GetValueFromSG(AtShaderGlobals* sg, int outputType)
 {
    return sg->out.FLT;
 }
 
 template <>
-AtRGB GetValueFromSG(AtShaderGlobals* sg)
+AtRGB GetValueFromSG(AtShaderGlobals* sg, int outputType)
 {
-   return sg->out.RGB;
+   AtRGB ret = AI_RGB_BLACK;
+   switch (outputType)
+   {
+   case AI_TYPE_FLOAT:
+      ret = sg->out.FLT;
+      break;
+   case AI_TYPE_POINT2:
+      ret.r = sg->out.PNT2.x;
+      ret.g = sg->out.PNT2.y;
+      break;
+   default:
+      ret = sg->out.RGB;
+   }   
+   return ret;
 }
 
 enum gradientInterps{
@@ -382,6 +395,7 @@ public:
       T value;
       float position;
       int interp;
+      int outputType;
    };
    GradientDescriptionElement* elements;
    AtUInt32 nelements;
@@ -424,7 +438,7 @@ public:
       if (M && (elements[elem].node != 0))
       {
          AiShaderEvaluate(elements[elem].node, sg);
-         return GetValueFromSG<T>(sg);
+         return GetValueFromSG<T>(sg, elements[elem].outputType);
       }
       else
          return elements[elem].value;
@@ -603,7 +617,11 @@ public:
                if (elements[i].node == 0)
                   elements[i].value = ReadFromArray<T>(valuesArray, i);
                else
+               {
                   isConnected = true;
+                  const AtNodeEntry* nentry = AiNodeGetNodeEntry(elements[i].node);
+                  elements[i].outputType = AiNodeEntryGetOutputType(nentry);
+               }
             }
             else
                elements[i].value = ReadFromArray<T>(valuesArray, i);
