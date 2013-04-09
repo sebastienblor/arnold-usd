@@ -178,8 +178,8 @@ bool CMeshTranslator::IsGeoDeforming()
    }
 
    inMeshPlug = fnMesh.findPlug("pnts");
-   inMeshPlug.connectedTo(conn, true, false);
-   if (conn.length())
+   unsigned int numElements = inMeshPlug.numElements();
+   if (numElements > 0)
    {
      pnts = true;
    }
