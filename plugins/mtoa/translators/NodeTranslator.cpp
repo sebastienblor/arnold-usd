@@ -511,6 +511,7 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      return NULL;
    }
 
    if (step == 0)
@@ -2092,7 +2093,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    GetMatrix(matrix);
    if (step == 0)
    {
-      if (RequiresMotionData())
+      if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, 0, matrix);
@@ -2103,7 +2104,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
          AiNodeSetMatrix(node, "matrix", matrix);
       }
    }
-   else
+   else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
       AtArray* matrices = AiNodeGetArray(node, "matrix");
       AiArraySetMtx(matrices, step, matrix);

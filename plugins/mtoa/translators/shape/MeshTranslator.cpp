@@ -147,7 +147,8 @@ void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
    }
    else if (strcmp(nodeType, "polymesh") == 0)
    {
-      ExportMatrix(anode, step);
+      if (m_motion)
+         ExportMatrix(anode, step);
       if (m_motionDeform)
       {
          // Early return if we can't tessalate.
@@ -177,8 +178,8 @@ bool CMeshTranslator::IsGeoDeforming()
    }
 
    inMeshPlug = fnMesh.findPlug("pnts");
-   inMeshPlug.connectedTo(conn, true, false);
-   if (conn.length())
+   unsigned int numElements = inMeshPlug.numElements();
+   if (numElements > 0)
    {
      pnts = true;
    }

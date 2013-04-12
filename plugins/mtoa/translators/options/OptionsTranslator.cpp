@@ -90,16 +90,16 @@ void COptionsTranslator::ExportAOVs()
       CAOVOutputArray aovData;
       aovData.type = it->GetDataType();
 
-   // Global drivers
-   std::vector<CAOVOutput> globalOutputs;
-   MPlug pFilter = FindMayaPlug("filter");
-   MPlug pDisplays = FindMayaPlug("drivers");
-   for (unsigned int i=0; i < pDisplays.numElements(); ++i)
-   {
-      CAOVOutput output;
-      if (GetOutput(pDisplays[i], pFilter, output))
-         globalOutputs.push_back(output);
-   }
+      // Global drivers
+      std::vector<CAOVOutput> globalOutputs;
+      MPlug pFilter = FindMayaPlug("filter");
+      MPlug pDisplays = FindMayaPlug("drivers");
+      for (unsigned int i=0; i < pDisplays.numElements(); ++i)
+      {
+         CAOVOutput output;
+         if (GetOutput(pDisplays[i], pFilter, output))
+            globalOutputs.push_back(output);
+      }
       AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", name.asChar());
 
       GetOutputArray(*it, aovData.outputs);
