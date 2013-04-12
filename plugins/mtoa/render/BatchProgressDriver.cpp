@@ -96,6 +96,7 @@ driver_extension
 
 static int g_totalPixels;
 static int g_calculatedPixels;
+static int g_lastReportedPercent;
 static int g_frameNumber = 0;
 
 driver_open
@@ -116,9 +117,10 @@ driver_open
       const int regionMaxY = AiNodeGetInt(options, "region_max_y");
       
       g_totalPixels = (regionMaxX - regionMinX + 1) * (regionMaxY - regionMinY + 1);
-   }     
+   }
    
    g_calculatedPixels = 0;
+   g_lastReportedPercent = -1;
    if (g_socketFd != -1)
    {
       std::stringstream ss;
@@ -136,10 +138,15 @@ driver_write_bucket
 {   
    if (g_socketFd != -1)
    {
-      g_calculatedPixels += bucket_size_x * bucket_size_y;
-      std::stringstream ss;
-      ss << "print \"Render progress : " << (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) << "%\\n\";";
-      SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
+      g_calculatedPixels += bucket_size_x * bucket_size_y;      
+      const int currentPercent = (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) / 5;
+      if (currentPercent != g_lastReportedPercent)
+      {
+         std::stringstream ss;
+         g_lastReportedPercent = currentPercent;
+         ss << "print \"Render progress : " << currentPercent * 5 << "%\\n\";";
+         SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
+      }      
    }
 }
 
