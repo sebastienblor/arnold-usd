@@ -769,6 +769,7 @@
     [attr IOR]
         min                 FLOAT   0.0
         softmax             FLOAT   3.0
+        linkable            BOOL    false
     [attr Kb]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
