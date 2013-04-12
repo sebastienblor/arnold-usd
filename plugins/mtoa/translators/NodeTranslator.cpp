@@ -451,19 +451,17 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
    MString outputAttr = GetMayaAttributeName();
    m_step = step;
 
-   if (node != NULL)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
-                 GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                 AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-                 node);
-   }
-   else
+   if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Export requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
       return NULL;
    }
+   
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
+              node);
 
    if (step == 0)
    {
@@ -500,19 +498,17 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    AtNode* node = GetArnoldNode("");
    m_step = step;
 
-   if (node != NULL)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
-                 GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                 AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-                 node);
-   }
-   else
+   if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
       return NULL;
    }
+   
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
+              node);
 
    if (step == 0)
    {
