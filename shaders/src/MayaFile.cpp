@@ -389,6 +389,10 @@ shader_evaluate
 
    const float oldU = sg->u;
    const float oldV = sg->v;   
+   const float oldUdx = sg->dudx;
+   const float oldUdy = sg->dudy;
+   const float oldVdx = sg->dudx;
+   const float oldVdy = sg->dudy;
    if (idata->useCustomUVSet)
    {
       AtPoint2 altuv;
@@ -396,6 +400,14 @@ shader_evaluate
       {         
          sg->u = altuv.x;
          sg->v = altuv.y;
+         AtPoint2 altuvDx, altuvDy;
+         if (AiUDataGetDxyDerivativesPnt2(idata->uvSetName.c_str(), &altuvDx, &altuvDy))
+         {
+            sg->dudx = altuvDx.x;
+            sg->dvdx = altuvDx.y;
+            sg->dudy = altuvDy.x;
+            sg->dvdy = altuvDy.y;
+         }
       }
    }
    float inU = sg->u;
@@ -709,14 +721,14 @@ shader_evaluate
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       else if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
-
-      // restore shader globals
-      sg->u = oldU;
-      sg->v = oldV;
-      sg->dudx = inDuDx;
-      sg->dudy = inDuDy;
-      sg->dvdx = inDvDx;
-      sg->dvdy = inDvDy;
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);     
    }
+
+   // restore shader globals
+   sg->u = oldU;
+   sg->v = oldV;
+   sg->dudx = oldUdx;
+   sg->dudy = oldUdy;
+   sg->dvdx = oldVdx;
+   sg->dvdy = oldVdy;
 }
