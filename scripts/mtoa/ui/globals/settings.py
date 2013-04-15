@@ -953,15 +953,19 @@ def createArnoldLogSettings():
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
 
-    pm.attrControlGrp('log_to_console',
-                      label='Console',
-                      changeCommand=ChangeLogToConsole,
-                      attribute='defaultArnoldRenderOptions.log_to_console')
+    pm.checkBoxGrp('log_to_console',
+                    label='Console',
+                    changeCommand=ChangeLogToConsole)
 
-    pm.attrControlGrp('log_to_file',
-                      label='File',
-                      changeCommand=ChangeLogToFile,
-                      attribute='defaultArnoldRenderOptions.log_to_file')
+    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=1)
+    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=2)
+    
+    pm.checkBoxGrp('log_to_file',
+                   label='File',
+                   changeCommand=ChangeLogToFile)
+
+    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
+    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
