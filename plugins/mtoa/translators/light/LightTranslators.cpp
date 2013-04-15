@@ -384,7 +384,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
    }
    else
-      AiNodeSetInt(meshNode, "visibility", 0);
+      AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
