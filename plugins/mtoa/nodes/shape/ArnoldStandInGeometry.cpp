@@ -290,3 +290,22 @@ void CArnoldPointsGeometry::DrawNormalAndPolygons() const
 {
    DrawPoints();
 }
+
+CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMatrix m, bool i) :
+   p_geom(g), m_inheritXForm(i)
+{
+   AiM4Copy(m_matrix, m);
+}
+
+void CArnoldStandInGInstance::Draw(int DrawMode)
+{
+   glPushMatrix();
+   glMultMatrixf(&m_matrix[0][0]);
+   p_geom->Draw(DrawMode, m_inheritXForm);
+   glPopMatrix();
+}
+
+MBoundingBox CArnoldStandInGInstance::GetBBox()
+{
+   return MBoundingBox();
+}

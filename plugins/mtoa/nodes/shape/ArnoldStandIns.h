@@ -38,6 +38,9 @@ public:
    typedef std::map<std::string, CArnoldStandInGeometry*> geometryListType;
    typedef std::map<std::string, CArnoldStandInGeometry*>::iterator geometryListIterType;
    geometryListType m_geometryList;
+   typedef std::vector<CArnoldStandInGInstance*> instanceListType;
+   typedef std::vector<CArnoldStandInGInstance*>::iterator instanceListIterType;
+   instanceListType m_instanceList;
    int dList;
    int updateView;
    int updateBBox;
