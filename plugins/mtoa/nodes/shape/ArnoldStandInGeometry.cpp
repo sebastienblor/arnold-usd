@@ -14,6 +14,7 @@ CArnoldStandInGeometry::CArnoldStandInGeometry()
    m_BBMax.x = -AI_BIG;
    m_BBMax.y = -AI_BIG;
    m_BBMax.z = -AI_BIG;
+   AiM4Identity(m_matrix);
 }
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
@@ -299,7 +300,7 @@ CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMa
 
 CArnoldStandInGInstance::~CArnoldStandInGInstance()
 {
-   
+
 }
 
 void CArnoldStandInGInstance::Draw(int DrawMode)

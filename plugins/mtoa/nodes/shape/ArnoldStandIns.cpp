@@ -1151,9 +1151,6 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glEndList();         
          break;            
       }
-      for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
-           it != geom->m_geometryList.end(); ++it)
-         delete it->second;
       geom->Clear();
       geom->updateView = false;
    }

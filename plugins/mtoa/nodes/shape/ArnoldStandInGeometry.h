@@ -65,7 +65,6 @@ public:
 class CArnoldPointsGeometry : public CArnoldStandInGeometry{
 private:
    std::vector<AtVector> m_points;
-   AtVector m_BBMin, m_BBMax;
 
    void DrawPolygons() const;
    void DrawWireframe() const;
