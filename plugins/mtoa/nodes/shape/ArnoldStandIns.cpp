@@ -247,10 +247,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                {
                   geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox));
                }
-               if (AiNodeIs(node, "points"))
-               {
-                  geom->m_geometryList.push_back(new CArnoldPointsGeometry(node, total_matrix, inherit_xform, geom->bbox));
-               }
             }
          }
          geom->IsGeomLoaded = true;
@@ -656,66 +652,89 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
-   // Only find for frame extension files if this option is true
-   if (fGeometry.useFrameExtension)
+   // If changed framestep, useFrameExtension or dso
+   if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
    {
-      // If changed framestep, useFrameExtension or dso
-      if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
-      {
-         MString frameNumber = "0";
+      MString frameNumber = "0";
          
-         bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-         char frameExtWithHash[64];
-         char frameExtWithDot[64];
-         char frameExt[64];
-         if (subFrames || fGeometry.useSubFrame)
-         {
-            int fullFrame = (int) floor(framestep);
-            int subFrame = (int) floor((framestep - fullFrame) * 1000);
-            sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
-            sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
-            sprintf(frameExt, "%04d.%03d", fullFrame, subFrame);
-         }
-         else
-         {
-            sprintf(frameExtWithHash, "_%04d", (int) framestep);
-            sprintf(frameExtWithDot, ".%04d", (int) framestep);
-            sprintf(frameExt, "%04d", (int) framestep);
-         }
-         frameNumber = frameExtWithDot;
+      bool subFrames = ((framestep - floor(framestep)) >= 0.001);
+      char frameExtWithHash[64];
+      char frameExtWithDot[64];
+      char frameExt[64];
+         
+      int start = 0;
+      int end = 0;
+      MStringArray pattern;
+      MString newDso = "";
+      int framePadding = 0;
+      int subFramePadding = 0;
+      bool resolved = false;
+      MString a, b;
 
-         bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-               frameNumber, fGeometry.filename);
+      start = fGeometry.dso.index('#');
+      end = fGeometry.dso.rindex('#');
 
-         if (!resolved)
+      if(start >= 0)
+      {
+         fGeometry.dso.substring(start,end).split('.',pattern);
+         newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+         fGeometry.dso = newDso;
+
+         if(pattern.length() > 0)
          {
-            frameNumber = frameExtWithHash;
-            resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-               frameNumber, fGeometry.filename);
+            framePadding = pattern[0].length();
+            a = pattern[0];
          }
-
-         if (!resolved)
+         if(pattern.length() > 1)
          {
-            // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
-            //  find the file.
-            int len = fGeometry.dso.length();
-            if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
-            {
-               MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
-               resolved = MRenderUtil::exactFileTextureName(baseName, false,
-               frameNumber, fGeometry.filename);
-            }
-         }
-
-         if (!resolved)
-         {
-            fGeometry.filename = fGeometry.dso;
+            subFramePadding = pattern[1].length();
+            b = pattern[1];
          }
       }
-   }
-   else
-   {
-      fGeometry.filename = fGeometry.dso;
+
+      if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
+      {
+         int fullFrame = (int) floor(framestep);
+         int subFrame = (int) floor((framestep - fullFrame) * 1000);
+         sprintf(frameExtWithHash, "_%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExtWithDot, ".%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+         sprintf(frameExt, "%0*d.%0*d", framePadding, fullFrame, subFramePadding, subFrame);
+      }
+      else
+      {
+         sprintf(frameExtWithHash, "_%0*d", framePadding, (int) framestep);
+         sprintf(frameExtWithDot, ".%0*d", framePadding, (int) framestep);
+         sprintf(frameExt, "%0*d", framePadding, (int) framestep);
+      }
+      frameNumber = frameExtWithDot;
+
+      resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+            frameNumber, fGeometry.filename);
+
+      if (!resolved)
+      {
+         frameNumber = frameExtWithHash;
+         resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+            frameNumber, fGeometry.filename);
+      }
+
+      if (!resolved)
+      {
+         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         //  find the file.
+         int len = fGeometry.dso.length();
+         if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
+         {
+            MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            resolved = MRenderUtil::exactFileTextureName(baseName, false,
+            frameNumber, fGeometry.filename);
+         }
+      }
+
+      if (!resolved)
+      {
+         fGeometry.filename = fGeometry.dso;
+      }
    }
    
    if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale)

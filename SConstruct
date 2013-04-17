@@ -1,6 +1,7 @@
 # vim: filetype=python
 
 ## first we extend the module path to load our own modules
+import subprocess
 import sys, os
 sys.path = ["tools/python"] + sys.path
 
@@ -44,6 +45,7 @@ vars.AddVariables(
       EnumVariable('MODE'       , 'Set compiler configuration', 'debug'             , allowed_values=('opt', 'debug', 'profile')),
       EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
       EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
+      ('COMPILER_VERSION'       , 'Version of compiler to use', ''),
       BoolVariable('MULTIPROCESS','Enable multiprocessing in the testsuite', True),
       BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
       PathVariable('LINK', 'Linker to use', None),
@@ -60,6 +62,9 @@ vars.AddVariables(
       PathVariable('MAYA_ROOT',
                    'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
                    get_default_path('MAYA_LOCATION', '.')),
+      PathVariable('MAYA_INCLUDE_PATH',
+                   'Directory where Maya SDK headers are installed',
+                   '.'),
       PathVariable('EXTERNAL_PATH',
                    'External dependencies are found here', 
                    '.', PathVariable.PathIsDir),
@@ -161,10 +166,12 @@ if env['COLOR_CMDS']:
 
 #define shortcuts for the above paths, with substitution of environment variables
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
-if system.os() == 'darwin':
-    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
-else:
-    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+MAYA_INCLUDE_PATH = env.subst(env['MAYA_INCLUDE_PATH'])
+if env['MAYA_INCLUDE_PATH'] == '.':
+	if system.os() == 'darwin':
+	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
+	else:
+	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
 EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
@@ -197,8 +204,13 @@ print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
-print 'Host arch.     : %s' % (system.host_arch())
-print 'Target arch.   : %s' % (system.target_arch())
+if system.os() == 'linux':
+   try:
+      p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
+      compiler_version, err = p.communicate()
+      print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+   except:
+      pass
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
@@ -216,6 +228,10 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
+   compiler_version = env['COMPILER_VERSION']
+   if compiler_version != '':
+      env['CC']  = 'gcc' + compiler_version
+      env['CXX'] = 'g++' + compiler_version
    # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
    if env['MODE'] == 'opt': 
@@ -432,10 +448,10 @@ if system.os() == 'windows':
                                             '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
                                             '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
                                             '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
-                                 variant = ['Debug_MSVC|Win64',
-                                            'Debug_ICC|Win64',
-                                            'Opt_MSVC|Win64',
-                                            'Opt_ICC|Win64'],
+                                 variant = ['Debug_MSVC|x64',
+                                            'Debug_ICC|x64',
+                                            'Opt_MSVC|x64',
+                                            'Opt_ICC|x64'],
                                  auto_build_solution = 0,
                                  nokeep = 1)
    
@@ -445,10 +461,10 @@ if system.os() == 'windows':
                                            os.path.join('shaders', 'src', 'mtoa_shaders') + env['MSVS']['PROJECTSUFFIX'],
                                            'install' + env['MSVS']['PROJECTSUFFIX']],  ## TODO: Find a clean way of getting these project paths
                                dependencies = [[], [], [], ['mtoa', 'mtoa_api', 'mtoa_shaders']],
-                               variant = ['Debug_MSVC|Win64',
-                                          'Debug_ICC|Win64',
-                                          'Opt_MSVC|Win64',
-                                          'Opt_ICC|Win64'])
+                               variant = ['Debug_MSVC|x64',
+                                          'Debug_ICC|x64',
+                                          'Opt_MSVC|x64',
+                                          'Opt_ICC|x64'])
 else:
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])

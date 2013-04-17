@@ -63,10 +63,13 @@ MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
 MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
+MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
 MObject CArnoldOptionsNode::s_output_ass_mask;
+MObject CArnoldOptionsNode::s_log_to_file;
+MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
 MObject CArnoldOptionsNode::s_log_console_verbosity;
@@ -172,7 +175,7 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setMin(-10);
    nAttr.setMax(100);
-   nAttr.setSoftMin(-10);
+   nAttr.setSoftMin(-3);
    nAttr.setSoftMax(10);
    addAttribute(s_progressive_initial_level);
 
@@ -218,6 +221,8 @@ MStatus CArnoldOptionsNode::initialize()
    
    
    s_attributes.MakeInput("abort_on_error");
+   s_attributes.MakeInput("error_color_bad_texture");
+   s_attributes.MakeInput("error_color_bad_pixel");
    s_attributes.MakeInput("abort_on_license_fail");
 
    s_attributes.MakeInput("skip_license_check");
@@ -234,7 +239,12 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("sss_bssrdf_samples");
    s_attributes.MakeInput("sss_sample_factor");
    
-   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, 0);
+   s_attributes.MakeInput("region_min_x");
+   s_attributes.MakeInput("region_max_x");
+   s_attributes.MakeInput("region_min_y");   
+   s_attributes.MakeInput("region_max_y");
+   
+   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, true);
    nAttr.setKeyable(false);
    addAttribute(s_enable_raytraced_SSS);
 
@@ -396,6 +406,13 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
    s_attributes.MakeInput("texture_glossy_blur");
+   
+   
+   
+   s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_autotile);
+   
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);
@@ -430,6 +447,14 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(0xFFFF);
    addAttribute(s_output_ass_mask);
+
+   s_log_to_file = nAttr.create("log_to_file", "ltofi", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_log_to_file);
+
+   s_log_to_console = nAttr.create("log_to_console", "ltocon", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_log_to_console);
 
    s_log_filename = tAttr.create("log_filename", "logf", MFnData::kString);
    tAttr.setKeyable(false);

@@ -281,4 +281,3 @@ void CArnoldPointsGeometry::DrawNormalAndPolygons() const
 {
    DrawPoints();
 }
-

@@ -16,7 +16,7 @@ public:
    }
    virtual bool RequiresMotionData()
    {
-      return (m_motion && IsLocalMotionBlurEnabled());
+      return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
    }
 
 protected:

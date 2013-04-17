@@ -112,6 +112,11 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    else
       data.keyable = false;
 
+   bool linkable;
+   if (!AiMetaDataGetBool(m_nodeEntry, paramName, "linkable", &linkable))
+      linkable = true;
+   data.linkable = linkable;
+
    if (data.type == AI_TYPE_ARRAY)
    {
       data.type = data.defaultValue.ARRAY->type;
@@ -345,6 +350,7 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
       nAttr.setSoftMax((int)data.softMax.INT);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -421,6 +427,7 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -457,6 +464,7 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
       nAttr.setSoftMax((float)data.softMax.FLT);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -487,6 +495,7 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    nAttr.setDefault(data.defaultValue.RGB.r, data.defaultValue.RGB.g, data.defaultValue.RGB.b);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -520,6 +529,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setDefault(data.defaultValue.RGBA.r, data.defaultValue.RGBA.g, data.defaultValue.RGBA.b);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -527,6 +537,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
    nAttr.setHidden(true);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -559,6 +570,7 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    nAttr.setDefault(data.defaultValue.VEC.x, data.defaultValue.VEC.y, data.defaultValue.VEC.z);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -589,6 +601,7 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
    nAttr.setDefault(data.defaultValue.PNT.x, data.defaultValue.PNT.y, data.defaultValue.PNT.z);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -622,6 +635,7 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    nAttr.setDefault(float(data.defaultValue.PNT2.x), float(data.defaultValue.PNT2.y));
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -655,6 +669,7 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    tAttr.setDefault(defObj);
    tAttr.setArray(data.isArray);
    tAttr.setKeyable(data.keyable);
+   tAttr.setConnectable(data.linkable);
    tAttr.setStorable(true);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
@@ -718,6 +733,7 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
       eAttr.addField(data.enums[ei], ei);
    eAttr.setArray(data.isArray);
    eAttr.setKeyable(data.keyable);
+   eAttr.setConnectable(data.linkable);
    eAttr.setStorable(true);
    eAttr.setReadable(true);
    eAttr.setWritable(true);

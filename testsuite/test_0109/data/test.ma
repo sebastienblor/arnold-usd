@@ -214,8 +214,6 @@ createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
 	addAttr -ci true -sn "ai_sss" -ln "aiSss" -dv 1 -smn 0 -smx 1 -at "float";
 	addAttr -ci true -sn "ai_indirect" -ln "aiIndirect" -dv 1 -smn 0 -smx 1 -at "float";
 	setAttr -k off ".v";
-	setAttr ".edi" no;
-	setAttr ".esp" no;
 	setAttr ".ai_exposure" 3.5537190437316895;
 	setAttr -k on ".ai_color_temperature" 1000;
 createNode transform -n "pCube1";

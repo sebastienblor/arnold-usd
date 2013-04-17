@@ -22,8 +22,8 @@ class AEaiVolumeScatteringTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout('Contribution Attributes')
-        self.addControl('affect_camera', Label='Camera')
-        self.addControl('affect_diffuse', Label='Diffuse')
+        self.addControl('affect_camera', label='Camera')
+        self.addControl('affect_diffuse', label='Diffuse')
         self.addControl('affect_reflection', label='Reflection')
         self.endLayout()
         

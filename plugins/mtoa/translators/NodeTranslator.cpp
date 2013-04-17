@@ -451,19 +451,17 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
    MString outputAttr = GetMayaAttributeName();
    m_step = step;
 
-   if (node != NULL)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
-                 GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                 AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-                 node);
-   }
-   else
+   if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Export requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
       return NULL;
    }
+   
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
+              node);
 
    if (step == 0)
    {
@@ -473,7 +471,6 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
       else
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                     GetMayaNodeName().asChar(), GetTranslatorName().asChar());
-      ExportOverrideSets();
       ComputeAOVs();
       Export(node);
       ExportUserAttribute(node);
@@ -501,22 +498,20 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    AtNode* node = GetArnoldNode("");
    m_step = step;
 
-   if (node != NULL)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
-                 GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                 AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-                 node);
-   }
-   else
+   if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      return NULL;
    }
+   
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
+              node);
 
    if (step == 0)
    {
-      ExportOverrideSets();
       Update(node);
       ExportUserAttribute(node);
    }
@@ -1362,9 +1357,14 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
 
    bool acceptLinks = false;
-   // if the linkable metadata is not set, then only link if the node is a shader
+   // if the linkable metadata is not set, then only link if the node is a shader or param type is Node pointer
    if (!AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), arnoldParamName, "linkable", &acceptLinks))
-      acceptLinks = ((AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) & AI_NODE_SHADER) != 0) ? true : false;
+   {
+      if (arnoldParamType == AI_TYPE_NODE)
+         acceptLinks = true;
+      else
+         acceptLinks = (AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) & AI_NODE_SHADER) != 0;
+   }
    // ignoreWhenRendering flag
    if (acceptLinks && plug.isIgnoredWhenRendering()) return NULL;
 
@@ -1580,6 +1580,7 @@ AtArray* CNodeTranslator::InitArrayParameter(unsigned int arnoldParamType, unsig
 
 void CNodeTranslator::SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array)
 {
+   // TODO: for IPR: call AiArrayDestroy on pre-existing arrays?
    AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
@@ -1588,7 +1589,7 @@ void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* 
    // connections:
    // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
    // there is no way of assigning the value of a message attribute other than via a connection.
-   // Therefore, we handle node/message connections in ProcessArrayElement
+   // Therefore, we handle node/message connections in ProcessConstantArrayElement
    if (arnoldParamType != AI_TYPE_NODE)
    {
       MString elemName = MString(arnoldParamName) + "[" + pos + "]";
@@ -1645,20 +1646,52 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 //            plug.getExistingArrayAttributeIndices(indices);
 
    // for now do all elements
-   unsigned int size = plug.numElements();
-   if (size > 0)
+   AtArray* array = NULL;
+   if (arnoldParamType == AI_TYPE_NODE)
    {
-      AtArray* array = InitArrayParameter(arnoldParamType, size);
-      MPlug elemPlug;
-      for (unsigned int i = 0; i < size; ++i)
-      {
-        // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-        //plug.selectAncestorLogicalIndex(i, plug.attribute());
-        elemPlug = plug[i];
+      MPlugArray inputs;
+      MPlugArray conn;
 
-        ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+      for (unsigned int i=0; i < plug.numElements(); ++i)
+      {
+         MPlug elemPlug = plug[i];
+         elemPlug.connectedTo(conn, true, false);
+         if (conn.length() == 1)
+            inputs.append(conn[0]);
       }
-      SetArrayParameter(arnoldNode, arnoldParamName, array);
+      unsigned int size = inputs.length();
+      if (size > 0)
+      {
+         array = InitArrayParameter(arnoldParamType, size);
+         for (unsigned int i=0; i < size; ++i)
+         {
+            AtNode* linkedNode = ExportNode(inputs[i]);
+            AiArraySetPtr(array, i, linkedNode);
+         }
+         SetArrayParameter(arnoldNode, arnoldParamName, array);
+      }
+      else
+         // TODO: Change this to: AiNodeSetArray(arnoldNode, arnoldParamName, NULL);
+         // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
+         AiNodeSetArray(arnoldNode, arnoldParamName, AiArrayAllocate(0,0, AI_TYPE_NODE));
+   }
+   else
+   {
+      unsigned int size = plug.numElements();
+      if (size > 0)
+      {
+         AtArray* array = InitArrayParameter(arnoldParamType, size);
+         MPlug elemPlug;
+         for (unsigned int i = 0; i < size; ++i)
+         {
+           // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+           //plug.selectAncestorLogicalIndex(i, plug.attribute());
+           elemPlug = plug[i];
+
+           ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+         }
+         SetArrayParameter(arnoldNode, arnoldParamName, array);
+      }
    }
 }
 
@@ -1815,35 +1848,39 @@ void CDagTranslator::ExportMotion(AtNode* node, unsigned int step)
 
 /// get override sets containing the passed Maya dag path
 /// and add them to the passed MObjectArray
+/// and we also need to check the parent nodes, so groups are handled properly
 MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
 {
    MStatus status;
-
-   MFnDagNode fnDag(path);
-   unsigned int instNum = path.instanceNumber();
-   MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
-   CHECK_MSTATUS(status)
-   MPlugArray connections;
-   MFnSet fnSet;
-   // MString plugName = instObjGroups.name();
-   if (instObjGroups.connectedTo(connections, false, true, &status))
+   MDagPath pathRec = path;
+   for(;pathRec.length();pathRec.pop(1))
    {
-      unsigned int nc = connections.length();
-      for (unsigned int i=0; i<nc; i++)
+      MFnDagNode fnDag(pathRec);
+      unsigned int instNum = pathRec.instanceNumber();
+      MPlug instObjGroups = fnDag.findPlug("instObjGroups", true, &status).elementByLogicalIndex(instNum);
+      CHECK_MSTATUS(status)
+      MPlugArray connections;
+      MFnSet fnSet;
+      // MString plugName = instObjGroups.name();
+      if (instObjGroups.connectedTo(connections, false, true, &status))
       {
-         MObject set = connections[i].node();
-         MFnDependencyNode setDNode(set);
-         if (setDNode.typeName() == MString("objectSet"))
+         unsigned int nc = connections.length();
+         for (unsigned int i=0; i<nc; i++)
          {
-            if (!fnSet.setObject(set))
-               continue;
-            // MString setName = fnSet.name();
-            // Also add sets with override turned off to allow chaining
-            // on these as well
-            MPlug p = fnSet.findPlug("aiOverride", true, &status);
-            if ((MStatus::kSuccess == status) && !p.isNull())
+            MObject set = connections[i].node();
+            MFnDependencyNode setDNode(set);
+            if (setDNode.typeName() == MString("objectSet"))
             {
-               overrideSets.append(set);
+               if (!fnSet.setObject(set))
+                  continue;
+               // MString setName = fnSet.name();
+               // Also add sets with override turned off to allow chaining
+               // on these as well
+               MPlug p = fnSet.findPlug("aiOverride", true, &status);
+               if ((MStatus::kSuccess == status) && !p.isNull())
+               {
+                  overrideSets.append(set);
+               }
             }
          }
       }
@@ -2052,7 +2089,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    GetMatrix(matrix);
    if (step == 0)
    {
-      if (RequiresMotionData())
+      if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, 0, matrix);
@@ -2063,7 +2100,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
          AiNodeSetMatrix(node, "matrix", matrix);
       }
    }
-   else
+   else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
       AtArray* matrices = AiNodeGetArray(node, "matrix");
       AiArraySetMtx(matrices, step, matrix);

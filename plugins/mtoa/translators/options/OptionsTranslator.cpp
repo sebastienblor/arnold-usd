@@ -90,16 +90,16 @@ void COptionsTranslator::ExportAOVs()
       CAOVOutputArray aovData;
       aovData.type = it->GetDataType();
 
-   // Global drivers
-   std::vector<CAOVOutput> globalOutputs;
-   MPlug pFilter = FindMayaPlug("filter");
-   MPlug pDisplays = FindMayaPlug("drivers");
-   for (unsigned int i=0; i < pDisplays.numElements(); ++i)
-   {
-      CAOVOutput output;
-      if (GetOutput(pDisplays[i], pFilter, output))
-         globalOutputs.push_back(output);
-   }
+      // Global drivers
+      std::vector<CAOVOutput> globalOutputs;
+      MPlug pFilter = FindMayaPlug("filter");
+      MPlug pDisplays = FindMayaPlug("drivers");
+      for (unsigned int i=0; i < pDisplays.numElements(); ++i)
+      {
+         CAOVOutput output;
+         if (GetOutput(pDisplays[i], pFilter, output))
+            globalOutputs.push_back(output);
+      }
       AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", name.asChar());
 
       GetOutputArray(*it, aovData.outputs);
@@ -411,6 +411,8 @@ void COptionsTranslator::Export(AtNode *options)
    ExportAOVs();
 
    SetCamera(options);
+   
+   AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
 
    MStatus status;
 
@@ -457,6 +459,10 @@ void COptionsTranslator::Export(AtNode *options)
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
             ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+         }
+         else if (strcmp(paramName, "texture_autotile") == 0)
+         {
+            AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
          }
          else
          {

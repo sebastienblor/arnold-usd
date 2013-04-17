@@ -57,7 +57,7 @@ namespace // <anonymous>
       return curLayer.inCurrentRenderLayer(dagPath);
    }
 
-   bool IsTemplated(MFnDagNode & node, MDGContext &ctx=MDGContext::fsNormal)
+   bool IsTemplated(MFnDagNode & node)
    {
       MStatus status;
 
@@ -70,16 +70,16 @@ namespace // <anonymous>
       if (status == MStatus::kFailure)
          return false;
 
-      if (templatePlug.asBool(ctx))
+      if (templatePlug.asBool())
         return true;
       else
-         if (overDispPlug.asInt(ctx)==1)
+         if (overDispPlug.asInt()==1)
             return true;
          else
             return false;
    }
 
-   bool IsVisible(MFnDagNode &node, MDGContext &ctx=MDGContext::fsNormal)
+   bool IsVisible(MFnDagNode &node)
    {
       MStatus status;
 
@@ -92,13 +92,13 @@ namespace // <anonymous>
       if (status == MStatus::kFailure)
          return false;
 
-      if (visPlug.asBool(ctx) && overVisPlug.asBool(ctx))
+      if (visPlug.asBool() && overVisPlug.asBool())
          return true;
       else
          return false;
    }
 
-   bool IsVisiblePath(MDagPath dagPath, MDGContext &ctx=MDGContext::fsNormal)
+   bool IsVisiblePath(MDagPath dagPath)
    {
 
       MStatus stat = MStatus::kSuccess;
@@ -106,14 +106,14 @@ namespace // <anonymous>
       {
          MFnDagNode node;
          node.setObject(dagPath.node());
-         if (!IsVisible(node, ctx))
+         if (!IsVisible(node))
             return false;
          stat = dagPath.pop();
       }
       return true;
    }
 
-   bool IsTemplatedPath(MDagPath dagPath, MDGContext &ctx=MDGContext::fsNormal)
+   bool IsTemplatedPath(MDagPath dagPath)
    {
 
       MStatus stat = MStatus::kSuccess;
@@ -121,7 +121,7 @@ namespace // <anonymous>
       {
          MFnDagNode node;
          node.setObject(dagPath.node());
-         if (IsTemplated(node, ctx))
+         if (IsTemplated(node))
             return true;
          stat = dagPath.pop();
       }
@@ -346,13 +346,12 @@ unsigned int CArnoldSession::GetActiveTranslators(const CNodeAttrHandle &handle,
 
 bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 {
-   MDGContext ctx(MTime(GetExportFrame(), MTime::uiUnit()));
    MStatus stat = MStatus::kSuccess;
    while (stat == MStatus::kSuccess)
    {
       MFnDagNode node;
       node.setObject(dagPath.node());
-      if (!IsVisible(node, ctx) || IsTemplated(node, ctx))
+      if (!IsVisible(node) || IsTemplated(node))
          return false;
       stat = dagPath.pop();
    }
@@ -582,6 +581,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    ExportOptions();  // inside loop so that we're on the proper frame
 
    // First "real" export
+   MGlobal::viewFrame(m_sessionOptions.m_frame);
    if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR)
    {
       // Either for a specific camera or export all cameras
@@ -643,7 +643,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    unsigned int numSteps = GetNumMotionSteps();
    for (unsigned int step = 0; step < numSteps; ++step)
    {
-      MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+      if ((step != 0) || (m_motion_frames[step] != m_sessionOptions.m_frame))
+         MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
       AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
       if (step == 1)
          m_isExportingMotion = true;
@@ -775,7 +776,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
             node = path.node();
             if (node.hasFn(MFn::kLight) || CMayaScene::IsArnoldLight(node))
             {
-               if (ExportDagPath(path) == NULL) status = MStatus::kFailure;
+               if (ExportDagPath(path, true) == NULL) status = MStatus::kFailure;
             }
          }
       }
@@ -790,7 +791,6 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
       // First we export all lights
       // We do not reset the iterator to avoid getting kWorld
       unsigned int mask = GetExportFilterMask();
-      MDGContext ctx(MTime(GetExportFrame(), MTime::uiUnit()));
       for (; (!dagIterLights.isDone()); dagIterLights.next())
       {
          if (dagIterLights.getPath(path))
@@ -801,9 +801,9 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
             MString name = node.name();
             if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
                continue;
-            if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path, ctx))
+            if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
                continue;
-            if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path, ctx))
+            if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
                continue;
             MStatus stat;
             ExportDagPath(path, true, &stat);
@@ -836,7 +836,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
                   continue;
                if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
                   continue;
-               if (ExportDagPath(path) == NULL)
+               if (ExportDagPath(path, true) == NULL)
                   status = MStatus::kFailure;
             }
             else
@@ -907,7 +907,6 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 
       MDagPath path;
 
-      MDGContext ctx(MTime(GetExportFrame(), MTime::uiUnit()));
       DagFiltered filtered;
       MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
       for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
@@ -919,7 +918,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
             MObject obj = path.node();
             MFnDagNode node(obj);
             MString name = node.name();
-            filtered = FilteredStatus(path, ctx);
+            filtered = FilteredStatus(path);
             if (filtered != MTOA_EXPORT_ACCEPTED)
             {
                // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
@@ -959,7 +958,6 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
    MFnDagNode dgNode;
    MFnSet set;
    MSelectionList children;
-   MDGContext ctx(MTime(GetExportFrame(), MTime::uiUnit()));
    // loop users selection
    MItSelectionList it(*selected, MFn::kInvalid, &status);
    selected->clear();
@@ -969,7 +967,7 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
       {
          // FIXME: if we selected a shape, and it's an instance,
          // should we export all its dag paths?
-         if (FilteredStatus(path, ctx) == MTOA_EXPORT_ACCEPTED)
+         if (FilteredStatus(path) == MTOA_EXPORT_ACCEPTED)
          {
             for (unsigned int child = 0; (child < path.childCount()); child++)
             {
@@ -1019,14 +1017,14 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
 
 /// Determine if the DAG node should be skipped.
 /// The MDGContext defines the frame at which to test visibility
-DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, MDGContext &ctx, const CMayaExportFilter *filter) const
+DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExportFilter *filter) const
 {
    if (NULL == filter) filter = &GetExportFilter();
    // Tests that cause the whole branch to be pruned
    unsigned int mask = filter->state_mask;
-   if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path, ctx))
+   if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
-   if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path, ctx))
+   if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
    // Tests that cause the node to be ignored
    if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))

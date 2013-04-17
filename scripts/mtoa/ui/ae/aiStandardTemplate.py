@@ -29,7 +29,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginLayout("Matte", collapse=True)
         self.addControl("aiEnableMatte", label="Enable Matte")
         self.addControl("aiMatteColor", label="Matte Color")
-        self.addControl("aiMatteColorA", label="Matte Alpha")
+        self.addControl("aiMatteColorA", label="Matte Opacity")
         self.endLayout()
 
         self.beginLayout("Diffuse", collapse=False)
@@ -57,7 +57,6 @@ class AEaiStandardTemplate(ShaderAETemplate):
         # self.addControl("Phong_exponent", label="Glossiness")
         self.addSeparator()
         self.addControl("specular_Fresnel", changeCommand=self.checkSpecularFresnel, label="Fresnel")
-        self.addControl("Fresnel_use_IOR", label="Fresnel use IOR")
         self.addControl("Ksn", label="Reflectance at Normal")
 
         self.beginLayout("Extended Controls", collapse=True)
@@ -85,8 +84,9 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("Kt", label="Weight")
         self.addControl("IOR", label="IOR")
         self.addControl("refraction_roughness", label="Roughness")
+        self.addControl("Fresnel_use_IOR", label="Fresnel use IOR")                
         self.addControl("transmittance", label="Transmittance")
-        self.addControl("opacity", label="Opacity")
+        self.addControl("opacity", label="Opacity")        
         self.beginLayout("Exit Color", collapse=True)
         self.addControl("refraction_exit_use_environment", label="Use Environment")
         self.addControl("refraction_exit_color", label="Color")

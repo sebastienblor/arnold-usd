@@ -45,6 +45,8 @@ CRenderOptions::CRenderOptions()
 ,  m_use_existing_tiled_textures(true)
 ,  m_outputAssMask(AI_NODE_ALL)
 ,  m_expandProcedurals(false)
+,  m_log_to_file(false)
+,  m_log_to_console(false)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(DEFAULT_LOG_FLAGS)
@@ -179,6 +181,8 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 
+      m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file").asBool();
+      m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console").asBool();
       m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_console_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt());
@@ -198,7 +202,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
 
 void CRenderOptions::SetupLog() const
 {
-   if (m_log_filename != "")
+   if ((m_log_filename != "") && (m_log_to_file))
    {
       // this replaces the MAYA_PROJECT_PATH with the actual project path
       // if there are no such environment variables are declared
@@ -212,12 +216,26 @@ void CRenderOptions::SetupLog() const
             logPath = result + m_log_filename.substringW(15, m_log_filename.length());
          }
       }
+      int extPos = logPath.rindexW('.');
+      int frame;
+      MGlobal::executeCommand("currentTime -q", frame);
+      if (extPos > 0) // The file name has extension
+         logPath = logPath.substringW(0, extPos) + frame + logPath.substringW(extPos, logPath.length());
+      else
+      {
+         unsigned int slashPos = logPath.rindexW('/');
+         if (slashPos+1 < logPath.length()) // File name without extension
+            logPath = logPath +"."+ frame + ".log";
+         else // No file name
+            logPath = logPath + frame + ".log";
+      }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
+      AiMsgSetLogFileFlags(m_log_file_verbosity);
    }
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
-   AiMsgSetConsoleFlags(m_log_console_verbosity | AI_LOG_COLOR);
-   AiMsgSetLogFileFlags(m_log_file_verbosity);
+   if (m_log_to_console)
+      AiMsgSetConsoleFlags(m_log_console_verbosity | AI_LOG_COLOR);   
 
    // Not working correctly until we can add to callback rather than replace it,
    // or have access to original callback code

@@ -105,7 +105,12 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
-      return AddArnoldNode("polymesh");
+      const short volumeContainerMode = FindMayaPlug("aiVolumeContainerMode").asShort();
+      const float stepSize = FindMayaPlug("aiStepSize").asFloat();
+      if ((stepSize > AI_EPSILON) && (volumeContainerMode == 1))
+         return AddArnoldNode("box");
+      else
+         return AddArnoldNode("polymesh");
    }
    else
    {
@@ -127,6 +132,10 @@ void CMeshTranslator::Export(AtNode* anode)
          return;
       ExportMesh(anode, false);
    }
+   else if (strcmp(nodeType, "box") == 0)
+   {
+      ExportBBox(anode);  
+   }
 }
 
 void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
@@ -138,7 +147,8 @@ void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
    }
    else if (strcmp(nodeType, "polymesh") == 0)
    {
-      ExportMatrix(anode, step);
+      if (m_motion)
+         ExportMatrix(anode, step);
       if (m_motionDeform)
       {
          // Early return if we can't tessalate.
@@ -146,6 +156,10 @@ void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
             return;
          ExportMeshGeoData(anode, step);
       }
+   }
+   else if (strcmp(nodeType, "box") == 0)
+   {
+      ExportMatrix(anode, step);
    }
 }
 
@@ -164,8 +178,8 @@ bool CMeshTranslator::IsGeoDeforming()
    }
 
    inMeshPlug = fnMesh.findPlug("pnts");
-   inMeshPlug.connectedTo(conn, true, false);
-   if (conn.length())
+   unsigned int numElements = inMeshPlug.numElements();
+   if (numElements > 0)
    {
      pnts = true;
    }

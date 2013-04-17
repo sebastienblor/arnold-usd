@@ -60,6 +60,7 @@ struct CAttrData
    AtParamValue softMax;
    bool         keyable;
    MStringArray enums;
+   bool         linkable;
    CAttrData() :  name(""),
                   shortName(""),
                   stringDefault(""),
@@ -69,7 +70,8 @@ struct CAttrData
                   hasMax(false),
                   hasSoftMin(false),
                   hasSoftMax(false),
-                  keyable(true)   {}
+                  keyable(true),
+                  linkable(true)   {}
 };
 
 struct CCompoundAttrData
