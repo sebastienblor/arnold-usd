@@ -81,9 +81,10 @@ private:
    CArnoldStandInGeometry* p_geom;   
    AtMatrix m_matrix;
    bool m_inheritXForm;
+public:
    CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMatrix m, bool i);
    ~CArnoldStandInGInstance();
 
-   virtual void Draw(int drawMode);
+   void Draw(int drawMode);
    MBoundingBox GetBBox();
 };

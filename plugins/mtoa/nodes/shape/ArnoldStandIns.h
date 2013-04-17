@@ -44,6 +44,9 @@ public:
    int dList;
    int updateView;
    int updateBBox;
+
+   void Clear();
+   void Draw(int DrawMode);
 };
 
 // Shape class - defines the non-UI part of a shape node

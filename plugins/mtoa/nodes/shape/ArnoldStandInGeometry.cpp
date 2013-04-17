@@ -297,6 +297,11 @@ CArnoldStandInGInstance::CArnoldStandInGInstance(CArnoldStandInGeometry* g, AtMa
    AiM4Copy(m_matrix, m);
 }
 
+CArnoldStandInGInstance::~CArnoldStandInGInstance()
+{
+   
+}
+
 void CArnoldStandInGInstance::Draw(int DrawMode)
 {
    glPushMatrix();
