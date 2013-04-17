@@ -248,8 +248,15 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)),
                                               new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox)));
                }
+               else if (AiNodeIs(node, "points"))
+               {
+                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)),
+                                              new CArnoldPointsGeometry(node, total_matrix, inherit_xform, geom->bbox)));
+               }
             }
          }
+
+         AiNodeIteratorDestroy(iter);
          geom->IsGeomLoaded = true;
          geom->updateView = true;
          status = MS::kSuccess;
