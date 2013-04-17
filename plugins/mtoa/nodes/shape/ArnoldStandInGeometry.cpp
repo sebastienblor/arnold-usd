@@ -229,8 +229,8 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
       {
          const AtUInt vid = m_vidxs[id];
          const AtUInt nid = m_nidxs[id];
-         glVertex3fv(&m_vlist[vid].x);
          glNormal3fv(&m_nlist[nid].x);
+         glVertex3fv(&m_vlist[vid].x);         
       }
       glEnd();
    }
