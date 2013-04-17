@@ -12,6 +12,7 @@
 #include <ai_nodes.h>
 
 #include <vector>
+#include <map>
 
 // Geometry class
 class CArnoldStandInGeom
@@ -34,8 +35,9 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   //std::vector<std::vector<std::vector<AtPoint> > > faceList;
-   std::vector<CArnoldStandInGeometry*> m_geometryList;
+   typedef std::map<std::string, CArnoldStandInGeometry*> geometryListType;
+   typedef std::map<std::string, CArnoldStandInGeometry*>::iterator geometryListIterType;
+   geometryListType m_geometryList;
    int dList;
    int updateView;
    int updateBBox;
