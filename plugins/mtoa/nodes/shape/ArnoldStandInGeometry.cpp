@@ -313,5 +313,16 @@ void CArnoldStandInGInstance::Draw(int DrawMode)
 
 MBoundingBox CArnoldStandInGInstance::GetBBox()
 {
-   return MBoundingBox();
+   if (m_inheritXForm)
+   {
+      MBoundingBox bbox = p_geom->GetBBox();
+      bbox.transformUsing(MMatrix(m_matrix));
+      return bbox;
+   }
+   else
+   {
+      MBoundingBox bbox = p_geom->GetBBox(false);
+      bbox.transformUsing(MMatrix(m_matrix));
+      return bbox;
+   }
 }

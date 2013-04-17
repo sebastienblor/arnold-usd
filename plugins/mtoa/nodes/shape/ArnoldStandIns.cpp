@@ -115,6 +115,11 @@ void CArnoldStandInGeom::Draw(int DrawMode)
       (*it)->Draw(DrawMode);
 }
 
+CArnoldStandInGeometry* CArnoldStandInGeom::FindGeo(const std::string& name)
+{
+   return m_geometryList[name];
+}
+
 CArnoldStandInShape::CArnoldStandInShape()
 {
 }
@@ -291,7 +296,16 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
-               
+               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points"))
+               {
+                  CArnoldStandInGeometry* g = geom->FindGeo(AiNodeGetName(node));
+                  if (g)
+                  {
+                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(g, total_matrix, inherit_xform);
+                     geom->m_instanceList.push_back(gi);
+                     geom->bbox.expand(gi->GetBBox());
+                  }
+               }               
             }
          }
 

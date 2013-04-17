@@ -47,6 +47,8 @@ public:
 
    void Clear();
    void Draw(int DrawMode);
+   
+   CArnoldStandInGeometry* FindGeo(const std::string& name);
 };
 
 // Shape class - defines the non-UI part of a shape node
