@@ -31,6 +31,8 @@ enum TokenModes
    SHAPE_PATH,
    UDIM,
    TILE,
+   UTILE,
+   VTILE,
    USER_PARAM
 };
 
@@ -81,6 +83,16 @@ typedef struct AtImageData
 } AtImageData;
 
 static const char* filterNames[] = {"closest", "bilinear", "bicubic", "smart_bicubic", 0};
+
+int GetTokenOptionInt(std::string& token, int defaultOpt)
+{
+   std::string::size_type len = token.length();
+   // an option can be provided with <tokname:5>
+   size_t foundsep = token.rfind(':');
+   if (foundsep != std::string::npos)
+      return atoi(token.substr(foundsep, len-(foundsep+1)).c_str());
+   return defaultOpt;
+}
 
 node_parameters
 {
@@ -242,16 +254,9 @@ node_update
                Mari has a 4 digit number equal to 1000 + (u + 1 + v*10). UV tile [0,0] x (1,1) is assigned 1001
                UV tile [0,1]x(1,2) is assigned 1011 etc. 
                */
+               int dim = GetTokenOptionInt(sub, 10);
+               dim = dim <= 0 ? 1 : dim;
 
-               std::string::size_type len = sub.length();
-               // default dimension
-               int dim = 10;
-               // a specific dimension can be provided with <udim:5>
-               if (len > 7)
-               {
-                  dim = atoi(sub.substr(6, len-7).c_str());
-                  dim = dim <= 0 ? 1 : dim;
-               }
                TokenData data;
                data.mode = UDIM;
                // Position will be updated when the end of the text chunk is reached
@@ -267,12 +272,53 @@ node_update
                if (!breakFound)
                   firstBreak += 4;
             }
-            else if (sub == "<tile>" )
+            else if (sub.substr(0, 5) == "<tile")
             {
+               // default offset
+               int offset = GetTokenOptionInt(sub, 1);
+
                TokenData data;
                data.mode = TILE;
                data.position = (int) newfname.size();
-               data.extra = NULL;
+               data.extra = AiMalloc(sizeof(int));
+               *((int*)data.extra) = offset;
+               data.nextSize = 0;
+               // If a previous token broke the file path chunk, update its "nextSize" attribute
+               if (prevToken >= 0)
+                  tokens[prevToken].nextSize = (int) newfname.size() - tokens[prevToken].position;
+               tokens.push_back(data);
+               // Set this token as the last that broke the text chunk
+               prevToken = (int) tokens.size()-1;
+               breakFound = true;
+            }
+            else if (sub.substr(0, 6) == "<utile")
+            {
+               // default offset
+               int offset = GetTokenOptionInt(sub, 1);
+
+               TokenData data;
+               data.mode = UTILE;
+               data.position = (int) newfname.size();
+               data.extra = AiMalloc(sizeof(int));
+               *((int*)data.extra) = offset;
+               data.nextSize = 0;
+               // If a previous token broke the file path chunk, update its "nextSize" attribute
+               if (prevToken >= 0)
+                  tokens[prevToken].nextSize = (int) newfname.size() - tokens[prevToken].position;
+               tokens.push_back(data);
+               // Set this token as the last that broke the text chunk
+               prevToken = (int) tokens.size()-1;
+               breakFound = true;
+            }
+            else if (sub.substr(0, 6) == "<vtile" )
+            {
+               int offset = GetTokenOptionInt(sub, 1);
+
+               TokenData data;
+               data.mode = VTILE;
+               data.position = (int) newfname.size();
+               data.extra = AiMalloc(sizeof(int));
+               *((int*)data.extra) = offset;
                data.nextSize = 0;
                // If a previous token broke the file path chunk, update its "nextSize" attribute
                if (prevToken >= 0)
@@ -650,10 +696,52 @@ shader_evaluate
                   // UV tile [0,0] x (1,1) is marked with _u1_v1
                   // UV tile [0,1]x(1,2) is marked with _u1_v2 etc.
 
-                  int col = static_cast<int>(floorf(inU)) + 1;
-                  int row = static_cast<int>(floorf(inV)) + 1;
+                  // default offset
+                  int* ptr = (int*)token->extra;
+                  int offset = *ptr;
+
+                  int col = static_cast<int>(floorf(inU)) + offset;
+                  int row = static_cast<int>(floorf(inV)) + offset;
                   char buf[16];
                   sprintf(buf, "_u%d_v%d", col, row);
+                  int len = (int) strlen(buf);
+                  memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
+                  pos += len;
+                  // Copy next text chunk to the "processPath"
+                  memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
+                  pos += token->nextSize;
+                  // Set the end of the string
+                  idata->processPath[sg->tid][pos] = 0;
+                  break;
+               }
+               case UTILE:
+               {
+                  // default offset
+                  int* ptr = (int*)token->extra;
+                  int offset = *ptr;
+
+                  int col = static_cast<int>(floorf(inU)) + offset;
+                  char buf[2];
+                  sprintf(buf, "%d", col);
+                  int len = (int) strlen(buf);
+                  memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
+                  pos += len;
+                  // Copy next text chunk to the "processPath"
+                  memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
+                  pos += token->nextSize;
+                  // Set the end of the string
+                  idata->processPath[sg->tid][pos] = 0;
+                  break;
+               }
+               case VTILE:
+               {
+                  // default offset
+                  int* ptr = (int*)token->extra;
+                  int offset = *ptr;
+
+                  int row = static_cast<int>(floorf(inV)) + offset;
+                  char buf[2];
+                  sprintf(buf, "%d", row);
                   int len = (int) strlen(buf);
                   memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
                   pos += len;
