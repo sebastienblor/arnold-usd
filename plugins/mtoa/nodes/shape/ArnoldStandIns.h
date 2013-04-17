@@ -35,8 +35,8 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   typedef std::map<std::string, CArnoldStandInGeometry*> geometryListType;
-   typedef std::map<std::string, CArnoldStandInGeometry*>::iterator geometryListIterType;
+   typedef std::map<AtNode*, CArnoldStandInGeometry*> geometryListType;
+   typedef std::map<AtNode*, CArnoldStandInGeometry*>::iterator geometryListIterType;
    geometryListType m_geometryList;
    typedef std::vector<CArnoldStandInGInstance*> instanceListType;
    typedef std::vector<CArnoldStandInGInstance*>::iterator instanceListIterType;
@@ -47,8 +47,6 @@ public:
 
    void Clear();
    void Draw(int DrawMode);
-   
-   CArnoldStandInGeometry* FindGeo(const std::string& name);
 };
 
 // Shape class - defines the non-UI part of a shape node

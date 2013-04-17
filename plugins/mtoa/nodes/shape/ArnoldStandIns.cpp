@@ -115,11 +115,6 @@ void CArnoldStandInGeom::Draw(int DrawMode)
       (*it)->Draw(DrawMode);
 }
 
-CArnoldStandInGeometry* CArnoldStandInGeom::FindGeo(const std::string& name)
-{
-   return m_geometryList[name];
-}
-
 CArnoldStandInShape::CArnoldStandInShape()
 {
 }
@@ -261,13 +256,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                if (AiNodeIs(node, "polymesh"))
                {
                   CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+                  geom->m_geometryList.insert(std::make_pair(node, g));
                   geom->bbox.expand(g->GetBBox());
                }
                else if (AiNodeIs(node, "points"))
                {
                   CArnoldStandInGeometry* g = new CArnoldPointsGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+                  geom->m_geometryList.insert(std::make_pair(node, g));
                   geom->bbox.expand(g->GetBBox());
                }
             }
@@ -298,10 +293,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
                if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points"))
                {
-                  CArnoldStandInGeometry* g = geom->FindGeo(AiNodeGetName(node));
-                  if (g)
+                  CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
+                  if (iter != geom->m_geometryList.end())
                   {
-                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(g, total_matrix, inherit_xform);
+                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(iter->second, total_matrix, inherit_xform);
                      geom->m_instanceList.push_back(gi);
                      geom->bbox.expand(gi->GetBBox());
                   }
