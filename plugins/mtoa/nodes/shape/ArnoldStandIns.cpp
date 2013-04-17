@@ -221,12 +221,39 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             delete it->second;
          geom->m_geometryList.clear();
 
-         AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
-         //iterate all shape in file
+         // iterate all shape in file twice
+         // first load all the shapes
+         // then resolve all the instances
+
+         AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
 
          while (!AiNodeIteratorFinished(iter))
          {
-            AtNode *node = AiNodeIteratorGetNext(iter);
+            AtNode* node = AiNodeIteratorGetNext(iter);
+            if (node)
+            {
+               if (AiNodeIs(node, "polymesh"))
+               {
+                  CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+                  geom->bbox.expand(g->GetBBox());
+               }
+               else if (AiNodeIs(node, "points"))
+               {
+                  CArnoldStandInGeometry* g = new CArnoldPointsGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)), g));
+                  geom->bbox.expand(g->GetBBox());
+               }
+            }
+         }
+
+         AiNodeIteratorDestroy(iter);
+
+         iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+
+         while (!AiNodeIteratorFinished(iter))
+         {
+            AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
                AtMatrix total_matrix;
@@ -243,16 +270,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
-               if (AiNodeIs(node, "polymesh"))
-               {
-                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)),
-                                              new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox)));
-               }
-               else if (AiNodeIs(node, "points"))
-               {
-                  geom->m_geometryList.insert(std::make_pair(std::string(AiNodeGetName(node)),
-                                              new CArnoldPointsGeometry(node, total_matrix, inherit_xform, geom->bbox)));
-               }
+               
             }
          }
 
@@ -1024,6 +1042,8 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       float topRightBack[3] =
       { maxPt[0], maxPt[1], maxPt[2] };
 
+      glMatrixMode(GL_MODELVIEW);
+
       switch (geom->mode)
       {
       case DM_BOUNDING_BOX:
@@ -1060,7 +1080,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
               it != geom->m_geometryList.end(); ++it)
          {
             
-            it->second->DrawBoundingBox();
+            it->second->Draw(GM_BOUNDING_BOX);
          }
          glEndList();
          break;
@@ -1075,7 +1095,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
               it != geom->m_geometryList.end(); ++it)
          {
             
-            it->second->DrawPolygons();
+            it->second->Draw(GM_POLYGONS);
          }
          
          glPopAttrib();
@@ -1083,7 +1103,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
               it != geom->m_geometryList.end(); ++it)
          {
-            it->second->DrawWireframe();
+            it->second->Draw(GM_WIREFRAME);
          }
          
          glEndList();
@@ -1094,7 +1114,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
               it != geom->m_geometryList.end(); ++it)
          {
-            it->second->DrawWireframe();
+            it->second->Draw(GM_WIREFRAME);
          }
          glEndList();
          
@@ -1112,7 +1132,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
               it != geom->m_geometryList.end(); ++it)
          {
-            it->second->DrawPoints(); // it's a bit unnecessary to call glBegin and glEnd
+            it->second->Draw(GM_POINTS); // it's a bit unnecessary to call glBegin and glEnd
             // per geometry here, but I am doing this for consistency reasons
          }
          glEndList();
@@ -1132,14 +1152,14 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
               it != geom->m_geometryList.end(); ++it)
          {
             
-            it->second->DrawNormalAndPolygons();
+            it->second->Draw(GM_NORMAL_AND_POLYGONS);
          }
          glPopAttrib();
          
          for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
               it != geom->m_geometryList.end(); ++it)
          {
-            it->second->DrawWireframe();
+            it->second->Draw(GM_WIREFRAME);
          }         
          glEndList();         
          break;            

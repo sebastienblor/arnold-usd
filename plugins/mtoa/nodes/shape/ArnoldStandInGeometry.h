@@ -6,6 +6,14 @@
 
 #include <maya/MBoundingBox.h>
 
+enum GeometryDrawingMode{
+   GM_BOUNDING_BOX,
+   GM_POLYGONS,
+   GM_WIREFRAME,
+   GM_POINTS,
+   GM_NORMAL_AND_POLYGONS
+};
+
 // interface for drawing
 // so we could add support for curves
 // pointclouds or other primitives
@@ -14,9 +22,8 @@ protected:
    CArnoldStandInGeometry();
    
    AtVector m_BBMin, m_BBMax;
-public:
-   virtual ~CArnoldStandInGeometry();
-   
+   AtMatrix m_matrix;
+
    // simple polygons, without normals
    virtual void DrawPolygons() const = 0;
    
@@ -30,7 +37,12 @@ public:
    virtual void DrawNormalAndPolygons() const = 0;
    
    // bounding box mode
-   void DrawBoundingBox() const;
+   virtual void DrawBoundingBox() const;
+public:
+   virtual ~CArnoldStandInGeometry();
+
+   virtual void Draw(int drawMode, bool applyTransform = true);   
+   MBoundingBox GetBBox(bool transformed = true);
 };
 
 class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{
@@ -40,26 +52,27 @@ private:
    std::vector<AtVector> m_nlist;
    std::vector<AtUInt> m_nidxs;
    std::vector<AtUInt> m_nsides;   
-public:
-   CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox);
-   ~CArnoldPolymeshGeometry();
 
    void DrawPolygons() const;
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
+public:
+   CArnoldPolymeshGeometry(AtNode* node);
+   ~CArnoldPolymeshGeometry();  
 };
 
 class CArnoldPointsGeometry : public CArnoldStandInGeometry{
 private:
    std::vector<AtVector> m_points;
    AtVector m_BBMin, m_BBMax;
-public:
-   CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, bool inherit_xform, MBoundingBox& bbox);
-   ~CArnoldPointsGeometry();
-   
+
    void DrawPolygons() const;
    void DrawWireframe() const;
    void DrawPoints() const;
    void DrawNormalAndPolygons() const;
+public:
+   CArnoldPointsGeometry(AtNode* node);
+   ~CArnoldPointsGeometry();  
 };
+

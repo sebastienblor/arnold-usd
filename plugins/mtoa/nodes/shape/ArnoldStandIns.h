@@ -41,7 +41,6 @@ public:
    int dList;
    int updateView;
    int updateBBox;
-
 };
 
 // Shape class - defines the non-UI part of a shape node

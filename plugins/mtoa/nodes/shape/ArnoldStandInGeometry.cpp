@@ -1,5 +1,7 @@
 #include "ArnoldStandInGeometry.h"
 
+#include <maya/MMatrix.h>
+
 #include <maya/MPxSurfaceShape.h>
 #include <maya/MPxSurfaceShapeUI.h>
 
@@ -62,19 +64,51 @@ void CArnoldStandInGeometry::DrawBoundingBox() const
    glEnd();
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherited_matrix, 
-                                                 bool inherit_xform, MBoundingBox& bbox) : CArnoldStandInGeometry()
+void CArnoldStandInGeometry::Draw(int drawMode, bool applyTransform)
 {
-   AtMatrix matrix;
-   AiM4Identity(matrix);
-   
-   if (inherit_xform)
+   if (applyTransform)
    {
-      AiNodeGetMatrix(node, "matrix", matrix);
-      AiM4Mult(matrix, matrix, inherited_matrix);
+      glPushMatrix();
+      glMultMatrixf(&m_matrix[0][0]);
    }
-   else
-      AiM4Copy(matrix, inherited_matrix);
+   switch (drawMode)
+   {
+      case GM_BOUNDING_BOX:
+         DrawBoundingBox();
+         break;
+      case GM_POLYGONS:
+         DrawPolygons();
+         break;
+      case GM_WIREFRAME:
+         DrawWireframe();
+         break;
+      case GM_POINTS:
+         DrawPoints();
+         break;
+      case GM_NORMAL_AND_POLYGONS:
+         DrawNormalAndPolygons();
+         break;
+      default:
+         break;
+   }
+   if (applyTransform)
+      glPopMatrix();
+}
+
+MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed)
+{
+   if (transformed)
+   {
+      MBoundingBox bbox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+      bbox.transformUsing(MMatrix(m_matrix));
+      return bbox;
+   }
+   else return MBoundingBox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+}
+
+CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry()
+{
+   AiNodeGetMatrix(node, "matrix", m_matrix);
    
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
    
@@ -83,24 +117,18 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
       m_vlist.resize(vlist->nelements);
       for (AtUInt32 i = 0; i < vlist->nelements; ++i)
       {
-         const AtPoint pnt = AiArrayGetPnt(vlist, i);
-         AtPoint tmpPnt;
-         AiM4PointByMatrixMult(&tmpPnt, matrix, &pnt);
+         const AtPoint pnt = AiArrayGetPnt(vlist, i);         
+         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
          
-         m_BBMin.x = MIN(m_BBMin.x, tmpPnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, tmpPnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, tmpPnt.z);
+         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, tmpPnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, tmpPnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, tmpPnt.z);
-         
-         m_vlist[i] = tmpPnt;
+         m_vlist[i] = pnt;
       }
    }
-   
-   bbox.expand(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z));
-   bbox.expand(MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
    
@@ -117,10 +145,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node, AtMatrix inherite
    {
       m_nlist.resize(nlist->nelements);
       for (AtUInt32 i = 0; i < nlist->nelements; ++i)
-      {
-         const AtVector pnt = AiArrayGetVec(nlist, i);
-         AiM4VectorByMatrixMult(&m_nlist[i], matrix, &pnt);
-      }
+         m_nlist[i] = AiArrayGetVec(nlist, i);
    }
    
    AtArray* nidxs = AiNodeGetArray(node, "nidxs");
@@ -210,19 +235,9 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
    }
 }
 
-CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_matrix, 
-                                             bool inherit_xform, MBoundingBox& bbox) : CArnoldStandInGeometry()
-{   
-   AtMatrix matrix;
-   AiM4Identity(matrix);
-   
-   if (inherit_xform)
-   {
-      AiNodeGetMatrix(node, "matrix", matrix);
-      AiM4Mult(matrix, matrix, inherited_matrix);
-   }
-   else
-      AiM4Copy(matrix, inherited_matrix);
+CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry()
+{
+   AiNodeGetMatrix(node, "matrix", m_matrix);
    
    AtArray* points = AiNodeGetArray(node, "points");
    
@@ -233,23 +248,17 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node, AtMatrix inherited_ma
       {
          AtVector pnt = AiArrayGetVec(points, i);
          
-         AtPoint tmpPnt;
-         AiM4PointByMatrixMult(&tmpPnt, matrix, &pnt);
+         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
          
-         m_BBMin.x = MIN(m_BBMin.x, tmpPnt.x);
-         m_BBMin.y = MIN(m_BBMin.y, tmpPnt.y);
-         m_BBMin.z = MIN(m_BBMin.z, tmpPnt.z);
+         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
          
-         m_BBMax.x = MAX(m_BBMax.x, tmpPnt.x);
-         m_BBMax.y = MAX(m_BBMax.y, tmpPnt.y);
-         m_BBMax.z = MAX(m_BBMax.z, tmpPnt.z);
-         
-         m_points[i] = tmpPnt;
+         m_points[i] = pnt;
       }
    }
-   
-   bbox.expand(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z));
-   bbox.expand(MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 }
 
 CArnoldPointsGeometry::~CArnoldPointsGeometry()
