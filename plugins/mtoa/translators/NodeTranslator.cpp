@@ -134,7 +134,7 @@ bool HasIncomingConnection(const MPlug &plug)
 
 //------------ CNodeTranslator ------------//
 
-AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool track)
+AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool track, CNodeTranslator** outTranslator)
 {
    CNodeTranslator* translator = NULL;
    if (track)
@@ -142,7 +142,11 @@ AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool track)
    else
       translator = m_session->ExportNode(outputPlug);
    if (translator != NULL)
+   {
+      if (outTranslator != NULL)
+         *outTranslator = translator;
       return translator->GetArnoldRootNode();
+   }
    return NULL;
 }
 
@@ -451,19 +455,17 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
    MString outputAttr = GetMayaAttributeName();
    m_step = step;
 
-   if (node != NULL)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
-                 GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                 AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-                 node);
-   }
-   else
+   if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Export requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
       return NULL;
    }
+   
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
+              node);
 
    if (step == 0)
    {
@@ -500,18 +502,17 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    AtNode* node = GetArnoldNode("");
    m_step = step;
 
-   if (node != NULL)
-   {
-      AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
-                 GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                 AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-                 node);
-   }
-   else
+   if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      return NULL;
    }
+   
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Updating Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
+              node);
 
    if (step == 0)
    {
@@ -1583,6 +1584,7 @@ AtArray* CNodeTranslator::InitArrayParameter(unsigned int arnoldParamType, unsig
 
 void CNodeTranslator::SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array)
 {
+   // TODO: for IPR: call AiArrayDestroy on pre-existing arrays?
    AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
@@ -1591,7 +1593,7 @@ void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* 
    // connections:
    // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
    // there is no way of assigning the value of a message attribute other than via a connection.
-   // Therefore, we handle node/message connections in ProcessArrayElement
+   // Therefore, we handle node/message connections in ProcessConstantArrayElement
    if (arnoldParamType != AI_TYPE_NODE)
    {
       MString elemName = MString(arnoldParamName) + "[" + pos + "]";
@@ -1648,20 +1650,52 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 //            plug.getExistingArrayAttributeIndices(indices);
 
    // for now do all elements
-   unsigned int size = plug.numElements();
-   if (size > 0)
+   AtArray* array = NULL;
+   if (arnoldParamType == AI_TYPE_NODE)
    {
-      AtArray* array = InitArrayParameter(arnoldParamType, size);
-      MPlug elemPlug;
-      for (unsigned int i = 0; i < size; ++i)
-      {
-        // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-        //plug.selectAncestorLogicalIndex(i, plug.attribute());
-        elemPlug = plug[i];
+      MPlugArray inputs;
+      MPlugArray conn;
 
-        ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+      for (unsigned int i=0; i < plug.numElements(); ++i)
+      {
+         MPlug elemPlug = plug[i];
+         elemPlug.connectedTo(conn, true, false);
+         if (conn.length() == 1)
+            inputs.append(conn[0]);
       }
-      SetArrayParameter(arnoldNode, arnoldParamName, array);
+      unsigned int size = inputs.length();
+      if (size > 0)
+      {
+         array = InitArrayParameter(arnoldParamType, size);
+         for (unsigned int i=0; i < size; ++i)
+         {
+            AtNode* linkedNode = ExportNode(inputs[i]);
+            AiArraySetPtr(array, i, linkedNode);
+         }
+         SetArrayParameter(arnoldNode, arnoldParamName, array);
+      }
+      else
+         // TODO: Change this to: AiNodeSetArray(arnoldNode, arnoldParamName, NULL);
+         // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
+         AiNodeSetArray(arnoldNode, arnoldParamName, AiArrayAllocate(0,0, AI_TYPE_NODE));
+   }
+   else
+   {
+      unsigned int size = plug.numElements();
+      if (size > 0)
+      {
+         AtArray* array = InitArrayParameter(arnoldParamType, size);
+         MPlug elemPlug;
+         for (unsigned int i = 0; i < size; ++i)
+         {
+           // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+           //plug.selectAncestorLogicalIndex(i, plug.attribute());
+           elemPlug = plug[i];
+
+           ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+         }
+         SetArrayParameter(arnoldNode, arnoldParamName, array);
+      }
    }
 }
 
@@ -2059,7 +2093,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    GetMatrix(matrix);
    if (step == 0)
    {
-      if (RequiresMotionData())
+      if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, 0, matrix);
@@ -2070,7 +2104,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
          AiNodeSetMatrix(node, "matrix", matrix);
       }
    }
-   else
+   else if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
    {
       AtArray* matrices = AiNodeGetArray(node, "matrix");
       AiArraySetMtx(matrices, step, matrix);

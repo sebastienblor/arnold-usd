@@ -131,7 +131,9 @@
     <attr n="ai:aerr" s="defaultArnoldRenderOptions.abortOnError" t="boolean" h="Abort on Error."/>
     <attr n="ai:alf" s="defaultArnoldRenderOptions.abortOnLicenseFail" t="boolean" h="Abort on License Fail."/>
     <attr n="ai:slc" s="defaultArnoldRenderOptions.skipLicenseCheck" t="boolean" h="Skip License Check."/>
-    <attrString n="ai:uopt" s="defaultArnoldRenderOptions.aiUserOptions" t="string" h="User Options."/>    
+    <attrString n="ai:uopt" s="defaultArnoldRenderOptions.aiUserOptions" t="string" h="User Options."/>   
+    <mel n="ai:port" s="if (!`objExists defaultResolution.mtoaCommandPort`) {addAttr -longName mtoaCommandPort -shortName mtoa_com -at long defaultResolution;} setAttr defaultResolution.mtoaCommandPort %1;
+" p="1" t="int" h="Set the Command Port for the Batch Progress Driver"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Textures"/>

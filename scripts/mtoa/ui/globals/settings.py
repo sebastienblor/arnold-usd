@@ -69,21 +69,19 @@ def updateComputeSamples(*args):
 
 def updateMotionBlurSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
-    pm.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
-    pm.attrControlGrp('mb_objects_enable', edit=True, enable=flag)
     pm.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
-    pm.attrControlGrp('mb_lights_enable', edit=True, enable=flag)
     pm.attrControlGrp('mb_shutter_size', edit=True, enable=flag)
     pm.attrControlGrp('mb_shutter_offset', edit=True, enable=flag)
     pm.attrControlGrp('mb_shutter_type', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
-    pm.attrControlGrp('mb_shader_enable', edit=True, enable=flag)
+    pm.attrControlGrp('reference_time', edit=True, enable=flag)
 
 
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable= name != "")
+    logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
+    pm.attrControlGrp('log_file_verbosity', edit=True, enable= (name != "") and logToFile)
 
 def getBackgroundShader(*args):
     conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
@@ -591,9 +589,7 @@ def createArnoldMotionBlurSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('reference_time',
-                   label='Reference Time',
-                   attribute='defaultArnoldRenderOptions.reference_time')
+    
                    
     pm.checkBoxGrp('mb_enable',
                      cc=updateMotionBlurSettings,
@@ -601,14 +597,14 @@ def createArnoldMotionBlurSettings():
 
     pm.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=1)
     pm.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=2)
+    
+    pm.checkBoxGrp('mb_object_deform_enable',
+                     label='Deformation')
+                     
+    pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=1)
+    pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=2)
 
     '''
-    pm.attrControlGrp('mb_enable',
-                        label="Enable",
-                        attribute='defaultArnoldRenderOptions.motion_blur_enable',
-                        cc=updateMotionBlurSettings)
-    '''
-
     pm.attrControlGrp('mb_lights_enable',
                         label="Lights",
                         attribute='defaultArnoldRenderOptions.mb_lights_enable')
@@ -621,15 +617,27 @@ def createArnoldMotionBlurSettings():
                         label="Objects",
                         attribute='defaultArnoldRenderOptions.mb_objects_enable')
 
-    pm.attrControlGrp('mb_object_deform_enable',
-                        label="Object deformation",
-                        attribute='defaultArnoldRenderOptions.mb_object_deform_enable')
-
     pm.attrControlGrp('mb_shader_enable',
                         label="Shaders",
-                        attribute='defaultArnoldRenderOptions.mb_shader_enable')                        
+                        attribute='defaultArnoldRenderOptions.mb_shader_enable')  '''                      
                         
     pm.separator()
+    
+    pm.attrFieldSliderGrp('mb_motion_frames',
+                        label="Motion Range",
+                        ann='Motion Range in Frames',
+                        attribute='defaultArnoldRenderOptions.motion_frames')
+                        
+    pm.attrControlGrp('mb_motion_steps',
+                        label="Motion Steps",
+                        attribute='defaultArnoldRenderOptions.motion_steps')
+                        
+    pm.separator()
+    
+    pm.attrFieldSliderGrp('mb_shutter_offset',
+                        label="Shutter Offset",
+                        ann='Shutter Offset in Frames',
+                        attribute='defaultArnoldRenderOptions.shutter_offset')
 
     pm.floatSliderGrp('mb_shutter_size',
                       label="Shutter Size"
@@ -638,24 +646,21 @@ def createArnoldMotionBlurSettings():
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=2)
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=3)
 
+
     
-    pm.attrControlGrp('mb_motion_frames',
-                        label="Sample Range (Frames)",
-                        attribute='defaultArnoldRenderOptions.motion_frames')
-
-    pm.separator(style='none')
-
-    pm.attrControlGrp('mb_shutter_offset',
-                        label="Shutter Offset (Frames)",
-                        attribute='defaultArnoldRenderOptions.shutter_offset')
+                        
+    
 
     pm.attrControlGrp('mb_shutter_type',
                         label="Shutter Type",
                         attribute='defaultArnoldRenderOptions.shutter_type')
 
-    pm.attrControlGrp('mb_motion_steps',
-                        label="Motion Steps",
-                        attribute='defaultArnoldRenderOptions.motion_steps')
+    pm.separator()
+                        
+                        
+    pm.attrControlGrp('reference_time',
+                   label='Reference Time',
+                   attribute='defaultArnoldRenderOptions.reference_time')
 
     pm.setParent('..')
 
@@ -930,15 +935,45 @@ def LoadFilenameButtonPush(*args):
     if ret is not None and len(ret):
         cmds.textFieldButtonGrp("ls_log_filename", edit=True, text=ret[0])
         cmds.setAttr("defaultArnoldRenderOptions.log_filename", ret[0], type="string")
-    
+
+def ChangeLogToConsole(*args):
+    logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
+    pm.attrControlGrp('log_console_verbosity', edit=True, enable=logToConsole)
+    pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
+
+def ChangeLogToFile(*args):
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
+    logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
+    cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
+    pm.attrControlGrp('log_file_verbosity', edit=True, enable=logToFile)
+    pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
+
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
+    logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
+
+    pm.checkBoxGrp('log_to_console',
+                    label='Console',
+                    changeCommand=ChangeLogToConsole)
+
+    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=1)
+    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=2)
+    
+    pm.checkBoxGrp('log_to_file',
+                   label='File',
+                   changeCommand=ChangeLogToFile)
+
+    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
+    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
+                                   enable=logToFile,
                                    cc=updateLogSettings,
                                    width=300)
     cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...", buttonCommand=LoadFilenameButtonPush)
@@ -954,14 +989,17 @@ def createArnoldLogSettings():
 
     pm.attrControlGrp('log_max_warnings',
                         label="Max. Warnings",
+                        enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
     pm.attrControlGrp('log_console_verbosity',
                         label="Console Verbosity Level",
+                        enable=logToConsole,
                         attribute='defaultArnoldRenderOptions.log_console_verbosity')
 
     pm.attrControlGrp('log_file_verbosity',
                         label="File Verbosity Level",
+                        enable=logToFile,
                         attribute='defaultArnoldRenderOptions.log_file_verbosity')
 
     pm.separator()

@@ -41,7 +41,10 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
-MComputation CRenderSession::s_comp = MComputation();
+MComputation*                       CRenderSession::s_comp = NULL;
+MCallbackId                         CRenderSession::m_idle_cb = NULL;
+CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
+MCallbackId                         CRenderSession::m_render_cb = NULL;
 
 namespace
 {
@@ -129,6 +132,29 @@ bool CRenderSession::IsRendering()
    return rendering;
 }
 
+void CRenderSession::SetCallback(RenderCallbackType callback)
+{
+   m_renderCallback = callback;
+}
+
+void CRenderSession::ClearCallbackId()
+{
+   m_renderCallback = NULL;
+   m_render_cb = 0;
+   if(s_comp != NULL)
+   {
+      s_comp->endComputation();
+      s_comp = NULL;
+   }
+}
+
+MCallbackId CRenderSession::GetCallbackId()
+{
+   return m_render_cb;
+}
+
+   
+
 MStatus CRenderSession::End()
 {
    MStatus status = MStatus::kSuccess;
@@ -209,12 +235,14 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
    }
 }
 
-/// This static function runs on the main thread and checks for render interrupts (pressing the Esc key).
-/// It only runs for non-IPR renders.
-void CRenderSession::CheckForRenderInterrupt(void *data)
+/// This static function runs on the main thread and checks for render interrupts (pressing the Esc key) and
+///  process the method provided to CRenderSession::SetCallback() in the driver.
+void CRenderSession::InteractiveRenderCallback(void *data)
 {
-   if (s_comp.isInterruptRequested() && AiRendering())
+   if (s_comp != NULL && s_comp->isInterruptRequested() && AiRendering())
    {
+      s_comp->endComputation();
+      s_comp = NULL;
       // This causes AiRender to break, after which the CMayaScene::End()
       // which clears this callback.
       AiRenderInterrupt();
@@ -222,6 +250,19 @@ void CRenderSession::CheckForRenderInterrupt(void *data)
       // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
       // AiRenderAbort();
    }
+   
+   if (m_render_cb == 0 && m_renderCallback != NULL)
+   {
+      if(s_comp != NULL)
+         s_comp->endComputation();
+      s_comp = new MComputation();
+      s_comp->beginComputation();
+      m_render_cb = MEventMessage::addEventCallback("idle",
+                                                         (MMessage::MBasicFunction)m_renderCallback,
+                                                         NULL);
+      s_comp->endComputation();
+   }
+      
    return;
 }
 
@@ -346,7 +387,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
    // set progressive start point on AA
    const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   const int progressive_start = renderSession->m_renderOptions.progressiveInitialLevel();
+   const int progressive_start = MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel());
    const int steps = (progressive_start < 0) ? abs(progressive_start) + 1 : 1;
    int ai_status(AI_SUCCESS);
    renderSession->SetRendering(true);
@@ -388,9 +429,6 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
    MString postMel = renderSession->m_postRenderMel;
    renderSession->m_postRenderMel = "";
 
-   // Stop the Idle update if there was one
-   renderSession->ClearIdleRenderViewCallback();
-
    CMayaScene::End();
 
    // don't echo, and do on idle
@@ -405,11 +443,11 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    // Interrupt existing render and close rendering thread if any
    InterruptRender();
 
+   AddIdleRenderViewCallback(postRenderMel);
+   
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
                                     AI_PRIORITY_LOW);
-
-   AddIdleRenderViewCallback(postRenderMel);
    // DEBUG_MEMORY;
 }
 
@@ -512,11 +550,13 @@ void CRenderSession::DoIPRRender()
       InterruptRender();
 
       // DEBUG_MEMORY;
+      AddIdleRenderViewCallback("");
 
       // Start the render thread.
       m_render_thread = AiThreadCreate(CRenderSession::ProgressiveRenderThread,
                                        this,
                                        AI_PRIORITY_LOW);
+
 
    }
 }
@@ -555,16 +595,14 @@ AtUInt64 CRenderSession::GetUsedMemory()
 void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
-   s_comp.beginComputation();
 
    MMessage::removeCallback(renderSession->m_idle_cb);
    MStatus status;
 
    renderSession->m_idle_cb = MEventMessage::addEventCallback("idle",
-                                                CRenderSession::CheckForRenderInterrupt,
+                                                CRenderSession::InteractiveRenderCallback,
                                                 (void*)data,
                                                 &status);
-   s_comp.endComputation();
 }
 
 // there is a very strange bug with Maya where MComputation will lock up the GUI if
@@ -574,10 +612,13 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 {
    MStatus status;
    m_postRenderMel = postRenderMel;
-   m_idle_cb = MEventMessage::addEventCallback("idle",
+   if(m_idle_cb == 0)
+   {
+      m_idle_cb = MEventMessage::addEventCallback("idle",
                                                 CRenderSession::DoAddIdleRenderViewCallback,
                                                 this,
                                                 &status);
+   }
 }
 
 void CRenderSession::ClearIdleRenderViewCallback()

@@ -6,6 +6,7 @@ class CShaveTranslator
    :   public CShapeTranslator
 {
 public:
+
    virtual void Export(AtNode* camera);
    virtual void Update(AtNode* curve);
    virtual void ExportMotion(AtNode* curve, unsigned int step);
@@ -24,5 +25,5 @@ private:
                          AtArray* curveNumPoints,
                          AtArray* curveWidths);
    MStatus UpdateHairInfo();
-   static shaveAPI::HairInfo* p_hairInfo;
+   shaveAPI::HairInfo m_hairInfo;
 };

@@ -332,21 +332,34 @@ AtVector ReadFromArray(AtArray* array, int element)
 }
 
 template <typename T>
-T GetValueFromSG(AtShaderGlobals* sg)
+T GetValueFromSG(AtShaderGlobals* sg, int outputType = AI_TYPE_RGB)
 {
    return GetDefaultValue<T>();
 }
 
 template <>
-float GetValueFromSG(AtShaderGlobals* sg)
+float GetValueFromSG(AtShaderGlobals* sg, int outputType)
 {
    return sg->out.FLT;
 }
 
 template <>
-AtRGB GetValueFromSG(AtShaderGlobals* sg)
+AtRGB GetValueFromSG(AtShaderGlobals* sg, int outputType)
 {
-   return sg->out.RGB;
+   AtRGB ret = AI_RGB_BLACK;
+   switch (outputType)
+   {
+   case AI_TYPE_FLOAT:
+      ret = sg->out.FLT;
+      break;
+   case AI_TYPE_POINT2:
+      ret.r = sg->out.PNT2.x;
+      ret.g = sg->out.PNT2.y;
+      break;
+   default:
+      ret = sg->out.RGB;
+   }   
+   return ret;
 }
 
 enum gradientInterps{
@@ -382,6 +395,7 @@ public:
       T value;
       float position;
       int interp;
+      int outputType;
    };
    GradientDescriptionElement* elements;
    AtUInt32 nelements;
@@ -392,7 +406,7 @@ public:
    int type;
    int resolution;  
    
-   GradientDescription() : elements(0), data(0) {}
+   GradientDescription() : elements(0), inputBias(0.f), data(0) {}
    
    void Release() 
    {
@@ -424,7 +438,7 @@ public:
       if (M && (elements[elem].node != 0))
       {
          AiShaderEvaluate(elements[elem].node, sg);
-         return GetValueFromSG<T>(sg);
+         return GetValueFromSG<T>(sg, elements[elem].outputType);
       }
       else
          return elements[elem].value;
@@ -434,7 +448,8 @@ public:
    {
       if (data != 0)
       {
-         v = ApplyBias(v, inputBias);
+         // No need to apply bias here, since
+         // the cache already contains the applied bias
          const float p = v * resolution;
          const int pi = (int)p;
          const int b = CLAMP(pi, 0, resolution - 1);
@@ -603,7 +618,11 @@ public:
                if (elements[i].node == 0)
                   elements[i].value = ReadFromArray<T>(valuesArray, i);
                else
+               {
                   isConnected = true;
+                  const AtNodeEntry* nentry = AiNodeGetNodeEntry(elements[i].node);
+                  elements[i].outputType = AiNodeEntryGetOutputType(nentry);
+               }
             }
             else
                elements[i].value = ReadFromArray<T>(valuesArray, i);
@@ -787,22 +806,21 @@ node_update
    ReadArray(node, "coordinates", numVoxels, data->coordinates);
    ReadArray(node, "falloff", numVoxels, data->falloff);
    
-   data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
+   data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");   
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
    data->colorGradient.ReadValues(node, "color_gradient_values",
                                   AiNodeGetArray(node, "color_gradient_positions"),
                                   AiNodeGetArray(node, "color_gradient_interps"));
-   data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");
+   data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");   
    data->incandescenceGradient.inputBias = AiNodeGetFlt(node, "incandescence_gradient_input_bias");
    data->incandescenceGradient.ReadValues(node, "incandescence_gradient_values",
                                           AiNodeGetArray(node, "incandescence_gradient_positions"),
-                                          AiNodeGetArray(node, "incandescence_gradient_interps"));
-   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");   
+                                          AiNodeGetArray(node, "incandescence_gradient_interps"));   
+   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");
    data->opacityGradient.inputBias = AiNodeGetFlt(node, "opacity_gradient_input_bias");
    data->opacityGradient.ReadValues(node, "opacity_gradient_values",
                                     AiNodeGetArray(node, "opacity_gradient_positions"),
-                                    AiNodeGetArray(node, "opacity_gradient_interps"));
-   
+                                    AiNodeGetArray(node, "opacity_gradient_interps"));   
    data->colorTexture = AiNodeGetBool(node, "color_texture");
    data->incandTexture = AiNodeGetBool(node, "incand_texture");
    data->opacityTexture = AiNodeGetBool(node, "opacity_texture");
@@ -1264,6 +1282,8 @@ shader_evaluate
    
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
+   const float old_area = sg->area;
+   sg->area = 0.f;
    if (data->volumeTexture)
    {
       if (data->coordinateMethod == CM_GRID)
@@ -1414,6 +1434,7 @@ shader_evaluate
       if (data->opacityTexture)
          opacityNoise *= data->opacityTexGain * volumeNoise;
    }
+   sg->area = old_area;
    
    if (sg->Rt & AI_RAY_SHADOW)
    {

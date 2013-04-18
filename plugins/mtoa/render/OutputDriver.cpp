@@ -45,7 +45,6 @@ static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
 static MString                                 s_camera_name;
 static MString                                 s_panel_name;
-static MCallbackId                             s_idle_cb = 0;
 static MCallbackId                             s_timer_cb = 0;
 
 static int s_AA_Samples;
@@ -164,12 +163,9 @@ driver_open
 
       if (s_firstOpen)
       {
-         if (s_idle_cb == 0)
+         if (CRenderSession::GetCallbackId() == 0)
          {
-            s_idle_cb = MEventMessage::addEventCallback("idle",
-                                                         TransferTilesToRenderView,
-                                                         NULL,
-                                                         &status);
+            CRenderSession::SetCallback(TransferTilesToRenderView);
          
             CHECK_MSTATUS(status);
             if (status != MS::kSuccess)
@@ -499,7 +495,6 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    // but theoretically, if the camera was exported by mtoa they should match.
    s_outputDriverData.imageWidth = msg.imageWidth;
    s_outputDriverData.imageHeight = msg.imageHeight;
-   const bool clearBeforeRender =  CMayaScene::GetRenderSession()->RenderOptions()->clearBeforeRender();
    
    const unsigned int pixelCount = s_outputDriverData.imageWidth * s_outputDriverData.imageHeight;
    const static RV_PIXEL blackRVPixel = {0.f, 0.f, 50.f / 255.f, 0.f};
@@ -508,7 +503,7 @@ void RenderBegin(CDisplayUpdateMessage & msg)
       s_outputDriverData.oldPixels.clear();
       s_outputDriverData.oldPixels.resize(pixelCount, blackRVPixel);
    }
-   else if (clearBeforeRender)
+   else if (s_outputDriverData.clearBeforeRender)
    {
       const size_t numOldPixels = s_outputDriverData.oldPixels.size();      
       for (size_t i = 0; i < numOldPixels; ++i)
@@ -676,20 +671,20 @@ void RenderEnd()
    if (m_driver_lock != NULL)
    {
       AiCritSecEnter(&m_driver_lock);
-      if (s_newRender == false && s_idle_cb != 0)
+      if (s_newRender == false && CRenderSession::GetCallbackId() != 0)
       {
-         MMessage::removeCallback(s_idle_cb);
-         s_idle_cb = 0;
+         MMessage::removeCallback(CRenderSession::GetCallbackId());
+         CRenderSession::ClearCallbackId();
          ClearDisplayUpdateQueue();
       }
       AiCritSecLeave(&m_driver_lock);
    }
    else
    {
-      if (s_idle_cb != 0)
+      if (CRenderSession::GetCallbackId() != 0)
       {
-         MMessage::removeCallback(s_idle_cb);
-         s_idle_cb = 0;
+         MMessage::removeCallback(CRenderSession::GetCallbackId());
+         CRenderSession::ClearCallbackId();
          ClearDisplayUpdateQueue();
       }
    }

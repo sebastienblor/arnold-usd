@@ -6,7 +6,6 @@
 #include <ai_universe.h>
 
 #include <maya/MSelectionList.h>
-#include <maya/MComputation.h>
 #include <maya/MImage.h>
 #include <maya/MRenderView.h>
 
