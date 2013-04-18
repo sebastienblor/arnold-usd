@@ -406,7 +406,7 @@ public:
    int type;
    int resolution;  
    
-   GradientDescription() : elements(0), data(0) {}
+   GradientDescription() : elements(0), inputBias(0.f), data(0) {}
    
    void Release() 
    {
@@ -448,7 +448,8 @@ public:
    {
       if (data != 0)
       {
-         v = ApplyBias(v, inputBias);
+         // No need to apply bias here, since
+         // the cache already contains the applied bias
          const float p = v * resolution;
          const int pi = (int)p;
          const int b = CLAMP(pi, 0, resolution - 1);
@@ -805,22 +806,21 @@ node_update
    ReadArray(node, "coordinates", numVoxels, data->coordinates);
    ReadArray(node, "falloff", numVoxels, data->falloff);
    
-   data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");
+   data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");   
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
    data->colorGradient.ReadValues(node, "color_gradient_values",
                                   AiNodeGetArray(node, "color_gradient_positions"),
                                   AiNodeGetArray(node, "color_gradient_interps"));
-   data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");
+   data->incandescenceGradient.type = AiNodeGetInt(node, "incandescence_gradient_type");   
    data->incandescenceGradient.inputBias = AiNodeGetFlt(node, "incandescence_gradient_input_bias");
    data->incandescenceGradient.ReadValues(node, "incandescence_gradient_values",
                                           AiNodeGetArray(node, "incandescence_gradient_positions"),
-                                          AiNodeGetArray(node, "incandescence_gradient_interps"));
-   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");   
+                                          AiNodeGetArray(node, "incandescence_gradient_interps"));   
+   data->opacityGradient.type = AiNodeGetInt(node, "opacity_gradient_type");
    data->opacityGradient.inputBias = AiNodeGetFlt(node, "opacity_gradient_input_bias");
    data->opacityGradient.ReadValues(node, "opacity_gradient_values",
                                     AiNodeGetArray(node, "opacity_gradient_positions"),
-                                    AiNodeGetArray(node, "opacity_gradient_interps"));
-   
+                                    AiNodeGetArray(node, "opacity_gradient_interps"));   
    data->colorTexture = AiNodeGetBool(node, "color_texture");
    data->incandTexture = AiNodeGetBool(node, "incand_texture");
    data->opacityTexture = AiNodeGetBool(node, "opacity_texture");

@@ -590,14 +590,78 @@ MStatus CArnoldStandInShape::initialize()
    
    // atributes that are used only by translation
    CAttrData data;
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideCastsShadows";
+   data.shortName = "overrideCastsShadows";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideReceiveShadows";
+   data.shortName = "overrideReceiveShadows";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overridePrimaryVisibility";
+   data.shortName = "overridePrimaryVisibility";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInReflections";
+   data.shortName = "overrideVisibleInReflections";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'visibleInReflections' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInRefractions";
+   data.shortName = "overrideVisibleInRefractions";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'visibleInRefractions' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideDoubleSided";
+   data.shortName = "overrideDoubleSided";
+   s_attributes.MakeInputBoolean(data);
+   
+   s_attributes.MakeInput("doubleSided");
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideSelfShadows";
+   data.shortName = "overrideSelfShadows";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'self_shadows' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    data.defaultValue.BOOL = false;
    data.name = "overrideOpaque";
    data.shortName = "overrideOpaque";
    s_attributes.MakeInputBoolean(data);
 
-   s_attributes.MakeInput("opaque");
-   s_attributes.MakeInput("self_shadows");
+   //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInDiffuse";
+   data.shortName = "overrideVisibleInDiffuse";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'aiVisibleInDiffuse' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInGlossy";
+   data.shortName = "overrideVisibleInGlossy";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+
+   
    s_attributes.MakeInput("sss_sample_distribution");
    s_attributes.MakeInput("sss_sample_spacing");
 
