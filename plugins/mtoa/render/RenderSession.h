@@ -166,7 +166,6 @@ private:
    /// \see AddIdleRenderViewCallback
    /// \see ClearIdleRenderViewCallback
    static MCallbackId    m_idle_cb;
-   MCallbackId    m_timer_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
    void*          m_render_thread;

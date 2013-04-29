@@ -624,18 +624,12 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 void CRenderSession::ClearIdleRenderViewCallback()
 {
    // Don't clear the callback if we're in the middle of a render.
-   if (m_idle_cb != 0 || m_timer_cb != 0)
+   if (m_idle_cb != 0)
    {
       if (m_idle_cb != 0)
       {
          MMessage::removeCallback(m_idle_cb);
          m_idle_cb = 0;
-      }
-
-      if (m_timer_cb != 0)
-      {
-         MMessage::removeCallback(m_timer_cb);
-         m_timer_cb = 0;
       }
    }
 }
