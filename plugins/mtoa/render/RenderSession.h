@@ -40,8 +40,8 @@ public:
 
    typedef void (*RenderCallbackType) (void*);   
    static void SetCallback(RenderCallbackType callback);
-   static void ClearCallbackId();
-   static MCallbackId GetCallbackId();
+   static void ClearCallback();
+   static RenderCallbackType GetCallback();
    
 
    // Render Methods.
@@ -173,7 +173,6 @@ private:
    bool           m_rendering;
    
    static RenderCallbackType   m_renderCallback;
-   static MCallbackId          m_render_cb;
    
    static MComputation*   s_comp;
    MString        m_postRenderMel;

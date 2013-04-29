@@ -163,7 +163,7 @@ driver_open
 
       if (s_firstOpen)
       {
-         if (CRenderSession::GetCallbackId() == 0)
+         if (CRenderSession::GetCallback() == 0)
          {
             CRenderSession::SetCallback(TransferTilesToRenderView);
          
@@ -671,20 +671,18 @@ void RenderEnd()
    if (m_driver_lock != NULL)
    {
       AiCritSecEnter(&m_driver_lock);
-      if (s_newRender == false && CRenderSession::GetCallbackId() != 0)
+      if (s_newRender == false && CRenderSession::GetCallback() != 0)
       {
-         MMessage::removeCallback(CRenderSession::GetCallbackId());
-         CRenderSession::ClearCallbackId();
+         CRenderSession::ClearCallback();
          ClearDisplayUpdateQueue();
       }
       AiCritSecLeave(&m_driver_lock);
    }
    else
    {
-      if (CRenderSession::GetCallbackId() != 0)
+      if (CRenderSession::GetCallback() != 0)
       {
-         MMessage::removeCallback(CRenderSession::GetCallbackId());
-         CRenderSession::ClearCallbackId();
+         CRenderSession::ClearCallback();
          ClearDisplayUpdateQueue();
       }
    }
@@ -863,13 +861,7 @@ void TransferTilesToRenderView(void*)
 {
    // Send the tiles to the render view. The false argument
    // tells it not to display them just yet.
-   unsigned int i = 0;
-   while (true)
-   {
-      ++i;
-      if (!ProcessUpdateMessage(false))
-         break;
-   }
+   while (ProcessUpdateMessage(false));
    // TODO: determine if calling this improves performance on Linux (We already
    // know that it degrades performance on Windows)
    //RefreshRenderViewBBox();
