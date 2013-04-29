@@ -619,11 +619,8 @@ void CRenderSession::ClearIdleRenderViewCallback()
    // Don't clear the callback if we're in the middle of a render.
    if (m_idle_cb != 0)
    {
-      if (m_idle_cb != 0)
-      {
-         MMessage::removeCallback(m_idle_cb);
-         m_idle_cb = 0;
-      }
+      MMessage::removeCallback(m_idle_cb);
+      m_idle_cb = 0;
    }
 }
 
