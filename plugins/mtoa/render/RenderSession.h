@@ -137,7 +137,7 @@ private:
       , m_is_active(false)
       , m_render_thread(NULL)
       , m_render_lock(NULL)
-      , m_rendering(false)
+      , m_rendering(0)
    {
    }
 
@@ -170,7 +170,7 @@ private:
    /// This is a pointer to the thread which is running RenderThread.
    void*          m_render_thread;
    AtCritSec      m_render_lock;
-   bool           m_rendering;
+   volatile int   m_rendering;
    
    static RenderCallbackType   m_renderCallback;
    static MCallbackId          m_render_cb;

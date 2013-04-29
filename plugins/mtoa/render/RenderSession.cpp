@@ -31,6 +31,7 @@
 #include <maya/MImage.h>
 #include <maya/MFileObject.h>
 #include <maya/M3dView.h>
+#include <maya/MAtomic.h>
 
 #include <cstdio>
 #include <assert.h>
@@ -115,21 +116,12 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
 
 void CRenderSession::SetRendering(bool renderState)
 {
-   assert (m_render_lock != NULL);
-   AiCritSecEnter(&m_render_lock);
-   m_rendering = renderState;
-   AiCritSecLeave(&m_render_lock);
+   MAtomic::set(&m_rendering, renderState ? 1 : 0);
 }
 
 bool CRenderSession::IsRendering()
 {
-   if (m_render_lock == NULL)
-      return false;
-   bool rendering = false;
-   AiCritSecEnter(&m_render_lock);
-   rendering = m_rendering ? true : false;
-   AiCritSecLeave(&m_render_lock);
-   return rendering;
+   return MAtomic::compareAndSwap(&m_rendering, 1, 1);
 }
 
 void CRenderSession::SetCallback(RenderCallbackType callback)
