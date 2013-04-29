@@ -44,6 +44,7 @@ extern AtNodeMethods* mtoa_driver_mtd;
 MComputation*                       CRenderSession::s_comp = NULL;
 MCallbackId                         CRenderSession::m_idle_cb = NULL;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
+MCallbackId                         CRenderSession::m_render_cb = NULL;
 
 namespace
 {
@@ -134,28 +135,25 @@ bool CRenderSession::IsRendering()
 void CRenderSession::SetCallback(RenderCallbackType callback)
 {
    m_renderCallback = callback;
-   if (s_comp == 0)
-      s_comp = new MComputation();
-   else
-      s_comp->endComputation();
-   s_comp->beginComputation();
 }
 
-void CRenderSession::ClearCallback()
+void CRenderSession::ClearCallbackId()
 {
-   m_renderCallback = 0;
-   if(s_comp != 0)
+   m_renderCallback = NULL;
+   m_render_cb = 0;
+   if(s_comp != NULL)
    {
       s_comp->endComputation();
-      delete s_comp;
-      s_comp = 0;
+      s_comp = NULL;
    }
 }
 
-CRenderSession::RenderCallbackType CRenderSession::GetCallback()
+MCallbackId CRenderSession::GetCallbackId()
 {
-   return m_renderCallback;
-}  
+   return m_render_cb;
+}
+
+   
 
 MStatus CRenderSession::End()
 {
@@ -253,7 +251,7 @@ void CRenderSession::InteractiveRenderCallback(void *data)
       // AiRenderAbort();
    }
    
-   /*if (m_render_cb == 0 && m_renderCallback != NULL)
+   if (m_render_cb == 0 && m_renderCallback != NULL)
    {
       if(s_comp != NULL)
          s_comp->endComputation();
@@ -263,9 +261,7 @@ void CRenderSession::InteractiveRenderCallback(void *data)
                                                          (MMessage::MBasicFunction)m_renderCallback,
                                                          NULL);
       s_comp->endComputation();
-   }*/
-   if (m_renderCallback)
-      m_renderCallback(0);
+   }
       
    return;
 }
