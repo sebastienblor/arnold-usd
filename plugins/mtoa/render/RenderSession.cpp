@@ -136,6 +136,7 @@ void CRenderSession::ClearCallbackId()
    if(s_comp != NULL)
    {
       s_comp->endComputation();
+      delete s_comp;
       s_comp = NULL;
    }
 }
@@ -234,6 +235,7 @@ void CRenderSession::InteractiveRenderCallback(void *data)
    if (s_comp != NULL && s_comp->isInterruptRequested() && AiRendering())
    {
       s_comp->endComputation();
+      delete s_comp;
       s_comp = NULL;
       // This causes AiRender to break, after which the CMayaScene::End()
       // which clears this callback.
@@ -246,7 +248,10 @@ void CRenderSession::InteractiveRenderCallback(void *data)
    if (m_render_cb == 0 && m_renderCallback != NULL)
    {
       if(s_comp != NULL)
+      {
          s_comp->endComputation();
+         delete s_comp;
+      }
       s_comp = new MComputation();
       s_comp->beginComputation();
       m_render_cb = MEventMessage::addEventCallback("idle",
