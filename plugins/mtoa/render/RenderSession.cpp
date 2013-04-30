@@ -610,9 +610,9 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
    if(s_idle_cb == 0)
    {
       s_idle_cb = MEventMessage::addEventCallback("idle",
-                                                CRenderSession::DoAddIdleRenderViewCallback,
-                                                0,
-                                                &status);
+                                                  CRenderSession::DoAddIdleRenderViewCallback,
+                                                  0,
+                                                  &status);
    }
 }
 
