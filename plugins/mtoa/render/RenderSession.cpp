@@ -176,7 +176,6 @@ MStatus CRenderSession::End()
    m_render_lock = NULL;
    // Restore "out of rendering" logging
    MtoaSetupLogging();
-   ClearIdleRenderViewCallback();
    return status;
 }
 
