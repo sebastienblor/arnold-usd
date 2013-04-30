@@ -254,9 +254,9 @@ void CRenderSession::InteractiveRenderCallback(void *data)
       }
       s_comp = new MComputation();
       s_comp->beginComputation();
-      m_render_cb = MEventMessage::addEventCallback("idle",
-                                                         (MMessage::MBasicFunction)m_renderCallback,
-                                                         NULL);
+      m_render_cb = MTimerMessage::addTimerCallback(0.01,
+                                                    m_renderCallback,
+                                                    NULL);
       s_comp->endComputation();
    }
       

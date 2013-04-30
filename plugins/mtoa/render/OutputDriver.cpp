@@ -859,7 +859,7 @@ void RefreshRenderView(float, float, void *)
    RefreshRenderViewBBox();
 }
 
-void TransferTilesToRenderView(void*)
+void TransferTilesToRenderView(float, float, void*)
 {
    // Send the tiles to the render view. The false argument
    // tells it not to display them just yet.

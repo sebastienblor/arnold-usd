@@ -38,7 +38,7 @@ public:
    // detection of rendering done.
    bool IsRendering();
 
-   typedef void (*RenderCallbackType) (void*);   
+   typedef void (*RenderCallbackType) (float, float, void*);   
    static void SetCallback(RenderCallbackType callback);
    static void ClearCallbackId();
    static MCallbackId GetCallbackId();
