@@ -230,7 +230,7 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 
 /// This static function runs on the main thread and checks for render interrupts (pressing the Esc key) and
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
-void CRenderSession::InteractiveRenderCallback(void *data)
+void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime, void *data)
 {
    if (s_comp != NULL && s_comp->isInterruptRequested() && AiRendering())
    {
@@ -592,11 +592,12 @@ AtUInt64 CRenderSession::GetUsedMemory()
 void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
    MMessage::removeCallback(s_idle_cb);
+   s_idle_cb = 0;
    MStatus status;
 
-   s_idle_cb = MEventMessage::addEventCallback("idle",
+   s_idle_cb = MTimerMessage::addTimerCallback(0.01,
                                                CRenderSession::InteractiveRenderCallback,
-                                               (void*)data,
+                                               0,
                                                &status);
 }
 

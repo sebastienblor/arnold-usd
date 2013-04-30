@@ -71,7 +71,7 @@ public:
 
    /// For interactive render, watch for interrupt, render end and process method
    ///   provided to CRenderSession::SetCallback() in the driver.
-   static void InteractiveRenderCallback(void* data);
+   static void InteractiveRenderCallback(float, float, void* data);
 
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
