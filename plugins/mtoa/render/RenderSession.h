@@ -147,7 +147,7 @@ private:
    /// render view when rendering IPR.
    void AddIdleRenderViewCallback(const MString& postRenderMel);
    static void DoAddIdleRenderViewCallback(void* data);
-   void ClearIdleRenderViewCallback();
+   static void ClearIdleRenderViewCallback();
 
    /// This is the static method for performing a progressive render.
    /// data should be a CRenderSession pointer.
@@ -165,7 +165,7 @@ private:
    /// This is a special callback installed to update the render view while Arnold is rendering in IPR.
    /// \see AddIdleRenderViewCallback
    /// \see ClearIdleRenderViewCallback
-   static MCallbackId    m_idle_cb;
+   static MCallbackId    s_idle_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
    void*          m_render_thread;

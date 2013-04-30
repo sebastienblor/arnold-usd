@@ -43,7 +43,7 @@
 extern AtNodeMethods* mtoa_driver_mtd;
 
 MComputation*                       CRenderSession::s_comp = NULL;
-MCallbackId                         CRenderSession::m_idle_cb = NULL;
+MCallbackId                         CRenderSession::s_idle_cb = NULL;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
 MCallbackId                         CRenderSession::m_render_cb = NULL;
 
@@ -593,10 +593,10 @@ void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
-   MMessage::removeCallback(renderSession->m_idle_cb);
+   MMessage::removeCallback(renderSession->s_idle_cb);
    MStatus status;
 
-   renderSession->m_idle_cb = MEventMessage::addEventCallback("idle",
+   renderSession->s_idle_cb = MEventMessage::addEventCallback("idle",
                                                 CRenderSession::InteractiveRenderCallback,
                                                 (void*)data,
                                                 &status);
@@ -609,9 +609,9 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 {
    MStatus status;
    m_postRenderMel = postRenderMel;
-   if(m_idle_cb == 0)
+   if(s_idle_cb == 0)
    {
-      m_idle_cb = MEventMessage::addEventCallback("idle",
+      s_idle_cb = MEventMessage::addEventCallback("idle",
                                                 CRenderSession::DoAddIdleRenderViewCallback,
                                                 this,
                                                 &status);
@@ -621,10 +621,10 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 void CRenderSession::ClearIdleRenderViewCallback()
 {
    // Don't clear the callback if we're in the middle of a render.
-   if (m_idle_cb != 0)
+   if (s_idle_cb != 0)
    {
-      MMessage::removeCallback(m_idle_cb);
-      m_idle_cb = 0;
+      MMessage::removeCallback(s_idle_cb);
+      s_idle_cb = 0;
    }
 }
 
