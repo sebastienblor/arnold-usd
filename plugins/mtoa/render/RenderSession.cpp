@@ -121,7 +121,7 @@ void CRenderSession::SetRendering(bool renderState)
 
 bool CRenderSession::IsRendering()
 {
-   return MAtomic::compareAndSwap(&m_rendering, 1, 1);
+   return MAtomic::compareAndSwap(&m_rendering, 1, 1) == 1;
 }
 
 void CRenderSession::SetCallback(RenderCallbackType callback)
@@ -254,7 +254,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       }
       s_comp = new MComputation();
       s_comp->beginComputation();
-      m_render_cb = MTimerMessage::addTimerCallback(0.01,
+      m_render_cb = MTimerMessage::addTimerCallback(0.01f,
                                                     m_renderCallback,
                                                     NULL);
       s_comp->endComputation();
@@ -595,7 +595,7 @@ void CRenderSession::DoAddIdleRenderViewCallback(void* data)
    s_idle_cb = 0;
    MStatus status;
 
-   s_idle_cb = MTimerMessage::addTimerCallback(0.01,
+   s_idle_cb = MTimerMessage::addTimerCallback(0.01f,
                                                CRenderSession::InteractiveRenderCallback,
                                                0,
                                                &status);
