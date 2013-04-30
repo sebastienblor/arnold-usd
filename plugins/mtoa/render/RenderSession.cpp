@@ -591,15 +591,13 @@ AtUInt64 CRenderSession::GetUsedMemory()
 /// actually does the interrupt checking.
 void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
-   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
-
-   MMessage::removeCallback(renderSession->s_idle_cb);
+   MMessage::removeCallback(s_idle_cb);
    MStatus status;
 
-   renderSession->s_idle_cb = MEventMessage::addEventCallback("idle",
-                                                CRenderSession::InteractiveRenderCallback,
-                                                (void*)data,
-                                                &status);
+   s_idle_cb = MEventMessage::addEventCallback("idle",
+                                               CRenderSession::InteractiveRenderCallback,
+                                               (void*)data,
+                                               &status);
 }
 
 // there is a very strange bug with Maya where MComputation will lock up the GUI if
@@ -613,7 +611,7 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
    {
       s_idle_cb = MEventMessage::addEventCallback("idle",
                                                 CRenderSession::DoAddIdleRenderViewCallback,
-                                                this,
+                                                0,
                                                 &status);
    }
 }
