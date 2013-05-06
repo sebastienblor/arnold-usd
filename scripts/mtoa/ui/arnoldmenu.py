@@ -3,6 +3,8 @@ from mtoa.core import createStandIn
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
 import maya.cmds as cmds
+import mtoa.txManager
+
 
 def doCreateStandInFile():
     node = createStandIn()
@@ -64,6 +66,11 @@ def arnoldAboutDialog():
     cmds.setParent( '..' )
     
     cmds.showWindow(w)
+    
+def arnoldTxManager():
+    win = mtoa.txManager.MtoATxManager()
+    win.create()
+    win.refreshList()
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -96,6 +103,9 @@ def createArnoldMenu():
                     c=lambda *args: cmds.arnoldFlushCache(quads=True))
         pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All",
                     c=lambda *args: cmds.arnoldFlushCache(flushall=True))
+                    
+        pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldMenu',
+                    c=lambda *args: arnoldTxManager())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
