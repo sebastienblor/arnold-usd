@@ -696,6 +696,12 @@ void CNodeTranslator::AddUpdateCallbacks()
                                              this,
                                              &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
+
+   id = MNodeMessage::addNodeDestroyedCallback(object,
+                                               NodeDestroyedCallback,
+                                               this,
+                                               &status);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
 }
 
 void CNodeTranslator::ManageUpdateCallback(const MCallbackId id)
@@ -711,12 +717,12 @@ void CNodeTranslator::RemoveUpdateCallbacks()
 
 
 // This is a simple callback triggered when a node is marked as dirty.
-void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
+void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 {
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: plug that fired: %s, client data: %p.",
          MFnDependencyNode(node).name().asChar(), plug.name().asChar(), clientData);
 
-   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
@@ -730,10 +736,10 @@ void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *client
    }
 }
 
-void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
+void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, void* clientData)
 // This is a simple callback triggered when the name changes.
 {
-   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
       translator->SetArnoldNodeName(translator->GetArnoldRootNode());
@@ -749,9 +755,9 @@ void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, voi
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
 // disconnect them, turn them off, etc.
-void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData)
+void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData)
 {
-   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Node deleted, deleting processed translator instance, client data: %p.",
@@ -764,6 +770,17 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
    {
       AiMsgWarning("[mtoa.translator.ipr] %-30s | Translator callback for node deleted, no translator in client data: %p.",
                    translator->GetMayaNodeName().asChar(), clientData);
+   }
+}
+
+void CNodeTranslator::NodeDestroyedCallback(void* clientData)
+{
+   CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
+   if (translator != NULL)
+   {
+      translator->RequestUpdate();
+      translator->RemoveUpdateCallbacks();
+      translator->Delete();  
    }
 }
 
