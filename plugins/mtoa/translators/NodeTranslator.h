@@ -192,9 +192,10 @@ protected:
    void ManageUpdateCallback(const MCallbackId id);
 
    // Some simple callbacks used by many translators.
-   static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
-   static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
-   static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
+   static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
+   static void NameChangedCallback(MObject& node, const MString& str, void* clientData);
+   static void NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
+   static void NodeDestroyedCallback(void* clientData);
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
 
 protected:
