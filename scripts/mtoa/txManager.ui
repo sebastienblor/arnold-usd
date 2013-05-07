@@ -297,12 +297,12 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>101</width>
+      <width>111</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Delete .tx Files</string>
+     <string>Delete .tx textures</string>
     </property>
     <property name="+command" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.deleteTx</string>
