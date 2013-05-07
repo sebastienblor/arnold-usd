@@ -717,7 +717,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
    // If changed framestep, useFrameExtension or dso
-   if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
+   if (tmpFrameStep != framestep || tmpUseFrameExtension != fGeometry.useFrameExtension || tmpDso != fGeometry.dso)
    {
       MString frameNumber = "0";
          
@@ -899,7 +899,10 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       MStatus load = GetPointsFromAss();
       //if we cant load the geom, we force bounding box
       if (load != MS::kSuccess)
-         fGeometry.mode = 0;
+      {
+         plug.setAttribute(s_mode);
+         plug.setValue(0);
+      }
          
       MPoint bbMin = fGeometry.bbox.min();
       MPoint bbMax = fGeometry.bbox.max();
@@ -917,7 +920,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         fGeometry.mode = 0;
+         plug.setAttribute(s_mode);
+         plug.setValue(0);
       }
       else
       {
