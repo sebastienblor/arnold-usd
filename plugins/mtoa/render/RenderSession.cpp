@@ -246,6 +246,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       {
          s_comp = new MComputation();
          s_comp->beginComputation();
+         s_comp->endComputation();
       }
       m_renderCallback(0.f, 0.f, 0);
    }
