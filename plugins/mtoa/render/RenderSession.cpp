@@ -242,7 +242,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
    m_render_lock.lock();
    if (m_renderCallback != 0)
    {
-      if (s_comp == 0)
+      if (s_comp == 0 && !CMayaScene::IsActive(MTOA_SESSION_IPR))
       {
          s_comp = new MComputation();
          s_comp->beginComputation();
