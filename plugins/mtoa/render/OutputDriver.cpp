@@ -673,8 +673,8 @@ void RenderEnd()
       AiCritSecEnter(&m_driver_lock);
       if (s_newRender == false && CRenderSession::GetCallbackId() != 0)
       {
-         MMessage::removeCallback(CRenderSession::GetCallbackId());
-         CRenderSession::ClearCallbackId();
+         //MMessage::removeCallback(CRenderSession::GetCallbackId());
+         //CRenderSession::ClearCallbackId();
          ClearDisplayUpdateQueue();
       }
       AiCritSecLeave(&m_driver_lock);
@@ -683,8 +683,8 @@ void RenderEnd()
    {
       if (CRenderSession::GetCallbackId() != 0)
       {
-         MMessage::removeCallback(CRenderSession::GetCallbackId());
-         CRenderSession::ClearCallbackId();
+         //MMessage::removeCallback(CRenderSession::GetCallbackId());
+         //CRenderSession::ClearCallbackId();
          ClearDisplayUpdateQueue();
       }
    }

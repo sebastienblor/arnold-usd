@@ -46,6 +46,7 @@ MComputation*                       CRenderSession::s_comp = NULL;
 MCallbackId                         CRenderSession::s_idle_cb = NULL;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
 MCallbackId                         CRenderSession::m_render_cb = NULL;
+CCritSec                            CRenderSession::m_render_lock;
 
 namespace
 {
@@ -104,7 +105,6 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    if (m_is_active)
    {
       InstallNodes();
-      AiCritSecInit(&m_render_lock);
       return MStatus::kSuccess;
    }
    else
@@ -126,13 +126,15 @@ bool CRenderSession::IsRendering()
 
 void CRenderSession::SetCallback(RenderCallbackType callback)
 {
+   m_render_lock.lock();
    m_renderCallback = callback;
+   m_render_lock.unlock();
 }
 
 void CRenderSession::ClearCallbackId()
 {
-   m_renderCallback = NULL;
-   m_render_cb = 0;
+   //m_renderCallback = NULL;
+   //m_render_cb = 0;
    if(s_comp != NULL)
    {
       s_comp->endComputation();
@@ -173,8 +175,6 @@ MStatus CRenderSession::End()
       }
    }
    m_is_active = false;
-   AiCritSecClose(&m_render_lock);
-   m_render_lock = NULL;
    // Restore "out of rendering" logging
    MtoaSetupLogging();
    return status;
@@ -244,7 +244,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
       // AiRenderAbort();
    }
-   
+   m_render_lock.lock();
    if (m_render_cb == 0 && m_renderCallback != NULL)
    {
       if(s_comp != NULL)
@@ -259,6 +259,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
                                                     NULL);
       s_comp->endComputation();
    }
+   m_render_lock.unlock();
       
    return;
 }

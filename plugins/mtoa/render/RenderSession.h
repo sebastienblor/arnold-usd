@@ -21,6 +21,17 @@ class MImage;
  * rendering.
  */
 
+class DLLEXPORT CCritSec{
+private:
+   AtCritSec m_critSec;
+public:
+   CCritSec() {AiCritSecInit(&m_critSec);}
+   ~CCritSec() {AiCritSecClose(&m_critSec);}
+
+   void lock() {AiCritSecEnter(&m_critSec);}
+   void unlock() {AiCritSecLeave(&m_critSec);}
+};
+
 class DLLEXPORT CRenderSession
 {
    friend class CMayaScene;
@@ -136,7 +147,6 @@ private:
       : m_paused_ipr(false)
       , m_is_active(false)
       , m_render_thread(NULL)
-      , m_render_lock(NULL)
       , m_rendering(0)
    {
    }
@@ -168,9 +178,9 @@ private:
    static MCallbackId    s_idle_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
-   void*          m_render_thread;
-   AtCritSec      m_render_lock;
-   volatile int   m_rendering;
+   void*           m_render_thread;
+   static CCritSec m_render_lock;
+   volatile int    m_rendering;
    
    static RenderCallbackType   m_renderCallback;
    static MCallbackId          m_render_cb;
