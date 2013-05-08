@@ -16,7 +16,7 @@ def newAOVPrompt(default=''):
                                   text=default)
     if result == 'Create':
         core.createOptions()
-        newAOV = pm.promptDialog(query=True, text=True)
+        newAOV = pm.promptDialog(query=True, text=True)[0:29] # channel names in the exr driver are limited to 29 characterss
         if str(newAOV).replace("_","").isalnum():
             return newAOV, aovs.AOVInterface().addAOV(newAOV)
         else:
