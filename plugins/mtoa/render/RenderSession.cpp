@@ -131,21 +131,16 @@ void CRenderSession::SetCallback(RenderCallbackType callback)
    m_render_lock.unlock();
 }
 
-void CRenderSession::ClearCallbackId()
+void CRenderSession::ClearCallback()
 {
-   //m_renderCallback = NULL;
-   //m_render_cb = 0;
-   if(s_comp != NULL)
-   {
-      s_comp->endComputation();
-      delete s_comp;
-      s_comp = NULL;
-   }
+   m_render_lock.lock();
+   m_renderCallback = NULL;
+   m_render_lock.unlock();
 }
 
-MCallbackId CRenderSession::GetCallbackId()
+CRenderSession::RenderCallbackType CRenderSession::GetCallback()
 {
-   return m_render_cb;
+   return m_renderCallback;
 }
 
    
@@ -232,36 +227,35 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
 void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime, void *data)
 {
-   if (s_comp != NULL && s_comp->isInterruptRequested() && AiRendering())
+   if (s_comp != 0 && AiRendering())
    {
-      s_comp->endComputation();
-      delete s_comp;
-      s_comp = NULL;
+      if (s_comp->isInterruptRequested())
+         AiRenderInterrupt();
       // This causes AiRender to break, after which the CMayaScene::End()
-      // which clears this callback.
-      AiRenderInterrupt();
+      // which clears this callback.      
       // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
       // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
       // AiRenderAbort();
    }
+   
+   
    m_render_lock.lock();
-   if (m_render_cb == 0 && m_renderCallback != NULL)
+   if (m_renderCallback != 0)
    {
-      if(s_comp != NULL)
+      if (s_comp == 0)
       {
-         s_comp->endComputation();
-         delete s_comp;
+         s_comp = new MComputation();
+         s_comp->beginComputation();
       }
-      s_comp = new MComputation();
-      s_comp->beginComputation();
-      m_render_cb = MTimerMessage::addTimerCallback(0.01f,
-                                                    m_renderCallback,
-                                                    NULL);
+      m_renderCallback(0.f, 0.f, 0);
+   }
+   else if (s_comp != 0)
+   {
       s_comp->endComputation();
+      delete s_comp;
+      s_comp = 0;
    }
    m_render_lock.unlock();
-      
-   return;
 }
 
 void CRenderSession::InterruptRender()

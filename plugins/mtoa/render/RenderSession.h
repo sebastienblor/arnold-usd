@@ -51,8 +51,8 @@ public:
 
    typedef void (*RenderCallbackType) (float, float, void*);   
    static void SetCallback(RenderCallbackType callback);
-   static void ClearCallbackId();
-   static MCallbackId GetCallbackId();
+   static void ClearCallback();
+   static RenderCallbackType GetCallback();
    
 
    // Render Methods.
