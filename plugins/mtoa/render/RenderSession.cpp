@@ -45,7 +45,6 @@ extern AtNodeMethods* mtoa_driver_mtd;
 MComputation*                       CRenderSession::s_comp = NULL;
 MCallbackId                         CRenderSession::s_idle_cb = NULL;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
-MCallbackId                         CRenderSession::m_render_cb = NULL;
 CCritSec                            CRenderSession::m_render_lock;
 
 namespace
