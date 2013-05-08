@@ -124,26 +124,27 @@ bool CRenderSession::IsRendering()
    return MAtomic::compareAndSwap(&m_rendering, 1, 1) == 1;
 }
 
+// Sadly neither maya nor arnold have builtin 
+// atomic operations for 64 bit integers
+// so I need to use locks
+
 void CRenderSession::SetCallback(RenderCallbackType callback)
 {
-   m_render_lock.lock();
+   CCritSec::CScopedLock sc(m_render_lock);
    m_renderCallback = callback;
-   m_render_lock.unlock();
 }
 
 void CRenderSession::ClearCallback()
 {
-   m_render_lock.lock();
+   CCritSec::CScopedLock sc(m_render_lock);
    m_renderCallback = NULL;
-   m_render_lock.unlock();
 }
 
 CRenderSession::RenderCallbackType CRenderSession::GetCallback()
 {
+   CCritSec::CScopedLock sc(m_render_lock);
    return m_renderCallback;
-}
-
-   
+}  
 
 MStatus CRenderSession::End()
 {
@@ -238,8 +239,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       // AiRenderAbort();
    }
    
-   
-   m_render_lock.lock();
+   CCritSec::CScopedLock sc(m_render_lock);
    if (m_renderCallback != 0)
    {
       if (s_comp == 0 && !CMayaScene::IsActive(MTOA_SESSION_IPR))
@@ -256,7 +256,6 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       delete s_comp;
       s_comp = 0;
    }
-   m_render_lock.unlock();
 }
 
 void CRenderSession::InterruptRender()

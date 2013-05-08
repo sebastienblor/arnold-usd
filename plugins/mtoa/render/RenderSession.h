@@ -24,12 +24,22 @@ class MImage;
 class DLLEXPORT CCritSec{
 private:
    AtCritSec m_critSec;
+   friend class CScopedLock;
 public:
    CCritSec() {AiCritSecInitRecursive(&m_critSec);}
    ~CCritSec() {AiCritSecClose(&m_critSec);}
 
    void lock() {AiCritSecEnter(&m_critSec);}
    void unlock() {AiCritSecLeave(&m_critSec);}
+
+   class CScopedLock{
+   private:
+      CCritSec& m_critSec;
+   public:
+      CScopedLock(CCritSec& critSec) : m_critSec(critSec) { m_critSec.lock(); }
+
+      ~CScopedLock() { m_critSec.unlock(); }
+   };
 };
 
 class DLLEXPORT CRenderSession
