@@ -96,4 +96,4 @@ void ClearDisplayUpdateQueue();
 
 void RefreshRenderView(float, float, void *);
 
-void TransferTilesToRenderView(float, float, void*);
+void TransferTilesToRenderView();

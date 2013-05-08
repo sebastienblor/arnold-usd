@@ -159,17 +159,11 @@ driver_open
 
       AiCritSecEnter(&m_driver_lock);
 
-      MStatus status;
-
       if (s_firstOpen)
       {
          if (CRenderSession::GetCallback() == 0)
          {
             CRenderSession::SetCallback(TransferTilesToRenderView);
-         
-            CHECK_MSTATUS(status);
-            if (status != MS::kSuccess)
-               AiMsgError("Render view is not able to render");
          }
       }
 
@@ -857,7 +851,7 @@ void RefreshRenderView(float, float, void *)
    RefreshRenderViewBBox();
 }
 
-void TransferTilesToRenderView(float, float, void*)
+void TransferTilesToRenderView()
 {
    // Send the tiles to the render view. The false argument
    // tells it not to display them just yet.

@@ -49,7 +49,7 @@ public:
    // detection of rendering done.
    bool IsRendering();
 
-   typedef void (*RenderCallbackType) (float, float, void*);   
+   typedef void (*RenderCallbackType) (void);   
    static void SetCallback(RenderCallbackType callback);
    static void ClearCallback();
    static RenderCallbackType GetCallback();
