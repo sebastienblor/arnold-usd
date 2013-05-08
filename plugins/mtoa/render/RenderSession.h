@@ -25,7 +25,7 @@ class DLLEXPORT CCritSec{
 private:
    AtCritSec m_critSec;
 public:
-   CCritSec() {AiCritSecInit(&m_critSec);}
+   CCritSec() {AiCritSecInitRecursive(&m_critSec);}
    ~CCritSec() {AiCritSecClose(&m_critSec);}
 
    void lock() {AiCritSecEnter(&m_critSec);}

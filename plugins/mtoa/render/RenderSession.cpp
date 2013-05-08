@@ -132,8 +132,10 @@ void CRenderSession::SetCallback(RenderCallbackType callback)
 }
 
 void CRenderSession::ClearCallback()
-{;
+{
+   m_render_lock.lock();
    m_renderCallback = NULL;
+   m_render_lock.unlock();
 }
 
 CRenderSession::RenderCallbackType CRenderSession::GetCallback()
