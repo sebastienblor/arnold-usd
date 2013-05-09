@@ -55,7 +55,7 @@ static int s_sss_sample_factor;
 static bool s_firstOpen = false;
 static bool s_newRender = false;
 
-static AtCritSec m_driver_lock = NULL;
+static CCritSec s_driverLock;
 
 /// \name Arnold Output Driver.
 /// \{
@@ -81,9 +81,6 @@ node_initialize
    if (cameraNode != 0)
       cameraName = AiNodeGetName(cameraNode);
    InitializeDisplayUpdateQueue(cameraName, "renderView");
-
-   if (m_driver_lock == NULL)
-      AiCritSecInit(&m_driver_lock);
 
    AiDriverInitialize(node, false, NULL);
 
@@ -157,20 +154,16 @@ driver_open
       msg2.msgType = MSG_IMAGE_BEGIN;
       s_displayUpdateQueue.push(msg2);
 
-      AiCritSecEnter(&m_driver_lock);
+      CCritSec::CScopedLock sc(s_driverLock);
 
       if (s_firstOpen)
       {
          if (CRenderSession::GetCallback() == 0)
-         {
             CRenderSession::SetCallback(TransferTilesToRenderView);
-         }
       }
 
       s_firstOpen = false;
       s_newRender = true;
-
-      AiCritSecLeave(&m_driver_lock);
    }
    else
    {
@@ -347,15 +340,11 @@ driver_close
 
 node_finish
 {
-   AiCritSecEnter(&m_driver_lock);
+   CCritSec::CScopedLock sc(s_driverLock);
    s_newRender = false;
    CDisplayUpdateMessage msg;
    msg.msgType = MSG_RENDER_END;
    s_displayUpdateQueue.push(msg);
-   AiCritSecLeave(&m_driver_lock);
-
-   AiCritSecClose(&m_driver_lock);
-   m_driver_lock = NULL;
 
    // release the driver
    AiDriverDestroy(node);
@@ -662,24 +651,13 @@ void RenderEnd()
    }
 
    // clear callbacks
-   if (m_driver_lock != NULL)
+   s_driverLock.lock();
+   if ((s_newRender == false) && (CRenderSession::GetCallback() != 0))
    {
-      AiCritSecEnter(&m_driver_lock);
-      if ((s_newRender == false) && (CRenderSession::GetCallback() != 0))
-      {
-         CRenderSession::ClearCallback();
-         ClearDisplayUpdateQueue();
-      }
-      AiCritSecLeave(&m_driver_lock);
+      CRenderSession::ClearCallback();
+      ClearDisplayUpdateQueue();
    }
-   else
-   {
-      if (CRenderSession::GetCallback() != 0)
-      {
-         CRenderSession::ClearCallback();
-         ClearDisplayUpdateQueue();
-      }
-   }
+   s_driverLock.unlock();
 
    if (s_timer_cb != 0)
    {
