@@ -159,17 +159,11 @@ driver_open
 
       AiCritSecEnter(&m_driver_lock);
 
-      MStatus status;
-
       if (s_firstOpen)
       {
-         if (CRenderSession::GetCallbackId() == 0)
+         if (CRenderSession::GetCallback() == 0)
          {
             CRenderSession::SetCallback(TransferTilesToRenderView);
-         
-            CHECK_MSTATUS(status);
-            if (status != MS::kSuccess)
-               AiMsgError("Render view is not able to render");
          }
       }
 
@@ -671,20 +665,18 @@ void RenderEnd()
    if (m_driver_lock != NULL)
    {
       AiCritSecEnter(&m_driver_lock);
-      if (s_newRender == false && CRenderSession::GetCallbackId() != 0)
+      if ((s_newRender == false) && (CRenderSession::GetCallback() != 0))
       {
-         MMessage::removeCallback(CRenderSession::GetCallbackId());
-         CRenderSession::ClearCallbackId();
+         CRenderSession::ClearCallback();
          ClearDisplayUpdateQueue();
       }
       AiCritSecLeave(&m_driver_lock);
    }
    else
    {
-      if (CRenderSession::GetCallbackId() != 0)
+      if (CRenderSession::GetCallback() != 0)
       {
-         MMessage::removeCallback(CRenderSession::GetCallbackId());
-         CRenderSession::ClearCallbackId();
+         CRenderSession::ClearCallback();
          ClearDisplayUpdateQueue();
       }
    }
@@ -859,7 +851,7 @@ void RefreshRenderView(float, float, void *)
    RefreshRenderViewBBox();
 }
 
-void TransferTilesToRenderView(void*)
+void TransferTilesToRenderView()
 {
    // Send the tiles to the render view. The false argument
    // tells it not to display them just yet.

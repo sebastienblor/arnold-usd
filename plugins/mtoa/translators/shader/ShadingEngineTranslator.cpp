@@ -93,19 +93,22 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    if (connections.length() > 0)
    {
       // export the root shading network, this fills m_shaders
-      CNodeTranslator* shaderNodeTranslator;
+      CNodeTranslator* shaderNodeTranslator = 0;
       rootShader = ExportNode(connections[0], true, &shaderNodeTranslator);
-      AiNodeLink(rootShader, "beauty", shadingEngine);
-      
-      if (shaderNodeTranslator)
+      if (rootShader)
       {
-         MStatus status;
-         MPlug mattePlug = shaderNodeTranslator->FindMayaPlug("aiEnableMatte", &status);
-         if (status)
-            AiNodeSetBool(shadingEngine, "enable_matte", mattePlug.asBool());
-         MPlug matteColorPlug = shaderNodeTranslator->FindMayaPlug("aiMatteColor", &status);
-         if (status)
-            ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, matteColorPlug);
+         AiNodeLink(rootShader, "beauty", shadingEngine);
+      
+         if (shaderNodeTranslator)
+         {
+            MStatus status;
+            MPlug mattePlug = shaderNodeTranslator->FindMayaPlug("aiEnableMatte", &status);
+            if (status)
+               AiNodeSetBool(shadingEngine, "enable_matte", mattePlug.asBool());
+            MPlug matteColorPlug = shaderNodeTranslator->FindMayaPlug("aiMatteColor", &status);
+            if (status)
+               ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, matteColorPlug);
+         }
       }
 
       // loop through and export custom AOV networks

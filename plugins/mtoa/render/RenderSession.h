@@ -21,6 +21,27 @@ class MImage;
  * rendering.
  */
 
+class DLLEXPORT CCritSec{
+private:
+   AtCritSec m_critSec;
+   friend class CScopedLock;
+public:
+   CCritSec() {AiCritSecInitRecursive(&m_critSec);}
+   ~CCritSec() {AiCritSecClose(&m_critSec);}
+
+   void lock() {AiCritSecEnter(&m_critSec);}
+   void unlock() {AiCritSecLeave(&m_critSec);}
+
+   class CScopedLock{
+   private:
+      CCritSec& m_critSec;
+   public:
+      CScopedLock(CCritSec& critSec) : m_critSec(critSec) { m_critSec.lock(); }
+
+      ~CScopedLock() { m_critSec.unlock(); }
+   };
+};
+
 class DLLEXPORT CRenderSession
 {
    friend class CMayaScene;
@@ -38,10 +59,10 @@ public:
    // detection of rendering done.
    bool IsRendering();
 
-   typedef void (*RenderCallbackType) (void*);   
+   typedef void (*RenderCallbackType) (void);   
    static void SetCallback(RenderCallbackType callback);
-   static void ClearCallbackId();
-   static MCallbackId GetCallbackId();
+   static void ClearCallback();
+   static RenderCallbackType GetCallback();
    
 
    // Render Methods.
@@ -71,7 +92,7 @@ public:
 
    /// For interactive render, watch for interrupt, render end and process method
    ///   provided to CRenderSession::SetCallback() in the driver.
-   static void InteractiveRenderCallback(void* data);
+   static void InteractiveRenderCallback(float, float, void* data);
 
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
@@ -136,8 +157,7 @@ private:
       : m_paused_ipr(false)
       , m_is_active(false)
       , m_render_thread(NULL)
-      , m_render_lock(NULL)
-      , m_rendering(false)
+      , m_rendering(0)
    {
    }
 
@@ -147,7 +167,7 @@ private:
    /// render view when rendering IPR.
    void AddIdleRenderViewCallback(const MString& postRenderMel);
    static void DoAddIdleRenderViewCallback(void* data);
-   void ClearIdleRenderViewCallback();
+   static void ClearIdleRenderViewCallback();
 
    /// This is the static method for performing a progressive render.
    /// data should be a CRenderSession pointer.
@@ -165,16 +185,14 @@ private:
    /// This is a special callback installed to update the render view while Arnold is rendering in IPR.
    /// \see AddIdleRenderViewCallback
    /// \see ClearIdleRenderViewCallback
-   static MCallbackId    m_idle_cb;
-   MCallbackId    m_timer_cb;
+   static MCallbackId    s_idle_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
-   void*          m_render_thread;
-   AtCritSec      m_render_lock;
-   bool           m_rendering;
+   void*           m_render_thread;
+   static CCritSec m_render_lock;
+   volatile int    m_rendering;
    
    static RenderCallbackType   m_renderCallback;
-   static MCallbackId          m_render_cb;
    
    static MComputation*   s_comp;
    MString        m_postRenderMel;
