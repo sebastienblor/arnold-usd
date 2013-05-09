@@ -1,8 +1,5 @@
 #include "PxArnoldNode.h"
 #include <maya/MStringArray.h>
-#if MAYA_API_VERSION >= 201200
-   #include <maya/MNodeClass.h>
-#endif
 
 #include "extension/PathUtils.h"
 

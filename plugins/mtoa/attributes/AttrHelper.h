@@ -20,11 +20,7 @@
 #include <maya/MStringArray.h>
 
 #include <maya/MTypes.h>
-#if MAYA_API_VERSION < 201200
-   #include "attributes/MNodeClass.h"
-#else
-   #include <maya/MNodeClass.h>
-#endif
+#include <maya/MNodeClass.h>
 
 #include <string>
 #include <map>
@@ -325,9 +321,6 @@ protected:
 /// Extension attributes are like a cross between a static and a dynamic attribute. Like static
 /// attributes they are added at the class level, but like a dynamic attribute they can be added after
 /// the node class has been initialized.
-///
-/// Extension attributes are added in Maya 2012 via the new MNodeClass. MtoA provides a rough
-/// equivalent of this class for versions prior to 2012
 
 class DLLEXPORT CExtensionAttrHelper : public CBaseAttrHelper
 {
