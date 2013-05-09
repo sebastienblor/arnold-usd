@@ -55,7 +55,9 @@ node_parameters
 
    AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
    AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+
+   AiMetaDataSetStr(mds, NULL, "maya.name", "cloud");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544344);
 }
 
 node_initialize
