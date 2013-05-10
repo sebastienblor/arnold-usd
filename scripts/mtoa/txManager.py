@@ -48,8 +48,10 @@ class MakeTxThread (threading.Thread):
         
         cmd += ' "'+texture+'"'
         #print cmd
-        
-        proc = subprocess.Popen(cmd, creationflags=subprocess.SW_HIDE, shell=True)
+        if os.name == 'nt':
+            proc = subprocess.Popen(cmd, creationflags=subprocess.SW_HIDE, shell=True)
+        else:
+            proc = subprocess.Popen(cmd, shell=True)
         return proc.wait()
         
     def createTx(self):
