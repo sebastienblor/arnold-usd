@@ -152,7 +152,7 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         
     @staticmethod
     def getAttrParent(attr):
-        return attr.getParent(-1)
+        return attr.getParent(-1, True)
         
     def addAttr(self, attrs):    
         # print "addAttr %r" % attrs
