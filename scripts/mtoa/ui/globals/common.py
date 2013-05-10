@@ -355,10 +355,7 @@ def createArnoldFileNamePrefixControl():
                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefix"),
                      annotation=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefixAnn"))
 
-    if pm.mel.getApplicationVersionAsFloat() >= 2011:
-        popup = pm.popupMenu(parent='mayaSoftwareFileName|field')
-    else:
-        popup = pm.popupMenu(parent='mayaSoftwareFileName')
+    popup = pm.popupMenu(parent='mayaSoftwareFileName|field')
     pm.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldInsertKeywordMenu, popup))
 
     # connect the label, so we can change its color
@@ -935,9 +932,8 @@ def updateArnoldCameraControl(*args):
                 pm.menuItem(divider=1, data=CAM_MENU_IGNORE)
             elif isStereo2:
                 # Stereo rig
-                if pm.mel.getApplicationVersionAsFloat() >= 2011:
-                    label = '%s%s'%(nonRenderableCamera, pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
-                    pm.menuItem(label=label, data=CAM_MENU_STEREOPAIR)
+                label = '%s%s'%(nonRenderableCamera, pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
+                pm.menuItem(label=label, data=CAM_MENU_STEREOPAIR)
             else:
                 # Mono camera.
                 pm.menuItem(label=nonRenderableCamera, data=CAM_MENU_CAMERA)
