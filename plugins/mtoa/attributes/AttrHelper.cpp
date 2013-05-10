@@ -1251,13 +1251,114 @@ void CExtensionAttrHelper::AddCommonAttributes()
    MakeInputString(data);
 }
 
+#if MAYA_API_VERSION < 201200
+
+void CExtensionAttrHelper::MakeInputInt(CAttrData& data)
+{
+   data.type = AI_TYPE_INT;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputBoolean(CAttrData& data)
+{
+   data.type = AI_TYPE_BOOLEAN;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputFloat(CAttrData& data)
+{
+   data.type = AI_TYPE_FLOAT;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputRGB(CAttrData& data)
+{
+   data.type = AI_TYPE_RGB;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputRGBA(CAttrData& data)
+{
+   data.type = AI_TYPE_RGBA;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputVector(CAttrData& data)
+{
+   data.type = AI_TYPE_VECTOR;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputPoint(CAttrData& data)
+{
+   data.type = AI_TYPE_POINT;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputPoint2(CAttrData& data)
+{
+   data.type = AI_TYPE_POINT2;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputString(CAttrData& data)
+{
+   data.type = AI_TYPE_STRING;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputMatrix(CAttrData& data)
+{
+   data.type = AI_TYPE_MATRIX;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputEnum(CAttrData& data)
+{
+   data.type = AI_TYPE_ENUM;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputNode(CAttrData& data)
+{
+   data.type = AI_TYPE_NODE;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputCompound(CAttrData& attrData, std::vector<CAttrData>& children)
+{
+   MStatus stat;
+   stat = m_class.addExtensionAttribute(attrData, children);
+   CHECK_MSTATUS(stat);
+}
+
+MObject CExtensionAttrHelper::MakeInput(const char* paramName)
+{
+   CAttrData attrData;
+   GetAttrData(paramName, attrData);
+   return MakeInput(attrData);
+}
+
+MObject CExtensionAttrHelper::MakeInput(CAttrData& attrData)
+{
+   MStatus stat;
+   stat = m_class.addExtensionAttribute(attrData);
+   CHECK_MSTATUS(stat);
+   // this is bad form, but we don't have an MObject to return yet
+   return MObject::kNullObj;
+}
+
+
+#else
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
 
    MString nodeType = m_class.typeName();
    MFnAttribute fnAttr(attrib);
+#if MAYA_API_VERSION >= 201200
    fnAttr.addToCategory("arnold");
+#endif
    MString attrName = fnAttr.name();
 
    MDGModifier dgMod;
@@ -1274,3 +1375,4 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    CHECK_MSTATUS(stat);
    return stat;
 }
+#endif

@@ -6,6 +6,9 @@
 
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
+#if MAYA_API_VERSION < 201200
+#include "attributes/MNodeClass.h"
+#endif
 
 MSyntax CArnoldPluginCmd::newSyntax()
 {

@@ -427,6 +427,9 @@ namespace // <anonymous>
 
       // Or use MGlobal::apiVersion()
       // TODO : should be called by ExtensionsManager after new registrations?
+#if MAYA_API_VERSION < 201200
+      MNodeClass::InitializeExistingNodes();
+#endif
 
       return status;
    }
@@ -730,6 +733,11 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
 
    MFnPlugin plugin(object);
+
+#if MAYA_API_VERSION < 201200
+   // Remove custom MNodeClass class callbacks
+   MNodeClass::RemoveCallbacks();
+#endif
 
    // Should be done when render finishes
    CMayaScene::End();
