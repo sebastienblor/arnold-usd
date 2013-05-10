@@ -35,7 +35,7 @@ except:
     traceback.print_exc(file=sys.__stderr__) # goes to the console
     raise
 
-if pm.mel.getApplicationVersionAsFloat() > 2011 and not pm.about(batch=True):
+if not pm.about(batch=True):
     for nodeType in pm.pluginInfo('mtoa', q=1, dependNode=1):
         pm._factories.addMayaType(nodeType, 'kPluginDependNode')
 

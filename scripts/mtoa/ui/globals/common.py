@@ -33,8 +33,7 @@ from mtoa.callbacks import *
 import mtoa.core as core
 import mtoa.aovs as aovs
 
-if pm.mel.getApplicationVersionAsFloat() >= 2011:
-    from maya.app.stereo import stereoCameraRig
+from maya.app.stereo import stereoCameraRig
 
 MENU_SEPARATOR = ('-', None)
 
@@ -52,17 +51,10 @@ CAM_MENU_IGNORE     = 4
 
 
 
-if pm.mel.getApplicationVersionAsFloat() >= 2011:
-    def _listStereoRigs():
-        return [pm.nt.DagNode(x) for x in stereoCameraRig.listRigs(True) or []]
-    def _isMono(camera):
-        return not stereoCameraRig.rigRoot(camera.name())
-
-else:
-    def _listStereoRigs():
-        return []
-    def _isMono(camera):
-        return False
+def _listStereoRigs():
+    return [pm.nt.DagNode(x) for x in stereoCameraRig.listRigs(True) or []]
+def _isMono(camera):
+    return not stereoCameraRig.rigRoot(camera.name())
 
 def getMultiCameraChildren(camera):
     cameras = []
@@ -928,7 +920,7 @@ def updateArnoldCameraControl(*args):
                          changeCommand=pm.Callback(arnoldChangedCamera, camera, cameraMode, optMenu))
 
         # The first item is the current renderable camera
-        if pm.mel.getApplicationVersionAsFloat() >= 2011 and cameraMode == CAM_MENU_STEREOPAIR:
+        if cameraMode == CAM_MENU_STEREOPAIR:
             thisCamLabel = '%s%s'%(camera, pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
         else:
             thisCamLabel = camera
@@ -1376,29 +1368,16 @@ def createArnoldCommonResolution():
 
     pm.connectControl('aspectLockCheck', 'defaultResolution.aspectLock', index=2)
 
-    if pm.mel.getApplicationVersionAsFloat() >= 2011:
-        pm.radioButtonGrp('ratioLockRadio',
-                            numberOfRadioButtons=2,
-                            vertical=True,
-                            label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
-                            label1=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
-                            label2=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
-                            on1=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
-                            on2=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
-                            data1=0,
-                            data2=1)
-
-    else:
-        pm.radioButtonGrp('ratioLockRadio',
-                            numberOfRadioButtons=2,
-                            label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
-                            label1=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
-                            label2=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
-                            on1=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
-                            on2 =pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
-                            data1=0,
-                            data2=1)
-
+    pm.radioButtonGrp('ratioLockRadio',
+                      numberOfRadioButtons=2,
+                      vertical=True,
+                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
+                      label1=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
+                      label2=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
+                      on1=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
+                      on2=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
+                      data1=0,
+                      data2=1)
 
 
     pm.connectControl('ratioLockRadio', 'defaultResolution.lockDeviceAspectRatio', index=1)
