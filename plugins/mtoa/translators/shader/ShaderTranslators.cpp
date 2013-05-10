@@ -1083,46 +1083,6 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
-   
-#if MAYA_API_VERSION < 201200
-   data.defaultValue.VEC.x = 0.f;
-   data.defaultValue.VEC.y = 0.f;
-   data.defaultValue.VEC.z = 0.f;
-   data.name = "vectorDisplacement";
-   data.shortName = "vd";
-   helper.MakeInputVector(data);
-
-   data.defaultValue.FLT = 1.f;
-   data.name = "scale";
-   data.shortName = "scl";
-   helper.MakeInputFloat(data);
-   
-   MStringArray  enumNames1;
-   enumNames1.append("Floating-Point Absolute");
-   enumNames1.append("Signed Encoding");
-   data.defaultValue.INT = 0;
-   data.name = "vectorEncoding";
-   data.shortName = "ve";
-   data.enums= enumNames1;
-   helper.MakeInputEnum(data);
-   
-   MStringArray  enumNames2;
-   enumNames2.append("World");
-   enumNames2.append("Object");
-   enumNames2.append("Tangent");
-   data.defaultValue.INT = 1;
-   data.name = "vectorSpace";
-   data.shortName = "vs";
-   data.enums= enumNames2;
-   helper.MakeInputEnum(data);
-   
-   data.defaultValue.VEC.x = 0.f;
-   data.defaultValue.VEC.y = 0.f;
-   data.defaultValue.VEC.z = 0.f;
-   data.name = "tangent";
-   data.shortName = "tan";
-   helper.MakeInputVector(data);
-#endif
 }
 
 void CMayaBlinnTranslator::Export(AtNode* shader)
