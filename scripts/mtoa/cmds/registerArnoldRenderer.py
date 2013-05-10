@@ -16,27 +16,8 @@ if 'pymel' not in globals():
 else :
     print "Maya %s had already imported module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
     
-# fix for pymel versions less than 1.0.3 (pre-2012)
-if 'pymel' in globals():
-    if pymel.__version__ < '1.0.3' and not hasattr(pymel, '_mtoaPatch'):
-        maya_version = versions.shortName()
-        print "Maya %s reloading patched pymel" % maya_version
-        root = mtoaPackageRoot()
-        path = os.path.join(root, maya_version)
-        sys.path.insert(0, path)
-        # clear so pymel reloads
-        for key in sys.modules.keys() :
-            if key.startswith('pymel') :
-                del sys.modules[key]
-        import pymel
-
 import pymel.core as pm
-import pymel.versions as versions
 
-if hasattr(pymel, '_mtoaPatch') :
-    print "Patched pymel version %s loaded" % pymel.__version__
-else :
-    print "Standard pymel version %s loaded" % pymel.__version__
 try:
     import mtoa.utils as utils
     import mtoa.ui.exportass as exportass
