@@ -571,7 +571,9 @@ else:
 env.Install(env['TARGET_LIB_PATH'], libs)
 
 dylibs = glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()))
+dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
+dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
