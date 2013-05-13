@@ -22,7 +22,10 @@ def updateProgressMessage(window, created, toCreate, errors):
     cmds.text(ctrlPath, edit=True, label="Created: {0} of {1}".format(created,toCreate));
     if errors is not 0:
         ctrlPath = '|'.join([window, 'groupBox_2', 'label_9']);
-        cmds.text(ctrlPath, edit=True, label="<font color=#FE6565>Warning: {0} errors</font>".format(errors));
+        cmds.text(ctrlPath, edit=True, label="Warning: {0} errors".format(errors));
+    else:
+        ctrlPath = '|'.join([window, 'groupBox_2', 'label_9']);
+        cmds.text(ctrlPath, edit=True, label="");
 
 class MakeTxThread (threading.Thread):
     def __init__(self,manager):
@@ -89,7 +92,7 @@ class MakeTxThread (threading.Thread):
                     self.createdErrors += 1
                     
             updateProgressMessage(self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
-
+        
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
         cmds.button(ctrlPath, edit=True, enable=False);
         self.txManager.process = True
