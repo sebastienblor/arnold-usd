@@ -75,7 +75,7 @@ namespace // <anonymous>
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
-      MFnPlugin plugin(object, "Solid Angle SL", MTOA_VERSION, "Any");
+      MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
       // STANDINS
       status = plugin.registerShape("aiStandIn",

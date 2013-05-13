@@ -3,6 +3,7 @@
 #include "common/DynLibrary.h"
 #include "AbMayaNode.h"
 #include "AbTranslator.h"
+#include "utils/Version.h"
 
 #include "utils/Universe.h"
 
@@ -1047,7 +1048,7 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
 
    if (NULL != mayaNode.abstract) *mayaNode.abstract = abstract;
    const MString *classificationPtr = (mayaNode.classification == "") ? NULL : &mayaNode.classification;
-   status = MFnPlugin(s_plugin).registerNode(
+   status = MFnPlugin(s_plugin, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION).registerNode(
          mayaNode.name, mayaNode.id,
          mayaNode.creator, mayaNode.initialize,
          mayaNode.type, classificationPtr );
