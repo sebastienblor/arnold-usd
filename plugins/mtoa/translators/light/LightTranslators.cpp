@@ -336,17 +336,19 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiNodeSetPtr(meshNode, "shader", 0);
    }
 
+   AtNode* shaderNode = (AtNode*)AiNodeGetPtr(meshNode, "shader");
+   if (shaderNode == 0)
+   {
+      shaderNode = AiNode("meshLightMaterial");
+      AiNodeSetStr(shaderNode, "name", (nodeName + MString("_shader")).asChar());
+      AiNodeSetPtr(meshNode, "shader", shaderNode);
+   }
+
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {      
       AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
-      AtNode* shaderNode = (AtNode*)AiNodeGetPtr(meshNode, "shader");
-      if (shaderNode == 0)
-      {
-         shaderNode = AiNode("meshLightMaterial");
-         AiNodeSetStr(shaderNode, "name", (nodeName + MString("_shader")).asChar());
-         AiNodeSetPtr(meshNode, "shader", shaderNode);
-      }
+      
       AtRGB color = AiNodeGetRGB(light, "color");
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
       AiColorGamma(&color, light_gamma);
@@ -384,7 +386,10 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
    }
    else
+   {
       AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
+      AiNodeSetRGB(shaderNode, "color", 0.f, 0.f, 0.f);
+   }
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
