@@ -176,6 +176,13 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             status = MStatus::kFailure;
             break;
          }
+         void* apiVersionFunction = LibrarySymbol(pluginLib, "getAPIVersion");
+         if (apiVersionFunction != NULL)
+         {
+            // blablabla
+         }
+         else
+            extension->m_apiVersion = MString("unknown");
          const ExtensionInitFunction &initFunc = (ExtensionInitFunction)(initializer);
          // ExtensionInitFunction * initFunc = (ExtensionInitFunction*)(&initializer);
          // Do the init

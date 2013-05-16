@@ -5,21 +5,23 @@
 extern "C"
 {
 
-DLLEXPORT void initializeExtension(CExtension& extension)
-{
-   MStatus status;
+   EXPORT_API_VERSION
 
-   extension.Requires("shaveNode");
-   extension.LoadArnoldPlugin("shave_shaders");
-   status = extension.RegisterTranslator("shaveHair",
-         "",
-         CShaveTranslator::creator,
-         CShaveTranslator::NodeInitializer);
-}
+   DLLEXPORT void initializeExtension(CExtension& extension)
+   {
+      MStatus status;
 
-DLLEXPORT void deinitializeExtension(CExtension& extension)
-{
-}
+      extension.Requires("shaveNode");
+      extension.LoadArnoldPlugin("shave_shaders");
+      status = extension.RegisterTranslator("shaveHair",
+                                            "",
+                                            CShaveTranslator::creator,
+                                            CShaveTranslator::NodeInitializer);
+   }
+
+   DLLEXPORT void deinitializeExtension(CExtension& extension)
+   {
+   }
 
 }
 
