@@ -169,6 +169,10 @@ namespace // <anonymous>
        builtin->RegisterTranslator("aiSky",
                                    "",
                                    CSkyShaderTranslator::creator);
+       builtin->RegisterTranslator("aiHair",
+                                   "",
+                                   CAiHairTranslator::creator,
+                                   CAiHairTranslator::NodeInitializer);
        // Lights
        builtin->RegisterTranslator("directionalLight",
                                    "",

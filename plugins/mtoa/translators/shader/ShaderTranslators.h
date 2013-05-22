@@ -77,3 +77,11 @@ public:
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
 };
+
+class CAiHairTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiHairTranslator();}
+
+   static void NodeInitializer(CAbTranslator context);
+   AtNode* CreateArnoldNodes();
+};
