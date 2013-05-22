@@ -1211,9 +1211,7 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    MFnDependencyNode fnNode;
    fnNode.setObject(m_instance);
    MFnAttribute fnAttr(attrib);
-#if MAYA_API_VERSION >= 201200
    fnAttr.addToCategory("arnold");
-#endif
    // Check if an attribute of same name already exists
    MObject mAttr = fnNode.attribute(fnAttr.name(),&statAttr);
    if (statAttr == MS::kSuccess)

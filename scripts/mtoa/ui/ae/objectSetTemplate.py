@@ -152,10 +152,7 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         
     @staticmethod
     def getAttrParent(attr):
-        if pm.mel.getApplicationVersionAsFloat() > 2011:
-            return attr.getParent(-1, True)
-        else:
-            return attr.getParent(-1)
+        return attr.getParent(-1, True)
         
     def addAttr(self, attrs):    
         # print "addAttr %r" % attrs
