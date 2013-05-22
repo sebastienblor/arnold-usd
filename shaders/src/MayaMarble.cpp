@@ -104,7 +104,6 @@ shader_evaluate
          
          float curAmp = 1.0f;
          float curFreq = 1.0f;
-         float noise = 0.0f;
          
          Q = P * 0.5f * ripples;
          
@@ -113,7 +112,7 @@ shader_evaluate
          maxQ = (maxQ > fabsf(Q.z)) ? maxQ : fabsf(Q.z);
          
          int n;
-         float result = frexp (maxQ , &n);
+         frexp (maxQ , &n);
          
          float iterations = MAX(depth.x, depth.y);
          iterations = MIN(iterations, (float)sizeof(float)*8-n);
