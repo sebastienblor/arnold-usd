@@ -20,11 +20,7 @@
 #include <maya/MStringArray.h>
 
 #include <maya/MTypes.h>
-#if MAYA_API_VERSION < 201200
-   #include "attributes/MNodeClass.h"
-#else
-   #include <maya/MNodeClass.h>
-#endif
+#include <maya/MNodeClass.h>
 
 #include <string>
 #include <map>
