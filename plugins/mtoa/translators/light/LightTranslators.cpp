@@ -213,25 +213,6 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("cast_volumetric_shadows");
 }
 
-// SkyDomeLight
-//
-void CSkyDomeLightTranslator::GetMatrix(AtMatrix& matrix)
-{
-   MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
-   // Invert in Z to account for the env sphere being viewed from inside
-   double scale[3] = {1.0, 1.0, -1.0};
-   tm.addScale(scale, MSpace::kPreTransform);
-   MMatrix m = tm.asMatrix();
-
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) m[I][J];
-      }
-   }
-}
-
 void CSkyDomeLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
