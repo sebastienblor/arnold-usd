@@ -19,6 +19,7 @@
 # bump3d                      0x00115D0E
 # motion_vector               0x00115D0F
 # image                       0x00115D17
+# physical_sky                0x00115D1E
 
 # options
 
@@ -1086,6 +1087,24 @@
         softmax             INT     64
         max                 INT     100
 
+[node physical_sky]
+    desc                    STRING  "Physical Sky"
+    maya.name               STRING  "aiPhysicalSky"
+    maya.id                 INT     0x00115D1E
+    maya.classification     STRING  "texture/environment"
+    [attr turbidity]
+        softmin             FLOAT   1
+        softmax             FLOAT   10
+    [attr elevation]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   90.0
+    [attr azimuth]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   360.0
+    [attr intensity]
+        softmin             FLOAT   0.1
+        softmax             FLOAT   10
+        
 # dag nodes
 
 [node polymesh]
