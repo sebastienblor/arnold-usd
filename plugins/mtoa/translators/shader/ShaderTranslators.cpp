@@ -54,7 +54,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    // Invert in Z to account for the env sphere being viewed from inside
    AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
    AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
-   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f/static_cast<float>(scale[2]));
+   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, 1.0f/static_cast<float>(scale[2]));
 
    ProcessParameter(shader, "color",     AI_TYPE_RGB);
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
@@ -1083,46 +1083,6 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
-   
-#if MAYA_API_VERSION < 201200
-   data.defaultValue.VEC.x = 0.f;
-   data.defaultValue.VEC.y = 0.f;
-   data.defaultValue.VEC.z = 0.f;
-   data.name = "vectorDisplacement";
-   data.shortName = "vd";
-   helper.MakeInputVector(data);
-
-   data.defaultValue.FLT = 1.f;
-   data.name = "scale";
-   data.shortName = "scl";
-   helper.MakeInputFloat(data);
-   
-   MStringArray  enumNames1;
-   enumNames1.append("Floating-Point Absolute");
-   enumNames1.append("Signed Encoding");
-   data.defaultValue.INT = 0;
-   data.name = "vectorEncoding";
-   data.shortName = "ve";
-   data.enums= enumNames1;
-   helper.MakeInputEnum(data);
-   
-   MStringArray  enumNames2;
-   enumNames2.append("World");
-   enumNames2.append("Object");
-   enumNames2.append("Tangent");
-   data.defaultValue.INT = 1;
-   data.name = "vectorSpace";
-   data.shortName = "vs";
-   data.enums= enumNames2;
-   helper.MakeInputEnum(data);
-   
-   data.defaultValue.VEC.x = 0.f;
-   data.defaultValue.VEC.y = 0.f;
-   data.defaultValue.VEC.z = 0.f;
-   data.name = "tangent";
-   data.shortName = "tan";
-   helper.MakeInputVector(data);
-#endif
 }
 
 void CMayaBlinnTranslator::Export(AtNode* shader)
@@ -1144,4 +1104,35 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
 AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
 {
    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
+void CAiHairTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiHair");
+   
+   CAttrData data;
+
+   data.name = "aiEnableMatte";
+   data.shortName = "ai_enable_matte";
+   data.defaultValue.BOOL = false;
+   helper.MakeInputBoolean(data);
+
+   data.name = "aiMatteColor";
+   data.shortName = "ai_matte_color";
+   data.defaultValue.RGB = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
+   
+   data.name = "aiMatteColorA";
+   data.shortName = "ai_matte_color_a";
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasMax = true;
+   data.max.FLT = 1.0;
+   data.defaultValue.FLT = 0.0f;
+   helper.MakeInputFloat(data);   
+}
+
+AtNode* CAiHairTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("hair");
 }
