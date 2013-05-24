@@ -52,7 +52,7 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    
    data.name = "aiVolumeTexture";
    data.shortName = "ai_volume_texture";
-   helper.MakeInputNode(data);   
+   helper.MakeInputRGB(data);   
    
    MStringArray strArr;
    strArr.append("Fixed");

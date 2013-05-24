@@ -53,7 +53,8 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
 
    data.name = "aiHairShader";
    data.shortName = "ai_hair_shader";
-   helper.MakeInputNode(data);
+   data.defaultValue.RGB = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
 }
 
 AtNode* CHairTranslator::CreateArnoldNodes()
