@@ -616,7 +616,8 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
               os.path.join('session', 'ArnoldLightLinks.h'),
               os.path.join('render', 'AOV.h'),
               os.path.join('translators', 'NodeTranslator.h'),
-              os.path.join('translators', 'shape', 'ShapeTranslator.h')]
+              os.path.join('translators', 'shape', 'ShapeTranslator.h'),
+              os.path.join('utils', 'Version.h')]
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])
