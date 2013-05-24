@@ -18,8 +18,8 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         self.addControl("elevation", label="Elevation")
         self.addControl("azimuth", label="Azimuth")
         self.addControl("intensity", label="Intensity")
-        self.addControl("visible_solar_disc", label="Visible Solar Disc")
         self.addControl("sun_tint", label="Sun Tint")
+        self.addControl("visible_solar_disc", label="Visible Solar Disc")
         
         self.endLayout()
         
