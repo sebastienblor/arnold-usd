@@ -936,6 +936,19 @@ CExtension* CExtensionsManager::GetExtension(const MString &extensionFile)
    return NULL;
 }
 
+CExtension* CExtensionsManager::GetExtensionByName(const MString &extensionName)
+{
+   // s_extensions is a std::list of extensions (ordered in load order)
+   ExtensionsList::iterator extIt;
+   for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+   {
+      if (extIt->GetExtensionName() == extensionName) return &(*extIt);
+   }
+   return NULL;
+}
+
 /// Called when a Maya plugin is loaded to register deferred extensions
 void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void *clientData)
 {
@@ -1174,3 +1187,10 @@ TranslatorsSet* CExtensionsManager::FindRegisteredTranslators(const CPxMayaNode 
    }
 }
 
+MStringArray CExtensionsManager::ListLoadedExtensions()
+{
+   MStringArray ret;
+   for (std::list<CExtension>::iterator it = s_extensions.begin(); it != s_extensions.end(); ++it)
+      ret.append((*it).GetExtensionName());
+   return ret;
+}
