@@ -45,7 +45,7 @@ struct CAttrData
    MString      stringDefault;
    AtParamValue defaultValue;
    bool         isArray;
-   int        type;
+   int          type;
    bool         hasMin;
    AtParamValue min;
    bool         hasMax;
@@ -57,6 +57,7 @@ struct CAttrData
    bool         keyable;
    MStringArray enums;
    bool         linkable;
+   bool         channelBox;
    CAttrData() :  name(""),
                   shortName(""),
                   stringDefault(""),
@@ -67,7 +68,8 @@ struct CAttrData
                   hasSoftMin(false),
                   hasSoftMax(false),
                   keyable(true),
-                  linkable(true)   {}
+                  linkable(true),
+                  channelBox(false)   {}
 };
 
 struct CCompoundAttrData
