@@ -1137,19 +1137,19 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
 void CGeometryTranslator::Update(AtNode *anode)
 {
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       ExportMesh(anode, true);
    }
    else
    {
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, GetMasterInstance());
    }
 }
 
 void CGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       ExportMatrix(anode, step);
       if (m_motionDeform)

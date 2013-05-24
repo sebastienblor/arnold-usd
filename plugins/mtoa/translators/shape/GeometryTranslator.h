@@ -24,8 +24,7 @@
 #include <maya/MColorArray.h>
 #include <maya/MNodeMessage.h>
 
-class CGeometryTranslator
-   :   public CShapeTranslator
+class  CGeometryTranslator : public CShapeTranslator
 {
 public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
@@ -93,10 +92,8 @@ protected:
    virtual bool IsGeoDeforming();
 
 protected:
-   bool m_isMasterDag;
    bool m_displaced;
    bool m_isRefSmooth;
    MObject m_geometry;
    MDagPath m_dagPathRef;
-   MDagPath m_masterDag;
 };

@@ -2007,30 +2007,53 @@ void CDagTranslator::Delete()
 
 }
 
-// Return whether the dag object in dagPath is the master instance. The master
-// is the first instance that is completely visible (including parent transforms)
-// for which full geometry should be exported
-//
-// always returns true if dagPath is not instanced.
-// if dagPath is instanced, this searches the preceding instances
-// for the first that is visible. if none are found, dagPath is considered the master.
-//
-// note: dagPath is assumed to be visible.
-//
-// @param[out] masterDag    the master MDagPath result, only filled if result is false
-// @return                  whether or not dagPath is a master
-//
-bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
+/// Return whether the current dag object is the master instance.
+///
+/// The master is the first instance that is completely visible (including parent transforms)
+/// for which full geometry should be exported.
+///
+/// Always returns true if this dagPath is not instanced.
+/// If dagPath is instanced, this searches the preceding instances
+/// for the first that is visible. if none are found, dagPath is considered the master.
+///
+/// This function caches the result on the first run and returns the cached results on
+/// subsequent calls.
+///
+/// note: dagPath is assumed to be visible.
+///
+/// @return                  whether or not dagPath is a master
+///
+bool CDagTranslator::IsMasterInstance()
 {
-   if (m_dagPath.isInstanced())
+   if (!m_masterDag.isValid())
+      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
+   return m_isMasterDag;
+}
+
+/// Return the master instance for the current dag object.
+///
+/// The master is the first instance that is completely visible (including parent transforms)
+/// for which full geometry should be exported.
+///
+MDagPath& CDagTranslator::GetMasterInstance()
+{
+   if (!m_masterDag.isValid())
+      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
+   return m_masterDag;
+}
+
+/// Like IsMasterInstance, but does not cache result
+bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag)
+{
+   if (dagPath.isInstanced())
    {
-      MObjectHandle handle = MObjectHandle(m_dagPath.node());
-      unsigned int instNum = m_dagPath.instanceNumber();
+      MObjectHandle handle = MObjectHandle(dagPath.node());
+      unsigned int instNum = dagPath.instanceNumber();
       // first instance
       if (instNum == 0)
       {
-         // first visible instance is always the master (passed m_dagPath is assumed to be visible)
-         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         // first visible instance is always the master (passed dagPath is assumed to be visible)
+         m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
       else
@@ -2045,9 +2068,9 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          }
          // find the master by searching preceding instances
          MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
+         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
          unsigned int master_index = 0;
-         for (; (master_index < m_dagPath.instanceNumber()); master_index++)
+         for (; (master_index < dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
             if (m_session->IsRenderablePath(currDag))
@@ -2058,12 +2081,12 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
                return false;
             }
          }
-         // didn't find a master: m_dagPath is the master
-         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         // didn't find a master: dagPath is the master
+         m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
    }
-   // not instanced: m_dagPath is the master
+   // not instanced: dagPath is the master
    return true;
 }
 

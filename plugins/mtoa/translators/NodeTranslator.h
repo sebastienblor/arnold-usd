@@ -264,7 +264,11 @@ protected:
    virtual void ExportMotion(AtNode* atNode, unsigned int step);
    virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
    virtual MStatus ExportOverrideSets();
-   virtual bool IsMasterInstance(MDagPath &masterDag);
+
+   virtual bool IsMasterInstance();
+   virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
+   virtual MDagPath& GetMasterInstance();
+
    void GetRotationMatrix(AtMatrix& matrix);
    static void GetMatrix(AtMatrix& matrix, const MDagPath& path);
    virtual void GetMatrix(AtMatrix& matrix);
@@ -272,10 +276,14 @@ protected:
    // for computing a path different from m_dagPath
    int ComputeVisibility(const MDagPath& path);
    int ComputeVisibility();   
+
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
    void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
 
 protected:
    MDagPath m_dagPath;
+private:
+   MDagPath m_masterDag;
+   bool m_isMasterDag;
 };

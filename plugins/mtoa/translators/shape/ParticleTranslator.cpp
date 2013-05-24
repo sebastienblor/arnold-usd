@@ -23,8 +23,7 @@
 
 AtNode* CParticleTranslator::CreateArnoldNodes()
 {
-   m_isMasterDag = IsMasterInstance(m_masterDag);
-   if (m_isMasterDag)
+   if (IsMasterInstance())
       return  AddArnoldNode("points");
    else
       return  AddArnoldNode("ginstance");
@@ -1318,7 +1317,7 @@ void CParticleTranslator::Update(AtNode *anode)
 
 void CParticleTranslator::ExportMotion(AtNode* anode, AtUInt step)
 {
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       //ExportMatrix(anode, step);
       if (m_motionDeform)
@@ -1343,7 +1342,7 @@ void CParticleTranslator::Export(AtNode* anode)
    }
 
 
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       ///MTimer exportParticleTimer;
       //exportParticleTimer.beginTimer();
@@ -1354,7 +1353,7 @@ void CParticleTranslator::Export(AtNode* anode)
    }
 
    else
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, GetMasterInstance());
 
 
 }
