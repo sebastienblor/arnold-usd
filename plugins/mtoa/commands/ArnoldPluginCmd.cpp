@@ -25,6 +25,7 @@ MSyntax CArnoldPluginCmd::newSyntax()
 
    syntax.addFlag("llx", "listLoadedExtensions", MSyntax::kNoArg);
    syntax.addFlag("gev", "getExtensionApiVersion", MSyntax::kString);
+   syntax.addFlag("gmi", "getMercurialID", MSyntax::kNoArg);
    return syntax;
 }
 
@@ -173,6 +174,12 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       CExtension* extension = CExtensionsManager::GetExtensionByName(extensionName);
       if (extension != 0)
          setResult(extension->GetApiVersion());
+   }
+   else if(args.isFlagSet("getMercurialID"))
+   {
+#ifdef MERCURIAL_ID
+      setResult(MString(MERCURIAL_ID));
+#endif
    }
 
    // FIXME: error on unknown flag
