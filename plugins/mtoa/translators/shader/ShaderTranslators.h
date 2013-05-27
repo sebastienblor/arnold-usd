@@ -50,7 +50,7 @@ SHADER_TRANSLATOR(CMayaBlinnTranslator);
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 
-class CBump2DTranslator : public CNodeTranslator
+class CBump2DTranslator : public CShaderTranslator
 {
 public:
    static void NodeInitializer(CAbTranslator context);

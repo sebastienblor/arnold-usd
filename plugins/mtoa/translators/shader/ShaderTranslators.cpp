@@ -113,20 +113,7 @@ void CLambertTranslator::Export(AtNode* shader)
 
    // Normal camera
    
-   plug = FindMayaPlug("normalCamera");
-
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-   {
-      AtNode* bump = ExportNode(connections[0]);
-
-      if (bump != NULL)
-      {
-         AiNodeLink(shader, "shader", bump);
-         SetArnoldRootNode(bump);
-      }
-   }
-   
+   ExportBump(shader);
 }
 
 // File
@@ -294,6 +281,11 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
+
+   MPlugArray connections;
+   plug = FindMayaPlug("normalCamera");
+
+   ExportBump(shader);
 }
 
 // Bump3d
