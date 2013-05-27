@@ -1047,10 +1047,18 @@
         desc                STRING  "Fog full opacity distance."
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        maya.channelbox     BOOL    True
     [attr height]
         desc                STRING  "Fog full height."
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        maya.channelbox     BOOL    True
+    [attr color]
+        maya.channelbox     BOOL    True
+    [attr ground_point]
+        maya.channelbox     BOOL    True
+    [attr ground_normal]
+        maya.channelbox     BOOL    True
 
 [node volume_scattering]
     desc                    STRING  "Volume scattering atmosphere shader."
