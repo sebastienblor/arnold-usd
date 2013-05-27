@@ -3,6 +3,7 @@
 #include "attributes/AttrHelper.h"
 #include "scene/MayaScene.h"
 #include "utils/Universe.h"
+#include "utils/MercurialID.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
@@ -177,9 +178,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    }
    else if(args.isFlagSet("getMercurialID"))
    {
-#ifdef MERCURIAL_ID
       setResult(MString(MERCURIAL_ID));
-#endif
    }
 
    // FIXME: error on unknown flag

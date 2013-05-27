@@ -199,11 +199,24 @@ maya_version_base = maya_version[0:4]
 
 mercurial_id = ""
 try:
-  p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
-  mercurial_id, err = p.communicate()
-  mercurial_id = mercurial_id.rstrip('\n')  
+    p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
+    mercurial_id, err = p.communicate()
+    mercurial_id = mercurial_id.rstrip('\n')
 except:
-  pass #hg is not in the path
+    pass #hg is not in the path
+mercurial_id_file_contents = '#pragma once\n#define MERCURIAL_ID "%s"\n\n' % mercurial_id
+mercurial_id_file_read = ''
+try:
+    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'r')
+    mercurial_id_file_read = open.read()
+    mercurial_id_file.close()
+except:
+    pass # the file doesn't exists yet
+if mercurial_id_file_read != mercurial_id_file_contents:
+    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'w')
+    mercurial_id_file.write(mercurial_id_file_contents)
+    mercurial_id_file.flush()
+    mercurial_id_file.close()
 # print build info
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
@@ -247,7 +260,7 @@ if env['COMPILER'] == 'gcc':
 
    ## Hide all internal symbols (the ones without AI_API decoration)
    env.Append(CCFLAGS = Split('-fvisibility=hidden'))
-   env.Append(CXXFLAGS = Split('-fvisibility=hidden -DMERCURIAL_ID="\\"%s\\""' % mercurial_id))
+   env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
    env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
 
    ## Hardcode '.' directory in RPATH in linux
@@ -312,7 +325,6 @@ elif env['COMPILER'] == 'msvc':
       LINK_FLAGS += " /DEBUG"
 
    env.Append(CCFLAGS = Split(MSVC_FLAGS))
-   env.Append(CXXFLAGS = ' -DMERCURIAL_ID="\\"%s\\""' % mercurial_id)
    env.Append(LINKFLAGS = Split(LINK_FLAGS))
    
    if env['MODE'] == 'opt':
