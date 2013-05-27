@@ -312,6 +312,7 @@ elif env['COMPILER'] == 'msvc':
       LINK_FLAGS += " /DEBUG"
 
    env.Append(CCFLAGS = Split(MSVC_FLAGS))
+   env.Append(CXXFLAGS = ' -DMERCURIAL_ID="\\"%s\\""' % mercurial_id)
    env.Append(LINKFLAGS = Split(LINK_FLAGS))
    
    if env['MODE'] == 'opt':
