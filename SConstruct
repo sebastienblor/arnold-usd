@@ -197,6 +197,13 @@ arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_ver
 maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 maya_version_base = maya_version[0:4]
 
+mercurial_id = ""
+try:
+  p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
+  mercurial_id, err = p.communicate()
+  mercurial_id = mercurial_id.rstrip('\n')  
+except:
+  pass #hg is not in the path
 # print build info
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
@@ -211,6 +218,7 @@ if system.os() == 'linux':
       print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
    except:
       pass
+print 'Mercurial ID   : %s' % mercurial_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
@@ -239,7 +247,7 @@ if env['COMPILER'] == 'gcc':
 
    ## Hide all internal symbols (the ones without AI_API decoration)
    env.Append(CCFLAGS = Split('-fvisibility=hidden'))
-   env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
+   env.Append(CXXFLAGS = Split('-fvisibility=hidden -DMERCURIAL_ID="\\"%s\\""' % mercurial_id))
    env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
 
    ## Hardcode '.' directory in RPATH in linux
@@ -304,6 +312,7 @@ elif env['COMPILER'] == 'msvc':
       LINK_FLAGS += " /DEBUG"
 
    env.Append(CCFLAGS = Split(MSVC_FLAGS))
+   env.Append(CXXFLAGS = ' -DMERCURIAL_ID="\\"%s\\""' % mercurial_id)
    env.Append(LINKFLAGS = Split(LINK_FLAGS))
    
    if env['MODE'] == 'opt':
