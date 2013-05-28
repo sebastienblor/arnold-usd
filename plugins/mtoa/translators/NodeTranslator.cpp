@@ -728,8 +728,8 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-      MFn::Type a = node.apiType();
-      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kPluginShape)
+      MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
+      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh")/*|| node.apiType() == MFn::kPluginShape*/)
          translator->m_updateMode = AI_RECREATE_NODE;
       translator->RequestUpdate(clientData);
    }
@@ -765,7 +765,8 @@ void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, 
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Node deleted, deleting processed translator instance, client data: %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), clientData);
-      translator->m_updateMode = AI_DELETE_NODE;
+      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
+         translator->m_updateMode = AI_DELETE_NODE;
       translator->RequestUpdate(clientData);
    }
    else
