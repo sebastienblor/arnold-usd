@@ -110,7 +110,7 @@ def createBackground(type, field):
     bg = getBackgroundShader()
     #if bg:
         #pm.delete(bg)
-    node = pm.shadingNode(type, asShader=True, name=type+"Shape")
+    node = pm.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field)
 
 

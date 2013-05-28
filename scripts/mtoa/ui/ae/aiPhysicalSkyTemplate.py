@@ -13,11 +13,14 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         
         self.addControl("turbidity", label="Turbidity")
         self.addControl("ground_albedo", label="Ground Albedo")
-        self.addControl("sky_tint", label="Sky Tint")
         
         self.addControl("elevation", label="Elevation")
         self.addControl("azimuth", label="Azimuth")
         self.addControl("intensity", label="Intensity")
+        
+        self.addSeparator()
+        
+        self.addControl("sky_tint", label="Sky Tint")
         self.addControl("sun_tint", label="Sun Tint")
         self.addControl("visible_solar_disc", label="Visible Solar Disc")
         
