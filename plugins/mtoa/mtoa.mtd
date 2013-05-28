@@ -266,8 +266,6 @@
         softmax             INT     10
         max                 INT     100
         maya.channelbox     BOOL    True
-    [attr normalize]
-        maya.channelbox     BOOL    True
     [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
