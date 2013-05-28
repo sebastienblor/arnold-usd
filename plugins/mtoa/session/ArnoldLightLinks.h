@@ -1,6 +1,7 @@
 #pragma once
 
 #include <maya/MFnDependencyNode.h>
+#include <maya/MDagPath.h>
 
 #include <ai.h>
 
@@ -18,7 +19,7 @@ public:
    void ParseLightLinks();
    // for getting the node name
    // and maybe for a different light linking mode later
-   void ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode);
+   void ExportLightLinking(AtNode* shape, const MDagPath& path);
    void SetLinkingMode(int light, int shadow);
 private:
    enum NodeLinkMode{
@@ -27,7 +28,8 @@ private:
    };
    
    const std::vector<AtNode*>& GetObjectsFromObjectSet(MFnDependencyNode& objectSet);
-
+   void CheckNode(MObject node, size_t& numLinkedLights, size_t& numLinkedShadows,
+      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
    void AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
         size_t& numLinkedNodes);
    void HandleLightLinker(MPlug& conn, 

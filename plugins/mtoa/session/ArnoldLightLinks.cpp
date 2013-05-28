@@ -198,25 +198,23 @@ bool CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode,
    return ret;
 }
 
-void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
+void CArnoldLightLinks::CheckNode(MObject node, size_t& numLinkedLights, size_t& numLinkedShadows,
+      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
 {
-   if ((m_lightMode == MTOA_LIGHTLINK_NONE && m_shadowMode == MTOA_SHADOWLINK_NONE) ||
-           m_numArnoldLights == 0)
-      return;
+   static MPlugArray conns;
    // there are two modes, either ignoring specific nodes
    // or linking them, but it's always only one of them
-   MStatus status;
-   NodeLinkMode lightLinkMode = MTOA_NODELINK_LINK;
-   NodeLinkMode shadowLinkMode = MTOA_NODELINK_LINK;
-   size_t numLinkedLights = 0;
-   size_t numLinkedShadows = 0;
+   MStatus status;     
+   MFnDependencyNode dNode(node, &status);
+   if (!status)
+      return;
    
    CheckMessage(dNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); // checking the outgoing message
    // for the node
    
    MPlug instObjGroupsPlug = dNode.findPlug("instObjGroups", &status);
    instObjGroupsPlug = instObjGroupsPlug.elementByLogicalIndex(0);
-   static MPlugArray conns;
+   
    instObjGroupsPlug.connectedTo(conns, false, true);
    unsigned int numConnections = conns.length();
    // check for the per face assignment light linking
@@ -243,6 +241,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
          }
       }
    }
+
    for (unsigned int i = 0; i < numConnections; ++i)
    {      
       MPlug conn = conns[i];
@@ -266,6 +265,27 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNo
          // checking the outgoing message
          // if it's an objectSet (this is for standins)
       }
+   }
+}
+
+void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
+{
+   if ((m_lightMode == MTOA_LIGHTLINK_NONE && m_shadowMode == MTOA_SHADOWLINK_NONE) ||
+           m_numArnoldLights == 0)
+      return;
+   MDagPath pathCopy = path;
+
+   NodeLinkMode lightLinkMode = MTOA_NODELINK_LINK;
+   NodeLinkMode shadowLinkMode = MTOA_NODELINK_LINK;
+
+   size_t numLinkedLights = 0;
+   size_t numLinkedShadows = 0;
+   
+   CheckNode(pathCopy.node(), numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
+   while (pathCopy.length() && ((numLinkedLights + numLinkedShadows) == 0))
+   {
+      CheckNode(pathCopy.transform(), numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
+      pathCopy.pop();      
    }
    
    if (m_lightMode == MTOA_LIGHTLINK_MAYA)
