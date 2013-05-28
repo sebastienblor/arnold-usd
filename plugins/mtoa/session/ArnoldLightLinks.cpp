@@ -250,7 +250,8 @@ void CArnoldLightLinks::CheckNode(MObject node, size_t& numLinkedLights, size_t&
       {
          MFnDependencyNode shadingEngineNode(outObject);
          CheckMessage(shadingEngineNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
-         break;
+         if ((numLinkedShadows + numLinkedLights) != 0)
+            break;
          // checking the outgoing message
          // for the shadingEngine
       }
@@ -260,7 +261,10 @@ void CArnoldLightLinks::CheckNode(MObject node, size_t& numLinkedLights, size_t&
          if (outObjectNode.typeName() == MString("objectSet"))
          {
             if (CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode))
-               break;
+            {
+               if ((numLinkedShadows + numLinkedLights) != 0)
+                  break;
+            }
          }
          // checking the outgoing message
          // if it's an objectSet (this is for standins)
