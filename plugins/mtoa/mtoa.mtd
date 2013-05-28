@@ -220,41 +220,58 @@
     [attr exposure]
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
     [attr angle]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
     [attr samples]
         min                 INT     1
         softmax             INT     10
         max                 INT     100
         default             INT     1
+        maya.channelbox     BOOL    True
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
+        maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+        maya.channelbox     BOOL    True
     [attr diffuse]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr specular]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr sss]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
+        maya.channelbox     BOOL    True
+    [attr normalize]
+        maya.channelbox     BOOL    True
+    [attr affect_volumetrics]
+        maya.channelbox     BOOL    True
+    [attr cast_volumetric_shadows]
+        maya.channelbox     BOOL    True
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -263,41 +280,58 @@
     [attr exposure]
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
     [attr radius]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
     [attr samples]
         min                 INT     1
         softmax             INT     10
         max                 INT     100
         default             INT     1
+        maya.channelbox     BOOL    True
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
+        maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+        maya.channelbox     BOOL    True
     [attr diffuse]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr specular]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr sss]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr indirect]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
         max                 INT     100
+        maya.channelbox     BOOL    True
+    [attr normalize]
+        maya.channelbox     BOOL    True
+    [attr affect_volumetrics]
+        maya.channelbox     BOOL    True
+    [attr cast_volumetric_shadows]
+        maya.channelbox     BOOL    True
 
 [node spot_light]
     maya.name               STRING  "spotLight"
@@ -310,8 +344,6 @@
     [attr radius]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-        maya.channelbox     BOOL    True
-    [attr normalize]
         maya.channelbox     BOOL    True
     [attr samples]
         min                 INT     1
@@ -371,6 +403,8 @@
     [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
+        maya.channelbox     BOOL    True
+    [attr normalize]
         maya.channelbox     BOOL    True
 
 [node skydome_light]
