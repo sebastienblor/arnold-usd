@@ -1042,9 +1042,9 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExpo
    return MTOA_EXPORT_ACCEPTED;
 }
 
-void CArnoldSession::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
+void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
 {
-   m_arnoldLightLinks.ExportLightLinking(shape, dNode);
+   m_arnoldLightLinks.ExportLightLinking(shape, path);
 }
 
 // updates
