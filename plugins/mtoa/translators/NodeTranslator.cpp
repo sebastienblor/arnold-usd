@@ -728,6 +728,9 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
+      MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
+      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh")/*|| node.apiType() == MFn::kPluginShape*/)
+         translator->m_updateMode = AI_RECREATE_NODE;
       translator->RequestUpdate(clientData);
    }
    else
@@ -762,12 +765,13 @@ void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, 
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Node deleted, deleting processed translator instance, client data: %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), clientData);
-      translator->RequestUpdate();
-      translator->RemoveUpdateCallbacks();
-      translator->Delete();
+      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
+         translator->m_updateMode = AI_DELETE_NODE;
+      translator->RequestUpdate(clientData);
    }
    else
    {
+      // TODO: Shouldn't we avoid call translator->GetMayaNodeName().asChar() if translator is NULL?
       AiMsgWarning("[mtoa.translator.ipr] %-30s | Translator callback for node deleted, no translator in client data: %p.",
                    translator->GetMayaNodeName().asChar(), clientData);
    }
@@ -1999,12 +2003,16 @@ void CDagTranslator::AddUpdateCallbacks()
 
 void CDagTranslator::Delete()
 {
-   //AiNodeDestroy(GetArnoldRootNode());
+
+   AiRenderInterrupt();
+   
+   AiNodeDestroy(GetArnoldRootNode());
 
    // Arnold doesn't allow us to create nodes in between to calls to AiRender
    // for the moment. For IPR we still need to rely on setting the visibility for now.
-   AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
-
+   //AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
+   m_atNode = NULL;
+   m_atNodes.clear();
 }
 
 /// Return whether the current dag object is the master instance.

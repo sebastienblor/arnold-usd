@@ -23,6 +23,10 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
+#define AI_UPDATE_ONLY 0
+#define AI_DELETE_NODE 1
+#define AI_RECREATE_NODE 2
+
 MString GetAOVNodeType(int type);
 
 // Abstract base class for all Maya-to-Arnold node translators
@@ -109,7 +113,8 @@ protected:
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
-      m_handle(CNodeAttrHandle())
+      m_handle(CNodeAttrHandle()),
+      m_updateMode(AI_UPDATE_ONLY)
    {}
 
    virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
@@ -218,6 +223,8 @@ protected:
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
+   
+   unsigned int m_updateMode;
 
 private:
    

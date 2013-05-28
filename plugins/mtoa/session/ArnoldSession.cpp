@@ -1080,11 +1080,29 @@ void CArnoldSession::DoUpdate()
    {
       CNodeAttrHandle handle(itObj->first);           // TODO : test isValid and isAlive ?
       CNodeTranslator * translator = itObj->second;
-      if (translator != NULL)
+      if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
       {
          // A translator was provided, just add it to the list
-         if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
-         if (translator->IsMayaTypeDag()) aDag = true;
+         if(translator->m_updateMode == AI_DELETE_NODE)
+         {
+            translator->RemoveUpdateCallbacks();
+            translator->Delete();
+            m_processedTranslators.erase(handle);
+         }
+         else
+         {
+            if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
+            if (translator->IsMayaTypeDag()) aDag = true;
+            translatorsToUpdate.push_back(translator);
+         }
+      }
+      else if(translator != NULL && translator->m_updateMode == AI_RECREATE_NODE)
+      {
+         translator->Delete();
+         translator->m_atNodes.clear();
+         translator->DoCreateArnoldNodes();
+
+         translator->DoExport(0);
          translatorsToUpdate.push_back(translator);
       }
       else
@@ -1137,6 +1155,7 @@ void CArnoldSession::DoUpdate()
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
             if (translators[i]->IsMayaTypeDag()) aDag = true;
+            translators[i]->DoExport(0);
             translatorsToUpdate.push_back(translators[i]);
          }
       }
