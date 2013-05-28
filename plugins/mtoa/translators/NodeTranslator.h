@@ -113,8 +113,8 @@ protected:
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
-      m_handle(CNodeAttrHandle()),
-      m_updateMode(AI_UPDATE_ONLY)
+      m_updateMode(AI_UPDATE_ONLY),
+      m_handle(CNodeAttrHandle())      
    {}
 
    virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
