@@ -191,6 +191,8 @@ public:
    inline const MObject& GetArnoldRenderOptions() const { return m_options; }
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
 
+   MString GetShaderSearchPath() const { return m_shader_searchpath; }
+
 private:
 
    MStatus ProcessCommonRenderOptions();
@@ -254,4 +256,6 @@ private:
    unsigned int   m_log_max_warnings;
    unsigned int   m_log_console_verbosity;
    unsigned int   m_log_file_verbosity;
+
+   MString m_shader_searchpath;
 };
