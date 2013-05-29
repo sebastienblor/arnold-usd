@@ -114,12 +114,13 @@ def createBackground(type, field):
     changeBackground(node, field)
 
 
-def deleteBackground(field):
-    node = getBackgroundShader();
+def removeBackground(field, doDelete):
+    node = getBackgroundShader()
     if node:
         pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
-        pm.delete(node)
         pm.textField(field, edit=True, text="")
+        if doDelete:
+            pm.delete(node)
 
 def buildBackgroundMenu(popup, field):
 
@@ -150,7 +151,8 @@ def buildBackgroundMenu(popup, field):
 
     pm.menuItem(parent=popup, divider=True)
 
-    pm.menuItem(parent=popup, label="Delete", command=Callback(deleteBackground, field))
+    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False))
+    pm.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True))
 
 def selectAtmosphere(*args):
     bkg = pm.getAttr('defaultArnoldRenderOptions.atmosphere')
