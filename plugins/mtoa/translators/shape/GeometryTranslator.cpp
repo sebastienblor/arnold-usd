@@ -409,17 +409,35 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
       if (!plug.isNull())
          exportColors = plug.asBool();
    }
-   if (exportColors)
+   MStringArray names;
+   fnMesh.getColorSetNames(names);
+   unsigned int numColorSets = names.length();
+   m_useMotionVectors = false;
+   if (m_motionDeform && IsLocalMotionBlurEnabled())
    {
-      MStringArray names;
+      for (unsigned int j = 0; j < numColorSets; ++j)
+      {
+         if (names[j] == MString("velocityPV"))
+            m_useMotionVectors = true;
+      }
+   }
+
+   if (!exportColors && m_useMotionVectors)
+   {
+      names.clear();
+      names.append("velocityPV");
+      numColorSets = 1;
+   }
+
+   if (numColorSets)
+   {      
       MIntArray faces;
       unsigned int i = 0;
       float scale = 1.0f;
       int dim = 4;
       MColor col;
 
-      fnMesh.getColorSetNames(names);
-      for (unsigned int j=0; j<names.length(); ++j)
+      for (unsigned int j=0; j<numColorSets; ++j)
       {
          std::vector<float> &colors = vcolors[names[j].asChar()];
          colors.resize(fnMesh.numVertices() * dim, 0.0f);
@@ -836,17 +854,53 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       else
       {
          // Deformation motion blur. We need to create keyable arrays for vlist and nlist
-         if (exportVertices)
+         if (m_useMotionVectors)
          {
-            AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_POINT);
-            SetKeyData(vlist_array, step, vertices, numVerts);
-            AiNodeSetArray(polymesh, "vlist", vlist_array);
+            if (exportVertices)
+            {
+               std::vector<float>& motionVectors = vcolors["velocityPV"];
+               AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
+               AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
+               const float* vert = vertices;
+               for (unsigned int i = 0; i < numVerts; ++i)
+               {                  
+                  AtVector vec = {*(vert++), *(vert++), *(vert++)};
+                  AiArraySetPnt(verticesArray, i, vec);
+                  AtRGBA motionVector = *(motionVectorColors + i); // multiply this with the shutter size
+                  vec.x += motionVector.r;
+                  vec.y += motionVector.g;
+                  vec.z += motionVector.b;
+                  AiArraySetPnt(verticesArray, i + numVerts, vec);
+               }
+               AiNodeSetArray(polymesh, "vlist", verticesArray);
+            }
+            if (exportNormals)
+            {
+               AtArray* normalsArray = AiArrayAllocate(numNorms, 2, AI_TYPE_VECTOR);
+               const float* norm = normals;
+               for (unsigned int i = 0; i < numNorms; ++i)
+               {                  
+                  AtVector vec = {*(norm++), *(norm++), *(norm++)};
+                  AiArraySetVec(normalsArray, i, vec);
+                  AiArraySetVec(normalsArray, i + numNorms, vec);
+               }
+               AiNodeSetArray(polymesh, "nlist", normalsArray);
+            }
          }
-         if (exportNormals)
+         else
          {
-            AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
-            SetKeyData(nlist_array, step, normals, numNorms);
-            AiNodeSetArray(polymesh, "nlist", nlist_array);
+            if (exportVertices)
+            {
+               AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_POINT);
+               SetKeyData(vlist_array, step, vertices, numVerts);
+               AiNodeSetArray(polymesh, "vlist", vlist_array);
+            }
+            if (exportNormals)
+            {
+               AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
+               SetKeyData(nlist_array, step, normals, numNorms);
+               AiNodeSetArray(polymesh, "nlist", nlist_array);
+            }
          }
       }
 
@@ -935,7 +989,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          }
       }
    } // step == 0
-   else
+   else if (!m_useMotionVectors)
    {
       // Export motion blur keys information (for deformation)
 
