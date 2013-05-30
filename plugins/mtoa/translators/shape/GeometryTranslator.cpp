@@ -422,7 +422,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
       }
    }
 
-   if (!exportColors))
+   if (!exportColors)
    {
       if (m_useMotionVectors)
       {
