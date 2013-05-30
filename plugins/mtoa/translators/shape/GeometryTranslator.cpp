@@ -422,11 +422,16 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
       }
    }
 
-   if (!exportColors && m_useMotionVectors)
+   if (!exportColors))
    {
-      names.clear();
-      names.append("velocityPV");
-      numColorSets = 1;
+      if (m_useMotionVectors)
+      {
+         names.clear();
+         names.append("velocityPV");
+         numColorSets = 1;
+      }
+      else
+         numColorSets = 0;      
    }
 
    if (numColorSets)
