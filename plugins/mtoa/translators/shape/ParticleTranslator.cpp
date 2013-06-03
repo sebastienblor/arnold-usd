@@ -1220,8 +1220,12 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
    //m_fnParticleSystem.position(*positionArray);
    m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
-   m_fnParticleSystem.particleIds(particleId);
-
+   MDoubleArray tempDoubleParticleId;
+   m_fnParticleSystem.getPerParticleAttribute(MString("particleId"), tempDoubleParticleId);
+   unsigned int particleIdCount = tempDoubleParticleId.length();
+   particleId.setLength(particleIdCount);
+   for (unsigned int i = 0; i < particleIdCount; ++i)
+      particleId[i] = static_cast<int>(tempDoubleParticleId[i]);
 }
 
 
