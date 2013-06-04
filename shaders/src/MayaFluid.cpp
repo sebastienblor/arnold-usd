@@ -1271,15 +1271,16 @@ shader_evaluate
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
 
-   float opacityNoise = CalculateDropoff(data, lPt);
+   const float dropoff = CalculateDropoff(data, lPt);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, 1.0f)) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, 1.0f)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
+   float opacityNoise = 1.0f;
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
    const float old_area = sg->area;
@@ -1438,12 +1439,12 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * data->transparency;
+   const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * dropoff * data->transparency;
    AtRGB color = GetValue(sg, data, lPt, data->colorGradient, colorNoise);
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
