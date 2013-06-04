@@ -1109,7 +1109,7 @@ AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
 }
 
 template <typename T, bool M, bool G>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G>& gradient)
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, float texture)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
@@ -1147,9 +1147,9 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = AiV3Length(Filter(data, lPt, data->velocity));
          break;
       default:
-         return GetDefaultValue<T>();
+         return GetDefaultValue<T>() * texture;
    }
-   return gradient.GetValue(sg, gradientValue);
+   return gradient.GetValue(sg, gradientValue * texture);
 }
 
 inline
@@ -1275,7 +1275,7 @@ shader_evaluate
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * AiShaderEvalParamFlt(p_shadow_opacity) * opacityNoise;
+      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, 1.0f)) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -1438,17 +1438,17 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * opacityNoise * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient)) * data->transparency * opacityNoise;
-   AtRGB color = GetValue(sg, data, lPt, data->colorGradient) * colorNoise;
+   const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * data->transparency;
+   AtRGB color = GetValue(sg, data, lPt, data->colorGradient, colorNoise);
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
    color.b = MAX(0.f, color.b);
-   AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient) * incandNoise;
+   AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient, incandNoise);
    incandescence.r = MAX(0.f, incandescence.r);
    incandescence.g = MAX(0.f, incandescence.g);
    incandescence.b = MAX(0.f, incandescence.b);
