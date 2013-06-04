@@ -864,6 +864,12 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       else
          translator->m_updateMode = AI_UPDATE_ONLY;
          
+      if(strcmp(translator->GetArnoldTypeName(), "skydome_light") == 0)
+      {
+         CMayaScene::GetRenderSession()->InterruptRender();
+         AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      }
+         
       translator->RequestUpdate(clientData);
    }
    else
