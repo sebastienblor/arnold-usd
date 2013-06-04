@@ -1,5 +1,6 @@
 #include "MayaUtils.h"
 #include <string>
+#include <vector>
 
 namespace
 {
