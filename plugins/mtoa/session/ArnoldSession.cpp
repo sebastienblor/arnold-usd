@@ -1072,6 +1072,7 @@ void CArnoldSession::DoUpdate()
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
+   std::vector<CNodeAttrHandle> newToUpdate;
    bool aDag   = false;
    bool newDag = false;
    bool reqMob = false;
@@ -1147,6 +1148,11 @@ void CArnoldSession::DoUpdate()
                   GetActiveTranslators(handle, translators);
                }
             }
+            else // If new node is a dependency node, we will register its
+                 //  update callbacks later if it correctly exported.
+            {
+               newToUpdate.push_back(handle);
+            }
             // Dependency nodes are not exported by themselves, their export
             // will be requested if they're connected to an exported node
          }
@@ -1207,6 +1213,15 @@ void CArnoldSession::DoUpdate()
    // Refresh translator callbacks after all is done
    if (GetSessionMode() == MTOA_SESSION_IPR)
    {
+      for (std::vector<CNodeAttrHandle>::iterator iter = newToUpdate.begin();
+         iter != newToUpdate.end(); ++iter)
+      {
+         CNodeAttrHandle handle = (*iter);
+         ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
+         it = m_processedTranslators.find(handle);
+         if(it != m_processedTranslators.end())
+            translatorsToUpdate.push_back(it->second);
+      }
       // re-add IPR callbacks to all updated translators after ALL updates are done
       for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
          iter != translatorsToUpdate.end(); ++iter)
