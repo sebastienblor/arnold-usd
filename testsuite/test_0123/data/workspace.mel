@@ -1,0 +1,11 @@
+//Maya Preview Release 28 x64 Project Definition
+
+workspace -fr "offlineEdit" "scenes/edits";
+workspace -fr "movie" "data";
+workspace -fr "autoSave" "autosave";
+workspace -fr "mayaAscii" "scenes";
+workspace -fr "fileCache" "cache/nCache";
+workspace -fr "particles" ".";
+workspace -fr "templates" "assets";
+workspace -fr "xgen" "scenes/xgen";
+workspace -fr "mayaBinary" "scenes";
