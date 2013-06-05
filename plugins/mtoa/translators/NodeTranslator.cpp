@@ -4,6 +4,7 @@
 #include "extension/ExtensionsManager.h"
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
+#include "scene/MayaScene.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -729,8 +730,146 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
       MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
-      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh")/*|| node.apiType() == MFn::kPluginShape*/)
+      
+      if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
+      {
+         std::vector< CDagTranslator * > translatorsToUpdate;
+         bool reexport = true;
+
+         for(unsigned int i = 0; i < MFnDependencyNode(node).findPlug("dagSetMembers").numElements(); i++)
+         {
+            MPlug a = MFnDependencyNode(node).findPlug("dagSetMembers")[i];
+            MPlugArray connectedPlugs;
+            a.connectedTo(connectedPlugs,true,false);
+
+            for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+            {
+               MPlug connection = connectedPlugs[j];
+               MObject parent = connection.node();
+               MFnDependencyNode parentDag(parent);
+               MString nameParent = parentDag.name();
+
+               MDagPath dagPath;
+               MDagPath::getAPathTo(parent, dagPath);
+
+               CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
+
+               // TODO: By now we have to check the connected nodes and if something that is not a mesh
+               //  is connected, we do not reexport, as some crashes may happen.
+               if(translator2->GetMayaNodeTypeName() != "mesh")
+               {
+                  reexport = false;
+                  break;
+               }
+
+               translatorsToUpdate.push_back(translator2);
+            }
+
+            if(reexport == false)
+               break;
+         }
+
+         // We only reexport if all nodes connected to the displacement are mesh nodes
+         if (reexport)
+         {
+            for (std::vector<CDagTranslator*>::iterator iter = translatorsToUpdate.begin();
+               iter != translatorsToUpdate.end(); ++iter)
+            {
+               CDagTranslator* translator3 = (*iter);
+               if (translator3 != NULL)
+               {
+                  translator3->m_updateMode = AI_RECREATE_NODE;
+                  translator3->RequestUpdate(static_cast<void*>(translator3));
+               }
+            }
+         }
+      }
+
+      if(node.apiType() == MFn::kDisplacementShader)
+      {
+         MPlug disp = MFnDependencyNode(node).findPlug("displacement");
+         MPlugArray connectedPlugs;
+         disp.connectedTo(connectedPlugs,false,true);;
+
+         // For each shading engine connected to the displacement node
+         for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+         {
+            MPlug connection = connectedPlugs[j];
+            MObject shadingEngine = connection.node();
+
+            std::vector< CDagTranslator * > translatorsToUpdate;
+            bool reexport = true;
+
+            // For each geometry connected to the shading engine
+            for(unsigned int i = 0; i < MFnDependencyNode(shadingEngine).findPlug("dagSetMembers").numElements(); i++)
+            {
+               MPlug a = MFnDependencyNode(shadingEngine).findPlug("dagSetMembers")[i];
+               MPlugArray connectedPlugs;
+               a.connectedTo(connectedPlugs,true,false);;
+
+               // This should be only one connection; connectedPlugs.length() should be 0 or 1
+               for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+               {
+                  MPlug connection = connectedPlugs[j];
+                  MObject parent = connection.node();
+                  MFnDependencyNode parentDag(parent);
+                  MString nameParent = parentDag.name();
+
+                  MDagPath dagPath;
+                  MDagPath::getAPathTo(parent, dagPath);
+
+                  CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
+
+
+                  translator2->m_updateMode = AI_RECREATE_NODE;
+                  translator2->RequestUpdate(static_cast<void*>(translator2));
+
+                  // TODO: By now we have to check the connected nodes and if something that is not a mesh
+                  //  is connected, we do not reexport, as some crashes may happen.
+                  if(translator2->GetMayaNodeTypeName() != "mesh")
+                  {
+                     reexport = false;
+                     break;
+                  }
+
+                  translatorsToUpdate.push_back(translator2);
+
+               }
+
+               if(reexport == false)
+                  break;
+            }
+
+            // We only reexport if all nodes connected to the displacement are mesh nodes
+            if (reexport)
+            {
+               for (std::vector<CDagTranslator*>::iterator iter = translatorsToUpdate.begin();
+                  iter != translatorsToUpdate.end(); ++iter)
+               {
+                  CDagTranslator* translator3 = (*iter);
+                  if (translator3 != NULL)
+                  {
+                     translator3->m_updateMode = AI_RECREATE_NODE;
+                     translator3->RequestUpdate(static_cast<void*>(translator3));
+                  }
+               }
+            }
+
+         }
+      }
+
+      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" ||
+         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/)
          translator->m_updateMode = AI_RECREATE_NODE;
+      else
+         translator->m_updateMode = AI_UPDATE_ONLY;
+         
+      if(strcmp(translator->GetArnoldTypeName(), "skydome_light") == 0)
+      {
+         CMayaScene::GetRenderSession()->InterruptRender();
+         AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      }
+         
       translator->RequestUpdate(clientData);
    }
    else

@@ -7,6 +7,7 @@
 #include <string>
 #include <cstring>
 #include <map>
+#include <vector>
 
 #include <ai.h>
 
