@@ -31,12 +31,12 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_surface_shader";
    data.isArray = false;   
    
-   helper.MakeInputNode(data);
+   helper.MakeInputRGB(data);
    
    data.name = "aiVolumeShader";
    data.shortName = "ai_volume_shader";
    
-   helper.MakeInputNode(data);
+   helper.MakeInputRGB(data);
 }
 
 /// Compute the shading engine's AOVs. these are connected to aiCustomAOVs compound array.

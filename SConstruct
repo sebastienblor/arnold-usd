@@ -197,6 +197,26 @@ arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_ver
 maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 maya_version_base = maya_version[0:4]
 
+mercurial_id = ""
+try:
+    p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
+    mercurial_id, err = p.communicate()
+    mercurial_id = mercurial_id.rstrip('\n')
+except:
+    pass #hg is not in the path
+mercurial_id_file_contents = '#pragma once\n#define MERCURIAL_ID "%s"\n\n' % mercurial_id
+mercurial_id_file_read = ''
+try:
+    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'r')
+    mercurial_id_file_read = open.read()
+    mercurial_id_file.close()
+except:
+    pass # the file doesn't exists yet
+if mercurial_id_file_read != mercurial_id_file_contents:
+    mercurial_id_file = open(os.path.join('plugins', 'mtoa', 'utils', 'MercurialID.h'), 'w')
+    mercurial_id_file.write(mercurial_id_file_contents)
+    mercurial_id_file.flush()
+    mercurial_id_file.close()
 # print build info
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
@@ -211,6 +231,7 @@ if system.os() == 'linux':
       print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
    except:
       pass
+print 'Mercurial ID   : %s' % mercurial_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
@@ -571,13 +592,15 @@ else:
 env.Install(env['TARGET_LIB_PATH'], libs)
 
 dylibs = glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()))
+dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
+dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -601,7 +624,6 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
               os.path.join('common', 'MObjectCompare.h'),
               os.path.join('common', 'UtilityFunctions.h'),
               os.path.join('attributes', 'AttrHelper.h'),
-              os.path.join('attributes', 'MNodeClass.h'),
               os.path.join('extension', 'Extension.h'),
               os.path.join('extension', 'AbMayaNode.h'),
               os.path.join('extension', 'AbTranslator.h'),
@@ -615,7 +637,8 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
               os.path.join('session', 'ArnoldLightLinks.h'),
               os.path.join('render', 'AOV.h'),
               os.path.join('translators', 'NodeTranslator.h'),
-              os.path.join('translators', 'shape', 'ShapeTranslator.h')]
+              os.path.join('translators', 'shape', 'ShapeTranslator.h'),
+              os.path.join('utils', 'Version.h')]
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])

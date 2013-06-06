@@ -21,11 +21,7 @@
 #include <maya/MTypes.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MFileObject.h>
-#if MAYA_API_VERSION < 201200
-   #include "attributes/MNodeClass.h"
-#else
-   #include <maya/MNodeClass.h>
-#endif
+#include <maya/MNodeClass.h>
 
 // --------- CExtension -------------//
 

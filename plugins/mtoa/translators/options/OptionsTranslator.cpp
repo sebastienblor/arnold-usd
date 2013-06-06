@@ -562,4 +562,6 @@ void COptionsTranslator::Update(AtNode *options)
 {
    // set the camera
    SetCamera(options);
+
+   AiNodeSetBool(options, "ignore_shaders", FindMayaPlug("ignore_shaders").asBool());
 }

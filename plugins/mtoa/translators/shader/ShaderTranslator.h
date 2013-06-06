@@ -32,6 +32,7 @@ public:
 protected:
    AtNode* ProcessAOVOutput(AtNode* shader);
    void AssociateAOVsWithShadingGroups();
+   virtual void ExportBump(AtNode* shader);
 
 protected:
    std::map<std::string, MPlugArray> m_aovShadingGroups;

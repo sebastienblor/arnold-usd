@@ -4,6 +4,7 @@
 #include "extension/ExtensionsManager.h"
 #include "attributes/Components.h"
 #include "common/UtilityFunctions.h"
+#include "scene/MayaScene.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -728,6 +729,147 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
+      MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
+      
+      if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
+      {
+         std::vector< CDagTranslator * > translatorsToUpdate;
+         bool reexport = true;
+
+         for(unsigned int i = 0; i < MFnDependencyNode(node).findPlug("dagSetMembers").numElements(); i++)
+         {
+            MPlug a = MFnDependencyNode(node).findPlug("dagSetMembers")[i];
+            MPlugArray connectedPlugs;
+            a.connectedTo(connectedPlugs,true,false);
+
+            for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+            {
+               MPlug connection = connectedPlugs[j];
+               MObject parent = connection.node();
+               MFnDependencyNode parentDag(parent);
+               MString nameParent = parentDag.name();
+
+               MDagPath dagPath;
+               MDagPath::getAPathTo(parent, dagPath);
+
+               CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
+
+               // TODO: By now we have to check the connected nodes and if something that is not a mesh
+               //  is connected, we do not reexport, as some crashes may happen.
+               if(translator2->GetMayaNodeTypeName() != "mesh")
+               {
+                  reexport = false;
+                  break;
+               }
+
+               translatorsToUpdate.push_back(translator2);
+            }
+
+            if(reexport == false)
+               break;
+         }
+
+         // We only reexport if all nodes connected to the displacement are mesh nodes
+         if (reexport)
+         {
+            for (std::vector<CDagTranslator*>::iterator iter = translatorsToUpdate.begin();
+               iter != translatorsToUpdate.end(); ++iter)
+            {
+               CDagTranslator* translator3 = (*iter);
+               if (translator3 != NULL)
+               {
+                  translator3->m_updateMode = AI_RECREATE_NODE;
+                  translator3->RequestUpdate(static_cast<void*>(translator3));
+               }
+            }
+         }
+      }
+
+      if(node.apiType() == MFn::kDisplacementShader)
+      {
+         MPlug disp = MFnDependencyNode(node).findPlug("displacement");
+         MPlugArray connectedPlugs;
+         disp.connectedTo(connectedPlugs,false,true);;
+
+         // For each shading engine connected to the displacement node
+         for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+         {
+            MPlug connection = connectedPlugs[j];
+            MObject shadingEngine = connection.node();
+
+            std::vector< CDagTranslator * > translatorsToUpdate;
+            bool reexport = true;
+
+            // For each geometry connected to the shading engine
+            for(unsigned int i = 0; i < MFnDependencyNode(shadingEngine).findPlug("dagSetMembers").numElements(); i++)
+            {
+               MPlug a = MFnDependencyNode(shadingEngine).findPlug("dagSetMembers")[i];
+               MPlugArray connectedPlugs;
+               a.connectedTo(connectedPlugs,true,false);;
+
+               // This should be only one connection; connectedPlugs.length() should be 0 or 1
+               for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+               {
+                  MPlug connection = connectedPlugs[j];
+                  MObject parent = connection.node();
+                  MFnDependencyNode parentDag(parent);
+                  MString nameParent = parentDag.name();
+
+                  MDagPath dagPath;
+                  MDagPath::getAPathTo(parent, dagPath);
+
+                  CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
+
+
+                  translator2->m_updateMode = AI_RECREATE_NODE;
+                  translator2->RequestUpdate(static_cast<void*>(translator2));
+
+                  // TODO: By now we have to check the connected nodes and if something that is not a mesh
+                  //  is connected, we do not reexport, as some crashes may happen.
+                  if(translator2->GetMayaNodeTypeName() != "mesh")
+                  {
+                     reexport = false;
+                     break;
+                  }
+
+                  translatorsToUpdate.push_back(translator2);
+
+               }
+
+               if(reexport == false)
+                  break;
+            }
+
+            // We only reexport if all nodes connected to the displacement are mesh nodes
+            if (reexport)
+            {
+               for (std::vector<CDagTranslator*>::iterator iter = translatorsToUpdate.begin();
+                  iter != translatorsToUpdate.end(); ++iter)
+               {
+                  CDagTranslator* translator3 = (*iter);
+                  if (translator3 != NULL)
+                  {
+                     translator3->m_updateMode = AI_RECREATE_NODE;
+                     translator3->RequestUpdate(static_cast<void*>(translator3));
+                  }
+               }
+            }
+
+         }
+      }
+
+      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" ||
+         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/)
+         translator->m_updateMode = AI_RECREATE_NODE;
+      else
+         translator->m_updateMode = AI_UPDATE_ONLY;
+         
+      if(strcmp(translator->GetArnoldTypeName(), "skydome_light") == 0)
+      {
+         CMayaScene::GetRenderSession()->InterruptRender();
+         AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      }
+         
       translator->RequestUpdate(clientData);
    }
    else
@@ -762,12 +904,13 @@ void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, 
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Node deleted, deleting processed translator instance, client data: %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), clientData);
-      translator->RequestUpdate();
-      translator->RemoveUpdateCallbacks();
-      translator->Delete();
+      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
+         translator->m_updateMode = AI_DELETE_NODE;
+      translator->RequestUpdate(clientData);
    }
    else
    {
+      // TODO: Shouldn't we avoid call translator->GetMayaNodeName().asChar() if translator is NULL?
       AiMsgWarning("[mtoa.translator.ipr] %-30s | Translator callback for node deleted, no translator in client data: %p.",
                    translator->GetMayaNodeName().asChar(), clientData);
    }
@@ -1999,38 +2142,65 @@ void CDagTranslator::AddUpdateCallbacks()
 
 void CDagTranslator::Delete()
 {
-   //AiNodeDestroy(GetArnoldRootNode());
+
+   AiRenderInterrupt();
+   
+   AiNodeDestroy(GetArnoldRootNode());
 
    // Arnold doesn't allow us to create nodes in between to calls to AiRender
    // for the moment. For IPR we still need to rely on setting the visibility for now.
-   AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
-
+   //AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
+   m_atNode = NULL;
+   m_atNodes.clear();
 }
 
-// Return whether the dag object in dagPath is the master instance. The master
-// is the first instance that is completely visible (including parent transforms)
-// for which full geometry should be exported
-//
-// always returns true if dagPath is not instanced.
-// if dagPath is instanced, this searches the preceding instances
-// for the first that is visible. if none are found, dagPath is considered the master.
-//
-// note: dagPath is assumed to be visible.
-//
-// @param[out] masterDag    the master MDagPath result, only filled if result is false
-// @return                  whether or not dagPath is a master
-//
-bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
+/// Return whether the current dag object is the master instance.
+///
+/// The master is the first instance that is completely visible (including parent transforms)
+/// for which full geometry should be exported.
+///
+/// Always returns true if this dagPath is not instanced.
+/// If dagPath is instanced, this searches the preceding instances
+/// for the first that is visible. if none are found, dagPath is considered the master.
+///
+/// This function caches the result on the first run and returns the cached results on
+/// subsequent calls.
+///
+/// note: dagPath is assumed to be visible.
+///
+/// @return                  whether or not dagPath is a master
+///
+bool CDagTranslator::IsMasterInstance()
 {
-   if (m_dagPath.isInstanced())
+   if (!m_masterDag.isValid())
+      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
+   return m_isMasterDag;
+}
+
+/// Return the master instance for the current dag object.
+///
+/// The master is the first instance that is completely visible (including parent transforms)
+/// for which full geometry should be exported.
+///
+MDagPath& CDagTranslator::GetMasterInstance()
+{
+   if (!m_masterDag.isValid())
+      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
+   return m_masterDag;
+}
+
+/// Like IsMasterInstance, but does not cache result
+bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag)
+{
+   if (dagPath.isInstanced())
    {
-      MObjectHandle handle = MObjectHandle(m_dagPath.node());
-      unsigned int instNum = m_dagPath.instanceNumber();
+      MObjectHandle handle = MObjectHandle(dagPath.node());
+      unsigned int instNum = dagPath.instanceNumber();
       // first instance
       if (instNum == 0)
       {
-         // first visible instance is always the master (passed m_dagPath is assumed to be visible)
-         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         // first visible instance is always the master (passed dagPath is assumed to be visible)
+         m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
       else
@@ -2045,9 +2215,9 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          }
          // find the master by searching preceding instances
          MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
+         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
          unsigned int master_index = 0;
-         for (; (master_index < m_dagPath.instanceNumber()); master_index++)
+         for (; (master_index < dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
             if (m_session->IsRenderablePath(currDag))
@@ -2058,12 +2228,12 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
                return false;
             }
          }
-         // didn't find a master: m_dagPath is the master
-         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         // didn't find a master: dagPath is the master
+         m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
    }
-   // not instanced: m_dagPath is the master
+   // not instanced: dagPath is the master
    return true;
 }
 

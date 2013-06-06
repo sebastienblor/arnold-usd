@@ -11,6 +11,7 @@
 #include <maya/MFnPlugin.h>
 #include <maya/MDGMessage.h>
 #include <maya/MMessage.h>
+#include <maya/MStringArray.h>
 
 
 //--------------- CExtensionsManager -----------------------------------
@@ -60,6 +61,7 @@ public:
    static void GetNodeTypesWithAOVs(MStringArray& result);
 
    static CExtension* GetExtension(const MString &extensionFile);
+   static CExtension* GetExtensionByName(const MString &extensionName);
 
    static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
    static MCallbackId CreatePluginLoadedCallback();
@@ -68,6 +70,7 @@ public:
    static void SetDefaultTranslator(const MString &mayaTypeName,
                                 const MString &translatorName);
    static MString GetDefaultTranslator(const MString& nodeName);
+   static MStringArray ListLoadedExtensions();
 
 protected:
    static MStatus DoUnloadExtension(CExtension* extension);

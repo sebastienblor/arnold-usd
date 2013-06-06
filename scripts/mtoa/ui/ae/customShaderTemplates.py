@@ -7,13 +7,6 @@ from collections import defaultdict
 
 class DisplacementShaderTemplate(templates.AttributeTemplate):
     def setup(self):
-        if pm.mel.getApplicationVersionAsFloat() == 2011:
-            self.addControl('vectorDisplacement', label='Vector Displacement')
-            self.addControl('scale', label='Scale')
-            self.addControl('vectorEncoding', label='Vector Encoding')
-            self.addControl('vectorSpace', label='Vector Space')
-            self.addControl('tangent', label='Tangent')
-            self.addSeparator()
         self.addControl('aiDisplacementPadding', label='Bounds Padding')
         self.addControl('aiDisplacementZeroValue', label='Scalar Zero Value')
         self.addControl('aiDisplacementAutoBump', label='Auto Bump')

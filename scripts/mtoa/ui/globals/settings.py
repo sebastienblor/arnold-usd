@@ -110,7 +110,7 @@ def createBackground(type, field):
     bg = getBackgroundShader()
     #if bg:
         #pm.delete(bg)
-    node = pm.shadingNode(type, asShader=True, name=type+"Shape")
+    node = pm.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field)
 
 
@@ -125,9 +125,15 @@ def buildBackgroundMenu(popup, field):
 
     switches = pm.ls(type='aiRaySwitch')
     skies = pm.ls(type='aiSky')
+    pSkies = pm.ls(type='aiPhysicalSky')
 
     pm.popupMenu(popup, edit=True, deleteAllItems=True)
     for item in skies:
+        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
+
+    pm.menuItem(parent=popup, divider=True)
+    
+    for item in pSkies:
         pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
 
     pm.menuItem(parent=popup, divider=True)
@@ -136,8 +142,10 @@ def buildBackgroundMenu(popup, field):
         pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
 
     pm.menuItem(parent=popup, divider=True)
+    
 
     pm.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field))
+    pm.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field))
     pm.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field))
 
     pm.menuItem(parent=popup, divider=True)

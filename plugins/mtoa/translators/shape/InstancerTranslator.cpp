@@ -24,10 +24,9 @@ void CInstancerTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CInstancerTranslator::CreateArnoldNodes()
 {
-   m_isMasterDag = IsMasterInstance(m_masterDag);
    // FIXME  this master dag return needs to be null because it doesen't contain anything, the instancer
    // produces individual ginstances for each particle instance
-   if (m_isMasterDag)
+   if (IsMasterInstance())
       return  AddArnoldNode("ginstance");
 
    else
@@ -41,7 +40,7 @@ void CInstancerTranslator::Update(AtNode *anode)
 
 void CInstancerTranslator::ExportMotion(AtNode* anode, AtUInt step)
 {
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       ExportMatrix(anode, step);
       if (m_motionDeform)
