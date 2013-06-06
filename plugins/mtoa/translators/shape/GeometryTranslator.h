@@ -31,6 +31,7 @@ public:
    {
       m_displaced = false;
       m_isRefSmooth = false;
+      m_useMotionVectors = false;
       m_geometry = dagPath.node();
       return CShapeTranslator::Init(session, dagPath, outputAttr);
    }
@@ -94,6 +95,7 @@ protected:
 protected:
    bool m_displaced;
    bool m_isRefSmooth;
+   bool m_useMotionVectors;
    MObject m_geometry;
    MDagPath m_dagPathRef;
 };

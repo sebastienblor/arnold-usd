@@ -98,6 +98,9 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       m_renderOptions = options;
       m_renderOptions.SetupLog();
       ArnoldUniverseLoadPluginsAndMetadata();
+
+      // load plugins from the render options' shader_searchpath (#1391)
+      AiLoadPlugins(m_renderOptions.GetShaderSearchPath().asChar());
    }
    
    m_is_active = AiUniverseIsActive() ? true : false;

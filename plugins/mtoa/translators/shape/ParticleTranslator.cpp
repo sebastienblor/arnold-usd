@@ -172,8 +172,6 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
 ///  to the settings AiStrings
 void CParticleTranslator::ExportPreambleData(AtNode* particle)
 {
-   m_particleCount = m_fnParticleSystem.count();
-
    int renderType = m_fnParticleSystem.renderType();
 
    AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName().asChar(), renderType);
@@ -391,6 +389,8 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
                          opacityArray,
                          velocityArray,
                          particleId);
+
+   m_particleCount = positionArray->length();
 
    m_instantVeloArray = velocityArray;
 
@@ -823,7 +823,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
          intIt->second.push_back(newAttributes);
       }
    }
-
    for (int j = 0; j < m_particleCount; j++)
    {
       MVector velocitySubstep = (((m_instantVeloArray[j]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
@@ -1221,8 +1220,12 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
    //m_fnParticleSystem.position(*positionArray);
    m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
-   m_fnParticleSystem.particleIds(particleId);
-
+   MDoubleArray tempDoubleParticleId;
+   m_fnParticleSystem.getPerParticleAttribute(MString("particleId"), tempDoubleParticleId);
+   unsigned int particleIdCount = tempDoubleParticleId.length();
+   particleId.setLength(particleIdCount);
+   for (unsigned int i = 0; i < particleIdCount; ++i)
+      particleId[i] = static_cast<int>(tempDoubleParticleId[i]);
 }
 
 

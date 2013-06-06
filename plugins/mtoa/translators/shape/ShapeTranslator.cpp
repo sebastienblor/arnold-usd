@@ -106,9 +106,9 @@ AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vect
 }
 
 // called for shaders connected directly to shapes
-AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug)
+AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug, CNodeTranslator** outTranslator)
 {
-   return ExportRootShader(ExportNode(plug));
+   return ExportRootShader(ExportNode(plug, true, outTranslator));
 }
 
 // called for root shaders that have already been created
