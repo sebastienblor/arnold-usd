@@ -342,6 +342,30 @@ AtVector GetDefaultValue<AtVector>()
 }
 
 template <typename T>
+T GetConstantValue()
+{
+   return 1;
+}
+
+template <>
+float GetConstantValue<float>()
+{
+   return 1.f;
+}
+
+template <>
+AtRGB GetConstantValue<AtRGB>()
+{
+   return AI_RGB_WHITE;
+}
+
+template <>
+AtVector GetConstantValue<AtVector>()
+{
+   return AI_V3_ONE;
+}
+
+template <typename T>
 T ReadFromArray(AtArray* array, int element)
 {
    return GetDefaultValue<T>();
@@ -684,11 +708,13 @@ public:
 template<typename T>
 struct ArrayDescription{
    T* data;
+   int gradientType;
    bool single;
-   
+   bool isGradient;
+
    ArrayDescription() : data(0) {}
    
-   void release() {if(data) AiFree(data);}   
+   void release() {if(data) AiFree(data); data = 0;}   
 };
 
 struct MayaFluidData{
@@ -768,29 +794,36 @@ node_initialize
 }
 
 template <typename T>
-void ReadArray(AtNode* node, const char* name, int numVoxels, ArrayDescription<T>& arrayDesc)
+void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
 {
-   AtArray* array = AiNodeGetArray(node, name);
-   
    arrayDesc.release();
-   
-   if ((int)array->nelements == numVoxels)
+
+   if (cm == CSM_GRID)
    {
-      arrayDesc.single = false;
-      arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
-      for (int i = 0; i < numVoxels; ++i)
-         arrayDesc.data[i] = ReadFromArray<T>(array, i);
-   }
-   else if (array->nelements == 1) // only one value
-   {
-      arrayDesc.single = true;
-      arrayDesc.data = (T*)AiMalloc(sizeof(T));
-      *arrayDesc.data = ReadFromArray<T>(array, 0);
+      if ((int)array->nelements == numVoxels)
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
+         for (int i = 0; i < numVoxels; ++i)
+            arrayDesc.data[i] = ReadFromArray<T>(array, i);
+      }
+      else if (array->nelements == 1) // only one value
+      {
+         arrayDesc.single = true;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T));
+         *arrayDesc.data = ReadFromArray<T>(array, 0);
+      }
+      else
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = 0;
+      }
+      arrayDesc.isGradient = false;
    }
    else
    {
-      arrayDesc.single = false;
-      arrayDesc.data = 0;
+      arrayDesc.isGradient = true;
+      arrayDesc.gradientType = cmg;
    }
 }
 
@@ -831,14 +864,14 @@ node_update
    data->dmax.y = 1.f / data->dmax.y;
    data->dmax.z = 1.f / data->dmax.z;
    
-   ReadArray(node, "density", numVoxels, data->density);
-   ReadArray(node, "fuel", numVoxels, data->fuel);
-   ReadArray(node, "temperature", numVoxels, data->temperature);
-   ReadArray(node, "pressure", numVoxels, data->pressure);
-   ReadArray(node, "velocity", numVoxels, data->velocity);
-   ReadArray(node, "colors", numVoxels, data->colors);
-   ReadArray(node, "coordinates", numVoxels, data->coordinates);
-   ReadArray(node, "falloff", numVoxels, data->falloff);
+   ReadArray(AiNodeGetArray(node, "density"), AiNodeGetInt(node, "density_method"), AiNodeGetInt(node, "density_gradient"), numVoxels, data->density);
+   ReadArray(AiNodeGetArray(node, "fuel"), CSM_GRID, CG_CONSTANT, numVoxels, data->fuel);
+   ReadArray(AiNodeGetArray(node, "temperature"), CSM_GRID, CG_CONSTANT, numVoxels, data->temperature);
+   ReadArray(AiNodeGetArray(node, "pressure"), CSM_GRID, CG_CONSTANT, numVoxels, data->pressure);
+   ReadArray(AiNodeGetArray(node, "velocity"), CSM_GRID, CG_CONSTANT, numVoxels, data->velocity);
+   ReadArray(AiNodeGetArray(node, "colors"), CSM_GRID, CG_CONSTANT, numVoxels, data->colors);
+   ReadArray(AiNodeGetArray(node, "coordinates"), CSM_GRID, CG_CONSTANT, numVoxels, data->coordinates);
+   ReadArray(AiNodeGetArray(node, "falloff"), CSM_GRID, CG_CONSTANT, numVoxels, data->falloff);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");   
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
@@ -962,7 +995,18 @@ AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const
 template <typename T>
 T Filter(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
 {
-   if (data->filterType == FT_CLOSEST)
+   if (arrayDesc.isGradient)
+   {
+      switch(arrayDesc.gradientType)
+      {
+         case CG_CONSTANT:
+            return GetConstantValue<T>();
+         default:
+            return GetDefaultValue<T>();
+      }
+
+   }
+   else if (data->filterType == FT_CLOSEST)
    {
       if (arrayDesc.data == 0)
          return GetDefaultValue<T>();
