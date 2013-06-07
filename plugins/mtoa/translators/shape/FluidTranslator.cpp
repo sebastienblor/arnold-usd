@@ -441,9 +441,17 @@ void CFluidTranslator::Export(AtNode* fluid)
    }
    
    mayaFluid.getFuelMode(fluidMethod, fluidGradient);
-   
-   if ((fluidMethod != MFnFluid::kZero) && exportFuel)
+
+   if (fluidMethod == MFnFluid::kGradient)
+   {
+      AiNodeSetStr(fluid_shader, "fuel_method", "Gradient");
+      SetContentsGradientMode(fluid_shader, "fuel_gradient", fluidGradient);
+   }
+   else if (exportFuel && (fluidMethod != MFnFluid::kZero))
+   {
+      AiNodeSetStr(fluid_shader, "fuel_method", "Grid");
       ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
+   }
    
    mayaFluid.getTemperatureMode(fluidMethod, fluidGradient);
 
