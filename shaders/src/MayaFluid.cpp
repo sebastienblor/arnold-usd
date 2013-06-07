@@ -1036,8 +1036,7 @@ T Filter(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<
          case CG_NZ_GRADIENT:
             return ConvertFloat<T>(lPt.z);
          case CG_CENTER_GRADIENT:
-            // we need to divide the value by sqrtf 3 * 0.5 * 0.5
-            return ConvertFloat<T>(1.f - 1.1547f * AiV3Length(lPt - middlePoint));
+            return ConvertFloat<T>(1.f - 1.41421356f * AiV3Length(lPt - middlePoint));
          default:
             return GetDefaultValue<T>();
       }
@@ -1243,8 +1242,7 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = 1.f - lPt.z;
          break;
       case GT_CENTER_GRADIENT:
-         // we need to divide the value by sqrtf 3 * 0.5 * 0.5
-         gradientValue = 1.f - 1.1547f * AiV3Length(lPt - middlePoint);
+         gradientValue = 1.f - 1.41421356f * AiV3Length(lPt - middlePoint);
          break;
       case GT_DENSITY:
          gradientValue = Filter(data, lPt, data->density);
