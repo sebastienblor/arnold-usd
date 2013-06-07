@@ -334,6 +334,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       exportDensity = true;
       exportFuel = true;
    }
+
    ExportRGBGradient(mayaFluidNode.findPlug("color"), fluid_shader, "color_gradient");
    AiNodeSetInt(fluid_shader, "color_gradient_type", colorGradientType);
    AiNodeSetFlt(fluid_shader, "color_gradient_input_bias", mayaFluidNode.findPlug("colorInputBias").asFloat());
@@ -356,7 +357,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    }
    ExportRGBGradient(mayaFluidNode.findPlug("incandescence"), fluid_shader, "incandescence_gradient");
    AiNodeSetInt(fluid_shader, "incandescence_gradient_type", incandescenceGradientType);
-   AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());
+   AiNodeSetFlt(fluid_shader, "incandescence_gradient_input_bias", mayaFluidNode.findPlug("incandescenceInputBias").asFloat());   
    
    const int opacityGradientType = mayaFluidNode.findPlug("opacityInput").asShort();
    if (opacityGradientType == GT_DENSITY)
@@ -401,15 +402,38 @@ void CFluidTranslator::Export(AtNode* fluid)
       ExportFloatGrid(fluid_shader, mayaFluid.falloff(), "falloff", numVoxels);
    }
    
-   // support for gradient mode
-   
+   // support for gradient mode  
+
    MFnFluid::FluidMethod fluidMethod;
    MFnFluid::FluidGradient fluidGradient;
    
    mayaFluid.getDensityMode(fluidMethod, fluidGradient);
-   
-   if ((fluidMethod != MFnFluid::kZero) && exportDensity)
+
+   if (fluidMethod == MFnFluid::kGradient)
+   {
+      AiNodeSetStr(fluid_shader, "density_method", "Gradient");
+      if (fluidGradient == MFnFluid::kConstant)
+         AiNodeSetStr(fluid_shader, "density_gradient", "Constant");
+      else if (fluidGradient == MFnFluid::kXGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "X Gradient");
+      else if (fluidGradient == MFnFluid::kYGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "Y Gradient");
+      else if (fluidGradient == MFnFluid::kZGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "Z Gradient");
+      else if (fluidGradient == MFnFluid::kNegXGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "-X Gradient");
+      else if (fluidGradient == MFnFluid::kNegYGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "-Y Gradient");
+      else if (fluidGradient == MFnFluid::kNegZGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "-Z Gradient");      
+      else if (fluidGradient == MFnFluid::kCenterGradient)
+         AiNodeSetStr(fluid_shader, "density_gradient", "Center Gradient");      
+   }
+   else if (exportDensity && (fluidMethod != MFnFluid::kZero))
+   {
+      AiNodeSetStr(fluid_shader, "density_method", "Grid");
       ExportFloatGrid(fluid_shader, mayaFluid.density(), "density", numVoxels);
+   }
    
    mayaFluid.getFuelMode(fluidMethod, fluidGradient);
    

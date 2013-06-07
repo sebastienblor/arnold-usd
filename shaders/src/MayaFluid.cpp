@@ -122,18 +122,19 @@ node_parameters
    AiParameterVec("min", 0.f, 0.f, 0.f);
    AiParameterVec("max", 0.f, 0.f, 0.f);
    
-   AiParameterEnum("densityMethod", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("density_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("density_gradient", CG_CONSTANT, contentsGradientTypeEnums);
    AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
-   AiParameterEnum("fuelMethod", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("fuel_method", CSM_GRADIENT, contentsMethodEnums);
    AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
-   AiParameterEnum("temperatureMethod", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("temperature_method", CSM_GRADIENT, contentsMethodEnums);
    AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
    AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
-   AiParameterEnum("velocityMethod", CSM_GRADIENT, contentsMethodEnums);   
+   AiParameterEnum("velocity_method", CSM_GRADIENT, contentsMethodEnums);   
    AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
