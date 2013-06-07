@@ -184,6 +184,8 @@ node_parameters
 
    AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
    AiParameterFlt("edge_dropoff", 0.05f);
+
+   AiParameterBool("scaling_affect_opacity", false);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -280,7 +282,9 @@ enum MayaFluidParams{
    p_shadow_opacity,
 
    p_dropoff_shape,
-   p_edge_dropoff
+   p_edge_dropoff,
+
+   p_scaling_affect_opacity
 };
 
 template <typename T>
@@ -702,6 +706,7 @@ struct MayaFluidData{
    bool textureDisabledInShadows;   
    bool inflection;
    bool invertTexture;
+   bool scalingAffectOpacity;
    
    ~MayaFluidData()
    {
@@ -842,7 +847,7 @@ node_update
    data->depthMax = AiNodeGetInt(node, "depth_max");
    data->billowFalloff = AiNodeGetInt(node, "billow_falloff");
    data->inflection = AiNodeGetBool(node, "inflection");
-   data->invertTexture = AiNodeGetBool(node, "invert_texture");   
+   data->invertTexture = AiNodeGetBool(node, "invert_texture");    
    
    if (!(data->textureAffectColor || data->textureAffectIncand || data->textureAffectOpacity))
       data->volumeTexture = 0;
@@ -862,6 +867,8 @@ node_update
    data->coordinateMethod = AiNodeGetInt(node, "coordinate_method");
    if (data->coordinateMethod == CM_GRID && (data->coordinates.data == 0))
       data->coordinateMethod = CM_FIXED;
+
+   data->scalingAffectOpacity = AiNodeGetBool(node, "scaling_affect_opacity");
 }
 
 node_finish
@@ -1271,7 +1278,14 @@ shader_evaluate
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
 
-   const float dropoff = CalculateDropoff(data, lPt);
+   float dropoff = CalculateDropoff(data, lPt);
+
+   if (!data->scalingAffectOpacity)
+   {
+      AtVector scaledDir;
+      AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
+      dropoff *= AiV3Length(scaledDir);
+   }
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
