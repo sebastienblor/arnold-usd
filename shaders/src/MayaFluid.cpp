@@ -130,6 +130,7 @@ node_parameters
    AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
    AiParameterEnum("temperature_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("temperature_gradient", CG_CONSTANT, contentsGradientTypeEnums);
    AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
    AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
@@ -238,6 +239,7 @@ enum MayaFluidParams{
    p_fuel_method,
    p_fuel,
    p_temperature_method,
+   p_temperature_gradient,
    p_temperature,
    p_pressure,
    p_velocity_method,
@@ -887,7 +889,7 @@ node_update
    
    ReadArray(AiNodeGetArray(node, "density"), AiNodeGetInt(node, "density_method"), AiNodeGetInt(node, "density_gradient"), numVoxels, data->density);
    ReadArray(AiNodeGetArray(node, "fuel"), CSM_GRID, CG_CONSTANT, numVoxels, data->fuel);
-   ReadArray(AiNodeGetArray(node, "temperature"), CSM_GRID, CG_CONSTANT, numVoxels, data->temperature);
+   ReadArray(AiNodeGetArray(node, "temperature"), AiNodeGetInt(node, "temperature_method"), AiNodeGetInt(node, "temperature_gradient"), numVoxels, data->temperature);
    ReadArray(AiNodeGetArray(node, "pressure"), CSM_GRID, CG_CONSTANT, numVoxels, data->pressure);
    ReadArray(AiNodeGetArray(node, "velocity"), CSM_GRID, CG_CONSTANT, numVoxels, data->velocity);
    ReadArray(AiNodeGetArray(node, "colors"), CSM_GRID, CG_CONSTANT, numVoxels, data->colors);

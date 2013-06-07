@@ -187,6 +187,26 @@ enum GradientType{
    GT_DENSITY_AND_FUEL
 };
 
+void SetContentsGradientMode(AtNode* node, const char* parameter, MFnFluid::FluidGradient fluidGradient)
+{
+   if (fluidGradient == MFnFluid::kConstant)
+      AiNodeSetStr(node, parameter, "Constant");
+   else if (fluidGradient == MFnFluid::kXGradient)
+      AiNodeSetStr(node, parameter, "X Gradient");
+   else if (fluidGradient == MFnFluid::kYGradient)
+      AiNodeSetStr(node, parameter, "Y Gradient");
+   else if (fluidGradient == MFnFluid::kZGradient)
+      AiNodeSetStr(node, parameter, "Z Gradient");
+   else if (fluidGradient == MFnFluid::kNegXGradient)
+      AiNodeSetStr(node, parameter, "-X Gradient");
+   else if (fluidGradient == MFnFluid::kNegYGradient)
+      AiNodeSetStr(node, parameter, "-Y Gradient");
+   else if (fluidGradient == MFnFluid::kNegZGradient)
+      AiNodeSetStr(node, parameter, "-Z Gradient");      
+   else if (fluidGradient == MFnFluid::kCenterGradient)
+      AiNodeSetStr(node, parameter, "Center Gradient");
+};
+
 void CFluidTranslator::Export(AtNode* fluid)
 {
    MFnFluid mayaFluid(GetMayaObject());
@@ -412,22 +432,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    if (fluidMethod == MFnFluid::kGradient)
    {
       AiNodeSetStr(fluid_shader, "density_method", "Gradient");
-      if (fluidGradient == MFnFluid::kConstant)
-         AiNodeSetStr(fluid_shader, "density_gradient", "Constant");
-      else if (fluidGradient == MFnFluid::kXGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "X Gradient");
-      else if (fluidGradient == MFnFluid::kYGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "Y Gradient");
-      else if (fluidGradient == MFnFluid::kZGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "Z Gradient");
-      else if (fluidGradient == MFnFluid::kNegXGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "-X Gradient");
-      else if (fluidGradient == MFnFluid::kNegYGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "-Y Gradient");
-      else if (fluidGradient == MFnFluid::kNegZGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "-Z Gradient");      
-      else if (fluidGradient == MFnFluid::kCenterGradient)
-         AiNodeSetStr(fluid_shader, "density_gradient", "Center Gradient");      
+      SetContentsGradientMode(fluid_shader, "density_gradient", fluidGradient);
    }
    else if (exportDensity && (fluidMethod != MFnFluid::kZero))
    {
@@ -441,9 +446,17 @@ void CFluidTranslator::Export(AtNode* fluid)
       ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
    
    mayaFluid.getTemperatureMode(fluidMethod, fluidGradient);
-   
-   if ((fluidMethod != MFnFluid::kZero) && exportTemperature)
+
+   if (fluidMethod == MFnFluid::kGradient)
+   {
+      AiNodeSetStr(fluid_shader, "temperature_method", "Gradient");
+      SetContentsGradientMode(fluid_shader, "temperature_gradient", fluidGradient);
+   }
+   else if (exportTemperature && (fluidMethod != MFnFluid::kZero))
+   {
+      AiNodeSetStr(fluid_shader, "temperature_method", "Grid");
       ExportFloatGrid(fluid_shader, mayaFluid.temperature(), "temperature", numVoxels);
+   }
    
    if (exportPressure)
       ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
