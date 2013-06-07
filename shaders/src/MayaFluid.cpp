@@ -25,7 +25,7 @@ enum textureType{
 const char* coordinateMethodEnums[] = {"Fixed", "Grid", 0};
 
 enum coordinateMethod{
-   CM_FIXED,
+   CM_FIXED = 0,
    CM_GRID
 };
 
@@ -35,6 +35,28 @@ enum filterType{
    FT_CLOSEST = 0,
    FT_LINEAR,
    FT_CUBIC
+};
+
+const char* contentsMethodEnums[] = {"Grid", "Gradient", 0};
+
+enum contentsMethod{
+   CSM_GRID = 0,
+   CSM_GRADIENT
+};
+
+const char* contentsGradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
+                                           "-X Gradient", "-Y Gradient", "-Z Gradient",
+                                           "Center Gradient", 0};
+
+enum contentsGradientType{
+   CG_CONSTANT = 0,
+   CG_X_GRADIENT,
+   CG_Y_GRADIENT,
+   CG_Z_GRADIENT,
+   CG_NX_GRADIENT,
+   CG_NY_GRADIENT,
+   CG_NZ_GRADIENT,
+   CG_CENTER_GRADIENT
 };
 
 const char* gradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient",
@@ -100,11 +122,18 @@ node_parameters
    AiParameterVec("min", 0.f, 0.f, 0.f);
    AiParameterVec("max", 0.f, 0.f, 0.f);
    
+   AiParameterEnum("densityMethod", CSM_GRADIENT, contentsMethodEnums);
    AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+
+   AiParameterEnum("fuelMethod", CSM_GRADIENT, contentsMethodEnums);
    AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+
+   AiParameterEnum("temperatureMethod", CSM_GRADIENT, contentsMethodEnums);
    AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+
    AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   
+
+   AiParameterEnum("velocityMethod", CSM_GRADIENT, contentsMethodEnums);   
    AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
@@ -202,10 +231,14 @@ enum MayaFluidParams{
    p_min,
    p_max,
    
+   p_densityMethod,
    p_density,
+   p_fuelMethod,
    p_fuel,
+   p_temperatureMethod,
    p_temperature,
    p_pressure,
+   p_velocityMethod,
    p_velocity,
    p_colors,
    p_coordinates,
