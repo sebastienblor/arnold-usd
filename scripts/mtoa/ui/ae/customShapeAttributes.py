@@ -158,7 +158,6 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
-        self.addControl("aiScalingAffectOpacity", label="Scaling Affect Opacity")
         self.addSeparator()
         self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
         self.addControl("aiVisibleInGlossy", label="Visible In Glossy")

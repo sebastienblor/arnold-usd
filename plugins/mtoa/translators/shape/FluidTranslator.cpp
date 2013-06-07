@@ -73,12 +73,6 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_filter_type";
    helper.MakeInputEnum(data);
 
-   data.enums = MStringArray();
-   data.defaultValue.BOOL = false;
-   data.name = "aiScalingAffectOpacity";
-   data.shortName = "ai_scaling_affect_opacity";
-   helper.MakeInputBoolean(data);
-
    MakeArnoldVisibilityFlags(helper);
 }
 
@@ -399,7 +393,6 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
-   ProcessParameter(fluid_shader, "scaling_affect_opacity", AI_TYPE_BOOLEAN, "aiScalingAffectOpacity");
    
    const unsigned int numVoxels = xRes * yRes * zRes;
    
