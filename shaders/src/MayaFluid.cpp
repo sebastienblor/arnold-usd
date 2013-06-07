@@ -232,14 +232,15 @@ enum MayaFluidParams{
    p_min,
    p_max,
    
-   p_densityMethod,
+   p_density_method,
+   p_density_gradient,
    p_density,
-   p_fuelMethod,
+   p_fuel_method,
    p_fuel,
-   p_temperatureMethod,
+   p_temperature_method,
    p_temperature,
    p_pressure,
-   p_velocityMethod,
+   p_velocity_method,
    p_velocity,
    p_colors,
    p_coordinates,
@@ -363,6 +364,26 @@ template <>
 AtVector GetConstantValue<AtVector>()
 {
    return AI_V3_ONE;
+}
+
+template <typename T>
+T ConvertFloat(float f)
+{
+   return f;
+}
+
+template<>
+AtRGB ConvertFloat<AtRGB>(float f)
+{
+   AtRGB ret = {f, f, f};
+   return ret;
+}
+
+template<>
+AtVector ConvertFloat<AtVector>(float f)
+{
+   AtVector ret = {f, f, f};
+   return ret;
 }
 
 template <typename T>
@@ -995,12 +1016,28 @@ AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const
 template <typename T>
 T Filter(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
 {
+   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    if (arrayDesc.isGradient)
    {
       switch(arrayDesc.gradientType)
       {
          case CG_CONSTANT:
             return GetConstantValue<T>();
+         case CG_X_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.x);
+         case CG_Y_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.y);
+         case CG_Z_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.z);
+         case CG_NX_GRADIENT:
+            return ConvertFloat<T>(lPt.x);
+         case CG_NY_GRADIENT:
+            return ConvertFloat<T>(lPt.y);
+         case CG_NZ_GRADIENT:
+            return ConvertFloat<T>(lPt.z);
+         case CG_CENTER_GRADIENT:
+            // we need to divide the value by sqrtf 3 * 0.5 * 0.5
+            return ConvertFloat<T>(1.f - 1.1547f * AiV3Length(lPt - middlePoint));
          default:
             return GetDefaultValue<T>();
       }
