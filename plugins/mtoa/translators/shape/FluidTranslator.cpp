@@ -411,6 +411,7 @@ void CFluidTranslator::Export(AtNode* fluid)
 
    ProcessParameter(fluid_shader, "dropoff_shape", AI_TYPE_INT, "dropoffShape");
    ProcessParameter(fluid_shader, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");
+   ProcessParameter(fluid_shader, "velocity_scale", AI_TYPE_VECTOR, "velocityScale");
    
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");

@@ -217,6 +217,8 @@ node_parameters
 
    AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
    AiParameterFlt("edge_dropoff", 0.05f);
+
+   AiParameterVec("velocity_scale", 1.f, 1.f, 1.f);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -321,7 +323,9 @@ enum MayaFluidParams{
    p_shadow_opacity,
 
    p_dropoff_shape,
-   p_edge_dropoff
+   p_edge_dropoff,
+
+   p_velocity_scale
 };
 
 template <typename T>
@@ -761,6 +765,7 @@ struct MayaFluidData{
    AtRGB transparency; 
    
    AtVector dmin, dmax;
+   AtVector velocityScale;
    
    AtNode* volumeTexture;
    
@@ -890,6 +895,7 @@ node_update
    data->dmax.x = 1.f / data->dmax.x;
    data->dmax.y = 1.f / data->dmax.y;
    data->dmax.z = 1.f / data->dmax.z;
+   data->velocityScale = AiNodeGetVec(node, "velocity_scale");
    
    ReadArray(AiNodeGetArray(node, "density"), AiNodeGetInt(node, "density_method"), AiNodeGetInt(node, "density_gradient"), numVoxels, data->density);
    ReadArray(AiNodeGetArray(node, "fuel"), AiNodeGetInt(node, "fuel_method"), AiNodeGetInt(node, "fuel_gradient"), numVoxels, data->fuel);
@@ -1263,7 +1269,7 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = Filter(data, lPt, data->pressure);
          break;
       case GT_SPEED:
-         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(Filter(data, lPt, data->velocity)));
+         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(Filter(data, lPt, data->velocity) * data->velocityScale));
          break;
       default:
          return GetDefaultValue<T>() * texture;
