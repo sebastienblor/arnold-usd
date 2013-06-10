@@ -470,8 +470,13 @@ void CFluidTranslator::Export(AtNode* fluid)
       ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
    
    mayaFluid.getVelocityMode(fluidMethod, fluidGradient);
-   
-   if ((fluidMethod != MFnFluid::kZero) && exportVelocity)
+
+   if (fluidMethod == MFnFluid::kGradient)
+   {
+      AiNodeSetStr(fluid_shader, "velocity_method", "Gradient");
+      SetContentsGradientMode(fluid_shader, "velocity_gradient", fluidGradient);
+   }   
+   else if ((fluidMethod != MFnFluid::kZero) && exportVelocity)
    {
       float* x; float* y; float* z;
       mayaFluid.getVelocity(x, y, z);

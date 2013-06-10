@@ -136,7 +136,8 @@ node_parameters
 
    AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
-   AiParameterEnum("velocity_method", CSM_GRADIENT, contentsMethodEnums);   
+   AiParameterEnum("velocity_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("velocity_gradient", CG_CONSTANT, contentsGradientTypeEnums);   
    AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
@@ -245,6 +246,7 @@ enum MayaFluidParams{
    p_temperature,
    p_pressure,
    p_velocity_method,
+   p_velocty_gradient,
    p_velocity,
    p_colors,
    p_coordinates,
@@ -893,7 +895,7 @@ node_update
    ReadArray(AiNodeGetArray(node, "fuel"), AiNodeGetInt(node, "fuel_method"), AiNodeGetInt(node, "fuel_gradient"), numVoxels, data->fuel);
    ReadArray(AiNodeGetArray(node, "temperature"), AiNodeGetInt(node, "temperature_method"), AiNodeGetInt(node, "temperature_gradient"), numVoxels, data->temperature);
    ReadArray(AiNodeGetArray(node, "pressure"), CSM_GRID, CG_CONSTANT, numVoxels, data->pressure);
-   ReadArray(AiNodeGetArray(node, "velocity"), CSM_GRID, CG_CONSTANT, numVoxels, data->velocity);
+   ReadArray(AiNodeGetArray(node, "velocity"), AiNodeGetInt(node, "velocity_method"), AiNodeGetInt(node, "velocity_gradient"), numVoxels, data->velocity);
    ReadArray(AiNodeGetArray(node, "colors"), CSM_GRID, CG_CONSTANT, numVoxels, data->colors);
    ReadArray(AiNodeGetArray(node, "coordinates"), CSM_GRID, CG_CONSTANT, numVoxels, data->coordinates);
    ReadArray(AiNodeGetArray(node, "falloff"), CSM_GRID, CG_CONSTANT, numVoxels, data->falloff);
@@ -1261,7 +1263,7 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = Filter(data, lPt, data->pressure);
          break;
       case GT_SPEED:
-         gradientValue = AiV3Length(Filter(data, lPt, data->velocity));
+         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(Filter(data, lPt, data->velocity)));
          break;
       default:
          return GetDefaultValue<T>() * texture;
