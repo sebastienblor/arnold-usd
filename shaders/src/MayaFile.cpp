@@ -447,14 +447,6 @@ shader_evaluate
       {         
          sg->u = altuv.x;
          sg->v = altuv.y;
-         AtPoint2 altuvDx, altuvDy;
-         if (AiUDataGetDxyDerivativesPnt2(idata->uvSetName.c_str(), &altuvDx, &altuvDy))
-         {
-            sg->dudx = altuvDx.x;
-            sg->dvdx = altuvDx.y;
-            sg->dudy = altuvDy.x;
-            sg->dvdy = altuvDy.y;
-         }
       }
    }
    float inU = sg->u;
@@ -816,8 +808,4 @@ shader_evaluate
    // restore shader globals
    sg->u = oldU;
    sg->v = oldV;
-   sg->dudx = oldUdx;
-   sg->dudy = oldUdy;
-   sg->dvdx = oldVdx;
-   sg->dvdy = oldVdy;
 }
