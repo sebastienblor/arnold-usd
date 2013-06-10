@@ -371,29 +371,37 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
 }
 
 bool CGeometryTranslator::GetUVs(const MObject &geometry,
-                                 AtArray*& uvs)
+                                 std::vector<AtArray*>& uvs,
+                                 std::vector<MString>& uvNames)
 {
    MFnMesh fnMesh(geometry);
 
    // Get all UVs
-   int numUVs = fnMesh.numUVs();
-   if (numUVs > 0)
+   int numUVSets = fnMesh.numUVSets();
+   MStringArray uvns;
+   fnMesh.getUVSetNames(uvns);
+   for (int i = 0; i < numUVSets; ++i)
    {
-      uvs = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
-
+      MString uvName = uvns[i];
+      int numUVs = fnMesh.numUVs(uvName);
+      if (numUVs < 1)
+         continue;
+      AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
+      
       MFloatArray uArray, vArray;
-      fnMesh.getUVs(uArray, vArray);
+      fnMesh.getUVs(uArray, vArray, &uvName);
       
       for (int j = 0; j < numUVs; ++j)
       {
          AtPoint2 atv;
          atv.x = uArray[j];
          atv.y = vArray[j];
-         AiArraySetPnt2(uvs, j, atv);
+         AiArraySetPnt2(uv, j, atv);
       }
-      return true;
+      uvs.push_back(uv);
+      uvNames.push_back(uvName);
    }
-   return false;
+   return uvs.size() > 0;
 }
 
 bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
@@ -481,7 +489,8 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
       AtArray*& nsides,
       AtArray*& vidxs,
       AtArray*& nidxs,
-      AtArray*& uvidxs,
+      std::vector<AtArray*>& uvidxs,
+      std::vector<MString>& uvNames,
       bool exportNormals,
       bool exportUVs)
 {
@@ -490,6 +499,7 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
    int uv_id = 0;
    // Traverse all polygons to export vidxs, uvindxs and nsides
    unsigned int np = fnMesh.numPolygons();
+   size_t numUVSets = uvNames.size();
    if (np > 0)
    {
       nsides = AiArrayAllocate(np, 1, AI_TYPE_UINT);
@@ -503,7 +513,11 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
       }
       vidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
       if (exportUVs)
-         uvidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+      {
+         uvidxs.resize(numUVSets);
+         for (size_t i = 0; i < numUVSets; ++i)
+            uvidxs[i] = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+      }
       // Vertex indicies.
       MIntArray p_vidxs;
       unsigned int id = 0;
@@ -516,8 +530,11 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
             // UVs
             if (exportUVs)
             {
-               fnMesh.getPolygonUVid(p, v, uv_id);
-               AiArraySetUInt(uvidxs, id, uv_id);
+               for (size_t i = 0; i < numUVSets; ++i)
+               {
+                  fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]);
+                  AiArraySetUInt(uvidxs[i], id, uv_id);
+               }
             }
          }
       }
@@ -788,15 +805,17 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
    if (step == 0)
    {
-      AtArray* uvs = 0;
+      std::vector<AtArray*> uvs;
+      std::vector<MString> uvNames;
+      std::vector<AtArray*> uvidxs;
       AtArray* nsides = 0;
-      AtArray* vidxs = 0; AtArray* nidxs = 0; AtArray* uvidxs = 0;
+      AtArray* vidxs = 0; AtArray* nidxs = 0;
       std::map<std::string, std::vector<float> > vcolors;
       AtArray* refNormals = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
       // Get UVs
-      bool exportUVs = GetUVs(geometry, uvs);
+      bool exportUVs = GetUVs(geometry, uvs, uvNames);
 
       // Get reference objects
       bool exportReferenceObjects = GetRefObj(refVertices, refNormals,
@@ -806,7 +825,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       bool exportRefTangents = refTangents != 0;
 
       // Get Component IDs
-      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
+      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
       // Get Vertex Colors
       bool exportColors = GetVertexColors(geometry, vcolors);
 
@@ -945,8 +964,16 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       }
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", uvs);
-         AiNodeSetArray(polymesh, "uvidxs", uvidxs);
+         AiNodeSetArray(polymesh, "uvlist", uvs[0]);
+         AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+         for (size_t i = 1; i < uvs.size(); ++i)
+         {
+            MString listName = uvNames[i] + MString("list");
+            MString idxsName = uvNames[i] + MString("idxs");
+            AiNodeDeclare(polymesh, listName.asChar(), "indexed POINT2");
+            AiNodeSetArray(polymesh, listName.asChar(), uvs[i]);
+            AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+         }
       }
       if (exportColors)
       {
