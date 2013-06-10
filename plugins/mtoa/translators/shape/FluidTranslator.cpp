@@ -435,11 +435,11 @@ void CFluidTranslator::Export(AtNode* fluid)
       AiNodeSetStr(fluid_shader, "density_method", "Gradient");
       SetContentsGradientMode(fluid_shader, "density_gradient", fluidGradient);
    }
-   else if (exportDensity && (fluidMethod != MFnFluid::kZero))
-   {
+   else
       AiNodeSetStr(fluid_shader, "density_method", "Grid");
+
+   if (exportDensity && (fluidMethod != MFnFluid::kZero))
       ExportFloatGrid(fluid_shader, mayaFluid.density(), "density", numVoxels);
-   }
    
    mayaFluid.getFuelMode(fluidMethod, fluidGradient);
 
@@ -448,11 +448,11 @@ void CFluidTranslator::Export(AtNode* fluid)
       AiNodeSetStr(fluid_shader, "fuel_method", "Gradient");
       SetContentsGradientMode(fluid_shader, "fuel_gradient", fluidGradient);
    }
-   else if (exportFuel && (fluidMethod != MFnFluid::kZero))
-   {
+   else
       AiNodeSetStr(fluid_shader, "fuel_method", "Grid");
+   
+   if (exportFuel && (fluidMethod != MFnFluid::kZero))
       ExportFloatGrid(fluid_shader, mayaFluid.fuel(), "fuel", numVoxels);
-   }
    
    mayaFluid.getTemperatureMode(fluidMethod, fluidGradient);
 
@@ -461,11 +461,11 @@ void CFluidTranslator::Export(AtNode* fluid)
       AiNodeSetStr(fluid_shader, "temperature_method", "Gradient");
       SetContentsGradientMode(fluid_shader, "temperature_gradient", fluidGradient);
    }
-   else if (exportTemperature && (fluidMethod != MFnFluid::kZero))
-   {
+   else
       AiNodeSetStr(fluid_shader, "temperature_method", "Grid");
+   
+   if (exportTemperature && (fluidMethod != MFnFluid::kZero))
       ExportFloatGrid(fluid_shader, mayaFluid.temperature(), "temperature", numVoxels);
-   }
    
    if (exportPressure)
       ExportFloatGrid(fluid_shader, mayaFluid.pressure(), "pressure", numVoxels);
@@ -476,8 +476,11 @@ void CFluidTranslator::Export(AtNode* fluid)
    {
       AiNodeSetStr(fluid_shader, "velocity_method", "Gradient");
       SetContentsGradientMode(fluid_shader, "velocity_gradient", fluidGradient);
-   }   
-   else if ((fluidMethod != MFnFluid::kZero) && exportVelocity)
+   }
+   else
+      AiNodeSetStr(fluid_shader, "velocity_method", "Grid");
+   
+   if ((fluidMethod != MFnFluid::kZero) && exportVelocity)
    {
       float* x; float* y; float* z;
       mayaFluid.getVelocity(x, y, z);
