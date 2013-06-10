@@ -50,7 +50,9 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
 
    data.name = "aiCurveShader";
    data.shortName = "ai_curve_shader";
-   helper.MakeInputNode(data);
+   data.hasMin = false;
+   data.defaultValue.RGB = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
 
    /*data.name = "widthProfile";
    data.shortName = "wdthP";

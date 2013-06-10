@@ -1,5 +1,4 @@
-#ifndef ARNOLDSTANDARDNODE_H
-#define ARNOLDSTANDARDNODE_H
+#pragma once
 
 #include "extension/ExtensionsManager.h"
 #include <maya/MPxHwShaderNode.h>
@@ -46,5 +45,3 @@ public:
    static MObject s_normal_camera;
    
 };  // class CArnoldStandardNode
-
-#endif // ARNOLDSTANDARDNODE

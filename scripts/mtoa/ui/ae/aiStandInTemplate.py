@@ -795,7 +795,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('deferStandinLoad', label='Defer StandIn Load', changeCommand=deferStandinLoadChange)
         self.addCustom('bboxScale', ArnoldStandInTemplateBBoxScaleNew, ArnoldStandInTemplateBBoxScaleReplace)
-        self.addControl('MaxBoundingBox')
         self.endLayout()
         
         self.beginLayout('Render Stats', collapse=True)

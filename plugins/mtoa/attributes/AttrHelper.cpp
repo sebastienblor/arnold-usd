@@ -112,6 +112,18 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    else
       data.keyable = false;
 
+   bool linkable;
+   if (!AiMetaDataGetBool(m_nodeEntry, paramName, "linkable", &linkable))
+      linkable = true;   
+   data.linkable = linkable;
+
+   bool channelBox;
+   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.channelbox", &channelBox) && channelBox)
+      channelBox = true;
+   else
+      channelBox = false; 
+   data.channelBox = channelBox;
+
    if (data.type == AI_TYPE_ARRAY)
    {
       data.type = data.defaultValue.ARRAY->type;
@@ -345,9 +357,11 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
       nAttr.setSoftMax((int)data.softMax.INT);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 /*
@@ -421,9 +435,11 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
@@ -457,9 +473,11 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
       nAttr.setSoftMax((float)data.softMax.FLT);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
@@ -487,9 +505,11 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    nAttr.setDefault(data.defaultValue.RGB.r, data.defaultValue.RGB.g, data.defaultValue.RGB.b);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName)
@@ -520,18 +540,22 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setDefault(data.defaultValue.RGBA.r, data.defaultValue.RGBA.g, data.defaultValue.RGBA.b);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 
    attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
    nAttr.setHidden(true);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    nAttr.setMin(0.);
    nAttr.setMax(1.);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
@@ -559,9 +583,11 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    nAttr.setDefault(data.defaultValue.VEC.x, data.defaultValue.VEC.y, data.defaultValue.VEC.z);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
@@ -589,9 +615,11 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
    nAttr.setDefault(data.defaultValue.PNT.x, data.defaultValue.PNT.y, data.defaultValue.PNT.z);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
 {
@@ -622,10 +650,11 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    nAttr.setDefault(float(data.defaultValue.PNT2.x), float(data.defaultValue.PNT2.y));
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
@@ -655,9 +684,11 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    tAttr.setDefault(defObj);
    tAttr.setArray(data.isArray);
    tAttr.setKeyable(data.keyable);
+   tAttr.setConnectable(data.linkable);
    tAttr.setStorable(true);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
+   tAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
@@ -718,9 +749,11 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
       eAttr.addField(data.enums[ei], ei);
    eAttr.setArray(data.isArray);
    eAttr.setKeyable(data.keyable);
+   eAttr.setConnectable(data.linkable);
    eAttr.setStorable(true);
    eAttr.setReadable(true);
    eAttr.setWritable(true);
+   eAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
@@ -1195,9 +1228,7 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    MFnDependencyNode fnNode;
    fnNode.setObject(m_instance);
    MFnAttribute fnAttr(attrib);
-#if MAYA_API_VERSION >= 201200
    fnAttr.addToCategory("arnold");
-#endif
    // Check if an attribute of same name already exists
    MObject mAttr = fnNode.attribute(fnAttr.name(),&statAttr);
    if (statAttr == MS::kSuccess)
@@ -1235,114 +1266,13 @@ void CExtensionAttrHelper::AddCommonAttributes()
    MakeInputString(data);
 }
 
-#if MAYA_API_VERSION < 201200
-
-void CExtensionAttrHelper::MakeInputInt(CAttrData& data)
-{
-   data.type = AI_TYPE_INT;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputBoolean(CAttrData& data)
-{
-   data.type = AI_TYPE_BOOLEAN;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputFloat(CAttrData& data)
-{
-   data.type = AI_TYPE_FLOAT;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputRGB(CAttrData& data)
-{
-   data.type = AI_TYPE_RGB;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputRGBA(CAttrData& data)
-{
-   data.type = AI_TYPE_RGBA;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputVector(CAttrData& data)
-{
-   data.type = AI_TYPE_VECTOR;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputPoint(CAttrData& data)
-{
-   data.type = AI_TYPE_POINT;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputPoint2(CAttrData& data)
-{
-   data.type = AI_TYPE_POINT2;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputString(CAttrData& data)
-{
-   data.type = AI_TYPE_STRING;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputMatrix(CAttrData& data)
-{
-   data.type = AI_TYPE_MATRIX;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputEnum(CAttrData& data)
-{
-   data.type = AI_TYPE_ENUM;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputNode(CAttrData& data)
-{
-   data.type = AI_TYPE_NODE;
-   MakeInput(data);
-}
-
-void CExtensionAttrHelper::MakeInputCompound(CAttrData& attrData, std::vector<CAttrData>& children)
-{
-   MStatus stat;
-   stat = m_class.addExtensionAttribute(attrData, children);
-   CHECK_MSTATUS(stat);
-}
-
-MObject CExtensionAttrHelper::MakeInput(const char* paramName)
-{
-   CAttrData attrData;
-   GetAttrData(paramName, attrData);
-   return MakeInput(attrData);
-}
-
-MObject CExtensionAttrHelper::MakeInput(CAttrData& attrData)
-{
-   MStatus stat;
-   stat = m_class.addExtensionAttribute(attrData);
-   CHECK_MSTATUS(stat);
-   // this is bad form, but we don't have an MObject to return yet
-   return MObject::kNullObj;
-}
-
-
-#else
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
 
    MString nodeType = m_class.typeName();
    MFnAttribute fnAttr(attrib);
-#if MAYA_API_VERSION >= 201200
    fnAttr.addToCategory("arnold");
-#endif
    MString attrName = fnAttr.name();
 
    MDGModifier dgMod;
@@ -1359,4 +1289,3 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    CHECK_MSTATUS(stat);
    return stat;
 }
-#endif

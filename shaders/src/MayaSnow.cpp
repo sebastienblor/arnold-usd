@@ -95,10 +95,7 @@ shader_evaluate
 
       if (NdU > threshold)
       {
-         snowColor = Mix(snowColor, surfaceColor, 1.0f - thickness);
-
-         amount = (NdU - threshold) / (1.0f - threshold);
-         amount = 1.0f - pow((1.0f - amount), 0.5f * depthDecay);
+         amount = (1.0f - expf(-(NdU - threshold) * depthDecay) ) * thickness;
       }
 
       AtRGB c = Mix(surfaceColor, snowColor, amount);

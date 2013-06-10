@@ -6,6 +6,7 @@ build
 *~
 *.orig
 custom.py
+custom*.py
 .*
 *.bak
 Debug
@@ -22,6 +23,7 @@ Debug
 *.user
 *.bat
 docs
+plugins/mtoa/utils/MercurialID.h
 
 syntax: regexp
 \.launch$

@@ -123,8 +123,8 @@ shader_evaluate
    // If wrap is off, check incoming coordinate is in the range [0, 1]
    if (Mod(outU, 1.0f) > coverage.x ||
        Mod(outV, 1.0f) > coverage.y ||
-       (!wrapU && (outU < 0 || outU > 1)) ||
-       (!wrapV && (outV < 0 || outV > 1)))
+       (!wrapU && (outU < 0 || outU > coverage.x)) ||
+       (!wrapV && (outV < 0 || outV > coverage.y)))
    {
       // We are out of the texture frame, return invalid u,v
       outU = -1000000.0f;

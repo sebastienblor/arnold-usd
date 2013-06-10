@@ -129,7 +129,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
 
             if (m_goUVSample)
             {
-               AiV3Create(dir, x, -z, -y);
+               AiV3Create(dir, x, z, -y);
                AiV3Normalize(dir, dir);
                switch (format)
                {
@@ -138,7 +138,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
                   case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
                   default: AiMappingCubicMap(&dir, &u, &v);
                }
-               m_UData[uv_counter] = u;
+               m_UData[uv_counter] = -u + 0.5f;
                m_VData[uv_counter] = v;
             }
 

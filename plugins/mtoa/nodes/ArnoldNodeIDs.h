@@ -47,12 +47,14 @@
 #define ARNOLD_NODEID_USER_DATA_COLOR           0x00115D14
 #define ARNOLD_NODEID_USER_DAT_ASTRING          0x00115D15
 #define ARNOLD_NODEID_SKIN                      0x00115D16
+#define ARNOLD_NODEID_IMAGE                     0x00115D17
 #define ARNOLD_NODEID_USER_DATA_BOOL            0x00115D18
 #define ANROLD_NODEID_SHADOW_CATCHER            0x00115D19
 #define ARNOLD_NODEID_MAYA_HAIR                 0x00115D1A
 #define ARNOLD_NODEID_MESHLIGHT_MATERIAL        0x00115D1B
 #define ARNOLD_NODEID_USER_DATA_PNT2            0x00115D1C
 #define ARNOLD_NODEID_USER_DATA_INT             0x00115D1D
+#define ARNOLD_NODEID_PHYSICAL_SKY              0x00115D1E
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
