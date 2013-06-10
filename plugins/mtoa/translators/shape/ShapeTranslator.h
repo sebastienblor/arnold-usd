@@ -26,7 +26,7 @@ protected:
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
-   virtual AtNode* ExportRootShader(const MPlug& plug);
+   virtual AtNode* ExportRootShader(const MPlug& plug, CNodeTranslator** outTranslator = 0);
    virtual AtNode* ExportRootShader(AtNode *rootShader);
    AtNode* CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders);
    MPlug GetNodeShadingGroup(MObject dagNode, int instanceNum);

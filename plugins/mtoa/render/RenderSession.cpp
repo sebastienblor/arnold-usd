@@ -31,6 +31,7 @@
 #include <maya/MImage.h>
 #include <maya/MFileObject.h>
 #include <maya/M3dView.h>
+#include <maya/MAtomic.h>
 
 #include <cstdio>
 #include <assert.h>
@@ -42,9 +43,9 @@
 extern AtNodeMethods* mtoa_driver_mtd;
 
 MComputation*                       CRenderSession::s_comp = NULL;
-MCallbackId                         CRenderSession::m_idle_cb = NULL;
+MCallbackId                         CRenderSession::s_idle_cb = NULL;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
-MCallbackId                         CRenderSession::m_render_cb = NULL;
+CCritSec                            CRenderSession::m_render_lock;
 
 namespace
 {
@@ -97,13 +98,15 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       m_renderOptions = options;
       m_renderOptions.SetupLog();
       ArnoldUniverseLoadPluginsAndMetadata();
+
+      // load plugins from the render options' shader_searchpath (#1391)
+      AiLoadPlugins(m_renderOptions.GetShaderSearchPath().asChar());
    }
    
    m_is_active = AiUniverseIsActive() ? true : false;
    if (m_is_active)
    {
       InstallNodes();
-      AiCritSecInit(&m_render_lock);
       return MStatus::kSuccess;
    }
    else
@@ -115,45 +118,35 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
 
 void CRenderSession::SetRendering(bool renderState)
 {
-   assert (m_render_lock != NULL);
-   AiCritSecEnter(&m_render_lock);
-   m_rendering = renderState;
-   AiCritSecLeave(&m_render_lock);
+   MAtomic::set(&m_rendering, renderState ? 1 : 0);
 }
 
 bool CRenderSession::IsRendering()
 {
-   if (m_render_lock == NULL)
-      return false;
-   bool rendering = false;
-   AiCritSecEnter(&m_render_lock);
-   rendering = m_rendering ? true : false;
-   AiCritSecLeave(&m_render_lock);
-   return rendering;
+   return MAtomic::compareAndSwap(&m_rendering, 1, 1) == 1;
 }
+
+// Sadly neither maya nor arnold have builtin 
+// atomic operations for 64 bit integers
+// so I need to use locks
 
 void CRenderSession::SetCallback(RenderCallbackType callback)
 {
+   CCritSec::CScopedLock sc(m_render_lock);
    m_renderCallback = callback;
 }
 
-void CRenderSession::ClearCallbackId()
+void CRenderSession::ClearCallback()
 {
+   CCritSec::CScopedLock sc(m_render_lock);
    m_renderCallback = NULL;
-   m_render_cb = 0;
-   if(s_comp != NULL)
-   {
-      s_comp->endComputation();
-      s_comp = NULL;
-   }
 }
 
-MCallbackId CRenderSession::GetCallbackId()
+CRenderSession::RenderCallbackType CRenderSession::GetCallback()
 {
-   return m_render_cb;
-}
-
-   
+   CCritSec::CScopedLock sc(m_render_lock);
+   return m_renderCallback;
+}  
 
 MStatus CRenderSession::End()
 {
@@ -180,8 +173,6 @@ MStatus CRenderSession::End()
       }
    }
    m_is_active = false;
-   AiCritSecClose(&m_render_lock);
-   m_render_lock = NULL;
    // Restore "out of rendering" logging
    MtoaSetupLogging();
    return status;
@@ -237,33 +228,36 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 
 /// This static function runs on the main thread and checks for render interrupts (pressing the Esc key) and
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
-void CRenderSession::InteractiveRenderCallback(void *data)
+void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime, void *data)
 {
-   if (s_comp != NULL && s_comp->isInterruptRequested() && AiRendering())
+   if (s_comp != 0 && AiRendering())
    {
-      s_comp->endComputation();
-      s_comp = NULL;
+      if (s_comp->isInterruptRequested())
+         AiRenderInterrupt();
       // This causes AiRender to break, after which the CMayaScene::End()
-      // which clears this callback.
-      AiRenderInterrupt();
+      // which clears this callback.      
       // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
       // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
       // AiRenderAbort();
    }
    
-   if (m_render_cb == 0 && m_renderCallback != NULL)
+   CCritSec::CScopedLock sc(m_render_lock);
+   if (m_renderCallback != 0)
    {
-      if(s_comp != NULL)
+      if (s_comp == 0 && !CMayaScene::IsActive(MTOA_SESSION_IPR))
+      {
+         s_comp = new MComputation();
+         s_comp->beginComputation();
          s_comp->endComputation();
-      s_comp = new MComputation();
-      s_comp->beginComputation();
-      m_render_cb = MEventMessage::addEventCallback("idle",
-                                                         (MMessage::MBasicFunction)m_renderCallback,
-                                                         NULL);
-      s_comp->endComputation();
+      }
+      m_renderCallback();
    }
-      
-   return;
+   else if (s_comp != 0)
+   {
+      s_comp->endComputation();
+      delete s_comp;
+      s_comp = 0;
+   }
 }
 
 void CRenderSession::InterruptRender()
@@ -594,15 +588,14 @@ AtUInt64 CRenderSession::GetUsedMemory()
 /// actually does the interrupt checking.
 void CRenderSession::DoAddIdleRenderViewCallback(void* data)
 {
-   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
-
-   MMessage::removeCallback(renderSession->m_idle_cb);
+   MMessage::removeCallback(s_idle_cb);
+   s_idle_cb = 0;
    MStatus status;
 
-   renderSession->m_idle_cb = MEventMessage::addEventCallback("idle",
-                                                CRenderSession::InteractiveRenderCallback,
-                                                (void*)data,
-                                                &status);
+   s_idle_cb = MTimerMessage::addTimerCallback(0.01f,
+                                               CRenderSession::InteractiveRenderCallback,
+                                               0,
+                                               &status);
 }
 
 // there is a very strange bug with Maya where MComputation will lock up the GUI if
@@ -612,31 +605,22 @@ void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 {
    MStatus status;
    m_postRenderMel = postRenderMel;
-   if(m_idle_cb == 0)
+   if(s_idle_cb == 0)
    {
-      m_idle_cb = MEventMessage::addEventCallback("idle",
-                                                CRenderSession::DoAddIdleRenderViewCallback,
-                                                this,
-                                                &status);
+      s_idle_cb = MEventMessage::addEventCallback("idle",
+                                                  CRenderSession::DoAddIdleRenderViewCallback,
+                                                  0,
+                                                  &status);
    }
 }
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
    // Don't clear the callback if we're in the middle of a render.
-   if (m_idle_cb != 0 || m_timer_cb != 0)
+   if (s_idle_cb != 0)
    {
-      if (m_idle_cb != 0)
-      {
-         MMessage::removeCallback(m_idle_cb);
-         m_idle_cb = 0;
-      }
-
-      if (m_timer_cb != 0)
-      {
-         MMessage::removeCallback(m_timer_cb);
-         m_timer_cb = 0;
-      }
+      MMessage::removeCallback(s_idle_cb);
+      s_idle_cb = 0;
    }
 }
 

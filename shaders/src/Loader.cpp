@@ -80,6 +80,7 @@ extern AtNodeMethods* UserDataPnt2Mtd;
 extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
 extern AtNodeMethods* MayaFluidMtd;
+extern AtNodeMethods* MayaMarbleMtd;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -158,7 +159,8 @@ enum{
    SHADER_USERDATAPNT2,
    SHADER_USERDATAINT,
    SHADER_BUMP2D,
-   SHADER_MAYAFLUID
+   SHADER_MAYAFLUID,
+   SHADER_MAYAMARBLE
 };
 
 node_loader
@@ -701,6 +703,13 @@ node_loader
       node->methods     = MayaFluidMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "mayaFluid";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case SHADER_MAYAMARBLE:
+      node->methods     = MayaMarbleMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "mayaMarble";
       node->node_type   = AI_NODE_SHADER;
       break;
 

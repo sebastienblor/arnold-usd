@@ -51,6 +51,7 @@ CRenderOptions::CRenderOptions()
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(DEFAULT_LOG_FLAGS)
 ,  m_log_file_verbosity(DEFAULT_LOG_FLAGS)
+,  m_shader_searchpath("")
 {}
 
 MStatus CRenderOptions::GetFromMaya()
@@ -187,6 +188,8 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_console_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt());
       m_log_file_verbosity    = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt());
+
+      m_shader_searchpath = fnArnoldRenderOptions.findPlug("shader_searchpath").asString();
 
       status = MStatus::kSuccess;
    }

@@ -1,4 +1,5 @@
 #include <ai.h>
+#include <algorithm>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaBump2DMtd);
 

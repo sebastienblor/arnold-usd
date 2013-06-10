@@ -20,11 +20,7 @@
 #include <maya/MStringArray.h>
 
 #include <maya/MTypes.h>
-#if MAYA_API_VERSION < 201200
-   #include "attributes/MNodeClass.h"
-#else
-   #include <maya/MNodeClass.h>
-#endif
+#include <maya/MNodeClass.h>
 
 #include <string>
 #include <map>
@@ -49,7 +45,7 @@ struct CAttrData
    MString      stringDefault;
    AtParamValue defaultValue;
    bool         isArray;
-   int        type;
+   int          type;
    bool         hasMin;
    AtParamValue min;
    bool         hasMax;
@@ -60,6 +56,8 @@ struct CAttrData
    AtParamValue softMax;
    bool         keyable;
    MStringArray enums;
+   bool         linkable;
+   bool         channelBox;
    CAttrData() :  name(""),
                   shortName(""),
                   stringDefault(""),
@@ -69,7 +67,9 @@ struct CAttrData
                   hasMax(false),
                   hasSoftMin(false),
                   hasSoftMax(false),
-                  keyable(true)   {}
+                  keyable(true),
+                  linkable(true),
+                  channelBox(false)   {}
 };
 
 struct CCompoundAttrData
@@ -369,28 +369,8 @@ public:
 
    MString GetMayaNodeTypeName() const {return m_class.typeName();}
 
-#if MAYA_API_VERSION < 201200
-   void MakeInputInt(CAttrData& data);
-   void MakeInputBoolean(CAttrData& data);
-   void MakeInputFloat(CAttrData& data);
-   void MakeInputRGB(CAttrData& data);
-   void MakeInputRGBA(CAttrData& data);
-   void MakeInputVector(CAttrData& data);
-   void MakeInputPoint(CAttrData& data);
-   void MakeInputPoint2(CAttrData& data);
-   void MakeInputString(CAttrData& data);
-   void MakeInputMatrix(CAttrData& data);
-   void MakeInputEnum(CAttrData& data);
-   void MakeInputNode(CAttrData& data);
-   /*void MakeInputCurveRamp(CAttrData& data);
-   void MakeInputColorRamp(CAttrData& data);*/
-   void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
-   MObject MakeInput(const char* paramName);
-   MObject MakeInput(CAttrData& attrData);
-#else
 protected:   
    MStatus virtual addAttribute(MObject& attrib);
-#endif
 
 protected:
    void AddCommonAttributes();

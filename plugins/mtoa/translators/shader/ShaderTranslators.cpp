@@ -54,7 +54,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    // Invert in Z to account for the env sphere being viewed from inside
    AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
    AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
-   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f/static_cast<float>(scale[2]));
+   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, 1.0f/static_cast<float>(scale[2]));
 
    ProcessParameter(shader, "color",     AI_TYPE_RGB);
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
@@ -113,20 +113,50 @@ void CLambertTranslator::Export(AtNode* shader)
 
    // Normal camera
    
-   plug = FindMayaPlug("normalCamera");
+   ExportBump(shader);
+}
 
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-   {
-      AtNode* bump = ExportNode(connections[0]);
+// Physical Sky
+//
+AtNode*  CPhysicalSkyTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("physical_sky"));
+}
 
-      if (bump != NULL)
-      {
-         AiNodeLink(shader, "shader", bump);
-         SetArnoldRootNode(bump);
-      }
-   }
+void CPhysicalSkyTranslator::Export(AtNode* shader)
+{
+   // All physical sky attributes are not linkable in Arnold
+   MStatus status;
    
+   MPlug plug = FindMayaPlug("turbidity", &status);
+   ProcessConstantParameter(shader, "turbidity", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("ground_albedo", &status);
+   AiNodeSetRGB(shader, "ground_albedo", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("use_degrees", &status);
+   ProcessConstantParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, plug);
+   
+   plug = FindMayaPlug("elevation", &status);
+   ProcessConstantParameter(shader, "elevation", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("azimuth", &status);
+   ProcessConstantParameter(shader, "azimuth", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("solar_direction", &status);
+   AiNodeSetVec(shader, "solar_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("visible_solar_disc", &status);
+   ProcessConstantParameter(shader, "visible_solar_disc", AI_TYPE_BOOLEAN, plug);
+   
+   plug = FindMayaPlug("intensity", &status);
+   ProcessConstantParameter(shader, "intensity", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("sky_tint", &status);
+   AiNodeSetRGB(shader, "sky_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("sun_tint", &status);
+   AiNodeSetRGB(shader, "sun_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 }
 
 // File
@@ -301,6 +331,11 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
+
+   MPlugArray connections;
+   plug = FindMayaPlug("normalCamera");
+
+   ExportBump(shader);
 }
 
 // Bump3d
@@ -1090,46 +1125,6 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
-   
-#if MAYA_API_VERSION < 201200
-   data.defaultValue.VEC.x = 0.f;
-   data.defaultValue.VEC.y = 0.f;
-   data.defaultValue.VEC.z = 0.f;
-   data.name = "vectorDisplacement";
-   data.shortName = "vd";
-   helper.MakeInputVector(data);
-
-   data.defaultValue.FLT = 1.f;
-   data.name = "scale";
-   data.shortName = "scl";
-   helper.MakeInputFloat(data);
-   
-   MStringArray  enumNames1;
-   enumNames1.append("Floating-Point Absolute");
-   enumNames1.append("Signed Encoding");
-   data.defaultValue.INT = 0;
-   data.name = "vectorEncoding";
-   data.shortName = "ve";
-   data.enums= enumNames1;
-   helper.MakeInputEnum(data);
-   
-   MStringArray  enumNames2;
-   enumNames2.append("World");
-   enumNames2.append("Object");
-   enumNames2.append("Tangent");
-   data.defaultValue.INT = 1;
-   data.name = "vectorSpace";
-   data.shortName = "vs";
-   data.enums= enumNames2;
-   helper.MakeInputEnum(data);
-   
-   data.defaultValue.VEC.x = 0.f;
-   data.defaultValue.VEC.y = 0.f;
-   data.defaultValue.VEC.z = 0.f;
-   data.name = "tangent";
-   data.shortName = "tan";
-   helper.MakeInputVector(data);
-#endif
 }
 
 void CMayaBlinnTranslator::Export(AtNode* shader)
@@ -1151,4 +1146,35 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
 AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
 {
    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
+void CAiHairTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("aiHair");
+   
+   CAttrData data;
+
+   data.name = "aiEnableMatte";
+   data.shortName = "ai_enable_matte";
+   data.defaultValue.BOOL = false;
+   helper.MakeInputBoolean(data);
+
+   data.name = "aiMatteColor";
+   data.shortName = "ai_matte_color";
+   data.defaultValue.RGB = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
+   
+   data.name = "aiMatteColorA";
+   data.shortName = "ai_matte_color_a";
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasMax = true;
+   data.max.FLT = 1.0;
+   data.defaultValue.FLT = 0.0f;
+   helper.MakeInputFloat(data);   
+}
+
+AtNode* CAiHairTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("hair");
 }
