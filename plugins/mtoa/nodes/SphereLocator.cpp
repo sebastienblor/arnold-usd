@@ -56,10 +56,29 @@ bool CSphereLocator::isAbstractClass()
    return true;
 }
 
+AtVector SphereVertex(float phi, float theta)
+{
+   AtVector ret;
+   ret.y = cosf(theta);
+   float t = sinf(theta);
+   ret.x = t * sinf(phi);
+   ret.z = t * cosf(phi);
+   return ret;
+}
+
+void SphereVertexGL(float radius, float phi, float theta)
+{
+   float y = cosf(theta) * radius;
+   float t = sinf(theta) * radius;
+   float x = t * sinf(phi);
+   float z = t * cosf(phi);
+   glVertex3f(x, y, z);
+} 
+
 void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format)
 {
 
-   glBegin(GL_QUADS);
+   /*glBegin(GL_QUADS);
 
    int dtheta, dphi, theta, phi;
    dtheta = 360 / divisionsX;
@@ -131,17 +150,58 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
          }
       }
    }
-   glEnd();
-}
+   glEnd();*/
+   glRotatef(-90.0, 1.0, 0.0, 0.0);
+   glBegin(GL_QUADS);
 
-void SphereVertex(float radius, float phi, float theta)
-{
-   float y = cosf(theta) * radius;
-   float t = sinf(theta) * radius;
-   float x = t * sinf(phi);
-   float z = t * cosf(phi);
-   glVertex3f(x, y, z);
-} 
+   AtVector dir;
+   float u, v;
+   
+   for (int x = 0; x < divisionsX; ++x)
+   {
+      float phiB = (float)AI_PITIMES2 * (float)x / (float)divisionsX;
+      float phiE = (float)AI_PITIMES2 * (float)(x + 1) / (float)divisionsX;
+      
+      for (int y = 0; y < divisionsY; ++y)
+      {         
+         float thetaB = (float)AI_PI * (float)y / (float)divisionsY;
+         float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisionsY;
+         for(int numpoint=0; numpoint<4; numpoint++)
+         {
+            switch (numpoint)
+            {
+               case 0:
+                  dir = SphereVertex(phiB, thetaB);
+                  break;
+               case 1:
+                  dir = SphereVertex(phiE, thetaB);
+                  break;
+               case 2:
+                  dir = SphereVertex(phiE, thetaE);
+                  break;
+               case 3:
+                  dir = SphereVertex(phiB, thetaE);
+                  break;
+               default:
+                  dir = AI_V3_Y;
+            }
+            switch (format)
+            {
+               case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
+               case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
+               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
+               default: AiMappingCubicMap(&dir, &u, &v);
+            }
+            glTexCoord2f(u, v);
+            //glNormal3f(-dir.x, -dir.y, -dir.z);
+            glVertex3f(dir.x * radius, dir.y * radius, dir.z * radius);
+         }
+      }
+   }
+   
+   glEnd();
+   glRotatef(90.0, 1.0, 0.0, 0.0);
+}
 
 void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divisionsY)
 {
@@ -157,17 +217,17 @@ void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divis
          float thetaB = (float)AI_PI * (float)y / (float)divisionsY;
          float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisionsY;
 
-         SphereVertex(radius, phiB, thetaB);
-         SphereVertex(radius, phiE, thetaB);
+         SphereVertexGL(radius, phiB, thetaB);
+         SphereVertexGL(radius, phiE, thetaB);
          
-         SphereVertex(radius, phiB, thetaE);
-         SphereVertex(radius, phiE, thetaE);
+         SphereVertexGL(radius, phiB, thetaE);
+         SphereVertexGL(radius, phiE, thetaE);
          
-         SphereVertex(radius, phiB, thetaB);
-         SphereVertex(radius, phiB, thetaE);
+         SphereVertexGL(radius, phiB, thetaB);
+         SphereVertexGL(radius, phiB, thetaE);
          
-         SphereVertex(radius, phiE, thetaB);
-         SphereVertex(radius, phiE, thetaE);
+         SphereVertexGL(radius, phiE, thetaB);
+         SphereVertexGL(radius, phiE, thetaE);
       }
    }
    
@@ -383,7 +443,9 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
             glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-            glPolygonMode(GL_BACK, GL_FILL);
+            //glCullFace(GL_NONE);
+            glDisable(GL_CULL_FACE);
+            //glPolygonMode(GL_FRONT, GL_FILL);
 
             // Our Custom Sphere
             MPlug formatPlug  = fn.findPlug(s_format);
@@ -391,12 +453,12 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             formatPlug.getValue(format);
             DrawUVSphere(radius, divisions*4, divisions*4, format);
 
-            if (facing == 2)
+            /*if (facing == 2)
             {
                // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
                DrawUVSphere(radius, divisions*4, divisions*4, format);
                glCullFace(GL_FRONT);
-            }
+            }*/
             glDisable(GL_TEXTURE_2D);
             glDeleteTextures(1, &texture);
          }
@@ -530,7 +592,7 @@ MStatus CSphereLocator::initialize()
    eAttr.addField("Medium (128x128)", 1);
    eAttr.addField("High (256x256)", 2);
    eAttr.addField("Higher (512x512)", 3);
-   eAttr.addField("Ultra (1024x1024)", 3);
+   eAttr.addField("Ultra (1024x1024)", 4);
    eAttr.setInternal(true);
    addAttribute(s_sampling);
 
