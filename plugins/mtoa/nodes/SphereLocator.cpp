@@ -368,9 +368,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
             glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-            //glCullFace(GL_NONE);
             glDisable(GL_CULL_FACE);
-            //glPolygonMode(GL_FRONT, GL_FILL);
 
             // Our Custom Sphere
             MPlug formatPlug  = fn.findPlug(s_format);
