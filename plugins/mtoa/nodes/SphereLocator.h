@@ -47,7 +47,7 @@ public:
    bool isAbstractClass();
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
-   void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
+   void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV = true);
    void DrawSphereWireframe(float radius, int divisionsX, int divisionsY);
    void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();

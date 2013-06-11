@@ -1,8 +1,7 @@
 #include "SphereLocator.h"
 #include "nodes/ShaderUtils.h"
 
-#include <ai_ray.h>
-#include <ai_shader_util.h>
+#include <ai.h>
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -75,7 +74,7 @@ void SphereVertexGL(float radius, float phi, float theta)
    glVertex3f(x, y, z);
 } 
 
-void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format)
+void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV)
 {
    int numIndices = divisionsX * divisionsY * 6;
    int numVertices = (divisionsX + 1) * (divisionsY + 1);
@@ -145,12 +144,16 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
 
    glEnableClientState(GL_VERTEX_ARRAY);
    glVertexPointer(3, GL_FLOAT, 0, &m_positionData[0]);
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-   glTexCoordPointer(2, GL_FLOAT, 0, &m_UVData[0]);
+   if (needsUV)
+   {
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glTexCoordPointer(2, GL_FLOAT, 0, &m_UVData[0]);
+   }
 
    glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, &m_indexData[0]);
 
-   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+   if (needsUV)
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
    glDisableClientState(GL_VERTEX_ARRAY);
    glRotatef(90.0, 1.0, 0.0, 0.0);
 }
@@ -272,9 +275,6 @@ bool CSphereLocator::setInternalValueInContext(const MPlug &plug, const MDataHan
    {
       m_goSample = true;
    }
-
-   //if (plug == s_format)
-   //   m_goUVSample = true;
    
    return MPxLocatorNode::setInternalValueInContext(plug, handle, context);
 }
@@ -346,11 +346,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    
    GLuint texture;
 
-   GLUquadricObj *quadratic = gluNewQuadric();
-   gluQuadricNormals(quadratic, GLU_FLAT);
-   gluQuadricTexture(quadratic, GL_TRUE);  
-
-   int displayStyle  = view.displayStyle();
+   int displayStyle     = view.displayStyle();
    int displayStatusInt = displayStatus;
 
    // 3 means wireframe
@@ -366,7 +362,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          glCullFace(GL_FRONT);
       else if (facing == 1)
          glCullFace(GL_BACK);
-
 
       // If there is a connection
       if (conn.length()>0)
@@ -405,13 +400,13 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             MPlug formatPlug  = fn.findPlug(s_format);
             int format;
             formatPlug.getValue(format);
-            DrawUVSphere(radius, divisions*4, divisions*4, format);
+            DrawUVSphere(radius, divisions * 4, divisions * 4, format);
 
             if (facing == 2)
             {
                // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
                glCullFace(GL_FRONT);
-               DrawUVSphere(radius, divisions*4, divisions*4, format);               
+               DrawUVSphere(radius, divisions * 4, divisions * 4, format);               
             }
             glDisable(GL_TEXTURE_2D);
             glDeleteTextures(1, &texture);
@@ -421,7 +416,10 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       else
       {
          glColor4f(skyColorPlug.child(0).asFloat(), skyColorPlug.child(1).asFloat(), skyColorPlug.child(2).asFloat(), 0.6f);
-         gluSphere(quadratic, radius, divisions, divisions);
+         MPlug formatPlug  = fn.findPlug(s_format);
+         int format;
+         formatPlug.getValue(format);
+         DrawUVSphere(radius, divisions * 4, divisions * 4, format, false);
       }
 
       if (facing != 2)
@@ -447,8 +445,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    // re-enable depth writes
    glDepthMask(1);
    glDisable(GL_BLEND);
-
-   gluDeleteQuadric(quadratic);
 }
 
 MBoundingBox CSphereLocator::boundingBox() const
