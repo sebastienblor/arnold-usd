@@ -128,13 +128,13 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
       {
          for (int y = 0; y < divisionsX; ++y)
          {
-            m_indexData[indexCounter++] = x + y * divisionsX;
-            m_indexData[indexCounter++] = x + 1 + y * divisionsX;
-            m_indexData[indexCounter++] = x + (y + 1) * divisionsX;
+            m_indexData[indexCounter++] = x + y * (divisionsX + 1);
+            m_indexData[indexCounter++] = x + 1 + y * (divisionsX + 1);
+            m_indexData[indexCounter++] = x + (y + 1) * (divisionsX + 1);
 
-            m_indexData[indexCounter++] = x + 1 + y * divisionsX;
-            m_indexData[indexCounter++] = x + 1 + (y + 1) * divisionsX;
-            m_indexData[indexCounter++] = x + (y + 1) * divisionsX;
+            m_indexData[indexCounter++] = x + 1 + y * (divisionsX + 1);
+            m_indexData[indexCounter++] = x + 1 + (y + 1) * (divisionsX + 1);
+            m_indexData[indexCounter++] = x + (y + 1) * (divisionsX + 1);
 
          }  
       }
@@ -310,7 +310,7 @@ unsigned int CSphereLocator::NumSampleBase()
 void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus)
 {
    MStatus stat;
-   const int divisions = 128;
+   const int divisions = 64;
    const int divisionsWireframe = 16;
    float radius;
    int facing;
