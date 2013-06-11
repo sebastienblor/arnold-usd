@@ -103,7 +103,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
 
       for (int x = 0; x < (divisionsX + 1); ++x)
       {
-         float phi = (float)AI_PITIMES2 * (float)x / (float)divisionsX;
+         float phi = (float)AI_PITIMES2 * (float)x / (float)divisionsX - (float)AI_PIOVER2;
          
          for (int y = 0; y < (divisionsY + 1); ++y)
          {         
@@ -310,7 +310,8 @@ unsigned int CSphereLocator::NumSampleBase()
 void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus)
 {
    MStatus stat;
-   const int divisions = 16;
+   const int divisions = 128;
+   const int divisionsWireframe = 16;
    float radius;
    int facing;
 
@@ -330,7 +331,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    
    if (renderMode == GL_SELECT)
    {
-      DrawSphereWireframe(radius, divisions, divisions);
+      DrawSphereWireframe(radius, divisionsWireframe, divisionsWireframe);
       return;
    }
 
@@ -422,7 +423,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       if (displayStatusInt == 8)
       {
          glColor4f(1, 1, 0, 0.2f);
-         DrawSphereWireframe(radius, divisions, divisions);
+         DrawSphereWireframe(radius, divisionsWireframe, divisionsWireframe);
       }
 
    }
@@ -432,7 +433,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          glColor4f(1, 1, 0, 0.2f);
       else
          glColor4f(0.75, 0, 0, 0.2f);
-      DrawSphereWireframe(radius, divisions, divisions);
+      DrawSphereWireframe(radius, divisionsWireframe, divisionsWireframe);
    }
 
    // re-enable depth writes
