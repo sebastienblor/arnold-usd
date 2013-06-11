@@ -54,7 +54,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    // Invert in Z to account for the env sphere being viewed from inside
    AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
    AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
-   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, 1.0f/static_cast<float>(scale[2]));
+   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f/static_cast<float>(scale[2]));
 
    ProcessParameter(shader, "color",     AI_TYPE_RGB);
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);

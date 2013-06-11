@@ -70,13 +70,15 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    if (m_goUVSample)
    {
       int numUVdata = divisionsX * divisionsY * 4;
-      if (m_UData != NULL)
-         delete[] m_UData;
-      if (m_VData != NULL)
-         delete[] m_VData;
-      m_UData = new float[numUVdata];
-      m_VData = new float[numUVdata];
+      m_UData.resize(numUVdata);
+      m_VData.resize(numUVdata);
    }
+   else
+   {
+      m_UData.clear();
+      m_VData.clear();
+   }
+
 
    for(theta = -90; theta <= 90-dtheta; theta+=dtheta)
    {
@@ -129,7 +131,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
 
             if (m_goUVSample)
             {
-               AiV3Create(dir, x, z, -y);
+               AiV3Create(dir, x, -z, -y);
                AiV3Normalize(dir, dir);
                switch (format)
                {
@@ -138,7 +140,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
                   case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
                   default: AiMappingCubicMap(&dir, &u, &v);
                }
-               m_UData[uv_counter] = -u + 0.5f;
+               m_UData[uv_counter] = u;
                m_VData[uv_counter] = v;
             }
 
@@ -252,17 +254,13 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
          }
       }
 
-      MString depNodeSkyColorName(fileTexture.name() + ".outColor");
-      
-      if (m_colorData != NULL)
-         delete[] m_colorData;
-      m_colorData = NULL;
+      MString depNodeSkyColorName(fileTexture.name() + ".outColor");      
       
       if (MS::kSuccess == MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, 
               numSamples, false, false, cameraMat, 
               NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps))
       {
-         m_colorData = new unsigned char[numSamples * 4];
+         m_colorData.resize(numSamples * 4);
          int alpha = 255;
          for(unsigned int i = 0; (i < colors.length()); i++)
          {
@@ -375,7 +373,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             SampleSN(plugColor);
          }
          
-         if (m_colorData != NULL)
+         if (m_colorData.size())
          {
             // check the number of samples
             int numSampleBase = NumSampleBase();
@@ -383,7 +381,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             glGenTextures(1, &texture);
             glBindTexture(GL_TEXTURE_2D, texture);
             glEnable(GL_TEXTURE_2D);
-            glTexImage2D(GL_TEXTURE_2D, 0, 4, numSampleBase, numSampleBase , 0, GL_RGBA, GL_UNSIGNED_BYTE, m_colorData);
+            glTexImage2D(GL_TEXTURE_2D, 0, 4, numSampleBase, numSampleBase , 0, GL_RGBA, GL_UNSIGNED_BYTE, &m_colorData[0]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

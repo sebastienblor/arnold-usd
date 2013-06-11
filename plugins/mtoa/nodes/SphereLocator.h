@@ -21,6 +21,7 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MStatus.h>
+#include <vector>
 
 class CSphereLocator
    :  public MPxLocatorNode
@@ -63,9 +64,9 @@ public:
    static MObject s_sampling;
    static MObject s_hwtexalpha;
 
-   unsigned char* m_colorData;
-   float*         m_UData;
-   float*         m_VData;
+   std::vector<unsigned char> m_colorData;
+   std::vector<float>         m_UData;
+   std::vector<float>         m_VData;
 
    // Need to check if sampling again is needed
    bool   m_goSample;
@@ -74,9 +75,6 @@ public:
    virtual void postConstructor()
    {
       // Initialize colorData
-      m_colorData   = NULL;
-      m_UData       = NULL;
-      m_VData       = NULL;
       m_goSample    = true;
       m_goUVSample  = true;
       
@@ -86,23 +84,12 @@ public:
    
    static void removeSphereLocator(MObject& node, void* clientData)
    {
-      if (((CSphereLocator*)clientData)->m_colorData != NULL)
-      {
-         delete[] ((CSphereLocator*)clientData)->m_colorData;
-         ((CSphereLocator*)clientData)->m_colorData = NULL;
-      }
-      if (((CSphereLocator*)clientData)->m_UData != NULL)
-      {
-         delete[] ((CSphereLocator*)clientData)->m_UData;
-         ((CSphereLocator*)clientData)->m_UData = NULL;
-      }
-      if (((CSphereLocator*)clientData)->m_VData != NULL)
-      {
-         delete[] ((CSphereLocator*)clientData)->m_VData;
-         ((CSphereLocator*)clientData)->m_VData = NULL;
-      }
-      ((CSphereLocator*)clientData)->m_goSample    = true;
-      ((CSphereLocator*)clientData)->m_goUVSample  = true;
+      CSphereLocator* locator = reinterpret_cast<CSphereLocator*>(clientData);
+      locator->m_colorData.clear();
+      locator->m_UData.clear();
+      locator->m_VData.clear();
+      locator->m_goSample = true;
+      locator->m_goUVSample = true;
    }
 
 };  // class CSphereLocator
