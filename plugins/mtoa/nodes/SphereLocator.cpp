@@ -66,20 +66,6 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    dphi    = 360 / divisionsY;
    double DTOR = 0.0174532925;
 
-   int uv_counter = 0;
-   if (m_goUVSample)
-   {
-      int numUVdata = divisionsX * divisionsY * 4;
-      m_UData.resize(numUVdata);
-      m_VData.resize(numUVdata);
-   }
-   else
-   {
-      m_UData.clear();
-      m_VData.clear();
-   }
-
-
    for(theta = -90; theta <= 90-dtheta; theta+=dtheta)
    {
       AtVector dir;
@@ -129,30 +115,22 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
                   break;
             }
 
-            if (m_goUVSample)
+            AiV3Create(dir, x, -z, -y);
+            AiV3Normalize(dir, dir);
+            switch (format)
             {
-               AiV3Create(dir, x, -z, -y);
-               AiV3Normalize(dir, dir);
-               switch (format)
-               {
-                  case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
-                  case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
-                  case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
-                  default: AiMappingCubicMap(&dir, &u, &v);
-               }
-               m_UData[uv_counter] = u;
-               m_VData[uv_counter] = v;
+               case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
+               case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
+               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
+               default: AiMappingCubicMap(&dir, &u, &v);
             }
-
-            glTexCoord2f(m_UData[uv_counter], m_VData[uv_counter]);
+            glTexCoord2f(u, v);
+            
             glNormal3f(x, y, z);
             glVertex3f(x * radius, y * radius, z * radius);
-
-            uv_counter++;
          }
       }
    }
-   m_goUVSample = false;
    glEnd();
 }
 
@@ -283,8 +261,8 @@ bool CSphereLocator::setInternalValueInContext(const MPlug &plug, const MDataHan
       m_goSample = true;
    }
 
-   if (plug == s_format)
-      m_goUVSample = true;
+   //if (plug == s_format)
+   //   m_goUVSample = true;
    
    return MPxLocatorNode::setInternalValueInContext(plug, handle, context);
 }
@@ -303,8 +281,23 @@ void CSphereLocator::draw(M3dView& view, const MDagPath& DGpath, M3dView::Displa
 
 unsigned int CSphereLocator::NumSampleBase()
 {
-      MFnDependencyNode fnThisNode(thisMObject());
-      return static_cast<unsigned int>(pow(2.0, (fnThisNode.findPlug("sampling").asInt() + 6)));
+   MFnDependencyNode fnThisNode(thisMObject());
+   int sampling = MPlug(thisMObject(), s_sampling).asShort();
+   switch (sampling)
+   {
+      case 0:
+         return 64;
+      case 1:
+         return 128;
+      case 2:
+         return 256;
+      case 3:
+         return 512;
+      case 4:
+         return 1024;
+      default:
+         return 256;
+   }
 }
 
 void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus)
@@ -536,7 +529,8 @@ MStatus CSphereLocator::initialize()
    eAttr.addField("Low (64x64)", 0);
    eAttr.addField("Medium (128x128)", 1);
    eAttr.addField("High (256x256)", 2);
-   eAttr.addField("Highest (512x512)", 3);
+   eAttr.addField("Higher (512x512)", 3);
+   eAttr.addField("Ultra (1024x1024)", 3);
    eAttr.setInternal(true);
    addAttribute(s_sampling);
 

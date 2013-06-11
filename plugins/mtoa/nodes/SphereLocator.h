@@ -1,7 +1,7 @@
 #pragma once
 
 #include "nodes/ArnoldNodeIDs.h"
-#include <ai_types.h>
+#include <ai.h>
 
 #include <maya/MPxLocatorNode.h>
 #include <maya/M3dView.h>
@@ -65,18 +65,14 @@ public:
    static MObject s_hwtexalpha;
 
    std::vector<unsigned char> m_colorData;
-   std::vector<float>         m_UData;
-   std::vector<float>         m_VData;
 
    // Need to check if sampling again is needed
    bool   m_goSample;
-   bool   m_goUVSample;
    
    virtual void postConstructor()
    {
       // Initialize colorData
       m_goSample    = true;
-      m_goUVSample  = true;
       
       MObject obj = thisMObject();
       MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
@@ -86,10 +82,7 @@ public:
    {
       CSphereLocator* locator = reinterpret_cast<CSphereLocator*>(clientData);
       locator->m_colorData.clear();
-      locator->m_UData.clear();
-      locator->m_VData.clear();
       locator->m_goSample = true;
-      locator->m_goUVSample = true;
    }
 
 };  // class CSphereLocator
