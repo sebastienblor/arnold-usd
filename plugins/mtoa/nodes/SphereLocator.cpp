@@ -238,7 +238,7 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
             float valuej = static_cast<float>(j) / numSampleBase;
             uCoords.append(valuej);
             vCoords.append(valuei);
-            filterSizes.append(0.001f);
+            filterSizes.append(0.0f);
          }
       }
 
