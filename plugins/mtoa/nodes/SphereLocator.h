@@ -65,14 +65,26 @@ public:
    static MObject s_hwtexalpha;
 
    std::vector<unsigned char> m_colorData;
+   std::vector<AtVector>      m_positionData;
+   std::vector<AtVector2>     m_UVData;
+   std::vector<AtUInt>        m_indexData;
 
    // Need to check if sampling again is needed
    bool   m_goSample;
+   float  m_cachedRadius;
+   int    m_cachedDivisionX;
+   int    m_cachedDivisionY;
+   int    m_cachedFormat;
+
    
    virtual void postConstructor()
    {
       // Initialize colorData
-      m_goSample    = true;
+      m_goSample        = true;
+      m_cachedRadius    = -1.f;
+      m_cachedDivisionX = -1;
+      m_cachedDivisionY = -1;
+      m_cachedFormat    = -1;
       
       MObject obj = thisMObject();
       MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
@@ -82,7 +94,14 @@ public:
    {
       CSphereLocator* locator = reinterpret_cast<CSphereLocator*>(clientData);
       locator->m_colorData.clear();
-      locator->m_goSample = true;
+      locator->m_positionData.clear();
+      locator->m_UVData.clear();
+      locator->m_indexData.clear();
+      locator->m_goSample        = true;
+      locator->m_cachedRadius    = -1.f;
+      locator->m_cachedDivisionX = -1;
+      locator->m_cachedDivisionY = -1;
+      locator->m_cachedFormat    = -1;
    }
 
 };  // class CSphereLocator
