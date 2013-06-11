@@ -139,48 +139,6 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
 
          }  
       }
-      
-      /*for (int x = 0; x < divisionsX; ++x)
-      {
-         float phiB = (float)AI_PITIMES2 * (float)x / (float)divisionsX;
-         float phiE = (float)AI_PITIMES2 * (float)(x + 1) / (float)divisionsX;
-         
-         for (int y = 0; y < divisionsY; ++y)
-         {         
-            float thetaB = (float)AI_PI * (float)y / (float)divisionsY;
-            float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisionsY;
-            for(int numpoint=0; numpoint<4; numpoint++)
-            {
-               switch (numpoint)
-               {
-                  case 0:
-                     dir = SphereVertex(phiB, thetaB);
-                     break;
-                  case 1:
-                     dir = SphereVertex(phiE, thetaB);
-                     break;
-                  case 2:
-                     dir = SphereVertex(phiE, thetaE);
-                     break;
-                  case 3:
-                     dir = SphereVertex(phiB, thetaE);
-                     break;
-                  default:
-                     dir = AI_V3_Y;
-               }
-               switch (format)
-               {
-                  case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
-                  case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
-                  case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
-                  default: AiMappingCubicMap(&dir, &u, &v);
-               }
-               m_UVData[dataCounter].x = u;
-               m_UVData[dataCounter].y = v;
-               m_positionData[dataCounter++] = dir * radius;
-            }
-         }
-      }*/
    }
    
    glRotatef(-90.0, 1.0, 0.0, 0.0);
