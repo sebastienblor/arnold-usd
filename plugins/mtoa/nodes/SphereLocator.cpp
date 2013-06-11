@@ -77,80 +77,6 @@ void SphereVertexGL(float radius, float phi, float theta)
 
 void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format)
 {
-
-   /*glBegin(GL_QUADS);
-
-   int dtheta, dphi, theta, phi;
-   dtheta = 360 / divisionsX;
-   dphi    = 360 / divisionsY;
-   double DTOR = 0.0174532925;
-
-   for(theta = -90; theta <= 90-dtheta; theta+=dtheta)
-   {
-      AtVector dir;
-      float u, v;
-      float x, y, z;
-      x = y = z = 0;
-
-      // little fix to get UVS nicely
-      //if (theta==90)
-        // theta=89.99;
-
-      for(phi = -270; phi <= 90-dphi; phi+=dphi)
-      {
-         // little fix to get UVS nicely
-         //if (phi==90)
-           // phi=89.99;
-
-         for(int numpoint=0; numpoint<4; numpoint++)
-         {
-            switch(numpoint)
-            {
-               case 3:
-                  x = static_cast<float>(cos(theta * DTOR) * cos(phi * DTOR));
-                  y = static_cast<float>(cos(theta * DTOR) * sin(phi * DTOR));
-                  z = static_cast<float>(sin(theta * DTOR));
-                  // 1st vertex of the quad
-                  break;
-               case 2:
-                  x = static_cast<float>(cos((theta + dtheta) * DTOR) * cos(phi * DTOR));
-                  y = static_cast<float>(cos((theta + dtheta) * DTOR) * sin(phi * DTOR));
-                  z = static_cast<float>(sin((theta + dtheta) * DTOR));
-                  // 2nd vertex of the quad
-                  break;
-               case 1:
-                  x = static_cast<float>(cos((theta + dtheta) * DTOR) * cos((phi + dphi) * DTOR));
-                  y = static_cast<float>(cos((theta + dtheta) * DTOR) * sin((phi + dphi) * DTOR));
-                  z = static_cast<float>(sin((theta + dtheta) * DTOR));
-                  // 3rd vertex of the quad
-                  break;
-               case 0:
-                  x = static_cast<float>(cos(theta * DTOR) * cos((phi + dphi) * DTOR));
-                  y = static_cast<float>(cos(theta * DTOR) * sin((phi + dphi) * DTOR));
-                  z = static_cast<float>(sin(theta * DTOR));
-                  // 4th and last vertex of the quad
-                  break;
-               default:
-                  break;
-            }
-
-            AiV3Create(dir, x, -z, -y);
-            AiV3Normalize(dir, dir);
-            switch (format)
-            {
-               case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
-               case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
-               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
-               default: AiMappingCubicMap(&dir, &u, &v);
-            }
-            glTexCoord2f(u, v);
-            
-            glNormal3f(x, y, z);
-            glVertex3f(x * radius, y * radius, z * radius);
-         }
-      }
-   }
-   glEnd();*/
    glRotatef(-90.0, 1.0, 0.0, 0.0);
    glBegin(GL_QUADS);
 
@@ -193,7 +119,6 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
                default: AiMappingCubicMap(&dir, &u, &v);
             }
             glTexCoord2f(u, v);
-            //glNormal3f(-dir.x, -dir.y, -dir.z);
             glVertex3f(dir.x * radius, dir.y * radius, dir.z * radius);
          }
       }
