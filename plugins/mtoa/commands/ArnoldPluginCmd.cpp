@@ -3,6 +3,7 @@
 #include "attributes/AttrHelper.h"
 #include "scene/MayaScene.h"
 #include "utils/Universe.h"
+#include "utils/MercurialID.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
@@ -22,6 +23,10 @@ MSyntax CArnoldPluginCmd::newSyntax()
 
    syntax.addFlag("lnt", "listAOVNodeTypes", MSyntax::kNoArg);
    syntax.addFlag("sdt", "setDefaultTranslator", MSyntax::kString, MSyntax::kString);
+
+   syntax.addFlag("llx", "listLoadedExtensions", MSyntax::kNoArg);
+   syntax.addFlag("gev", "getExtensionApiVersion", MSyntax::kString);
+   syntax.addFlag("gmi", "getMercurialID", MSyntax::kNoArg);
    return syntax;
 }
 
@@ -157,6 +162,23 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       args.getFlagArgument("setDefaultTranslator", 0, mayaTypeName);
       args.getFlagArgument("setDefaultTranslator", 1, translatorName);
       CExtensionsManager::SetDefaultTranslator(mayaTypeName, translatorName);
+   }
+   else if(args.isFlagSet("listLoadedExtensions"))
+   {
+      MStringArray arr = CExtensionsManager::ListLoadedExtensions();
+      setResult(arr);
+   }
+   else if(args.isFlagSet("getExtensionApiVersion"))
+   {
+      MString extensionName;
+      args.getFlagArgument("getExtensionApiVersion", 0, extensionName);
+      CExtension* extension = CExtensionsManager::GetExtensionByName(extensionName);
+      if (extension != 0)
+         setResult(extension->GetApiVersion());
+   }
+   else if(args.isFlagSet("getMercurialID"))
+   {
+      setResult(MString(MERCURIAL_ID));
    }
 
    // FIXME: error on unknown flag

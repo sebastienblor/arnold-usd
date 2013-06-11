@@ -113,20 +113,50 @@ void CLambertTranslator::Export(AtNode* shader)
 
    // Normal camera
    
-   plug = FindMayaPlug("normalCamera");
+   ExportBump(shader);
+}
 
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-   {
-      AtNode* bump = ExportNode(connections[0]);
+// Physical Sky
+//
+AtNode*  CPhysicalSkyTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("physical_sky"));
+}
 
-      if (bump != NULL)
-      {
-         AiNodeLink(shader, "shader", bump);
-         SetArnoldRootNode(bump);
-      }
-   }
+void CPhysicalSkyTranslator::Export(AtNode* shader)
+{
+   // All physical sky attributes are not linkable in Arnold
+   MStatus status;
    
+   MPlug plug = FindMayaPlug("turbidity", &status);
+   ProcessConstantParameter(shader, "turbidity", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("ground_albedo", &status);
+   AiNodeSetRGB(shader, "ground_albedo", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("use_degrees", &status);
+   ProcessConstantParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, plug);
+   
+   plug = FindMayaPlug("elevation", &status);
+   ProcessConstantParameter(shader, "elevation", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("azimuth", &status);
+   ProcessConstantParameter(shader, "azimuth", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("solar_direction", &status);
+   AiNodeSetVec(shader, "solar_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("visible_solar_disc", &status);
+   ProcessConstantParameter(shader, "visible_solar_disc", AI_TYPE_BOOLEAN, plug);
+   
+   plug = FindMayaPlug("intensity", &status);
+   ProcessConstantParameter(shader, "intensity", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("sky_tint", &status);
+   AiNodeSetRGB(shader, "sky_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("sun_tint", &status);
+   AiNodeSetRGB(shader, "sun_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 }
 
 // File
@@ -294,6 +324,11 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
+
+   MPlugArray connections;
+   plug = FindMayaPlug("normalCamera");
+
+   ExportBump(shader);
 }
 
 // Bump3d

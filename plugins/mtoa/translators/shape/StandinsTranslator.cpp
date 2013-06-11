@@ -37,8 +37,7 @@ void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 {
-   m_isMasterDag = IsMasterInstance(m_masterDag);
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       AtNode * tmpRes = AddArnoldNode("procedural");
       return  tmpRes;
@@ -178,7 +177,7 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, GetMasterInstance());
    }
    else
    {
@@ -196,7 +195,7 @@ void CArnoldStandInsTranslator::Update(AtNode* anode)
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, GetMasterInstance());
    }
    else
    {

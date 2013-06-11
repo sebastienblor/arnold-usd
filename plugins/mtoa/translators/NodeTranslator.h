@@ -23,6 +23,10 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
+#define AI_UPDATE_ONLY 0
+#define AI_DELETE_NODE 1
+#define AI_RECREATE_NODE 2
+
 MString GetAOVNodeType(int type);
 
 // Abstract base class for all Maya-to-Arnold node translators
@@ -109,7 +113,8 @@ protected:
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
-      m_handle(CNodeAttrHandle())
+      m_updateMode(AI_UPDATE_ONLY),
+      m_handle(CNodeAttrHandle())      
    {}
 
    virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
@@ -218,6 +223,8 @@ protected:
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
+   
+   unsigned int m_updateMode;
 
 private:
    
@@ -264,7 +271,11 @@ protected:
    virtual void ExportMotion(AtNode* atNode, unsigned int step);
    virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
    virtual MStatus ExportOverrideSets();
-   virtual bool IsMasterInstance(MDagPath &masterDag);
+
+   virtual bool IsMasterInstance();
+   virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
+   virtual MDagPath& GetMasterInstance();
+
    void GetRotationMatrix(AtMatrix& matrix);
    static void GetMatrix(AtMatrix& matrix, const MDagPath& path);
    virtual void GetMatrix(AtMatrix& matrix);
@@ -272,10 +283,14 @@ protected:
    // for computing a path different from m_dagPath
    int ComputeVisibility(const MDagPath& path);
    int ComputeVisibility();   
+
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
    void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
 
 protected:
    MDagPath m_dagPath;
+private:
+   MDagPath m_masterDag;
+   bool m_isMasterDag;
 };

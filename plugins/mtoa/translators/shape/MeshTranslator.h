@@ -30,7 +30,7 @@ protected:
       m_abstract.arnold = "polymesh";
    }
    // overridden from CDagTranslator to add a GetNumMeshGroups check
-   virtual bool IsMasterInstance(MDagPath &masterDag);
+   virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
 private:
    MObject m_dataMesh;
    MStatus Tessellate(const MDagPath &dagPath);

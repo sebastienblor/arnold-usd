@@ -114,8 +114,15 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 
    bool linkable;
    if (!AiMetaDataGetBool(m_nodeEntry, paramName, "linkable", &linkable))
-      linkable = true;
+      linkable = true;   
    data.linkable = linkable;
+
+   bool channelBox;
+   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.channelbox", &channelBox) && channelBox)
+      channelBox = true;
+   else
+      channelBox = false; 
+   data.channelBox = channelBox;
 
    if (data.type == AI_TYPE_ARRAY)
    {
@@ -354,6 +361,7 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 /*
@@ -431,6 +439,7 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
@@ -468,6 +477,7 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
@@ -499,6 +509,7 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName)
@@ -533,6 +544,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 
    attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
    nAttr.setHidden(true);
@@ -543,6 +555,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setWritable(true);
    nAttr.setMin(0.);
    nAttr.setMax(1.);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
@@ -574,6 +587,7 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
@@ -605,6 +619,7 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
 }
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
 {
@@ -639,7 +654,7 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-
+   nAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
@@ -673,6 +688,7 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    tAttr.setStorable(true);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
+   tAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
@@ -737,6 +753,7 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
    eAttr.setStorable(true);
    eAttr.setReadable(true);
    eAttr.setWritable(true);
+   eAttr.setChannelBox(data.channelBox);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)

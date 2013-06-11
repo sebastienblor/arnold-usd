@@ -156,20 +156,7 @@ void CShaderTranslator::Export(AtNode *shader)
 
    CNodeTranslator::Export(shader);
 
-   MPlugArray connections;
-   MPlug plug = FindMayaPlug("normalCamera");
-
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-   {
-      AtNode* bump = ExportNode(connections[0]);
-
-      if (bump != NULL)
-      {
-         AiNodeLink(shader, "shader", bump);
-         SetArnoldRootNode(bump);
-      }
-   }
+   ExportBump(shader);
    // This routine is not currently used. It could eventually be used in order for
    // MayaShadingEngine.sets to be a node array instead of a string array
    //AssociateAOVsWithShadingGroups();
@@ -239,4 +226,33 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
 bool CShaderTranslator::RequiresMotionData()
 {
    return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
+}
+
+void CShaderTranslator::ExportBump(AtNode* shader)
+{
+   MStatus status;
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("normalCamera", &status);
+   if (status && !plug.isNull())
+   {
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* bump = ExportNode(connections[0]);
+
+         if (bump != NULL)
+         {
+            SetArnoldRootNode(bump);
+            while (true)
+            {
+               AtNode* connectedBump = AiNodeGetLink(bump, "shader");
+               if (connectedBump != 0 && AiNodeIs(connectedBump, "mayaBump2D"))
+                  bump = connectedBump;
+               else
+                  break;
+            }
+            AiNodeLink(shader, "shader", bump);            
+         }
+      }
+   }
 }

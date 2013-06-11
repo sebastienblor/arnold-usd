@@ -51,7 +51,6 @@ protected:
 protected:
    MFnParticleSystem m_fnParticleSystem;
    AtInt m_particleCount;
-   MDagPath m_masterDag;
    MString m_customAttrs;
 
 

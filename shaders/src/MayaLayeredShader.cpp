@@ -260,6 +260,13 @@ shader_evaluate
          if ((curOpacity.r < 1.f || curOpacity.g < 1.f || curOpacity.b < 1.f ) &&
             ((flag != CF_TEXTURE)  || (transparency.r < 1.f || transparency.g < 1.f || transparency.b < 1.f)))
          {
+            for (AtUInt ii = 0; ii < localData->naovs; ++ii)
+            {
+               AOVLayer& it = AOVValues[ii];
+               // setting a black value before evaluating the layer
+               AiAOVSetRGB(sg, it.name, AI_RGB_BLACK);
+            }
+
             color = AiShaderEvalParamRGB(p_color0 + i);
             layer_op(sg, flag,
                      color,

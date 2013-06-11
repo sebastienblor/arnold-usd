@@ -47,17 +47,17 @@ unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
 // @param[out] masterDag    the master MDagPath result, only filled if result is false
 // @return                  whether or not dagPath is a master
 //
-bool CMeshTranslator::IsMasterInstance(MDagPath &masterDag)
+bool CMeshTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag)
 {
-   if (m_dagPath.isInstanced())
+   if (dagPath.isInstanced())
    {
-      MObjectHandle handle = MObjectHandle(m_dagPath.node());
-      unsigned int instNum = m_dagPath.instanceNumber();
+      MObjectHandle handle = MObjectHandle(dagPath.node());
+      unsigned int instNum = dagPath.instanceNumber();
       // first instance
       if (instNum == 0)
       {
-         // first visible instance is always the master (passed m_dagPath is assumed to be visible)
-         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         // first visible instance is always the master (passed dagPath is assumed to be visible)
+         m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
       else
@@ -72,7 +72,7 @@ bool CMeshTranslator::IsMasterInstance(MDagPath &masterDag)
          }
          // find the master by searching preceding instances
          MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
+         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
          for (unsigned int master_index = 0; master_index < instNum; master_index++)
          {
             currDag = allInstances[master_index];
@@ -85,12 +85,12 @@ bool CMeshTranslator::IsMasterInstance(MDagPath &masterDag)
                return false;
             }
          }
-         // didn't find a master: m_dagPath is the master
-         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         // didn't find a master: dagPath is the master
+         m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
    }
-   // not instanced: m_dagPath is the master
+   // not instanced: dagPath is the master
    return true;
 }
 
@@ -102,8 +102,7 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
       return NULL;
    }
 
-   m_isMasterDag = IsMasterInstance(m_masterDag);
-   if (m_isMasterDag)
+   if (IsMasterInstance())
    {
       const short volumeContainerMode = FindMayaPlug("aiVolumeContainerMode").asShort();
       const float stepSize = FindMayaPlug("aiStepSize").asFloat();
@@ -123,7 +122,7 @@ void CMeshTranslator::Export(AtNode* anode)
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, GetMasterInstance());
    }
    else if (strcmp(nodeType, "polymesh") == 0)
    {
