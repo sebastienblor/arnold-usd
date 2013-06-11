@@ -76,8 +76,10 @@ void SphereVertexGL(float radius, float phi, float theta)
 
 void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV)
 {
-   int numIndices = divisionsX * divisionsY * 6;
-   int numVertices = (divisionsX + 1) * (divisionsY + 1);
+   const int numIndices = divisionsX * divisionsY * 6;
+   const int divisionsX1 = divisionsX + 1;
+   const int divisionsY1 = divisionsY + 1;
+   const int numVertices = divisionsX1 * divisionsY1;
    bool rebuildCache = false;
    if (radius != m_cachedRadius)
       rebuildCache = true;
@@ -101,13 +103,13 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
       AtVector dir;
       float u, v;
 
-      for (int x = 0; x < (divisionsX + 1); ++x)
+      for (int x = 0; x < divisionsX1; ++x)
       {
-         float phi = (float)AI_PITIMES2 * (float)x / (float)divisionsX - (float)AI_PIOVER2;
+         const float phi = (float)AI_PITIMES2 * (float)x / (float)divisionsX;
          
-         for (int y = 0; y < (divisionsY + 1); ++y)
+         for (int y = 0; y < divisionsY1; ++y)
          {         
-            float theta = (float)AI_PI * (float)y / (float)divisionsY;
+            const float theta = (float)AI_PI * (float)y / (float)divisionsY;
             dir = SphereVertex(phi, theta);            
             switch (format)
             {
@@ -116,7 +118,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
                case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
                default: AiMappingCubicMap(&dir, &u, &v);
             }
-            int id = x + y * (divisionsX + 1);
+            const int id = x + y * divisionsX1;
             m_UVData[id].x = u;
             m_UVData[id].y = v;
             m_positionData[id] = dir * radius;
@@ -124,17 +126,19 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
       }
 
       int indexCounter = 0;
-      for (int x = 0; x < divisionsX; ++x)
+      for (unsigned int x = 0; x < (unsigned int)divisionsX; ++x)
       {
-         for (int y = 0; y < divisionsX; ++y)
+         const int x1 = x + 1;
+         for (unsigned int y = 0; y < (unsigned int)divisionsY; ++y)
          {
-            m_indexData[indexCounter++] = x + y * (divisionsX + 1);
-            m_indexData[indexCounter++] = x + 1 + y * (divisionsX + 1);
-            m_indexData[indexCounter++] = x + (y + 1) * (divisionsX + 1);
+            const int y1 = y + 1;
+            m_indexData[indexCounter++] = x + y * divisionsX1;
+            m_indexData[indexCounter++] = x1 + y * divisionsX1;
+            m_indexData[indexCounter++] = x + y1 * divisionsX1;
 
-            m_indexData[indexCounter++] = x + 1 + y * (divisionsX + 1);
-            m_indexData[indexCounter++] = x + 1 + (y + 1) * (divisionsX + 1);
-            m_indexData[indexCounter++] = x + (y + 1) * (divisionsX + 1);
+            m_indexData[indexCounter++] = x1 + y * divisionsX1;
+            m_indexData[indexCounter++] = x1 + y1 * divisionsX1;
+            m_indexData[indexCounter++] = x + y1 * divisionsX1;
 
          }  
       }
