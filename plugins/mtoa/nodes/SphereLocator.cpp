@@ -139,8 +139,6 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
          }  
       }
    }
-   
-   glRotatef(-90.0, 1.0, 0.0, 0.0);
 
    glEnableClientState(GL_VERTEX_ARRAY);
    glVertexPointer(3, GL_FLOAT, 0, &m_positionData[0]);
@@ -155,12 +153,10 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    if (needsUV)
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
    glDisableClientState(GL_VERTEX_ARRAY);
-   glRotatef(90.0, 1.0, 0.0, 0.0);
 }
 
 void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divisionsY)
 {
-   glRotatef(-90.0, 1.0, 0.0, 0.0);
    glBegin(GL_LINES);
    
    for (int x = 0; x < divisionsX; ++x)
@@ -187,7 +183,6 @@ void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divis
    }
    
    glEnd();
-   glRotatef(90.0, 1.0, 0.0, 0.0);
 }
 
 void CSphereLocator::SampleSN(MPlug &colorPlug)
@@ -332,8 +327,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    // only render a wireframe representation, when in select mode
    // this gets rid most of the problems, and still lets the users select
    // the skydome light, the same way as mental ray ibl does
-   
-   glRotatef(90.0, 1.0, 0.0, 0.0);
    
    if (renderMode == GL_SELECT)
    {
