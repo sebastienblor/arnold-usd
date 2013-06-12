@@ -68,6 +68,8 @@ public:
    std::vector<AtVector>      m_positionData;
    std::vector<AtVector2>     m_UVData;
    std::vector<AtUInt>        m_indexData;
+   GLuint m_texture;
+   GLuint m_vbo;
 
    // Need to check if sampling again is needed
    bool   m_goSample;
@@ -85,6 +87,8 @@ public:
       m_cachedDivisionX = -1;
       m_cachedDivisionY = -1;
       m_cachedFormat    = -1;
+      m_texture         = -1;
+      m_vbo             = -1;
       
       MObject obj = thisMObject();
       MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
