@@ -1,7 +1,7 @@
 #pragma once
 
 #include "nodes/ArnoldNodeIDs.h"
-#include <ai_types.h>
+#include <ai.h>
 
 #include <maya/MPxLocatorNode.h>
 #include <maya/M3dView.h>
@@ -21,6 +21,7 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MStatus.h>
+#include <vector>
 
 class CSphereLocator
    :  public MPxLocatorNode
@@ -46,7 +47,7 @@ public:
    bool isAbstractClass();
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
-   void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
+   void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV = true);
    void DrawSphereWireframe(float radius, int divisionsX, int divisionsY);
    void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();
@@ -63,22 +64,31 @@ public:
    static MObject s_sampling;
    static MObject s_hwtexalpha;
 
-   unsigned char* m_colorData;
-   float*         m_UData;
-   float*         m_VData;
+   std::vector<unsigned char> m_colorData;
+   std::vector<AtVector>      m_positionData;
+   std::vector<AtVector2>     m_UVData;
+   std::vector<AtUInt>        m_indexData;
+   GLuint m_texture;
+   GLuint m_vbo;
 
    // Need to check if sampling again is needed
    bool   m_goSample;
-   bool   m_goUVSample;
+   float  m_cachedRadius;
+   int    m_cachedDivisionX;
+   int    m_cachedDivisionY;
+   int    m_cachedFormat;
+
    
    virtual void postConstructor()
    {
       // Initialize colorData
-      m_colorData   = NULL;
-      m_UData       = NULL;
-      m_VData       = NULL;
-      m_goSample    = true;
-      m_goUVSample  = true;
+      m_goSample        = true;
+      m_cachedRadius    = -1.f;
+      m_cachedDivisionX = -1;
+      m_cachedDivisionY = -1;
+      m_cachedFormat    = -1;
+      m_texture         = -1;
+      m_vbo             = -1;
       
       MObject obj = thisMObject();
       MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
@@ -86,23 +96,16 @@ public:
    
    static void removeSphereLocator(MObject& node, void* clientData)
    {
-      if (((CSphereLocator*)clientData)->m_colorData != NULL)
-      {
-         delete[] ((CSphereLocator*)clientData)->m_colorData;
-         ((CSphereLocator*)clientData)->m_colorData = NULL;
-      }
-      if (((CSphereLocator*)clientData)->m_UData != NULL)
-      {
-         delete[] ((CSphereLocator*)clientData)->m_UData;
-         ((CSphereLocator*)clientData)->m_UData = NULL;
-      }
-      if (((CSphereLocator*)clientData)->m_VData != NULL)
-      {
-         delete[] ((CSphereLocator*)clientData)->m_VData;
-         ((CSphereLocator*)clientData)->m_VData = NULL;
-      }
-      ((CSphereLocator*)clientData)->m_goSample    = true;
-      ((CSphereLocator*)clientData)->m_goUVSample  = true;
+      CSphereLocator* locator = reinterpret_cast<CSphereLocator*>(clientData);
+      locator->m_colorData.clear();
+      locator->m_positionData.clear();
+      locator->m_UVData.clear();
+      locator->m_indexData.clear();
+      locator->m_goSample        = true;
+      locator->m_cachedRadius    = -1.f;
+      locator->m_cachedDivisionX = -1;
+      locator->m_cachedDivisionY = -1;
+      locator->m_cachedFormat    = -1;
    }
 
 };  // class CSphereLocator
