@@ -176,6 +176,9 @@ namespace // <anonymous>
                                    "",
                                    CAiHairTranslator::creator,
                                    CAiHairTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiImage",
+                                   "",
+                                   CAiImageTranslator::creator);
        // Lights
        builtin->RegisterTranslator("directionalLight",
                                    "",

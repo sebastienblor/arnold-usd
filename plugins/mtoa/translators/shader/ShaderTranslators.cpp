@@ -1171,3 +1171,32 @@ AtNode* CAiHairTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("hair");
 }
+
+AtNode* CAiImageTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("image");
+}
+
+void CAiImageTranslator::Export(AtNode* image)
+{
+   CShaderTranslator::Export(image);
+   if (AiNodeGetLink(image, "filename") == 0)
+   {
+      CRenderOptions renderOptions; 
+      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+      renderOptions.GetFromMaya();      
+      if(renderOptions.useExistingTiledTextures()) 
+      {
+         MString filename(AiNodeGetStr(image, "filename"));
+         MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+         std::string tx_filename_tokens = tx_filename.asChar();
+         size_t tokenPos = tx_filename_tokens.find("<udim>");
+         if (tokenPos != std::string::npos)
+            tx_filename_tokens.replace(tokenPos, 6, "1001");
+         std::ifstream ifile(tx_filename_tokens.c_str()); 
+         if(ifile.is_open()) 
+            filename = tx_filename;
+         AiNodeSetStr(image, "filename", filename.asChar());
+      }
+   }
+}

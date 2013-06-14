@@ -86,3 +86,12 @@ public:
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
 };
+
+class CAiImageTranslator : public CShaderTranslator{
+public:
+   static void* creator(){return new CAiImageTranslator();}
+
+   virtual void Export(AtNode* shader);
+
+   AtNode* CreateArnoldNodes();
+};
