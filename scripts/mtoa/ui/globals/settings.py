@@ -215,7 +215,11 @@ def createArnoldRenderSettings():
                       label='Expand Procedurals',
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
-    
+    pm.separator()
+
+    pm.attrControlGrp('os_kickRenderFlags',
+                      label='Kick Render Flags',
+                      attribute='defaultArnoldRenderOptions.kickRenderFlags');
              
     pm.setParent('..')
 
