@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import maya
 import mtoa.ui.arnoldmenu as arnoldmenu
 import mtoa.utils as mutils
+import mtoa.ui.globals.settings as settings
 
 def removeArnoldShelf():
    if cmds.shelfLayout('MtoA', exists=True):
@@ -19,4 +20,5 @@ def createArnoldShelf():
    cmds.shelfButton(command=lambda *args: arnoldmenu.arnoldTxManager(), annotation='TX Manager', image='TXManagerShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: mutils.createLocator('aiAreaLight', asLight=True), annotation='Create Area Light', image='AreaLightShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True), annotation='Create SkyDome Light', image='SkydomeLightShelf.png', style='iconOnly')
+   cmds.shelfButton(command=lambda *args: settings.createBackground('aiPhysicalSky', settings.backgroundTextField), annotation='Create Physical Sky', image='PhysicalSkyShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: arnoldmenu.doCreateMeshLight(), annotation='Create Mesh Light', image='MeshLightShelf.png', style='iconOnly')

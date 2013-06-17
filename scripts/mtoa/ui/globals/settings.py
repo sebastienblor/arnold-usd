@@ -5,6 +5,8 @@ import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
 
+backgroundTextField = ''
+
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
@@ -572,15 +574,16 @@ def createArnoldEnvironmentSettings():
 
     pm.rowLayout(adjustableColumn=2, numberOfColumns=3)
     pm.text(label="Background")
-    bgfield = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    bgpopup = pm.popupMenu(parent=bgfield)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, bgfield))
+    global backgroundTextField
+    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
+    bgpopup = pm.popupMenu(parent=backgroundTextField)
+    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField))
     pm.button(label="Select", height=22, width=50, command=selectBackground)
     pm.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
-        pm.textField(bgfield, edit=True, text=conns[0])
+        pm.textField(backgroundTextField, edit=True, text=conns[0])
 
     pm.separator(style="none")
 
