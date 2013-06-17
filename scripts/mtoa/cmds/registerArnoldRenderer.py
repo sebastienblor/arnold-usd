@@ -3,6 +3,7 @@ import os
 import sys
 import inspect
 import mtoa.utils
+import arnoldShelf
 
 def mtoaPackageRoot():
     '''return the path to the mtoa python package directory'''
@@ -319,6 +320,7 @@ def registerArnoldRenderer():
                         break
                     except:
                         pass
+            arnoldShelf.createArnoldShelf()
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
