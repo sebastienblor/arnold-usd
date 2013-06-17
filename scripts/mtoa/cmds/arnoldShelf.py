@@ -8,6 +8,12 @@ def removeArnoldShelf():
    if cmds.shelfLayout('MtoA', exists=True):
       cmds.deleteUI('MtoA')
 
+def createPhysicalSky():
+   if cmds.objExists('defaultArnoldRenderOptions'):
+      settings.createBackground('aiPhysicalSky', None)
+   else:
+      cmds.confirmDialog(message='The Arnold Render Options node does not exists!')
+
 def createArnoldShelf():
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
@@ -20,5 +26,5 @@ def createArnoldShelf():
    cmds.shelfButton(command=lambda *args: arnoldmenu.arnoldTxManager(), annotation='TX Manager', image='TXManagerShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: mutils.createLocator('aiAreaLight', asLight=True), annotation='Create Area Light', image='AreaLightShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True), annotation='Create SkyDome Light', image='SkydomeLightShelf.png', style='iconOnly')
-   cmds.shelfButton(command=lambda *args: settings.createBackground('aiPhysicalSky', settings.backgroundTextField), annotation='Create Physical Sky', image='PhysicalSkyShelf.png', style='iconOnly')
+   cmds.shelfButton(command=lambda *args: createPhysicalSky(), annotation='Create Physical Sky', image='PhysicalSkyShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: arnoldmenu.doCreateMeshLight(), annotation='Create Mesh Light', image='MeshLightShelf.png', style='iconOnly')

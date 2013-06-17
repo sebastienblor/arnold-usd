@@ -5,8 +5,6 @@ import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
 
-backgroundTextField = ''
-
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
@@ -105,7 +103,8 @@ def changeBackground(node, field):
             selectBackground()
             return 0
     pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
-    pm.textField(field, edit=True, text=node)
+    if field is not None:
+        pm.textField(field, edit=True, text=node)
     selectBackground()
 
 def createBackground(type, field):
@@ -114,7 +113,6 @@ def createBackground(type, field):
         #pm.delete(bg)
     node = pm.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field)
-
 
 def removeBackground(field, doDelete):
     node = getBackgroundShader()
@@ -574,7 +572,6 @@ def createArnoldEnvironmentSettings():
 
     pm.rowLayout(adjustableColumn=2, numberOfColumns=3)
     pm.text(label="Background")
-    global backgroundTextField
     backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
     bgpopup = pm.popupMenu(parent=backgroundTextField)
     pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField))
