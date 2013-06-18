@@ -134,6 +134,10 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
       {
 
          MString currentAttr = attrs[i];
+         if (currentAttr == "rgbPP" ||
+             currentAttr == "opacityPP" ||
+             currentAttr == "radiusPP")
+            continue;
          m_fnParticleSystem.findPlug(currentAttr, &status);
          if (status != MS::kSuccess)
             continue;
