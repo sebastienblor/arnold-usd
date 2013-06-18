@@ -968,10 +968,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
          for (size_t i = 1; i < uvs.size(); ++i)
          {
-            MString listName = uvNames[i] + MString("list");
             MString idxsName = uvNames[i] + MString("idxs");
-            AiNodeDeclare(polymesh, listName.asChar(), "indexed POINT2");
-            AiNodeSetArray(polymesh, listName.asChar(), uvs[i]);
+            AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
+            AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
             AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
          }
       }

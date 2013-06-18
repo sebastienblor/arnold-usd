@@ -146,7 +146,6 @@ node_update
    AtImageData *idata = new AtImageData;;
    idata->uvSetName = AiNodeGetStr(node, "uvSetName");
    idata->useCustomUVSet = idata->uvSetName.length() > 0;
-   idata->uvSetName += std::string("list");
    idata->origPath = NULL;
    idata->processPath = NULL;
    idata->startPos = 0;
