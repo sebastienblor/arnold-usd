@@ -53,6 +53,8 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    }   
    
    ExportTraceSets(node, FindMayaPlug("aiTraceSets"));
+
+   ProcessParameter(node, "id", AI_TYPE_INT, "aiID");
 }
 
 
@@ -91,6 +93,11 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput(data);
 
    MakeArnoldVisibilityFlags(helper);
+
+   data.defaultValue.INT = 0;
+   data.name = "aiID";
+   data.shortName = "ai_id";
+   helper.MakeInputInt(data);
 }
 
 AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders)
