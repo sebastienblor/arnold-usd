@@ -147,7 +147,10 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
          {
             MDoubleArray*  attributes = new MDoubleArray;
             m_fnParticleSystem.getPerParticleAttribute(currentAttr, *attributes);
-            m_out_customDoubleAttrArrays[currentAttr.asChar()].push_back(attributes);
+            if (attributes->length() == 0)
+               delete attributes;
+            else
+               m_out_customDoubleAttrArrays[currentAttr.asChar()].push_back(attributes);
 
             continue;
          }
@@ -155,14 +158,20 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
          {
             MVectorArray*  attributes = new MVectorArray;
             m_fnParticleSystem.getPerParticleAttribute(currentAttr, *attributes);
-            m_out_customVectorAttrArrays[currentAttr.asChar()].push_back(attributes);
+            if (attributes->length() == 0)
+               delete attributes;
+            else
+               m_out_customVectorAttrArrays[currentAttr.asChar()].push_back(attributes);
 
             continue;
          }
          else if (m_fnParticleSystem.isPerParticleIntAttribute(currentAttr))
          {
             MIntArray*  attributes = new MIntArray;
-            m_fnParticleSystem.getPerParticleAttribute(currentAttr, *attributes);
+            if (attributes->length() == 0)
+               delete attributes;
+            else
+               m_fnParticleSystem.getPerParticleAttribute(currentAttr, *attributes);
             m_out_customIntAttrArrays[currentAttr.asChar()].push_back(attributes);
 
             continue;
