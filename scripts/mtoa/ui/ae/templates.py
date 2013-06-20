@@ -564,7 +564,6 @@ class ShapeMixin(object):
         self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
         self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
         self.addControl("aiTraceSets", label="Trace Sets")
-        self.addControl("aiID", label="ID")
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
