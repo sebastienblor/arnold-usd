@@ -123,7 +123,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 
 /// parse the m_customAttrs and populate the step vectors for each type of custom export attrs.
 /// called from within ExportParticleData
-void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step)
+void CParticleTranslator::ExportCustomParticleData(AtNode* particle)
 {
    MStringArray attrs;
 
@@ -150,9 +150,7 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
             if (attributes->length() == 0)
                delete attributes;
             else
-               m_out_customDoubleAttrArrays[currentAttr.asChar()].push_back(attributes);
-
-            continue;
+               m_out_customDoubleAttrArrays[currentAttr.asChar()] = attributes;
          }
          else if (m_fnParticleSystem.isPerParticleVectorAttribute(currentAttr))
          {
@@ -161,24 +159,19 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
             if (attributes->length() == 0)
                delete attributes;
             else
-               m_out_customVectorAttrArrays[currentAttr.asChar()].push_back(attributes);
-
-            continue;
+               m_out_customVectorAttrArrays[currentAttr.asChar()] = attributes;
          }
          else if (m_fnParticleSystem.isPerParticleIntAttribute(currentAttr))
          {
             MIntArray*  attributes = new MIntArray;
+            m_fnParticleSystem.getPerParticleAttribute(currentAttr, *attributes);
             if (attributes->length() == 0)
                delete attributes;
             else
-               m_fnParticleSystem.getPerParticleAttribute(currentAttr, *attributes);
-            m_out_customIntAttrArrays[currentAttr.asChar()].push_back(attributes);
-
-            continue;
+               m_out_customIntAttrArrays[currentAttr.asChar()] = attributes;
          }
       }
    }
-
 }
 
 /// ExportPreambleData: sets up most of the class variables for any/all motion steps, and writes out some of the default data
@@ -443,7 +436,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
    if (m_customAttrs.length() != 0)
    {
       m_doExtraAttributes = true;
-      ExportCustomParticleData(particle, 0);
+      ExportCustomParticleData(particle);
    }
 
 }// end step == 0
@@ -518,51 +511,6 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
       m_out_colorArrays.push_back(newRGBArray);
    }
 
-   std::map <std::string, std::vector< MVectorArray* > >::iterator vecIt;
-   std::map <std::string, std::vector< MDoubleArray* > >::iterator doubleIt;
-   std::map <std::string, std::vector< MIntArray* > >::iterator intIt;
-
-   // using pointers to maya arrays to avoid copies
-   std::map<std::string, MVectorArray* > instant_customVectorAttrArrays;
-   std::map<std::string, MDoubleArray* > instant_customDoubleAttrArrays;
-   std::map<std::string, MIntArray* > instant_customIntAttrArrays;
-
-   if (m_doExtraAttributes)
-   {
-      // Extra export attrs
-      for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
-      {
-         MDoubleArray *attributes = new MDoubleArray;
-         m_fnParticleSystem.getPerParticleAttribute(MString(doubleIt->first.c_str()), *attributes);
-         instant_customDoubleAttrArrays[doubleIt->first] = attributes;
-
-         // add in a copy of the last step
-         MDoubleArray* newAttributes = new MDoubleArray((*m_out_customDoubleAttrArrays[doubleIt->first][step-1]));
-         m_out_customDoubleAttrArrays[doubleIt->first].push_back(newAttributes);
-
-      }
-      for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
-      {
-         MVectorArray *attributes = new MVectorArray;
-         m_fnParticleSystem.getPerParticleAttribute(vecIt->first.c_str(), *attributes);
-         instant_customVectorAttrArrays[vecIt->first] = attributes;
-
-         // add in a copy of the last step
-         MVectorArray* newAttributes = new MVectorArray((*m_out_customVectorAttrArrays[vecIt->first][step-1]));
-         m_out_customVectorAttrArrays[vecIt->first].push_back(newAttributes);
-      }
-      for (intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
-      {
-         MIntArray *attributes = new MIntArray;
-         m_fnParticleSystem.getPerParticleAttribute(intIt->first.c_str(), *attributes);
-         instant_customIntAttrArrays[intIt->first] = attributes;
-
-         // add in a copy of the last step
-         MIntArray* newAttributes = new MIntArray((*m_out_customIntAttrArrays[intIt->first][step-1]));
-         m_out_customIntAttrArrays[intIt->first].push_back(newAttributes);
-      }
-   }
-
    particle = GetArnoldRootNode();
 
    MTime oneSec(1.0, MTime::kSeconds);
@@ -612,23 +560,6 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
          else
          {
             (*m_out_radiusArrays[step])[pindex] = (*radiusArray)[j];
-         }
-
-         if (m_doExtraAttributes)
-         {
-            // Extra export attrs
-            for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
-            {
-               (*doubleIt->second[step])[pindex] = (*instant_customDoubleAttrArrays[doubleIt->first])[j];
-            }
-            for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
-            {
-               (*vecIt->second[step])[pindex] = (*instant_customVectorAttrArrays[vecIt->first])[j];
-            }
-            for (intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
-            {
-               (*intIt->second[step])[pindex] = (*instant_customIntAttrArrays[intIt->first])[j];
-            }
          }
          // to speed up the  search, we remove the particles we've already found..
          tempMap.erase(it);
@@ -689,39 +620,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
             {
                   (*m_out_radiusArrays[k]).append((*radiusArray)[j]);
             }
-
-            if (m_doExtraAttributes)
-            {
-               // Extra export attrs
-               for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
-               {
-                  (*doubleIt->second[k]).append((*instant_customDoubleAttrArrays[doubleIt->first])[j]);
-               }
-               for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
-               {
-                  (*vecIt->second[k]).append((*instant_customVectorAttrArrays[vecIt->first])[j]);
-               }
-               for (intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
-               {
-                  (*intIt->second[k]).append((*instant_customIntAttrArrays[intIt->first])[j]);
-               }
-            }
          }
       }
-   }
-
-   // delete the  pointers to the instant array values for the extra custom attributes
-   for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
-   {
-      delete instant_customDoubleAttrArrays[doubleIt->first];
-   }
-   for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
-   {
-      delete instant_customVectorAttrArrays[vecIt->first];
-   }
-   for (intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
-   {
-      delete instant_customIntAttrArrays[intIt->first];
    }
 
    AiMsgDebug("[mtoa] Particle system %s export found %i new particles for step %i",
@@ -772,10 +672,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
    MVectorArray   velocityArray;
    MIntArray      particleId;
 
-   std::map <std::string, std::vector< MVectorArray* > >::iterator vecIt;
-   std::map <std::string, std::vector< MDoubleArray* > >::iterator doubleIt;
-   std::map <std::string, std::vector< MIntArray* > >::iterator intIt;
-
    particle = GetArnoldRootNode();
 
 
@@ -811,31 +707,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
       m_out_colorArrays.push_back(newRGBArray);
    }
 
-
-   if (m_doExtraAttributes)
-   {
-
-      // Extra export attrs
-      for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
-      {
-         // add in a copy of the last step
-         MDoubleArray* newAttributes = new MDoubleArray((*m_out_customDoubleAttrArrays[doubleIt->first][step-1]));
-         doubleIt->second.push_back(newAttributes);
-
-      }
-      for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
-      {
-         // add in a copy of the last step
-         MVectorArray* newAttributes = new MVectorArray((*m_out_customVectorAttrArrays[vecIt->first][step-1]));
-         vecIt->second.push_back(newAttributes);
-      }
-      for (intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
-      {
-         // add in a copy of the last step
-         MIntArray* newAttributes = new MIntArray((*m_out_customIntAttrArrays[intIt->first][step-1]));
-         intIt->second.push_back(newAttributes);
-      }
-   }
    for (int j = 0; j < m_particleCount; j++)
    {
       MVector velocitySubstep = (((m_instantVeloArray[j]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
@@ -866,10 +737,6 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    float minRadius   = m_fnParticleSystem.findPlug("aiMinParticleRadius").asFloat();
    float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius").asFloat();
    float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier").asFloat();
-
-   std::map <std::string, std::vector< MVectorArray* > >::iterator vecIt;
-   std::map <std::string, std::vector< MDoubleArray* > >::iterator doubleIt;
-   std::map <std::string, std::vector< MIntArray* > >::iterator intIt;
 
    m_particleCount = (*m_out_positionArrays[0]).length();
 
@@ -1052,33 +919,31 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    if (m_doExtraAttributes)
    {
+      std::map <std::string, MVectorArray*>::iterator vecIt;
+      std::map <std::string, MDoubleArray*>::iterator doubleIt;
+      std::map <std::string, MIntArray*>::iterator intIt;
 
       // Extra export attrs
       for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
       {
-         AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
-         for (uint s = 0; s < GetNumMotionSteps(); s++)
+         AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
+         int i = 0;
+         for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
-            int i = 0;
-            for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
+            int pindex = it->second;
+            if (pindex >= 0)
             {
-               int pindex = it->second;
-               if (pindex >= 0)
+               for (int j = 0; j< m_multiCount; j++)
                {
-
-                  for (int j = 0; j< m_multiCount; j++)
-                  {
-                     // Calculated offset index
-                     int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                     AiArraySetFlt(a_attributes, index, (AtFloat)(*doubleIt->second[s])[pindex]);
-                  }
+                  // Calculated offset index
+                  int index =  i * m_multiCount + j;
+                  AiArraySetFlt(a_attributes, index, (AtFloat)(doubleIt->second->operator[](pindex)));
                }
-               i++;
             }
-            // memory cleanup
-            //std::cout << "cleaning up extra Double attr memory " << doubleIt->second[s] << std::endl;
-            delete doubleIt->second[s];
+            i++;
          }
+         // memory cleanup
+         delete doubleIt->second;
          AiNodeDeclare(particle, doubleIt->first.c_str(), "uniform FLOAT");
          AiNodeSetArray(particle, doubleIt->first.c_str(), a_attributes);
 
@@ -1086,33 +951,30 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_VECTOR);
-         for (uint s = 0; s < GetNumMotionSteps(); s++)
+         int i = 0;
+         for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
-            int i = 0;
-            for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
+            int pindex = it->second;
+            if (pindex >= 0)
             {
-               int pindex = it->second;
-               if (pindex >= 0)
+               for (int j = 0; j< m_multiCount; j++)
                {
-                  for (int j = 0; j< m_multiCount; j++)
-                  {
-                     // Calculated offset index
-                     int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                     AtVector a_attr;
+                  // Calculated offset index
+                  int  index = i * m_multiCount + j;
+                  AtVector a_attr;
+                  MVector vec = vecIt->second->operator[](pindex);
+                  a_attr.x = (AtFloat)vec.x;
+                  a_attr.y = (AtFloat)vec.y;
+                  a_attr.z = (AtFloat)vec.z;
 
-                     a_attr.x = (AtFloat)(*vecIt->second[s])[pindex].x;
-                     a_attr.y = (AtFloat)(*vecIt->second[s])[pindex].y;
-                     a_attr.z = (AtFloat)(*vecIt->second[s])[pindex].z;
-
-                     AiArraySetVec(a_attributes, index, a_attr);
-                  }
+                  AiArraySetVec(a_attributes, index, a_attr);
                }
-               i++;
             }
-            // memory cleanup
-            //std::cout << "cleaning up extra Vector attr memory " << vecIt->second[s] << std::endl;
-            delete vecIt->second[s];
+            i++;
          }
+         // memory cleanup
+         //std::cout << "cleaning up extra Vector attr memory " << vecIt->second[s] << std::endl;
+         delete vecIt->second;
          AiNodeDeclare(particle, vecIt->first.c_str(), "uniform VECTOR");
          AiNodeSetArray(particle, vecIt->first.c_str(), a_attributes);
 
@@ -1120,35 +982,28 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for(intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_INT);
-        for (uint s = 0; s < GetNumMotionSteps(); s++)
-        {
-           int i = 0;
-            for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
+         int i = 0;
+         for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
+         {
+            int pindex = it->second;
+            if (pindex >= 0)
             {
-               int pindex = it->second;
-               if (pindex >= 0)
+               for (int j = 0; j < m_multiCount; j++)
                {
-
-                 for (int j = 0; j< m_multiCount; j++)
-                 {
-                    // Calculated offset index
-                    int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                    AiArraySetInt(a_attributes, index, (*intIt->second[s])[i]);
-                 }
+                  // Calculated offset index
+                  int index = i * m_multiCount + j;
+                  AiArraySetInt(a_attributes, index, intIt->second->operator[](i));
                }
-               i++;
-           }
-           // memory cleanup
-           //std::cout << "cleaning up extra Int attr memory " << vecIt->second[s] << std::endl;
-           delete vecIt->second[s];
-        }
-        AiNodeDeclare(particle, intIt->first.c_str(), "uniform INT");
-        AiNodeSetArray(particle, intIt->first.c_str(), a_attributes);
+            }
+            i++;
+         }
+         // memory cleanup
+         //std::cout << "cleaning up extra Int attr memory " << vecIt->second[s] << std::endl;
+         delete vecIt->second;
+         AiNodeDeclare(particle, intIt->first.c_str(), "uniform INT");
+         AiNodeSetArray(particle, intIt->first.c_str(), a_attributes);
       }
-
    }
-
-   // end  last step export
 }
 
 /// determine if the particles are cached

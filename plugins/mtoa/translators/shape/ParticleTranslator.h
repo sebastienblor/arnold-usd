@@ -60,7 +60,7 @@ public:
 protected:
 
    virtual void ExportParticleShaders(AtNode* particle);
-   virtual void ExportCustomParticleData(AtNode* particle, AtUInt step);
+   virtual void ExportCustomParticleData(AtNode* particle);
    virtual void ExportPreambleData(AtNode* particle);
    virtual void GatherFirstStep(AtNode* particle);
    virtual void GatherBlurSteps(AtNode* particle, AtUInt step);
@@ -109,9 +109,9 @@ protected:
 
 
    // these hold each frame steps values  per map entry  for  custom attrs
-   std::map<std::string,  std::vector< MVectorArray* > > m_out_customVectorAttrArrays;
-   std::map<std::string,  std::vector< MDoubleArray* > > m_out_customDoubleAttrArrays;
-   std::map<std::string,  std::vector< MIntArray*    > > m_out_customIntAttrArrays;
+   std::map<std::string,  MVectorArray* > m_out_customVectorAttrArrays;
+   std::map<std::string,  MDoubleArray* > m_out_customDoubleAttrArrays;
+   std::map<std::string,  MIntArray* > m_out_customIntAttrArrays;
 
 
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays
