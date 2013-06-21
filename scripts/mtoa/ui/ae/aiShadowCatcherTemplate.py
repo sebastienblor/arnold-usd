@@ -6,6 +6,8 @@ class AEaiShadowCatcherTemplate(ShaderAETemplate):
     def setup(self):
         self.beginScrollLayout()
 
+        self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+
         self.addControl("backgroundColor", label="Background Color")
         self.addControl("reflection", label="Reflection")
 
