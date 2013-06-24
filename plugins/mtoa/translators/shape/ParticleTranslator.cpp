@@ -951,7 +951,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       }
       for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
       {
-         AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_VECTOR);
+         AtArray* a_attributes = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_VECTOR);
+         for (int i = 0; i < m_particleCount * m_multiCount; ++i)
+            AiArraySetVec(a_attributes, i, AI_V3_ZERO);
          int i = 0;
          for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
@@ -978,7 +980,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       }
       for(intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
       {
-         AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_INT);
+         AtArray* a_attributes = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_INT);
          int i = 0;
          for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
