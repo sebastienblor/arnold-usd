@@ -76,7 +76,6 @@ def ArnoldStandInTemplateDsoNew(nodeName) :
     cmds.button('standInDsoPathButton', label='...', command=lambda *args: LoadStandInButtonPush(nodeName))
     
 def ArnoldStandInTemplateDataNew(nodeName) :
-    print 'ArnoldStandInTemplateDataNew',nodeName
     cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'right', 0)], columnWidth=(1,145) )
     cmds.text('standInDataLabel', label='Data ')
     path = cmds.textField('standInData',changeCommand=ArnoldStandInDataEdit)
@@ -96,7 +95,6 @@ def ArnoldStandInTemplateDsoReplace(plugName) :
     cmds.button('standInDsoPathButton', edit=True, label='...', command=lambda *args: LoadStandInButtonPush(plugName))
 
 def ArnoldStandInTemplateDataReplace(plugName) :
-    print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( 'standInData', edit=True, text=cmds.getAttr(plugName) )
     filePath=cmds.getAttr(plugName.replace('.data','.dso'))
     if filePath:
@@ -181,7 +179,6 @@ def ArnoldStandInTemplateOpaqueRowNew(nodeName):
     rb1 = cmds.radioButton('standInOpaqueIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreOpaque)
     rb2 = cmds.radioButton('standInOpaqueOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnOpaque)
     rb3 = cmds.radioButton('standInOpaqueOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffOpaque)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInOpaqueLabel', edit=True, enable=False)
@@ -244,7 +241,6 @@ def ArnoldStandInTemplateDoubleSidedRowNew(nodeName):
     rb1 = cmds.radioButton('standInDoubleSidedIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreDoubleSided)
     rb2 = cmds.radioButton('standInDoubleSidedOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnDoubleSided)
     rb3 = cmds.radioButton('standInDoubleSidedOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffDoubleSided)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInDoubleSidedLabel', edit=True, enable=False)
@@ -308,7 +304,6 @@ def ArnoldStandInTemplateReceiveShadowsRowNew(nodeName):
     rb1 = cmds.radioButton('standInReceiveShadowsIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreReceiveShadows)
     rb2 = cmds.radioButton('standInReceiveShadowsOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnReceiveShadows)
     rb3 = cmds.radioButton('standInReceiveShadowsOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffReceiveShadows)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInReceiveShadowsLabel', edit=True, enable=False)
@@ -371,7 +366,6 @@ def ArnoldStandInTemplateSelfShadowsRowNew(nodeName):
     rb1 = cmds.radioButton('standInSelfShadowsIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreSelfShadows)
     rb2 = cmds.radioButton('standInSelfShadowsOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnSelfShadows)
     rb3 = cmds.radioButton('standInSelfShadowsOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffSelfShadows)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInSelfShadowsLabel', edit=True, enable=False)
@@ -434,7 +428,6 @@ def ArnoldStandInTemplateCastsShadowsRowNew(nodeName):
     rb1 = cmds.radioButton('standInCastsShadowsIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreCastsShadows)
     rb2 = cmds.radioButton('standInCastsShadowsOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnCastsShadows, visible=False)
     rb3 = cmds.radioButton('standInCastsShadowsOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffCastsShadows)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInCastsShadowsLabel', edit=True, enable=False)
@@ -497,7 +490,6 @@ def ArnoldStandInTemplatePrimaryVisibilityRowNew(nodeName):
     rb1 = cmds.radioButton('standInPrimaryVisibilityIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnorePrimaryVisibility)
     rb2 = cmds.radioButton('standInPrimaryVisibilityOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnPrimaryVisibility, visible=False)
     rb3 = cmds.radioButton('standInPrimaryVisibilityOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffPrimaryVisibility)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInPrimaryVisibilityLabel', edit=True, enable=False)
@@ -560,7 +552,6 @@ def ArnoldStandInTemplateVisibleInReflectionsRowNew(nodeName):
     rb1 = cmds.radioButton('standInVisibleInReflectionsIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInReflections)
     rb2 = cmds.radioButton('standInVisibleInReflectionsOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInReflections, visible=False)
     rb3 = cmds.radioButton('standInVisibleInReflectionsOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInReflections)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInVisibleInReflectionsLabel', edit=True, enable=False)
@@ -624,7 +615,6 @@ def ArnoldStandInTemplateVisibleInRefractionsRowNew(nodeName):
     rb1 = cmds.radioButton('standInVisibleInRefractionsIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInRefractions)
     rb2 = cmds.radioButton('standInVisibleInRefractionsOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInRefractions, visible=False)
     rb3 = cmds.radioButton('standInVisibleInRefractionsOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInRefractions)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInVisibleInRefractionsLabel', edit=True, enable=False)
@@ -688,7 +678,6 @@ def ArnoldStandInTemplateVisibleInDiffuseRowNew(nodeName):
     rb1 = cmds.radioButton('standInVisibleInDiffuseIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInDiffuse)
     rb2 = cmds.radioButton('standInVisibleInDiffuseOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInDiffuse, visible=False)
     rb3 = cmds.radioButton('standInVisibleInDiffuseOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInDiffuse)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInVisibleInDiffuseLabel', edit=True, enable=False)
@@ -752,7 +741,6 @@ def ArnoldStandInTemplateVisibleInGlossyRowNew(nodeName):
     rb1 = cmds.radioButton('standInVisibleInGlossyIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreVisibleInGlossy)
     rb2 = cmds.radioButton('standInVisibleInGlossyOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnVisibleInGlossy, visible=False)
     rb3 = cmds.radioButton('standInVisibleInGlossyOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffVisibleInGlossy)
-    print "#### ",rb1
     if(not override):
         cmds.radioButton(rb1, edit=True, select=True)
         cmds.text('standInVisibleInGlossyLabel', edit=True, enable=False)
