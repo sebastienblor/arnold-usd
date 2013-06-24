@@ -928,7 +928,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
          for (int i = 0; i < (int)a_attributes->nelements; ++i)
-            AiArraySetFloat(a_attributes, i, 0.0f);
+            AiArraySetFlt(a_attributes, i, 0.0f);
          int inputCount = (int)doubleIt->second->length();
          int i = 0;
          for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
