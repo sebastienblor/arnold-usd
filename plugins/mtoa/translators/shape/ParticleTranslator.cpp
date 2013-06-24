@@ -927,11 +927,14 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for (doubleIt = m_out_customDoubleAttrArrays.begin(); doubleIt != m_out_customDoubleAttrArrays.end(); doubleIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
+         for (int i = 0; i < (int)a_attributes->nelements; ++i)
+            AiArraySetFloat(a_attributes, i, 0.0f);
+         int inputCount = (int)doubleIt->second->length();
          int i = 0;
          for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
-            int pindex = it->second;
-            if (pindex >= 0)
+            const int pindex = it->second;
+            if ((pindex >= 0) && (pindex < inputCount))
             {
                const AtFloat floatValue = (AtFloat)(doubleIt->second->operator[](pindex));
                for (int j = 0; j< m_multiCount; j++)
@@ -952,16 +955,17 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for (vecIt = m_out_customVectorAttrArrays.begin(); vecIt != m_out_customVectorAttrArrays.end(); vecIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_VECTOR);
-         for (int i = 0; i < m_particleCount * m_multiCount; ++i)
+         for (int i = 0; i < (int)a_attributes->nelements; ++i)
             AiArraySetVec(a_attributes, i, AI_V3_ZERO);
+         const int inputCount = (int)vecIt->second->length();
          int i = 0;
          for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
-            int pindex = it->second;
-            if (pindex >= 0)
+            const int pindex = it->second;
+            if ((pindex >= 0) && (pindex < inputCount))
             {
                const MVector vectorValue = vecIt->second->operator[](pindex);
-               const AtVector a_attr = {(AtFloat)vectorValue.x, (AtFloat)vectorValue.y, (AtFloat)vectorValue.z};
+               AtVector a_attr = {(AtFloat)vectorValue.x, (AtFloat)vectorValue.y, (AtFloat)vectorValue.z};
                for (int j = 0; j< m_multiCount; j++)
                {
                   // Calculated offset index
@@ -981,11 +985,14 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       for(intIt = m_out_customIntAttrArrays.begin(); intIt != m_out_customIntAttrArrays.end(); intIt++)
       {
          AtArray* a_attributes = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_INT);
+         for (int i = 0; i < (int)a_attributes->nelements; ++i)
+            AiArraySetInt(a_attributes, i, 0);
+         const int inputCount = (int)intIt->second->length();
          int i = 0;
          for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
          {
-            int pindex = it->second;
-            if (pindex >= 0)
+            const int pindex = it->second;
+            if ((pindex >= 0) && (pindex < inputCount))
             {
                const int intValue = intIt->second->operator[](i);
                for (int j = 0; j < m_multiCount; j++)
