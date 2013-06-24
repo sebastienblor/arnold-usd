@@ -933,11 +933,12 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
             int pindex = it->second;
             if (pindex >= 0)
             {
+               const AtFloat floatValue = (AtFloat)(doubleIt->second->operator[](pindex));
                for (int j = 0; j< m_multiCount; j++)
                {
                   // Calculated offset index
                   int index =  i * m_multiCount + j;
-                  AiArraySetFlt(a_attributes, index, (AtFloat)(doubleIt->second->operator[](pindex)));
+                  AiArraySetFlt(a_attributes, index, floatValue);
                }
             }
             i++;
@@ -957,16 +958,12 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
             int pindex = it->second;
             if (pindex >= 0)
             {
+               const MVector vectorValue = vecIt->second->operator[](pindex);
+               const AtVector a_attr = {(AtFloat)vectorValue.x, (AtFloat)vectorValue.y, (AtFloat)vectorValue.z};
                for (int j = 0; j< m_multiCount; j++)
                {
                   // Calculated offset index
                   int  index = i * m_multiCount + j;
-                  AtVector a_attr;
-                  MVector vec = vecIt->second->operator[](pindex);
-                  a_attr.x = (AtFloat)vec.x;
-                  a_attr.y = (AtFloat)vec.y;
-                  a_attr.z = (AtFloat)vec.z;
-
                   AiArraySetVec(a_attributes, index, a_attr);
                }
             }
@@ -988,11 +985,12 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
             int pindex = it->second;
             if (pindex >= 0)
             {
+               const int intValue = intIt->second->operator[](i);
                for (int j = 0; j < m_multiCount; j++)
                {
                   // Calculated offset index
                   int index = i * m_multiCount + j;
-                  AiArraySetInt(a_attributes, index, intIt->second->operator[](i));
+                  AiArraySetInt(a_attributes, index, intValue);
                }
             }
             i++;
