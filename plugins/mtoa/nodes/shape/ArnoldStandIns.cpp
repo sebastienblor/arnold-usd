@@ -630,9 +630,7 @@ MStatus CArnoldStandInShape::initialize()
    data.name = "overrideDoubleSided";
    data.shortName = "overrideDoubleSided";
    s_attributes.MakeInputBoolean(data);
-   
-   s_attributes.MakeInput("doubleSided");
-      
+
    data.defaultValue.BOOL = false;
    data.name = "overrideSelfShadows";
    data.shortName = "overrideSelfShadows";
