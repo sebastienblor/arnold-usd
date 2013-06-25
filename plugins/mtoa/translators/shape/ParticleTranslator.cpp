@@ -799,25 +799,36 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    }// end  numMotionSteps
 
    int i = 0;
+   int rgbLength = 0;
+   if (m_hasRGB)
+      rgbLength = (int)m_out_colorArrays->length();
+   int opacityLength = 0;
+   if (m_hasOpacity)
+      opacityLength = (int)m_out_opacityArrays->length();
    for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
    {
       const int pindex = it->second;
+      
       if (pindex >= 0)
       {
-         if (m_hasRGB)
+         a_rgb = AI_RGB_BLACK;
+         if (m_hasRGB && (pindex < rgbLength))
          {
             m_rgb = m_out_colorArrays->operator[](pindex);
             a_rgb.r = (AtFloat)m_rgb.x;
             a_rgb.g = (AtFloat)m_rgb.y;
             a_rgb.b = (AtFloat)m_rgb.z;
          }
+         float opacity = 0.0f;
+         if (m_hasOpacity && (pindex < opacityLength))
+            opacity = (AtFloat)m_out_opacityArrays->operator[](pindex);
          for (int j = 0; j< m_multiCount; j++)
          {
             const int index = i * m_multiCount + j;
             if (m_hasRGB)
                AiArraySetRGB(a_rgbPPArray, (AtUInt32)index, a_rgb);
             if (m_hasOpacity)
-               AiArraySetFlt(a_opacityPPArray, (AtUInt32)index, (AtFloat)m_out_opacityArrays->operator[](pindex));
+               AiArraySetFlt(a_opacityPPArray, (AtUInt32)index, opacity);
          }// end  multicount
 
       }// if particle is valid (did not die within motion blur steps)
