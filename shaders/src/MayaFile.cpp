@@ -453,7 +453,9 @@ shader_evaluate
             sg->dvdx = altuvDx.y; 
             sg->dudy = altuvDy.x; 
             sg->dvdy = altuvDy.y; 
-         } 
+         }
+         else
+            sg->dudx = sg->dudy = sg->dvdx = sg->dvdy = 0.0f;
       }
    }
    float inU = sg->u;
