@@ -380,19 +380,17 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
    MDoubleArray*   radiusArray = new MDoubleArray;
    MDoubleArray*   spriteScaleXPP = new MDoubleArray;
    MDoubleArray*   spriteScaleYPP = new MDoubleArray;
-   MVectorArray*   rgbArray = new MVectorArray;
-   MDoubleArray*   opacityArray = new MDoubleArray;
 
    MStatus status;
 
    AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName().asChar());
 
-   GatherStandardPPData( positionArray ,
-                         radiusArray ,
-                         spriteScaleXPP ,
-                         spriteScaleYPP ,
-                         rgbArray ,
-                         opacityArray,
+   GatherStandardPPData( positionArray,
+                         radiusArray,
+                         spriteScaleXPP,
+                         spriteScaleYPP,
+                         &m_out_colorArray,
+                         &m_out_opacityArray,
                          velocityArray,
                          particleId);
 
@@ -411,12 +409,6 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
    }
    else
       m_out_radiusArrays.push_back(radiusArray);
-
-   if (m_hasOpacity)
-      m_out_opacityArrays = opacityArray;
-
-   if (m_hasRGB)
-      m_out_colorArrays = rgbArray;
 
    //  create the map  from particleID to array index in the "out_*"  arrays
    for (int i=0; i < m_particleCount; i++)
@@ -801,10 +793,10 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    int i = 0;
    int rgbLength = 0;
    if (m_hasRGB)
-      rgbLength = (int)m_out_colorArrays->length();
+      rgbLength = (int)m_out_colorArray.length();
    int opacityLength = 0;
    if (m_hasOpacity)
-      opacityLength = (int)m_out_opacityArrays->length();
+      opacityLength = (int)m_out_opacityArray.length();
    for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
    {
       const int pindex = it->second;
@@ -814,14 +806,14 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          a_rgb = AI_RGB_BLACK;
          if (m_hasRGB && (pindex < rgbLength))
          {
-            m_rgb = m_out_colorArrays->operator[](pindex);
+            m_rgb = m_out_colorArray[pindex];
             a_rgb.r = (AtFloat)m_rgb.x;
             a_rgb.g = (AtFloat)m_rgb.y;
             a_rgb.b = (AtFloat)m_rgb.z;
          }
          float opacity = 0.0f;
          if (m_hasOpacity && (pindex < opacityLength))
-            opacity = (AtFloat)m_out_opacityArrays->operator[](pindex);
+            opacity = (AtFloat)m_out_opacityArray[pindex];
          for (int j = 0; j< m_multiCount; j++)
          {
             const int index = i * m_multiCount + j;
@@ -834,11 +826,6 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       }// if particle is valid (did not die within motion blur steps)
 
       i++;  // tracking the  iteration thru the map
-
-      if (m_hasRGB)
-         delete m_out_colorArrays;
-      if (m_hasOpacity)
-         delete m_out_opacityArrays;
    }// end m_particleIDMap  iteration
 
    //write the points
@@ -848,28 +835,18 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    AiNodeSetArray(particle, "radius", a_radiusArray);
 
    if (m_isSprite)
-   {
       AiNodeSetArray(particle, "aspect", a_aspectArray);
-   }
 
    if (m_exportId)
-   {
       AiNodeSetArray(particle, "particleId", a_ParticleIdArray);
-   }
 
    if (m_doMultiPoint)
-   {
       AiNodeSetArray(particle, "particleMultiIndex", a_ParticleMultiIndexArray);
-   }
 
    if(m_hasRGB)
-   {
       AiNodeSetArray(particle, "rgbPP", a_rgbPPArray);
-   }
    if (m_hasOpacity)
-   {
       AiNodeSetArray(particle, "opacityPP", a_opacityPPArray);
-   }
 
    if (m_doExtraAttributes)
    {
