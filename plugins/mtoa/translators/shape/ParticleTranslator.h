@@ -100,12 +100,12 @@ protected:
    };
 
    // these hold  each frame steps values
-   std::vector< MVectorArray* >  m_out_positionArrays;
-   std::vector< MVectorArray* >  m_out_colorArrays;
-   std::vector< MDoubleArray* >  m_out_opacityArrays;
+   std::vector< MVectorArray* >  m_out_positionArrays;   
    std::vector< MDoubleArray* >  m_out_radiusArrays;
    std::vector< MDoubleArray* >  m_out_spriteScaleXArrays;
    std::vector< MDoubleArray* >  m_out_spriteScaleYArrays;
+   MDoubleArray*                 m_out_opacityArrays;
+   MVectorArray*                 m_out_colorArrays;
 
 
    // these hold each frame steps values  per map entry  for  custom attrs
