@@ -824,6 +824,10 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
       i++;  // tracking the  iteration thru the map
 
+      if (m_hasRGB)
+         delete m_out_colorArrays;
+      if (m_hasOpacity)
+         delete m_out_opacityArrays;
    }// end m_particleIDMap  iteration
 
    //write the points
