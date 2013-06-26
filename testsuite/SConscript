@@ -568,7 +568,8 @@ if __name__ == 'SCons.Script':
     # Disable multiprocess if the operating system is Windows or a Linux without multiprocessing 
     multiprocess = False
     if test_env['MULTIPROCESS'] == True:
-        if system.os() != 'windows' and (int(test_env['TEST_THREADS']) > 1):
+        print system.os()
+        if system.os() == 'linux' and (int(test_env['TEST_THREADS']) > 1):
             try:
                 import multiprocessing
                 multiprocess = True
