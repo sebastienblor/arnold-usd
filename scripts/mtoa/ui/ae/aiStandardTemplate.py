@@ -6,6 +6,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiStandardTemplate(ShaderAETemplate):
     convertToMayaStyle = True
+    
     def checkSpecularBrdf(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "specular_brdf")
         brdfValue = pm.getAttr(fullAttr)
@@ -14,10 +15,38 @@ class AEaiStandardTemplate(ShaderAETemplate):
         pm.editorTemplate(dimControl=(nodeName, "specularRotation", dim))
 
     def checkSpecularFresnel(self, nodeName):
-        aeUtils.arnoldDimControlIfFalse(nodeName, "Ksn", "specular_Fresnel")
+        fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
+        fresIorValue = pm.getAttr(fullAttr)
+    
+        fullAttr = '%s.%s'%(nodeName, "specular_Fresnel")
+        specFresValue = pm.getAttr(fullAttr)
+        
+        dim = (specFresValue is False) or (fresIorValue is True)
+        pm.editorTemplate(dimControl=(nodeName, "Ksn", dim))
 
     def checkReflectionFresnel(self, nodeName):
-        aeUtils.arnoldDimControlIfFalse(nodeName, "Krn", "Fresnel")
+        fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
+        fresIorValue = pm.getAttr(fullAttr)
+        
+        fullAttr = '%s.%s'%(nodeName, "Fresnel")
+        refFresValue = pm.getAttr(fullAttr)
+        
+        dim = (refFresValue is False) or (fresIorValue is True)
+        pm.editorTemplate(dimControl=(nodeName, "Krn", dim))
+        
+    def checkFresnelUseIOR(self, nodeName):
+        fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
+        fresIorValue = pm.getAttr(fullAttr)
+        
+        fullAttr = '%s.%s'%(nodeName, "specular_Fresnel")
+        specFresValue = pm.getAttr(fullAttr)
+        dim = (specFresValue is False) or (fresIorValue is True)
+        pm.editorTemplate(dimControl=(nodeName, "Ksn", dim))
+        
+        fullAttr = '%s.%s'%(nodeName, "Fresnel")
+        refFresValue = pm.getAttr(fullAttr)
+        dim = (refFresValue is False) or (fresIorValue is True)
+        pm.editorTemplate(dimControl=(nodeName, "Krn", dim))
 
     def setup(self):
         self.addSwatch()
@@ -84,7 +113,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("Kt", label="Weight")
         self.addControl("IOR", label="IOR")
         self.addControl("refraction_roughness", label="Roughness")
-        self.addControl("Fresnel_use_IOR", label="Fresnel use IOR")                
+        self.addControl("Fresnel_use_IOR", changeCommand=self.checkFresnelUseIOR, label="Fresnel use IOR")
         self.addControl("transmittance", label="Transmittance")
         self.addControl("opacity", label="Opacity")        
         self.beginLayout("Exit Color", collapse=True)
