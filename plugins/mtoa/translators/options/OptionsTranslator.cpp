@@ -563,5 +563,135 @@ void COptionsTranslator::Update(AtNode *options)
    // set the camera
    SetCamera(options);
 
-   AiNodeSetBool(options, "ignore_shaders", FindMayaPlug("ignore_shaders").asBool());
+   const AtNodeEntry* optionsEntry = AiNodeGetNodeEntry(options);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(options));
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (strcmp(paramName, "name") != 0)
+      {
+         // Special cases
+         if (strcmp(paramName, "threads") == 0)
+         {
+            AiNodeSetInt(options, "threads", FindMayaPlug("threads_autodetect").asBool() ? 0 : FindMayaPlug("threads").asInt());
+         }
+         else if (strcmp(paramName, "AA_sample_clamp") == 0)
+         {
+            if (FindMayaPlug("use_sample_clamp").asBool())
+            {
+               ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
+            }
+            if (FindMayaPlug("use_sample_clamp_AOVs").asBool())
+            {
+               ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
+            }
+         }
+         else if (strcmp(paramName, "AA_seed") == 0)
+         {
+            // FIXME: this is supposed to use a connection to AA_seed attribute
+            if (!FindMayaPlug("lock_sampling_noise").asBool())
+            {
+               AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
+            }
+         }
+         else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
+         {
+            if (FindMayaPlug("enable_raytraced_SSS").asBool())
+               ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+            else
+               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+         }
+         else if (strcmp(paramName, "bucket_scanning") == 0)
+         {
+            ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+         }
+         else if (strcmp(paramName, "texture_autotile") == 0)
+         {
+            AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
+         }
+         else
+         {
+            // Process parameter automatically
+            // FIXME: we can't use the default method since the options names don't
+            // follow the standard "toMayaStyle" behavior when no metadata is present
+            // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
+            const char* attrName;
+            MPlug plug;
+            if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
+            {
+               plug = FindMayaPlug(attrName);
+            }
+            else
+            {
+               plug = FindMayaPlug(paramName);
+            }
+            // Don't print warnings, just debug for missing options attributes are there are a lot
+            // that are not exposed in Maya
+            if (!plug.isNull())
+            {
+               ProcessParameter(options, paramName, AiParamGetType(paramEntry), plug);
+            }
+            else
+            {
+               // AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
+               //      GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+            }
+         }
+      }
+   }
+   AiParamIteratorDestroy(nodeParam);
+   
+   // BACKGROUND SHADER
+   //
+   MPlugArray conns;
+   MPlug pBG = FindMayaPlug("background");
+   pBG.connectedTo(conns, true, false);
+   if (conns.length() == 1)
+   {
+      AiNodeSetPtr(options, "background", ExportNode(conns[0]));
+   }
+   else
+   {
+      AiNodeSetPtr(options, "background", NULL);
+   }
+
+   // ATMOSPHERE SHADER
+   //
+   MSelectionList list;
+   MPlug        shader;
+
+   int atmosphere = FindMayaPlug("atmosphere").asInt();
+   switch (atmosphere)
+   {
+   case 0:
+      AiNodeSetPtr(options, "atmosphere", NULL);
+      break;
+
+   case 1:  // Fog
+      list.add("defaultFog.outColor");
+      if (list.length() > 0)
+      {
+         list.getPlug(0, shader);
+         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
+      }
+      break;
+
+   case 2:  // Volume Scattering
+      list.add("defaultVolumeScattering.outColor");
+      if (list.length() > 0)
+      {
+         list.getPlug(0, shader);
+         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
+      }
+      break;
+      
+   case 3:
+      shader = FindMayaPlug("atmosphereShader");
+      shader.connectedTo(conns, true, false);
+      if (conns.length())
+         AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+      break;
+   }
 }

@@ -109,5 +109,6 @@ public:
    static MObject s_user_options;
    
    static MObject s_expand_procedurals;
+   static MObject s_kick_render_flags;
 
 };  // class CArnoldOptionsNode

@@ -103,7 +103,8 @@ def changeBackground(node, field):
             selectBackground()
             return 0
     pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
-    pm.textField(field, edit=True, text=node)
+    if field is not None:
+        pm.textField(field, edit=True, text=node)
     selectBackground()
 
 def createBackground(type, field):
@@ -112,7 +113,6 @@ def createBackground(type, field):
         #pm.delete(bg)
     node = pm.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field)
-
 
 def removeBackground(field, doDelete):
     node = getBackgroundShader()
@@ -215,7 +215,11 @@ def createArnoldRenderSettings():
                       label='Expand Procedurals',
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
-    
+    pm.separator()
+
+    pm.attrControlGrp('os_kickRenderFlags',
+                      label='Kick Render Flags',
+                      attribute='defaultArnoldRenderOptions.kickRenderFlags');
              
     pm.setParent('..')
 
@@ -568,15 +572,15 @@ def createArnoldEnvironmentSettings():
 
     pm.rowLayout(adjustableColumn=2, numberOfColumns=3)
     pm.text(label="Background")
-    bgfield = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    bgpopup = pm.popupMenu(parent=bgfield)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, bgfield))
+    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
+    bgpopup = pm.popupMenu(parent=backgroundTextField)
+    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField))
     pm.button(label="Select", height=22, width=50, command=selectBackground)
     pm.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
-        pm.textField(bgfield, edit=True, text=conns[0])
+        pm.textField(backgroundTextField, edit=True, text=conns[0])
 
     pm.separator(style="none")
 

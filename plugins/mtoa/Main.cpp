@@ -25,6 +25,7 @@
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
 #include "nodes/light/ArnoldLightBlockerNode.h"
+#include "nodes/light/ArnoldPhotometricLightNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 
 #include "translators/options/OptionsTranslator.h"
@@ -138,6 +139,14 @@ namespace // <anonymous>
                                    &LIGHT_WITH_SWATCH);
       CHECK_MSTATUS(status);
       
+      status = plugin.registerNode("aiPhotometricLight",
+                                   CArnoldPhotometricLightNode::id,
+                                   CArnoldPhotometricLightNode::creator,
+                                   CArnoldPhotometricLightNode::initialize,
+                                   MPxNode::kLocatorNode,
+                                   &LIGHT_WITH_SWATCH);
+      CHECK_MSTATUS(status);
+      
       status = plugin.registerNode("aiLightBlocker",
                                    CArnoldLightBlockerNode::id,
                                    CArnoldLightBlockerNode::creator,
@@ -176,6 +185,9 @@ namespace // <anonymous>
                                    "",
                                    CAiHairTranslator::creator,
                                    CAiHairTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiImage",
+                                   "",
+                                   CAiImageTranslator::creator);
        // Lights
        builtin->RegisterTranslator("directionalLight",
                                    "",
@@ -222,6 +234,11 @@ namespace // <anonymous>
                                    "",
                                    CSkyDomeLightTranslator::creator,
                                    CSkyDomeLightTranslator::NodeInitializer);
+                                   
+      builtin->RegisterTranslator("aiPhotometricLight",
+                                   "",
+                                   CPhotometricLightTranslator::creator,
+                                   CPhotometricLightTranslator::NodeInitializer);
 
        builtin->RegisterTranslator("lightLinker",
                                    "",
@@ -462,6 +479,10 @@ namespace // <anonymous>
 
       // Sky dome light
       status = plugin.deregisterNode(CArnoldSkyDomeLightNode::id);
+      CHECK_MSTATUS(status);
+      
+      
+      status = plugin.deregisterNode(CArnoldPhotometricLightNode::id);
       CHECK_MSTATUS(status);
 
       // Environment or Volume shaders

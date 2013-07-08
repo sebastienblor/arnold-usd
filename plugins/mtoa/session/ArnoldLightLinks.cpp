@@ -286,7 +286,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
    size_t numLinkedShadows = 0;
    
    CheckNode(pathCopy.node(), numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
-   while (pathCopy.length() && ((numLinkedLights + numLinkedShadows) == 0))
+   while (pathCopy.length())
    {
       CheckNode(pathCopy.transform(), numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
       pathCopy.pop();      

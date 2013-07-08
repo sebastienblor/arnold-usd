@@ -99,6 +99,8 @@ def createArnoldMenu():
                     c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
         pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light',
                     c=lambda *args: doCreateMeshLight())
+        pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light",
+                    c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
                     
         pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True)
         pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",

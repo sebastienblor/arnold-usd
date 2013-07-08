@@ -8,6 +8,7 @@ from mtoa.utils import prettify
 from mtoa.lightFilters import getLightFilterClassification
 import mtoa.callbacks as callbacks
 import arnold as ai
+import maya.cmds as cmds
 
 def getSourcePlug(plugname, index):
     conns = []
@@ -266,7 +267,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     def connectLightFilter(self, newFilter):
         attr =  self.nodeAttr('aiFilters')
         nfilters = getConnectedCount(attr)
-        newFilter.message.connect('%s[%s]'%(attr, nfilters))
+        cmds.connectAttr('%s.message' % newFilter.name(), '%s[%s]'%(attr, nfilters), force=True)
         self.lightFiltersUpdateList()
         self.updateAddMenu()
 
