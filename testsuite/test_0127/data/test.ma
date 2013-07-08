@@ -108,7 +108,7 @@ createNode aiPhotometricLight -n "aiPhotometricLightShape2" -p "aiPhotometricLig
 	setAttr ".sc" -type "float3" 0.92156863 0.70161486 0.37946942 ;
 	setAttr ".intensity" 100;
 	setAttr ".ai_exposure" 10;
-	setAttr ".ai_filename" -type "string" "./12.ies";
+	setAttr ".ai_filename" -type "string" "./12.IES";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -sn "driver_exr_compression" -ln "driverExrCompression" -dv 2 
 		-min 0 -max 4 -en "none:rle:zip:piz:pxr24" -at "enum";
