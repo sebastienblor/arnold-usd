@@ -64,6 +64,7 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         self.addControl('aiNormalize', label='Normalize')
         self.addSeparator()
         self.addControl('aiCastShadows', label='Cast Shadows')
+        self.addControl('aiShadowDensity', label='Shadow Density')
         self.addControl('aiShadowColor', label='Shadow Color')
         self.addSeparator()
         self.commonLightAttributes()

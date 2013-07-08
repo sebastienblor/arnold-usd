@@ -60,7 +60,7 @@ MObject CArnoldPhotometricLightNode::aLightData;
 
 
 CArnoldPhotometricLightNode::CArnoldPhotometricLightNode() :
-        m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
+        m_boundingBox(MPoint(1.0, 0.7, 0.7), MPoint(-0.7, -2.0, -0.7))
 { }
 
 CArnoldPhotometricLightNode::~CArnoldPhotometricLightNode() {}
