@@ -335,7 +335,7 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.frameLayout(label="Diffusion SSS", collapse=False)
+    pm.frameLayout(label="Diffusion SSS", collapse=True)
     
     pm.checkBoxGrp('ss_enable_raytraced_SSS',
                    label="Raytraced")
@@ -359,12 +359,11 @@ def createArnoldSamplingSettings():
     
     pm.setParent('..')
     
-    if int(ai.AiGetVersion()[2]) > 11:    
-        pm.frameLayout(label="Volumes", collapse=False)                      
-        pm.attrControlGrp('ss_volume_indirect_samples',
-                          label='Indirect Samples',
-                          attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
-        pm.setParent('..')
+    pm.frameLayout(label="Volumes", collapse=True)                      
+    pm.attrControlGrp('ss_volume_indirect_samples',
+                      label='Indirect Samples',
+                      attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
+    pm.setParent('..')
     
     pm.frameLayout(label="Clamping", collapse=True)
 
