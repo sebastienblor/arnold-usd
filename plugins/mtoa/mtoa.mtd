@@ -1347,7 +1347,6 @@
     maya.hide               BOOL    true
 
 [node driver_exr]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "exr"
     [attr filename]
         maya.hide           BOOL    true
@@ -1356,7 +1355,6 @@
         maya.shortname      STRING  "exr_compression"
 
 [node driver_jpeg]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "jpeg"
     [attr filename]
         maya.hide           BOOL    true
@@ -1369,7 +1367,6 @@
         max                 INT     100
 
 [node driver_png]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "png"
     [attr filename]
         maya.hide           BOOL    true
@@ -1382,7 +1379,6 @@
         maya.shortname      STRING  "png_format"
 
 [node driver_tiff]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "tif"
     [attr filename]
         maya.hide           BOOL    true

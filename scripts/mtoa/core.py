@@ -6,6 +6,7 @@ import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 import maya.cmds as cmds
+import os
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -202,6 +203,13 @@ def createOptions():
     driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
     displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
+    if options:
+        sourceImagesDir = cmds.workspace(query=True, directory=True)
+        sourceImagesRule = cmds.workspace('sourceImages', query=True, fileRuleEntry=True)
+        if sourceImagesRule != None:
+            sourceImagesDir = os.path.join(sourceImagesDir, sourceImagesRule)
+        options.texture_searchpath.set(sourceImagesDir)
+
     if (filterNode or driverNode) and not options:
         options = pm.PyNode('defaultArnoldRenderOptions')
         # options previously existed, so we need to upgrade
@@ -241,7 +249,7 @@ def createOptions():
         pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
     filterNode.message.connect(options.filter, force=True)
     driverNode.message.connect(options.driver, force=True)
-
+    
 
 #-------------------------------------------------
 # translator defaults
