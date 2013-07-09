@@ -23,14 +23,11 @@ MStatus CSessionOptions::GetFromMaya()
       MPlug plug;
       plug = fnArnoldRenderOptions.findPlug("llnk");
       if (!plug.isNull())
-      {
          m_lightlink = ArnoldLightLinkMode(plug.asInt());
-      }
+
       plug = fnArnoldRenderOptions.findPlug("slnk");
       if (!plug.isNull())
-      {
          m_shadowlink = ArnoldShadowLinkMode(plug.asInt());
-      }
 
       // Motion blur options
       if (fnArnoldRenderOptions.findPlug("mb_en").asBool())
@@ -42,9 +39,8 @@ MStatus CSessionOptions::GetFromMaya()
                                 | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_SHADER);
       }
       else
-      {
          m_motion.enable_mask     = MTOA_MBLUR_DISABLE;
-      }
+
       if (m_motion.enable_mask)
       {
          m_motion.shutter_size    = fnArnoldRenderOptions.findPlug("shutter_size").asFloat();
@@ -58,6 +54,10 @@ MStatus CSessionOptions::GetFromMaya()
          m_motion.by_frame        = 0;
          m_motion.steps           = 1;
       }
+
+      plug = fnArnoldRenderOptions.findPlug("relative_texture_paths");
+      if (!plug.isNull())
+         m_relative_texture_paths = plug.asBool();
 
       status = MStatus::kSuccess;
    }
