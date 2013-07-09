@@ -1290,3 +1290,7 @@ AOVSet CArnoldSession::GetActiveAOVs() const
    return empty;
 }
 
+void CArnoldSession::FormatTexturePath(MString& texturePath)
+{
+    m_sessionOptions.FormatTexturePath(texturePath);
+}

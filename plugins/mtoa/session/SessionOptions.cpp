@@ -75,3 +75,18 @@ MStatus CSessionOptions::GetFromMaya()
 
    return status;
 }
+
+void CSessionOptions::FormatTexturePath(MString& texturePath) const
+{
+   if (!m_relativeTexturePaths)
+      return;
+   for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
+   {
+      const MString& currentSearchPath = m_textureSearchPaths[i];
+      if (texturePath.indexW(currentSearchPath) == 0)
+      {
+         texturePath = texturePath.substringW(currentSearchPath.length(), texturePath.length());
+         return;
+      }
+   }
+}

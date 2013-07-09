@@ -144,7 +144,9 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
-   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const;  
+   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const; 
+
+   void FormatTexturePath(MString& texturePath);
    
    
 /*

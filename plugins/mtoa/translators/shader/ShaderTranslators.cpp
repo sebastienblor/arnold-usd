@@ -1203,6 +1203,7 @@ void CAiImageTranslator::Export(AtNode* image)
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
             filename = tx_filename;
+         m_session->FormatTexturePath(filename);
          AiNodeSetStr(image, "filename", filename.asChar());
       }
    }

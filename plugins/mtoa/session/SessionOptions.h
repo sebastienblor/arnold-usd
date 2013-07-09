@@ -6,6 +6,7 @@
 #include <maya/MDagPath.h>
 #include <maya/MAnimControl.h>
 #include <maya/MStringArray.h>
+#include <maya/MString.h>
 
 // Export
 enum ArnoldSessionMode
@@ -131,6 +132,7 @@ private:
    inline bool RelativeTexturePaths() { return m_relativeTexturePaths; }
 
    MStatus GetFromMaya();
+   void FormatTexturePath(MString& texturePath) const;
 
 private:
 
