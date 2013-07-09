@@ -41,7 +41,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         
         self.beginLayout("UV Coordinates", collapse=True)
         self.beginNoOptimize()
-        self.addControl("user_uv_name", label="User UV Set")
+        self.addControl("uvset", label="UV Set")
         self.addSeparator()
         self.addControl("uvcoords", label="UV Coord")
         
