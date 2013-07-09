@@ -41,6 +41,8 @@ class AEaiImageTemplate(ShaderAETemplate):
         
         self.beginLayout("UV Coordinates", collapse=True)
         self.beginNoOptimize()
+        self.addControl("uvset", label="UV Set")
+        self.addSeparator()
         self.addControl("uvcoords", label="UV Coord")
         
         self.addControl("swrap", label="Wrap U")
