@@ -72,7 +72,7 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
    MString provider = context.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-   CExtensionAttrHelper helper(maya, nodeEntry);
+   CExtensionAttrHelper helper(maya, nodeEntry, "");
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
