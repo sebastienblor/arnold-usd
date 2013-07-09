@@ -18,7 +18,7 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
 
    children[1].name = "aovInput";
    children[1].shortName = "aov_input";
-   children[1].type = AI_TYPE_RGB;
+   children[1].type = AI_TYPE_NODE;
 
    CAttrData data;
    data.name = "aiCustomAOVs";
