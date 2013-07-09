@@ -53,6 +53,7 @@ enum MayaFileParams
    p_filename,
    p_noise,
    p_mip_bias,
+   p_uvset_name,
    p_filter,
    p_use_default_color,
    MAYA_COLOR_BALANCE_ENUM
@@ -81,6 +82,18 @@ typedef struct AtImageData
    TokenData* tokens;
    unsigned int ntokens;
    AtTextureHandle* texture_handle;
+   bool useCustomUVSet;
+   std::string uvSetName;
+   
+   static void* operator new(size_t s)
+   {
+      return AiMalloc((unsigned long)s);
+   }
+   
+   static void operator delete(void* p)
+   {
+      AiFree(p);
+   }
 } AtImageData;
 
 static const char* filterNames[] = {"closest", "bilinear", "bicubic", "smart_bicubic", 0};
@@ -111,9 +124,10 @@ node_parameters
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
    AiParameterINT("mipBias", 0);
+   AiParameterSTR("uvSetName", "");
    AiParameterENUM("filter", 3, filterNames);
    AiParameterBOOL("useDefaultColor", true);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, mds);   
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -129,7 +143,9 @@ node_update
    // will not suffice, we need to free memory between updates
    Finish(node);
 
-   AtImageData *idata = (AtImageData*) AiMalloc(sizeof(AtImageData));
+   AtImageData *idata = new AtImageData;;
+   idata->uvSetName = AiNodeGetStr(node, "uvSetName");
+   idata->useCustomUVSet = idata->uvSetName.length() > 0;
    idata->origPath = NULL;
    idata->processPath = NULL;
    idata->startPos = 0;
@@ -396,7 +412,7 @@ node_finish
          AiFree(idata->processPath);
       }
          
-      AiFree(idata);
+     delete idata;
    }
 }
 
@@ -417,6 +433,31 @@ shader_evaluate
    float rotate = AiShaderEvalParamFlt(p_rotate);
    AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
 
+   const float oldU = sg->u;
+   const float oldV = sg->v;   
+   const float oldUdx = sg->dudx;
+   const float oldUdy = sg->dudy;
+   const float oldVdx = sg->dudx;
+   const float oldVdy = sg->dudy;
+   if (idata->useCustomUVSet)
+   {
+      AtPoint2 altuv;
+      if (AiUDataGetPnt2(idata->uvSetName.c_str(), &altuv))
+      {         
+         sg->u = altuv.x;
+         sg->v = altuv.y;
+         AtPoint2 altuvDx, altuvDy; 
+         if (AiUDataGetDxyDerivativesPnt2(idata->uvSetName.c_str(), &altuvDx, &altuvDy)) 
+         { 
+            sg->dudx = altuvDx.x; 
+            sg->dvdx = altuvDx.y; 
+            sg->dudy = altuvDy.x; 
+            sg->dvdy = altuvDy.y; 
+         }
+         else
+            sg->dudx = sg->dudy = sg->dvdx = sg->dvdy = 0.0f;
+      }
+   }
    float inU = sg->u;
    float inV = sg->v;
    float inDuDx = sg->dudx;
@@ -770,14 +811,14 @@ shader_evaluate
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       else if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
-
-      // restore shader globals
-      sg->u = inU;
-      sg->v = inV;
-      sg->dudx = inDuDx;
-      sg->dudy = inDuDy;
-      sg->dvdx = inDvDx;
-      sg->dvdy = inDvDy;
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);     
    }
+
+   // restore shader globals
+   sg->u = oldU;
+   sg->v = oldV;
+   sg->dudx = oldUdx; 
+   sg->dudy = oldUdy; 
+   sg->dvdx = oldVdx; 
+   sg->dvdy = oldVdy;
 }

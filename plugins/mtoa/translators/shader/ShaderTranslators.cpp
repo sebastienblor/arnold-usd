@@ -195,6 +195,13 @@ void CFileTranslator::Export(AtNode* shader)
          ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT, srcNodeFn.findPlug("rotateUV"));
          ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, srcNodeFn.findPlug("offset"));
          ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2, srcNodeFn.findPlug("noiseUV"));
+         srcNodeFn.findPlug("uvCoord").connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            MFnDependencyNode uvcNodeFn(connections[0].node());
+            if (uvcNodeFn.typeName() == "uvChooser")
+               AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+         }
       }
    }
    
