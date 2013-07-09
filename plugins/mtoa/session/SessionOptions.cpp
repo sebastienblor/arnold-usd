@@ -57,7 +57,13 @@ MStatus CSessionOptions::GetFromMaya()
 
       plug = fnArnoldRenderOptions.findPlug("relative_texture_paths");
       if (!plug.isNull())
-         m_relative_texture_paths = plug.asBool();
+         m_relativeTexturePaths = plug.asBool();
+
+      plug = fnArnoldRenderOptions.findPlug("texture_searchpath");
+      if (!plug.isNull())
+         plug.asString().split(PATHSEP, m_textureSearchPaths);
+      else
+         m_textureSearchPaths.clear();
 
       status = MStatus::kSuccess;
    }
