@@ -85,6 +85,7 @@ MObject CArnoldOptionsNode::s_shader_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
 MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
+MObject CArnoldOptionsNode::s_relative_texture_paths;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -554,6 +555,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_kick_render_flags = tAttr.create("kickRenderFlags", "kick_render_flags", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_kick_render_flags);
+
+   s_relative_texture_paths = nAttr.create("relativeTexturePaths", "relative_texture_paths", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_relative_texture_paths);
 
    return MS::kSuccess;
 }

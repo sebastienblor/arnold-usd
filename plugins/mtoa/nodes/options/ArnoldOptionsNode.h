@@ -110,5 +110,6 @@ public:
    
    static MObject s_expand_procedurals;
    static MObject s_kick_render_flags;
+   static MObject s_relative_texture_paths;
 
 };  // class CArnoldOptionsNode
