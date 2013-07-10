@@ -10,6 +10,23 @@
 #define new DEBUG_NEW
 #endif
 
+void ReplaceSlashes(MString& str)
+{
+#ifdef _WIN32
+   MStringArray tmp;
+   str.split('\\', tmp);
+   if (tmp.length() > 1)
+   {
+      str = tmp[0];
+      for (unsigned int i = 1; i < tmp.length(); ++i)
+      {
+         str += "/";
+         str += tmp[i];
+      }
+   }
+#endif
+}
+
 MStatus CSessionOptions::GetFromMaya()
 {
    MStatus status;
@@ -61,7 +78,11 @@ MStatus CSessionOptions::GetFromMaya()
 
       plug = fnArnoldRenderOptions.findPlug("texture_searchpath");
       if (!plug.isNull())
+      {
          plug.asString().split(PATHSEP, m_textureSearchPaths);
+         for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
+            ReplaceSlashes(m_textureSearchPaths[i]);
+      }
       else
          m_textureSearchPaths.clear();
 
@@ -78,6 +99,7 @@ MStatus CSessionOptions::GetFromMaya()
 
 void CSessionOptions::FormatTexturePath(MString& texturePath) const
 {
+   ReplaceSlashes(texturePath);
    if (!m_relativeTexturePaths)
       return;
    for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
