@@ -248,6 +248,7 @@ void CFileTranslator::Export(AtNode* shader)
          if(ifile.is_open()) 
             resolvedFilename = tx_filename; 
       }
+      m_session->FormatTexturePath(resolvedFilename);
       
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
