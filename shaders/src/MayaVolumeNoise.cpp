@@ -192,6 +192,20 @@ shader_evaluate
       case NT_BILLOW:
          {
             float radius = static_cast<float>(sqrt(0.5f * density));
+            
+            float pixelSize = float(AI_EPSILON);
+            float nyquist = 2.0f * pixelSize;
+            float pixel = 1.0f;
+            int depthTop = 0;
+            
+            while (pixel > nyquist)
+            {
+               pixel /= frequencyRatio;
+               depthTop++;
+            }
+            
+            depthMax = depthMax > depthTop ? depthTop : depthMax;
+            
             noiseVal = BillowNoise(P, time, 3, radius, sizeRand, randomness, falloff, spottyness, depthMax, frequencyRatio, ratio, amplitude);
          }
          break;
@@ -227,6 +241,9 @@ shader_evaluate
 
                   waveVal += (float) cos(twopi * AiV3Dot(P, d) + time);
                }
+
+               if(isnan(waveVal))
+                  break;
 
                waveVal /= numWaves;
 

@@ -133,6 +133,9 @@ shader_evaluate
       float pixel = 1.0f;
 
       P *= 0.5f * ripples;
+      
+      float maxP = (fabsf(P.x) > fabsf(P.y)) ? fabsf(P.x) : fabsf(P.y);
+      maxP = (maxP > fabsf(P.z)) ? maxP : fabsf(P.z);
 
       if (animated)
       {
@@ -142,6 +145,9 @@ shader_evaluate
 
       while ((i < depth.x) || (i < depth.y && pixel > nyquist))
       {
+         if((maxP * curFreq) >= LONG_MAX)
+            break;
+            
          AtPoint sampleP = P * curFreq;
 
          if (animated)
@@ -162,7 +168,7 @@ shader_evaluate
          i += 1.0f;
       }
 
-      if (pixel > pixelSize && i <= depth.y)
+      if ((maxP * curFreq) < LONG_MAX && pixel > pixelSize && i <= depth.y)
       {
          AtPoint sampleP = P * curFreq;
 

@@ -5,6 +5,9 @@
 #define UV_INVALID -1000000.0f
 #define UV_GLOBALS -2000000.0f
 
+bool isnan(float a);
+bool isinf(float a);
+
 float Luminance(float v);
 float Luminance(const AtRGB &color);
 float Luminance(const AtRGBA &color);
