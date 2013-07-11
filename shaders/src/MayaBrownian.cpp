@@ -2,6 +2,8 @@
 
 #include "MayaUtils.h"
 
+#include <limits.h>
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaBrownianMtd);
 
 namespace
@@ -84,16 +86,35 @@ shader_evaluate
       float ratio = (float) exp(-0.5f * increment);
 
       P *= weight3d;
+      
+      float maxP = (fabsf(P.x) > fabsf(P.y)) ? fabsf(P.x) : fabsf(P.y);
+      maxP = (maxP > fabsf(P.z)) ? maxP : fabsf(P.z);
 
-      while (i < ioctaves)
+      float pixelSize = float(AI_EPSILON);
+      float nyquist = 2.0f * pixelSize;
+      float pixel = 1.0f;
+      
+      while (i < ioctaves && pixel > nyquist)
       {
+         if((maxP * curFreq) >= LONG_MAX)
+            break;
          noise += curAmp * AiPerlin3(P * curFreq);
          curFreq *= lacunarity;
+         
+         pixel /= lacunarity;
+         
          curAmp *= ratio;
          ++i;
       }
 
-      noise += foctave * curAmp * AiPerlin3(P * curFreq);
+      if((maxP * curFreq) < LONG_MAX)
+      {
+         AtPoint P1 = P * curFreq;
+         float tmp = AiPerlin3(P * curFreq);
+         tmp = curAmp * tmp;
+         tmp = foctave * tmp;
+         noise += foctave * curAmp * AiPerlin3(P * curFreq);
+      }
 
       noise = noise * 0.5f + 0.5f;
 

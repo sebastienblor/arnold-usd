@@ -117,11 +117,17 @@ shader_evaluate
          float iterations = MAX(depth.x, depth.y);
          iterations = MIN(iterations, (float)sizeof(float)*8-n);
          
-         while (loop < iterations)
+         float pixelSize = float(AI_EPSILON);
+         float nyquist = 2.0f * pixelSize;
+         float pixel = 1.0f;
+         
+         while (loop < iterations && pixel > nyquist)
          {
             marble += curAmp * AiPerlin3(curFreq * Q + 0.5f);
             curAmp *= ratio;
             curFreq *= 2.0f;
+            
+            pixel *= 0.5f;
             loop += 1.0f;
          }
          curAmp *= (iterations - floorf(iterations));
