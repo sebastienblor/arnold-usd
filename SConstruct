@@ -784,16 +784,6 @@ for p in apiheaders:
    PACKAGE_FILES += [
       [os.path.join('plugins', 'mtoa', p), os.path.join('include', d)]
    ]
-   
-for e in ext_files:
-   PACKAGE_FILES += [
-      [e, 'extensions']
-   ]
-
-for e in ext_shaders:
-   PACKAGE_FILES += [
-      [e, 'shaders']
-   ]
 
 if system.os() == 'windows':
    PACKAGE_FILES += [
