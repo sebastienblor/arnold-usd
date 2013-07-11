@@ -660,10 +660,14 @@ if env['MODE'] in ['debug', 'profile']:
 
 package_name_inst = package_name
 
+package_extension = ""
+
 if system.os() == 'windows':
-    package_name += ".rar"
+    package_extension += ".rar"
 else:
-    package_name += ".tgz"
+    package_extension += ".tgz"
+
+package_name += package_extension
 
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
@@ -680,62 +684,53 @@ ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(
 ext_env.Append(LIBS = ['mtoa_api',])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
-ext_files = []
-ext_shaders = []
-ext_packages = []
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if ext not in COMMAND_LINE_TARGETS:
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spackage' % ext in COMMAND_LINE_TARGETS)):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
-    if os.path.isdir(ext_dir):
+    if os.path.isdir(ext_dir):        
         if system.os() == 'windows':
             EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                  variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                                  duplicate   = 0,
-                                 exports     = ['ext_env', 'env'])
-           
-            if len(EXT) == 4:
-                EXT_SHADERS = EXT[1]
-                EXT_PRJ = EXT[2]
-                EXT_SHADERS_PRJ = EXT[3]
-                env.Depends(SOLUTION, EXT_SHADERS_PRJ)
-            else:
-                EXT_PRJ = EXT[1]
-           
-            env.Depends(SOLUTION, EXT_PRJ)
+                                 exports     = ['ext_env', 'env'])    
         else:
             EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                  variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                                  duplicate   = 0,
                                  exports     = ['ext_env', 'env'])
+        if len(EXT) == 2:
+            EXT_SHADERS = EXT[1]        
         
+        # EXT may contain a shader result
+        ext_shader = None
+        ext_files = []
+        if len(EXT) > 1:
+            ext_shader = str(EXT[1][0])
+            plugin = str(EXT[0][0])
+        else:
+            plugin = str(EXT[0])
+        ext_files.append(plugin)
+        pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
+        pyfile = os.path.join(ext_dir, 'plugin', pyfile)
+        if os.path.exists(pyfile):
+            ext_files.append(pyfile)
+            env.Install(TARGET_EXTENSION_PATH, pyfile)
+        env.Install(TARGET_EXTENSION_PATH, plugin)
+        package_files = []
+        if ext_shader:
+            env.Install(TARGET_SHADER_PATH, ext_shader)
+            #package_files += [EXT_SHADERS, 'shaders']
+        #package_files += [EXT[0], 'extensions']
+        #local_env = env.Clone()
+        #local_env['PACKAGE_FILES'] = package_files
+        #EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)
+        #top_level_alias(local_env, '%spackage' % ext, EXT_PACKAGE)
+        #local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
-        Depends(EXT, MTOA_API[0])
-        Depends(PACKAGE, EXT)
-        # only install if the target has been specified
-        if ext in COMMAND_LINE_TARGETS:
-            # EXT may contain a shader result
-            if system.os() == 'windows':
-                if len(EXT) > 2:
-                    ext_shaders.append(str(EXT[1][0]))
-                plugin = str(EXT[0][0])
-            else:
-                if len(EXT) > 1:
-                    ext_shaders.append(str(EXT[1][0]))
-                    plugin = str(EXT[0][0])
-                else:
-                    plugin = str(EXT[0])
-            pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
-            pyfile = os.path.join(ext_dir, 'plugin', pyfile)
-            ext_files.append(plugin)
-            if os.path.exists(pyfile):
-                ext_files.append(pyfile)
-
-if ext_files:
-    env.Install(TARGET_EXTENSION_PATH, ext_files)
-if ext_shaders:
-    env.Install(TARGET_SHADER_PATH, ext_shaders)
+        #Depends(EXT, MTOA_API[0])
+        #Depends(EXT_PACKAGE, EXT)
 
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
