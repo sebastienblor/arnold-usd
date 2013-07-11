@@ -721,17 +721,17 @@ for ext in os.listdir(ext_base_dir):
         package_files = []
         if ext_shader:
             env.Install(TARGET_SHADER_PATH, ext_shader)
-            print ext_shader
-            #package_files += [EXT_SHADERS, 'shaders']
-        #package_files += [EXT[0], 'extensions']
-        #local_env = env.Clone()
-        #local_env['PACKAGE_FILES'] = package_files
-        #EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)
-        #top_level_alias(local_env, '%spackage' % ext, EXT_PACKAGE)
-        #local_env.AlwaysBuild(EXT_PACKAGE)
+            package_files += [ext_shader, 'shaders']
+        for p in ext_files:
+            package_files += [p, 'extensions']
+        local_env = env.Clone()
+        EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)
+        local_env['PACKAGE_FILES'] = package_files        
+        top_level_alias(local_env, '%spackage' % ext, EXT_PACKAGE)
+        local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
-        #Depends(EXT, MTOA_API[0])
-        #Depends(EXT_PACKAGE, EXT)
+        Depends(EXT, MTOA_API[0])
+        Depends(EXT_PACKAGE, EXT)
 
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
