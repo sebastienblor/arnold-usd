@@ -721,6 +721,7 @@ for ext in os.listdir(ext_base_dir):
         package_files = []
         if ext_shader:
             env.Install(TARGET_SHADER_PATH, ext_shader)
+            print ext_shader
             #package_files += [EXT_SHADERS, 'shaders']
         #package_files += [EXT[0], 'extensions']
         #local_env = env.Clone()
