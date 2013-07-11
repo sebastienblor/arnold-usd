@@ -340,7 +340,10 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       if(start >= 0)
       {
          dso.substring(start,end).split('.',pattern);
-         newDso = dso.substring(0,start-1) + "#" + dso.substring(end+1,dso.length());
+         if(dso.substring(start-1,start-1) == "_")
+            newDso = dso.substring(0,start-2) + ".#" + dso.substring(end+1,dso.length());
+         else
+            newDso = dso.substring(0,start-1) + "#" + dso.substring(end+1,dso.length());
          dso = newDso;
          
          if(pattern.length() > 0)

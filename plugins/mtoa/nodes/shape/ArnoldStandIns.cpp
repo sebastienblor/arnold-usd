@@ -739,7 +739,10 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       if(start >= 0)
       {
          fGeometry.dso.substring(start,end).split('.',pattern);
-         newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+         if(fGeometry.dso.substring(start-1,start-1) == "_")
+            newDso = fGeometry.dso.substring(0,start-2) + ".#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+         else
+            newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
          fGeometry.dso = newDso;
 
          if(pattern.length() > 0)
