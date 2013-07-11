@@ -117,7 +117,7 @@ public:
    inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
-   inline bool isProgressive() const { return m_sessionOptions.isProgressive(); }
+   inline bool IsProgressive() const { return m_sessionOptions.IsProgressive(); }
 
    // Light linker
    inline void FlagLightLinksDirty(bool flag=true) { m_lightLinksDirty = flag; }
@@ -144,7 +144,9 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
-   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const;  
+   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const; 
+
+   void FormatTexturePath(MString& texturePath);
    
    
 /*

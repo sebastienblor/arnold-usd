@@ -734,6 +734,12 @@ def createArnoldTextureSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
+    pm.attrControlGrp('texture_relative_paths',
+                      label='Use Relative Paths',
+                      attribute='defaultArnoldRenderOptions.relativeTexturePaths')
+
+    cmds.separator()
+
     pm.attrControlGrp('texture_automip',
                         label="Auto-mipmap",
                         attribute='defaultArnoldRenderOptions.textureAutomip')

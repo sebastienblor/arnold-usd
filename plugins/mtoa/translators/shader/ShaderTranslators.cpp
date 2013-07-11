@@ -248,6 +248,7 @@ void CFileTranslator::Export(AtNode* shader)
          if(ifile.is_open()) 
             resolvedFilename = tx_filename; 
       }
+      m_session->FormatTexturePath(resolvedFilename);
       
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
@@ -1191,10 +1192,10 @@ void CAiImageTranslator::Export(AtNode* image)
    {
       CRenderOptions renderOptions; 
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya();      
+      renderOptions.GetFromMaya(); 
+      MString filename(AiNodeGetStr(image, "filename"));
       if(renderOptions.useExistingTiledTextures()) 
-      {
-         MString filename(AiNodeGetStr(image, "filename"));
+      {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
          std::string tx_filename_tokens = tx_filename.asChar();
          size_t tokenPos = tx_filename_tokens.find("<udim>");
@@ -1202,8 +1203,9 @@ void CAiImageTranslator::Export(AtNode* image)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-            filename = tx_filename;
-         AiNodeSetStr(image, "filename", filename.asChar());
+            filename = tx_filename;         
       }
+      m_session->FormatTexturePath(filename);
+      AiNodeSetStr(image, "filename", filename.asChar());
    }
 }
