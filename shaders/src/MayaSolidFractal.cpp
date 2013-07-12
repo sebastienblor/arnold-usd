@@ -145,7 +145,7 @@ shader_evaluate
 
       while ((i < depth.x) || (i < depth.y && pixel > nyquist))
       {
-         if((maxP * curFreq) >= __LONG_MAX__)
+         if((maxP * curFreq) >= LONG_MAX)
             break;
             
          AtPoint sampleP = P * curFreq;
