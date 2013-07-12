@@ -439,7 +439,7 @@ shader_evaluate
    const float oldUdy = sg->dudy;
    const float oldVdx = sg->dudx;
    const float oldVdy = sg->dudy;
-   if (idata->useCustomUVSet)
+   /*if (idata->useCustomUVSet)
    {
       AtPoint2 altuv;
       if (AiUDataGetPnt2(idata->uvSetName.c_str(), &altuv))
@@ -457,7 +457,7 @@ shader_evaluate
          else
             sg->dudx = sg->dudy = sg->dvdx = sg->dvdy = 0.0f;
       }
-   }
+   }*/
    float inU = sg->u;
    float inV = sg->v;
    float inDuDx = sg->dudx;
