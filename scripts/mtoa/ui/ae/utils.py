@@ -150,11 +150,17 @@ def attrTextFieldGrp(*args, **kwargs):
         labelText = kwargs.pop('label', None)
         if not labelText:
             labelText = pm.mel.interToUI(attribute.split('.')[-1])
-        ctrl = args[0]
-        pm.textFieldGrp(ctrl,
-                        label=labelText,
-                        text=pm.getAttr(attribute),
-                        changeCommand=cc)
+        ctrl = None
+        if len(args) > 0:
+            ctrl = args[0]
+            pm.textFieldGrp(ctrl,
+                            label=labelText,
+                            text=pm.getAttr(attribute),
+                            changeCommand=cc)
+        else:
+            ctrl = pm.textFieldGrp(label=labelText,
+                                   text=pm.getAttr(attribute),
+                                   changeCommand=cc)
         pm.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
                                       lambda: pm.textFieldGrp(ctrl, edit=True,
