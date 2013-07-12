@@ -686,20 +686,14 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spackage' % ext in COMMAND_LINE_TARGETS)):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS)):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):        
-        if system.os() == 'windows':
-            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                 variant_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                 duplicate   = 0,
-                                 exports     = ['ext_env', 'env'])    
-        else:
-            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                 variant_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                 duplicate   = 0,
-                                 exports     = ['ext_env', 'env'])
+        EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                             variant_dir = os.path.join(BUILD_BASE_DIR, ext),
+                             duplicate   = 0,
+                             exports     = ['ext_env', 'env'])
         if len(EXT) == 2:
             EXT_SHADERS = EXT[1]        
         
@@ -721,13 +715,13 @@ for ext in os.listdir(ext_base_dir):
         package_files = []
         if ext_shader:
             env.Install(TARGET_SHADER_PATH, ext_shader)
-            package_files += [ext_shader, 'shaders']
+            package_files += [[ext_shader, 'shaders']]
         for p in ext_files:
-            package_files += [p, 'extensions']
+            package_files += [[p, 'extensions']]
         local_env = env.Clone()
-        EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)
-        local_env['PACKAGE_FILES'] = package_files        
-        top_level_alias(local_env, '%spackage' % ext, EXT_PACKAGE)
+        local_env['PACKAGE_FILES'] = package_files
+        EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)        
+        top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)
         local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
         Depends(EXT, MTOA_API[0])
