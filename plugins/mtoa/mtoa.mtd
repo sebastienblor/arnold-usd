@@ -1297,6 +1297,9 @@
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
+    [attr sun_size]
+        softmin             FLOAT   0.1
+        softmax             FLOAT   5.0
         
 # dag nodes
 
