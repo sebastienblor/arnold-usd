@@ -125,8 +125,8 @@ def createStandIn(path=None):
 
     standIn = pm.createNode('aiStandIn', n='ArnoldStandInShape')
     # temp fix until we can correct in c++ plugin
-    standIn.visibleInReflections.set(True)
-    standIn.visibleInRefractions.set(True)
+    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
+    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
     pm.sets('ArnoldStandInDefaultLightSet', add=standIn)
     if path:
         standIn.dso.set(path)
