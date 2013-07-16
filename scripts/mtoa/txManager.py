@@ -125,7 +125,15 @@ class MtoATxManager(object):
     def create(self):
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window);
-        self.window = cmds.loadUI(uiFile=self.uiFile, verbose=True)
+        self.window = cmds.loadUI(uiFile=self.uiFile, verbose=False)
+        
+        initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
+        if initPos[0] < 0:
+            initPos[0] = 0
+        if initPos[1] < 0:
+            initPos[1] = 0
+        cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
+        
         
         cmds.showWindow(self.window);
         
@@ -337,18 +345,19 @@ class MtoATxManager(object):
         ctrlPath = '|'.join([self.window, 'groupBox_4', 'checkBox']);
         recursive = cmds.checkBox(ctrlPath, query=True, value=True);
         
-        if recursive:
-            for root, dirs, files in os.walk(folder):
+        if os.path.isdir(folder):
+            if recursive:
+                for root, dirs, files in os.walk(folder):
+                    for texture in files:
+                        if (isImage(texture)):
+                            self.selectedFiles.append(os.path.join(root, texture))
+                            self.filesToCreate += 1
+            else:
+                files = os.listdir(folder)
                 for texture in files:
                     if (isImage(texture)):
-                        self.selectedFiles.append(os.path.join(root, texture))
+                        self.selectedFiles.append(os.path.join(folder, texture))
                         self.filesToCreate += 1
-        else:
-            files = os.listdir(folder)
-            for texture in files:
-                if (isImage(texture)):
-                    self.selectedFiles.append(os.path.join(folder, texture))
-                    self.filesToCreate += 1
                 
         updateProgressMessage(self.window, self.filesCreated, self.filesToCreate, 0)
         ctrlPath = '|'.join([self.window, 'groupBox_3', 'label_10']);
