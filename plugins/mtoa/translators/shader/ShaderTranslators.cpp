@@ -1206,6 +1206,7 @@ void CAiImageTranslator::Export(AtNode* image)
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
       renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
+      filename = filename.expandEnvironmentVariablesAndTilde();
       if(renderOptions.useExistingTiledTextures()) 
       {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
