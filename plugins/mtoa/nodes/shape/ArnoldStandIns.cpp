@@ -224,6 +224,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetStr(procedural, "data", dsoData.asChar());
+         CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
          {
