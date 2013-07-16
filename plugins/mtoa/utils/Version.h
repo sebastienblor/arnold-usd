@@ -3,10 +3,10 @@
 #define MTOA_VAL(str) #str
 #define MTOA_TOSTRING(str) MTOA_VAL(str)
 
-#define MTOA_VENDOR "SolidAngle"
+#define MTOA_VENDOR "Solid Angle SL"
 #define MTOA_MAJOR_VERSION_NUM 0
-#define MTOA_MINOR_VERSION_NUM 23
-#define MTOA_FIX_VERSION "0.dev"
+#define MTOA_MINOR_VERSION_NUM 24
+#define MTOA_FIX_VERSION "0"
 
 
 #define MTOA_MAJOR_VERSION         MTOA_TOSTRING(MTOA_MAJOR_VERSION_NUM)

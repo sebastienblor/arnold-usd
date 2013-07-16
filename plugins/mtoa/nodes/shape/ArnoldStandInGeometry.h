@@ -87,3 +87,14 @@ public:
    void Draw(int drawMode);
    MBoundingBox GetBBox();
 };
+
+class CArnoldProceduralGeometry : public CArnoldStandInGeometry{
+private:
+   void DrawPolygons() const;
+   void DrawWireframe() const;
+   void DrawPoints() const;
+   void DrawNormalAndPolygons() const;
+public:
+   CArnoldProceduralGeometry(AtNode* node);
+   ~CArnoldProceduralGeometry();
+};

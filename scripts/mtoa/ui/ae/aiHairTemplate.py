@@ -7,6 +7,12 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.beginScrollLayout()
         
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
+
+        self.beginLayout("Matte", collapse=True)
+        self.addControl("aiEnableMatte", label="Enable Matte")
+        self.addControl("aiMatteColor", label="Matte Color")
+        self.addControl("aiMatteColorA", label="Matte Opacity")
+        self.endLayout()
         
         self.beginLayout('Diffuse', collapse=False)
         self.addControl('rootcolor', label='Root Color')

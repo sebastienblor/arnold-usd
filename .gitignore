@@ -11,3 +11,4 @@ Makefile
 *.ncb
 *.vcproj
 /custom.py
+plugins/mtoa/utils/MercurialID.h

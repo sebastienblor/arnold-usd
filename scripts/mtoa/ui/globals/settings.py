@@ -110,7 +110,7 @@ def createBackground(type, field):
     bg = getBackgroundShader()
     #if bg:
         #pm.delete(bg)
-    node = pm.shadingNode(type, asShader=True, name=type+"Shape")
+    node = pm.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field)
 
 
@@ -125,9 +125,15 @@ def buildBackgroundMenu(popup, field):
 
     switches = pm.ls(type='aiRaySwitch')
     skies = pm.ls(type='aiSky')
+    pSkies = pm.ls(type='aiPhysicalSky')
 
     pm.popupMenu(popup, edit=True, deleteAllItems=True)
     for item in skies:
+        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
+
+    pm.menuItem(parent=popup, divider=True)
+    
+    for item in pSkies:
         pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
 
     pm.menuItem(parent=popup, divider=True)
@@ -136,8 +142,10 @@ def buildBackgroundMenu(popup, field):
         pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
 
     pm.menuItem(parent=popup, divider=True)
+    
 
     pm.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field))
+    pm.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field))
     pm.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field))
 
     pm.menuItem(parent=popup, divider=True)
@@ -938,12 +946,16 @@ def LoadFilenameButtonPush(*args):
 
 def ChangeLogToConsole(*args):
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
+    logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     pm.attrControlGrp('log_console_verbosity', edit=True, enable=logToConsole)
+    pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def ChangeLogToFile(*args):
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
+    logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
     pm.attrControlGrp('log_file_verbosity', edit=True, enable=logToFile)
+    pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def createArnoldLogSettings():
 
@@ -953,15 +965,19 @@ def createArnoldLogSettings():
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
 
-    pm.attrControlGrp('log_to_console',
-                      label='Console',
-                      changeCommand=ChangeLogToConsole,
-                      attribute='defaultArnoldRenderOptions.log_to_console')
+    pm.checkBoxGrp('log_to_console',
+                    label='Console',
+                    changeCommand=ChangeLogToConsole)
 
-    pm.attrControlGrp('log_to_file',
-                      label='File',
-                      changeCommand=ChangeLogToFile,
-                      attribute='defaultArnoldRenderOptions.log_to_file')
+    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=1)
+    pm.connectControl('log_to_console', 'defaultArnoldRenderOptions.log_to_console', index=2)
+    
+    pm.checkBoxGrp('log_to_file',
+                   label='File',
+                   changeCommand=ChangeLogToFile)
+
+    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
+    pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
@@ -981,6 +997,7 @@ def createArnoldLogSettings():
 
     pm.attrControlGrp('log_max_warnings',
                         label="Max. Warnings",
+                        enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
     pm.attrControlGrp('log_console_verbosity',

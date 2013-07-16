@@ -3,6 +3,7 @@
 #include "extension/PxUtils.h"
 #include "extension/PathUtils.h"
 #include "translators/NodeTranslator.h"
+#include "utils/Version.h"
 
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>
@@ -10,6 +11,8 @@
 #include <algorithm>
 
 #define BUILTIN "<built-in>"
+
+#define EXPORT_API_VERSION DLLEXPORT const char* getAPIVersion(){return MTOA_VERSION;}
 
 class CAbMayaNode;
 
@@ -57,6 +60,7 @@ public:
    MStringArray Required();
    MString GetExtensionName() const {return m_extensionName;}
    MString GetExtensionFile() const {return m_extensionFile;}
+   MString GetApiVersion() const {return m_apiVersion;}
    unsigned int RegisteredNodesCount() const {return m_registeredMayaNodes.size();}
    unsigned int TranslatedNodesCount() const {return m_registeredTranslators.size();}
    unsigned int TranslatorCount() const;
@@ -136,6 +140,7 @@ protected :
 protected:
    MString m_extensionFile;
    MString m_extensionName;
+   MString m_apiVersion;
    void* m_library;
    bool m_registered;
    bool m_deferred;

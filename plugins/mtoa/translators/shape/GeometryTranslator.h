@@ -24,14 +24,14 @@
 #include <maya/MColorArray.h>
 #include <maya/MNodeMessage.h>
 
-class CGeometryTranslator
-   :   public CShapeTranslator
+class  CGeometryTranslator : public CShapeTranslator
 {
 public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
       m_displaced = false;
       m_isRefSmooth = false;
+      m_useMotionVectors = false;
       m_geometry = dagPath.node();
       return CShapeTranslator::Init(session, dagPath, outputAttr);
    }
@@ -93,10 +93,9 @@ protected:
    virtual bool IsGeoDeforming();
 
 protected:
-   bool m_isMasterDag;
    bool m_displaced;
    bool m_isRefSmooth;
+   bool m_useMotionVectors;
    MObject m_geometry;
    MDagPath m_dagPathRef;
-   MDagPath m_masterDag;
 };

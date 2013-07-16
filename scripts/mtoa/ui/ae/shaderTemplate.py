@@ -6,6 +6,7 @@ from mtoa.utils import toMayaStyle
 from mtoa.utils import prettify
 import mtoa.ui.ae.templates as templates
 import mtoa.core as core
+import maya.cmds as cmds
 
 def newAOVPrompt(default=''):
     result = pm.cmds.promptDialog(button=['Create', 'Cancel'],
@@ -16,7 +17,11 @@ def newAOVPrompt(default=''):
                                   text=default)
     if result == 'Create':
         core.createOptions()
-        newAOV = pm.promptDialog(query=True, text=True)
+        newAOV = pm.promptDialog(query=True, text=True)#[0:29] # channel names in the exr driver are limited to 29 characterss
+        if len(newAOV) > 29:
+            oldAOV = newAOV
+            newAOV = newAOV[0:29]
+            cmds.confirmDialog(message="The name %s is longer than 29 characters, truncated to : %s" % (oldAOV, newAOV))
         if str(newAOV).replace("_","").isalnum():
             return newAOV, aovs.AOVInterface().addAOV(newAOV)
         else:

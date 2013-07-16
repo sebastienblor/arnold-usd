@@ -102,8 +102,7 @@ MStatus CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
 
 AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
 {
-   m_isMasterDag = IsMasterInstance(m_masterDag);
-   if (m_isMasterDag)
+   if (IsMasterInstance())
       return AddArnoldNode("polymesh");
    else
       return AddArnoldNode("ginstance");
@@ -113,7 +112,7 @@ void CNurbsSurfaceTranslator::Export(AtNode* anode)
 {
    const char* nodeType = AiNodeEntryGetName (AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, GetMasterInstance());
    else if (strcmp(nodeType, "polymesh") == 0)
    {
       // Early return if we can't tessalate.
@@ -126,7 +125,7 @@ void CNurbsSurfaceTranslator::Export(AtNode* anode)
 void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    // Re-tessalate the nurbs surface, but only if it's needed.
-   if (m_motion && m_motionDeform && m_isMasterDag)
+   if (m_motion && m_motionDeform && IsMasterInstance())
    {
       // TODO: Figure out how to get the same topology for
       // each tessellation.

@@ -128,6 +128,8 @@ class AEaiStandardTemplate(ShaderAETemplate):
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
 
+        self.suppress('PhongExponent')
+       
         self.addExtraControls()
         self.endScrollLayout()
 

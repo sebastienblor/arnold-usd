@@ -53,7 +53,8 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
 
    data.name = "aiHairShader";
    data.shortName = "ai_hair_shader";
-   helper.MakeInputNode(data);
+   data.defaultValue.RGB = AI_RGB_BLACK;
+   helper.MakeInputRGB(data);
 }
 
 AtNode* CHairTranslator::CreateArnoldNodes()
@@ -119,7 +120,18 @@ void CHairTranslator::Update( AtNode *curve )
             plug.connectedTo(curveShaderPlug, true, false);
             if (curveShaderPlug.length() > 0)
             {
-               shader = ExportRootShader(curveShaderPlug[0]);
+               CNodeTranslator* shaderTranslator; // the shading engine's translator is not called
+               // because there is no maya node for it
+               shader = ExportRootShader(curveShaderPlug[0], &shaderTranslator);
+               if ((shader != 0) && (shaderTranslator != 0))
+               {
+                  plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
+                  if (status && !plug.isNull())
+                     AiNodeSetBool(shader, "enable_matte", plug.asBool());
+                  plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
+                  if (status && !plug.isNull())
+                     ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
+               }
             }
          }
       }

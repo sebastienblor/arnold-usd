@@ -150,7 +150,7 @@
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Feature Overrides"/>
-    <attr n="ai:fotx" s="defaultArnoldRenderOptions.ignoreTexture" t="boolean" h="Ignore textures."/>
+    <attr n="ai:fotx" s="defaultArnoldRenderOptions.ignoreTextures" t="boolean" h="Ignore textures."/>
     <attr n="ai:fosh" s="defaultArnoldRenderOptions.ignoreShaders" t="boolean" h="Ignore shaders."/>
     <attr n="ai:foat" s="defaultArnoldRenderOptions.ignoreAtmosphere" t="boolean" h="Ignore atmosphere."/>
     <attr n="ai:folt" s="defaultArnoldRenderOptions.ignoreLights" t="boolean" h="Ignore lights."/>

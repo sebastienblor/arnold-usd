@@ -326,3 +326,36 @@ MBoundingBox CArnoldStandInGInstance::GetBBox()
       return bbox;
    }
 }
+
+CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry()
+{
+   AiNodeGetMatrix(node, "matrix", m_matrix);
+
+   m_BBMin = AiNodeGetPnt(node, "min");
+   m_BBMax = AiNodeGetPnt(node, "max");
+}
+
+CArnoldProceduralGeometry::~CArnoldProceduralGeometry()
+{
+   
+}
+
+void CArnoldProceduralGeometry::DrawPolygons() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldProceduralGeometry::DrawWireframe() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldProceduralGeometry::DrawPoints() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldProceduralGeometry::DrawNormalAndPolygons() const
+{
+   DrawBoundingBox();
+}

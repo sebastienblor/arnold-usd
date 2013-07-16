@@ -265,6 +265,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   geom->m_geometryList.insert(std::make_pair(node, g));
                   geom->bbox.expand(g->GetBBox());
                }
+               else if(AiNodeIs(node, "procedural"))
+               {
+                  CArnoldStandInGeometry* g = new CArnoldProceduralGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(node, g));
+                  geom->bbox.expand(g->GetBBox());                 
+               }
             }
          }
 
@@ -646,14 +652,78 @@ MStatus CArnoldStandInShape::initialize()
    
    // atributes that are used only by translation
    CAttrData data;
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideCastsShadows";
+   data.shortName = "overrideCastsShadows";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'castShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideReceiveShadows";
+   data.shortName = "overrideReceiveShadows";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'receiveShadows' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overridePrimaryVisibility";
+   data.shortName = "overridePrimaryVisibility";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'primaryVisibility' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInReflections";
+   data.shortName = "overrideVisibleInReflections";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'visibleInReflections' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInRefractions";
+   data.shortName = "overrideVisibleInRefractions";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'visibleInRefractions' attribute is defined in CDagTranslator::MakeMayaVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideDoubleSided";
+   data.shortName = "overrideDoubleSided";
+   s_attributes.MakeInputBoolean(data);
+   
+   s_attributes.MakeInput("doubleSided");
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideSelfShadows";
+   data.shortName = "overrideSelfShadows";
+   s_attributes.MakeInputBoolean(data);
+   
+   //The 'self_shadows' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    data.defaultValue.BOOL = false;
    data.name = "overrideOpaque";
    data.shortName = "overrideOpaque";
    s_attributes.MakeInputBoolean(data);
 
-   s_attributes.MakeInput("opaque");
-   s_attributes.MakeInput("self_shadows");
+   //The 'opaque' attribute is defined in CShapeTranslator::MakeCommonAttributes
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInDiffuse";
+   data.shortName = "overrideVisibleInDiffuse";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'aiVisibleInDiffuse' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideVisibleInGlossy";
+   data.shortName = "overrideVisibleInGlossy";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+
+   
    s_attributes.MakeInput("sss_sample_distribution");
    s_attributes.MakeInput("sss_sample_spacing");
 
@@ -709,7 +779,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
    // If changed framestep, useFrameExtension or dso
-   if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
+   if (tmpFrameStep != framestep || tmpUseFrameExtension != fGeometry.useFrameExtension || tmpDso != fGeometry.dso)
    {
       MString frameNumber = "0";
          
@@ -891,7 +961,10 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       MStatus load = GetPointsFromAss();
       //if we cant load the geom, we force bounding box
       if (load != MS::kSuccess)
-         fGeometry.mode = 0;
+      {
+         plug.setAttribute(s_mode);
+         plug.setValue(0);
+      }
          
       MPoint bbMin = fGeometry.bbox.min();
       MPoint bbMax = fGeometry.bbox.max();
@@ -909,7 +982,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
-         fGeometry.mode = 0;
+         plug.setAttribute(s_mode);
+         plug.setValue(0);
       }
       else
       {

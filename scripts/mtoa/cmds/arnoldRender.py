@@ -6,6 +6,7 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
     core.createOptions()
     cmds.arnoldRender(cam=camera, w=width, h=height) 
+    
 def arnoldBatchRenderOptionsString():
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']

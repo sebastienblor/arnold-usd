@@ -1042,9 +1042,9 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExpo
    return MTOA_EXPORT_ACCEPTED;
 }
 
-void CArnoldSession::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
+void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
 {
-   m_arnoldLightLinks.ExportLightLinking(shape, dNode);
+   m_arnoldLightLinks.ExportLightLinking(shape, path);
 }
 
 // updates
@@ -1072,6 +1072,7 @@ void CArnoldSession::DoUpdate()
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
+   std::vector<CNodeAttrHandle> newToUpdate;
    bool aDag   = false;
    bool newDag = false;
    bool reqMob = false;
@@ -1080,11 +1081,29 @@ void CArnoldSession::DoUpdate()
    {
       CNodeAttrHandle handle(itObj->first);           // TODO : test isValid and isAlive ?
       CNodeTranslator * translator = itObj->second;
-      if (translator != NULL)
+      if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
       {
          // A translator was provided, just add it to the list
-         if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
-         if (translator->IsMayaTypeDag()) aDag = true;
+         if(translator->m_updateMode == AI_DELETE_NODE)
+         {
+            translator->RemoveUpdateCallbacks();
+            translator->Delete();
+            m_processedTranslators.erase(handle);
+         }
+         else
+         {
+            if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
+            if (translator->IsMayaTypeDag()) aDag = true;
+            translatorsToUpdate.push_back(translator);
+         }
+      }
+      else if(translator != NULL && translator->m_updateMode == AI_RECREATE_NODE)
+      {
+         translator->Delete();
+         translator->m_atNodes.clear();
+         translator->DoCreateArnoldNodes();
+
+         translator->DoExport(0);
          translatorsToUpdate.push_back(translator);
       }
       else
@@ -1129,6 +1148,11 @@ void CArnoldSession::DoUpdate()
                   GetActiveTranslators(handle, translators);
                }
             }
+            else // If new node is a dependency node, we will register its
+                 //  update callbacks later if it correctly exported.
+            {
+               newToUpdate.push_back(handle);
+            }
             // Dependency nodes are not exported by themselves, their export
             // will be requested if they're connected to an exported node
          }
@@ -1137,6 +1161,7 @@ void CArnoldSession::DoUpdate()
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
             if (translators[i]->IsMayaTypeDag()) aDag = true;
+            translators[i]->DoExport(0);
             translatorsToUpdate.push_back(translators[i]);
          }
       }
@@ -1188,6 +1213,15 @@ void CArnoldSession::DoUpdate()
    // Refresh translator callbacks after all is done
    if (GetSessionMode() == MTOA_SESSION_IPR)
    {
+      for (std::vector<CNodeAttrHandle>::iterator iter = newToUpdate.begin();
+         iter != newToUpdate.end(); ++iter)
+      {
+         CNodeAttrHandle handle = (*iter);
+         ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
+         it = m_processedTranslators.find(handle);
+         if(it != m_processedTranslators.end())
+            translatorsToUpdate.push_back(it->second);
+      }
       // re-add IPR callbacks to all updated translators after ALL updates are done
       for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
          iter != translatorsToUpdate.end(); ++iter)

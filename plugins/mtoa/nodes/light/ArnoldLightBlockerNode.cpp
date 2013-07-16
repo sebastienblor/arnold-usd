@@ -54,36 +54,42 @@ MStatus CArnoldLightBlockerNode::initialize()
    eAttr.addField("plane", 2);
    eAttr.addField("cylinder", 3);
    eAttr.setDefault(0);
+   eAttr.setChannelBox(true);
    addAttribute(s_geometryType);
    
    s_density = nAttr.create("density", "dens", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
    nAttr.setSoftMax(1.f);
+   nAttr.setChannelBox(true);
    addAttribute(s_density);
    
    s_roundness = nAttr.create("roundness", "rnds", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
    nAttr.setSoftMax(1.f);
+   nAttr.setChannelBox(true);
    addAttribute(s_roundness);
    
    s_widthEdge = nAttr.create("widthEdge", "width_edge", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
    nAttr.setSoftMax(1.f);
+   nAttr.setChannelBox(true);
    addAttribute(s_widthEdge);
    
    s_heightEdge = nAttr.create("heightEdge", "height_edge", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
    nAttr.setSoftMax(1.f);
+   nAttr.setChannelBox(true);
    addAttribute(s_heightEdge);
    
    s_ramp = nAttr.create("ramp", "rmp", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
    nAttr.setSoftMax(1.0f);
+   nAttr.setChannelBox(true);
    addAttribute(s_ramp);
    
    s_rampAxis = eAttr.create("rampAxis", "ramp_axis");
@@ -94,6 +100,7 @@ MStatus CArnoldLightBlockerNode::initialize()
    eAttr.addField("Y", 4);
    eAttr.addField("Z", 5);
    eAttr.setDefault(0);
+   eAttr.setChannelBox(true);
    addAttribute(s_rampAxis);
    
    return MS::kSuccess;
