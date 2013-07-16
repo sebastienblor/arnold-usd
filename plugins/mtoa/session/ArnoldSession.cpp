@@ -1294,3 +1294,8 @@ void CArnoldSession::FormatTexturePath(MString& texturePath)
 {
     m_sessionOptions.FormatTexturePath(texturePath);
 }
+
+void CArnoldSession::FormatProceduralPath(MString& proceduralPath)
+{
+    m_sessionOptions.FormatProceduralPath(proceduralPath);
+}

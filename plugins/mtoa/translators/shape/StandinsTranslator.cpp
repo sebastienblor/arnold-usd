@@ -413,7 +413,8 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
       }
-
+      
+      m_session->FormatProceduralPath(resolvedName);
       AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");

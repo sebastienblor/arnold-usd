@@ -215,6 +215,10 @@ def createArnoldRenderSettings():
                       label='Expand Procedurals',
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
+    pm.attrControlGrp('os_absoluteProceduralPaths',
+                      label='Absolute Procedural Paths',
+                      attribute='defaultArnoldRenderOptions.absoluteProceduralPaths')
+
     pm.separator()
 
     pm.attrControlGrp('os_kickRenderFlags',
@@ -224,7 +228,6 @@ def createArnoldRenderSettings():
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
-
 
 def updateArnoldFilterOptions(*args):
     pass
@@ -1106,11 +1109,11 @@ def createArnoldRendererOverrideTab():
     
 
     pm.formLayout(parentForm,
-               edit=True,
-               af=[('arnoldOverrideScrollLayout', "top", 0),
-                   ('arnoldOverrideScrollLayout', "bottom", 0),
-                   ('arnoldOverrideScrollLayout', "left", 0),
-                   ('arnoldOverrideScrollLayout', "right", 0)])
+                  edit=True,
+                  af=[('arnoldOverrideScrollLayout', "top", 0),
+                      ('arnoldOverrideScrollLayout', "bottom", 0),
+                      ('arnoldOverrideScrollLayout', "left", 0),
+                      ('arnoldOverrideScrollLayout', "right", 0)])
 
     pm.setParent(parentForm)
     
@@ -1271,11 +1274,11 @@ def createArnoldRendererGlobalsTab():
     pm.setParent('..')
 
     pm.formLayout(parentForm,
-               edit=True,
-               af=[('arnoldGlobalsScrollLayout', "top", 0),
-                   ('arnoldGlobalsScrollLayout', "bottom", 0),
-                   ('arnoldGlobalsScrollLayout', "left", 0),
-                   ('arnoldGlobalsScrollLayout', "right", 0)])
+                  edit=True,
+                  af=[('arnoldGlobalsScrollLayout', "top", 0),
+                      ('arnoldGlobalsScrollLayout', "bottom", 0),
+                      ('arnoldGlobalsScrollLayout', "left", 0),
+                      ('arnoldGlobalsScrollLayout', "right", 0)])
 
     pm.setParent(parentForm)
 

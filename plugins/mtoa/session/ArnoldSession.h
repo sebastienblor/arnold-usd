@@ -147,6 +147,7 @@ public:
    DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const; 
 
    void FormatTexturePath(MString& texturePath);
+   void FormatProceduralPath(MString& proceduralPath);
    
    
 /*
