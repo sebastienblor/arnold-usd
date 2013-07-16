@@ -72,11 +72,11 @@ MStatus CSessionOptions::GetFromMaya()
          m_motion.steps           = 1;
       }
 
-      plug = fnArnoldRenderOptions.findPlug("relative_texture_paths");
+      plug = fnArnoldRenderOptions.findPlug("absolute_texture_paths");
       if (!plug.isNull())
-         m_relativeTexturePaths = plug.asBool();
+         m_absoluteTexturePaths = plug.asBool();
       else
-         m_relativeTexturePaths = false;
+         m_absoluteTexturePaths = true;
 
       plug = fnArnoldRenderOptions.findPlug("texture_searchpath");
       if (!plug.isNull())
@@ -118,7 +118,7 @@ MStatus CSessionOptions::GetFromMaya()
 void CSessionOptions::FormatTexturePath(MString& texturePath) const
 {
    ReplaceSlashes(texturePath);
-   if (!m_relativeTexturePaths)
+   if (m_absoluteTexturePaths)
       return;
    for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
    {

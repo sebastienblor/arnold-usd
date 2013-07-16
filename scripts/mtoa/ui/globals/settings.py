@@ -216,7 +216,7 @@ def createArnoldRenderSettings():
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
     pm.attrControlGrp('os_absoluteProceduralPaths',
-                      label='Absolute Procedural Paths',
+                      label='Use Procedural Paths',
                       attribute='defaultArnoldRenderOptions.absoluteProceduralPaths')
 
     pm.separator()
@@ -737,9 +737,9 @@ def createArnoldTextureSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('texture_relative_paths',
-                      label='Use Relative Paths',
-                      attribute='defaultArnoldRenderOptions.relativeTexturePaths')
+    pm.attrControlGrp('texture_absolute_paths',
+                      label='Use Absolute Paths',
+                      attribute='defaultArnoldRenderOptions.absoluteTexturePaths')
 
     cmds.separator()
 

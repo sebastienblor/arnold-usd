@@ -85,7 +85,7 @@ MObject CArnoldOptionsNode::s_shader_searchpath;
 MObject CArnoldOptionsNode::s_user_options;
 MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
-MObject CArnoldOptionsNode::s_relative_texture_paths;
+MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -557,10 +557,10 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    addAttribute(s_kick_render_flags);
 
-   s_relative_texture_paths = nAttr.create("relativeTexturePaths", "relative_texture_paths", MFnNumericData::kBoolean);
+   s_absolute_texture_paths = nAttr.create("absoluteTexturePaths", "absolute_texture_paths", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);
-   nAttr.setDefault(false);
-   addAttribute(s_relative_texture_paths);
+   nAttr.setDefault(true);
+   addAttribute(s_absolute_texture_paths);
 
    s_absolute_procedural_paths = nAttr.create("absoluteProceduralPaths", "absolute_procedural_paths", MFnNumericData::kBoolean);
    nAttr.setKeyable(false);
