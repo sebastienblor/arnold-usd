@@ -496,6 +496,8 @@ void COptionsTranslator::Export(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
 
+   AddSourceImagesToTextureSearchPath(options);
+
    // BACKGROUND SHADER
    //
    MPlugArray conns;
@@ -642,6 +644,8 @@ void COptionsTranslator::Update(AtNode *options)
       }
    }
    AiParamIteratorDestroy(nodeParam);
+
+   AddSourceImagesToTextureSearchPath(options);
    
    // BACKGROUND SHADER
    //
@@ -694,4 +698,24 @@ void COptionsTranslator::Update(AtNode *options)
          AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
       break;
    }
+}
+
+void COptionsTranslator::AddSourceImagesToTextureSearchPath(AtNode* options)
+{
+   MString texture_searchpath(AiNodeGetStr(options, "texture_searchpath"));
+   MStringArray sourceImagesDirs = getSourceImagesPath();
+#ifdef _WIN32   
+   const MString pathsep = ";";
+#else
+   const MString pathsep = ":";
+#endif
+   if (texture_searchpath != "")
+      texture_searchpath += pathsep;
+   for (unsigned int i = 0; i < sourceImagesDirs.length(); ++i)
+   {
+      texture_searchpath += sourceImagesDirs[i];
+      if (i != (sourceImagesDirs.length() -1))
+         texture_searchpath += pathsep;
+   }
+   AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
 }

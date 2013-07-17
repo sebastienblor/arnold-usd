@@ -138,8 +138,6 @@ node_initialize
 
 node_update
 {
-   AtNode* options = AiUniverseGetOptions();
-   AiMsgInfo("------------- %s + %s -------------", AiNodeGetStr(options, "texture_searchpath"), AiNodeGetStr(node, "filename"));
    // cleanup
    // since node_update may be called multiple times and a static memory allocation in node_init
    // will not suffice, we need to free memory between updates

@@ -1,4 +1,5 @@
 #include "platform/Platform.h"
+#include "utils/MayaUtils.h"
 #include "SessionOptions.h"
 
 #include <ai_msg.h>
@@ -82,6 +83,9 @@ MStatus CSessionOptions::GetFromMaya()
       if (!plug.isNull())
       {
          plug.asString().split(PATHSEP, m_textureSearchPaths);
+         MStringArray arr = getSourceImagesPath();
+         for (unsigned int i = 0; i < arr.length(); ++i)
+            m_textureSearchPaths.append(arr[i]);
          for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
             ReplaceSlashes(m_textureSearchPaths[i]);
       }

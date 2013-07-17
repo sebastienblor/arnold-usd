@@ -42,3 +42,10 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
 
    return MGlobal::executePythonCommandStringResult(cmd);
 }
+
+MStringArray getSourceImagesPath()
+{
+   MStringArray res;
+   MGlobal::executePythonCommand("import mtoa.utils;mtoa.utils.getSourceImagesDir()", res);
+   return res;
+}
