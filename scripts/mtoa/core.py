@@ -203,13 +203,6 @@ def createOptions():
     driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
     displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
-    if options:
-        sourceImagesDir = cmds.workspace(query=True, directory=True)
-        sourceImagesRule = cmds.workspace('sourceImages', query=True, fileRuleEntry=True)
-        if sourceImagesRule != None:
-            sourceImagesDir = os.path.join(sourceImagesDir, sourceImagesRule)
-        options.texture_searchpath.set(sourceImagesDir)
-
     if (filterNode or driverNode) and not options:
         options = pm.PyNode('defaultArnoldRenderOptions')
         # options previously existed, so we need to upgrade
