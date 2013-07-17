@@ -1197,13 +1197,9 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
    }
 }
 
-void CNodeTranslator::ExportUserAttribute(AtNode *anode)
+void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
 {
-   // TODO: allow overrides here too ?
-
-   MObject object = GetMayaObject();
-   MFnDependencyNode fnDepNode(GetMayaObject());
-
+   MFnDependencyNode fnDepNode(object);
 
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
@@ -1283,8 +1279,8 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             break;
          default:
             // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
-            AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
-                  GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
+            //AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
+            //      GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
             break;
          }
       }
@@ -1320,15 +1316,21 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             break;
          default:
             // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
-            AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
-               GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
+            //AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
+            //   GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
             break;
          }
       }
-      else
-         AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
-               GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
+      //else
+      //   AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
+      //         GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
    }
+}
+
+void CNodeTranslator::ExportUserAttribute(AtNode *anode)
+{
+   // TODO: allow overrides here too ?
+   ExportUserAttributes(anode, GetMayaObject());
    
    // Exporting the UnexposedOptions parameter
    MPlug plug = FindMayaPlug("aiUserOptions");

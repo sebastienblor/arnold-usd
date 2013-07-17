@@ -88,10 +88,31 @@ CArnoldStandInGeom::CArnoldStandInGeom()
 
 CArnoldStandInGeom::~CArnoldStandInGeom()
 {
-   for (std::vector<CArnoldStandInGeometry*>::iterator it = m_geometryList.begin();
-           it != m_geometryList.end(); ++it)
-      delete *it;
+   Clear();
+}
+
+void CArnoldStandInGeom::Clear()
+{
+   for (geometryListIterType it = m_geometryList.begin();
+        it != m_geometryList.end(); ++it)
+      delete it->second;
    m_geometryList.clear();
+
+   for (instanceListIterType it = m_instanceList.begin();
+        it != m_instanceList.end(); ++it)
+      delete (*it);
+   m_instanceList.clear();
+}
+
+void CArnoldStandInGeom::Draw(int DrawMode)
+{
+   for (geometryListIterType it = m_geometryList.begin();
+        it != m_geometryList.end(); ++it)
+      it->second->Draw(DrawMode);
+
+   for (instanceListIterType it = m_instanceList.begin();
+        it != m_instanceList.end(); ++it)
+      (*it)->Draw(DrawMode);
 }
 
 CArnoldStandInShape::CArnoldStandInShape()
@@ -203,6 +224,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetStr(procedural, "data", dsoData.asChar());
+         CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
          {
@@ -216,17 +238,50 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          //clear current geo
          geom->bbox.clear();
          
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-            delete *it;
+         for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
+              it != geom->m_geometryList.end(); ++it)
+            delete it->second;
          geom->m_geometryList.clear();
 
-         AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
-         //iterate all shape in file
+         // iterate all shape in file twice
+         // first load all the shapes
+         // then resolve all the instances
+
+         AtNodeIterator* iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);         
 
          while (!AiNodeIteratorFinished(iter))
          {
-            AtNode *node = AiNodeIteratorGetNext(iter);
+            AtNode* node = AiNodeIteratorGetNext(iter);
+            if (node)
+            {
+               if (AiNodeIs(node, "polymesh"))
+               {
+                  CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(node, g));
+                  geom->bbox.expand(g->GetBBox());
+               }
+               else if (AiNodeIs(node, "points"))
+               {
+                  CArnoldStandInGeometry* g = new CArnoldPointsGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(node, g));
+                  geom->bbox.expand(g->GetBBox());
+               }
+               else if(AiNodeIs(node, "procedural"))
+               {
+                  CArnoldStandInGeometry* g = new CArnoldProceduralGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(node, g));
+                  geom->bbox.expand(g->GetBBox());                 
+               }
+            }
+         }
+
+         AiNodeIteratorDestroy(iter);
+
+         iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+
+         while (!AiNodeIteratorFinished(iter))
+         {
+            AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
                AtMatrix total_matrix;
@@ -243,12 +298,20 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
-               if (AiNodeIs(node, "polymesh"))
+               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points"))
                {
-                  geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, inherit_xform, geom->bbox));
-               }
+                  CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
+                  if (iter != geom->m_geometryList.end())
+                  {
+                     CArnoldStandInGInstance* gi = new CArnoldStandInGInstance(iter->second, total_matrix, inherit_xform);
+                     geom->m_instanceList.push_back(gi);
+                     geom->bbox.expand(gi->GetBBox());
+                  }
+               }               
             }
          }
+
+         AiNodeIteratorDestroy(iter);
          geom->IsGeomLoaded = true;
          geom->updateView = true;
          status = MS::kSuccess;
@@ -1085,6 +1148,8 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       float topRightBack[3] =
       { maxPt[0], maxPt[1], maxPt[2] };
 
+      glMatrixMode(GL_MODELVIEW);
+
       switch (geom->mode)
       {
       case DM_BOUNDING_BOX:
@@ -1117,12 +1182,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          break;
       case DM_PER_OBJECT_BOUNDING_BOX:
          glNewList(geom->dList, GL_COMPILE);
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            
-            (*it)->DrawBoundingBox();
-         }
+         geom->Draw(GM_BOUNDING_BOX);
          glEndList();
          break;
       case DM_POLYWIRE: // filled polygon
@@ -1131,32 +1191,19 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glEnable(GL_POLYGON_OFFSET_FILL);
          
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-         
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            
-            (*it)->DrawPolygons();
-         }
+
+         geom->Draw(GM_POLYGONS);
          
          glPopAttrib();
-         
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            (*it)->DrawWireframe();
-         }
+
+         geom->Draw(GM_WIREFRAME);
          
          glEndList();
          break;
 
       case DM_WIREFRAME: // wireframe
          glNewList(geom->dList, GL_COMPILE);
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            (*it)->DrawWireframe();
-         }
+         geom->Draw(GM_WIREFRAME);
          glEndList();
          
          break;
@@ -1170,12 +1217,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glDepthMask(GL_TRUE);
          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
          glNewList(geom->dList, GL_COMPILE);
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            (*it)->DrawPoints(); // it's a bit unnecessary to call glBegin and glEnd
-            // per geometry here, but I am doing this for consistency reasons
-         }
+         geom->Draw(GM_POINTS);
          glEndList();
          
          glDisable(GL_POINT_SMOOTH);
@@ -1188,27 +1230,13 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glEnable(GL_LIGHTING);
          
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-         
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            
-            (*it)->DrawNormalAndPolygons();
-         }
+         geom->Draw(GM_NORMAL_AND_POLYGONS);
          glPopAttrib();
-         
-         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-                 it != geom->m_geometryList.end(); ++it)
-         {
-            (*it)->DrawWireframe();
-         }         
+         geom->Draw(GM_WIREFRAME);
          glEndList();         
          break;            
       }
-      for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
-              it != geom->m_geometryList.end(); ++it)
-         delete *it;
-      geom->m_geometryList.clear();
+      geom->Clear();
       geom->updateView = false;
    }
    
