@@ -308,51 +308,40 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
       case PARTICLE_TYPE_SPHERE:
          m_particleSize = m_radius;
          break;
-         case PARTICLE_TYPE_SPRITE: // sprite
-            {
-               if (m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleXPP")) &&
-               m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
-               {
-                  m_isSpritePP = true;
-               }
-
-               m_particleSize = m_spriteScaleX/2.0;
-            }
-            break;
-         case PARTICLE_TYPE_STREAK: // streak
-            {
-               MGlobal::displayWarning("[mtoa]: Streak particle type is not yet supported");
-               AiMsgWarning("[mtoa] Streak particle type is not yet supported");
-               m_particleSize = (m_lineWidth)*0.01;
-            }
-            break;
-         case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
-            {
-               MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
-               AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
-               m_particleSize = m_radius;
-            }
-            break;
-         case PARTICLE_TYPE_CLOUD:// cloud
-            {
-               MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
-               AiMsgWarning("[mtoa] Cloud particle type is not yet supported");
-               m_particleSize = m_radius;
-            }
-            break;
-         case PARTICLE_TYPE_TUBE:// tube
-            {
-               MGlobal::displayWarning("[mtoa]: Tube particle type is not yet supported");
-               AiMsgWarning("[mtoa] Tube particle type is not yet supported");
-               m_particleSize = m_radius;
-            }
-            break;
-         default:
-            m_particleSize = (m_pointSize)*0.01;
-            break;
+      case PARTICLE_TYPE_SPRITE: // sprite
+         if (m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleXPP")) &&
+             m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
+         {
+            m_isSpritePP = true;
          }
-      }
 
+         m_particleSize = m_spriteScaleX/2.0;
+         break;
+      case PARTICLE_TYPE_STREAK: // streak
+         MGlobal::displayWarning("[mtoa]: Streak particle type is not yet supported");
+         AiMsgWarning("[mtoa] Streak particle type is not yet supported");
+         m_particleSize = (m_lineWidth)*0.01;
+         break;
+      case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
+         MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
+         AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
+         m_particleSize = m_radius;
+         break;
+      case PARTICLE_TYPE_CLOUD:// cloud
+         MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
+         AiMsgWarning("[mtoa] Cloud particle type is not yet supported");
+         m_particleSize = m_radius;
+         break;
+      case PARTICLE_TYPE_TUBE:// tube
+         MGlobal::displayWarning("[mtoa]: Tube particle type is not yet supported");
+         AiMsgWarning("[mtoa] Tube particle type is not yet supported");
+         m_particleSize = m_radius;
+         break;
+      default:
+         m_particleSize = (m_pointSize)*0.01;
+         break;
+      }
+   }
 }
 
 /// Export particle data with basic attributes rgbPP, OpacityPP, radiusPP and particleId
