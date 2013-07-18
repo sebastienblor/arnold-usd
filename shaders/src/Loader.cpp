@@ -81,6 +81,7 @@ extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
 extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* MayaMarbleMtd;
+extern AtNodeMethods* VolumeCollectorMtd;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -160,7 +161,8 @@ enum{
    SHADER_USERDATAINT,
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
-   SHADER_MAYAMARBLE
+   SHADER_MAYAMARBLE,
+   SHADER_VOLUMECOLLECTOR
 };
 
 node_loader
@@ -710,6 +712,13 @@ node_loader
       node->methods     = MayaMarbleMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "mayaMarble";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_VOLUMECOLLECTOR:
+      node->methods     = VolumeCollectorMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "volumeCollector";
       node->node_type   = AI_NODE_SHADER;
       break;
 
