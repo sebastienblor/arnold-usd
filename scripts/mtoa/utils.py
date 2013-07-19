@@ -462,13 +462,12 @@ def createLocator(locatorType, asLight=False):
     return (shapeName, lName)
 
 def getSourceImagesDir():
-    sourceImagesDir = cmds.workspace(query=True, directory=True)
     sourceImagesRule = cmds.workspace('sourceImages', query=True, fileRuleEntry=True)
     if sourceImagesRule != None:
         sourceImagesRule = sourceImagesRule.split(';')
         ret = []
         for rule in sourceImagesRule:
-            ret.append(os.path.join(sourceImagesDir, rule))
+            ret.append(cmds.workspace(expandName=rule))
         return ret
     else:
-        return [sourceImagesDir]
+        return [cmds.workspace(expandName='sourceimages')]
