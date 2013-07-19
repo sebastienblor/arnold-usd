@@ -28,3 +28,4 @@ def createArnoldShelf():
    cmds.shelfButton(command=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True), annotation='Create SkyDome Light', image='SkydomeLightShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: createPhysicalSky(), annotation='Create Physical Sky', image='PhysicalSkyShelf.png', style='iconOnly')
    cmds.shelfButton(command=lambda *args: arnoldmenu.doCreateMeshLight(), annotation='Create Mesh Light', image='MeshLightShelf.png', style='iconOnly')
+   cmds.shelfButton(command=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True), annotation='Create Photometric Light', image='PhotometricLightShelf.png', style='iconOnly')
