@@ -215,10 +215,6 @@ def createArnoldRenderSettings():
                       label='Expand Procedurals',
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
-    pm.attrControlGrp('os_absoluteProceduralPaths',
-                      label='Use Procedural Paths',
-                      attribute='defaultArnoldRenderOptions.absoluteProceduralPaths')
-
     pm.separator()
 
     pm.attrControlGrp('os_kickRenderFlags',
@@ -737,12 +733,6 @@ def createArnoldTextureSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('texture_absolute_paths',
-                      label='Use Absolute Paths',
-                      attribute='defaultArnoldRenderOptions.absoluteTexturePaths')
-
-    cmds.separator()
-
     pm.attrControlGrp('texture_automip',
                         label="Auto-mipmap",
                         attribute='defaultArnoldRenderOptions.textureAutomip')
@@ -871,6 +861,17 @@ def createArnoldPathSettings():
                    attribute='defaultArnoldRenderOptions.plugins_path')
 
     pm.separator()
+
+    pm.attrControlGrp('texture_absolute_paths',
+                      label='Absolute Texture Paths',
+                      attribute='defaultArnoldRenderOptions.absoluteTexturePaths')
+
+    pm.attrControlGrp('os_absoluteProceduralPaths',
+                      label='Absolute Procedural Paths',
+                      attribute='defaultArnoldRenderOptions.absoluteProceduralPaths')
+
+    pm.separator()
+
 
     pm.attrControlGrp('os_procedural_searchpath',
                    label="Procedural Search Path",
