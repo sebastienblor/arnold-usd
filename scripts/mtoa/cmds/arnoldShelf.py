@@ -35,6 +35,7 @@ def createArnoldShelf():
       else:
          cmds.optionVar(iv=('mtoaShelfFileModificationTime', fileTime))
    except:
+      pass
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
