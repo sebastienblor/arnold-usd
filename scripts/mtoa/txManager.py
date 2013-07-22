@@ -127,12 +127,15 @@ class MtoATxManager(object):
             cmds.deleteUI(self.window);
         self.window = cmds.loadUI(uiFile=self.uiFile, verbose=False)
         
-        initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
-        if initPos[0] < 0:
-            initPos[0] = 0
-        if initPos[1] < 0:
-            initPos[1] = 0
-        cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
+        try:
+            initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
+            if initPos[0] < 0:
+                initPos[0] = 0
+            if initPos[1] < 0:
+                initPos[1] = 0
+            cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
+        except :
+            pass
         
         
         cmds.showWindow(self.window);
