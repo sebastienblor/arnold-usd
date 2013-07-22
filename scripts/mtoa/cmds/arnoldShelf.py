@@ -15,18 +15,6 @@ def createPhysicalSky():
       cmds.confirmDialog(message='The Arnold Render Options node does not exists!')
 
 def createArnoldShelf():
-   mtoaMercurialID = cmds.arnoldPlugins(getMercurialID=True)
-   try:
-      if cmds.optionVar(exists='mtoaMercurialID'):
-         mercurialID = cmds.optionVar(query='mtoaMercurialID')
-         if mtoaMercurialID == mercurialID:
-            return
-         else:
-            cmds.optionVar(sv=('mtoaMercurialID', mtoaMercurialID))
-      else:
-         cmds.optionVar(sv=('mtoaMercurialID', mtoaMercurialID))
-   except:
-      pass
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
