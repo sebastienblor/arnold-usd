@@ -4,6 +4,15 @@ import mtoa.ui.arnoldmenu as arnoldmenu
 import mtoa.utils as mutils
 import mtoa.ui.globals.settings as settings
 
+import os, time
+
+def getScriptFileModificationTime():
+   try:
+      currentFilePath = os.path.abspath(__file__)
+      return int(os.path.getmtime(currentFilePath))
+   except:
+      return 0
+
 def removeArnoldShelf():
    if cmds.shelfLayout('Arnold', exists=True):
       cmds.deleteUI('Arnold')
@@ -15,6 +24,17 @@ def createPhysicalSky():
       cmds.confirmDialog(message='The Arnold Render Options node does not exists!')
 
 def createArnoldShelf():
+   fileTime = getScriptFileModificationTime()
+   try:
+      if cmds.optionVar(exists='mtoaShelfFileModificationTime'):
+         savedTime = int(cmds.optionVar(query='mtoaShelfFileModificationTime'))
+         if fileTime == savedTime:
+            return
+         else:
+            cmds.optionVar(iv=('mtoaShelfFileModificationTime', fileTime))
+      else:
+         cmds.optionVar(iv=('mtoaShelfFileModificationTime', fileTime))
+   except:
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
