@@ -790,6 +790,45 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    // Deregister in inverse order of registration
    // Commands
+   status = plugin.deregisterCommand("arnoldFlushCache");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldFlushCache' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldFlushCache' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldFlushCache' command");
+      MGlobal::displayError("Failed to deregister 'arnoldFlushCache' command");
+   }
+   status = plugin.deregisterCommand("arnoldTemperatureToColor");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldTemperatureToColor' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldTemperatureToColor' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldTemperatureToColor' command");
+      MGlobal::displayError("Failed to deregister 'arnoldTemperatureToColor' command");
+   }
+   status = plugin.deregisterCommand("arnoldListAttributes");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldListAttributes' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldListAttributes' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldListAttributes' command");
+      MGlobal::displayError("Failed to deregister 'arnoldListAttributes' command");
+   }
    status = plugin.deregisterCommand("arnoldPlugins");
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
@@ -841,19 +880,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       returnStatus = MStatus::kFailure;
       AiMsgError("Failed to deregister 'arnoldRender' command");
       MGlobal::displayError("Failed to deregister 'arnoldRender' command");
-   }
-   status = plugin.deregisterCommand("arnoldFlushCache");
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered 'arnoldFlushCache' command");
-      MGlobal::displayInfo("Successfully deregistered 'arnoldFlushCache' command");
-   }
-   else
-   {
-      returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister 'arnoldFlushCache' command");
-      MGlobal::displayError("Failed to deregister 'arnoldFlushCache' command");
    }
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
