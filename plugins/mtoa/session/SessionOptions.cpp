@@ -27,10 +27,7 @@ void ReplaceSlashes(MString& str, bool isDir = false)
    }
 #endif
    if (isDir && (str.length() > 1) && (str.substring(str.length() - 1, str.length() - 1) != "/"))
-   {
       str += "/";
-      std::cerr << str.asChar() << std::endl;
-   }
 }
 
 MStatus CSessionOptions::GetFromMaya()
