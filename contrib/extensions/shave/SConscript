@@ -17,24 +17,7 @@ EXT = local_env.SharedLibrary('shave', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    local_env.Append(LIBS=Split('libShaveAPI.lib'))
-   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')
-   EXT_PRJ = local_env.MSVSProject(target = 'shave' + local_env['MSVS']['PROJECTSUFFIX'],
-                                    srcs = source_files + include_files,
-                                    incs = [],
-                                    buildtarget = 'shave',
-                                    cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
-                                               '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
-                                               '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
-                                               '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
-                                    variant = ['Debug_MSVC|Win32',
-                                               'Debug_ICC|Win32',
-                                               'Opt_MSVC|Win32',
-                                               'Opt_ICC|Win32'],
-                                    auto_build_solution = 0,
-                                    nokeep = 1)
-
-   local_env.AlwaysBuild(EXT_PRJ)
-   
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')   
 else:
    # If a shave API path is passed, use that. Otherwise assume it's on the path.
    if local_env.has_key("SHAVE_API"):
@@ -68,25 +51,5 @@ EXT_SHADERS = shader_env.SharedLibrary('shave_shaders', source_files, LIBPREFIX=
 
 if system.os() == 'windows':
    shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
-   EXT_SHADERS_PRJ = shader_env.MSVSProject(target = 'shave_shaders' + shader_env['MSVS']['PROJECTSUFFIX'],
-                                            srcs = source_files + include_files,
-                                            incs = [],
-                                            buildtarget = 'shave_shaders',
-                                            cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
-                                                       '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
-                                                       '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
-                                                       '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
-                                            variant = ['Debug_MSVC|Win32',
-                                                       'Debug_ICC|Win32',
-                                                       'Opt_MSVC|Win32',
-                                                       'Opt_ICC|Win32'],
-                                            auto_build_solution = 0,
-                                            nokeep = 1)
-   
-   shader_env.AlwaysBuild(EXT_SHADERS_PRJ)
 
-
-if system.os() == 'windows':
-   Return('EXT EXT_SHADERS EXT_PRJ EXT_SHADERS_PRJ')
-else:
-   Return('EXT EXT_SHADERS')
+Return('EXT EXT_SHADERS')

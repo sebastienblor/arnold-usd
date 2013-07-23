@@ -239,6 +239,33 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("shadow_color");
 }
 
+
+void CPhotometricLightTranslator::Export(AtNode* light)
+{
+   CLightTranslator::Export(light);
+
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetStr(light, "filename", FindMayaPlug("aiFilename").asString().asChar());
+   MPlug shadowColorPlug = FindMayaPlug("aiShadowColor");
+   if (!shadowColorPlug.isNull())
+   {
+      AiNodeSetRGB(light, "shadow_color", shadowColorPlug.child(0).asFloat(), 
+              shadowColorPlug.child(1).asFloat(), shadowColorPlug.child(2).asFloat());
+   }
+}
+
+void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "photometric_light");
+   // Cannot be created both on Node and here
+   MakeCommonAttributes(helper);
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("shadow_color");
+   helper.MakeInput("filename");
+}
+
 double CalculateTriangleArea(const AtVector& p0, 
         const AtVector& p1, const AtVector& p2)
 {

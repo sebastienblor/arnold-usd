@@ -103,7 +103,8 @@ def changeBackground(node, field):
             selectBackground()
             return 0
     pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
-    pm.textField(field, edit=True, text=node)
+    if field is not None:
+        pm.textField(field, edit=True, text=node)
     selectBackground()
 
 def createBackground(type, field):
@@ -113,13 +114,13 @@ def createBackground(type, field):
     node = pm.shadingNode(type, asShader=True, name=type)
     changeBackground(node, field)
 
-
-def deleteBackground(field):
-    node = getBackgroundShader();
+def removeBackground(field, doDelete):
+    node = getBackgroundShader()
     if node:
         pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
-        pm.delete(node)
         pm.textField(field, edit=True, text="")
+        if doDelete:
+            pm.delete(node)
 
 def buildBackgroundMenu(popup, field):
 
@@ -150,7 +151,8 @@ def buildBackgroundMenu(popup, field):
 
     pm.menuItem(parent=popup, divider=True)
 
-    pm.menuItem(parent=popup, label="Delete", command=Callback(deleteBackground, field))
+    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False))
+    pm.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True))
 
 def selectAtmosphere(*args):
     bkg = pm.getAttr('defaultArnoldRenderOptions.atmosphere')
@@ -213,12 +215,15 @@ def createArnoldRenderSettings():
                       label='Expand Procedurals',
                       attribute='defaultArnoldRenderOptions.expandProcedurals')
 
-    
+    pm.separator()
+
+    pm.attrControlGrp('os_kickRenderFlags',
+                      label='Kick Render Flags',
+                      attribute='defaultArnoldRenderOptions.kickRenderFlags');
              
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
-
 
 def updateArnoldFilterOptions(*args):
     pass
@@ -329,7 +334,7 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.frameLayout(label="Diffusion SSS", collapse=False)
+    pm.frameLayout(label="Diffusion SSS", collapse=True)
     
     pm.checkBoxGrp('ss_enable_raytraced_SSS',
                    label="Raytraced")
@@ -353,12 +358,11 @@ def createArnoldSamplingSettings():
     
     pm.setParent('..')
     
-    if int(ai.AiGetVersion()[2]) > 11:    
-        pm.frameLayout(label="Volumes", collapse=False)                      
-        pm.attrControlGrp('ss_volume_indirect_samples',
-                          label='Indirect Samples',
-                          attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
-        pm.setParent('..')
+    pm.frameLayout(label="Volumes", collapse=True)                      
+    pm.attrControlGrp('ss_volume_indirect_samples',
+                      label='Indirect Samples',
+                      attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
+    pm.setParent('..')
     
     pm.frameLayout(label="Clamping", collapse=True)
 
@@ -566,15 +570,15 @@ def createArnoldEnvironmentSettings():
 
     pm.rowLayout(adjustableColumn=2, numberOfColumns=3)
     pm.text(label="Background")
-    bgfield = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    bgpopup = pm.popupMenu(parent=bgfield)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, bgfield))
+    backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
+    bgpopup = pm.popupMenu(parent=backgroundTextField)
+    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField))
     pm.button(label="Select", height=22, width=50, command=selectBackground)
     pm.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
-        pm.textField(bgfield, edit=True, text=conns[0])
+        pm.textField(backgroundTextField, edit=True, text=conns[0])
 
     pm.separator(style="none")
 
@@ -858,6 +862,17 @@ def createArnoldPathSettings():
 
     pm.separator()
 
+    pm.attrControlGrp('texture_absolute_paths',
+                      label='Absolute Texture Paths',
+                      attribute='defaultArnoldRenderOptions.absoluteTexturePaths')
+
+    pm.attrControlGrp('os_absoluteProceduralPaths',
+                      label='Absolute Procedural Paths',
+                      attribute='defaultArnoldRenderOptions.absoluteProceduralPaths')
+
+    pm.separator()
+
+
     pm.attrControlGrp('os_procedural_searchpath',
                    label="Procedural Search Path",
                    attribute='defaultArnoldRenderOptions.procedural_searchpath')
@@ -1095,11 +1110,11 @@ def createArnoldRendererOverrideTab():
     
 
     pm.formLayout(parentForm,
-               edit=True,
-               af=[('arnoldOverrideScrollLayout', "top", 0),
-                   ('arnoldOverrideScrollLayout', "bottom", 0),
-                   ('arnoldOverrideScrollLayout', "left", 0),
-                   ('arnoldOverrideScrollLayout', "right", 0)])
+                  edit=True,
+                  af=[('arnoldOverrideScrollLayout', "top", 0),
+                      ('arnoldOverrideScrollLayout', "bottom", 0),
+                      ('arnoldOverrideScrollLayout', "left", 0),
+                      ('arnoldOverrideScrollLayout', "right", 0)])
 
     pm.setParent(parentForm)
     
@@ -1260,11 +1275,11 @@ def createArnoldRendererGlobalsTab():
     pm.setParent('..')
 
     pm.formLayout(parentForm,
-               edit=True,
-               af=[('arnoldGlobalsScrollLayout', "top", 0),
-                   ('arnoldGlobalsScrollLayout', "bottom", 0),
-                   ('arnoldGlobalsScrollLayout', "left", 0),
-                   ('arnoldGlobalsScrollLayout', "right", 0)])
+                  edit=True,
+                  af=[('arnoldGlobalsScrollLayout', "top", 0),
+                      ('arnoldGlobalsScrollLayout', "bottom", 0),
+                      ('arnoldGlobalsScrollLayout', "left", 0),
+                      ('arnoldGlobalsScrollLayout', "right", 0)])
 
     pm.setParent(parentForm)
 

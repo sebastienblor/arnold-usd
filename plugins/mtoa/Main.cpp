@@ -25,6 +25,7 @@
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
 #include "nodes/light/ArnoldLightBlockerNode.h"
+#include "nodes/light/ArnoldPhotometricLightNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 
 #include "translators/options/OptionsTranslator.h"
@@ -138,6 +139,14 @@ namespace // <anonymous>
                                    &LIGHT_WITH_SWATCH);
       CHECK_MSTATUS(status);
       
+      status = plugin.registerNode("aiPhotometricLight",
+                                   CArnoldPhotometricLightNode::id,
+                                   CArnoldPhotometricLightNode::creator,
+                                   CArnoldPhotometricLightNode::initialize,
+                                   MPxNode::kLocatorNode,
+                                   &LIGHT_WITH_SWATCH);
+      CHECK_MSTATUS(status);
+      
       status = plugin.registerNode("aiLightBlocker",
                                    CArnoldLightBlockerNode::id,
                                    CArnoldLightBlockerNode::creator,
@@ -176,6 +185,9 @@ namespace // <anonymous>
                                    "",
                                    CAiHairTranslator::creator,
                                    CAiHairTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiImage",
+                                   "",
+                                   CAiImageTranslator::creator);
        // Lights
        builtin->RegisterTranslator("directionalLight",
                                    "",
@@ -222,6 +234,11 @@ namespace // <anonymous>
                                    "",
                                    CSkyDomeLightTranslator::creator,
                                    CSkyDomeLightTranslator::NodeInitializer);
+                                   
+      builtin->RegisterTranslator("aiPhotometricLight",
+                                   "",
+                                   CPhotometricLightTranslator::creator,
+                                   CPhotometricLightTranslator::NodeInitializer);
 
        builtin->RegisterTranslator("lightLinker",
                                    "",
@@ -462,6 +479,10 @@ namespace // <anonymous>
 
       // Sky dome light
       status = plugin.deregisterNode(CArnoldSkyDomeLightNode::id);
+      CHECK_MSTATUS(status);
+      
+      
+      status = plugin.deregisterNode(CArnoldPhotometricLightNode::id);
       CHECK_MSTATUS(status);
 
       // Environment or Volume shaders
@@ -769,6 +790,45 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    // Deregister in inverse order of registration
    // Commands
+   status = plugin.deregisterCommand("arnoldFlushCache");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldFlushCache' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldFlushCache' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldFlushCache' command");
+      MGlobal::displayError("Failed to deregister 'arnoldFlushCache' command");
+   }
+   status = plugin.deregisterCommand("arnoldTemperatureToColor");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldTemperatureToColor' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldTemperatureToColor' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldTemperatureToColor' command");
+      MGlobal::displayError("Failed to deregister 'arnoldTemperatureToColor' command");
+   }
+   status = plugin.deregisterCommand("arnoldListAttributes");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldListAttributes' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldListAttributes' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldListAttributes' command");
+      MGlobal::displayError("Failed to deregister 'arnoldListAttributes' command");
+   }
    status = plugin.deregisterCommand("arnoldPlugins");
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
@@ -820,19 +880,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       returnStatus = MStatus::kFailure;
       AiMsgError("Failed to deregister 'arnoldRender' command");
       MGlobal::displayError("Failed to deregister 'arnoldRender' command");
-   }
-   status = plugin.deregisterCommand("arnoldFlushCache");
-   CHECK_MSTATUS(status);
-   if (MStatus::kSuccess == status)
-   {
-      AiMsgInfo("Successfully deregistered 'arnoldFlushCache' command");
-      MGlobal::displayInfo("Successfully deregistered 'arnoldFlushCache' command");
-   }
-   else
-   {
-      returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister 'arnoldFlushCache' command");
-      MGlobal::displayError("Failed to deregister 'arnoldFlushCache' command");
    }
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);

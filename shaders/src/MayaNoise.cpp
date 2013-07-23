@@ -202,6 +202,8 @@ shader_evaluate
 
          for (i=0; i<depthMax; ++i)
          {
+            if(isinf(x * 2.0f * (float)AI_PI) || isinf(y * 2.0f * (float)AI_PI))
+               break;
             float noiseValue = CosWaves(x, y, time, numWaves);
             x *= frequencyRatio;
             y *= frequencyRatio;

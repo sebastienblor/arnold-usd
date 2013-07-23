@@ -122,6 +122,21 @@ public:
    }
 };
 
+class CPhotometricLightTranslator : public CLightTranslator
+{
+public:
+   void Export(AtNode* light);
+   static void NodeInitializer(CAbTranslator context);
+   static void* creator()
+   {
+      return new CPhotometricLightTranslator();
+   }
+   AtNode* CreateArnoldNodes()
+   {
+      return AddArnoldNode("photometric_light");
+   }
+};
+
 class CMeshLightTranslator : public CLightTranslator
 {
 public:

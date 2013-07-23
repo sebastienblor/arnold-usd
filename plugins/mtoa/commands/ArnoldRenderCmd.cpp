@@ -83,6 +83,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MObject node;
    list.add("defaultArnoldRenderOptions");
    bool expandProcedurals = false;
+   MString kickRenderFlags = "";
    if (list.length() > 0)
    {
       list.getDependNode(0, node);
@@ -90,6 +91,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
       expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
+      kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags").asString();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -150,9 +152,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             else
             {
 #ifdef _WIN32
-               kickCmd = "Start kick \"" + assFileNames[0] + "\"";
+               kickCmd = "Start kick " + kickRenderFlags + " \"" + assFileNames[0] + "\"";
 #else
-               kickCmd = "kick \"" + assFileNames[0] + "\" &";
+               kickCmd = "kick " + kickRenderFlags + " \"" + assFileNames[0] + "\" &";
 #endif
             }
             // NOTE: must be blocking when in batch mode, non blocking when in interractive mode

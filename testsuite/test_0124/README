@@ -1,0 +1,3 @@
+Scaling fluids shouldn't affect opacity of the volume. (Ticket #1402)
+
+author: pal

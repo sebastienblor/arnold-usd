@@ -23,6 +23,7 @@
 #define ARNOLD_NODEID_SKY                       0x00115C84
 #define ARNOLD_NODEID_SKYDOME_LIGHT             0x00115C85
 #define ARNOLD_NODEID_AREA_LIGHT                0x00115C86
+#define ARNOLD_NODEID_PHOTOMETRIC_LIGHT         0x00115C87
 // Arnold Shaders
 #define ARNOLD_NODEID_CUSTOM                    0x00115D00
 #define ARNOLD_NODEID_STANDARD                  0x00115D01

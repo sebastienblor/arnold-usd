@@ -461,3 +461,13 @@ def createLocator(locatorType, asLight=False):
         cmds.connectAttr('%s.instObjGroups' % lName, 'defaultLightSet.dagSetMembers', nextAvailable=True)
     return (shapeName, lName)
 
+def getSourceImagesDir():
+    sourceImagesRule = cmds.workspace('sourceImages', query=True, fileRuleEntry=True)
+    if sourceImagesRule != None:
+        sourceImagesRule = sourceImagesRule.split(';')
+        ret = []
+        for rule in sourceImagesRule:
+            ret.append(cmds.workspace(expandName=rule))
+        return ret
+    else:
+        return [cmds.workspace(expandName='sourceimages')]

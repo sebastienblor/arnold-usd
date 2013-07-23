@@ -1,8 +1,7 @@
 #include "SphereLocator.h"
 #include "nodes/ShaderUtils.h"
 
-#include <ai_ray.h>
-#include <ai_shader_util.h>
+#include <ai.h>
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -56,105 +55,17 @@ bool CSphereLocator::isAbstractClass()
    return true;
 }
 
-void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format)
+AtVector SphereVertex(float phi, float theta)
 {
-
-   glBegin(GL_QUADS);
-
-   int dtheta, dphi, theta, phi;
-   dtheta = 360 / divisionsX;
-   dphi    = 360 / divisionsY;
-   double DTOR = 0.0174532925;
-
-   int uv_counter = 0;
-   if (m_goUVSample)
-   {
-      int numUVdata = divisionsX * divisionsY * 4;
-      if (m_UData != NULL)
-         delete[] m_UData;
-      if (m_VData != NULL)
-         delete[] m_VData;
-      m_UData = new float[numUVdata];
-      m_VData = new float[numUVdata];
-   }
-
-   for(theta = -90; theta <= 90-dtheta; theta+=dtheta)
-   {
-      AtVector dir;
-      float u, v;
-      float x, y, z;
-      x = y = z = 0;
-
-      // little fix to get UVS nicely
-      //if (theta==90)
-        // theta=89.99;
-
-      for(phi = -270; phi <= 90-dphi; phi+=dphi)
-      {
-         // little fix to get UVS nicely
-         //if (phi==90)
-           // phi=89.99;
-
-         for(int numpoint=0; numpoint<4; numpoint++)
-         {
-            switch(numpoint)
-            {
-               case 3:
-                  x = static_cast<float>(cos(theta * DTOR) * cos(phi * DTOR));
-                  y = static_cast<float>(cos(theta * DTOR) * sin(phi * DTOR));
-                  z = static_cast<float>(sin(theta * DTOR));
-                  // 1st vertex of the quad
-                  break;
-               case 2:
-                  x = static_cast<float>(cos((theta + dtheta) * DTOR) * cos(phi * DTOR));
-                  y = static_cast<float>(cos((theta + dtheta) * DTOR) * sin(phi * DTOR));
-                  z = static_cast<float>(sin((theta + dtheta) * DTOR));
-                  // 2nd vertex of the quad
-                  break;
-               case 1:
-                  x = static_cast<float>(cos((theta + dtheta) * DTOR) * cos((phi + dphi) * DTOR));
-                  y = static_cast<float>(cos((theta + dtheta) * DTOR) * sin((phi + dphi) * DTOR));
-                  z = static_cast<float>(sin((theta + dtheta) * DTOR));
-                  // 3rd vertex of the quad
-                  break;
-               case 0:
-                  x = static_cast<float>(cos(theta * DTOR) * cos((phi + dphi) * DTOR));
-                  y = static_cast<float>(cos(theta * DTOR) * sin((phi + dphi) * DTOR));
-                  z = static_cast<float>(sin(theta * DTOR));
-                  // 4th and last vertex of the quad
-                  break;
-               default:
-                  break;
-            }
-
-            if (m_goUVSample)
-            {
-               AiV3Create(dir, x, z, -y);
-               AiV3Normalize(dir, dir);
-               switch (format)
-               {
-                  case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
-                  case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
-                  case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
-                  default: AiMappingCubicMap(&dir, &u, &v);
-               }
-               m_UData[uv_counter] = -u + 0.5f;
-               m_VData[uv_counter] = v;
-            }
-
-            glTexCoord2f(m_UData[uv_counter], m_VData[uv_counter]);
-            glNormal3f(x, y, z);
-            glVertex3f(x * radius, y * radius, z * radius);
-
-            uv_counter++;
-         }
-      }
-   }
-   m_goUVSample = false;
-   glEnd();
+   AtVector ret;
+   ret.y = cosf(theta);
+   float t = sinf(theta);
+   ret.x = t * sinf(phi);
+   ret.z = t * cosf(phi);
+   return ret;
 }
 
-void SphereVertex(float radius, float phi, float theta)
+void SphereVertexGL(float radius, float phi, float theta)
 {
    float y = cosf(theta) * radius;
    float t = sinf(theta) * radius;
@@ -163,9 +74,93 @@ void SphereVertex(float radius, float phi, float theta)
    glVertex3f(x, y, z);
 } 
 
+void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV)
+{
+   const int numIndices = divisionsX * divisionsY * 6;
+   const int divisionsX1 = divisionsX + 1;
+   const int divisionsY1 = divisionsY + 1;
+   const int numVertices = divisionsX1 * divisionsY1;
+   bool rebuildCache = false;
+   if (radius != m_cachedRadius)
+      rebuildCache = true;
+   else if (divisionsX != m_cachedDivisionX)
+      rebuildCache = true;
+   else if (divisionsY != m_cachedDivisionY)
+      rebuildCache = true;
+   else if (format != m_cachedFormat)
+      rebuildCache = true;
+   if (rebuildCache)
+   {
+      m_cachedRadius = radius;
+      m_cachedDivisionX = divisionsX;
+      m_cachedDivisionY = divisionsY;
+      m_cachedFormat = format;
+      
+      m_UVData.resize(numVertices);
+      m_positionData.resize(numVertices);
+      m_indexData.resize(numIndices);
+
+      AtVector dir;
+      float u, v;
+
+      for (int x = 0; x < divisionsX1; ++x)
+      {
+         const float phi = (float)AI_PITIMES2 * (float)x / (float)divisionsX;
+         
+         for (int y = 0; y < divisionsY1; ++y)
+         {         
+            const float theta = (float)AI_PI * (float)y / (float)divisionsY;
+            dir = SphereVertex(phi, theta);            
+            switch (format)
+            {
+               case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
+               case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
+               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
+               default: AiMappingCubicMap(&dir, &u, &v);
+            }
+            const int id = x + y * divisionsX1;
+            m_UVData[id].x = u;
+            m_UVData[id].y = v;
+            m_positionData[id] = dir * radius;
+         }
+      }
+
+      int indexCounter = 0;
+      for (unsigned int x = 0; x < (unsigned int)divisionsX; ++x)
+      {
+         const int x1 = x + 1;
+         for (unsigned int y = 0; y < (unsigned int)divisionsY; ++y)
+         {
+            const int y1 = y + 1;
+            m_indexData[indexCounter++] = x + y * divisionsX1;
+            m_indexData[indexCounter++] = x1 + y * divisionsX1;
+            m_indexData[indexCounter++] = x + y1 * divisionsX1;
+
+            m_indexData[indexCounter++] = x1 + y * divisionsX1;
+            m_indexData[indexCounter++] = x1 + y1 * divisionsX1;
+            m_indexData[indexCounter++] = x + y1 * divisionsX1;
+
+         }  
+      }
+   }
+
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, &m_positionData[0]);
+   if (needsUV)
+   {
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glTexCoordPointer(2, GL_FLOAT, 0, &m_UVData[0]);
+   }
+
+   glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, &m_indexData[0]);
+
+   if (needsUV)
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+   glDisableClientState(GL_VERTEX_ARRAY);
+}
+
 void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divisionsY)
 {
-   glRotatef(-90.0, 1.0, 0.0, 0.0);
    glBegin(GL_LINES);
    
    for (int x = 0; x < divisionsX; ++x)
@@ -177,22 +172,21 @@ void CSphereLocator::DrawSphereWireframe(float radius, int divisionsX, int divis
          float thetaB = (float)AI_PI * (float)y / (float)divisionsY;
          float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisionsY;
 
-         SphereVertex(radius, phiB, thetaB);
-         SphereVertex(radius, phiE, thetaB);
+         SphereVertexGL(radius, phiB, thetaB);
+         SphereVertexGL(radius, phiE, thetaB);
          
-         SphereVertex(radius, phiB, thetaE);
-         SphereVertex(radius, phiE, thetaE);
+         SphereVertexGL(radius, phiB, thetaE);
+         SphereVertexGL(radius, phiE, thetaE);
          
-         SphereVertex(radius, phiB, thetaB);
-         SphereVertex(radius, phiB, thetaE);
+         SphereVertexGL(radius, phiB, thetaB);
+         SphereVertexGL(radius, phiB, thetaE);
          
-         SphereVertex(radius, phiE, thetaB);
-         SphereVertex(radius, phiE, thetaE);
+         SphereVertexGL(radius, phiE, thetaB);
+         SphereVertexGL(radius, phiE, thetaE);
       }
    }
    
    glEnd();
-   glRotatef(90.0, 1.0, 0.0, 0.0);
 }
 
 void CSphereLocator::SampleSN(MPlug &colorPlug)
@@ -248,21 +242,17 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
             float valuej = static_cast<float>(j) / numSampleBase;
             uCoords.append(valuej);
             vCoords.append(valuei);
-            filterSizes.append(0.001f);
+            filterSizes.append(0.0f);
          }
       }
 
-      MString depNodeSkyColorName(fileTexture.name() + ".outColor");
-      
-      if (m_colorData != NULL)
-         delete[] m_colorData;
-      m_colorData = NULL;
+      MString depNodeSkyColorName(fileTexture.name() + ".outColor");      
       
       if (MS::kSuccess == MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, 
               numSamples, false, false, cameraMat, 
               NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps))
       {
-         m_colorData = new unsigned char[numSamples * 4];
+         m_colorData.resize(numSamples * 4);
          int alpha = 255;
          for(unsigned int i = 0; (i < colors.length()); i++)
          {
@@ -284,9 +274,6 @@ bool CSphereLocator::setInternalValueInContext(const MPlug &plug, const MDataHan
    {
       m_goSample = true;
    }
-
-   if (plug == s_format)
-      m_goUVSample = true;
    
    return MPxLocatorNode::setInternalValueInContext(plug, handle, context);
 }
@@ -305,14 +292,30 @@ void CSphereLocator::draw(M3dView& view, const MDagPath& DGpath, M3dView::Displa
 
 unsigned int CSphereLocator::NumSampleBase()
 {
-      MFnDependencyNode fnThisNode(thisMObject());
-      return static_cast<unsigned int>(pow(2.0, (fnThisNode.findPlug("sampling").asInt() + 6)));
+   MFnDependencyNode fnThisNode(thisMObject());
+   int sampling = MPlug(thisMObject(), s_sampling).asShort();
+   switch (sampling)
+   {
+      case 0:
+         return 64;
+      case 1:
+         return 128;
+      case 2:
+         return 256;
+      case 3:
+         return 512;
+      case 4:
+         return 1024;
+      default:
+         return 256;
+   }
 }
 
 void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus)
 {
    MStatus stat;
-   const int divisions = 16;
+   const int divisions = 64;
+   const int divisionsWireframe = 16;
    float radius;
    int facing;
 
@@ -330,11 +333,9 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    // this gets rid most of the problems, and still lets the users select
    // the skydome light, the same way as mental ray ibl does
    
-   glRotatef(90.0, 1.0, 0.0, 0.0);
-   
    if (renderMode == GL_SELECT)
    {
-      DrawSphereWireframe(radius, divisions, divisions);
+      DrawSphereWireframe(radius, divisionsWireframe, divisionsWireframe);
       return;
    }
 
@@ -343,11 +344,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    
    GLuint texture;
 
-   GLUquadricObj *quadratic = gluNewQuadric();
-   gluQuadricNormals(quadratic, GLU_FLAT);
-   gluQuadricTexture(quadratic, GL_TRUE);  
-
-   int displayStyle  = view.displayStyle();
+   int displayStyle     = view.displayStyle();
    int displayStatusInt = displayStatus;
 
    // 3 means wireframe
@@ -364,7 +361,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       else if (facing == 1)
          glCullFace(GL_BACK);
 
-
       // If there is a connection
       if (conn.length()>0)
       {
@@ -375,7 +371,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             SampleSN(plugColor);
          }
          
-         if (m_colorData != NULL)
+         if (m_colorData.size())
          {
             // check the number of samples
             int numSampleBase = NumSampleBase();
@@ -383,28 +379,32 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
             glGenTextures(1, &texture);
             glBindTexture(GL_TEXTURE_2D, texture);
             glEnable(GL_TEXTURE_2D);
-            glTexImage2D(GL_TEXTURE_2D, 0, 4, numSampleBase, numSampleBase , 0, GL_RGBA, GL_UNSIGNED_BYTE, m_colorData);
+            glTexImage2D(GL_TEXTURE_2D, 0, 4, numSampleBase, numSampleBase , 0, GL_RGBA, GL_UNSIGNED_BYTE, &m_colorData[0]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
             float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
             glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
-            glPolygonMode(GL_BACK, GL_FILL);
+            glEnable(GL_CULL_FACE);
+            if (facing == 1)
+               glCullFace(GL_FRONT);
+            else
+               glCullFace(GL_BACK);
 
             // Our Custom Sphere
             MPlug formatPlug  = fn.findPlug(s_format);
             int format;
             formatPlug.getValue(format);
-            DrawUVSphere(radius, divisions*4, divisions*4, format);
+            DrawUVSphere(radius, divisions * 4, divisions * 4, format);
 
             if (facing == 2)
             {
                // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
-               DrawUVSphere(radius, divisions*4, divisions*4, format);
                glCullFace(GL_FRONT);
+               DrawUVSphere(radius, divisions * 4, divisions * 4, format);               
             }
             glDisable(GL_TEXTURE_2D);
             glDeleteTextures(1, &texture);
@@ -414,7 +414,10 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       else
       {
          glColor4f(skyColorPlug.child(0).asFloat(), skyColorPlug.child(1).asFloat(), skyColorPlug.child(2).asFloat(), 0.6f);
-         gluSphere(quadratic, radius, divisions, divisions);
+         MPlug formatPlug  = fn.findPlug(s_format);
+         int format;
+         formatPlug.getValue(format);
+         DrawUVSphere(radius, divisions * 4, divisions * 4, format, false);
       }
 
       if (facing != 2)
@@ -424,7 +427,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       if (displayStatusInt == 8)
       {
          glColor4f(1, 1, 0, 0.2f);
-         DrawSphereWireframe(radius, divisions, divisions);
+         DrawSphereWireframe(radius, divisionsWireframe, divisionsWireframe);
       }
 
    }
@@ -434,14 +437,12 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          glColor4f(1, 1, 0, 0.2f);
       else
          glColor4f(0.75, 0, 0, 0.2f);
-      DrawSphereWireframe(radius, divisions, divisions);
+      DrawSphereWireframe(radius, divisionsWireframe, divisionsWireframe);
    }
 
    // re-enable depth writes
    glDepthMask(1);
    glDisable(GL_BLEND);
-
-   gluDeleteQuadric(quadratic);
 }
 
 MBoundingBox CSphereLocator::boundingBox() const
@@ -538,7 +539,8 @@ MStatus CSphereLocator::initialize()
    eAttr.addField("Low (64x64)", 0);
    eAttr.addField("Medium (128x128)", 1);
    eAttr.addField("High (256x256)", 2);
-   eAttr.addField("Highest (512x512)", 3);
+   eAttr.addField("Higher (512x512)", 3);
+   eAttr.addField("Ultra (1024x1024)", 4);
    eAttr.setInternal(true);
    addAttribute(s_sampling);
 

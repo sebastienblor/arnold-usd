@@ -116,6 +116,16 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
 
 };
 
+bool isnan(float a)
+{
+   return a != a;
+}
+
+bool isinf(float a)
+{
+   return !isnan(a) && isnan(a-a);
+}
+
 // This one is defined for the RampT template function to work properly
 float Luminosity(float v)
 {
@@ -718,7 +728,8 @@ float fBm(AtShaderGlobals *sg,
    float lacunarity = initialLacunarity;
 
    // NOTE: this is wrong, sg->area is "world-space" area
-   float pixelSize = (float) sqrt(sg->area);
+   // sg->area is 0.0 for volumetric shaders
+   float pixelSize = float(AI_EPSILON);
    float nyquist = 2.0f * pixelSize;
    float pixel = 1.0f;
 
@@ -757,7 +768,8 @@ float fTurbulence(AtShaderGlobals *sg,
    pp = point * pp / 2.0f;
 
    // NOTE: this is wrong, sg->area is "world-space" area
-   float pixelSize = (float) sqrt(sg->area);
+   // sg->area is 0.0 for volumetric shaders
+   float pixelSize = float(AI_EPSILON);
    float niquist = 2.0f * pixelSize;
    float pixel = 1.0;
 

@@ -25,7 +25,7 @@ enum textureType{
 const char* coordinateMethodEnums[] = {"Fixed", "Grid", 0};
 
 enum coordinateMethod{
-   CM_FIXED,
+   CM_FIXED = 0,
    CM_GRID
 };
 
@@ -35,6 +35,28 @@ enum filterType{
    FT_CLOSEST = 0,
    FT_LINEAR,
    FT_CUBIC
+};
+
+const char* contentsMethodEnums[] = {"Grid", "Gradient", 0};
+
+enum contentsMethod{
+   CSM_GRID = 0,
+   CSM_GRADIENT
+};
+
+const char* contentsGradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
+                                           "-X Gradient", "-Y Gradient", "-Z Gradient",
+                                           "Center Gradient", 0};
+
+enum contentsGradientType{
+   CG_CONSTANT = 0,
+   CG_X_GRADIENT,
+   CG_Y_GRADIENT,
+   CG_Z_GRADIENT,
+   CG_NX_GRADIENT,
+   CG_NY_GRADIENT,
+   CG_NZ_GRADIENT,
+   CG_CENTER_GRADIENT
 };
 
 const char* gradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient",
@@ -100,11 +122,22 @@ node_parameters
    AiParameterVec("min", 0.f, 0.f, 0.f);
    AiParameterVec("max", 0.f, 0.f, 0.f);
    
+   AiParameterEnum("density_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("density_gradient", CG_CONSTANT, contentsGradientTypeEnums);
    AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+
+   AiParameterEnum("fuel_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("fuel_gradient", CG_CONSTANT, contentsGradientTypeEnums);
    AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+
+   AiParameterEnum("temperature_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("temperature_gradient", CG_CONSTANT, contentsGradientTypeEnums);
    AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+
    AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   
+
+   AiParameterEnum("velocity_method", CSM_GRADIENT, contentsMethodEnums);
+   AiParameterEnum("velocity_gradient", CG_CONSTANT, contentsGradientTypeEnums);   
    AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
@@ -184,6 +217,8 @@ node_parameters
 
    AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
    AiParameterFlt("edge_dropoff", 0.05f);
+
+   AiParameterVec("velocity_scale", 1.f, 1.f, 1.f);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -202,10 +237,18 @@ enum MayaFluidParams{
    p_min,
    p_max,
    
+   p_density_method,
+   p_density_gradient,
    p_density,
+   p_fuel_method,
+   p_fuel_gradient,
    p_fuel,
+   p_temperature_method,
+   p_temperature_gradient,
    p_temperature,
    p_pressure,
+   p_velocity_method,
+   p_velocty_gradient,
    p_velocity,
    p_colors,
    p_coordinates,
@@ -280,7 +323,9 @@ enum MayaFluidParams{
    p_shadow_opacity,
 
    p_dropoff_shape,
-   p_edge_dropoff
+   p_edge_dropoff,
+
+   p_velocity_scale
 };
 
 template <typename T>
@@ -305,6 +350,50 @@ template <>
 AtVector GetDefaultValue<AtVector>()
 {
    return AI_V3_ZERO;
+}
+
+template <typename T>
+T GetConstantValue()
+{
+   return 1;
+}
+
+template <>
+float GetConstantValue<float>()
+{
+   return 1.f;
+}
+
+template <>
+AtRGB GetConstantValue<AtRGB>()
+{
+   return AI_RGB_WHITE;
+}
+
+template <>
+AtVector GetConstantValue<AtVector>()
+{
+   return AI_V3_ONE;
+}
+
+template <typename T>
+T ConvertFloat(float f)
+{
+   return f;
+}
+
+template<>
+AtRGB ConvertFloat<AtRGB>(float f)
+{
+   AtRGB ret = {f, f, f};
+   return ret;
+}
+
+template<>
+AtVector ConvertFloat<AtVector>(float f)
+{
+   AtVector ret = {f, f, f};
+   return ret;
 }
 
 template <typename T>
@@ -650,11 +739,13 @@ public:
 template<typename T>
 struct ArrayDescription{
    T* data;
+   int gradientType;
    bool single;
-   
+   bool isGradient;
+
    ArrayDescription() : data(0) {}
    
-   void release() {if(data) AiFree(data);}   
+   void release() {if(data) AiFree(data); data = 0;}   
 };
 
 struct MayaFluidData{
@@ -674,6 +765,7 @@ struct MayaFluidData{
    AtRGB transparency; 
    
    AtVector dmin, dmax;
+   AtVector velocityScale;
    
    AtNode* volumeTexture;
    
@@ -734,29 +826,36 @@ node_initialize
 }
 
 template <typename T>
-void ReadArray(AtNode* node, const char* name, int numVoxels, ArrayDescription<T>& arrayDesc)
+void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
 {
-   AtArray* array = AiNodeGetArray(node, name);
-   
    arrayDesc.release();
-   
-   if ((int)array->nelements == numVoxels)
+
+   if (cm == CSM_GRID)
    {
-      arrayDesc.single = false;
-      arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
-      for (int i = 0; i < numVoxels; ++i)
-         arrayDesc.data[i] = ReadFromArray<T>(array, i);
-   }
-   else if (array->nelements == 1) // only one value
-   {
-      arrayDesc.single = true;
-      arrayDesc.data = (T*)AiMalloc(sizeof(T));
-      *arrayDesc.data = ReadFromArray<T>(array, 0);
+      if ((int)array->nelements == numVoxels)
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
+         for (int i = 0; i < numVoxels; ++i)
+            arrayDesc.data[i] = ReadFromArray<T>(array, i);
+      }
+      else if (array->nelements == 1) // only one value
+      {
+         arrayDesc.single = true;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T));
+         *arrayDesc.data = ReadFromArray<T>(array, 0);
+      }
+      else
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = 0;
+      }
+      arrayDesc.isGradient = false;
    }
    else
    {
-      arrayDesc.single = false;
-      arrayDesc.data = 0;
+      arrayDesc.isGradient = true;
+      arrayDesc.gradientType = cmg;
    }
 }
 
@@ -796,15 +895,16 @@ node_update
    data->dmax.x = 1.f / data->dmax.x;
    data->dmax.y = 1.f / data->dmax.y;
    data->dmax.z = 1.f / data->dmax.z;
+   data->velocityScale = AiNodeGetVec(node, "velocity_scale");
    
-   ReadArray(node, "density", numVoxels, data->density);
-   ReadArray(node, "fuel", numVoxels, data->fuel);
-   ReadArray(node, "temperature", numVoxels, data->temperature);
-   ReadArray(node, "pressure", numVoxels, data->pressure);
-   ReadArray(node, "velocity", numVoxels, data->velocity);
-   ReadArray(node, "colors", numVoxels, data->colors);
-   ReadArray(node, "coordinates", numVoxels, data->coordinates);
-   ReadArray(node, "falloff", numVoxels, data->falloff);
+   ReadArray(AiNodeGetArray(node, "density"), AiNodeGetInt(node, "density_method"), AiNodeGetInt(node, "density_gradient"), numVoxels, data->density);
+   ReadArray(AiNodeGetArray(node, "fuel"), AiNodeGetInt(node, "fuel_method"), AiNodeGetInt(node, "fuel_gradient"), numVoxels, data->fuel);
+   ReadArray(AiNodeGetArray(node, "temperature"), AiNodeGetInt(node, "temperature_method"), AiNodeGetInt(node, "temperature_gradient"), numVoxels, data->temperature);
+   ReadArray(AiNodeGetArray(node, "pressure"), CSM_GRID, CG_CONSTANT, numVoxels, data->pressure);
+   ReadArray(AiNodeGetArray(node, "velocity"), AiNodeGetInt(node, "velocity_method"), AiNodeGetInt(node, "velocity_gradient"), numVoxels, data->velocity);
+   ReadArray(AiNodeGetArray(node, "colors"), CSM_GRID, CG_CONSTANT, numVoxels, data->colors);
+   ReadArray(AiNodeGetArray(node, "coordinates"), CSM_GRID, CG_CONSTANT, numVoxels, data->coordinates);
+   ReadArray(AiNodeGetArray(node, "falloff"), CSM_GRID, CG_CONSTANT, numVoxels, data->falloff);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");   
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
@@ -842,7 +942,7 @@ node_update
    data->depthMax = AiNodeGetInt(node, "depth_max");
    data->billowFalloff = AiNodeGetInt(node, "billow_falloff");
    data->inflection = AiNodeGetBool(node, "inflection");
-   data->invertTexture = AiNodeGetBool(node, "invert_texture");   
+   data->invertTexture = AiNodeGetBool(node, "invert_texture");    
    
    if (!(data->textureAffectColor || data->textureAffectIncand || data->textureAffectOpacity))
       data->volumeTexture = 0;
@@ -928,7 +1028,33 @@ AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const
 template <typename T>
 T Filter(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
 {
-   if (data->filterType == FT_CLOSEST)
+   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
+   if (arrayDesc.isGradient)
+   {
+      switch(arrayDesc.gradientType)
+      {
+         case CG_CONSTANT:
+            return GetConstantValue<T>();
+         case CG_X_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.x);
+         case CG_Y_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.y);
+         case CG_Z_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.z);
+         case CG_NX_GRADIENT:
+            return ConvertFloat<T>(lPt.x);
+         case CG_NY_GRADIENT:
+            return ConvertFloat<T>(lPt.y);
+         case CG_NZ_GRADIENT:
+            return ConvertFloat<T>(lPt.z);
+         case CG_CENTER_GRADIENT:
+            return ConvertFloat<T>(1.f - 1.41421356f * AiV3Length(lPt - middlePoint));
+         default:
+            return GetDefaultValue<T>();
+      }
+
+   }
+   else if (data->filterType == FT_CLOSEST)
    {
       if (arrayDesc.data == 0)
          return GetDefaultValue<T>();
@@ -1128,8 +1254,7 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = 1.f - lPt.z;
          break;
       case GT_CENTER_GRADIENT:
-         // we need to divide the value by sqrtf 3 * 0.5 * 0.5
-         gradientValue = 1.f - 1.1547f * AiV3Length(lPt - middlePoint);
+         gradientValue = 1.f - 1.41421356f * AiV3Length(lPt - middlePoint);
          break;
       case GT_DENSITY:
          gradientValue = Filter(data, lPt, data->density);
@@ -1144,7 +1269,7 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = Filter(data, lPt, data->pressure);
          break;
       case GT_SPEED:
-         gradientValue = AiV3Length(Filter(data, lPt, data->velocity));
+         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(Filter(data, lPt, data->velocity) * data->velocityScale));
          break;
       default:
          return GetDefaultValue<T>() * texture;
@@ -1271,7 +1396,10 @@ shader_evaluate
    
    const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
 
-   const float dropoff = CalculateDropoff(data, lPt);
+   AtVector scaledDir;
+   AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
+
+   const float dropoff = CalculateDropoff(data, lPt) * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {

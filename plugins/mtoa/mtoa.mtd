@@ -461,6 +461,64 @@
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
+        
+        
+[node photometric_light]
+    maya.name               STRING  "aiPhotometricLight"
+    maya.id                 INT     0x00115C87
+    maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+    [attr affect_diffuse]
+        maya.name           STRING  "emitDiffuse"
+    [attr affect_specular]
+        maya.name           STRING  "emitSpecular"
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr exposure]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
+        default             INT     1
+        maya.channelbox     BOOL    True
+    [attr color]
+        linkable            BOOL    True
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr volume_samples]
+        min                 INT     0
+        softmax             INT     10
+        max                 INT     100
+        maya.channelbox     BOOL    True
+    [attr affect_volumetrics]
+        maya.channelbox     BOOL    True
+    [attr cast_volumetric_shadows]
+        maya.channelbox     BOOL    True
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -711,7 +769,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -733,7 +791,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight"
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -1239,6 +1297,9 @@
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
+    [attr sun_size]
+        softmin             FLOAT   0.1
+        softmax             FLOAT   5.0
         
 # dag nodes
 
@@ -1289,7 +1350,6 @@
     maya.hide               BOOL    true
 
 [node driver_exr]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "exr"
     [attr filename]
         maya.hide           BOOL    true
@@ -1298,7 +1358,6 @@
         maya.shortname      STRING  "exr_compression"
 
 [node driver_jpeg]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "jpeg"
     [attr filename]
         maya.hide           BOOL    true
@@ -1311,7 +1370,6 @@
         max                 INT     100
 
 [node driver_png]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "png"
     [attr filename]
         maya.hide           BOOL    true
@@ -1324,7 +1382,6 @@
         maya.shortname      STRING  "png_format"
 
 [node driver_tiff]
-    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "tif"
     [attr filename]
         maya.hide           BOOL    true

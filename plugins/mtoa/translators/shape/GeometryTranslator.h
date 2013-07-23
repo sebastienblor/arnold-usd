@@ -56,7 +56,8 @@ protected:
          MSpace::Space space=MSpace::kObject,
          bool force=false);
    bool GetUVs(const MObject &geometry,
-               AtArray*& uvs);
+               std::vector<AtArray*>& uvs,
+               std::vector<MString>& uvNames);
    MDagPath GetMeshRefObj();
    bool GetRefObj(const float*& refVertices,
          AtArray*& refNormals,
@@ -68,7 +69,8 @@ protected:
          AtArray*& nsides,
          AtArray*& vidxs,
          AtArray*& nidxs,
-         AtArray*& uvidxs,
+         std::vector<AtArray*>& uvidxs,
+         std::vector<MString>& uvNames,
          bool exportNormals,
          bool exportUVs);
    

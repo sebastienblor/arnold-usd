@@ -126,7 +126,8 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
 }
 
 void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
-{    
+{
+   if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;
    M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
    //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //

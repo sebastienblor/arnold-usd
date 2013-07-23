@@ -102,6 +102,7 @@ public:
    virtual void RequestUpdate(void * clientData = NULL);
 
    static void NodeInitializer(CAbTranslator context);
+   static void ExportUserAttributes(AtNode* anode, MObject object);
 
 protected:
    CNodeTranslator()  :

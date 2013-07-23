@@ -142,9 +142,15 @@ shader_evaluate
 
    int counter = 0;
    float noiseval = 0.0f;
+   
+   
+   float maxP = (fabsf(ss) > fabsf(tt)) ? fabsf(ss) : fabsf(tt);
+   
    while ((counter < levelMax && pixel > nyquist) || (counter < levelMin))
    {
       float noise;
+      if((maxP * curFreq) >= LONG_MAX || (time * curTimeFreq) >= LONG_MAX)
+         break;
       if (animated)
       {
          noise = get3DNoise(ss * curFreq, tt * curFreq, time * curTimeFreq, curFreq, curFreq, curTimeFreq, inflection);
@@ -162,7 +168,7 @@ shader_evaluate
       ++counter;
    }
 
-   if (pixel > pixelSize && counter <= levelMax)
+   if (pixel > pixelSize && counter <= levelMax && !(((maxP * curFreq) >= LONG_MAX || (time * curTimeFreq) >= LONG_MAX)))
    {
       float noise;
       if (animated)

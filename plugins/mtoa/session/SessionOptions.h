@@ -2,9 +2,11 @@
 
 #include <set>
 
-#include "maya/MObject.h"
-#include "maya/MDagPath.h"
-#include "maya/MAnimControl.h"
+#include <maya/MObject.h>
+#include <maya/MDagPath.h>
+#include <maya/MAnimControl.h>
+#include <maya/MStringArray.h>
+#include <maya/MString.h>
 
 // Export
 enum ArnoldSessionMode
@@ -81,15 +83,18 @@ struct CSessionOptions
 
 private:
 
-   CSessionOptions() :  m_mode(MTOA_SESSION_UNDEFINED),
-                        m_lightlink(MTOA_LIGHTLINK_NONE),
-                        m_shadowlink(MTOA_SHADOWLINK_NONE),
-                        m_frame(0.0f),
-                        m_options(MObject()),
+   CSessionOptions() :  m_options(MObject()),
                         m_camera(MDagPath()),
+                        m_textureSearchPaths(),
                         m_filter(CMayaExportFilter()),
                         m_motion(CMotionBlurOptions()),
-                        m_progressive_rendering(false)
+                        m_frame(0.0),
+                        m_mode(MTOA_SESSION_UNDEFINED),
+                        m_lightlink(MTOA_LIGHTLINK_NONE),
+                        m_shadowlink(MTOA_SHADOWLINK_NONE),                        
+                        m_progressiveRendering(false),
+                        m_absoluteTexturePaths(true),
+                        m_absoluteProceduralPaths(true)
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    }
@@ -122,23 +127,30 @@ private:
 
    inline void SetExportFrame(double frame) { m_frame = frame; }
 
-   inline bool isProgressive() const { return m_progressive_rendering; }
-   inline void SetProgressive(const bool is_progressive) { m_progressive_rendering = is_progressive; }
+   inline bool IsProgressive() const { return m_progressiveRendering; }
+   inline void SetProgressive(const bool is_progressive) { m_progressiveRendering = is_progressive; }
 
    MStatus GetFromMaya();
+   void FormatTexturePath(MString& texturePath) const;
+   void FormatProceduralPath(MString& proceduralPath) const;
 
 private:
 
-   ArnoldSessionMode    m_mode;
-   ArnoldLightLinkMode  m_lightlink;
-   ArnoldShadowLinkMode m_shadowlink;
-   double               m_frame;
-
    MObject              m_options;
    MDagPath             m_camera;
+   MStringArray         m_textureSearchPaths;
+   MStringArray         m_proceduralSearchPaths;
 
    CMayaExportFilter    m_filter;
    CMotionBlurOptions   m_motion;
 
-   bool                 m_progressive_rendering;
+   double               m_frame;
+
+   ArnoldSessionMode    m_mode;
+   ArnoldLightLinkMode  m_lightlink;
+   ArnoldShadowLinkMode m_shadowlink;
+
+   bool                 m_progressiveRendering;
+   bool                 m_absoluteTexturePaths;
+   bool                 m_absoluteProceduralPaths;
 };
