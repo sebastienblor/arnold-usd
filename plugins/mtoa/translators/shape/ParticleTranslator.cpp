@@ -227,19 +227,19 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    // now check for multi
    if (renderType == PARTICLE_TYPE_MULTIPOINT || renderType == PARTICLE_TYPE_MULTISTREAK) // multiPoint/multiStreak
    {
-     m_doMultiPoint = true;
-     AiNodeDeclare(particle, "particleMultiIndex", "uniform INT");
-     MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
-     if ( MS::kSuccess == status )
-     {
-        mcPlug.getValue( m_multiCount );
-     }
-     MPlug mrPlug( m_fnParticleSystem.findPlug("multiRadius", &status));
-     if ( MS::kSuccess == status )
-     {
-        mrPlug.getValue( m_multiRadius );
-     }
-     m_multiRadius *=2;
+      m_doMultiPoint = true;
+      AiNodeDeclare(particle, "particleMultiIndex", "uniform INT");
+      MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
+      if ( MS::kSuccess == status )
+      {
+         mcPlug.getValue( m_multiCount );
+      }
+      MPlug mrPlug( m_fnParticleSystem.findPlug("multiRadius", &status));
+      if ( MS::kSuccess == status )
+      {
+         mrPlug.getValue( m_multiRadius );
+      }
+      m_multiRadius *=2;
    }
 
    // ask if the particle has the basic PP attributes we want to export
@@ -254,15 +254,15 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    // get the array of rgbPPs
    if (m_hasRGB)
-     {
-       AiNodeDeclare(particle, "rgbPP", "uniform RGB");
-     }
+   {
+      AiNodeDeclare(particle, "rgbPP", "uniform RGB");
+   }
 
-     // get the array of opacities
-     if (m_hasOpacity)
-     {
-       AiNodeDeclare(particle, "opacityPP", "uniform FLOAT");
-     }
+   // get the array of opacities
+   if (m_hasOpacity)
+   {
+      AiNodeDeclare(particle, "opacityPP", "uniform FLOAT");
+   }
 
    // radius is a bit more complicated.   radiusPP overrides everything except spritePP widths
    m_hasRadiusPP  = m_fnParticleSystem.isPerParticleDoubleAttribute(MString("radiusPP"));
@@ -273,90 +273,75 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    }
 
    if (!m_hasRadiusPP || m_isSprite)
+   {
+      MPlug radiusPlug( m_fnParticleSystem.findPlug("radius", &status));
+      if ( MS::kSuccess == status )
       {
-         MPlug radiusPlug( m_fnParticleSystem.findPlug("radius", &status));
-         if ( MS::kSuccess == status )
-         {
-            radiusPlug.getValue( m_radius );
-         }
-         MPlug pointPlug( m_fnParticleSystem.findPlug("pointSize", &status));
-         if ( MS::kSuccess == status )
-         {
-            pointPlug.getValue( m_pointSize );
-         }
-         MPlug linePlug( m_fnParticleSystem.findPlug("lineWidth", &status));
-         if ( MS::kSuccess == status )
-         {
-            linePlug.getValue( m_lineWidth );
-         }
-         MPlug ssXPlug( m_fnParticleSystem.findPlug("spriteScaleX", &status));
-         if ( MS::kSuccess == status )
-         {
-            ssXPlug.getValue( m_spriteScaleX );
-         }
-         MPlug ssYPlug( m_fnParticleSystem.findPlug("spriteScaleY", &status));
-         if ( MS::kSuccess == status )
-         {
-            ssYPlug.getValue( m_spriteScaleY );
-         }
-
-         switch (renderType)
-         {
-         case PARTICLE_TYPE_MULTIPOINT:
-            {
-               m_particleSize = (m_pointSize)*0.01;
-            }
-            break;
-         case PARTICLE_TYPE_SPHERE:
-            {
-               m_particleSize = m_radius;
-            }
-            break;
-         case PARTICLE_TYPE_SPRITE: // sprite
-            {
-               if (m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleXPP")) &&
-               m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
-               {
-                  m_isSpritePP = true;
-               }
-
-               m_particleSize = m_spriteScaleX/2.0;
-            }
-            break;
-         case PARTICLE_TYPE_STREAK: // streak
-            {
-               MGlobal::displayWarning("[mtoa]: Streak particle type is not yet supported");
-               AiMsgWarning("[mtoa] Streak particle type is not yet supported");
-               m_particleSize = (m_lineWidth)*0.01;
-            }
-            break;
-         case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
-            {
-               MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
-               AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
-               m_particleSize = m_radius;
-            }
-            break;
-         case PARTICLE_TYPE_CLOUD:// cloud
-            {
-               MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
-               AiMsgWarning("[mtoa] Cloud particle type is not yet supported");
-               m_particleSize = m_radius;
-            }
-            break;
-         case PARTICLE_TYPE_TUBE:// tube
-            {
-               MGlobal::displayWarning("[mtoa]: Tube particle type is not yet supported");
-               AiMsgWarning("[mtoa] Tube particle type is not yet supported");
-               m_particleSize = m_radius;
-            }
-            break;
-         default:
-            m_particleSize = (m_pointSize)*0.01;
-            break;
-         }
+         radiusPlug.getValue( m_radius );
+      }
+      MPlug pointPlug( m_fnParticleSystem.findPlug("pointSize", &status));
+      if ( MS::kSuccess == status )
+      {
+         pointPlug.getValue( m_pointSize );
+      }
+      MPlug linePlug( m_fnParticleSystem.findPlug("lineWidth", &status));
+      if ( MS::kSuccess == status )
+      {
+         linePlug.getValue( m_lineWidth );
+      }
+      MPlug ssXPlug( m_fnParticleSystem.findPlug("spriteScaleX", &status));
+      if ( MS::kSuccess == status )
+      {
+         ssXPlug.getValue( m_spriteScaleX );
+      }
+      MPlug ssYPlug( m_fnParticleSystem.findPlug("spriteScaleY", &status));
+      if ( MS::kSuccess == status )
+      {
+         ssYPlug.getValue( m_spriteScaleY );
       }
 
+      switch (renderType)
+      {
+      case PARTICLE_TYPE_MULTIPOINT:
+         m_particleSize = (m_pointSize)*0.01;
+         break;
+      case PARTICLE_TYPE_SPHERE:
+         m_particleSize = m_radius;
+         break;
+      case PARTICLE_TYPE_SPRITE: // sprite
+         if (m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleXPP")) &&
+             m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
+         {
+            m_isSpritePP = true;
+         }
+
+         m_particleSize = m_spriteScaleX/2.0;
+         break;
+      case PARTICLE_TYPE_STREAK: // streak
+         MGlobal::displayWarning("[mtoa]: Streak particle type is not yet supported");
+         AiMsgWarning("[mtoa] Streak particle type is not yet supported");
+         m_particleSize = (m_lineWidth)*0.01;
+         break;
+      case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
+         MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
+         AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
+         m_particleSize = m_radius;
+         break;
+      case PARTICLE_TYPE_CLOUD:// cloud
+         MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
+         AiMsgWarning("[mtoa] Cloud particle type is not yet supported");
+         m_particleSize = m_radius;
+         break;
+      case PARTICLE_TYPE_TUBE:// tube
+         MGlobal::displayWarning("[mtoa]: Tube particle type is not yet supported");
+         AiMsgWarning("[mtoa] Tube particle type is not yet supported");
+         m_particleSize = m_radius;
+         break;
+      default:
+         m_particleSize = (m_pointSize)*0.01;
+         break;
+      }
+   }
 }
 
 /// Export particle data with basic attributes rgbPP, OpacityPP, radiusPP and particleId

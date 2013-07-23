@@ -6,6 +6,7 @@
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
+#include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
 
 #include <ai_dotass.h>
@@ -631,7 +632,7 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    // Use the render view output driver. It will *not* be displayed
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
-   AtNode * const render_view = AiNode("renderview_display");
+   AtNode* render_view = AiNode("renderview_display");
    AiNodeSetStr(render_view, "name", "swatch_renderview_display");
 
    AiNodeSetPtr(render_view, "swatch", image.floatPixels());
@@ -640,11 +641,13 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
    AiNodeSetFlt(render_view, "gamma", gamma);
 
-   AtNode * const filter = AiNode("gaussian_filter");
+   AtNode* filter = AiNode("gaussian_filter");
    AiNodeSetStr(filter, "name", "swatch_renderview_filter");
    AiNodeSetFlt(filter, "width", 2.0f);
 
-   AtNode * const options     = AiUniverseGetOptions();
+   AtNode* options     = AiUniverseGetOptions();
+
+   COptionsTranslator::AddSourceImagesToTextureSearchPath(options);
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);

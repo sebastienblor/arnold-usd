@@ -769,7 +769,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -791,7 +791,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight"
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -1297,6 +1297,9 @@
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
+    [attr sun_size]
+        softmin             FLOAT   0.1
+        softmax             FLOAT   5.0
         
 # dag nodes
 

@@ -44,6 +44,7 @@ public:
       return m_aovs;
    }
 
+   static void AddSourceImagesToTextureSearchPath(AtNode* options);
 protected:
    COptionsTranslator()  :
       CNodeTranslator(),

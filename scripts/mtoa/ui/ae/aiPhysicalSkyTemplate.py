@@ -22,7 +22,8 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         
         self.addControl("sky_tint", label="Sky Tint")
         self.addControl("sun_tint", label="Sun Tint")
-        self.addControl("visible_solar_disc", label="Visible Solar Disc")
+        self.addControl("sun_size", label="Sun Size")
+        self.addControl("enable_sun", label="Enable Sun")
         
         self.endLayout()
         

@@ -45,7 +45,7 @@ class AEaiImageTemplate(ShaderAETemplate):
 
     def uvsetReplace(self, attrName):
         try:
-            aeUtils.attrTextFieldGrp('aiImageUVSet', edit=True, attribute=attrName)
+            aeUtils.attrTextFieldGrp('aiImageUVSet', edit=True, attribute=attrName, changeCommand=AEaiImageTemplate.editUVSet)
         except:
             pass
 

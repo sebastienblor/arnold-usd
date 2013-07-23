@@ -25,15 +25,16 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         cmds.setAttr(attr,mData,type="string")
         
     def LoadFilenameButtonPush(self, *args):
-        basicFilter = 'IES Photometric File (*.ies)'
+        basicFilter = 'IES Photometry File (*.ies);;All Files (*.*)'
+        projectDir = cmds.workspace(query=True, directory=True)
         ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,
-                                cap='Load Photometric File',okc='Load',fm=4)
+                                cap='Load Photometry File',okc='Load',fm=4, startingDirectory=projectDir)
         if ret is not None and len(ret):
             self.filenameEdit(ret[0])
             cmds.textFieldButtonGrp("filenameGrp", edit=True, text=ret[0])
             
     def filenameNew(self, nodeName):
-        path = cmds.textFieldButtonGrp("filenameGrp", label="File Name",
+        path = cmds.textFieldButtonGrp("filenameGrp", label="Photometry File",
                                         changeCommand=self.filenameEdit, width=300)
         cmds.textFieldButtonGrp(path, edit=True, text=cmds.getAttr(nodeName))
         cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...",

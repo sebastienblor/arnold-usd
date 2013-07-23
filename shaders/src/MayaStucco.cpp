@@ -75,10 +75,15 @@ shader_evaluate
       float noise = 0.0f;
       float amp = 1.0f;
       float freq = 0.5f;
+      
+      float maxP = (fabsf(P.x) > fabsf(P.y)) ? fabsf(P.x) : fabsf(P.y);
+      maxP = (maxP > fabsf(P.z)) ? maxP : fabsf(P.z);
 
       // Compute base fractal noise
       for (int i=0; i<8; ++i)
       {
+         if((maxP * freq) >= LONG_MAX)
+            break;
          noise += amp * AiPerlin4(freq * P, 0.0f);
          freq *= 2.0f;
          amp *= 0.5f;

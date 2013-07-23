@@ -93,7 +93,8 @@ private:
                         m_lightlink(MTOA_LIGHTLINK_NONE),
                         m_shadowlink(MTOA_SHADOWLINK_NONE),                        
                         m_progressiveRendering(false),
-                        m_relativeTexturePaths(false)
+                        m_absoluteTexturePaths(true),
+                        m_absoluteProceduralPaths(true)
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    }
@@ -129,16 +130,16 @@ private:
    inline bool IsProgressive() const { return m_progressiveRendering; }
    inline void SetProgressive(const bool is_progressive) { m_progressiveRendering = is_progressive; }
 
-   inline bool RelativeTexturePaths() { return m_relativeTexturePaths; }
-
    MStatus GetFromMaya();
    void FormatTexturePath(MString& texturePath) const;
+   void FormatProceduralPath(MString& proceduralPath) const;
 
 private:
 
    MObject              m_options;
    MDagPath             m_camera;
    MStringArray         m_textureSearchPaths;
+   MStringArray         m_proceduralSearchPaths;
 
    CMayaExportFilter    m_filter;
    CMotionBlurOptions   m_motion;
@@ -150,5 +151,6 @@ private:
    ArnoldShadowLinkMode m_shadowlink;
 
    bool                 m_progressiveRendering;
-   bool                 m_relativeTexturePaths;
+   bool                 m_absoluteTexturePaths;
+   bool                 m_absoluteProceduralPaths;
 };

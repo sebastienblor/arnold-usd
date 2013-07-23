@@ -2,6 +2,8 @@
 
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MString.h>
+#include <maya/MStringArray.h>
+#include <platform/Platform.h>
 
 MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      double frameNumber=0,
@@ -15,3 +17,5 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      const MString& path="",
                      const bool* isSequence=NULL,
                      const bool* stricAOVs=NULL);
+
+MStringArray getSourceImagesPath();

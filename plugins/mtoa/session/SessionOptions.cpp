@@ -1,4 +1,5 @@
 #include "platform/Platform.h"
+#include "utils/MayaUtils.h"
 #include "SessionOptions.h"
 
 #include <ai_msg.h>
@@ -10,7 +11,7 @@
 #define new DEBUG_NEW
 #endif
 
-void ReplaceSlashes(MString& str)
+void ReplaceSlashes(MString& str, bool isDir = false)
 {
 #ifdef _WIN32
    MStringArray tmp;
@@ -25,6 +26,8 @@ void ReplaceSlashes(MString& str)
       }
    }
 #endif
+   if (isDir && (str.length() > 1) && (str.substring(str.length() - 1, str.length() - 1) != "/"))
+      str += "/";
 }
 
 MStatus CSessionOptions::GetFromMaya()
@@ -72,19 +75,40 @@ MStatus CSessionOptions::GetFromMaya()
          m_motion.steps           = 1;
       }
 
-      plug = fnArnoldRenderOptions.findPlug("relative_texture_paths");
+      plug = fnArnoldRenderOptions.findPlug("absolute_texture_paths");
       if (!plug.isNull())
-         m_relativeTexturePaths = plug.asBool();
+         m_absoluteTexturePaths = plug.asBool();
+      else
+         m_absoluteTexturePaths = true;
 
       plug = fnArnoldRenderOptions.findPlug("texture_searchpath");
       if (!plug.isNull())
       {
          plug.asString().split(PATHSEP, m_textureSearchPaths);
+         MStringArray arr = getSourceImagesPath();
+         for (unsigned int i = 0; i < arr.length(); ++i)
+            m_textureSearchPaths.append(arr[i]);
          for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
-            ReplaceSlashes(m_textureSearchPaths[i]);
+            ReplaceSlashes(m_textureSearchPaths[i], true);
       }
       else
          m_textureSearchPaths.clear();
+
+      plug = fnArnoldRenderOptions.findPlug("absolute_procedural_paths");
+      if (!plug.isNull())
+         m_absoluteProceduralPaths = plug.asBool();
+      else
+         m_absoluteProceduralPaths = true;
+
+      plug = fnArnoldRenderOptions.findPlug("procedural_searchpath");
+      if (!plug.isNull())
+      {
+         plug.asString().split(PATHSEP, m_proceduralSearchPaths);
+         for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
+            ReplaceSlashes(m_proceduralSearchPaths[i], true);
+      }
+      else
+         m_proceduralSearchPaths.clear();
 
       status = MStatus::kSuccess;
    }
@@ -100,7 +124,7 @@ MStatus CSessionOptions::GetFromMaya()
 void CSessionOptions::FormatTexturePath(MString& texturePath) const
 {
    ReplaceSlashes(texturePath);
-   if (!m_relativeTexturePaths)
+   if (m_absoluteTexturePaths)
       return;
    for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
    {
@@ -108,6 +132,22 @@ void CSessionOptions::FormatTexturePath(MString& texturePath) const
       if (texturePath.indexW(currentSearchPath) == 0)
       {
          texturePath = texturePath.substringW(currentSearchPath.length(), texturePath.length());
+         return;
+      }
+   }
+}
+
+void CSessionOptions::FormatProceduralPath(MString& proceduralPath) const
+{
+   ReplaceSlashes(proceduralPath);
+   if (m_absoluteProceduralPaths)
+      return;
+   for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
+   {
+      const MString& currentSearchPath = m_proceduralSearchPaths[i];
+      if (proceduralPath.indexW(currentSearchPath) == 0)
+      {
+         proceduralPath = proceduralPath.substringW(currentSearchPath.length(), proceduralPath.length());
          return;
       }
    }

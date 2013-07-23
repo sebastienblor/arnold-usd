@@ -125,8 +125,8 @@ def createStandIn(path=None):
 
     standIn = pm.createNode('aiStandIn', n='ArnoldStandInShape')
     # temp fix until we can correct in c++ plugin
-    standIn.visibleInReflections.set(True)
-    standIn.visibleInRefractions.set(True)
+    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
+    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
     pm.sets('ArnoldStandInDefaultLightSet', add=standIn)
     if path:
         standIn.dso.set(path)
@@ -202,13 +202,6 @@ def createOptions():
     filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
     driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
     displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
-
-    if options:
-        sourceImagesDir = cmds.workspace(query=True, directory=True)
-        sourceImagesRule = cmds.workspace('sourceImages', query=True, fileRuleEntry=True)
-        if sourceImagesRule != None:
-            sourceImagesDir = os.path.join(sourceImagesDir, sourceImagesRule)
-        options.texture_searchpath.set(sourceImagesDir)
 
     if (filterNode or driverNode) and not options:
         options = pm.PyNode('defaultArnoldRenderOptions')
