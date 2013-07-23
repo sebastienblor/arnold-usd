@@ -21,7 +21,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    MString nodeType = GetAOVNodeType(outType);
    if (!nodeType.numChars())
    {
-      AiMsgWarning("[mtoa] Shader %s does not output a supported AOV data type",
+      AiMsgDebug("[mtoa] Shader %s does not output a supported AOV data type",
                    GetMayaNodeName().asChar());
       return shader;
    }
