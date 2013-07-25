@@ -648,6 +648,8 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AtNode* options     = AiUniverseGetOptions();
 
    COptionsTranslator::AddSourceImagesToTextureSearchPath(options);
+   AiNodeDeclare(options, "is_swatch", "constant BOOL");
+   AiNodeSetBool(options, "is_swatch", true);
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
