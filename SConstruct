@@ -124,6 +124,9 @@ vars.AddVariables(
                  os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
+                 '.', PathVariable.PathIsDir),
+    PathVariable('TOOLS_PATH',
+                 'Where to find external tools required for sh',
                  '.', PathVariable.PathIsDir)
 )
 
@@ -146,6 +149,8 @@ if env['TARGET_MODULE_PATH'] == '.':
     Exit(1)
 
 env.Append(BUILDERS = {'MakeModule' : make_module})
+
+env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
 system.set_target_arch('x86_64')
 
