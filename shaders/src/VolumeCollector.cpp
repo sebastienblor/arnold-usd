@@ -2,7 +2,7 @@
 
 AI_SHADER_NODE_EXPORT_METHODS(VolumeCollectorMtd);
 
-#define ARNOLD_NODEID_VOLUME_COLLECTOR          0x00115D1F
+#define ARNOLD_NODEID_VOLUME_COLLECTOR 0x00115D1F
 
 enum VolumeCollectorParams{
    p_scattering,
