@@ -3,6 +3,7 @@
 #include <ai.h>
 
 #include <vector>
+#include <string>
 
 #include <maya/MBoundingBox.h>
 

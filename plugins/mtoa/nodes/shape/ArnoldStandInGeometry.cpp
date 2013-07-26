@@ -113,12 +113,14 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
    
-   if (vlist->nelements)
+   if ((vlist != 0) && vlist->nelements)
    {
       m_vlist.resize(vlist->nelements);
       for (AtUInt32 i = 0; i < vlist->nelements; ++i)
       {
-         const AtPoint pnt = AiArrayGetPnt(vlist, i);         
+         AtPoint pnt = AiArrayGetPnt(vlist, i);
+         if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
+            pnt = AI_V3_ZERO;
          m_BBMin.x = MIN(m_BBMin.x, pnt.x);
          m_BBMin.y = MIN(m_BBMin.y, pnt.y);
          m_BBMin.z = MIN(m_BBMin.z, pnt.z);
@@ -133,7 +135,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
    
-   if (vidxs->nelements)
+   if ((vidxs != 0) && vidxs->nelements)
    {
       m_vidxs.resize(vidxs->nelements);
       for (AtUInt32 i = 0; i < vidxs->nelements; ++i)
@@ -142,7 +144,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* nlist = AiNodeGetArray(node, "nlist");
    
-   if (nlist->nelements)
+   if ((nlist != 0) && nlist->nelements)
    {
       m_nlist.resize(nlist->nelements);
       for (AtUInt32 i = 0; i < nlist->nelements; ++i)
@@ -151,7 +153,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* nidxs = AiNodeGetArray(node, "nidxs");
    
-   if (nidxs->nelements)
+   if ((nidxs != 0) && nidxs->nelements)
    {
       m_nidxs.resize(nidxs->nelements);
       for (AtUInt32 i = 0; i < nidxs->nelements; ++i)
@@ -160,7 +162,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    
    AtArray* nsides = AiNodeGetArray(node, "nsides");
    
-   if (nsides->nelements)
+   if ((nsides != 0) && nsides->nelements)
    {
       m_nsides.resize(nsides->nelements);
       for (AtUInt32 i = 0; i < nsides->nelements; ++i)
@@ -175,6 +177,8 @@ CArnoldPolymeshGeometry::~CArnoldPolymeshGeometry()
 
 void CArnoldPolymeshGeometry::DrawPolygons() const
 {
+   if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
+      return;
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
       const AtUInt ns = m_nsides[i];
@@ -190,6 +194,8 @@ void CArnoldPolymeshGeometry::DrawPolygons() const
 
 void CArnoldPolymeshGeometry::DrawWireframe() const
 {
+   if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
+      return;
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
       const AtUInt ns = m_nsides[i];
@@ -205,6 +211,8 @@ void CArnoldPolymeshGeometry::DrawWireframe() const
 
 void CArnoldPolymeshGeometry::DrawPoints() const
 {
+   if (m_vlist.size() == 0)
+      return;
    glEnableClientState(GL_VERTEX_ARRAY);
    
    glVertexPointer(3, GL_FLOAT, 0, &m_vlist[0]);
@@ -242,7 +250,7 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeome
    
    AtArray* points = AiNodeGetArray(node, "points");
    
-   if (points->nelements > 0)
+   if ((points != 0) && points->nelements > 0)
    {
       m_points.resize(points->nelements);
       for (AtUInt32 i = 0; i < points->nelements; ++i)
