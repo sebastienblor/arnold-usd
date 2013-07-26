@@ -238,10 +238,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          //clear current geo
          geom->bbox.clear();
          
-         for (CArnoldStandInGeom::geometryListIterType it = geom->m_geometryList.begin();
-              it != geom->m_geometryList.end(); ++it)
-            delete it->second;
-         geom->m_geometryList.clear();
+         geom->Clear();
 
          // iterate all shape in file twice
          // first load all the shapes
@@ -270,7 +267,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                {
                   CArnoldStandInGeometry* g = new CArnoldProceduralGeometry(node);
                   geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());                 
+                  geom->bbox.expand(g->GetBBox());
                }
             }
          }
@@ -298,7 +295,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
-               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points"))
+               if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points") || AiNodeIs(node, "procedural"))
                {
                   CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);
                   if (iter != geom->m_geometryList.end())
@@ -1239,12 +1236,15 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       geom->Clear();
       geom->updateView = false;
    }
-   
-   glCallList(geom->dList);
-   // Draw scaled BBox
-   if(geom->deferStandinLoad)
+
+   if (geom->dList != 0)
    {
-      glCallList(geom->dList+1);
+      glCallList(geom->dList);
+      // Draw scaled BBox
+      if(geom->deferStandinLoad)
+      {
+         glCallList(geom->dList+1);
+      }
    }
    glPopAttrib();
    view.endGL();
