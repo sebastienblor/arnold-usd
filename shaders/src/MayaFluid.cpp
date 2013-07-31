@@ -769,8 +769,6 @@ struct MayaFluidData{
    
    AtNode* volumeTexture;
    
-   float phaseFunc;
-   float edgeDropoff;
    float colorTexGain;
    float incandTexGain;
    float opacityTexGain;
@@ -873,10 +871,9 @@ node_update
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
-   data->phaseFunc = AiNodeGetFlt(node, "phase_func");
 
-   data->edgeDropoff = AiNodeGetFlt(node, "edge_dropoff");
-   if (ABS(data->edgeDropoff) > AI_EPSILON)
+   const float edgeDropoff = AiNodeGetFlt(node, "edge_dropoff");
+   if ((ABS(edgeDropoff) > AI_EPSILON) || (AiNodeGetLink(node, "edge_dropoff") != 0))
       data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
    else
       data->dropoffShape = DS_OFF;
@@ -1305,12 +1302,11 @@ float DropoffGradient(float value, float edgeDropoff)
 }
 
 inline
-float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
+float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float edgeDropoff)
 {
-   if (data->dropoffShape == DS_OFF)
+   if ((data->dropoffShape == DS_OFF) || (edgeDropoff == 0.0f))
       return 1.f;
    AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
-   const float edgeDropoff = data->edgeDropoff;
    switch(data->dropoffShape)
    {
       case DS_SPHERE:
@@ -1399,7 +1395,7 @@ shader_evaluate
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
 
-   const float dropoff = CalculateDropoff(data, lPt) * AiV3Length(scaledDir);
+   const float dropoff = CalculateDropoff(data, lPt, AiShaderEvalParamFlt(p_edge_dropoff)) * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
@@ -1584,5 +1580,5 @@ shader_evaluate
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
-   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, data->phaseFunc);
+   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, AiShaderEvalParamFlt(p_phase_func));
 }
