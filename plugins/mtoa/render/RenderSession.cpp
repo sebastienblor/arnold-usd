@@ -44,7 +44,7 @@
 extern AtNodeMethods* mtoa_driver_mtd;
 
 MComputation*                       CRenderSession::s_comp = NULL;
-MCallbackId                         CRenderSession::s_idle_cb = NULL;
+MCallbackId                         CRenderSession::s_idle_cb = 0;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
 CCritSec                            CRenderSession::m_render_lock;
 
@@ -668,4 +668,3 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    // Start the render on the current thread.
    AiRender(AI_RENDER_MODE_CAMERA);
 }
-

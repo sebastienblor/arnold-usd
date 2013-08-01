@@ -769,8 +769,6 @@ struct MayaFluidData{
    
    AtNode* volumeTexture;
    
-   float phaseFunc;
-   float edgeDropoff;
    float colorTexGain;
    float incandTexGain;
    float opacityTexGain;
@@ -873,13 +871,8 @@ node_update
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
-   data->phaseFunc = AiNodeGetFlt(node, "phase_func");
 
-   data->edgeDropoff = AiNodeGetFlt(node, "edge_dropoff");
-   if (ABS(data->edgeDropoff) > AI_EPSILON)
-      data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
-   else
-      data->dropoffShape = DS_OFF;
+   data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -1295,22 +1288,29 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
 
 inline
 float DropoffGradient(float value, float edgeDropoff)
-{
+{   
    float ret;
    if (edgeDropoff < .5f)
+   {
+      if (edgeDropoff < AI_EPSILON)
+         return 0.0f;
       ret = (1.f - value - (1.f - 2.f * edgeDropoff)) / (2.f * edgeDropoff);
+   }
    else
+   {
+      if (edgeDropoff > (1.0f - AI_EPSILON))
+         return 0.0f;
       ret = (value - (2.f* (edgeDropoff - .5f))) / (1.f - 2.f * (edgeDropoff - .5f));
+   }
 	return CLAMP(ret, 0.f, 1.f);
 }
 
 inline
-float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt)
+float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float edgeDropoff)
 {
-   if (data->dropoffShape == DS_OFF)
+   if ((data->dropoffShape == DS_OFF))
       return 1.f;
    AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
-   const float edgeDropoff = data->edgeDropoff;
    switch(data->dropoffShape)
    {
       case DS_SPHERE:
@@ -1399,7 +1399,8 @@ shader_evaluate
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
 
-   const float dropoff = CalculateDropoff(data, lPt) * AiV3Length(scaledDir);
+   float dropoff = CalculateDropoff(data, lPt, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f))
+                   * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
@@ -1584,5 +1585,5 @@ shader_evaluate
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
-   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, data->phaseFunc);
+   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, CLAMP(AiShaderEvalParamFlt(p_phase_func), -1.0f, 1.0f));
 }
