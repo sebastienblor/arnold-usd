@@ -872,11 +872,7 @@ node_update
    data->transparency.g = CLAMP((1.f - data->transparency.g) / data->transparency.g, 0.f, AI_BIG);
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
 
-   const float edgeDropoff = AiNodeGetFlt(node, "edge_dropoff");
-   if ((ABS(edgeDropoff) > AI_EPSILON) || (AiNodeGetLink(node, "edge_dropoff") != 0))
-      data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
-   else
-      data->dropoffShape = DS_OFF;
+   data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
    
    const int numVoxels = data->xres * data->yres * data->zres;
    
@@ -1292,19 +1288,27 @@ void ApplyImplode( AtVector& v, float implode, const AtVector& implodeCenter)
 
 inline
 float DropoffGradient(float value, float edgeDropoff)
-{
+{   
    float ret;
    if (edgeDropoff < .5f)
+   {
+      if (edgeDropoff < AI_EPSILON)
+         return 0.0f;
       ret = (1.f - value - (1.f - 2.f * edgeDropoff)) / (2.f * edgeDropoff);
+   }
    else
+   {
+      if (edgeDropoff > (1.0f - AI_EPSILON))
+         return 0.0f;
       ret = (value - (2.f* (edgeDropoff - .5f))) / (1.f - 2.f * (edgeDropoff - .5f));
+   }
 	return CLAMP(ret, 0.f, 1.f);
 }
 
 inline
 float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float edgeDropoff)
 {
-   if ((data->dropoffShape == DS_OFF) || (edgeDropoff == 0.0f))
+   if ((data->dropoffShape == DS_OFF))
       return 1.f;
    AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
    switch(data->dropoffShape)
@@ -1395,7 +1399,7 @@ shader_evaluate
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
 
-   const float dropoff = CalculateDropoff(data, lPt, AiShaderEvalParamFlt(p_edge_dropoff)) * AiV3Length(scaledDir);
+   float dropoff = CalculateDropoff(data, lPt, AiShaderEvalParamFlt(p_edge_dropoff)) * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
