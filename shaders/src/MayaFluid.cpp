@@ -1399,7 +1399,8 @@ shader_evaluate
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
 
-   float dropoff = CalculateDropoff(data, lPt, AiShaderEvalParamFlt(p_edge_dropoff)) * AiV3Length(scaledDir);
+   float dropoff = CalculateDropoff(data, lPt, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f))
+                   * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
@@ -1584,5 +1585,5 @@ shader_evaluate
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);
-   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, AiShaderEvalParamFlt(p_phase_func));
+   AiShaderGlobalsSetVolumeScattering(sg, opacity * color, CLAMP(AiShaderEvalParamFlt(p_phase_func), -1.0f, 1.0f));
 }
