@@ -243,7 +243,8 @@ MStatus CArnoldPhotometricLightNode::compute(const MPlug& plug, MDataBlock& bloc
 }
 
 void CArnoldPhotometricLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
-{    
+{
+   if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;    
    M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
 
    MStatus status;

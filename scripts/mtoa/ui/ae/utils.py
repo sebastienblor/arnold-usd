@@ -150,9 +150,17 @@ def attrTextFieldGrp(*args, **kwargs):
         labelText = kwargs.pop('label', None)
         if not labelText:
             labelText = pm.mel.interToUI(attribute.split('.')[-1])
-        ctrl = pm.textFieldGrp(label=labelText,
-                               text=pm.getAttr(attribute),
-                               changeCommand=cc)
+        ctrl = None
+        if len(args) > 0:
+            ctrl = args[0]
+            pm.textFieldGrp(ctrl,
+                            label=labelText,
+                            text=pm.getAttr(attribute),
+                            changeCommand=cc)
+        else:
+            ctrl = pm.textFieldGrp(label=labelText,
+                                   text=pm.getAttr(attribute),
+                                   changeCommand=cc)
         pm.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
                                       lambda: pm.textFieldGrp(ctrl, edit=True,
@@ -196,6 +204,7 @@ def attrBoolControlGrp(*args, **kwargs):
         pm.scriptJob(parent=ctrl,
                      attributeChange=[attribute,
                      lambda: pm.checkBox(ctrl, edit=True, value=pm.getAttr(attribute))])
+        return ctrl
 
 class AttrControlGrp(object):
     UI_TYPES = {

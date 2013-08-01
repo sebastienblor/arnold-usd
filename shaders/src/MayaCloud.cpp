@@ -112,12 +112,24 @@ shader_evaluate
       float noise = 0.0f;
 
       P *= 0.5f * ripples;
+      
+      float maxP = (fabsf(P.x) > fabsf(P.y)) ? fabsf(P.x) : fabsf(P.y);
+      maxP = (maxP > fabsf(P.z)) ? maxP : fabsf(P.z);
 
-      while (loop < iterations)
+      float pixelSize = float(AI_EPSILON);
+      float nyquist = 2.0f * pixelSize;
+      float pixel = 1.0f;
+      
+      while (loop < iterations && pixel > nyquist)
       {
+         if((maxP * curFreq) >= LONG_MAX)
+            break;
          noise += curAmp * AiPerlin4(curFreq * P, 0.0f);
          curAmp *= ratio;
          curFreq *= 2.0f;
+         
+         pixel *= 0.5;
+         
          loop += 1.0f;
       }
 

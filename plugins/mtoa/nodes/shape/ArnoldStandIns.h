@@ -12,6 +12,7 @@
 #include <ai_nodes.h>
 
 #include <vector>
+#include <map>
 
 // Geometry class
 class CArnoldStandInGeom
@@ -34,12 +35,18 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   //std::vector<std::vector<std::vector<AtPoint> > > faceList;
-   std::vector<CArnoldStandInGeometry*> m_geometryList;
+   typedef std::map<AtNode*, CArnoldStandInGeometry*> geometryListType;
+   typedef std::map<AtNode*, CArnoldStandInGeometry*>::iterator geometryListIterType;
+   geometryListType m_geometryList;
+   typedef std::vector<CArnoldStandInGInstance*> instanceListType;
+   typedef std::vector<CArnoldStandInGInstance*>::iterator instanceListIterType;
+   instanceListType m_instanceList;
    int dList;
    int updateView;
    int updateBBox;
 
+   void Clear();
+   void Draw(int DrawMode);
 };
 
 // Shape class - defines the non-UI part of a shape node

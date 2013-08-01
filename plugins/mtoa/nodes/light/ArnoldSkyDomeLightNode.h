@@ -23,6 +23,7 @@ public:
    static void* creator();
    static MStatus initialize();
    virtual MStatus   compute( const MPlug&, MDataBlock& );
+   virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
 
    static MTypeId id;
 

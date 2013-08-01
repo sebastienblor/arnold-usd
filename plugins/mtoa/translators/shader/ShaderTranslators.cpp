@@ -143,11 +143,11 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    plug = FindMayaPlug("azimuth", &status);
    ProcessConstantParameter(shader, "azimuth", AI_TYPE_FLOAT, plug);
    
-   plug = FindMayaPlug("solar_direction", &status);
-   AiNodeSetVec(shader, "solar_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   plug = FindMayaPlug("sun_direction", &status);
+   AiNodeSetVec(shader, "sun_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("visible_solar_disc", &status);
-   ProcessConstantParameter(shader, "visible_solar_disc", AI_TYPE_BOOLEAN, plug);
+   plug = FindMayaPlug("enable_sun", &status);
+   ProcessConstantParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, plug);
    
    plug = FindMayaPlug("intensity", &status);
    ProcessConstantParameter(shader, "intensity", AI_TYPE_FLOAT, plug);
@@ -157,6 +157,18 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    
    plug = FindMayaPlug("sun_tint", &status);
    AiNodeSetRGB(shader, "sun_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("sun_size", &status);
+   ProcessConstantParameter(shader, "sun_size", AI_TYPE_FLOAT, plug);
+   
+   plug = FindMayaPlug("X", &status);
+   AiNodeSetVec(shader, "X", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("Y", &status);
+   AiNodeSetVec(shader, "Y", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   
+   plug = FindMayaPlug("Z", &status);
+   AiNodeSetVec(shader, "Z", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 }
 
 // File
@@ -248,6 +260,7 @@ void CFileTranslator::Export(AtNode* shader)
          if(ifile.is_open()) 
             resolvedFilename = tx_filename; 
       }
+      m_session->FormatTexturePath(resolvedFilename);
       
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
@@ -1191,10 +1204,11 @@ void CAiImageTranslator::Export(AtNode* image)
    {
       CRenderOptions renderOptions; 
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya();      
+      renderOptions.GetFromMaya(); 
+      MString filename(AiNodeGetStr(image, "filename"));
+      filename = filename.expandEnvironmentVariablesAndTilde();
       if(renderOptions.useExistingTiledTextures()) 
-      {
-         MString filename(AiNodeGetStr(image, "filename"));
+      {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
          std::string tx_filename_tokens = tx_filename.asChar();
          size_t tokenPos = tx_filename_tokens.find("<udim>");
@@ -1202,8 +1216,9 @@ void CAiImageTranslator::Export(AtNode* image)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-            filename = tx_filename;
-         AiNodeSetStr(image, "filename", filename.asChar());
+            filename = tx_filename;         
       }
+      m_session->FormatTexturePath(filename);
+      AiNodeSetStr(image, "filename", filename.asChar());
    }
 }

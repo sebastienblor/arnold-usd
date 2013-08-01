@@ -260,3 +260,9 @@ MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
 
     return MS::kSuccess;
 }
+
+void CArnoldSkyDomeLightNode::draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status)
+{
+   if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;
+   CSphereLocator::draw(view, DGpath, style, status);
+}

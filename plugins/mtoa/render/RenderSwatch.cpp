@@ -224,6 +224,11 @@ MStatus CRenderSwatchGenerator::DefaultArnoldScene()
       {
          AiNodeSetStr(geometry, "name", "geometry");
          AiNodeSetBool(geometry, "opaque", false);
+         AtMatrix matrix = { { 1.0f, 0.0f, 0.0f, 0.0f },
+                            { 0.0f, -1.0f, 0.0f, 0.0f },
+                            { 0.0f, 0.0f, 1.0f, 0.0f },
+                            { 0.0f, 0.0f, 0.0f, 1.0f } };
+         AiNodeSetMatrix(geometry, "matrix", matrix);
          return MStatus::kSuccess;
       }
    }

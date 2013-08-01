@@ -67,7 +67,6 @@ extern AtNodeMethods* UserDataColorMtd;
 extern AtNodeMethods* UserDataStringMtd;
 extern AtNodeMethods* UserDataBoolMtd;
 extern AtNodeMethods* MayaShadingEngineMtd;
-extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* MayaSamplerInfo1DMtd;
 extern AtNodeMethods* MayaSamplerInfo2DMtd;
 extern AtNodeMethods* MayaSamplerInfo3DMtd;
@@ -81,6 +80,10 @@ extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
 extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* MayaMarbleMtd;
+#ifndef DISABLE_COMMON
+extern AtNodeMethods* SkinSssMethods;
+extern AtNodeMethods* VolumeCollectorMtd;
+#endif
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -144,8 +147,7 @@ enum{
    SHADER_USERDATAVECTOR,
    SHADER_USERDATACOLOR,
    SHADER_USERDATASTRING,
-   SHADER_SHADINGENGINE,
-   SHADER_SKINSSS,
+   SHADER_SHADINGENGINE,   
    SHADER_SAMPLERINFO3D,
    SHADER_WRITEVECTORINLINE,
    SHADER_WRITEPOINTINLINE,
@@ -160,7 +162,11 @@ enum{
    SHADER_USERDATAINT,
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
-   SHADER_MAYAMARBLE
+   SHADER_MAYAMARBLE,
+#ifndef DISABLE_COMMON
+   SHADER_VOLUMECOLLECTOR,
+   SHADER_SKINSSS
+#endif
 };
 
 node_loader
@@ -601,13 +607,6 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case SHADER_SKINSSS:
-      node->methods     = SkinSssMethods;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "skin_sss";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
    case SHADER_SAMPLERINFO3D:
       node->methods     = MayaSamplerInfo3DMtd;
       node->output_type = AI_TYPE_RGB;
@@ -712,6 +711,21 @@ node_loader
       node->name        = "mayaMarble";
       node->node_type   = AI_NODE_SHADER;
       break;
+#ifndef DISABLE_COMMON
+   case SHADER_VOLUMECOLLECTOR:
+      node->methods     = VolumeCollectorMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "volumeCollector";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_SKINSSS:
+      node->methods     = SkinSssMethods;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "skin_sss";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+#endif
 
    default:
       return false;

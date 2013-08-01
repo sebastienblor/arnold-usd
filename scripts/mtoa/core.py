@@ -6,6 +6,7 @@ import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 import maya.cmds as cmds
+import os
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -124,8 +125,8 @@ def createStandIn(path=None):
 
     standIn = pm.createNode('aiStandIn', n='ArnoldStandInShape')
     # temp fix until we can correct in c++ plugin
-    standIn.visibleInReflections.set(True)
-    standIn.visibleInRefractions.set(True)
+    cmds.setAttr('%s.visibleInReflections' % standIn.name(), True)
+    cmds.setAttr('%s.visibleInRefractions' % standIn.name(), True)
     pm.sets('ArnoldStandInDefaultLightSet', add=standIn)
     if path:
         standIn.dso.set(path)
@@ -241,7 +242,7 @@ def createOptions():
         pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
     filterNode.message.connect(options.filter, force=True)
     driverNode.message.connect(options.driver, force=True)
-
+    
 
 #-------------------------------------------------
 # translator defaults

@@ -3,6 +3,7 @@ import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import maya.mel as mel
 
 class AEaiImageTemplate(ShaderAETemplate):
     def filenameEdit(self, mData) :
@@ -24,6 +25,47 @@ class AEaiImageTemplate(ShaderAETemplate):
     def filenameReplace(self, nodeName):
         cmds.textFieldButtonGrp( "filenameGrp", edit=True, text=cmds.getAttr(nodeName) )
 
+    @staticmethod
+    def editUVSet(newValue):
+        try:
+            if len(newValue) > 0:
+                cmds.attrFieldGrp('aiImageUVCoords', edit=True, enable=False)
+            else:
+                cmds.attrFieldGrp('aiImageUVCoords', edit=True, enable=True)
+            mel.eval('refreshAE')
+        except:
+            import traceback, sys
+            traceback.print_exc(file=sys.__stderr__)
+            pass
+
+    def uvsetNew(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        aeUtils.attrTextFieldGrp('aiImageUVSet', label='UV Set', attribute=attrName, changeCommand=AEaiImageTemplate.editUVSet)
+        cmds.setUITemplate(popTemplate=True)
+
+    def uvsetReplace(self, attrName):
+        try:
+            aeUtils.attrTextFieldGrp('aiImageUVSet', edit=True, attribute=attrName, changeCommand=AEaiImageTemplate.editUVSet)
+        except:
+            pass
+
+    def uvcoordsNew(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        enabled = True
+        if len(cmds.getAttr('%s.uvset' % attrName.split('.')[0])) > 0:
+            enabled = False
+        cmds.attrFieldGrp('aiImageUVCoords', label='UV Coords', enable=enabled, attribute=attrName)
+        cmds.setUITemplate(popTemplate=True)
+
+    def uvcoordsReplace(self, attrName):
+        try:
+            enabled = True
+            if len(cmds.getAttr('%s.uvset' % attrName.split('.')[0])) > 0:
+                enabled = False
+            cmds.attrFieldGrp('aiImageUVCoords', edit=True, enable=enabled, attribute=attrName)
+        except:
+            pass
+
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
@@ -34,16 +76,16 @@ class AEaiImageTemplate(ShaderAETemplate):
         
         self.addControl("mipmap_bias", label="Mipmap Bias")
         self.addControl("multiply", label="Multiply")
-        self.addControl("offset", label="Offset")
+        self.addControl("offset", label="Offset")      
         
         self.addControl("cache_texture_handles", label="Cache Texture Handles")
         self.endLayout()
         
         self.beginLayout("UV Coordinates", collapse=True)
         self.beginNoOptimize()
-        self.addControl("uvset", label="UV Set")
-        self.addSeparator()
-        self.addControl("uvcoords", label="UV Coord")
+        self.addCustom('uvset', self.uvsetNew, self.uvsetReplace)
+        self.addSeparator();        
+        self.addCustom('uvcoords', self.uvcoordsNew, self.uvcoordsReplace)
         
         self.addControl("swrap", label="Wrap U")
         self.addControl("twrap", label="Wrap V")
@@ -55,6 +97,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("tflip", label="Flip V")
         
         self.addControl("swap_st", label="Swap UV")
+
         self.endNoOptimize()
         self.endLayout()
         
