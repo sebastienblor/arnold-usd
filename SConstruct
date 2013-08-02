@@ -727,7 +727,7 @@ for ext in os.listdir(ext_base_dir):
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)        
+        EXT_PACKAGE = local_env.MakePackage('%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_version, package_extension), EXT)        
         top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)
         local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
