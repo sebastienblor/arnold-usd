@@ -658,9 +658,19 @@ env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer
 env.MakeModule(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
+maya_base_version = ''
+
+if maya_version[:4] == '2013':
+    if int(maya_version[-2:]) >= 50:
+        maya_base_version = '20135'
+    else:
+        maya_base_version = '2013'
+else:
+    maya_base_version = maya_version[:4]
+
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_version
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version
 
 if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
@@ -727,7 +737,7 @@ for ext in os.listdir(ext_base_dir):
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        EXT_PACKAGE = local_env.MakePackage('%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_version, package_extension), EXT)        
+        EXT_PACKAGE = local_env.MakePackage('%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_base_version, package_extension), EXT)        
         top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)
         local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
