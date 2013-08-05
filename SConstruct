@@ -658,15 +658,11 @@ env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer
 env.MakeModule(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
-maya_base_version = ''
+maya_base_version = maya_version[:4]
 
-if maya_version[:4] == '2013':
+if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
-    else:
-        maya_base_version = '2013'
-else:
-    maya_base_version = maya_version[:4]
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
