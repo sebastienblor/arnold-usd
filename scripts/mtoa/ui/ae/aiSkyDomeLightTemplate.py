@@ -50,6 +50,7 @@ class AEaiSkyDomeLightTemplate(lightTemplate.LightTemplate):
         
         self.beginLayout('Viewport', collapse=True)
         self.addControl('skyRadius', label='Sky Radius')
+        self.addControl('skyFacing', label='Facing')
         self.endLayout()
 
         # Do not show extra attributes
