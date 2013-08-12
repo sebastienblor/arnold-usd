@@ -532,7 +532,12 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
             {
                for (size_t i = 0; i < numUVSets; ++i)
                {
-                  fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]);
+                  if (fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]) != MS::kSuccess)
+                  {
+                     uv_id = 0;
+                     AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
+                                  uvNames[i].asChar(), p, v, fnMesh.name().asChar());
+                  }
                   AiArraySetUInt(uvidxs[i], id, uv_id);
                }
             }
