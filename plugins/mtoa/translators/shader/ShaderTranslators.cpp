@@ -178,7 +178,7 @@ AtNode*  CFileTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode("MayaFile"));
 }
 
-bool StringHasOnlyNumbers(const std::string& str)
+bool StringHasOnlyNumbersAndMinus(const std::string& str)
 {
    static const char validCharacters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}; // do we have to add - ?
    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
@@ -192,7 +192,7 @@ bool StringHasOnlyNumbers(const std::string& str)
    return false;
 }
 
-bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filenamem, bool checkForTileToken = false)
+bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, bool checkForTileToken = false)
 {
    size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
 #ifdef _WIN32
@@ -228,7 +228,7 @@ bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filenamem,
                continue;
             std::string token = current_filename.substr(0, tp);
             // check for udim
-            if (isUdim && StringHasOnlyNumbers(token))
+            if (isUdim && StringHasOnlyNumbersAndMinus(token))
                return true;
             else if (!isUdim)
             {
@@ -238,7 +238,7 @@ bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filenamem,
                if ((tp = current_filename.find("_v")) == std::string::npos)
                   continue;
                current_filename.replace(tp, 2, "");
-               if (StringHasOnlyNumbers(current_filename))
+               if (StringHasOnlyNumbersAndMinus(current_filename))
                   return true;
             }
          }
