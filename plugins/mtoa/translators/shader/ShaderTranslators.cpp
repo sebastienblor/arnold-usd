@@ -2,6 +2,7 @@
 #include "scene/MayaScene.h"
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
+#include "platform/Platform.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -28,7 +29,6 @@
 
 #include <string>
 #include <fstream>
-
 
 // Sky
 //
@@ -178,6 +178,75 @@ AtNode*  CFileTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode("MayaFile"));
 }
 
+bool StringHasOnlyNumbers(const std::string& str)
+{
+   static const char validCharacters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}; // do we have to add - ?
+   for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+   {
+      for (int i = 0; i < 10; ++i)
+      {
+         if (*it == validCharacters[i])
+            return true;
+      }
+   }
+   return false;
+}
+
+bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filenamem, bool checkForTileToken = false)
+{
+   size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
+#ifdef _WIN32
+   if (slashPos == std::string::npos) // we don't get the right slashes from the aiImage node
+      slashPos = original_filename.rfind('\\');
+#endif
+   if (slashPos != std::string::npos)
+   {
+      std::string directory = original_filename.substr(0, slashPos);
+      DIR* dp;
+      if ((dp = opendir(directory.c_str())) != 0)
+      {
+         std::string filename = original_filename.substr(slashPos + 1, original_filename.size());
+         bool isUdim = true;
+         size_t tp = filename.find("<udim>");
+         if (checkForTileToken && tp == std::string::npos)
+         {
+            isUdim = false;
+            tp = filename.find("<tile>");
+         }
+
+         std::string filenamePre = filename.substr(0, tp);
+         std::string filenamePost = filename.substr(tp + 6, filename.size());
+         dirent* de;
+         while((de = readdir(dp)) != 0)
+         {
+            std::string current_filename = de->d_name;
+            if (current_filename.find(filenamePre) != 0)
+               continue;
+            current_filename = current_filename.substr(filenamePre.size(), current_filename.size());
+            tp = current_filename.rfind(filenamePost);
+            if (tp == std::string::npos)
+               continue;
+            std::string token = current_filename.substr(0, tp);
+            // check for udim
+            if (isUdim && StringHasOnlyNumbers(token))
+               return true;
+            else if (!isUdim)
+            {
+               if ((tp = current_filename.find("_u")) == std::string::npos)
+                  continue;
+               current_filename.replace(tp, 2, "");
+               if ((tp = current_filename.find("_v")) == std::string::npos)
+                  continue;
+               current_filename.replace(tp, 2, "");
+               if (StringHasOnlyNumbers(current_filename))
+                  return true;
+            }
+         }
+      }
+   }
+   return false;
+}
+
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
@@ -246,7 +315,8 @@ void CFileTranslator::Export(AtNode* shader)
          // check for <tile> and <udim> tags and replace them
          // with _u1_v1 and 1001 
          MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
-         std::string tx_filename_tokens = tx_filename.asChar();
+         std::string tx_filename_tokens_original = tx_filename.asChar();
+         std::string tx_filename_tokens = tx_filename_tokens_original;
          size_t tokenPos = tx_filename_tokens.find("<udim>");
          if (tokenPos != std::string::npos)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
@@ -258,7 +328,12 @@ void CFileTranslator::Export(AtNode* shader)
          }
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-            resolvedFilename = tx_filename; 
+            resolvedFilename = tx_filename;
+         else if(tokenPos != std::string::npos) // there is one found token
+         {
+            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original))
+               resolvedFilename = tx_filename;
+         }
       }
       m_session->FormatTexturePath(resolvedFilename);
       
@@ -1210,13 +1285,19 @@ void CAiImageTranslator::Export(AtNode* image)
       if(renderOptions.useExistingTiledTextures()) 
       {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
-         std::string tx_filename_tokens = tx_filename.asChar();
+         std::string tx_filename_tokens_original = tx_filename.asChar();
+         std::string tx_filename_tokens = tx_filename_tokens_original;
          size_t tokenPos = tx_filename_tokens.find("<udim>");
          if (tokenPos != std::string::npos)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-            filename = tx_filename;         
+            filename = tx_filename;
+         else if (tokenPos != std::string::npos)
+         {
+            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, false))
+               filename = tx_filename;
+         }
       }
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
