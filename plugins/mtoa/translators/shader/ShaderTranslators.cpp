@@ -192,7 +192,7 @@ bool StringHasOnlyNumbersAndMinus(const std::string& str)
    return false;
 }
 
-bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, bool checkForTileToken = false)
+bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, bool checkForTileToken = true)
 {
    size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
 #ifdef _WIN32
