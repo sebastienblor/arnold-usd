@@ -381,17 +381,16 @@ node_initialize
 node_update
 {
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
-
-   data->camera = AiUniverseGetCamera();
    
    AtNode *camera = (AtNode*)AiNodeGetPtr(node, "linkedCamera");
    if (camera != NULL) // Use a custom camera for the perspective projection
-   {
       data->camera = camera;
-      data->camera_fov = AiArrayCopy(AiNodeGetArray(camera, "fov"));
-      for (int i = 0; i < data->camera_fov->nkeys; ++i)
-         AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
-   }
+   else
+      data->camera = AiUniverseGetCamera();
+      
+   data->camera_fov = AiArrayCopy(AiNodeGetArray(camera, "fov"));
+   for (int i = 0; i < data->camera_fov->nkeys; ++i)
+      AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
 
    data->image_aspect = 1.0f;
    AtNode *n = AiNodeGetLink(node, "image");
