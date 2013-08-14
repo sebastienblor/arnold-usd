@@ -38,13 +38,8 @@ class AttributeListWindow(object):
                             edit=True,
                             doubleClickCommand=Callback(cmd))
 
-        if mode == 'add':
-            self._attributes = self.template.getCandidateAttributes()
-            for attr in self.template.getExistingAttributes():
-                self._attributes.pop(attr, None)
-        else:
-            self._attributes = self.template.getExistingAttributes()
-            
+        self.handleAttributes(mode)
+        
         if self._attributes :
             labels = self._attributes.keys()
             labels.sort()
@@ -63,6 +58,14 @@ class AttributeListWindow(object):
                 attachControl=[(list, 'bottom', 5, row), (list, 'top', 5, filterText)])
 
         pm.showWindow(self.win)
+
+    def handleAttributes(self, mode='add'):
+        if mode == 'add':
+            self._attributes = self.template.getCandidateAttributes()
+            for attr in self.template.getExistingAttributes():
+                self._attributes.pop(attr, None)
+        else:
+            self._attributes = self.template.getExistingAttributes()
         
     def filterAttributes(self):
         pm.textScrollList(self.scrollList, edit=True, removeAll=True)        
@@ -80,16 +83,20 @@ class AttributeListWindow(object):
                     pm.textScrollList(self.scrollList, edit=True, append=attr)
 
     def addAttrAndHide(self):
-        pm.window(self.win, edit=True, visible=False)
+        #pm.window(self.win, edit=True, visible=False)
         attrLabels = pm.textScrollList(self.scrollList, q=True, si=True)
         if attrLabels:
             self.template.addAttr([self._attributes[x] for x in attrLabels])
+        self.handleAttributes('add')
+        self.filterAttributes()
 
     def removeAttrAndHide(self):
-        pm.window(self.win, edit=True, visible=False)
+        #pm.window(self.win, edit=True, visible=False)
         attrLabels = pm.textScrollList(self.scrollList, q=True, si=True)
         if attrLabels:
             self.template.removeAttr([self._attributes[x] for x in attrLabels])
+        self.handleAttributes('remove')
+        self.filterAttributes()
 
 
 class ObjectSetTemplate(templates.AttributeTemplate):
