@@ -237,7 +237,9 @@ class MtoATxManager(object):
 
         ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
 
-        cmds.textScrollList(ctrlPath, edit=True, removeAll=True);
+        listSize = cmds.textScrollList(ctrlPath, query=True, numberOfItems=True);
+        for x in range(listSize,0,-1):
+            cmds.textScrollList(ctrlPath, edit=True, removeIndexedItem=x);
         
         for texture in self.textures:
             if(texture[1] == 0):

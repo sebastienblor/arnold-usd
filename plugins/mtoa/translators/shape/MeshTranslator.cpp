@@ -127,7 +127,7 @@ void CMeshTranslator::Export(AtNode* anode)
    else if (strcmp(nodeType, "polymesh") == 0)
    {
       // Early return if we can't tessalate.
-      if (!Tessellate(m_dagPath))
+      if (!Tessellate(m_dagPath, true))
          return;
       ExportMesh(anode, false);
    }
@@ -151,7 +151,7 @@ void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
       if (m_motionDeform)
       {
          // Early return if we can't tessalate.
-         if (!Tessellate(m_dagPath))
+         if (!Tessellate(m_dagPath, false))
             return;
          ExportMeshGeoData(anode, step);
       }
@@ -193,7 +193,7 @@ bool CMeshTranslator::IsGeoDeforming()
    }
 }
 
-MStatus CMeshTranslator::Tessellate(const MDagPath &path)
+MStatus CMeshTranslator::Tessellate(const MDagPath &path, bool doRef)
 {
    MStatus status = MStatus::kSuccess;
    MFnMesh fnMesh(path);
@@ -214,21 +214,24 @@ MStatus CMeshTranslator::Tessellate(const MDagPath &path)
 
       if (options.divisions() > 0)
       {
-         // Check if mesh got a reference object. If so, we must also smooth it and reconnect it
-         //FIXME : This has to be done in a better way, but how ?
-         MDagPath dagPathRef = GetMeshRefObj();
-
-         if (dagPathRef.isValid())
+         if (doRef)
          {
-            MDagPath transform(dagPathRef);
-            transform.pop();
-            MFnMesh fnMeshRef(dagPathRef);
-            MObject mesh_mobj_ref = fnMeshRef.generateSmoothMesh(transform.node(), &options, &status);
-            CHECK_MSTATUS_AND_RETURN_IT(status);
-            MFnDagNode dag_node(mesh_mobj_ref);
-            status = dag_node.getPath(m_dagPathRef);
-            CHECK_MSTATUS_AND_RETURN_IT(status);
-            m_isRefSmooth = true;
+            // Check if mesh got a reference object. If so, we must also smooth it and reconnect it
+            //FIXME : This has to be done in a better way, but how ?
+            MDagPath dagPathRef = GetMeshRefObj();
+
+            if (dagPathRef.isValid())
+            {
+               MDagPath transform(dagPathRef);
+               transform.pop();
+               MFnMesh fnMeshRef(dagPathRef);
+               MObject mesh_mobj_ref = fnMeshRef.generateSmoothMesh(transform.node(), &options, &status);
+               CHECK_MSTATUS_AND_RETURN_IT(status);
+               MFnDagNode dag_node(mesh_mobj_ref);
+               status = dag_node.getPath(m_dagPathRef);
+               CHECK_MSTATUS_AND_RETURN_IT(status);
+               m_isRefSmooth = true;
+            }
          }
 
          MFnMeshData meshData;
