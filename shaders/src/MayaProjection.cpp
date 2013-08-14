@@ -388,9 +388,12 @@ node_update
    else
       data->camera = AiUniverseGetCamera();
       
-   data->camera_fov = AiArrayCopy(AiNodeGetArray(camera, "fov"));
-   for (int i = 0; i < data->camera_fov->nkeys; ++i)
-      AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
+   if (data->camera != NULL)
+   {
+      data->camera_fov = AiArrayCopy(AiNodeGetArray(data->camera, "fov"));
+      for (int i = 0; i < data->camera_fov->nkeys; ++i)
+         AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
+   }
 
    data->image_aspect = 1.0f;
    AtNode *n = AiNodeGetLink(node, "image");
