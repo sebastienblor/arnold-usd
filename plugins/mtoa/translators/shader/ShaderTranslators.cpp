@@ -198,6 +198,12 @@ bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, 
 #ifdef _WIN32
    if (slashPos == std::string::npos) // we don't get the right slashes from the aiImage node
       slashPos = original_filename.rfind('\\');
+   else
+   {
+      size_t slashPos2 = original_filename.rfind('\\');
+      if (slashPos2 != std::string::npos)
+         slashPos = MAX(slashPos2, slashPos);
+   }
 #endif
    if (slashPos != std::string::npos)
    {
