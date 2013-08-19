@@ -434,11 +434,11 @@ void COptionsTranslator::Export(AtNode *options)
          {
             if (FindMayaPlug("use_sample_clamp").asBool())
             {
-               ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
+               CNodeTranslator::ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             }
             if (FindMayaPlug("use_sample_clamp_AOVs").asBool())
             {
-               ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
+               CNodeTranslator::ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
             }
          }
          else if (strcmp(paramName, "AA_seed") == 0)
@@ -452,13 +452,13 @@ void COptionsTranslator::Export(AtNode *options)
          else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
          {
             if (FindMayaPlug("enable_raytraced_SSS").asBool())
-               ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+               CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
             else
                AiNodeSetInt(options, "sss_bssrdf_samples", 0);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
-            ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+            CNodeTranslator::ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
          }
          else if (strcmp(paramName, "texture_autotile") == 0)
          {
@@ -583,11 +583,11 @@ void COptionsTranslator::Update(AtNode *options)
          {
             if (FindMayaPlug("use_sample_clamp").asBool())
             {
-               ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
+               CNodeTranslator::ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             }
             if (FindMayaPlug("use_sample_clamp_AOVs").asBool())
             {
-               ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
+               CNodeTranslator::ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
             }
          }
          else if (strcmp(paramName, "AA_seed") == 0)
@@ -601,13 +601,13 @@ void COptionsTranslator::Update(AtNode *options)
          else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
          {
             if (FindMayaPlug("enable_raytraced_SSS").asBool())
-               ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+               CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
             else
                AiNodeSetInt(options, "sss_bssrdf_samples", 0);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
-            ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
+            CNodeTranslator::ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
          }
          else if (strcmp(paramName, "texture_autotile") == 0)
          {
@@ -718,4 +718,37 @@ void COptionsTranslator::AddSourceImagesToTextureSearchPath(AtNode* options)
          texture_searchpath += pathsep;
    }
    AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+}
+
+/// Main entry point to export values to an arnold parameter from a maya plug, recursively following
+/// connections in the dependency graph.
+/// Calls ProcessParameterInputs for parameters that allow linking or ProcessConstantParameter
+/// We need to override this function for the options node, because linking and unlinking
+/// is not allowed, and calling AiNodeUnlink adds some unwanted messages to the log
+AtNode* COptionsTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
+                                          int arnoldParamType, const MPlug& plug)
+{
+   if (arnoldNode == NULL)
+   {
+      AiMsgError("[mtoa.translator]  %s: Cannot process parameter %s on null node.",
+            GetTranslatorName().asChar(), arnoldParamName);
+      return NULL;
+   }
+   if (plug.isNull())
+   {
+      AiMsgError("[mtoa.translator]  %s: Invalid Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
+            GetTranslatorName().asChar(), arnoldParamName,
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+      return NULL;
+   }
+
+   // It doesn't make sense to call this method when step is greater than 0
+   if (GetMotionStep() > 0)
+   {
+      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0",
+            GetTranslatorName().asChar(), AiNodeGetName(arnoldNode), arnoldParamName);
+      return NULL;
+   }
+
+   return ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
