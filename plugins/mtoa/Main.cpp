@@ -469,6 +469,7 @@ namespace // <anonymous>
          MDGMessage::removeCallback(CArnoldOptionsNode::sId);
          CArnoldOptionsNode::sId = 0;
       }
+      CRenderSession::ClearIdleRenderViewCallback();
       // Deregister node
       status = plugin.deregisterNode(CArnoldOptionsNode::id);
       CHECK_MSTATUS(status);
