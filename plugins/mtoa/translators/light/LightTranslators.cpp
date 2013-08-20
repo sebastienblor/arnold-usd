@@ -318,7 +318,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
    AtNode* meshNode = GetArnoldNode("mesh");
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-   int steps = (Session()->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT)) ? GetNumMotionSteps() : 1;
+   int steps = GetNumMotionSteps();
    AtArray* vlist = AiArrayAllocate(m_numVertices, steps, AI_TYPE_POINT);
    for (int i = 0; i < m_numVertices; ++i)
       AiArraySetVec(vlist, i, vertices[i]);
@@ -358,7 +358,8 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 MObject CMeshLightTranslator::GetMeshObject() const
 {
    MFnDependencyNode fnDepNode(m_dagPath.node());
-   MPlug plug = fnDepNode.findPlug("inputMesh");
+   MStatus status;
+   MPlug plug = fnDepNode.findPlug("inputMesh", &status);
    MObject meshObject;
    plug.getValue(meshObject);
    return meshObject;
@@ -443,7 +444,10 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
       AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
        
       MFnDependencyNode fnDepNode(m_dagPath.node());
-      MFnMesh mesh(GetMeshObject()); // no need to check the status, because if it
+      MObject meshObject = GetMeshObject(); // if the returned value is directly given to the
+      // MFnMesh constructor the mesh won't work, probably the MObject is destroyed somewhere
+      // and we need to explicitly create the mobject on the stack to make it work
+      MFnMesh mesh(meshObject); // no need to check the status, because if it
       // worked for the first time, it`s going to work for the second
       
       int numVerts = mesh.numVertices();
