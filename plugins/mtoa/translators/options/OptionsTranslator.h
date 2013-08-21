@@ -59,6 +59,7 @@ protected:
    void ProcessAOVs();
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();
+   void ExportAtmosphere(AtNode* options);
    void CreateFileDirectory(const MString &filename) const;
    unsigned int GetOutputArray(const CAOV& aov,
                                      std::vector<CAOVOutput>& outputs);
