@@ -39,8 +39,18 @@ def make_package(target, source, env):
       
    saferemove(package_name)
 
+   import zipfile
+
+   zp = zipfile.ZipFile('%s.zip' % package_name, 'w', zipfile.ZIP_DEFLATED)
+   for dirpath, dirnames, filenames in os.walk(base_pkg_dir):
+      prefix_path = dirpath[len(base_pkg_dir):]
+      if (len(prefix_path) != 0) and (prefix_path[0] == '/'):
+         prefix_path = prefix_path[1:]
+      for f in filenames:
+         zp.write(os.path.join(dirpath, f), '%s/%s' % (prefix_path, f))
+
    # For now, we default to .rar for windows and .tar.gz for Linux/Mac
-   command_string = ''   
+   '''command_string = ''   
    if system.os() == 'windows':
       if find_in_path('rar.exe') != []:
          command_string = "rar a -ep1 -inul -r %s %s" % (package_name, os.path.join(base_pkg_dir, '*'))
@@ -54,7 +64,8 @@ def make_package(target, source, env):
       retcode = p.wait()
       if retcode != 0:
          print "ERROR: Could not create package '%s'" % package_name
-
+   '''
+   print package_name
    # Clean temporary directory
    shutil.rmtree(base_pkg_dir)
          

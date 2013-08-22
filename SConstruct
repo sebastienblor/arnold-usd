@@ -673,15 +673,6 @@ if env['MODE'] in ['debug', 'profile']:
 
 package_name_inst = package_name
 
-package_extension = ""
-
-if system.os() == 'windows':
-    package_extension += ".rar"
-else:
-    package_extension += ".tgz"
-
-package_name += package_extension
-
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
@@ -733,7 +724,7 @@ for ext in os.listdir(ext_base_dir):
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        EXT_PACKAGE = local_env.MakePackage('%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_base_version, package_extension), EXT)        
+        EXT_PACKAGE = local_env.MakePackage('%s-%s-MtoA-%s-maya%s' % (ext, system.os(), MTOA_VERSION, maya_base_version), EXT)        
         top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)
         local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
