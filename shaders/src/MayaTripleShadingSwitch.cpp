@@ -8,6 +8,8 @@ node_parameters
 	AiParameterRGB("default", 0.8f, 0.8f, 0.8f);
    AiParameterARRAY("inputs", AiArrayAllocate(0, 1, AI_TYPE_NODE));
    AiParameterArray("shapes", AiArrayAllocate(0, 1, AI_TYPE_NODE));
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 struct MayaTripleShadingSwitchData{
