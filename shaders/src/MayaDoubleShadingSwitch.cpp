@@ -3,11 +3,11 @@
 
 #include "MayaSwitchUtils.h"
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaTripleShadingSwitchMtd);
+AI_SHADER_NODE_EXPORT_METHODS(MayaDoubleShadingSwitchMtd);
 
 node_parameters
 {
-   AiParameterRGB("default", 0.8f, 0.8f, 0.8f);
+   AiParameterPnt2("default", 0.8f, 0.8f);
    AiParameterARRAY("inputs", AiArrayAllocate(0, 1, AI_TYPE_NODE));
    AiParameterArray("shapes", AiArrayAllocate(0, 1, AI_TYPE_NODE));
 
@@ -32,5 +32,5 @@ node_finish
 shader_evaluate
 {
    if (EvaluateShadingSwitch(sg, node))
-      sg->out.RGB = AiShaderEvalParamRGB(0);
+      sg->out.PNT2 = AiShaderEvalParamPnt2(0);
 }

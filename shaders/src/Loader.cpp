@@ -80,7 +80,10 @@ extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
 extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* MayaMarbleMtd;
+extern AtNodeMethods* MayaSingleShadingSwitchMtd;
+extern AtNodeMethods* MayaDoubleShadingSwitchMtd;
 extern AtNodeMethods* MayaTripleShadingSwitchMtd;
+extern AtNodeMethods* MayaQuadShadingSwitchMtd;
 #ifndef DISABLE_COMMON
 extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* VolumeCollectorMtd;
@@ -164,7 +167,10 @@ enum{
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
    SHADER_MAYAMARBLE,
+   SHADER_MAYASINGLESHADINGSWITCH,
+   SHADER_MAYADOUBLESHADINGSWITCH,
    SHADER_MAYATRIPLESHADINGSWITCH,
+   SHADER_MAYAQUADSHADINGSWITCH,
 #ifndef DISABLE_COMMON
    SHADER_VOLUMECOLLECTOR,
    SHADER_SKINSSS
@@ -714,10 +720,31 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case SHADER_MAYASINGLESHADINGSWITCH:
+      node->methods     = MayaSingleShadingSwitchMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaSingleShadingSwitch";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_MAYADOUBLESHADINGSWITCH:
+      node->methods     = MayaDoubleShadingSwitchMtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "MayaDoubleShadingSwitch";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
    case SHADER_MAYATRIPLESHADINGSWITCH:
       node->methods     = MayaTripleShadingSwitchMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaTripleShadingSwitch";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_MAYAQUADSHADINGSWITCH:
+      node->methods     = MayaQuadShadingSwitchMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaQuadShadingSwitch";
       node->node_type   = AI_NODE_SHADER;
       break;
 
