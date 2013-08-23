@@ -1323,4 +1323,44 @@ void CMayaTripleShadingSwitchTranslator::Export(AtNode* tripleSwitch)
    std::vector<AtNode*> shapes;
 
    MFnDependencyNode dnode(GetMayaObject());
+
+   MPlug inputPlug = dnode.findPlug("input");
+   MIntArray existingIndices;
+   inputPlug.getExistingArrayAttributeIndices(existingIndices);
+   if (existingIndices.length() == 0)
+      return;
+   for (unsigned int i = 0; i < existingIndices.length(); ++i)
+   {
+      MPlug currentInputPlug = inputPlug.elementByLogicalIndex(existingIndices[i]);      
+      MPlug shapePlug = currentInputPlug.child(1);
+      MPlugArray conns;
+      shapePlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShapePlug = conns[0];
+      MPlug triplePlug = currentInputPlug.child(0);      
+      triplePlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputTriplePlug = conns[0];
+      AtNode* triple = ExportNode(inputTriplePlug);
+      if (triple == 0)
+         continue;
+      AtNode* shape = ExportNode(inputShapePlug);
+      if (shape == 0)
+         continue;
+      triples.push_back(triple);
+      shapes.push_back(shape);
+   }
+   if (triples.size() == 0)
+      return;
+   AiNodeSetArray(tripleSwitch, "inputTriples", AiArrayAllocate((unsigned int)triples.size(), 1, AI_TYPE_RGB)); // allocate an empty array, we are going to link anyway
+   for (unsigned int i = 0; i < (unsigned int)triples.size(); ++i)
+   {
+      MString str = "inputTriples[";
+      str += i;
+      str += "]";
+      AiNodeLink(triples[i], str.asChar(), tripleSwitch);
+   }
+   AiNodeSetArray(tripleSwitch, "inputNodes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
 }
