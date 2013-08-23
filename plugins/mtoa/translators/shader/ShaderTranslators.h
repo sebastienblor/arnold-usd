@@ -48,6 +48,7 @@ SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
+SHADER_TRANSLATOR(CMayaTripleShadingSwitchTranslator);
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 

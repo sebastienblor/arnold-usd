@@ -80,6 +80,7 @@ extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
 extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* MayaMarbleMtd;
+extern AtNodeMethods* MayaTripleShadingSwitchMtd;
 #ifndef DISABLE_COMMON
 extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* VolumeCollectorMtd;
@@ -163,6 +164,7 @@ enum{
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
    SHADER_MAYAMARBLE,
+   SHADER_MAYATRIPLESHADINGSWITCH,
 #ifndef DISABLE_COMMON
    SHADER_VOLUMECOLLECTOR,
    SHADER_SKINSSS
@@ -711,6 +713,14 @@ node_loader
       node->name        = "mayaMarble";
       node->node_type   = AI_NODE_SHADER;
       break;
+
+   case SHADER_MAYATRIPLESHADINGSWITCH:
+      node->methods     = MayaTripleShadingSwitchMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaTripleShadingSwitch";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
 #ifndef DISABLE_COMMON
    case SHADER_VOLUMECOLLECTOR:
       node->methods     = VolumeCollectorMtd;

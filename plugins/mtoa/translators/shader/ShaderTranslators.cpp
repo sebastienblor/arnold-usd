@@ -1309,3 +1309,13 @@ void CAiImageTranslator::Export(AtNode* image)
       AiNodeSetStr(image, "filename", filename.asChar());
    }
 }
+
+AtNode* CMayaTripleShadingSwitchTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("MayaTripleShadingSwitch");
+}
+
+void CMayaTripleShadingSwitchTranslator::Export(AtNode* tripleSwitch)
+{
+
+}
