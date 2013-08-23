@@ -1317,5 +1317,5 @@ AtNode* CMayaTripleShadingSwitchTranslator::CreateArnoldNodes()
 
 void CMayaTripleShadingSwitchTranslator::Export(AtNode* tripleSwitch)
 {
-
+   ProcessParameter(tripleSwitch, "default", AI_TYPE_RGB, "default");
 }
