@@ -1354,13 +1354,6 @@ void CMayaTripleShadingSwitchTranslator::Export(AtNode* tripleSwitch)
    }
    if (triples.size() == 0)
       return;
-   AiNodeSetArray(tripleSwitch, "inputTriples", AiArrayAllocate((unsigned int)triples.size(), 1, AI_TYPE_RGB)); // allocate an empty array, we are going to link anyway
-   for (unsigned int i = 0; i < (unsigned int)triples.size(); ++i)
-   {
-      MString str = "inputTriples[";
-      str += i;
-      str += "]";
-      AiNodeLink(triples[i], str.asChar(), tripleSwitch);
-   }
-   AiNodeSetArray(tripleSwitch, "inputNodes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+   AiNodeSetArray(tripleSwitch, "inputTriples", AiArrayConvert((unsigned int)triples.size(), 1, AI_TYPE_NODE, &triples[0]));
+   AiNodeSetArray(tripleSwitch, "inputShapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
 }
