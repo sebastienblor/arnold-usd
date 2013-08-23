@@ -49,23 +49,6 @@ def make_package(target, source, env):
       for f in filenames:
          zp.write(os.path.join(dirpath, f), '%s/%s' % (prefix_path, f))
 
-   # For now, we default to .rar for windows and .tar.gz for Linux/Mac
-   '''command_string = ''   
-   if system.os() == 'windows':
-      if find_in_path('rar.exe') != []:
-         command_string = "rar a -ep1 -inul -r %s %s" % (package_name, os.path.join(base_pkg_dir, '*'))
-   else:
-      # this gives us an explicit list of all the files/directories in 'package_temp/'
-      file_list = " ".join(os.listdir('package_temp'))
-      command_string = "tar -czf %s -C ./package_temp %s" % (package_name, file_list)
-
-   if command_string != '':
-      p = subprocess.Popen(command_string, shell=True, stdout = None)
-      retcode = p.wait()
-      if retcode != 0:
-         print "ERROR: Could not create package '%s'" % package_name
-   '''
-   print package_name
    # Clean temporary directory
    shutil.rmtree(base_pkg_dir)
          
