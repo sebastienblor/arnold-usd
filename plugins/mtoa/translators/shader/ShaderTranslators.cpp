@@ -1310,15 +1310,14 @@ void CAiImageTranslator::Export(AtNode* image)
    }
 }
 
-AtNode* CMayaTripleShadingSwitchTranslator::CreateArnoldNodes()
+CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
 {
-   return AddArnoldNode("MayaTripleShadingSwitch");
+
 }
 
-void CMayaTripleShadingSwitchTranslator::Export(AtNode* tripleSwitch)
+void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
 {
-   ProcessParameter(tripleSwitch, "default", AI_TYPE_RGB, "default");
-
+   ProcessParameter(shadingSwitch, "default", m_paramType, "default");
    std::vector<AtNode*> inputs;
    std::vector<AtNode*> shapes;
 
@@ -1354,6 +1353,31 @@ void CMayaTripleShadingSwitchTranslator::Export(AtNode* tripleSwitch)
    }
    if (inputs.size() == 0)
       return;
-   AiNodeSetArray(tripleSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
-   AiNodeSetArray(tripleSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+   AiNodeSetArray(shadingSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
+   AiNodeSetArray(shadingSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+}
+
+AtNode* CMayaShadingSwitchTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode(m_nodeType.c_str());
+}
+
+void* CreateSingleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaSingleShadingSwitch", AI_TYPE_FLOAT);
+}
+
+void* CreateDoubleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_POINT2);
+}
+
+void* CreateTripleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaTripleShadingSwitch", AI_TYPE_RGB);
+}
+
+void* CreateQuadShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }

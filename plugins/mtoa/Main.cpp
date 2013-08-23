@@ -436,9 +436,18 @@ namespace // <anonymous>
          shaders->RegisterTranslator("blinn",
                                      "",
                                      CMayaBlinnTranslator::creator);
+         shaders->RegisterTranslator("singleShadingSwitch",
+                                     "",
+                                     CreateSingleShadingSwitchTranslator);
+         shaders->RegisterTranslator("doubleShadingSwitch",
+                                     "",
+                                     CreateDoubleShadingSwitchTranslator);
          shaders->RegisterTranslator("tripleShadingSwitch",
                                      "",
-                                     CMayaTripleShadingSwitchTranslator::creator);
+                                     CreateTripleShadingSwitchTranslator);
+         shaders->RegisterTranslator("quadShadingSwitch",
+                                     "",
+                                     CreateQuadShadingSwitchTranslator);
       }
 
       // Will load all found plugins and try to register nodes and translators
