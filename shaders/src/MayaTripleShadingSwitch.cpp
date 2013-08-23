@@ -6,19 +6,19 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaTripleShadingSwitchMtd);
 node_parameters
 {
 	AiParameterRGB("default", 0.8f, 0.8f, 0.8f);
-   AiParameterARRAY("inputTriples", AiArrayAllocate(0, 1, AI_TYPE_NODE));
-   AiParameterArray("inputShapes", AiArrayAllocate(0, 1, AI_TYPE_NODE));
+   AiParameterARRAY("inputs", AiArrayAllocate(0, 1, AI_TYPE_NODE));
+   AiParameterArray("shapes", AiArrayAllocate(0, 1, AI_TYPE_NODE));
 }
 
 struct MayaTripleShadingSwitchData{
-   std::vector<AtNode*> triples;
+   std::vector<AtNode*> inputs;
    std::vector<AtNode*> shapes;
 };
 
 enum MayaTripleShadingSwitchParams{
    p_default = 0,
-   p_input_triples,
-   p_input_nodes
+   p_inputs,
+   p_shapes
 };
 
 node_initialize
@@ -29,17 +29,17 @@ node_initialize
 node_update
 {
    MayaTripleShadingSwitchData* data = (MayaTripleShadingSwitchData*)AiNodeGetLocalData(node);
-   data->triples.clear();
+   data->inputs.clear();
    data->shapes.clear();
-   AtArray* triples = AiNodeGetArray(node, "inputTriples");
-   AtArray* shapes = AiNodeGetArray(node, "inputShapes");
-   if (triples->nelements == 0)
+   AtArray* inputs = AiNodeGetArray(node, "inputs");
+   AtArray* shapes = AiNodeGetArray(node, "shapes");
+   if (inputs->nelements == 0)
       return;
-   data->triples.reserve(triples->nelements);
+   data->inputs.reserve(inputs->nelements);
    data->shapes.reserve(shapes->nelements);
-   for (unsigned int i = 0; i < triples->nelements; ++i)
+   for (unsigned int i = 0; i < inputs->nelements; ++i)
    {
-      data->triples.push_back((AtNode*)AiArrayGetPtr(triples, i));
+      data->inputs.push_back((AtNode*)AiArrayGetPtr(inputs, i));
       data->shapes.push_back((AtNode*)AiArrayGetPtr(shapes, i));
    }
 }
@@ -57,7 +57,7 @@ shader_evaluate
    {
       if (sg->Op == data->shapes[i])
       {         
-         AiShaderEvaluate(data->triples[i], sg);
+         AiShaderEvaluate(data->inputs[i], sg);
          return;
       }
    }
