@@ -1309,3 +1309,75 @@ void CAiImageTranslator::Export(AtNode* image)
       AiNodeSetStr(image, "filename", filename.asChar());
    }
 }
+
+CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
+{
+
+}
+
+void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
+{
+   ProcessParameter(shadingSwitch, "default", m_paramType, "default");
+   std::vector<AtNode*> inputs;
+   std::vector<AtNode*> shapes;
+
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlug inputPlug = dnode.findPlug("input");
+   MIntArray existingIndices;
+   inputPlug.getExistingArrayAttributeIndices(existingIndices);
+   if (existingIndices.length() == 0)
+      return;
+   for (unsigned int i = 0; i < existingIndices.length(); ++i)
+   {
+      MPlug currentInputPlug = inputPlug.elementByLogicalIndex(existingIndices[i]);      
+      MPlug shapePlug = currentInputPlug.child(1);
+      MPlugArray conns;
+      shapePlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShapePlug = conns[0];
+      MPlug shaderPlug = currentInputPlug.child(0);      
+      shaderPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShaderPlug = conns[0];
+      AtNode* shader = ExportNode(inputShaderPlug);
+      if (shader == 0)
+         continue;
+      AtNode* shape = ExportNode(inputShapePlug);
+      if (shape == 0)
+         continue;
+      inputs.push_back(shader);
+      shapes.push_back(shape);
+   }
+   if (inputs.size() == 0)
+      return;
+   AiNodeSetArray(shadingSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
+   AiNodeSetArray(shadingSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+}
+
+AtNode* CMayaShadingSwitchTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode(m_nodeType.c_str());
+}
+
+void* CreateSingleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaSingleShadingSwitch", AI_TYPE_FLOAT);
+}
+
+void* CreateDoubleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_POINT2);
+}
+
+void* CreateTripleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaTripleShadingSwitch", AI_TYPE_RGB);
+}
+
+void* CreateQuadShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
+}
