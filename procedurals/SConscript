@@ -11,7 +11,7 @@ Import('env')
 local_env = env.Clone(SHLIBPREFIX = '')
 
 # Add new procedural directory names here
-PROCEDURALS = ['ParticleInstancer', 'FluidCreator'] 
+PROCEDURALS = ['ParticleInstancer', 'MayaFluidCreator'] 
 
 source_files = []
 include_files = []
