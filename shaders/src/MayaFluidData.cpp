@@ -6,6 +6,40 @@ const char* contentsGradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient
 
 const char* contentsMethodEnums[] = {"Grid", "Gradient", 0};
 
+template <typename T>
+void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
+{
+   arrayDesc.release();
+
+   if (cm == CSM_GRID)
+   {
+      if ((int)array->nelements == numVoxels)
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
+         for (int i = 0; i < numVoxels; ++i)
+            arrayDesc.data[i] = ReadFromArray<T>(array, i);
+      }
+      else if (array->nelements == 1) // only one value
+      {
+         arrayDesc.single = true;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T));
+         *arrayDesc.data = ReadFromArray<T>(array, 0);
+      }
+      else
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = 0;
+      }
+      arrayDesc.isGradient = false;
+   }
+   else
+   {
+      arrayDesc.isGradient = true;
+      arrayDesc.gradientType = cmg;
+   }
+}
+
 CMayaFluidData::CMayaFluidData(AtNode* node)
 {
    xres = AiNodeGetInt(node, "xres");

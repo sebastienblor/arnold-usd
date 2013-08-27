@@ -84,40 +84,6 @@ inline AtVector ReadFromArray(AtArray* array, int element)
    return AiArrayGetVec(array, element);
 }
 
-template <typename T>
-void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
-{
-   arrayDesc.release();
-
-   if (cm == CSM_GRID)
-   {
-      if ((int)array->nelements == numVoxels)
-      {
-         arrayDesc.single = false;
-         arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
-         for (int i = 0; i < numVoxels; ++i)
-            arrayDesc.data[i] = ReadFromArray<T>(array, i);
-      }
-      else if (array->nelements == 1) // only one value
-      {
-         arrayDesc.single = true;
-         arrayDesc.data = (T*)AiMalloc(sizeof(T));
-         *arrayDesc.data = ReadFromArray<T>(array, 0);
-      }
-      else
-      {
-         arrayDesc.single = false;
-         arrayDesc.data = 0;
-      }
-      arrayDesc.isGradient = false;
-   }
-   else
-   {
-      arrayDesc.isGradient = true;
-      arrayDesc.gradientType = cmg;
-   }
-}
-
 class CMayaFluidData{
 public:
 	static void InitializeShaderParameters(AtList* params); // this is required so we can keep backwards compatibility for a while
