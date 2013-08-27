@@ -466,30 +466,35 @@ void CMayaFluidData::InitializeShaderParameters(AtList* params)
    AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 }
 
-/*AI_SHADER_NODE_EXPORT_METHODS(MayaFluidDataMtd);
+AI_SHADER_NODE_EXPORT_METHODS(MayaFluidDataMtd);
 
 node_parameters
 {
-
+   CMayaFluidData::InitializeShaderParameters(params);
 }
 
 node_initialize
 {
-
+   AiNodeSetLocalData(node, 0);
 }
 
 node_update
 {
-
+   CMayaFluidData* data = (CMayaFluidData*)AiNodeGetLocalData(node);
+   if (data != 0)
+      delete data;
+   data = new CMayaFluidData(node);
+   AiNodeSetLocalData(node, data);
 }
 
 node_finish
 {
-
+   CMayaFluidData* data = (CMayaFluidData*)AiNodeGetLocalData(node);
+   if (data != 0)
+      delete data;
 }
 
 shader_evaluate
 {
 
 }
-*/

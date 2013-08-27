@@ -597,6 +597,9 @@ struct MayaFluidData{
    bool textureDisabledInShadows;   
    bool inflection;
    bool invertTexture;
+
+   MayaFluidData() : fluidData(0)
+   { }
    
    ~MayaFluidData()
    {
@@ -630,7 +633,8 @@ node_update
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
 
    data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
-
+   if (data->fluidData != 0)
+      delete data->fluidData;
    data->fluidData = new CMayaFluidData(node);
    
    data->velocityScale = AiNodeGetVec(node, "velocity_scale");

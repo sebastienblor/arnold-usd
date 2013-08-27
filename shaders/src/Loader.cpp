@@ -84,6 +84,7 @@ extern AtNodeMethods* MayaSingleShadingSwitchMtd;
 extern AtNodeMethods* MayaDoubleShadingSwitchMtd;
 extern AtNodeMethods* MayaTripleShadingSwitchMtd;
 extern AtNodeMethods* MayaQuadShadingSwitchMtd;
+extern AtNodeMethods* MayaFluidDataMtd;
 #ifndef DISABLE_COMMON
 extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* VolumeCollectorMtd;
@@ -171,6 +172,7 @@ enum{
    SHADER_MAYADOUBLESHADINGSWITCH,
    SHADER_MAYATRIPLESHADINGSWITCH,
    SHADER_MAYAQUADSHADINGSWITCH,
+   SHADER_MAYAFLUIDDATA,
 #ifndef DISABLE_COMMON
    SHADER_VOLUMECOLLECTOR,
    SHADER_SKINSSS
@@ -745,6 +747,13 @@ node_loader
       node->methods     = MayaQuadShadingSwitchMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaQuadShadingSwitch";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_MAYAFLUIDDATA:
+      node->methods     = MayaFluidDataMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaFluidData";
       node->node_type   = AI_NODE_SHADER;
       break;
 
