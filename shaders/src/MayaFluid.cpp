@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #include "MayaUtils.h"
+#include "MayaFluidData.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
@@ -30,34 +31,6 @@ enum coordinateMethod{
 };
 
 const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic", 0};
-
-enum filterType{
-   FT_CLOSEST = 0,
-   FT_LINEAR,
-   FT_CUBIC
-};
-
-const char* contentsMethodEnums[] = {"Grid", "Gradient", 0};
-
-enum contentsMethod{
-   CSM_GRID = 0,
-   CSM_GRADIENT
-};
-
-const char* contentsGradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
-                                           "-X Gradient", "-Y Gradient", "-Z Gradient",
-                                           "Center Gradient", 0};
-
-enum contentsGradientType{
-   CG_CONSTANT = 0,
-   CG_X_GRADIENT,
-   CG_Y_GRADIENT,
-   CG_Z_GRADIENT,
-   CG_NX_GRADIENT,
-   CG_NY_GRADIENT,
-   CG_NZ_GRADIENT,
-   CG_CENTER_GRADIENT
-};
 
 const char* gradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient",
                                     "Z Gradient", "Center Gradient", "Density",
@@ -114,37 +87,8 @@ node_parameters
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiMetaDataSetBool(mds, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
-   
-   AiParameterInt("xres", 0);
-   AiParameterInt("yres", 0);
-   AiParameterInt("zres", 0);
-   
-   AiParameterVec("min", 0.f, 0.f, 0.f);
-   AiParameterVec("max", 0.f, 0.f, 0.f);
-   
-   AiParameterEnum("density_method", CSM_GRADIENT, contentsMethodEnums);
-   AiParameterEnum("density_gradient", CG_CONSTANT, contentsGradientTypeEnums);
-   AiParameterArray("density", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 
-   AiParameterEnum("fuel_method", CSM_GRADIENT, contentsMethodEnums);
-   AiParameterEnum("fuel_gradient", CG_CONSTANT, contentsGradientTypeEnums);
-   AiParameterArray("fuel", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-
-   AiParameterEnum("temperature_method", CSM_GRADIENT, contentsMethodEnums);
-   AiParameterEnum("temperature_gradient", CG_CONSTANT, contentsGradientTypeEnums);
-   AiParameterArray("temperature", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-
-   AiParameterArray("pressure", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-
-   AiParameterEnum("velocity_method", CSM_GRADIENT, contentsMethodEnums);
-   AiParameterEnum("velocity_gradient", CG_CONSTANT, contentsGradientTypeEnums);   
-   AiParameterArray("velocity", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
-   
-   AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
-   
-   AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
-   
-   AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   CMayaFluidData::InitializeShaderParameters(params);
    
    AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
    AiParameterArray("color_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
@@ -327,98 +271,6 @@ enum MayaFluidParams{
 
    p_velocity_scale
 };
-
-template <typename T>
-T GetDefaultValue()
-{
-   return 0;
-}
-
-template <>
-float GetDefaultValue<float>()
-{
-   return 0.f;
-}
-
-template <>
-AtRGB GetDefaultValue<AtRGB>()
-{
-   return AI_RGB_BLACK;
-}
-
-template <>
-AtVector GetDefaultValue<AtVector>()
-{
-   return AI_V3_ZERO;
-}
-
-template <typename T>
-T GetConstantValue()
-{
-   return 1;
-}
-
-template <>
-float GetConstantValue<float>()
-{
-   return 1.f;
-}
-
-template <>
-AtRGB GetConstantValue<AtRGB>()
-{
-   return AI_RGB_WHITE;
-}
-
-template <>
-AtVector GetConstantValue<AtVector>()
-{
-   return AI_V3_ONE;
-}
-
-template <typename T>
-T ConvertFloat(float f)
-{
-   return f;
-}
-
-template<>
-AtRGB ConvertFloat<AtRGB>(float f)
-{
-   AtRGB ret = {f, f, f};
-   return ret;
-}
-
-template<>
-AtVector ConvertFloat<AtVector>(float f)
-{
-   AtVector ret = {f, f, f};
-   return ret;
-}
-
-template <typename T>
-T ReadFromArray(AtArray* array, int element)
-{
-   return GetDefaultValue<T>();
-}
-
-template <>
-float ReadFromArray(AtArray* array, int element)
-{
-   return AiArrayGetFlt(array, element);
-}
-
-template <>
-AtRGB ReadFromArray(AtArray* array, int element)
-{
-   return AiArrayGetRGB(array, element);
-}
-
-template <>
-AtVector ReadFromArray(AtArray* array, int element)
-{
-   return AiArrayGetVec(array, element);
-}
 
 template <typename T>
 T GetValueFromSG(AtShaderGlobals* sg, int outputType = AI_TYPE_RGB)
@@ -736,45 +588,22 @@ public:
    }
 };
 
-template<typename T>
-struct ArrayDescription{
-   T* data;
-   int gradientType;
-   bool single;
-   bool isGradient;
-
-   ArrayDescription() : data(0) {}
-   
-   void release() {if(data) AiFree(data); data = 0;}   
-};
-
 struct MayaFluidData{
-   ArrayDescription<float> density;
-   ArrayDescription<float> fuel;
-   ArrayDescription<float> temperature;
-   ArrayDescription<float> pressure;
-   ArrayDescription<AtVector> velocity;
-   ArrayDescription<AtRGB> colors;
-   ArrayDescription<AtVector> coordinates;
-   ArrayDescription<float> falloff;
-   
    GradientDescription<AtRGB> colorGradient;
    GradientDescription<AtRGB> incandescenceGradient;
    GradientDescription<float, false, false> opacityGradient;  
    
    AtRGB transparency; 
-   
-   AtVector dmin, dmax;
    AtVector velocityScale;
    
    AtNode* volumeTexture;
+   CMayaFluidData* fluidData;
    
    float colorTexGain;
    float incandTexGain;
    float opacityTexGain;
    
    int filterType;   
-   int xres, yres, zres;      
    int textureType;
    int coordinateMethod;
    int dropoffShape;
@@ -795,16 +624,6 @@ struct MayaFluidData{
    
    ~MayaFluidData()
    {
-      density.release();
-      fuel.release();
-      temperature.release();
-      pressure.release();
-      velocity.release();
-      colors.release();
-      coordinates.release();
-      colorGradient.Release();
-      incandescenceGradient.Release();
-      opacityGradient.Release();
    }
    
    static void* operator new(size_t size)
@@ -823,49 +642,11 @@ node_initialize
    AiNodeSetLocalData(node, new MayaFluidData());
 }
 
-template <typename T>
-void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
-{
-   arrayDesc.release();
-
-   if (cm == CSM_GRID)
-   {
-      if ((int)array->nelements == numVoxels)
-      {
-         arrayDesc.single = false;
-         arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
-         for (int i = 0; i < numVoxels; ++i)
-            arrayDesc.data[i] = ReadFromArray<T>(array, i);
-      }
-      else if (array->nelements == 1) // only one value
-      {
-         arrayDesc.single = true;
-         arrayDesc.data = (T*)AiMalloc(sizeof(T));
-         *arrayDesc.data = ReadFromArray<T>(array, 0);
-      }
-      else
-      {
-         arrayDesc.single = false;
-         arrayDesc.data = 0;
-      }
-      arrayDesc.isGradient = false;
-   }
-   else
-   {
-      arrayDesc.isGradient = true;
-      arrayDesc.gradientType = cmg;
-   }
-}
-
 node_update
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
    data->filterType = AiNodeGetInt(node, "filter_type");
-   
-   data->xres = AiNodeGetInt(node, "xres");
-   data->yres = AiNodeGetInt(node, "yres");
-   data->zres = AiNodeGetInt(node, "zres");
    
    data->transparency = AiNodeGetRGB(node, "transparency");
    data->transparency.r = CLAMP((1.f - data->transparency.r) / data->transparency.r, 0.f, AI_BIG);
@@ -873,31 +654,10 @@ node_update
    data->transparency.b = CLAMP((1.f - data->transparency.b) / data->transparency.b, 0.f, AI_BIG);
 
    data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
+
+   data->fluidData = new CMayaFluidData(node);
    
-   const int numVoxels = data->xres * data->yres * data->zres;
-   
-   if (numVoxels == 0)
-   {
-      AiMsgWarning("[aiMayaFluid] The resolution of the fluid grid is zero!");
-      return;
-   }
-   
-   data->dmin = AiNodeGetVec(node, "min");
-   data->dmax = AiNodeGetVec(node, "max");
-   data->dmax = data->dmax - data->dmin;
-   data->dmax.x = 1.f / data->dmax.x;
-   data->dmax.y = 1.f / data->dmax.y;
-   data->dmax.z = 1.f / data->dmax.z;
    data->velocityScale = AiNodeGetVec(node, "velocity_scale");
-   
-   ReadArray(AiNodeGetArray(node, "density"), AiNodeGetInt(node, "density_method"), AiNodeGetInt(node, "density_gradient"), numVoxels, data->density);
-   ReadArray(AiNodeGetArray(node, "fuel"), AiNodeGetInt(node, "fuel_method"), AiNodeGetInt(node, "fuel_gradient"), numVoxels, data->fuel);
-   ReadArray(AiNodeGetArray(node, "temperature"), AiNodeGetInt(node, "temperature_method"), AiNodeGetInt(node, "temperature_gradient"), numVoxels, data->temperature);
-   ReadArray(AiNodeGetArray(node, "pressure"), CSM_GRID, CG_CONSTANT, numVoxels, data->pressure);
-   ReadArray(AiNodeGetArray(node, "velocity"), AiNodeGetInt(node, "velocity_method"), AiNodeGetInt(node, "velocity_gradient"), numVoxels, data->velocity);
-   ReadArray(AiNodeGetArray(node, "colors"), CSM_GRID, CG_CONSTANT, numVoxels, data->colors);
-   ReadArray(AiNodeGetArray(node, "coordinates"), CSM_GRID, CG_CONSTANT, numVoxels, data->coordinates);
-   ReadArray(AiNodeGetArray(node, "falloff"), CSM_GRID, CG_CONSTANT, numVoxels, data->falloff);
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");   
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");
@@ -953,7 +713,7 @@ node_update
    }
    
    data->coordinateMethod = AiNodeGetInt(node, "coordinate_method");
-   if (data->coordinateMethod == CM_GRID && (data->coordinates.data == 0))
+   if ((data->coordinateMethod == CM_GRID) && data->fluidData->coordinatesEmpty())
       data->coordinateMethod = CM_FIXED;
 }
 
@@ -962,269 +722,6 @@ node_finish
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
    
    delete data;
-}
-
-template <typename T>
-T MonotonicCubicInterpolant(const T& f1, const T& f2, const T& f3, const T& f4,
-                          float t)
-{
-   return GetDefaultValue<T>();
-}
-
-template <>
-float MonotonicCubicInterpolant<float>(const float& f1, const float& f2, const float& f3, const float& f4, 
-                                       float t)
-{
-  float d_k = .5f * (f3 - f1);
-  float d_k1 = .5f * (f4 - f2);
-  const float delta_k = f3 - f2;
-
-  if (delta_k == 0.f) {
-    d_k = 0.f;
-    d_k1 = 0.f;
-  }
-
-  const float a0 = f2;
-  const float a1 = d_k;
-  const float a2 = (3.f * delta_k) - (2.f * d_k) - d_k1;
-  const float a3 = d_k + d_k1 - (2.f * delta_k);
-
-  const float t1 = t;
-  const float t2 = t1 * t1;
-  const float t3 = t2 * t1;
-
-  return a3 * t3 + a2 * t2 + a1 * t1 + a0;
-}
-
-template <> // specialize this later, maybe the compiler can use SSE better that way
-AtRGB MonotonicCubicInterpolant(const AtRGB& f1, const AtRGB& f2, const AtRGB& f3, const AtRGB& f4,
-                                float t)
-{
-   AtRGB ret = {MonotonicCubicInterpolant(f1.r, f2.r, f3.r, f4.r, t),
-      MonotonicCubicInterpolant(f1.g, f2.g, f3.g, f4.g, t),
-      MonotonicCubicInterpolant(f1.b, f2.b, f3.b, f4.b, t)
-   };
-   return ret;
-}
-
-template <>
-AtVector MonotonicCubicInterpolant(const AtVector& f1, const AtVector& f2, const AtVector& f3, const AtVector& f4,
-                                float t)
-{
-   AtVector ret = {MonotonicCubicInterpolant(f1.x, f2.x, f3.x, f4.x, t),
-      MonotonicCubicInterpolant(f1.y, f2.y, f3.y, f4.y, t),
-      MonotonicCubicInterpolant(f1.z, f2.z, f3.z, f4.z, t)
-   };
-   return ret;
-}
-
-template <typename T>
-T Filter(const MayaFluidData* data, const AtVector& lPt, const ArrayDescription<T>& arrayDesc)
-{
-   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
-   if (arrayDesc.isGradient)
-   {
-      switch(arrayDesc.gradientType)
-      {
-         case CG_CONSTANT:
-            return GetConstantValue<T>();
-         case CG_X_GRADIENT:
-            return ConvertFloat<T>(1.f - lPt.x);
-         case CG_Y_GRADIENT:
-            return ConvertFloat<T>(1.f - lPt.y);
-         case CG_Z_GRADIENT:
-            return ConvertFloat<T>(1.f - lPt.z);
-         case CG_NX_GRADIENT:
-            return ConvertFloat<T>(lPt.x);
-         case CG_NY_GRADIENT:
-            return ConvertFloat<T>(lPt.y);
-         case CG_NZ_GRADIENT:
-            return ConvertFloat<T>(lPt.z);
-         case CG_CENTER_GRADIENT:
-            return ConvertFloat<T>(1.f - 1.41421356f * AiV3Length(lPt - middlePoint));
-         default:
-            return GetDefaultValue<T>();
-      }
-
-   }
-   else if (data->filterType == FT_CLOSEST)
-   {
-      if (arrayDesc.data == 0)
-         return GetDefaultValue<T>();
-      if (arrayDesc.single)
-         return *arrayDesc.data;
-      // position in the voxel grid
-      const AtVector fc = {lPt.x * (float)data->xres, lPt.y * (float)data->yres, lPt.z * (float)data->zres};
-      // voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, data->xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, data->yres - 1);
-      const int lcz = CLAMP((int)fc.z, 0, data->zres - 1);
-      return arrayDesc.data[lcx + lcy * data->xres + lcz * data->xres * data->yres];
-   }
-   else if (data->filterType == FT_LINEAR)
-   {
-      if (arrayDesc.data == 0)
-         return GetDefaultValue<T>();
-      if (arrayDesc.single)
-         return *arrayDesc.data;
-      // position in the voxel grid
-      const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
-
-      // lower voxel coordiantes
-      const int lcx = CLAMP((int)fc.x, 0, data->xres - 1);
-      const int lcy = CLAMP((int)fc.y, 0, data->yres - 1);
-      const int lcz = CLAMP((int)fc.z, 0, data->zres - 1);
-
-      // higher voxel coordinates
-      const int hcx = MIN(lcx + 1, data->xres - 1);
-      const int hcy = MIN(lcy + 1, data->yres - 1);
-      const int hcz = MIN(lcz + 1, data->zres - 1);
-
-      // weight for the lower coordinates
-      const AtVector pc = {fc.x - (float)lcx, fc.y - (float)lcy, fc.z - (float)lcz};
-      // weight for the upper coordinates
-      const AtVector npc = {1.f - pc.x, 1.f - pc.y, 1.f - pc.z};
-      const int xres = data->xres;
-      const int xyres = xres * data->yres;
-      // sample coordinates
-      const int c000 = lcx + lcy * xres + lcz * xyres;
-      const int c010 = lcx + hcy * xres + lcz * xyres;
-      const int c001 = lcx + lcy * xres + hcz * xyres;
-      const int c011 = lcx + hcy * xres + hcz * xyres;
-      const int c100 = hcx + lcy * xres + lcz * xyres;
-      const int c110 = hcx + hcy * xres + lcz * xyres;
-      const int c101 = hcx + lcy * xres + hcz * xyres;
-      const int c111 = hcx + hcy * xres + hcz * xyres;
-
-      return ((arrayDesc.data[c000] * npc.y + arrayDesc.data[c010] * pc.y) * npc.x + 
-              (arrayDesc.data[c110] * pc.y + arrayDesc.data[c100] * npc.y) * pc.x) * npc.z +
-             ((arrayDesc.data[c001] * npc.y  + arrayDesc.data[c011] * pc.y) * npc.x +
-              (arrayDesc.data[c111] * pc.y + arrayDesc.data[c101] * npc.y) * pc.x ) * pc.z;
-   }
-   else
-   {
-      if (arrayDesc.data == 0)
-         return GetDefaultValue<T>();
-      if (arrayDesc.single)
-         return *arrayDesc.data;
-      // position in the voxel grid
-      const AtVector fc = {lPt.x * (float)data->xres - .5f, lPt.y * (float)data->yres - .5f, lPt.z * (float)data->zres - .5f};
-      // lower voxel coordiantes
-      const int t2x = CLAMP((int)fc.x, 0, data->xres - 1);
-      const int t2y = CLAMP((int)fc.y, 0, data->yres - 1);
-      const int t2z = CLAMP((int)fc.z, 0, data->zres - 1);
-      
-      const AtVector t = {fc.x - (float)t2x, fc.y - (float)t2y, fc.z - (float)t2z};
-      
-      const int t1x = MAX(t2x - 1, 0);
-      const int t1y = MAX(t2y - 1, 0);
-      const int t1z = MAX(t2z - 1, 0);
-      
-      const int t3x = MIN(t2x + 1, data->xres - 1);
-      const int t3y = MIN(t2y + 1, data->yres - 1);
-      const int t3z = MIN(t2z + 1, data->zres - 1);
-      
-      const int t4x = MIN(t3x + 1, data->xres - 1);
-      const int t4y = MIN(t3y + 1, data->yres - 1);
-      const int t4z = MIN(t3z + 1, data->zres - 1);
-      const int xres = data->xres;
-      const int xyres = xres * data->yres;
-      
-      const T z11 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t1y * xres + t1z * xyres],
-              arrayDesc.data[t1x + t1y * xres + t2z * xyres],
-              arrayDesc.data[t1x + t1y * xres + t3z * xyres],
-              arrayDesc.data[t1x + t1y * xres + t4z * xyres], t.z);
-      
-      const T z12 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t2y * xres + t1z * xyres],
-              arrayDesc.data[t1x + t2y * xres + t2z * xyres],
-              arrayDesc.data[t1x + t2y * xres + t3z * xyres],
-              arrayDesc.data[t1x + t2y * xres + t4z * xyres], t.z);
-      
-      const T z13 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t3y * xres + t1z * xyres],
-              arrayDesc.data[t1x + t3y * xres + t2z * xyres],
-              arrayDesc.data[t1x + t3y * xres + t3z * xyres],
-              arrayDesc.data[t1x + t3y * xres + t4z * xyres], t.z);
-      
-      const T z14 = MonotonicCubicInterpolant(arrayDesc.data[t1x + t4y * xres + t1z * xyres],
-              arrayDesc.data[t1x + t4y * xres + t2z * xyres],
-              arrayDesc.data[t1x + t4y * xres + t3z * xyres],
-              arrayDesc.data[t1x + t4y * xres + t4z * xyres], t.z);
-      
-      const T z21 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t1y * xres + t1z * xyres],
-              arrayDesc.data[t2x + t1y * xres + t2z * xyres],
-              arrayDesc.data[t2x + t1y * xres + t3z * xyres],
-              arrayDesc.data[t2x + t1y * xres + t4z * xyres], t.z);
-      
-      const T z22 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t2y * xres + t1z * xyres],
-              arrayDesc.data[t2x + t2y * xres + t2z * xyres],
-              arrayDesc.data[t2x + t2y * xres + t3z * xyres],
-              arrayDesc.data[t2x + t2y * xres + t4z * xyres], t.z);
-      
-      const T z23 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t3y * xres + t1z * xyres],
-              arrayDesc.data[t2x + t3y * xres + t2z * xyres],
-              arrayDesc.data[t2x + t3y * xres + t3z * xyres],
-              arrayDesc.data[t2x + t3y * xres + t4z * xyres], t.z);
-      
-      const T z24 = MonotonicCubicInterpolant(arrayDesc.data[t2x + t4y * xres + t1z * xyres],
-              arrayDesc.data[t2x + t4y * xres + t2z * xyres],
-              arrayDesc.data[t2x + t4y * xres + t3z * xyres],
-              arrayDesc.data[t2x + t4y * xres + t4z * xyres], t.z);
-      
-      const T z31 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t1y * xres + t1z * xyres],
-              arrayDesc.data[t3x + t1y * xres + t2z * xyres],
-              arrayDesc.data[t3x + t1y * xres + t3z * xyres],
-              arrayDesc.data[t3x + t1y * xres + t4z * xyres], t.z);
-      
-      const T z32 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t2y * xres + t1z * xyres],
-              arrayDesc.data[t3x + t2y * xres + t2z * xyres],
-              arrayDesc.data[t3x + t2y * xres + t3z * xyres],
-              arrayDesc.data[t3x + t2y * xres + t4z * xyres], t.z);
-      
-      const T z33 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t3y * xres + t1z * xyres],
-              arrayDesc.data[t3x + t3y * xres + t2z * xyres],
-              arrayDesc.data[t3x + t3y * xres + t3z * xyres],
-              arrayDesc.data[t3x + t3y * xres + t4z * xyres], t.z);
-      
-      const T z34 = MonotonicCubicInterpolant(arrayDesc.data[t3x + t4y * xres + t1z * xyres],
-              arrayDesc.data[t3x + t4y * xres + t2z * xyres],
-              arrayDesc.data[t3x + t4y * xres + t3z * xyres],
-              arrayDesc.data[t3x + t4y * xres + t4z * xyres], t.z);
-      
-      const T z41 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t1y * xres + t1z * xyres],
-              arrayDesc.data[t4x + t1y * xres + t2z * xyres],
-              arrayDesc.data[t4x + t1y * xres + t3z * xyres],
-              arrayDesc.data[t4x + t1y * xres + t4z * xyres], t.z);
-      
-      const T z42 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t2y * xres + t1z * xyres],
-              arrayDesc.data[t4x + t2y * xres + t2z * xyres],
-              arrayDesc.data[t4x + t2y * xres + t3z * xyres],
-              arrayDesc.data[t4x + t2y * xres + t4z * xyres], t.z);
-      
-      const T z43 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t3y * xres + t1z * xyres],
-              arrayDesc.data[t4x + t3y * xres + t2z * xyres],
-              arrayDesc.data[t4x + t3y * xres + t3z * xyres],
-              arrayDesc.data[t4x + t3y * xres + t4z * xyres], t.z);
-      
-      const T z44 = MonotonicCubicInterpolant(arrayDesc.data[t4x + t4y * xres + t1z * xyres],
-              arrayDesc.data[t4x + t4y * xres + t2z * xyres],
-              arrayDesc.data[t4x + t4y * xres + t3z * xyres],
-              arrayDesc.data[t4x + t4y * xres + t4z * xyres], t.z);
-      
-      const T y1 = MonotonicCubicInterpolant(z11, z12, z13, z14, t.y);
-      const T y2 = MonotonicCubicInterpolant(z21, z22, z23, z24, t.y);
-      const T y3 = MonotonicCubicInterpolant(z31, z32, z33, z34, t.y);
-      const T y4 = MonotonicCubicInterpolant(z41, z42, z43, z44, t.y);
-      
-      return MonotonicCubicInterpolant(y1, y2, y3, y4, t.x);
-   }
-}
-
-inline
-AtVector ConvertToLocalSpace(const MayaFluidData* data, const AtVector& cPt)
-{
-   AtVector lPt;
-   lPt = (cPt - data->dmin) * data->dmax;
-   return lPt;
 }
 
 template <typename T, bool M, bool G>
@@ -1250,19 +747,19 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = 1.f - 1.41421356f * AiV3Length(lPt - middlePoint);
          break;
       case GT_DENSITY:
-         gradientValue = Filter(data, lPt, data->density);
+         gradientValue = data->fluidData->readDensity(lPt, data->filterType);
          break;
       case GT_TEMPERATURE:
-         gradientValue = Filter(data, lPt, data->temperature);
+         gradientValue = data->fluidData->readTemperature(lPt, data->filterType);
          break;
       case GT_FUEL:
-         gradientValue = Filter(data, lPt, data->fuel);
+         gradientValue = data->fluidData->readFuel(lPt, data->filterType);
          break;
       case GT_PRESSURE:
-         gradientValue = Filter(data, lPt, data->pressure);
+         gradientValue = data->fluidData->readPressure(lPt, data->filterType);
          break;
       case GT_SPEED:
-         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(Filter(data, lPt, data->velocity) * data->velocityScale));
+         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(data->fluidData->readVelocity(lPt, data->filterType) * data->velocityScale));
          break;
       default:
          return GetDefaultValue<T>() * texture;
@@ -1379,7 +876,7 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float edg
          return DropoffGradient(cPt.z * .5f + .5f, edgeDropoff);
       case DS_USE_FALLOFF_GRID:
          {
-            const float d = Filter(data, lPt, data->falloff);
+            const float d = data->fluidData->readFalloff(lPt, data->filterType);
             if (d > 0.f && edgeDropoff < 0.9999f)
                return powf(d, edgeDropoff / (1.f - edgeDropoff));
             else
@@ -1394,7 +891,7 @@ shader_evaluate
 {
    const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
    
-   const AtVector lPt = ConvertToLocalSpace(data, sg->Po);
+   const AtVector lPt = data->fluidData->ConvertToLocalSpace(sg->Po);
 
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
@@ -1420,7 +917,7 @@ shader_evaluate
       {
          const AtVector oldP = sg->P;
          const AtVector oldPo = sg->Po;
-         sg->P = Filter(data, lPt, data->coordinates);
+         sg->P = data->fluidData->readCoordinates(lPt, data->filterType);
          sg->Po = sg->P;
          AiShaderEvaluate(data->volumeTexture, sg);
          sg->P = oldP;
@@ -1440,7 +937,7 @@ shader_evaluate
    {
       AtVector P;
       if (data->coordinateMethod == CM_GRID)
-         P = Filter(data, lPt, data->coordinates);
+         P = data->fluidData->readCoordinates(lPt, data->filterType);
       else
          P = sg->Po;
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
