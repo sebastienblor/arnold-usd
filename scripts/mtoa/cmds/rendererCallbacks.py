@@ -36,45 +36,52 @@ def aiNodeCanBeUsedAsMaterialCallback(nodeId, nodeOwner ) :
         return 0
 
 # Add the callbacks
+def registerCallbacks():
+    if cmds.about(batch=True):
+        return
+    cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
+                   hook="hyperShadePanelBuildCreateMenu",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
-               hook="hyperShadePanelBuildCreateMenu",
-               owner="arnold")
+    cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateSubMenuCallback,
+                   hook="hyperShadePanelBuildCreateSubMenu",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateSubMenuCallback,
-               hook="hyperShadePanelBuildCreateSubMenu",
-               owner="arnold")
+    cmds.callbacks(addCallback=aiCreateRenderNodeSelectNodeCategoriesCallback,
+                   hook="createRenderNodeSelectNodeCategories",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiCreateRenderNodeSelectNodeCategoriesCallback,
-               hook="createRenderNodeSelectNodeCategories",
-               owner="arnold")
+    # FIXME: Maya doc is wrong
+    #cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
+    #               hook="addToRenderNodeTreeLister",
+    #              owner="arnold")
+    # Should be this instead
 
-# FIXME: Maya doc is wrong
-#cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
-#               hook="addToRenderNodeTreeLister",
-#              owner="arnold")
-# Should be this instead
+    cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
+                   hook="renderNodeClassification",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
-               hook="renderNodeClassification",
-               owner="arnold")
+    cmds.callbacks(addCallback=aiBuildRenderNodeTreeListerContentCallback,
+                   hook="buildRenderNodeTreeListerContent",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiBuildRenderNodeTreeListerContentCallback,
-               hook="buildRenderNodeTreeListerContent",
-               owner="arnold")
+    cmds.callbacks(addCallback=aiCreateRenderNodePluginChangeCallback,
+                   hook="createRenderNodePluginChange",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiCreateRenderNodePluginChangeCallback,
-               hook="createRenderNodePluginChange",
-               owner="arnold")
+    cmds.callbacks(addCallback=templates.loadArnoldTemplate,
+                   hook="AETemplateCustomContent",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=templates.loadArnoldTemplate,
-               hook="AETemplateCustomContent",
-               owner="arnold")
+    cmds.callbacks(addCallback=aiProvideClassificationStringsForFilteredTreeListerCallback,
+                   hook="provideClassificationStringsForFilteredTreeLister",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiProvideClassificationStringsForFilteredTreeListerCallback,
-               hook="provideClassificationStringsForFilteredTreeLister",
-               owner="arnold")
+    cmds.callbacks(addCallback=aiNodeCanBeUsedAsMaterialCallback,
+                   hook="nodeCanBeUsedAsMaterial",
+                   owner="arnold")
 
-cmds.callbacks(addCallback=aiNodeCanBeUsedAsMaterialCallback,
-               hook="nodeCanBeUsedAsMaterial",
-               owner="arnold")
+def clearCallbacks():
+    if cmds.about(batch=True):
+        return
+    cmds.callbacks(clearAllCallbacks=True, owner="arnold")

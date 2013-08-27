@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 import pymel.versions as versions
 import arnoldShelf
+import rendererCallbacks
 
 def unregisterArnoldRenderer():
     maya_version = versions.shortName()
@@ -9,4 +10,4 @@ def unregisterArnoldRenderer():
     cmds.deleteUI('ArnoldMenu', menu=True)
     cmds.renderer('arnold', unregisterRenderer=True)
     arnoldShelf.removeArnoldShelf()
-
+    rendererCallbacks.clearCallbacks()
