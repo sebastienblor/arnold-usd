@@ -87,8 +87,6 @@ node_parameters
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiMetaDataSetBool(mds, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
-
-   CMayaFluidData::InitializeShaderParameters(params);
    
    AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
    AiParameterArray("color_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
@@ -163,6 +161,8 @@ node_parameters
    AiParameterFlt("edge_dropoff", 0.05f);
 
    AiParameterVec("velocity_scale", 1.f, 1.f, 1.f);
+
+   CMayaFluidData::InitializeShaderParameters(params);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -173,30 +173,6 @@ enum MayaFluidParams{
    
    p_transparency,
    p_phase_func,
-   
-   p_xres,
-   p_yres,
-   p_zres,
-
-   p_min,
-   p_max,
-   
-   p_density_method,
-   p_density_gradient,
-   p_density,
-   p_fuel_method,
-   p_fuel_gradient,
-   p_fuel,
-   p_temperature_method,
-   p_temperature_gradient,
-   p_temperature,
-   p_pressure,
-   p_velocity_method,
-   p_velocty_gradient,
-   p_velocity,
-   p_colors,
-   p_coordinates,
-   p_falloff,
    
    p_color_gradient_type,
    p_color_gradient_positions,
