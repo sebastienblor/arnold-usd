@@ -872,6 +872,10 @@ shader_evaluate
    const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
 
    const CMayaFluidData* fluidData = data->fluidData;
+
+   void* fluidDataContainer;
+   if (AiUDataGetPtr("mtoa_fluid_data", &fluidDataContainer))
+      fluidData = (const CMayaFluidData*)AiNodeGetLocalData((AtNode*)fluidDataContainer);      
    
    const AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
 
