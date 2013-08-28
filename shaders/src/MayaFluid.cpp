@@ -873,9 +873,9 @@ shader_evaluate
 
    const CMayaFluidData* fluidData = data->fluidData;
 
-   void* fluidDataContainer;
-   if (AiUDataGetPtr("mtoa_fluid_data", &fluidDataContainer))
-      fluidData = (const CMayaFluidData*)AiNodeGetLocalData((AtNode*)fluidDataContainer);      
+   AtNode* fluidDataContainer = 0;
+   if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
+      fluidData = (const CMayaFluidData*)AiNodeGetLocalData(fluidDataContainer);
    
    const AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
 

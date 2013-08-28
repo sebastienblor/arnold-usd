@@ -462,10 +462,10 @@ if system.os() == 'windows':
                                                       duplicate   = 0,
                                                       exports     = 'env')
 
-    [MTOA_PROCS, MTOA_PROCS_PRJ] = env.SConscript(os.path.join('procedurals', 'SConscript'),
-                                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
-                                                  duplicate   = 0,
-                                                  exports     = 'env')
+    MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
+                                              variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
+                                              duplicate   = 0,
+                                              exports     = 'env')
 
     INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
                                   srcs = [],
@@ -805,7 +805,6 @@ if system.os() == 'windows':
     env.Depends(SOLUTION, MTOA_PRJ)
     env.Depends(SOLUTION, MTOA_API_PRJ)
     env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
-    env.Depends(SOLUTION, MTOA_PROCS_PRJ)
     env.Depends(SOLUTION, INSTALL_PRJ)
     env.AlwaysBuild(INSTALL_PRJ)
     top_level_alias(env, 'solution', SOLUTION)
