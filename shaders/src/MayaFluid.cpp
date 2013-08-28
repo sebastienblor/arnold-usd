@@ -783,12 +783,12 @@ float DropoffGradient(float value, float edgeDropoff)
 }
 
 inline
-float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float edgeDropoff)
+float CalculateDropoff(const CMayaFluidData* data, const AtVector& lPt, int dropoffShape, float edgeDropoff, int filterType)
 {
-   if ((data->dropoffShape == DS_OFF))
+   if (dropoffShape == DS_OFF)
       return 1.f;
    AtVector cPt = (lPt - AI_V3_HALF) * 2.f;
-   switch(data->dropoffShape)
+   switch(dropoffShape)
    {
       case DS_SPHERE:
          {
@@ -856,7 +856,7 @@ float CalculateDropoff(const MayaFluidData* data, const AtVector& lPt, float edg
          return DropoffGradient(cPt.z * .5f + .5f, edgeDropoff);
       case DS_USE_FALLOFF_GRID:
          {
-            const float d = data->fluidData->readFalloff(lPt, data->filterType);
+            const float d = data->readFalloff(lPt, filterType);
             if (d > 0.f && edgeDropoff < 0.9999f)
                return powf(d, edgeDropoff / (1.f - edgeDropoff));
             else
@@ -876,7 +876,7 @@ shader_evaluate
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
 
-   float dropoff = CalculateDropoff(data, lPt, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f))
+   float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType)
                    * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))

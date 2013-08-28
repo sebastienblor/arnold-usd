@@ -82,7 +82,7 @@ CMayaFluidData::~CMayaFluidData()
    coordinates.release();
 }
 
-AtVector CMayaFluidData::ConvertToLocalSpace(const AtVector& cPt)
+AtVector CMayaFluidData::ConvertToLocalSpace(const AtVector& cPt) const
 {
    AtVector lPt;
    lPt = (cPt - dmin) * dmax;
@@ -387,54 +387,54 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    }
 }
 
-float CMayaFluidData::readDensity(const AtVector& lPt, int filterType)
+float CMayaFluidData::readDensity(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, density, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readTemperature(const AtVector& lPt, int filterType)
+float CMayaFluidData::readTemperature(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, temperature, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readFuel(const AtVector& lPt, int filterType)
+float CMayaFluidData::readFuel(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, fuel, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readPressure(const AtVector& lPt, int filterType)
+float CMayaFluidData::readPressure(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, pressure, filterType, xres, yres, zres);
 }
 
-AtVector CMayaFluidData::readVelocity(const AtVector& lPt, int filterType)
+AtVector CMayaFluidData::readVelocity(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, velocity, filterType, xres, yres, zres);
 }
 
-AtRGB CMayaFluidData::readColors(const AtVector& lPt, int filterType)
+AtRGB CMayaFluidData::readColors(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, colors, filterType, xres, yres, zres);
 }
 
-AtVector CMayaFluidData::readCoordinates(const AtVector& lPt, int filterType)
+AtVector CMayaFluidData::readCoordinates(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, coordinates, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readFalloff(const AtVector& lPt, int filterType)
+float CMayaFluidData::readFalloff(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, falloff, filterType, xres, yres, zres);
 }
 
-bool CMayaFluidData::coordinatesEmpty()
+bool CMayaFluidData::coordinatesEmpty() const
 {
    return coordinates.data == 0;
 }
 
 void CMayaFluidData::InitializeShaderParameters(AtList* params)
 {
-	AiParameterInt("xres", 0);
+	 AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
    AiParameterInt("zres", 0);
    

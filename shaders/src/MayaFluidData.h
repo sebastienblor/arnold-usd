@@ -102,18 +102,18 @@ public:
       AiFree(p);
    }
 
-   AtVector ConvertToLocalSpace(const AtVector& cPt);
+   AtVector ConvertToLocalSpace(const AtVector& cPt) const;
 
-   float readDensity(const AtVector& lPt, int filterType);
-   float readTemperature(const AtVector& lPt, int filterType);
-   float readFuel(const AtVector& lPt, int filterType);
-   float readPressure(const AtVector& lPt, int filterType);
-   AtVector readVelocity(const AtVector& lPt, int filterType);
-   AtRGB readColors(const AtVector& lPt, int filterType);
-   AtVector readCoordinates(const AtVector& lPt, int filterType);
-   float readFalloff(const AtVector& lPt, int filterType);
+   float readDensity(const AtVector& lPt, int filterType) const;
+   float readTemperature(const AtVector& lPt, int filterType) const;
+   float readFuel(const AtVector& lPt, int filterType) const;
+   float readPressure(const AtVector& lPt, int filterType) const;
+   AtVector readVelocity(const AtVector& lPt, int filterType) const;
+   AtRGB readColors(const AtVector& lPt, int filterType) const;
+   AtVector readCoordinates(const AtVector& lPt, int filterType) const;
+   float readFalloff(const AtVector& lPt, int filterType) const;
 
-   bool coordinatesEmpty();
+   bool coordinatesEmpty() const;
 private:
    int xres, yres, zres;
    AtVector dmin, dmax;
