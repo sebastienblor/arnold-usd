@@ -434,7 +434,7 @@ bool CMayaFluidData::coordinatesEmpty() const
 
 void CMayaFluidData::InitializeShaderParameters(AtList* params)
 {
-	 AiParameterInt("xres", 0);
+	AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
    AiParameterInt("zres", 0);
    

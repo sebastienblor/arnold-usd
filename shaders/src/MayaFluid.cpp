@@ -693,7 +693,7 @@ node_update
    }
    
    data->coordinateMethod = AiNodeGetInt(node, "coordinate_method");
-   if ((data->coordinateMethod == CM_GRID) && data->fluidData->coordinatesEmpty())
+   if ((data->coordinateMethod == CM_GRID) && data->fluidData->coordinatesEmpty()) // TODO!
       data->coordinateMethod = CM_FIXED;
 }
 
@@ -705,7 +705,7 @@ node_finish
 }
 
 template <typename T, bool M, bool G>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, float texture)
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const CMayaFluidData* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, float texture)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
@@ -727,19 +727,19 @@ T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const AtVector& lPt, 
          gradientValue = 1.f - 1.41421356f * AiV3Length(lPt - middlePoint);
          break;
       case GT_DENSITY:
-         gradientValue = data->fluidData->readDensity(lPt, data->filterType);
+         gradientValue = fluidData->readDensity(lPt, data->filterType);
          break;
       case GT_TEMPERATURE:
-         gradientValue = data->fluidData->readTemperature(lPt, data->filterType);
+         gradientValue = fluidData->readTemperature(lPt, data->filterType);
          break;
       case GT_FUEL:
-         gradientValue = data->fluidData->readFuel(lPt, data->filterType);
+         gradientValue = fluidData->readFuel(lPt, data->filterType);
          break;
       case GT_PRESSURE:
-         gradientValue = data->fluidData->readPressure(lPt, data->filterType);
+         gradientValue = fluidData->readPressure(lPt, data->filterType);
          break;
       case GT_SPEED:
-         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(data->fluidData->readVelocity(lPt, data->filterType) * data->velocityScale));
+         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(fluidData->readVelocity(lPt, data->filterType) * data->velocityScale));
          break;
       default:
          return GetDefaultValue<T>() * texture;
@@ -870,18 +870,20 @@ float CalculateDropoff(const CMayaFluidData* data, const AtVector& lPt, int drop
 shader_evaluate
 {
    const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
+
+   const CMayaFluidData* fluidData = data->fluidData;
    
-   const AtVector lPt = data->fluidData->ConvertToLocalSpace(sg->Po);
+   const AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
 
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
 
-   float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType)
+   float dropoff = CalculateDropoff(fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType)
                    * AiV3Length(scaledDir);
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, 1.0f)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, data, fluidData, lPt, data->opacityGradient, 1.0f)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -897,7 +899,7 @@ shader_evaluate
       {
          const AtVector oldP = sg->P;
          const AtVector oldPo = sg->Po;
-         sg->P = data->fluidData->readCoordinates(lPt, data->filterType);
+         sg->P = fluidData->readCoordinates(lPt, data->filterType);
          sg->Po = sg->P;
          AiShaderEvaluate(data->volumeTexture, sg);
          sg->P = oldP;
@@ -917,7 +919,7 @@ shader_evaluate
    {
       AtVector P;
       if (data->coordinateMethod == CM_GRID)
-         P = data->fluidData->readCoordinates(lPt, data->filterType);
+         P = fluidData->readCoordinates(lPt, data->filterType);
       else
          P = sg->Po;
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
@@ -1045,17 +1047,17 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, data, fluidData, lPt, data->opacityGradient, opacityNoise)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = MAX(0.f, GetValue(sg, data, lPt, data->opacityGradient, opacityNoise)) * dropoff * data->transparency;
-   AtRGB color = GetValue(sg, data, lPt, data->colorGradient, colorNoise);
+   const AtRGB opacity = MAX(0.f, GetValue(sg, data, fluidData, lPt, data->opacityGradient, opacityNoise)) * dropoff * data->transparency;
+   AtRGB color = GetValue(sg, data, fluidData, lPt, data->colorGradient, colorNoise);
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
    color.b = MAX(0.f, color.b);
-   AtRGB incandescence = GetValue(sg, data, lPt, data->incandescenceGradient, incandNoise);
+   AtRGB incandescence = GetValue(sg, data, fluidData, lPt, data->incandescenceGradient, incandNoise);
    incandescence.r = MAX(0.f, incandescence.r);
    incandescence.g = MAX(0.f, incandescence.g);
    incandescence.b = MAX(0.f, incandescence.b);
