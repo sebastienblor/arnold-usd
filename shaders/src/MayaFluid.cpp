@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <map>
 
 #include "MayaUtils.h"
 #include "MayaFluidData.h"
@@ -574,6 +575,8 @@ struct MayaFluidData{
    
    AtNode* volumeTexture;
    CMayaFluidData* fluidData;
+
+   std::map<AtNode*, CMayaFluidData*> fluidDataMap[AI_MAX_THREADS];
    
    float colorTexGain;
    float incandTexGain;
@@ -869,13 +872,20 @@ float CalculateDropoff(const CMayaFluidData* data, const AtVector& lPt, int drop
 
 shader_evaluate
 {
-   const MayaFluidData* data = (const MayaFluidData*)AiNodeGetLocalData(node);
+   MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
 
-   const CMayaFluidData* fluidData = data->fluidData;
+   CMayaFluidData* fluidData = data->fluidData;
 
-   AtNode* fluidDataContainer = 0;
-   if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
-      fluidData = (const CMayaFluidData*)AiNodeGetLocalData(fluidDataContainer);
+   std::map<AtNode*, CMayaFluidData*>::iterator it = data->fluidDataMap[sg->tid].find(sg->Op);
+   if (it == data->fluidDataMap[sg->tid].end())
+   {
+      AtNode* fluidDataContainer = 0;
+      if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
+         fluidData = (CMayaFluidData*)AiNodeGetLocalData(fluidDataContainer);
+      data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData*>(sg->Op, fluidData));         
+   }
+   else
+      fluidData = it->second;
    
    const AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
 
