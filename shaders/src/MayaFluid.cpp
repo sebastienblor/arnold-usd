@@ -970,43 +970,43 @@ shader_evaluate
                {
                  float waveVal = 0.0f;
 
-                 for (int j=0; j < data->numWaves; ++j)
-                 {
-                    float tmp = (float)AI_PITIMES2 * (0.5f * (1 + i) * (1 + j));
+                  for (int j=0; j < data->numWaves; ++j)
+                  {
+                     float tmp = (float)AI_PITIMES2 * (0.5f * (1 + i) * (1 + j));
 
-                    AtVector v, d;
+                     AtVector v, d;
 
-                    AiV3Create(v, tmp, 0, 0);
-                    d.x = AiPerlin3(v);
+                     AiV3Create(v, tmp, 0, 0);
+                     d.x = AiPerlin3(v);
 
-                    AiV3Create(v, 0, tmp, 0);
-                    d.y = AiPerlin3(v);
+                     AiV3Create(v, 0, tmp, 0);
+                     d.y = AiPerlin3(v);
 
-                    AiV3Create(v, 0, 0, tmp);
-                    d.z = AiPerlin3(v);
+                     AiV3Create(v, 0, 0, tmp);
+                     d.z = AiPerlin3(v);
 
-                    AiV3Normalize(d, d);
+                     AiV3Normalize(d, d);
 
-                    waveVal += cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
-                 }
+                     waveVal += cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
+                  }
 
-                 waveVal /= (float)data->numWaves;
+                  waveVal /= (float)data->numWaves;
 
-                 if (data->inflection)
-                 {
-                    waveVal = fabs(waveVal);
-                 }
+                  if (data->inflection)
+                  {
+                     waveVal = fabs(waveVal);
+                  }
 
-                 volumeNoise += amp * waveVal;
+                  volumeNoise += amp * waveVal;
 
-                 amp *= ratio;
-                 P *= frequencyRatio;
-                 textureTime *= timeRatio;
+                  amp *= ratio;
+                  P *= frequencyRatio;
+                  textureTime *= timeRatio;
                }
 
                if (!data->inflection)
                {
-                 volumeNoise = 0.5f * volumeNoise + 0.5f;
+                  volumeNoise = 0.5f * volumeNoise + 0.5f;
                }
             }
             break;
