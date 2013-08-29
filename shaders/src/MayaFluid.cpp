@@ -577,6 +577,7 @@ struct MayaFluidData{
    CMayaFluidData* fluidData;
 
    std::map<AtNode*, CMayaFluidData*> fluidDataMap[AI_MAX_THREADS];
+   std::pair<AtNode*, CMayaFluidData*> fluidDataCache[AI_MAX_THREADS];
    
    float colorTexGain;
    float incandTexGain;
@@ -627,6 +628,13 @@ node_initialize
 node_update
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
+
+   for (int i = 0; i < AI_MAX_THREADS; ++i)
+   {
+      data->fluidDataCache[i].first = 0;
+      data->fluidDataCache[i].second = 0;
+      data->fluidDataMap[i].clear();
+   }
    
    data->filterType = AiNodeGetInt(node, "filter_type");
    
@@ -696,8 +704,6 @@ node_update
    }
    
    data->coordinateMethod = AiNodeGetInt(node, "coordinate_method");
-   if ((data->coordinateMethod == CM_GRID) && data->fluidData->coordinatesEmpty()) // TODO!
-      data->coordinateMethod = CM_FIXED;
 }
 
 node_finish
@@ -876,16 +882,22 @@ shader_evaluate
 
    CMayaFluidData* fluidData = data->fluidData;
 
-   std::map<AtNode*, CMayaFluidData*>::iterator it = data->fluidDataMap[sg->tid].find(sg->Op);
-   if (it == data->fluidDataMap[sg->tid].end())
+   if (sg->Op == data->fluidDataCache[sg->tid].first)
+      fluidData = data->fluidDataCache[sg->tid].second;
    {
-      AtNode* fluidDataContainer = 0;
-      if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
-         fluidData = (CMayaFluidData*)AiNodeGetLocalData(fluidDataContainer);
-      data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData*>(sg->Op, fluidData));         
+      std::map<AtNode*, CMayaFluidData*>::iterator it = data->fluidDataMap[sg->tid].find(sg->Op);
+      if (it == data->fluidDataMap[sg->tid].end())
+      {
+         AtNode* fluidDataContainer = 0;
+         if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
+            fluidData = (CMayaFluidData*)AiNodeGetLocalData(fluidDataContainer);
+         data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData*>(sg->Op, fluidData));         
+      }
+      else
+         fluidData = it->second;
+      data->fluidDataCache[sg->tid].first = sg->Op;
+      data->fluidDataCache[sg->tid].second = fluidData;
    }
-   else
-      fluidData = it->second;
    
    const AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
 
@@ -909,7 +921,7 @@ shader_evaluate
    sg->area = 0.f;
    if (data->volumeTexture)
    {
-      if (data->coordinateMethod == CM_GRID)
+      if ((data->coordinateMethod == CM_GRID) && !fluidData->coordinatesEmpty())
       {
          const AtVector oldP = sg->P;
          const AtVector oldPo = sg->Po;
@@ -932,7 +944,7 @@ shader_evaluate
    else if (data->textureNoise) // TODO optimize these evaluations based on raytype!
    {
       AtVector P;
-      if (data->coordinateMethod == CM_GRID)
+      if ((data->coordinateMethod == CM_GRID) && !fluidData->coordinatesEmpty())
          P = fluidData->readCoordinates(lPt, data->filterType);
       else
          P = sg->Po;

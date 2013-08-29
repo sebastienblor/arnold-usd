@@ -49,10 +49,7 @@ CMayaFluidData::CMayaFluidData(AtNode* node)
    const int numVoxels = xres * yres * zres;
    
    if (numVoxels == 0)
-   {
-      AiMsgWarning("[aiMayaFluid] The resolution of the fluid grid is zero!");
       return;
-   }
 
    dmin = AiNodeGetVec(node, "min");
    dmax = AiNodeGetVec(node, "max");
