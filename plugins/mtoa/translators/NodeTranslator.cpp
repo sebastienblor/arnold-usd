@@ -737,13 +737,15 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          std::vector< CDagTranslator * > translatorsToUpdate;
          bool reexport = true;
          MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
-         for(unsigned int i = 0; i < dagSetMembersPlug.numElements(); i++)
+         const unsigned int numElements = dagSetMembersPlug.numElements();
+         for(unsigned int i = 0; i < numElements; i++)
          {
             MPlug a = dagSetMembersPlug[i];
             MPlugArray connectedPlugs;
             a.connectedTo(connectedPlugs,true,false);
 
-            for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+            const unsigned int connectedPlugsLength = connectedPlugs.length();
+            for(unsigned int j = 0; j < connectedPlugsLength; j++)
             {
                MPlug connection = connectedPlugs[j];
                MObject parent = connection.node();
@@ -808,15 +810,17 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
 
             MFnDependencyNode shadingEngineDNode(shadingEngine);
             MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
+            const unsigned int numElements = dagSetMembersPlug.numElements();
             // For each geometry connected to the shading engine
-            for(unsigned int i = 0; i < dagSetMembersPlug.numElements(); i++)
+            for(unsigned int i = 0; i < numElements; i++)
             {
                MPlug a = dagSetMembersPlug[i];
                MPlugArray connectedPlugs;
                a.connectedTo(connectedPlugs,true,false);;
 
                // This should be only one connection; connectedPlugs.length() should be 0 or 1
-               for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+               const unsigned int connectedPlugsLength = connectedPlugs.length();
+               for(unsigned int j = 0; j < connectedPlugsLength; j++)
                {
                   MPlug connection = connectedPlugs[j];
                   MObject parent = connection.node();
