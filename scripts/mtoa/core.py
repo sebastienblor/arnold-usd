@@ -240,8 +240,14 @@ def createOptions():
         displayDriverNode.message.connect(options.drivers, nextAvailable=True)
     elif not options.drivers.inputs():
         pm.connectAttr('defaultArnoldDisplayDriver.message', options.drivers, nextAvailable=True)
-    filterNode.message.connect(options.filter, force=True)
-    driverNode.message.connect(options.driver, force=True)
+    try:
+        pm.connectAttr('%s.message' % filterNode.name(), '%s.filter' % options.name(), force=True)
+    except:
+        pass
+    try:
+        pm.connectAttr('%s.message' % driverNode.name(), '%s.driver' % options.name(), force=True)
+    except:
+        pass
     
 
 #-------------------------------------------------
