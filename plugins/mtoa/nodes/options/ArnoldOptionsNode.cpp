@@ -182,8 +182,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMax(10);
    addAttribute(s_progressive_initial_level);
 
-   s_attributes.MakeInput("physically_based");
-
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_threads_autodetect);
