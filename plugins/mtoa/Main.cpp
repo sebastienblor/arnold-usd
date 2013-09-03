@@ -60,6 +60,8 @@
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
 
+#include <ai.h>
+
 namespace // <anonymous>
 {
 
@@ -506,6 +508,26 @@ namespace // <anonymous>
    }
 } // namespace
 
+int GetStartupLogLevel()
+{
+   const char* env = getenv("MTOA_STARTUP_LOG_VERBOSITY");
+   int baseFlags = AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR;
+   if (env == 0)
+      return AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+   else
+   {
+      int envRes = atoi(env);
+      if (envRes == 1)
+         return AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+      else if (envRes == 2)
+         return AI_LOG_ERRORS | AI_LOG_WARNINGS | AI_LOG_INFO | baseFlags;
+      else if (envRes == 3)
+         return AI_LOG_ALL;
+      else
+         return 0;
+   } 
+}
+
 
 DLLEXPORT MStatus initializePlugin(MObject object)
 {
@@ -524,7 +546,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString metafile = loadpath + "/" + "mtoa.mtd";
    SetMetafile(metafile);
 
-   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
+   ArnoldUniverseBegin(GetStartupLogLevel());
 
    // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
@@ -536,7 +558,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold ass file exporter");
+      AiMsgDebug("Successfully registered Arnold ass file exporter");
    }
    else
    {
@@ -555,7 +577,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold ass file importer");
+      AiMsgDebug("Successfully registered Arnold ass file importer");
    }
    else
    {
@@ -575,7 +597,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered tx texture file");
+      AiMsgDebug("Successfully registered tx texture file");
    }
    else
    {
@@ -591,7 +613,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold swatch renderer");
+      AiMsgDebug("Successfully registered Arnold swatch renderer");
    }
    else
    {
@@ -605,7 +627,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldRender' command");
+      AiMsgDebug("Successfully registered 'arnoldRender' command");
    }
    else
    {
@@ -618,7 +640,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldIpr' command");
+      AiMsgDebug("Successfully registered 'arnoldIpr' command");
    }
    else
    {
@@ -631,7 +653,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldExportAss' command");
+      AiMsgDebug("Successfully registered 'arnoldExportAss' command");
    }
    else
    {
@@ -644,7 +666,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldPlugins' command");
+      AiMsgDebug("Successfully registered 'arnoldPlugins' command");
    }
    else
    {
@@ -658,7 +680,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldListAttributes' command");
+      AiMsgDebug("Successfully registered 'arnoldListAttributes' command");
    }
    else
    {
@@ -672,7 +694,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldTemperatureToColor' command");
+      AiMsgDebug("Successfully registered 'arnoldTemperatureToColor' command");
    }
    else
    {
@@ -686,7 +708,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldFlushCache' command");
+      AiMsgDebug("Successfully registered 'arnoldFlushCache' command");
    }
    else
    {
@@ -699,7 +721,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    status = RegisterArnoldNodes(object);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold nodes");
+      AiMsgDebug("Successfully registered Arnold nodes");
    }
    else
    {
@@ -745,7 +767,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered renderer 'arnold'");
+      AiMsgDebug("Successfully registered renderer 'arnold'");
       MGlobal::displayInfo("Successfully registered renderer 'arnold'");
    }
    else
@@ -772,7 +794,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    // Should be done when render finishes
    CMayaScene::End();
 
-   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
+   ArnoldUniverseBegin(GetStartupLogLevel());
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
