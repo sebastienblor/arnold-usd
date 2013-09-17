@@ -520,6 +520,7 @@ bool CArnoldStandInShape::LoadBoundingBox()
       MPoint min(xmin, ymin, zmin);
       MPoint max(xmax, ymax, zmax);
       geom->bbox = MBoundingBox(min, max);
+      delete []str;
       return true;
    }
    else

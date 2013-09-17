@@ -22,9 +22,12 @@
 #include <cstdlib>
 #include <map>
 #include <iostream>
+#include <fstream>
 
 #include <xgen/XgRenderAPIUtils.h>
 #include "XgArnoldProcedural.h"
+
+
 
 using namespace XGenRenderAPI::Utils;
 using namespace XGenArnold;
@@ -88,13 +91,13 @@ Procedural::Procedural()
 
 Procedural::~Procedural()
 {
-	if( m_patch )
-	{
-		delete m_patch;
+   if( m_patch )
+   {
+      delete m_patch;
       //delete m_mutex;
-		m_patch = NULL;
+      m_patch = NULL;
       //m_mutex = NULL;
-	}
+   }
 }
 
 bool Procedural::nextFace( bbox& b, unsigned int& f )
@@ -104,25 +107,25 @@ bool Procedural::nextFace( bbox& b, unsigned int& f )
    if(m_patch)
       result = m_patch->nextFace( b, f );
    m_mutex->leave();
-	return result;
+   return result;
 }
 
 bool Procedural::initPatchRenderer( const char* in_params )
 {
-	m_mutex->enter();
+   m_mutex->enter();
    m_patch = PatchRenderer::init( (ProceduralCallbacks*)this, in_params );
    /*const char* params = "-debug 1 -warning 1 -stats 1  -shutter 0.0 -file ${XGEN_ROOT}/../scen/untitled__collection9.xgen -palette collection9 -geom ${XGEN_ROOT}/../scen/untitled__collection9.abc -patch pSphere1  -description description10 -fps 24.0 -frame 1.000000";
-	m_patch = PatchRenderer::init( (ProceduralCallbacks*)this, params );*/
+   m_patch = PatchRenderer::init( (ProceduralCallbacks*)this, params );*/
    bool result = (m_patch!=NULL);
-	m_mutex->leave();
-	return result;
+   m_mutex->leave();
+   return result;
 }
 
 bool Procedural::initFaceRenderer( Procedural* pProc, unsigned int f )
 {
-	m_mutex->enter();
+   m_mutex->enter();
    FaceRenderer* tmp_face = FaceRenderer::init( m_patch, f, pProc );
-	bool result = tmp_face!=NULL;
+   bool result = tmp_face!=NULL;
    if(result)
       pProc->m_faces.push_back( tmp_face );
    m_mutex->leave();
@@ -131,82 +134,82 @@ bool Procedural::initFaceRenderer( Procedural* pProc, unsigned int f )
 
 bool Procedural::render()
 {
-	m_mutex->enter();
+   m_mutex->enter();
    for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
       (*it)->render();
    m_mutex->leave();
-	return true;
+   return true;
 }
 
 const char* Procedural::getUniqueName( char* buf, const char* basename )
 {
-	static unsigned int g_counter = 0;
-	sprintf( buf, "%s__%X", basename, g_counter++ );
-	return buf;
+   static unsigned int g_counter = 0;
+   sprintf( buf, "%s__%X", basename, g_counter++ );
+   return buf;
 }
 
 int Procedural::Init(AtNode* node)
 {
-	char buf[512];
+   char buf[512];
 
-	string parameters( AiNodeGetStr( node, "data" ) );
+   string parameters( AiNodeGetStr( node, "data" ) );
 
-	m_options = AiUniverseGetOptions();
-	m_camera = AiUniverseGetCamera();
+   m_options = AiUniverseGetOptions();
+   m_camera = AiUniverseGetCamera();
 
-	// Cleanup Init
-	if( parameters == "cleanup" )
-	{
-		// Noop!
-	}
+   // Cleanup Init
+   if( parameters == "cleanup" )
+   {
+      // Noop!
+   }
 
-	// Patch Init
-	else if( m_patch==NULL && m_faces.size()==0 )
+   // Patch Init
+   else if( m_patch==NULL && m_faces.size()==0 )
     {
 
-		m_node = node;
-		m_shaders = AiNodeGetArray( m_node, "shader" );
+      m_node = node;
+      m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
 
-		string strParentName = AiNodeGetName( m_node );
-		string strParentDso = AiNodeGetStr( m_node, "dso" );
+      string strParentName = AiNodeGetName( m_node );
+      string strParentDso = AiNodeGetStr( m_node, "dso" );
 
-		bool bLoadAtInit = AiNodeGetBool( m_node, "load_at_init" );
+      bool bLoadAtInit = AiNodeGetBool( m_node, "load_at_init" );
 
-		// Create a sphere shape node
-		{
-			m_sphere = AiNode("sphere");
-			AiNodeSetStr( m_sphere, "name", getUniqueName(buf,( strParentName + string("_sphere_shape") ).c_str() ) );
-			AiNodeSetFlt( m_sphere, "radius", 0.5f );
-			AiNodeSetPnt( m_sphere, "center", 0.0f, 0.0f, 0.0f );
-			AiNodeSetInt( m_sphere, "visibility", 0 );
-			m_nodes.push_back( m_sphere );
-		}
+      // Create a sphere shape node
+      {
+         m_sphere = AiNode("sphere");
+         AiNodeSetStr( m_sphere, "name", getUniqueName(buf,( strParentName + string("_sphere_shape") ).c_str() ) );
+         AiNodeSetFlt( m_sphere, "radius", 0.5f );
+         AiNodeSetPnt( m_sphere, "center", 0.0f, 0.0f, 0.0f );
+         AiNodeSetInt( m_sphere, "visibility", 0 );
+         m_nodes.push_back( m_sphere );
+      }
 
-		// This is where we link our callbacks to the PatchRenderer.
-		initPatchRenderer( parameters.c_str() );
+      // This is where we link our callbacks to the PatchRenderer.
+      initPatchRenderer( parameters.c_str() );
 
-		bbox b = {AI_BIG, -AI_BIG, AI_BIG, -AI_BIG, AI_BIG, -AI_BIG};
+      bbox b = {AI_BIG, -AI_BIG, AI_BIG, -AI_BIG, AI_BIG, -AI_BIG};
       bbox total = {AI_BIG, -AI_BIG, AI_BIG, -AI_BIG, AI_BIG, -AI_BIG};
-		unsigned int f = -1;
-		//while( nextFace( b, f ) )
-		{
-			// Skip camera culled bounding boxes.
-			//if( isEmpty( b ) )
-			//	continue;
+      unsigned int f = -1;
+      //while( nextFace( b, f ) )
+      {
+         // Skip camera culled bounding boxes.
+         //if( isEmpty( b ) )
+         //   continue;
 
-			string strFaceProcName = strParentName + string("_face");// + itoa( f );
+         string strFaceProcName = strParentName + string("_face");// + itoa( f );
 
-			Procedural* pProc = new Procedural();
-			pProc->m_node = m_node;
-			pProc->m_sphere = m_sphere;
-			pProc->m_shaders = m_shaders;
+         Procedural* pProc = new Procedural();
+         pProc->m_node = m_node;
+         pProc->m_sphere = m_sphere;
+         pProc->m_shaders = m_shaders;
 
 
          while( nextFace( b, f ) )
          {
             // Skip camera culled bounding boxes.
-			   if( isEmpty( b ) )
-			   	continue;
+            if( isEmpty( b ) )
+               continue;
 
             total.xmin = total.xmin < b.xmin ? total.xmin : b.xmin;
             total.ymin = total.ymin < b.ymin ? total.ymin : b.ymin;
@@ -216,294 +219,294 @@ int Procedural::Init(AtNode* node)
             total.ymax = total.ymax > b.ymax ? total.ymax : b.ymax;
             total.zmax = total.zmax > b.zmax ? total.zmax : b.zmax;
 
-			   initFaceRenderer( pProc, f );
+            initFaceRenderer( pProc, f );
          }
 
-			// Clone ourself, this will help us keep all the user parameters.
-			// We could also provide a back pointer to the original top level node.
-			AtNode* nodeFaceProc = AiNode( "procedural" );
-			pProc->m_node_face = nodeFaceProc;
+         // Clone ourself, this will help us keep all the user parameters.
+         // We could also provide a back pointer to the original top level node.
+         AtNode* nodeFaceProc = AiNode( "procedural" );
+         pProc->m_node_face = nodeFaceProc;
 
-			// Change name, dso, userdata, and bounding box
-			AiNodeSetStr( nodeFaceProc, "name", getUniqueName(buf,strFaceProcName.c_str()) );
-			AiNodeSetStr( nodeFaceProc, "dso", strParentDso.c_str() );
-			AiNodeSetBool( nodeFaceProc, "load_at_init", bLoadAtInit );
-			AiNodeSetPtr( nodeFaceProc, "userptr", (void*)new ProceduralWrapper( pProc, false ) );
-			AiNodeSetPnt( nodeFaceProc, "min", (AtFloat)total.xmin, (AtFloat)total.ymin, (AtFloat)total.zmin );
-			AiNodeSetPnt( nodeFaceProc, "max", (AtFloat)total.xmax, (AtFloat)total.ymax, (AtFloat)total.zmax );
+         // Change name, dso, userdata, and bounding box
+         AiNodeSetStr( nodeFaceProc, "name", getUniqueName(buf,strFaceProcName.c_str()) );
+         AiNodeSetStr( nodeFaceProc, "dso", strParentDso.c_str() );
+         AiNodeSetBool( nodeFaceProc, "load_at_init", bLoadAtInit );
+         AiNodeSetPtr( nodeFaceProc, "userptr", (void*)new ProceduralWrapper( pProc, false ) );
+         AiNodeSetPnt( nodeFaceProc, "min", (AtFloat)total.xmin, (AtFloat)total.ymin, (AtFloat)total.zmin );
+         AiNodeSetPnt( nodeFaceProc, "max", (AtFloat)total.xmax, (AtFloat)total.ymax, (AtFloat)total.zmax );
 
-			m_nodes.push_back( nodeFaceProc );
-		}
+         m_nodes.push_back( nodeFaceProc );
+      }
 
-		// Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
-		{
-			AtNode* nodeCleanupProc = AiNode( "procedural" );
-			string strCleanupProcName =  strParentName + "_cleanup";
+      // Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
+      {
+         AtNode* nodeCleanupProc = AiNode( "procedural" );
+         string strCleanupProcName =  strParentName + "_cleanup";
 
-			AiNodeSetStr( nodeCleanupProc, "name", getUniqueName(buf,strCleanupProcName.c_str()) );
-			AiNodeSetStr( nodeCleanupProc, "dso", strParentDso.c_str() );
-			AiNodeSetStr( nodeCleanupProc, "data", "cleanup" );
-			AiNodeSetBool( nodeCleanupProc, "load_at_init", bLoadAtInit );
-			AiNodeSetPtr( nodeCleanupProc, "userptr", (void*)new ProceduralWrapper( this, true ) );
+         AiNodeSetStr( nodeCleanupProc, "name", getUniqueName(buf,strCleanupProcName.c_str()) );
+         AiNodeSetStr( nodeCleanupProc, "dso", strParentDso.c_str() );
+         AiNodeSetStr( nodeCleanupProc, "data", "cleanup" );
+         AiNodeSetBool( nodeCleanupProc, "load_at_init", bLoadAtInit );
+         AiNodeSetPtr( nodeCleanupProc, "userptr", (void*)new ProceduralWrapper( this, true ) );
 
-			AtPoint minParentBBox = AiNodeGetPnt( m_node, "min" );
-			AtPoint maxParentBBox = AiNodeGetPnt( m_node, "max" );
+         AtPoint minParentBBox = AiNodeGetPnt( m_node, "min" );
+         AtPoint maxParentBBox = AiNodeGetPnt( m_node, "max" );
 
-			AiNodeSetPnt( nodeCleanupProc, "min", minParentBBox.x, minParentBBox.y, minParentBBox.z );
-			AiNodeSetPnt( nodeCleanupProc, "max", maxParentBBox.x, maxParentBBox.y, maxParentBBox.z );
+         AiNodeSetPnt( nodeCleanupProc, "min", minParentBBox.x, minParentBBox.y, minParentBBox.z );
+         AiNodeSetPnt( nodeCleanupProc, "max", maxParentBBox.x, maxParentBBox.y, maxParentBBox.z );
 
-			m_nodes.push_back( nodeCleanupProc );
-		}
+         m_nodes.push_back( nodeCleanupProc );
+      }
     }
 
-	// Face Init
+   // Face Init
     else if( m_faces.size()!=0 )
     {
-    	render();
+       render();
     }
 
-	return 1;
+   return 1;
 }
 
 int Procedural::Cleanup()
 {
-	m_nodes.clear();
-	m_node = m_node_face = m_options = m_sphere = NULL; // Don't delete.
+   m_nodes.clear();
+   m_node = m_node_face = m_options = m_sphere = NULL; // Don't delete.
 
-	if( m_faces.size()!=0 )
-	{
+   if( m_faces.size()!=0 )
+   {
       for (std::vector<FaceRenderer*>::iterator it = m_faces.begin() ; it != m_faces.end(); ++it)
-		   delete *it;
-		m_faces.clear();
-	}
-	return 1;
+         delete *it;
+      m_faces.clear();
+   }
+   return 1;
 }
 
 int Procedural::NumNodes()
 {
-	return (int)m_nodes.size();
+   return (int)m_nodes.size();
 }
 
 AtNode* Procedural::GetNode(int i)
 {
-	return m_nodes[i];
+   return m_nodes[i];
 }
 
 bool Procedural::getFloat( AtNode* in_node, const char* in_name, float& out_value, bool in_user  ) const
 {
-	if( in_user )
-	{
-		const AtUserParamEntry* upe = AiNodeLookUpUserParameter( in_node, in_name );
-		if( upe && AiUserParamGetType(upe)==AI_TYPE_FLOAT )
-		{
-			out_value = AiNodeGetFlt( in_node, in_name );
-			return true;
-		}
-	}
-	else
-	{
-		// We are assuming the parameter exists
-		out_value = AiNodeGetFlt( in_node, in_name );
-		return true;
-	}
-	return false;
+   if( in_user )
+   {
+      const AtUserParamEntry* upe = AiNodeLookUpUserParameter( in_node, in_name );
+      if( upe && AiUserParamGetType(upe)==AI_TYPE_FLOAT )
+      {
+         out_value = AiNodeGetFlt( in_node, in_name );
+         return true;
+      }
+   }
+   else
+   {
+      // We are assuming the parameter exists
+      out_value = AiNodeGetFlt( in_node, in_name );
+      return true;
+   }
+   return false;
 }
 
 bool Procedural::getString( AtNode* in_node, const char* in_name, const char*& out_value, bool in_user  ) const
 {
-	if( in_user )
-	{
-		const AtUserParamEntry* upe = AiNodeLookUpUserParameter( in_node, in_name );
-		if( upe && AiUserParamGetType(upe)==AI_TYPE_STRING )
-		{
-			out_value = AiNodeGetStr( in_node, in_name );
-			return true;
-		}
-	}
-	else
-	{
-		// We are assuming the parameter exists
-		out_value = AiNodeGetStr( in_node, in_name );
-		return true;
-	}
-	return false;
+   if( in_user )
+   {
+      const AtUserParamEntry* upe = AiNodeLookUpUserParameter( in_node, in_name );
+      if( upe && AiUserParamGetType(upe)==AI_TYPE_STRING )
+      {
+         out_value = AiNodeGetStr( in_node, in_name );
+         return true;
+      }
+   }
+   else
+   {
+      // We are assuming the parameter exists
+      out_value = AiNodeGetStr( in_node, in_name );
+      return true;
+   }
+   return false;
 }
 
 bool Procedural::getFloatArray( AtNode* in_node, const char* in_name, const float*& out_value, bool in_user  ) const
 {
-	bool bExists = !in_user;
-	if( in_user )
-	{
-		const AtUserParamEntry* upe = AiNodeLookUpUserParameter(in_node, in_name );
-		bExists = ( upe && AiUserParamGetType(upe)==AI_TYPE_ARRAY && AiUserParamGetArrayType(upe)==AI_TYPE_FLOAT );
-	}
+   bool bExists = !in_user;
+   if( in_user )
+   {
+      const AtUserParamEntry* upe = AiNodeLookUpUserParameter(in_node, in_name );
+      bExists = ( upe && AiUserParamGetType(upe)==AI_TYPE_ARRAY && AiUserParamGetArrayType(upe)==AI_TYPE_FLOAT );
+   }
 
-	if( bExists )
-	{
-		AtArray* a = AiNodeGetArray( in_node, in_name );
-		if( a )
-		{
-			out_value = ((float*)a->data);
-			return true;
-		}
-	}
+   if( bExists )
+   {
+      AtArray* a = AiNodeGetArray( in_node, in_name );
+      if( a )
+      {
+         out_value = ((float*)a->data);
+         return true;
+      }
+   }
 
-	return false;
+   return false;
 }
 
 bool Procedural::getMatrixArray( AtNode* in_node, const char* in_name, const AtMatrix*& out_value, bool in_user  ) const
 {
-	bool bExists = !in_user;
-	if( in_user )
-	{
-		const AtUserParamEntry* upe = AiNodeLookUpUserParameter(in_node, in_name );
-		bExists = ( upe && AiUserParamGetType(upe)==AI_TYPE_ARRAY && AiUserParamGetArrayType(upe)==AI_TYPE_MATRIX );
-	}
+   bool bExists = !in_user;
+   if( in_user )
+   {
+      const AtUserParamEntry* upe = AiNodeLookUpUserParameter(in_node, in_name );
+      bExists = ( upe && AiUserParamGetType(upe)==AI_TYPE_ARRAY && AiUserParamGetArrayType(upe)==AI_TYPE_MATRIX );
+   }
 
-	if( bExists )
-	{
-		AtArray* a = AiNodeGetArray( in_node, in_name );
-		if( a )
-		{
-			out_value = ((const AtMatrix*)a->data);
-			return true;
-		}
-	}
+   if( bExists )
+   {
+      AtArray* a = AiNodeGetArray( in_node, in_name );
+      if( a )
+      {
+         out_value = ((const AtMatrix*)a->data);
+         return true;
+      }
+   }
 
-	return false;
+   return false;
 }
 
 unsigned int Procedural::getArraySize( AtNode* in_node, const char* in_name, int in_eType, bool in_user  ) const
 {
-	if( in_user )
-	{
-		const AtUserParamEntry* upe = AiNodeLookUpUserParameter(in_node, in_name );
-		if( upe && AiUserParamGetType(upe)==AI_TYPE_ARRAY && AiUserParamGetArrayType(upe)==in_eType )
-		{
-			AtArray* a = AiNodeGetArray( in_node, in_name );
-			if( a )
-				return a->nelements;
-		}
-	}
-	else
-	{
-		AtArray* a = AiNodeGetArray( in_node, in_name );
-		if( a )
-			return a->nelements;
-	}
+   if( in_user )
+   {
+      const AtUserParamEntry* upe = AiNodeLookUpUserParameter(in_node, in_name );
+      if( upe && AiUserParamGetType(upe)==AI_TYPE_ARRAY && AiUserParamGetArrayType(upe)==in_eType )
+      {
+         AtArray* a = AiNodeGetArray( in_node, in_name );
+         if( a )
+            return a->nelements;
+      }
+   }
+   else
+   {
+      AtArray* a = AiNodeGetArray( in_node, in_name );
+      if( a )
+         return a->nelements;
+   }
 
-	return 0;
+   return 0;
 }
 
 const char* Procedural::get( EStringAttribute in_attr ) const
 {
-	static string result;
-	const char* cstr = NULL;
+   static string result;
+   const char* cstr = NULL;
     if( in_attr == BypassFXModulesAfterBGM )
     {
-    	if( getString( m_node, "xgen_bypassFXModulesAfterBGM", cstr, true  ) )
-    	{
-    		return cstr;
-    	}
-	}
+       if( getString( m_node, "xgen_bypassFXModulesAfterBGM", cstr, true  ) )
+       {
+          return cstr;
+       }
+   }
 
     else if( in_attr == CacheDir )
-	{
-		result = "xgenCache/";
+   {
+      result = "xgenCache/";
 
-		if( getString( m_node, "xgenCache", cstr, true  ) )
-		{
-			string tmp = cstr;
-			if( tmp.size() )
-			{
-				result = tmp;
-			}
-		}
-		return result.c_str();
-	}
-	else if( in_attr == Off )
-	{
-		if( getString( m_node, "xgen_OFF", cstr, true  ) )
-		{
-			if( stob( cstr ) )
-			{
-				//XGRenderAPIDebug( /*msg::C|msg::RENDERER|2,*/ "Ribbox disabled XGen patch " + _patch->name() + " from rendering." );
-				return "xgen_OFF";
-			}
-		}
-	}
-	else if( in_attr == Generator )
-	{
-		if( getString( m_options, "generator", cstr, true  ) )
-			return cstr;
-	}
-	else if( in_attr == RenderCam )
-	{
-		if( getString( m_node, "irRenderCam", cstr, true  ) )
-			return cstr;
-	}
-	else if( in_attr == RenderCamFOV )
-	{
-		if( getString( m_node, "irRenderCamFOV", cstr, true  ) )
-			return cstr;
-	}
-	else if( in_attr == RenderCamXform )
-	{
-		if( getString( m_node, "irRenderCamXform", cstr, true  ) )
-			return cstr;
-	}
-	else if( in_attr == RenderCamRatio )
-	{
-		if( getString( m_node, "irRenderCamRatio", cstr, true  ) )
-			return cstr;
-	}
-	else if( in_attr == RenderMethod )
-	{
-		if( getString( m_node, "xgen_renderMethod", cstr, true  ) )
-			return cstr;
-	}
-	else if( in_attr == Phase )
-	{
-		if( getString( m_options, "phase", cstr, true  ) )
-			return cstr;
-	}
-	return "";
+      if( getString( m_node, "xgenCache", cstr, true  ) )
+      {
+         string tmp = cstr;
+         if( tmp.size() )
+         {
+            result = tmp;
+         }
+      }
+      return result.c_str();
+   }
+   else if( in_attr == Off )
+   {
+      if( getString( m_node, "xgen_OFF", cstr, true  ) )
+      {
+         if( stob( cstr ) )
+         {
+            //XGRenderAPIDebug( /*msg::C|msg::RENDERER|2,*/ "Ribbox disabled XGen patch " + _patch->name() + " from rendering." );
+            return "xgen_OFF";
+         }
+      }
+   }
+   else if( in_attr == Generator )
+   {
+      if( getString( m_options, "generator", cstr, true  ) )
+         return cstr;
+   }
+   else if( in_attr == RenderCam )
+   {
+      if( getString( m_node, "irRenderCam", cstr, true  ) )
+         return cstr;
+   }
+   else if( in_attr == RenderCamFOV )
+   {
+      if( getString( m_node, "irRenderCamFOV", cstr, true  ) )
+         return cstr;
+   }
+   else if( in_attr == RenderCamXform )
+   {
+      if( getString( m_node, "irRenderCamXform", cstr, true  ) )
+         return cstr;
+   }
+   else if( in_attr == RenderCamRatio )
+   {
+      if( getString( m_node, "irRenderCamRatio", cstr, true  ) )
+         return cstr;
+   }
+   else if( in_attr == RenderMethod )
+   {
+      if( getString( m_node, "xgen_renderMethod", cstr, true  ) )
+         return cstr;
+   }
+   else if( in_attr == Phase )
+   {
+      if( getString( m_options, "phase", cstr, true  ) )
+         return cstr;
+   }
+   return "";
 }
 
 bool Procedural::get( EBoolAttribute in_attr ) const
 {
-	 if( in_attr == ClearDescriptionCache )
-	 {
+    if( in_attr == ClearDescriptionCache )
+    {
        bool ret = s_bCleanDescriptionCache;
-		 s_bCleanDescriptionCache = false;
-		 return ret;
-	 }
+       s_bCleanDescriptionCache = false;
+       return ret;
+    }
 
-	 return false;
+    return false;
 }
 
 float Procedural::get( EFloatAttribute in_attr ) const
 {
-	float result=0.f;
+   float result=0.f;
 
     if( in_attr == ShadowMotionBlur )
     {
-    	if( getFloat( m_node, "shadowMotionBlur", result, true ) )
-			return result;
+       if( getFloat( m_node, "shadowMotionBlur", result, true ) )
+         return result;
     }
     else if( in_attr == ShutterOffset )
     {
-    	float shutter_start = 0.0f;
-    	float shutter_end = 0.f;
+       float shutter_start = 0.0f;
+       float shutter_end = 0.f;
 
-    	getFloat( m_camera, "shutter_start", shutter_start, false );
-    	getFloat( m_camera, "shutter_end", shutter_end, false );
+       getFloat( m_camera, "shutter_start", shutter_start, false );
+       getFloat( m_camera, "shutter_end", shutter_end, false );
 
-    	float shutter_offset = shutter_start + 0.5*(shutter_end-shutter_start);
-    	return shutter_offset;
+       float shutter_offset = shutter_start + 0.5*(shutter_end-shutter_start);
+       return shutter_offset;
     }
 
-	return 0.f;
+   return 0.f;
 }
 
 const float* Procedural::get( EFloatArrayAttribute in_attr) const
@@ -513,71 +516,71 @@ const float* Procedural::get( EFloatArrayAttribute in_attr) const
 
     if( in_attr==DensityFalloff )
     {
-    	uiArraySize = getArraySize( m_node, "xgen_densityFalloff", AI_TYPE_FLOAT, true );
-    	if( uiArraySize == 7 )
-    	{
-    		if( getFloatArray( m_node, "xgen_densityFalloff", resultPtr, true ) )
-    			return resultPtr;
-    	}
+       uiArraySize = getArraySize( m_node, "xgen_densityFalloff", AI_TYPE_FLOAT, true );
+       if( uiArraySize == 7 )
+       {
+          if( getFloatArray( m_node, "xgen_densityFalloff", resultPtr, true ) )
+             return resultPtr;
+       }
     }
     else if( in_attr==LodHi )
     {
-    	uiArraySize = getArraySize( m_node, "xgen_lodHi", AI_TYPE_FLOAT, true );
-    	if( uiArraySize == 2 )
-    	{
-    		if( getFloatArray( m_node, "xgen_lodHi", resultPtr, true ) )
-    			return resultPtr;
-    	}
+       uiArraySize = getArraySize( m_node, "xgen_lodHi", AI_TYPE_FLOAT, true );
+       if( uiArraySize == 2 )
+       {
+          if( getFloatArray( m_node, "xgen_lodHi", resultPtr, true ) )
+             return resultPtr;
+       }
     }
     else if( in_attr==LodLow )
     {
-    	uiArraySize = getArraySize( m_node, "xgen_lodLo", AI_TYPE_FLOAT, true );
-    	if( uiArraySize == 2 )
-    	{
-    		if( getFloatArray( m_node, "xgen_lodLo", resultPtr, true ) )
-    			return resultPtr;
-    	}
+       uiArraySize = getArraySize( m_node, "xgen_lodLo", AI_TYPE_FLOAT, true );
+       if( uiArraySize == 2 )
+       {
+          if( getFloatArray( m_node, "xgen_lodLo", resultPtr, true ) )
+             return resultPtr;
+       }
     }
     else if( in_attr==LodMed )
     {
-    	uiArraySize = getArraySize( m_node, "xgen_lodMed", AI_TYPE_FLOAT, true );
-    	if( uiArraySize == 2 )
-    	{
-    		if( getFloatArray( m_node, "xgen_lodMed", resultPtr, true ) )
-    			return resultPtr;
-    	}
+       uiArraySize = getArraySize( m_node, "xgen_lodMed", AI_TYPE_FLOAT, true );
+       if( uiArraySize == 2 )
+       {
+          if( getFloatArray( m_node, "xgen_lodMed", resultPtr, true ) )
+             return resultPtr;
+       }
     }
     else if( in_attr==Shutter )
     {
-    	uiArraySize = getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
-    	if( getFloatArray( m_camera, "time_samples", resultPtr, false ) )
-    		return resultPtr;
+       uiArraySize = getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
+       if( getFloatArray( m_camera, "time_samples", resultPtr, false ) )
+          return resultPtr;
     }
 
-	return NULL;
+   return NULL;
 }
 
 unsigned int Procedural::getSize( EFloatArrayAttribute in_attr )const
 {
     if( in_attr==DensityFalloff )
     {
-    	return getArraySize( m_node, "xgen_densityFalloff", AI_TYPE_FLOAT, true );
+       return getArraySize( m_node, "xgen_densityFalloff", AI_TYPE_FLOAT, true );
     }
     else if( in_attr==LodHi )
     {
-    	return getArraySize( m_node, "xgen_lodHi", AI_TYPE_FLOAT, true );
+       return getArraySize( m_node, "xgen_lodHi", AI_TYPE_FLOAT, true );
     }
     else if( in_attr==LodLow )
     {
-    	return getArraySize( m_node, "xgen_lodLo", AI_TYPE_FLOAT, true );
+       return getArraySize( m_node, "xgen_lodLo", AI_TYPE_FLOAT, true );
     }
     else if( in_attr==LodMed )
     {
-    	return getArraySize( m_node, "xgen_lodMed", AI_TYPE_FLOAT, true );
+       return getArraySize( m_node, "xgen_lodMed", AI_TYPE_FLOAT, true );
     }
     else if( in_attr==Shutter )
     {
-    	return 0;//getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
+       return 0;//getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
     }
 
     return 0;
@@ -585,134 +588,176 @@ unsigned int Procedural::getSize( EFloatArrayAttribute in_attr )const
 
 const char* Procedural::getOverride( const char* in_name )const
 {
-	const char* cstr = NULL;
-	if( getString( m_node, in_name, cstr, true  ) && cstr!=NULL )
-	{
-		return cstr;
-	}
+   const char* cstr = NULL;
+   if( getString( m_node, in_name, cstr, true  ) && cstr!=NULL )
+   {
+      return cstr;
+   }
 
-	return "";
+   return "";
 }
 
 // Auto close the file descriptor.
 class auto_fclose
 {
 public:
-	auto_fclose( FILE* fd )
-	{
-		m_fd = fd;
-	}
+   auto_fclose( FILE* fd )
+   {
+      m_fd = fd;
+   }
 
-	~auto_fclose()
-	{
-		if(m_fd)
-			fclose(m_fd);
-	}
-	FILE* m_fd;
+   ~auto_fclose()
+   {
+      if(m_fd)
+         fclose(m_fd);
+   }
+   FILE* m_fd;
 };
 
 bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox )const
 {
-	std::string fname( in_filename );
+   std::string fname( in_filename );
 
-    // Do not attempt to read non-RIB archives (e.g. .caf)
-    if (XGDebugLevel >= 2)
-        XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Reading "+ fname);
+   std::string fileBase = "";
+   int extPos = 0;
+   if ((extPos = fname.find(".ass")) == (fname.length()-4))
+   {
+      fileBase = fname.substr(0, extPos);
+   }
+   else if ((extPos = fname.find(".ass.gz")) == (fname.length()-7))
+   {
+      fileBase = fname.substr(0, extPos);
+   }
+   else
+      return false;
 
-    if (fname.find(".abc") == (fname.length()-4))
-    {
-    	out_bbox.xmin = -1.0;
-    	out_bbox.ymin = -1.0;
-    	out_bbox.zmin = -1.0;
+   std::string asstocfile = fileBase + ".asstoc";
 
-    	out_bbox.xmax = 1.0;
-    	out_bbox.ymax = 1.0;
-    	out_bbox.zmax = 1.0;
+   std::ifstream file(asstocfile);
+   if (!file.is_open())
+   {
+      if (XGDebugLevel >= 2)
+         XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ asstocfile);
+      return false;
+   }
 
-        return true;
-    }
+   std::string line;
+   std::getline(file, line);
 
-    if (fname.find(".ass") == (fname.length()-4))
-    {
-		FILE *fd = fopen(in_filename, "rb");
-		if (!fd) {
-			if (XGDebugLevel >= 2)
-				XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ fname);
-			return false;
-		}
+   char *str = new char[line.length() + 1];
+   strcpy(str, line.c_str());
 
-		// Use an auto_fclose since we are returning from the function all over the place.
-		auto_fclose afd( fd );
+   strtok(str, " ");
+   out_bbox.xmin = atof(strtok(NULL, " "));
+   out_bbox.ymin = atof(strtok(NULL, " "));
+   out_bbox.zmin = atof(strtok(NULL, " "));
+   out_bbox.xmax = atof(strtok(NULL, " "));
+   out_bbox.ymax = atof(strtok(NULL, " "));
+   out_bbox.zmax = atof(strtok(NULL, " "));
 
-		// Scan the first N lines searching for "## BBOX ...."
-		const int limit = 13;
-		const int inner_limit = 192;
-		int matched;
-		int count = 0;
-		int inner_count = 0;
+   file.close();
+   delete str;
+   return true;
 
-		while (count < limit) {
-			count++;
-			inner_count = 0;
-			matched = fscanf(fd, "## BBOX %lf %lf %lf %lf %lf %lf",
-							 &out_bbox.xmin, &out_bbox.xmax, &out_bbox.ymin, &out_bbox.ymax, &out_bbox.zmin, &out_bbox.zmax);
+   // Use an auto_fclose since we are returning from the function all over the place.
 
-			if (matched == 0) {
-				// Skip this line
-				char c = fgetc(fd);
-				if (/*EOF == c ||*/ feof(fd))
-					return false;
+ //   // Do not attempt to read non-RIB archives (e.g. .caf)
+ //   if (XGDebugLevel >= 2)
+ //       XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Reading "+ fname);
 
-				while (c != '\n') {
-					c = fgetc(fd);
-					// Guard against really long lines
-					if (inner_limit <= inner_count++)
-						break;
-					if (/*EOF == c ||*/ feof(fd)) {
-						if (XGDebugLevel >= 2)
-							XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
-						return false;
-					}
-				}
-				continue;
-			}
+ //   if (fname.find(".abc") == (fname.length()-4))
+ //   {
+ //      out_bbox.xmin = -1.0;
+ //      out_bbox.ymin = -1.0;
+ //      out_bbox.zmin = -1.0;
 
-			if (matched == 6) {
-				if (XGDebugLevel >= 2)
-					XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/
-							"DRA BBOX" +
-							std::string(" ") + std::to_string((long double)out_bbox.xmin) +
-							std::string(" ") + std::to_string((long double)out_bbox.xmax) +
-							std::string(" ") + std::to_string((long double)out_bbox.ymin) +
-							std::string(" ") + std::to_string((long double)out_bbox.ymax) +
-							std::string(" ") + std::to_string((long double)out_bbox.zmin) +
-							std::string(" ") + std::to_string((long double)out_bbox.zmax));
+ //      out_bbox.xmax = 1.0;
+ //      out_bbox.ymax = 1.0;
+ //      out_bbox.zmax = 1.0;
 
-				return true;
-			}
-			if (EOF == matched || feof(fd)) {
-				if (XGDebugLevel >= 2)
-					XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
-				break;
-			}
-		}
-    }
+ //       return true;
+ //   }
 
-    return false;
+ //   if (fname.find(".ass") == (fname.length()-4))
+ //   {
+   //   FILE *fd = fopen(in_filename, "rb");
+   //   if (!fd) {
+   //      if (XGDebugLevel >= 2)
+   //         XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ fname);
+   //      return false;
+   //   }
+
+   //   // Use an auto_fclose since we are returning from the function all over the place.
+   //   auto_fclose afd( fd );
+
+   //   // Scan the first N lines searching for "## BBOX ...."
+   //   const int limit = 13;
+   //   const int inner_limit = 192;
+   //   int matched;
+   //   int count = 0;
+   //   int inner_count = 0;
+
+   //   while (count < limit) {
+   //      count++;
+   //      inner_count = 0;
+   //      matched = fscanf(fd, "## BBOX %lf %lf %lf %lf %lf %lf",
+   //                   &out_bbox.xmin, &out_bbox.xmax, &out_bbox.ymin, &out_bbox.ymax, &out_bbox.zmin, &out_bbox.zmax);
+
+   //      if (matched == 0) {
+   //         // Skip this line
+   //         char c = fgetc(fd);
+   //         if (/*EOF == c ||*/ feof(fd))
+   //            return false;
+
+   //         while (c != '\n') {
+   //            c = fgetc(fd);
+   //            // Guard against really long lines
+   //            if (inner_limit <= inner_count++)
+   //               break;
+   //            if (/*EOF == c ||*/ feof(fd)) {
+   //               if (XGDebugLevel >= 2)
+   //                  XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
+   //               return false;
+   //            }
+   //         }
+   //         continue;
+   //      }
+
+   //      if (matched == 6) {
+   //         if (XGDebugLevel >= 2)
+   //            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/
+   //                  "DRA BBOX" +
+   //                  std::string(" ") + std::to_string((long double)out_bbox.xmin) +
+   //                  std::string(" ") + std::to_string((long double)out_bbox.xmax) +
+   //                  std::string(" ") + std::to_string((long double)out_bbox.ymin) +
+   //                  std::string(" ") + std::to_string((long double)out_bbox.ymax) +
+   //                  std::string(" ") + std::to_string((long double)out_bbox.zmin) +
+   //                  std::string(" ") + std::to_string((long double)out_bbox.zmax));
+
+   //         return true;
+   //      }
+   //      if (EOF == matched || feof(fd)) {
+   //         if (XGDebugLevel >= 2)
+   //            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "EOF");
+   //         break;
+   //      }
+   //   }
+ //   }
+
 }
 
 void Procedural::convertMatrix( const AtMatrix in_mat, mat44& out_mat )
 {
-	memcpy( &out_mat, in_mat, sizeof(float)*16 );
+   memcpy( &out_mat, in_mat, sizeof(float)*16 );
 }
 
 void Procedural::getTransform( float in_time, mat44& out_mat )const
 {
-	AtMatrix result;
-	AiM4Identity( result );
-	//AiArrayInterpolateMtx( AiNodeGetArray( m_node, "matrix" ), in_time, 0, result );
+   AtMatrix result;
+   AiM4Identity( result );
+   //AiArrayInterpolateMtx( AiNodeGetArray( m_node, "matrix" ), in_time, 0, result );
 
-	convertMatrix( result, out_mat );
+   convertMatrix( result, out_mat );
 }
 
 // Primitive cache get macro.
@@ -727,11 +772,11 @@ void Procedural::getTransform( float in_time, mat44& out_mat )const
  */
 void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
 {
-	bool bIsSpline = pc->get( PC(PrimIsSpline) );
-	const char* strPrimType = pc->get( PC(PrimitiveType) );
+   bool bIsSpline = pc->get( PC(PrimIsSpline) );
+   const char* strPrimType = pc->get( PC(PrimitiveType) );
 
     if( bIsSpline )
-    	flushSplines( geomName, pc );
+       flushSplines( geomName, pc );
     else if ( strcmp( strPrimType, "CardPrimitive" )==0 )
         flushCards( geomName, pc );
     else if ( strcmp( strPrimType, "SpherePrimitive" )==0 )
@@ -781,28 +826,28 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
         int* numVertsPtr = (int*)pc->get( PC(NumVertices), i );
         for( unsigned int j=0; j<pc->getSize2( PC(NumVertices), i ); ++j )
         {
-        	*curNumPoints = (AtUInt)numVertsPtr[j];
+           *curNumPoints = (AtUInt)numVertsPtr[j];
 
-        	// Add the normals if necessary.
-			if( orientations )
-			{
-				XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding normals." );
+           // Add the normals if necessary.
+         if( orientations )
+         {
+            XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding normals." );
 
-				unsigned int numVarying = *curNumPoints - 2;
+            unsigned int numVarying = *curNumPoints - 2;
 
-				memcpy( curOrientations, &pNorms[0], sizeof(AtVector) );
-				curOrientations++;
+            memcpy( curOrientations, &pNorms[0], sizeof(AtVector) );
+            curOrientations++;
 
-				memcpy( curOrientations, pNorms, sizeof(AtVector)*numVarying );
-				curOrientations+=numVarying;
+            memcpy( curOrientations, pNorms, sizeof(AtVector)*numVarying );
+            curOrientations+=numVarying;
 
-				memcpy( curOrientations, &pNorms[numVarying-1], sizeof(AtVector) );
-				curOrientations++;
+            memcpy( curOrientations, &pNorms[numVarying-1], sizeof(AtVector) );
+            curOrientations++;
 
-				pNorms += numVarying;
-			}
+            pNorms += numVarying;
+         }
 
-        	curNumPoints++;
+           curNumPoints++;
         }
 
     }
@@ -812,50 +857,50 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
     // Add the constant widths.
     if( widthsSize==0 )
-	{
-    	float constantWidth = pc->get( PC(ConstantWidth) );
+   {
+       float constantWidth = pc->get( PC(ConstantWidth) );
 
-		XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Constant width: " + ftoa(constantWidth));
-		{string s = "Constant width: " + ftoa(constantWidth) + "\n";
-		printf( s.c_str() );}
-		*curRadius = constantWidth * 0.5f;
-		if( *curRadius < k_minRadius )
-			*curRadius = k_minRadius;
-	}
+      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Constant width: " + ftoa(constantWidth));
+      {string s = "Constant width: " + ftoa(constantWidth) + "\n";
+      printf( s.c_str() );}
+      *curRadius = constantWidth * 0.5f;
+      if( *curRadius < k_minRadius )
+         *curRadius = k_minRadius;
+   }
     // Add Varying Widths
     else
-	{
-    	const float* pWidths = pc->get( PC(Widths) );
+   {
+       const float* pWidths = pc->get( PC(Widths) );
 
-		XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Non-constant width.");
-		for( unsigned int w=0; w<widthsSize; ++w )
-		{
-			curRadius[w] = pWidths[w] * 0.5f;
-			if( curRadius[w] < k_minRadius )
-				curRadius[w] = k_minRadius;
-		}
-	}
+      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Non-constant width.");
+      for( unsigned int w=0; w<widthsSize; ++w )
+      {
+         curRadius[w] = pWidths[w] * 0.5f;
+         if( curRadius[w] < k_minRadius )
+            curRadius[w] = k_minRadius;
+      }
+   }
 
     char buf[512];
 
     AtNode* nodeCurves = AiNode("curves");
     string strParentName = AiNodeGetName( m_node_face );
-	string strID = itoa( m_nodes.size() );
-	AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
-	AiNodeSetStr( nodeCurves, "mode", bFaceCamera ? "ribbon" : "oriented");
+   string strID = itoa( m_nodes.size() );
+   AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
+   AiNodeSetStr( nodeCurves, "mode", bFaceCamera ? "ribbon" : "oriented");
     AiNodeSetStr( nodeCurves, "basis", "b-spline" );
     //AiNodeSetInt( nodeCurves, "max_subdivs", 1000 );
     AiNodeSetArray( nodeCurves, "num_points", num_points );
     AiNodeSetArray( nodeCurves, "points", points );
-	AiNodeSetArray( nodeCurves, "radius", radius );
-	if( orientations ) AiNodeSetArray( nodeCurves, "orientations", orientations );
-	AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+   AiNodeSetArray( nodeCurves, "radius", radius );
+   if( orientations ) AiNodeSetArray( nodeCurves, "orientations", orientations );
+   AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
 
-	// Add custom renderer parameters.
-	pushCustomParams( nodeCurves, pc );
+   // Add custom renderer parameters.
+   pushCustomParams( nodeCurves, pc );
 
-	// Keep our new nodes.
-	m_nodes.push_back( nodeCurves );
+   // Keep our new nodes.
+   m_nodes.push_back( nodeCurves );
 }
 
 /**
@@ -865,19 +910,19 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 {
-	string strParentName = AiNodeGetName( m_node_face );
+   string strParentName = AiNodeGetName( m_node_face );
 
-	unsigned int cacheCount = pc->get( PC(CacheCount) );
-	unsigned int numSamples = pc->get( PC(NumMotionSamples) );
-	//unsigned int shutterSize = pc->getSize( PC(Shutter) );
-	//float* shutter = (float*)pc->get( PC(Shutter) );
+   unsigned int cacheCount = pc->get( PC(CacheCount) );
+   unsigned int numSamples = pc->get( PC(NumMotionSamples) );
+   //unsigned int shutterSize = pc->getSize( PC(Shutter) );
+   //float* shutter = (float*)pc->get( PC(Shutter) );
 
-	bool normalParam = pc->get( PC(NormalParam) );
-	bool flipParam = pc->get( PC(FlipParam) );
+   bool normalParam = pc->get( PC(NormalParam) );
+   bool flipParam = pc->get( PC(FlipParam) );
 
     for ( unsigned int j=0; j<cacheCount; j++ )
     {
-    	AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
+       AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
 
         // Build up the token and parameter lists to output for all
         // passes of motionBlur.
@@ -975,11 +1020,11 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
             }
             
             // Scale
-			vec3 scaleV;
-			scaleV.x = width[i];
-			scaleV.y = length_[i];
-			scaleV.z = depth[i];
-			scale( tmp, scaleV );
+         vec3 scaleV;
+         scaleV.x = width[i];
+         scaleV.y = length_[i];
+         scaleV.z = depth[i];
+         scale( tmp, scaleV );
 
             multiply( xP[i], xP[i], tmp );
             if ( flipParam ) {
@@ -993,7 +1038,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         }
 
         for ( unsigned int i=0; i < numSamples; i++ ) {
-        	const float* xPi = &xP[i]._00;
+           const float* xPi = &xP[i]._00;
             AtMatrix tmp = {{AtFloat(xPi[0]),AtFloat(xPi[1]),AtFloat(xPi[2]),AtFloat(xPi[3])},
                             {AtFloat(xPi[4]),AtFloat(xPi[5]),AtFloat(xPi[6]),AtFloat(xPi[7])},
                             {AtFloat(xPi[8]),AtFloat(xPi[9]),AtFloat(xPi[10]),AtFloat(xPi[11])},
@@ -1011,17 +1056,17 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
         // and a geometry instance node.
         AtNode* nodeInstance = AiNode("ginstance");
-    	AiNodeSetStr( nodeInstance, "name", getUniqueName(buf,( strParentName + string("_ginstance_") + strID).c_str()) );
-    	AiNodeSetArray( nodeInstance, "matrix", matrix );
-    	AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
-    	AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
-    	AiNodeSetInt( nodeInstance, "visibility", 65535 );
+       AiNodeSetStr( nodeInstance, "name", getUniqueName(buf,( strParentName + string("_ginstance_") + strID).c_str()) );
+       AiNodeSetArray( nodeInstance, "matrix", matrix );
+       AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
+       AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+       AiNodeSetInt( nodeInstance, "visibility", 65535 );
 
-    	// Add custom renderer parameters.
-    	pushCustomParams( nodeInstance, pc );
+       // Add custom renderer parameters.
+       pushCustomParams( nodeInstance, pc );
 
-    	// Keep our new nodes.
-    	m_nodes.push_back( nodeInstance );
+       // Keep our new nodes.
+       m_nodes.push_back( nodeInstance );
     }
 }
 
@@ -1032,7 +1077,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
  */
 void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 {
-	string strParentName = AiNodeGetName( m_node_face );
+   string strParentName = AiNodeGetName( m_node_face );
 
     AtArray* knots = AiArrayAllocate( 7, 1, AI_TYPE_FLOAT );
     AtFloat* pKnots = (AtFloat*)knots->data;
@@ -1049,38 +1094,38 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 
     static bool s_bFirst = true;
     if( !s_bFirst )
-    	return;
+       return;
     s_bFirst = false;
     for ( unsigned int j=0; j<cacheCount; j++ ) {
 
-		// Add the points.
-		XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points.");
-		AtPoint* pointPtr = (AtPoint *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
+      // Add the points.
+      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points.");
+      AtPoint* pointPtr = (AtPoint *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
 
 
-		AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
-		memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
+      AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
+      memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
 
-		 string strID = itoa( m_nodes.size() );
+       string strID = itoa( m_nodes.size() );
 
-		char buf[512];
+      char buf[512];
 
-		// and a geometry instance node.
-		AtNode* nodeCard = AiNode( "nurbs" );
-		AiNodeSetStr( nodeCard, "name", getUniqueName(buf,( strParentName + string("_nurbs_") + strID).c_str()));
-		AiNodeSetArray( nodeCard, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+      // and a geometry instance node.
+      AtNode* nodeCard = AiNode( "nurbs" );
+      AiNodeSetStr( nodeCard, "name", getUniqueName(buf,( strParentName + string("_nurbs_") + strID).c_str()));
+      AiNodeSetArray( nodeCard, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
 
-		AiNodeSetInt( nodeCard, "degree_u", 4 );
-		AiNodeSetInt( nodeCard, "degree_v", 4 );
-		AiNodeSetArray( nodeCard, "knots_u", AiArrayCopy( knots ) );
-		AiNodeSetArray( nodeCard, "knots_v", AiArrayCopy( knots ) );
-		AiNodeSetArray( nodeCard, "cvs", cvs );
+      AiNodeSetInt( nodeCard, "degree_u", 4 );
+      AiNodeSetInt( nodeCard, "degree_v", 4 );
+      AiNodeSetArray( nodeCard, "knots_u", AiArrayCopy( knots ) );
+      AiNodeSetArray( nodeCard, "knots_v", AiArrayCopy( knots ) );
+      AiNodeSetArray( nodeCard, "cvs", cvs );
 
-		// Add custom renderer parameters.
-    	pushCustomParams( nodeCard, pc );
+      // Add custom renderer parameters.
+       pushCustomParams( nodeCard, pc );
 
-		// Keep our new nodes.
-		m_nodes.push_back( nodeCard );
+      // Keep our new nodes.
+      m_nodes.push_back( nodeCard );
 
     }
 
@@ -1088,20 +1133,20 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 
 struct CustomParamTypeEntry
 {
-	string m_xgen;
-	string m_arnold;
-	size_t m_sizeOf;
-	size_t m_components;
-	AtByte m_type;
+   string m_xgen;
+   string m_arnold;
+   size_t m_sizeOf;
+   size_t m_components;
+   AtByte m_type;
 };
 
 const static CustomParamTypeEntry g_mapCustomParamTypes[]=
 {
-	{ "uniform float ", 	"uniform FLOAT", 	sizeof(AtFloat), 	1, AI_TYPE_FLOAT },
-	{ "uniform color ", 	"uniform RGB", 		sizeof(AtRGB), 		3, AI_TYPE_RGB },
-	{ "uniform vector ", 	"uniform VECTOR", 	sizeof(AtVector), 	3, AI_TYPE_VECTOR },
-	{ "uniform normal ", 	"uniform VECTOR", 	sizeof(AtVector), 	3, AI_TYPE_VECTOR },
-	{ "uniform point ", 	"uniform POINT", 	sizeof(AtPoint), 	3, AI_TYPE_POINT },
+   { "uniform float ",    "uniform FLOAT",    sizeof(AtFloat),    1, AI_TYPE_FLOAT },
+   { "uniform color ",    "uniform RGB",       sizeof(AtRGB),       3, AI_TYPE_RGB },
+   { "uniform vector ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
+   { "uniform normal ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
+   { "uniform point ",    "uniform POINT",    sizeof(AtPoint),    3, AI_TYPE_POINT },
 };
 const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / sizeof(CustomParamTypeEntry);
 
@@ -1113,32 +1158,32 @@ const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / 
  */
 void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc )
 {
-	unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
-	// Push any user-defined custom attributes.
-	for ( unsigned int j = 0; j<customAttrCount; j++ ) {
-		string attrName = pc->get( PC( CustomAttrNames ), j );
-		const float* attrValue = pc->get( PC( CustomAttrValues ), j );
-		unsigned int attrCount = pc->getSize2( PC( CustomAttrValues ), j );
+   unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
+   // Push any user-defined custom attributes.
+   for ( unsigned int j = 0; j<customAttrCount; j++ ) {
+      string attrName = pc->get( PC( CustomAttrNames ), j );
+      const float* attrValue = pc->get( PC( CustomAttrValues ), j );
+      unsigned int attrCount = pc->getSize2( PC( CustomAttrValues ), j );
 
-		// See if the entry is an array and if so the number of elements
-		int count = arrayindex( attrName );
-		if ( count<1 ) count = 1;
+      // See if the entry is an array and if so the number of elements
+      int count = arrayindex( attrName );
+      if ( count<1 ) count = 1;
 
-		for( size_t i=0; i<g_ulCustomParamTypesCount; ++i )
-		{
-			const CustomParamTypeEntry& e = g_mapCustomParamTypes[i];
-			if ( attrName.find( e.m_xgen ) != string::npos)
-			{
-				string fixedAttrName = attrName.substr( e.m_xgen.size() );
-				unsigned int fixAttrCount = attrCount/e.m_components;
+      for( size_t i=0; i<g_ulCustomParamTypesCount; ++i )
+      {
+         const CustomParamTypeEntry& e = g_mapCustomParamTypes[i];
+         if ( attrName.find( e.m_xgen ) != string::npos)
+         {
+            string fixedAttrName = attrName.substr( e.m_xgen.size() );
+            unsigned int fixAttrCount = attrCount/e.m_components;
 
-				AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
-				AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
-				memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
-				AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
-				break;
-			}
-		}
+            AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
+            AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
+            memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
+            AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+            break;
+         }
+      }
 
     }
 }
@@ -1172,41 +1217,41 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
 
 
-	// Default to 1.0 so that it has no effect for archive files that
-	// do not contain BBOX information
-	double bbox_scale = 1.0 / pc->get( PC(ArchiveSize) );
+   // Default to 1.0 so that it has no effect for archive files that
+   // do not contain BBOX information
+   double bbox_scale = 1.0 / pc->get( PC(ArchiveSize) );
 
     unsigned int cacheCount = pc->get( PC(CacheCount) );
     unsigned int numSamples = pc->get( PC(NumMotionSamples) );
 
 
 //    unsigned int shutterSize = pc->getSize( PC(Shutter) );
-//	float* shutter = (float*)pc->get( PC(Shutter) );
+//   float* shutter = (float*)pc->get( PC(Shutter) );
 
-	bool normalParam = pc->get( PC(NormalParam) );
+   bool normalParam = pc->get( PC(NormalParam) );
 
-	int lodLevels = pc->get( PC(LodLevels) );
-//	const bool* useLevel = pc->get( PC(ArchiveUseLevel) );
-//	const float* minVis = (const float*)&pc->get( PC(MinVis) ).x;
-//	const float* maxVis = (const float*)&pc->get( PC(MaxVis) ).x;
-//	const float* loTrans = (const float*)&pc->get( PC(LoTrans) ).x;
-//	const float* upTrans = (const float*)&pc->get( PC(UpTrans) ).x;
+   int lodLevels = pc->get( PC(LodLevels) );
+//   const bool* useLevel = pc->get( PC(ArchiveUseLevel) );
+//   const float* minVis = (const float*)&pc->get( PC(MinVis) ).x;
+//   const float* maxVis = (const float*)&pc->get( PC(MaxVis) ).x;
+//   const float* loTrans = (const float*)&pc->get( PC(LoTrans) ).x;
+//   const float* upTrans = (const float*)&pc->get( PC(UpTrans) ).x;
 
-	// Get archive name string pointers
-	double archiveScale = pc->get( PC(ArchiveSize) );
-	unsigned int archivesSize = pc->getSize( PC(Archives) );
-	const char** archives = new const char*[archivesSize];
-	const char** archivesAbsolute = new const char*[archivesSize];
-   const char** archivesObjects = new const char*[archivesSize];
-	const char** archivesMaterial = new const char*[archivesSize];
-	for ( unsigned int a = 0; a < archivesSize; a++ )
-	{
-		archives[a] = pc->get( PC(Archives), a );
-		archivesAbsolute[a] = pc->get( PC(ArchivesAbsolute), a );
-      archivesObjects[a] = pc->get(PC(ArchivesObjects), a);
-		archivesMaterial[a] = pc->get(PC(ArchivesMaterial), a);
-	}
-	const double* archivesFrame = pc->get( PC(ArchivesFrame_XP) );
+   // Get archive name string pointers
+   double archiveScale = pc->get( PC(ArchiveSize) );
+   unsigned int archivesSize = pc->getSize( PC(Archives) );
+   const char** archives = new const char*[archivesSize];
+   const char** archivesAbsolute = new const char*[archivesSize];
+   //const char** archivesObjects = new const char*[archivesSize];
+   const char** archivesMaterial = new const char*[archivesSize];
+   for ( unsigned int a = 0; a < archivesSize; a++ )
+   {
+      archives[a] = pc->get( PC(Archives), a );
+      archivesAbsolute[a] = pc->get( PC(ArchivesAbsolute), a );
+      //archivesObjects[a] = pc->get(PC(ArchivesObjects), a);
+      archivesMaterial[a] = pc->get(PC(ArchivesMaterial), a);
+   }
+   const double* archivesFrame = pc->get( PC(ArchivesFrame_XP) );
 
 
     for ( unsigned int j = 0; j < cacheCount; j++ ) {
@@ -1322,7 +1367,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
 
 /*
-		// NOTE: Ported from renderMan procedural code and the following is not activated yet
+      // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
         // Begin motion block if necessary.
         if ( numSamples > 1 ) {
@@ -1338,15 +1383,15 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         }
 */
 
-		string strParentName = AiNodeGetName( m_node_face );
-		string strID = itoa(m_nodes.size());
+      string strParentName = AiNodeGetName( m_node_face );
+      string strID = itoa(m_nodes.size());
 
-		string instance_name = strParentName + string("_archive_") + strID;
-		//std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
+      string instance_name = strParentName + string("_archive_") + strID;
+      //std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
 
 
         for ( unsigned int i=0; i < numSamples; i++ ) {
-        	float* xPi = &xP[i]._00;
+           float* xPi = &xP[i]._00;
             AtMatrix tmp = {{AtFloat(xPi[0]),AtFloat(xPi[1]),AtFloat(xPi[2]),AtFloat(xPi[3])},
                             {AtFloat(xPi[4]),AtFloat(xPi[5]),AtFloat(xPi[6]),AtFloat(xPi[7])},
                             {AtFloat(xPi[8]),AtFloat(xPi[9]),AtFloat(xPi[10]),AtFloat(xPi[11])},
@@ -1357,7 +1402,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         }
 
 /*
-		// NOTE: Ported from renderMan procedural code and the following is not activated yet
+      // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
         // End motion block if necessary.
         if ( numSamples > 1 ) {
@@ -1369,41 +1414,89 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         pc->inverseXformParams( j, xP[0], xN );
 
         // Get archive bbox
-		bbox arcbox;
-		if( !pc->getArchiveBoundingBox( archivesAbsolute[jj], arcbox ) )
-		{
-			std::cerr << "ERROR: XgArnoldProcedural: Unable to get asset information for " << archivesAbsolute[jj] << "\n";
-			//continue;
-		}
 
-		// Scale the bbox by the archive bbox
-		arcbox.xmin *= archiveScale;
-		arcbox.ymin *= archiveScale;
-		arcbox.zmin *= archiveScale;
-		arcbox.xmax *= archiveScale;
-		arcbox.ymax *= archiveScale;
-		arcbox.zmax *= archiveScale;
+      std::vector < std::string > vecFilenames;
+      std::vector < std::string > vecMaterials;
+      std::string archivesAbsoluteJJ = archivesAbsolute[jj];
+      std::string archivesMaterialJJ = archivesMaterial[jj];
 
 
-		AtNode* archive_procedural = getArchiveProceduralNode( archivesAbsolute[jj], instance_name.c_str(), arcbox, archivesFrame[j] );
-		if ( archive_procedural )
-		{
-			AiNodeSetStr( archive_procedural, "name", instance_name.c_str() );
-			AiNodeSetArray( archive_procedural, "matrix", matrix );
-			AiNodeSetArray( archive_procedural, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+      size_t currentF, currentM;
+      size_t nextF = (size_t)-1;
+      size_t nextM = (size_t)-1;
+      do
+      {
+         currentF = nextF + 1;
+         currentM = nextM + 1;
+         nextF = archivesAbsoluteJJ.find_first_of("\n", currentF);
+         nextM = archivesMaterialJJ.find_first_of("\n", currentM);
+         vecFilenames.push_back(archivesAbsoluteJJ.substr(currentF, nextF - currentF));
+         vecMaterials.push_back(archivesMaterialJJ.substr(currentM, nextM - currentM));
+      }
+      while (nextF != std::string::npos);
 
-			// Add custom renderer parameters.
-			pushCustomParams( archive_procedural, pc );
+      for( size_t i=0; i<vecFilenames.size(); ++i )
+      {
+         std::string filename = vecFilenames[i];
+         std::string materialName = vecMaterials[i];
 
-			m_nodes.push_back( archive_procedural );
-		}
+         std::string uniqueName = instance_name + "_" + itoa(i);
 
+         AtNode* materialNode = AiNodeLookUpByName(materialName.c_str());
+
+         std::string ext3 = filename.size() > 3 ? filename.substr(filename.size() - 3) : "";
+         std::string ext6 = filename.size() > 7 ? filename.substr(filename.size() - 6) : "";
+         if (!(ext3 == "ass") && !(ext6 == "ass.gz"))
+            continue;
+
+         // Expand the ${FRAME} token.
+         {
+            size_t pos = filename.find("${FRAME}");
+            while ( pos != string::npos ) {
+               filename.replace(pos,8, itoa((int)floor(archivesFrame[j]),"%4.4d") );
+               pos = filename.find("${FRAME}",pos+1);
+            }
+         }
+
+         bbox arcbox;
+         if( !getArchiveBoundingBox( filename.c_str(), arcbox ) )
+         {
+            std::cerr << "ERROR: XgArnoldProcedural: Unable to get asset information for " << archivesAbsolute[jj] << "\n";
+            continue;
+         }
+
+         // Scale the bbox by the archive bbox
+         /*arcbox.xmin *= archiveScale;
+         arcbox.ymin *= archiveScale;
+         arcbox.zmin *= archiveScale;
+         arcbox.xmax *= archiveScale;
+         arcbox.ymax *= archiveScale;
+         arcbox.zmax *= archiveScale;*/
+
+
+         AtNode* archive_procedural = getArchiveProceduralNode( filename.c_str(), instance_name.c_str(), arcbox, archivesFrame[j] );
+         if ( archive_procedural )
+         {
+            AiNodeSetStr( archive_procedural, "name", uniqueName.c_str() );
+            AiNodeSetArray( archive_procedural, "matrix", AiArrayCopy(matrix) );
+            if(materialNode != NULL)
+               AiNodeSetPtr( archive_procedural, "shader", materialNode );
+            else if(materialName.size() > 0 && m_shaders != NULL)
+               AiNodeSetArray( archive_procedural, "shader", AiArrayCopy(m_shaders));
+            
+
+            // Add custom renderer parameters.
+            //pushCustomParams( archive_procedural, pc );
+
+            m_nodes.push_back( archive_procedural );
+         }
+      }
 /*
-		// NOTE: Ported from renderMan procedural code and the following is not activated yet
+      // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
         std::vector<std::string> stringdata;
-		std::vector<RtString> stringhandles;
-		pushParams( stringdata, stringhandles, j, geomName, pc );
+      std::vector<RtString> stringhandles;
+      pushParams( stringdata, stringhandles, j, geomName, pc );
         RtToken *tokenPtr = &(_tokens[0]);
         RtPointer *paramPtr = &(_params[0]);
         RiAttributeV( const_cast<char*>("user"), _tokens.size(),
@@ -1422,19 +1515,19 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         for (RtInt k=0; k < 3; k++) {
             if ( useLevel[k] ) {
 
-            	const char* filename = archivesAbsolute[jj+count];
+               const char* filename = archivesAbsolute[jj+count];
 
                 bbox arcbox;
                 if( pc->getArchiveBoundingBox( filename, arcbox ) )
                 {
-					box[0] = std::min( box[0], (float)arcbox.xmin );
-					box[1] = std::max( box[1], (float)arcbox.xmax );
+               box[0] = std::min( box[0], (float)arcbox.xmin );
+               box[1] = std::max( box[1], (float)arcbox.xmax );
 
-					box[2] = std::min( box[2], (float)arcbox.ymin );
-					box[3] = std::max( box[3], (float)arcbox.ymax );
+               box[2] = std::min( box[2], (float)arcbox.ymin );
+               box[3] = std::max( box[3], (float)arcbox.ymax );
 
-					box[4] = std::min( box[4], (float)arcbox.zmin );
-					box[5] = std::max( box[5], (float)arcbox.zmax );
+               box[4] = std::min( box[4], (float)arcbox.zmin );
+               box[5] = std::max( box[5], (float)arcbox.zmax );
 
                     rib_bbox = true;
                 }
@@ -1474,9 +1567,9 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                 bbox arcbox;
                 if( pc->getArchiveBoundingBox( filename, arcbox ) )
                 {
-                	// Convert to float RtBound
-                	for( unsigned int bbi=0; bbi<6; ++bbi )
-                		procbox[bbi] = (float)(((double*)&arcbox)[bbi]);
+                   // Convert to float RtBound
+                   for( unsigned int bbi=0; bbi<6; ++bbi )
+                      procbox[bbi] = (float)(((double*)&arcbox)[bbi]);
                 }
 
                 // Make archive call.
@@ -1491,8 +1584,9 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         _tokens.clear();
         _params.clear();
 */
+      AiArrayDestroy(matrix);
     }
-
+    
     delete [] archives;
     delete [] archivesAbsolute;
 }
@@ -1500,33 +1594,37 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 // Get info from archive file and create procedural node
 AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char* instance_name, const bbox& arcbox, double frame )
 {
-	// Assuming the archive is exported at 24fps
-	frame /= 24.0;
+   // Assuming the archive is exported at 24fps
+   /*frame /= 24.0;
 
-	char strFrame[256];
-	snprintf( strFrame, 255, "%lf", frame );
+   char strFrame[256];
+   snprintf( strFrame, 255, "%lf", frame );*/
 
-	// Get arnold info
-	//static string dso = string(getenv("MTOA_PATH")) + string("/procedurals/libAbcArnold.so");
-   static string dso = string("E:/little_fella/little_fella/scenes/cone.ass");
-	std::string dso_data;
+   // Get arnold info
+   //static string dso = string(getenv("MTOA_PATH")) + string("/procedurals/libAbcArnold.so");
+   string dso = string(file_name);
+   
+   /*std::string dso_data;
 
-	dso_data += string(" -filename ") + string(file_name);
-	dso_data += string(" -nameprefix ") + string(instance_name);
-	dso_data += string(" -frame ") + string(strFrame);
-	dso_data += string(" -fps 24 ");
-	dso_data += string(" -shutteropen 0.0 " );
-	dso_data += string(" -shutterclose 0.0 " );
-	dso_data += string(" -makeinstance ");
 
-	// Return a procedural node
-	AtNode* abcProc = AiNode("procedural");
-	AiNodeSetStr( abcProc, "dso", dso.c_str() );
-	AiNodeSetStr( abcProc, "data", dso_data.c_str() );
-	AiNodeSetPnt( abcProc, "min", arcbox.xmin, arcbox.ymin, arcbox.zmin );
-	AiNodeSetPnt( abcProc, "max", arcbox.xmax, arcbox.ymax, arcbox.zmax );
+   
 
-	return abcProc;
+   dso_data += string(" -filename ") + string(file_name);
+   dso_data += string(" -nameprefix ") + string(instance_name);
+   dso_data += string(" -frame ") + string(strFrame);
+   dso_data += string(" -fps 24 ");
+   dso_data += string(" -shutteropen 0.0 " );
+   dso_data += string(" -shutterclose 0.0 " );
+   dso_data += string(" -makeinstance ");*/
+
+   // Return a procedural node
+   AtNode* abcProc = AiNode("procedural");
+   AiNodeSetStr( abcProc, "dso", dso.c_str() );
+   //AiNodeSetStr( abcProc, "data", dso_data.c_str() );
+   AiNodeSetPnt( abcProc, "min", arcbox.xmin, arcbox.ymin, arcbox.zmin );
+   AiNodeSetPnt( abcProc, "max", arcbox.xmax, arcbox.ymax, arcbox.zmax );
+
+   return abcProc;
 }
 
 }
@@ -1534,56 +1632,56 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
 // Redirect Init/Cleanup/NumNodes/GetNode to our XGenArnoldProcedural class wrapped in the user data.
 static int Init( AtNode* node, void** user_ptr )
 {
-	//AiMsgInfo("[xgArnoldProcedural] Init()");
+   //AiMsgInfo("[xgArnoldProcedural] Init()");
 
-	ProceduralWrapper* ud = (ProceduralWrapper*)AiNodeGetPtr( node, "userptr" );
+   ProceduralWrapper* ud = (ProceduralWrapper*)AiNodeGetPtr( node, "userptr" );
 
-	// Create a brand new one.
-	if( ud==NULL )
-	{
-		ud = new ProceduralWrapper( new Procedural(), false /* Won't do cleanup */ );
-		if( !ud )
-			return 0;
-	}
+   // Create a brand new one.
+   if( ud==NULL )
+   {
+      ud = new ProceduralWrapper( new Procedural(), false /* Won't do cleanup */ );
+      if( !ud )
+         return 0;
+   }
 
-	*user_ptr = (void*)ud;
+   *user_ptr = (void*)ud;
 
-	return ud->Init( node );
+   return ud->Init( node );
 }
 
 // Cleanup
 static int Cleanup( void* user_ptr )
 {
-	//AiMsgInfo("[xgArnoldProcedural] Cleanup()");
+   //AiMsgInfo("[xgArnoldProcedural] Cleanup()");
 
-	ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
-	if( !ud )
-		return 0;
-	int ret = ud->Cleanup();
-	delete ud;
-	return ret;
+   ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
+   if( !ud )
+      return 0;
+   int ret = ud->Cleanup();
+   delete ud;
+   return ret;
 }
 
 // Get number of nodes
 static int NumNodes( void* user_ptr )
 {
-	//AiMsgInfo("[xgArnoldProcedural] NumNodes()");
+   //AiMsgInfo("[xgArnoldProcedural] NumNodes()");
 
-	ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
-	if( !ud )
-		return 0;
-	return ud->NumNodes();
+   ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
+   if( !ud )
+      return 0;
+   return ud->NumNodes();
 }
 
 // Get the i_th node
 static AtNode* GetNode( void* user_ptr, int i )
 {
-	//AiMsgInfo("[xgArnoldProcedural] GetNode()");
+   //AiMsgInfo("[xgArnoldProcedural] GetNode()");
 
-	ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
-	if( !ud )
-		return 0;
-	return ud->GetNode(i);
+   ProceduralWrapper* ud = (ProceduralWrapper*)user_ptr;
+   if( !ud )
+      return 0;
+   return ud->GetNode(i);
 }
 
 // DSO hook
@@ -1594,14 +1692,14 @@ extern "C"
 
 AI_EXPORT_LIB int ProcLoader(AtProcVtable *vtable)
 {
-	vtable->Init = Init;
-	vtable->Cleanup = Cleanup;
-	vtable->NumNodes = NumNodes;
-	vtable->GetNode = GetNode;
+   vtable->Init = Init;
+   vtable->Cleanup = Cleanup;
+   vtable->NumNodes = NumNodes;
+   vtable->GetNode = GetNode;
 
    s_bCleanDescriptionCache = true;
-	sprintf(vtable->version, AI_VERSION);
-	return 1;
+   sprintf(vtable->version, AI_VERSION);
+   return 1;
 }
 
 #ifdef __cplusplus
