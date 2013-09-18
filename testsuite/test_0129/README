@@ -1,0 +1,5 @@
+Connecting Maya bump 3D to multiple shaders changes the original shader assignment
+
+Connecting Maya bump 3D to multiple shaders changes the original shader assignment (Ticket #1520)
+
+author: pedro.gomez
