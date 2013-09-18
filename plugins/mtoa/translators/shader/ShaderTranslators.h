@@ -34,7 +34,6 @@ public:
 
 SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
-SHADER_TRANSLATOR(CBump3DTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
@@ -58,6 +57,42 @@ public:
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
+   
+   // We disable cache to prevent reusing the same bump for
+   //  different shaders:
+   //
+   // Maya:
+   //  ----------       -----------
+   //  | Bump2d | --->  | Shader1 |
+   //  ---------- \     -----------
+   //              \    -----------
+   //               \-> | Shader2 |
+   //                   -----------
+   //             __
+   //             ||
+   //            _||_
+   //            \  /
+   //             \/
+   //
+   // Arnold:
+   //  -----------     ---------
+   //  | Shader1 | --> | Bump1 |
+   //  -----------     ---------
+   //  -----------     ---------
+   //  | Shader2 | --> | Bump2 |
+   //  -----------     ---------
+   //
+   bool DisableCaching() {return true;};
+};
+
+class CBump3DTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CBump3DTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   // We disable cache to prevent reusing the same bump for
+   //  different shaders. As done in CBump2DTranslator
    bool DisableCaching() {return true;};
 };
 
