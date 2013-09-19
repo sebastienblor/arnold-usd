@@ -296,6 +296,44 @@ class MtoATxManager(object):
     
     def selectChange(self, *args):
         self.selectedFilesFromList()
+        
+    def selectLine(self, *args):
+        ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
+        
+        listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
+        selectedList = cmds.textScrollList(ctrlPath, query=True, si=True);
+        selectedIndexList = cmds.textScrollList(ctrlPath, query=True, sii=True);
+
+        selected = selectedList[0];
+        firstIndex = listElements.index(selected)
+        number = selectedIndexList[0] - firstIndex
+        
+        if selected.startswith('       '):
+            selected = selected.replace('       ','',1)
+        elif selected.startswith('(tx) '):
+            selected = selected.replace('(tx) ','',1)
+        elif selected.startswith('[tx] '):
+            selected = selected.replace('[tx] ','',1)
+        elif selected.startswith('~~  '):
+            selected = selected.replace('~~  ','',1)
+        
+        list = cmds.ls(type='file')
+        for node in list:
+            texture = cmds.getAttr(node+'.fileTextureName')
+            if texture == selected:
+                number -= 1
+                if number == 0:
+                    cmds.select(node)
+                    return
+                    
+        list = cmds.ls(type='aiImage')
+        for node in list:
+            texture = cmds.getAttr(node+'.filename')
+            if texture == selected:
+                number -= 1
+                if number == 0:
+                    cmds.select(node)
+                    return
     
     # Set the variables self.selectedFiles, self.filesToCreate, self.filesCreated and self.createdErrors
     #  from the Scroll List selection
@@ -321,8 +359,6 @@ class MtoATxManager(object):
                 self.selectedFiles[i] = texture.replace('(tx) ','',1)
             else:
                 self.selectedFiles[i] = ""
-                idx = list.index(texture) + 1
-                cmds.textScrollList(ctrlPath, edit=True, deselectIndexedItem=idx);
                 continue;
             texture = self.selectedFiles[i]
             if 'udim' in os.path.basename(texture):

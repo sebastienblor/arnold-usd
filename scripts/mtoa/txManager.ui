@@ -81,6 +81,9 @@
     <property name="+selectCommand" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.selectChange</string>
     </property>
+    <property name="+doubleClickCommand" stdset="0">
+     <string>mtoa.txManager.MtoATxManager.use.selectLine</string>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
