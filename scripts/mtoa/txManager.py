@@ -127,6 +127,7 @@ class MtoATxManager(object):
             cmds.deleteUI(self.window);
         self.window = cmds.loadUI(uiFile=self.uiFile, verbose=False)
         
+        cmds.showWindow(self.window);
         try:
             initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
             if initPos[0] < 0:
@@ -136,9 +137,6 @@ class MtoATxManager(object):
             cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
         except :
             pass
-        
-        
-        cmds.showWindow(self.window);
         
         ctrlPath = '|'.join([self.window, 'radioButton']);
         cmds.radioButton(ctrlPath, edit=True, select=True);
@@ -248,6 +246,8 @@ class MtoATxManager(object):
                 cmds.textScrollList(ctrlPath, edit=True, append=['(tx) '+texture[0]]);
             elif(texture[1] == 2):
                 cmds.textScrollList(ctrlPath, edit=True, append=['       '+texture[0]]);
+            elif(texture[1] == -1):
+                cmds.textScrollList(ctrlPath, edit=True, append=['~~  '+texture[0]]);
 
         self.listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
                 
@@ -422,3 +422,4 @@ class MtoATxManager(object):
         if not self.thread:
             self.thread = MakeTxThread(self)
             self.thread.start()
+
