@@ -17,7 +17,7 @@ The End User may only use the Arnold Software for authorised purposes and may no
 
 The Arnold Software will operate in evaluation mode with a watermarked output if a valid license key is not installed. The use of the watermarked output for commercial use is strictly prohibited.
 
-Licenses that are used for education purposes or have been purchased at an educational discount may only be used by the End User for training and instruction and for no other purpose and must not be used for commercial gain or for-profit purposes.
+Licenses that are used for education purposes or have been purchased at an educational discount may only be used by the End User for training and instruction and for no other purpose.
 
 The End User may not export or re-export the Arnold Software to any country or entity subject to United Kingdom export restrictions.
 
