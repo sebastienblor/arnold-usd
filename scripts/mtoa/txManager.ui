@@ -54,7 +54,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Search</string>
+     <string>Refresh</string>
     </property>
     <property name="+command" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.refreshList</string>
