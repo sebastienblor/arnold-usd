@@ -513,6 +513,17 @@ void COptionsTranslator::Export(AtNode *options)
    // frame number
    AiNodeDeclare(options, "frame", "constant FLOAT");
    AiNodeSetFlt(options, "frame", (AtFloat)GetExportFrame());
+   // render layer name
+   MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
+   if (status)
+   {
+      MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
+      if (status)
+      {
+         AiNodeDeclare(options, "render_layer", "constant STRING");
+         AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
+      }
+   }
    AiNodeDeclare(options, "fps", "constant FLOAT");
    static const float fpsTable[] = { 0.f, 1.f / 3600.f, 1.f / 60.f, 1.f,
                                    1000.f, 15.f, 24.f, 25.f, 30.f, 48.f,
