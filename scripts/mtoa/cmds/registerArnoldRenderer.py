@@ -281,6 +281,7 @@ def registerArnoldRenderer():
                 aeUtils._makeAEProc('templates', 'shapeTemplate', 'AEshapeTemplate')
             else:
                 import rendererCallbacks
+                rendererCallbacks.registerCallbacks()
             import mtoa.ui.ae.customShapeAttributes
             import mtoa.ui.ae.customShaderTemplates
             if not pm.about(batch=True):

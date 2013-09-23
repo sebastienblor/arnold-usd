@@ -19,7 +19,7 @@ CArnoldStandInGeometry::CArnoldStandInGeometry()
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
 {
-   
+   AiArrayDestroy(p_matrices);
 }
 
 void CArnoldStandInGeometry::DrawBoundingBox() const
@@ -100,16 +100,26 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed)
 {
    if (transformed)
    {
-      MBoundingBox bbox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
-      bbox.transformUsing(MMatrix(m_matrix));
-      return bbox;
+      
+      MBoundingBox bboxRet;
+      for (unsigned int i = 0; i < p_matrices->nkeys; ++i)
+      {
+         AtMatrix mtx;
+         AiM4Identity(mtx);
+         AiArrayGetMtx(p_matrices, i, mtx);
+         MBoundingBox bbox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+         bbox.transformUsing(MMatrix(mtx));
+         bboxRet.expand(bbox);
+      }
+      return bboxRet;
    }
    else return MBoundingBox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 }
 
 CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry()
 {
-   AiNodeGetMatrix(node, "matrix", m_matrix);
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   AiArrayGetMtx(p_matrices, 0, m_matrix);
    
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
    
@@ -246,7 +256,8 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
 
 CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry()
 {
-   AiNodeGetMatrix(node, "matrix", m_matrix);
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   AiArrayGetMtx(p_matrices, 0, m_matrix);
    
    AtArray* points = AiNodeGetArray(node, "points");
    
@@ -337,7 +348,8 @@ MBoundingBox CArnoldStandInGInstance::GetBBox()
 
 CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry()
 {
-   AiNodeGetMatrix(node, "matrix", m_matrix);
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   AiArrayGetMtx(p_matrices, 0, m_matrix);
 
    m_BBMin = AiNodeGetPnt(node, "min");
    m_BBMax = AiNodeGetPnt(node, "max");

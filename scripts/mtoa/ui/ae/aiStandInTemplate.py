@@ -20,9 +20,9 @@ def ArnoldStandInDsoEdit(nodeName, mPath, replace=False) :
     expression = r''
     if replace:
         # Expression to replace frame numbers by #
-        expression = r'(.*?)([\.\_]?)([0-9#]*)([\.]?)([0-9#]*)(.ass.gz|.ass|.obj|.ply)'
+        expression = r'(.*?)([\._])([0-9#]*)([\.]?)([0-9#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
     else:
-        expression = r'(.*?)([\.\_]?)([#]*)([\.]?)([#]*)(.ass.gz|.ass|.obj|.ply)'
+        expression = r'(.*?)([\._])([#]*)([\.]?)([#]*)(\.ass\.gz|\.ass|\.obj|\.ply)$'
 
     # If it is a recogniced format
     if re.search(expression,mPath) != None:
