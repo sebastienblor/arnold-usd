@@ -346,6 +346,7 @@ namespace // <anonymous>
       if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
+         SetEnv("MTOA_PATH",pluginPath);
          MString modulePluginPath = pluginPath + MString("shaders");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
