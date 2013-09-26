@@ -51,10 +51,11 @@ vars.AddVariables(
     PathVariable('LINK', 'Linker to use', None),
     PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
     PathVariable('SHCXX', 'Path to C++ (gcc) compiler used for generating shared-library objects', None),
-    ('FTP'        , 'Path of the FTP to upload the package', ''),
-    ('FTP_SUBDIR' , 'Subdirectory on the FTP to place the package', ''),
-    ('FTP_USER'   , 'Username for the FTP', ''),
-    ('FTP_PASS'   , 'Password for the FTP', ''),
+    ('FTP'            , 'Path of the FTP to upload the package'        , ''),
+    ('FTP_SUBDIR'     , 'Subdirectory on the FTP to place the package' , ''),
+    ('FTP_USER'       , 'Username for the FTP'                         , ''),
+    ('FTP_PASS'       , 'Password for the FTP'                         , ''),
+    ('PACKAGE_SUFFIX' , 'Suffix for the package names'                 , ''),
                   
     BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
     EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
@@ -201,6 +202,7 @@ TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 SHAVE_API = env.subst(env['SHAVE_API'])
+PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -670,7 +672,7 @@ if maya_base_version == '2013':
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + PACKAGE_SUFFIX
 
 if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
@@ -768,7 +770,7 @@ for ext in os.listdir(ext_base_dir):
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        extension_package_name = '%s-%s-MtoA-%s-maya%s' % (ext, system.os(), MTOA_VERSION, maya_base_version)
+        extension_package_name = '%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
         EXT_PACKAGE = local_env.MakePackage(extension_package_name, EXT)        
         top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)        
         local_env.AlwaysBuild(EXT_PACKAGE)
