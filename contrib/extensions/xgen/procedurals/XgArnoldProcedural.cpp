@@ -620,11 +620,11 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
    std::string fileBase = "";
    int extPos = 0;
-   if ((extPos = fname.find(".ass")) == (fname.length()-4))
+   if ((extPos = fname.find(".ass")) == ((int)fname.length()-4))
    {
       fileBase = fname.substr(0, extPos);
    }
-   else if ((extPos = fname.find(".ass.gz")) == (fname.length()-7))
+   else if ((extPos = fname.find(".ass.gz")) == ((int)fname.length()-7))
    {
       fileBase = fname.substr(0, extPos);
    }
@@ -633,7 +633,7 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
    std::string asstocfile = fileBase + ".asstoc";
 
-   std::ifstream file(asstocfile);
+   std::ifstream file(asstocfile.c_str());
    if (!file.is_open())
    {
       if (XGDebugLevel >= 2)
@@ -1238,7 +1238,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 //   const float* upTrans = (const float*)&pc->get( PC(UpTrans) ).x;
 
    // Get archive name string pointers
-   double archiveScale = pc->get( PC(ArchiveSize) );
+   // double archiveScale = pc->get( PC(ArchiveSize) ); // unused variable
    unsigned int archivesSize = pc->getSize( PC(Archives) );
    const char** archives = new const char*[archivesSize];
    const char** archivesAbsolute = new const char*[archivesSize];
