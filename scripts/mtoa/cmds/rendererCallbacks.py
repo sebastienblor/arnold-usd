@@ -186,4 +186,8 @@ def registerCallbacks():
 def clearCallbacks():
     if cmds.about(batch=True):
         return
-    cmds.callbacks(clearAllCallbacks=True, owner="arnold")
+    try:
+        cmds.callbacks(clearAllCallbacks=True, owner="arnold")
+    except:
+        pass
+
