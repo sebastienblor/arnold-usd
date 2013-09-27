@@ -197,6 +197,7 @@ TARGET_INCLUDE_PATH = env.subst(env['TARGET_INCLUDE_PATH'])
 TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])  
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
+TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
@@ -748,10 +749,13 @@ for ext in os.listdir(ext_base_dir):
             EXT_SHADERS = EXT[1]        
         
         # EXT may contain a shader result
-        ext_shader = None
+        ext_arnold = None
+        target_type = 'shader'
         ext_files = []
         if len(EXT) > 1:
-            ext_shader = str(EXT[1][0])
+            ext_arnold = str(EXT[1][0])
+            if hasattr(EXT[1], 'target_type'):
+                target_type = EXT[1].target_type
             plugin = str(EXT[0][0])
         else:
             plugin = str(EXT[0])
@@ -763,9 +767,14 @@ for ext in os.listdir(ext_base_dir):
             env.Install(TARGET_EXTENSION_PATH, pyfile)
         env.Install(TARGET_EXTENSION_PATH, plugin)
         package_files = []
-        if ext_shader:
-            env.Install(TARGET_SHADER_PATH, ext_shader)
-            package_files += [[ext_shader, 'shaders']]
+        if ext_arnold:
+            target_path = "shaders"
+            if target_type == 'procedural':
+                env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
+                target_path = "procedurals"
+            else:
+                env.Install(TARGET_SHADER_PATH, ext_arnold)
+            package_files += [[ext_arnold, target_path]]
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()

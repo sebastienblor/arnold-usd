@@ -42,5 +42,6 @@ else:
 
 
 MTOA_PROCS = proc_env.SharedLibrary('xgen_procedural', source_files, LIBPREFIX='')
+MTOA_PROCS.target_type = "procedural"
 
 Return('EXT MTOA_PROCS')
