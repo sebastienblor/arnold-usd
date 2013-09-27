@@ -1242,6 +1242,29 @@ AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode("standard"));
 }
 
+void CMayaPhongTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   
+   AiNodeSetFlt(shader, "Ks", 1.f);
+   MPlug cosinePowerPlug = FindMayaPlug("cosinePower");
+   float rougness = sqrtf(1.0f / (0.454f * cosinePowerPlug.asFloat() + 3.357f));
+   AiNodeSetFlt(shader, "specular_roughness", rougness);
+   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   
+   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaPhongTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
 void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("aiHair");

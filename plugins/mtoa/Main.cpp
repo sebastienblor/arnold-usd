@@ -439,6 +439,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("blinn",
                                      "",
                                      CMayaBlinnTranslator::creator);
+         shaders->RegisterTranslator("phong",
+                                     "",
+                                     CMayaPhongTranslator::creator);
          shaders->RegisterTranslator("singleShadingSwitch",
                                      "",
                                      CreateSingleShadingSwitchTranslator);
