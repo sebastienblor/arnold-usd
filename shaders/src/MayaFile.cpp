@@ -74,6 +74,13 @@ struct TokenData
    void* extra;
    void* secondExtra; // for the default value
    int secondExtraLength; // for the default value
+
+   TokenData()
+   {
+      extra = 0;
+      secondExtra = 0;
+      secondExtraLength = 0;
+   }
 };
 
 typedef struct AtImageData
