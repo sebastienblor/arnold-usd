@@ -502,7 +502,11 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setDefault(sData.create("beauty"));
    addAttribute(s_displayAOV);
 
-   s_attributes.MakeInput("binary_ass");
+   //s_attributes.MakeInput("binary_ass");
+   MObject tempAttr = nAttr.create(s_attributes.GetMayaAttrName("binary_ass"), s_attributes.GetMayaAttrShortName("binary_ass"), MFnNumericData::kBoolean);
+   nAttr.setDefault(true);
+   nAttr.setKeyable(false);
+   addAttribute(tempAttr);
 
    s_attributes.MakeInput("reference_time");
       
