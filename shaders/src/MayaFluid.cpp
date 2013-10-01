@@ -686,7 +686,7 @@ node_update
    data->depthMax = AiNodeGetInt(node, "depth_max");
    data->billowFalloff = AiNodeGetInt(node, "billow_falloff");
    data->inflection = AiNodeGetBool(node, "inflection");
-   data->invertTexture = AiNodeGetBool(node, "invert_texture");    
+   data->invertTexture = AiNodeGetBool(node, "invert_texture");
    
    if (!(data->textureAffectColor || data->textureAffectIncand || data->textureAffectOpacity))
       data->volumeTexture = 0;
@@ -1079,7 +1079,12 @@ shader_evaluate
    }
    
    const AtRGB opacity = MAX(0.f, GetValue(sg, data, fluidData, lPt, data->opacityGradient, opacityNoise)) * dropoff * data->transparency;
-   AtRGB color = GetValue(sg, data, fluidData, lPt, data->colorGradient, colorNoise);
+   AtRGB color = AI_RGB_BLACK;
+   if (fluidData->colorGridEmpty())
+      color = GetValue(sg, data, fluidData, lPt, data->colorGradient, colorNoise);
+   else
+      color = fluidData->readColors(lPt, data->filterType);
+
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
    color.b = MAX(0.f, color.b);

@@ -114,6 +114,7 @@ public:
    inline float readFalloff(const AtVector& lPt, int filterType) const;
 
    inline bool coordinatesEmpty() const;
+   inline bool colorGridEmpty() const;
 private:
    int xres, yres, zres;
    AtVector dmin, dmax;
@@ -475,4 +476,9 @@ float CMayaFluidData::readFalloff(const AtVector& lPt, int filterType) const
 bool CMayaFluidData::coordinatesEmpty() const
 {
    return coordinates.data == 0;
+}
+
+bool CMayaFluidData::colorGridEmpty() const
+{
+   return colors.data == 0;
 }
