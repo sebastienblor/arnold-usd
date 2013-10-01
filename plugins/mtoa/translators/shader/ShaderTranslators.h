@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShaderTranslator.h"
+#include <string>
 
 #define SHADER_TRANSLATOR(name)\
    class name : public CShaderTranslator\
@@ -34,7 +35,6 @@ public:
 
 SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
-SHADER_TRANSLATOR(CBump3DTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
@@ -47,7 +47,24 @@ SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
+SHADER_TRANSLATOR(CMayaPhongTranslator);
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
+
+class CMayaShadingSwitchTranslator : public CShaderTranslator{
+private:
+   std::string m_nodeType;
+   int m_paramType;
+public:
+   CMayaShadingSwitchTranslator(const char* nodeType, int paramType);
+   void Export(AtNode* shadingSwitch);
+   AtNode* CreateArnoldNodes();
+};
+
+void* CreateSingleShadingSwitchTranslator();
+void* CreateDoubleShadingSwitchTranslator();
+void* CreateTripleShadingSwitchTranslator();
+void* CreateQuadShadingSwitchTranslator();
+
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 
@@ -58,6 +75,42 @@ public:
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
+   
+   // We disable cache to prevent reusing the same bump for
+   //  different shaders:
+   //
+   // Maya:
+   //  ----------       -----------
+   //  | Bump2d | --->  | Shader1 |
+   //  ---------- \     -----------
+   //              \    -----------
+   //               \-> | Shader2 |
+   //                   -----------
+   //             __
+   //             ||
+   //            _||_
+   //            \  /
+   //             \/
+   //
+   // Arnold:
+   //  -----------     ---------
+   //  | Shader1 | --> | Bump1 |
+   //  -----------     ---------
+   //  -----------     ---------
+   //  | Shader2 | --> | Bump2 |
+   //  -----------     ---------
+   //
+   bool DisableCaching() {return true;};
+};
+
+class CBump3DTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CBump3DTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   // We disable cache to prevent reusing the same bump for
+   //  different shaders. As done in CBump2DTranslator
    bool DisableCaching() {return true;};
 };
 

@@ -148,11 +148,15 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      AddArnoldNode("polymesh", "mesh");
+      AddArnoldNode("meshLightMaterial", "shader");
       return AddArnoldNode("mesh_light");
    }
    
    virtual void ExportMotion(AtNode* light, unsigned int step);
-   
-private:
+protected:
+   virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
+   virtual MObject GetMeshObject() const;
+
    int m_numVertices;
 };

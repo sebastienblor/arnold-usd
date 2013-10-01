@@ -12,7 +12,7 @@ public:
       CDagTranslator::Init(session, dagPath, outputAttr);
       return m_atNode;
    }
-   bool RequiresMotionData()
+   virtual bool RequiresMotionData()
    {
       return m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
    }

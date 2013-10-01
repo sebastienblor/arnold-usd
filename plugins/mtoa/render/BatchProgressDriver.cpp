@@ -124,7 +124,17 @@ driver_open
    if (g_socketFd != -1)
    {
       std::stringstream ss;
-      ss << "print \"Started Render of Frame : " << ++g_frameNumber << "\\n\";";
+      if (AiNodeLookUpUserParameter(options, "frame") != 0)
+      {
+         const float frame = AiNodeGetFlt(options, "frame");
+         if (AiNodeLookUpUserParameter(options, "render_layer") != 0)
+         {
+            ss << "print \"Started Render of Layer " << AiNodeGetStr(options, "render_layer")
+               << " of Frame " << frame << "\\n\";";
+         }
+         else ss << "print \"Started Render of Frame " << frame << "\\n\";";
+      }
+      else ss << "print \"Started Render of Frame " << ++g_frameNumber << "\\n\";";
       SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
    }
 }

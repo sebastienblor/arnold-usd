@@ -15,6 +15,12 @@ class CArnoldSkyNode
 
 public:
 
+   ~CArnoldSkyNode()
+   {
+      if (m_connectionCallback)
+         MDGMessage::removeCallback(m_connectionCallback);
+   }
+
    static void removeSky(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData)
    {
       MString srcName = srcPlug.partialName(false, false, false, false, false, true);
@@ -31,7 +37,7 @@ public:
 
       setMPSafe(true);
 
-      MDGMessage::addConnectionCallback(removeSky);
+      m_connectionCallback = MDGMessage::addConnectionCallback(removeSky);
    }
 
    static void* creator();
@@ -67,4 +73,6 @@ public:
    static MObject s_OUT_transparencyG;
    static MObject s_OUT_transparencyB;
    static MObject s_OUT_transparency;
+private:
+   MCallbackId m_connectionCallback;
 };  // class CArnoldSkyNode

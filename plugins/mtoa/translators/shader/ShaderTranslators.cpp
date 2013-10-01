@@ -2,6 +2,7 @@
 #include "scene/MayaScene.h"
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
+#include "platform/Platform.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -28,7 +29,6 @@
 
 #include <string>
 #include <fstream>
-
 
 // Sky
 //
@@ -178,6 +178,81 @@ AtNode*  CFileTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode("MayaFile"));
 }
 
+bool StringHasOnlyNumbersAndMinus(const std::string& str)
+{
+   static const char validCharacters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'}; // do we have to add - ?
+   for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+   {
+      for (int i = 0; i < 10; ++i)
+      {
+         if (*it == validCharacters[i])
+            return true;
+      }
+   }
+   return false;
+}
+
+bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, bool checkForTileToken = true)
+{
+   size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
+#ifdef _WIN32
+   if (slashPos == std::string::npos) // we don't get the right slashes from the aiImage node
+      slashPos = original_filename.rfind('\\');
+   else
+   {
+      size_t slashPos2 = original_filename.rfind('\\');
+      if (slashPos2 != std::string::npos)
+         slashPos = MAX(slashPos2, slashPos);
+   }
+#endif
+   if (slashPos != std::string::npos)
+   {
+      std::string directory = original_filename.substr(0, slashPos);
+      DIR* dp;
+      if ((dp = opendir(directory.c_str())) != 0)
+      {
+         std::string filename = original_filename.substr(slashPos + 1, original_filename.size());
+         bool isUdim = true;
+         size_t tp = filename.find("<udim>");
+         if (checkForTileToken && tp == std::string::npos)
+         {
+            isUdim = false;
+            tp = filename.find("<tile>");
+         }
+
+         std::string filenamePre = filename.substr(0, tp);
+         std::string filenamePost = filename.substr(tp + 6, filename.size());
+         dirent* de;
+         while((de = readdir(dp)) != 0)
+         {
+            std::string current_filename = de->d_name;
+            if (current_filename.find(filenamePre) != 0)
+               continue;
+            current_filename = current_filename.substr(filenamePre.size(), current_filename.size());
+            tp = current_filename.rfind(filenamePost);
+            if (tp == std::string::npos)
+               continue;
+            std::string token = current_filename.substr(0, tp);
+            // check for udim
+            if (isUdim && StringHasOnlyNumbersAndMinus(token))
+               return true;
+            else if (!isUdim)
+            {
+               if ((tp = current_filename.find("_u")) == std::string::npos)
+                  continue;
+               current_filename.replace(tp, 2, "");
+               if ((tp = current_filename.find("_v")) == std::string::npos)
+                  continue;
+               current_filename.replace(tp, 2, "");
+               if (StringHasOnlyNumbersAndMinus(current_filename))
+                  return true;
+            }
+         }
+      }
+   }
+   return false;
+}
+
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
@@ -246,7 +321,8 @@ void CFileTranslator::Export(AtNode* shader)
          // check for <tile> and <udim> tags and replace them
          // with _u1_v1 and 1001 
          MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
-         std::string tx_filename_tokens = tx_filename.asChar();
+         std::string tx_filename_tokens_original = tx_filename.asChar();
+         std::string tx_filename_tokens = tx_filename_tokens_original;
          size_t tokenPos = tx_filename_tokens.find("<udim>");
          if (tokenPos != std::string::npos)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
@@ -258,7 +334,12 @@ void CFileTranslator::Export(AtNode* shader)
          }
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-            resolvedFilename = tx_filename; 
+            resolvedFilename = tx_filename;
+         else if(tokenPos != std::string::npos) // there is one found token
+         {
+            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original))
+               resolvedFilename = tx_filename;
+         }
       }
       m_session->FormatTexturePath(resolvedFilename);
       
@@ -1161,6 +1242,29 @@ AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode("standard"));
 }
 
+void CMayaPhongTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   
+   AiNodeSetFlt(shader, "Ks", 1.f);
+   MPlug cosinePowerPlug = FindMayaPlug("cosinePower");
+   float rougness = sqrtf(1.0f / (0.454f * cosinePowerPlug.asFloat() + 3.357f));
+   AiNodeSetFlt(shader, "specular_roughness", rougness);
+   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   
+   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaPhongTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
 void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("aiHair");
@@ -1210,15 +1314,93 @@ void CAiImageTranslator::Export(AtNode* image)
       if(renderOptions.useExistingTiledTextures()) 
       {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
-         std::string tx_filename_tokens = tx_filename.asChar();
+         std::string tx_filename_tokens_original = tx_filename.asChar();
+         std::string tx_filename_tokens = tx_filename_tokens_original;
          size_t tokenPos = tx_filename_tokens.find("<udim>");
          if (tokenPos != std::string::npos)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
-            filename = tx_filename;         
+            filename = tx_filename;
+         else if (tokenPos != std::string::npos)
+         {
+            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, false))
+               filename = tx_filename;
+         }
       }
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
    }
+}
+
+CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
+{
+
+}
+
+void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
+{
+   ProcessParameter(shadingSwitch, "default", m_paramType, "default");
+   std::vector<AtNode*> inputs;
+   std::vector<AtNode*> shapes;
+
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlug inputPlug = dnode.findPlug("input");
+   MIntArray existingIndices;
+   inputPlug.getExistingArrayAttributeIndices(existingIndices);
+   if (existingIndices.length() == 0)
+      return;
+   for (unsigned int i = 0; i < existingIndices.length(); ++i)
+   {
+      MPlug currentInputPlug = inputPlug.elementByLogicalIndex(existingIndices[i]);      
+      MPlug shapePlug = currentInputPlug.child(1);
+      MPlugArray conns;
+      shapePlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShapePlug = conns[0];
+      MPlug shaderPlug = currentInputPlug.child(0);      
+      shaderPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShaderPlug = conns[0];
+      AtNode* shader = ExportNode(inputShaderPlug);
+      if (shader == 0)
+         continue;
+      AtNode* shape = ExportNode(inputShapePlug);
+      if (shape == 0)
+         continue;
+      inputs.push_back(shader);
+      shapes.push_back(shape);
+   }
+   if (inputs.size() == 0)
+      return;
+   AiNodeSetArray(shadingSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
+   AiNodeSetArray(shadingSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+}
+
+AtNode* CMayaShadingSwitchTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode(m_nodeType.c_str());
+}
+
+void* CreateSingleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaSingleShadingSwitch", AI_TYPE_FLOAT);
+}
+
+void* CreateDoubleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_POINT2);
+}
+
+void* CreateTripleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaTripleShadingSwitch", AI_TYPE_RGB);
+}
+
+void* CreateQuadShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }

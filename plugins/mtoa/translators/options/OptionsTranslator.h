@@ -59,6 +59,7 @@ protected:
    void ProcessAOVs();
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();
+   void ExportAtmosphere(AtNode* options);
    void CreateFileDirectory(const MString &filename) const;
    unsigned int GetOutputArray(const CAOV& aov,
                                      std::vector<CAOVOutput>& outputs);
@@ -70,6 +71,8 @@ protected:
                         bool& mergeAOVs,
                         bool& singleLayer);
    AtNode* ExportFilter(const MPlug& filterPlug);
+
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
 protected:
    AOVSet m_aovs;

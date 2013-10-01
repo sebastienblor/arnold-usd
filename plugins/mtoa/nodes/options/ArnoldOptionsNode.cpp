@@ -182,8 +182,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMax(10);
    addAttribute(s_progressive_initial_level);
 
-   s_attributes.MakeInput("physically_based");
-
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_threads_autodetect);
@@ -504,7 +502,11 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setDefault(sData.create("beauty"));
    addAttribute(s_displayAOV);
 
-   s_attributes.MakeInput("binary_ass");
+   //s_attributes.MakeInput("binary_ass");
+   MObject tempAttr = nAttr.create(s_attributes.GetMayaAttrName("binary_ass"), s_attributes.GetMayaAttrShortName("binary_ass"), MFnNumericData::kBoolean);
+   nAttr.setDefault(true);
+   nAttr.setKeyable(false);
+   addAttribute(tempAttr);
 
    s_attributes.MakeInput("reference_time");
       

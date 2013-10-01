@@ -231,16 +231,27 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
 void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime, void *data)
 {
-   if (s_comp != 0 && AiRendering())
+   const bool rendering = AiRendering();
+   if (rendering)
    {
-      if (s_comp->isInterruptRequested())
-         AiRenderInterrupt();
-      // This causes AiRender to break, after which the CMayaScene::End()
-      // which clears this callback.      
-      // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
-      // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
-      // AiRenderAbort();
+      if (s_comp != 0)
+      {
+         if (s_comp->isInterruptRequested())
+            AiRenderInterrupt();
+         // This causes AiRender to break, after which the CMayaScene::End()
+         // which clears this callback.      
+         // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
+         // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
+         // AiRenderAbort();
+      }
+      else if (!CMayaScene::IsActive(MTOA_SESSION_IPR))
+      {
+         s_comp = new MComputation();
+         s_comp->beginComputation();
+         s_comp->endComputation();
+      }
    }
+   
    
    CCritSec::CScopedLock sc(m_render_lock);
    if (m_renderCallback != 0)
@@ -253,7 +264,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       }
       m_renderCallback();
    }
-   else if (s_comp != 0)
+   else if (!rendering && s_comp != 0)
    {
       s_comp->endComputation();
       delete s_comp;

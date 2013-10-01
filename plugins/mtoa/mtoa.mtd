@@ -1130,6 +1130,18 @@
     maya.name               STRING  "aiMotionVector"
     maya.id                 INT     0x00115D0F
     maya.classification     STRING  "shader/utility"
+    [attr time0]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.0
+    [attr time1]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   1.0
+    [attr max_displace]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.0
 
 [node bump3d]
     desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"

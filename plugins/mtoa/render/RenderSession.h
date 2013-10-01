@@ -150,6 +150,8 @@ public:
    /// \return if we're active.
    inline bool IsActive() const { return m_is_active; }
 
+   static void ClearIdleRenderViewCallback();
+
 
 private:
 
@@ -166,8 +168,7 @@ private:
    /// The idle callback is used to update the
    /// render view when rendering IPR.
    void AddIdleRenderViewCallback(const MString& postRenderMel);
-   static void DoAddIdleRenderViewCallback(void* data);
-   static void ClearIdleRenderViewCallback();
+   static void DoAddIdleRenderViewCallback(void* data);   
 
    /// This is the static method for performing a progressive render.
    /// data should be a CRenderSession pointer.

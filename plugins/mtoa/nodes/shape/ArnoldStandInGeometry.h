@@ -24,6 +24,7 @@ protected:
    
    AtVector m_BBMin, m_BBMax;
    AtMatrix m_matrix;
+   AtArray* p_matrices;
 
    // simple polygons, without normals
    virtual void DrawPolygons() const = 0;

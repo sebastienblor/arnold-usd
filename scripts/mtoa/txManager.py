@@ -127,6 +127,7 @@ class MtoATxManager(object):
             cmds.deleteUI(self.window);
         self.window = cmds.loadUI(uiFile=self.uiFile, verbose=False)
         
+        cmds.showWindow(self.window);
         try:
             initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
             if initPos[0] < 0:
@@ -136,9 +137,6 @@ class MtoATxManager(object):
             cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
         except :
             pass
-        
-        
-        cmds.showWindow(self.window);
         
         ctrlPath = '|'.join([self.window, 'radioButton']);
         cmds.radioButton(ctrlPath, edit=True, select=True);
@@ -237,7 +235,9 @@ class MtoATxManager(object):
 
         ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
 
-        cmds.textScrollList(ctrlPath, edit=True, removeAll=True);
+        listSize = cmds.textScrollList(ctrlPath, query=True, numberOfItems=True);
+        for x in range(listSize,0,-1):
+            cmds.textScrollList(ctrlPath, edit=True, removeIndexedItem=x);
         
         for texture in self.textures:
             if(texture[1] == 0):
@@ -246,6 +246,8 @@ class MtoATxManager(object):
                 cmds.textScrollList(ctrlPath, edit=True, append=['(tx) '+texture[0]]);
             elif(texture[1] == 2):
                 cmds.textScrollList(ctrlPath, edit=True, append=['       '+texture[0]]);
+            elif(texture[1] == -1):
+                cmds.textScrollList(ctrlPath, edit=True, append=['~~  '+texture[0]]);
 
         self.listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
                 
@@ -294,6 +296,44 @@ class MtoATxManager(object):
     
     def selectChange(self, *args):
         self.selectedFilesFromList()
+        
+    def selectLine(self, *args):
+        ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
+        
+        listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
+        selectedList = cmds.textScrollList(ctrlPath, query=True, si=True);
+        selectedIndexList = cmds.textScrollList(ctrlPath, query=True, sii=True);
+
+        selected = selectedList[0];
+        firstIndex = listElements.index(selected)
+        number = selectedIndexList[0] - firstIndex
+        
+        if selected.startswith('       '):
+            selected = selected.replace('       ','',1)
+        elif selected.startswith('(tx) '):
+            selected = selected.replace('(tx) ','',1)
+        elif selected.startswith('[tx] '):
+            selected = selected.replace('[tx] ','',1)
+        elif selected.startswith('~~  '):
+            selected = selected.replace('~~  ','',1)
+        
+        list = cmds.ls(type='file')
+        for node in list:
+            texture = cmds.getAttr(node+'.fileTextureName')
+            if texture == selected:
+                number -= 1
+                if number == 0:
+                    cmds.select(node)
+                    return
+                    
+        list = cmds.ls(type='aiImage')
+        for node in list:
+            texture = cmds.getAttr(node+'.filename')
+            if texture == selected:
+                number -= 1
+                if number == 0:
+                    cmds.select(node)
+                    return
     
     # Set the variables self.selectedFiles, self.filesToCreate, self.filesCreated and self.createdErrors
     #  from the Scroll List selection
@@ -319,8 +359,6 @@ class MtoATxManager(object):
                 self.selectedFiles[i] = texture.replace('(tx) ','',1)
             else:
                 self.selectedFiles[i] = ""
-                idx = list.index(texture) + 1
-                cmds.textScrollList(ctrlPath, edit=True, deselectIndexedItem=idx);
                 continue;
             texture = self.selectedFiles[i]
             if 'udim' in os.path.basename(texture):
@@ -420,3 +458,4 @@ class MtoATxManager(object):
         if not self.thread:
             self.thread = MakeTxThread(self)
             self.thread.start()
+

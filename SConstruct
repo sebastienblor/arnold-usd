@@ -51,6 +51,11 @@ vars.AddVariables(
     PathVariable('LINK', 'Linker to use', None),
     PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
     PathVariable('SHCXX', 'Path to C++ (gcc) compiler used for generating shared-library objects', None),
+    ('FTP'            , 'Path of the FTP to upload the package'        , ''),
+    ('FTP_SUBDIR'     , 'Subdirectory on the FTP to place the package' , ''),
+    ('FTP_USER'       , 'Username for the FTP'                         , ''),
+    ('FTP_PASS'       , 'Password for the FTP'                         , ''),
+    ('PACKAGE_SUFFIX' , 'Suffix for the package names'                 , ''),
                   
     BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
     EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
@@ -192,11 +197,13 @@ TARGET_INCLUDE_PATH = env.subst(env['TARGET_INCLUDE_PATH'])
 TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])  
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
+TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 SHAVE_API = env.subst(env['SHAVE_API'])
+PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -462,10 +469,10 @@ if system.os() == 'windows':
                                                       duplicate   = 0,
                                                       exports     = 'env')
 
-    [MTOA_PROCS, MTOA_PROCS_PRJ] = env.SConscript(os.path.join('procedurals', 'SConscript'),
-                                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
-                                                  duplicate   = 0,
-                                                  exports     = 'env')
+    MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
+                                              variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
+                                              duplicate   = 0,
+                                              exports     = 'env')
 
     INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
                                   srcs = [],
@@ -658,26 +665,63 @@ env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer
 env.MakeModule(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
+maya_base_version = maya_version[:4]
+
+if maya_base_version == '2013':
+    if int(maya_version[-2:]) >= 50:
+        maya_base_version = '20135'
+
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_version
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + PACKAGE_SUFFIX
 
 if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
 
 package_name_inst = package_name
 
-package_extension = ""
-
-if system.os() == 'windows':
-    package_extension += ".rar"
-else:
-    package_extension += ".tgz"
-
-package_name += package_extension
-
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
+
+import ftplib
+
+def deploy(target, source, env):
+
+    def ftp_send_binary_cb(block):
+        print "\b#",
+
+    package_name = str(source[0])
+    package_name += '.zip'
+
+    server = env['FTP']
+
+    ftp = ftplib.FTP(server)
+
+    ftp.login(env['FTP_USER'], env['FTP_PASS'])
+
+    directory = env['FTP_SUBDIR']
+
+    directory_split = directory.split('/')
+
+    for d in directory_split:
+        try:
+            ftp.cwd(d)
+        except:
+            ftp.mkd(d)
+            ftp.cwd(d)    
+
+    f = open(os.path.abspath(package_name), 'rb')
+    print 'Sending "%s" to %s/%s...' % (source[0], server, directory)
+    command = "STOR %s" % package_name
+    ftp.storbinary(command, f, 81920, ftp_send_binary_cb)
+    print
+
+    f.close()
+    ftp.close()
+
+env['BUILDERS']['PackageDeploy']  = Builder(action = Action(deploy,  "Deploying release package: '$SOURCE'"))
+
+DEPLOY = env.PackageDeploy('deploy', package_name)
 
 ################################
 ## EXTENSIONS
@@ -693,7 +737,7 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS)):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS)):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):        
@@ -705,10 +749,13 @@ for ext in os.listdir(ext_base_dir):
             EXT_SHADERS = EXT[1]        
         
         # EXT may contain a shader result
-        ext_shader = None
+        ext_arnold = None
+        target_type = 'shader'
         ext_files = []
         if len(EXT) > 1:
-            ext_shader = str(EXT[1][0])
+            ext_arnold = str(EXT[1][0])
+            if hasattr(EXT[1], 'target_type'):
+                target_type = EXT[1].target_type
             plugin = str(EXT[0][0])
         else:
             plugin = str(EXT[0])
@@ -720,19 +767,28 @@ for ext in os.listdir(ext_base_dir):
             env.Install(TARGET_EXTENSION_PATH, pyfile)
         env.Install(TARGET_EXTENSION_PATH, plugin)
         package_files = []
-        if ext_shader:
-            env.Install(TARGET_SHADER_PATH, ext_shader)
-            package_files += [[ext_shader, 'shaders']]
+        if ext_arnold:
+            target_path = "shaders"
+            if target_type == 'procedural':
+                env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
+                target_path = "procedurals"
+            else:
+                env.Install(TARGET_SHADER_PATH, ext_arnold)
+            package_files += [[ext_arnold, target_path]]
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)        
-        top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)
+        extension_package_name = '%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+        EXT_PACKAGE = local_env.MakePackage(extension_package_name, EXT)        
+        top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)        
         local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
+        EXT_PACKAGE_DEPLOY = local_env.PackageDeploy('%sdeploy' % ext, extension_package_name)
+        top_level_alias(env, '%sdeploy' % ext, EXT_PACKAGE_DEPLOY)
         Depends(EXT, MTOA_API[0])
         Depends(EXT_PACKAGE, EXT)
+        Depends(EXT_PACKAGE_DEPLOY, EXT_PACKAGE)
 
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
@@ -808,7 +864,6 @@ if system.os() == 'windows':
     env.Depends(SOLUTION, MTOA_PRJ)
     env.Depends(SOLUTION, MTOA_API_PRJ)
     env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
-    env.Depends(SOLUTION, MTOA_PROCS_PRJ)
     env.Depends(SOLUTION, INSTALL_PRJ)
     env.AlwaysBuild(INSTALL_PRJ)
     top_level_alias(env, 'solution', SOLUTION)
@@ -831,6 +886,9 @@ top_level_alias(env, 'shaders', MTOA_SHADERS)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
+top_level_alias(env, 'deploy', DEPLOY)
+
+env.Depends(DEPLOY, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
 

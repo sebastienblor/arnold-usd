@@ -266,12 +266,103 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("filename");
 }
 
+
+// Mesh AreaLight
+
 double CalculateTriangleArea(const AtVector& p0, 
         const AtVector& p1, const AtVector& p2)
 {
    const AtVector t0 = {p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
    const AtVector t1 = {p2.x - p0.x, p2.y - p0.y, p2.z - p0.z};
    return double(AiV3Length(AiV3Cross(t0, t1)) * 0.5f);
+}
+
+void NormalizeColor(const MObject& meshObject, AtRGB& color)
+{
+   MStatus status;
+   MFnMesh mesh(meshObject, &status);
+   const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+
+   const int numPolygons = mesh.numPolygons();
+   double surfaceArea = 0.f;
+   for (int i = 0; i < numPolygons; ++i)
+   {
+      MIntArray vidx;
+      mesh.getPolygonVertices(i, vidx);
+      const int vertexCount = vidx.length();
+      if (vertexCount)
+      {
+         const AtVector p0 = vertices[vidx[0]];
+         for (int j = 1; j < vertexCount - 1; ++j)
+         {
+            const AtVector p1 = vertices[vidx[j]];
+            const AtVector p2 = vertices[vidx[j + 1]];
+            surfaceArea += CalculateTriangleArea(p0, p1, p2);
+         }
+      }
+   }
+   color = color / (float)surfaceArea;
+}
+
+AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
+{
+   MStatus status;
+   MFnMesh mesh(meshObject, &status);
+   if (!status) // simple mesh export at first, nothing to see here
+      return NULL;
+
+   m_numVertices = mesh.numVertices();
+   if (m_numVertices == 0)
+      return NULL;
+
+   AtNode* meshNode = GetArnoldNode("mesh");
+
+   const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+   int steps = GetNumMotionSteps();
+   AtArray* vlist = AiArrayAllocate(m_numVertices, steps, AI_TYPE_POINT);
+   for (int i = 0; i < m_numVertices; ++i)
+      AiArraySetVec(vlist, i, vertices[i]);
+
+   AiNodeSetArray(meshNode, "vlist", vlist);
+
+   const int numPolygons = mesh.numPolygons();
+   AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
+
+   unsigned int numIndices = 0;
+
+   for(int i = 0; i < numPolygons; ++i)
+   {
+      int vertexCount = mesh.polygonVertexCount(i);
+      numIndices += (unsigned int)vertexCount;
+      AiArraySetUInt(nsides, i, vertexCount);
+   }
+
+   AiNodeSetArray(meshNode, "nsides", nsides);
+
+   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+
+   for(int i = 0, id = 0; i < numPolygons; ++i)
+   {
+      MIntArray vidx;
+      int vertexCount = AiArrayGetUInt(nsides, i);
+      mesh.getPolygonVertices(i, vidx);
+      for (int j = 0; j < vertexCount; ++j)
+         AiArraySetUInt(vidxs, id++, vidx[j]);
+   }
+   AiNodeSetArray(meshNode, "vidxs", vidxs);
+
+   AiNodeSetPtr(meshNode, "shader", NULL);
+   return meshNode;
+}
+
+MObject CMeshLightTranslator::GetMeshObject() const
+{
+   MFnDependencyNode fnDepNode(m_dagPath.node());
+   MStatus status;
+   MPlug plug = fnDepNode.findPlug("inputMesh", &status);
+   MObject meshObject;
+   plug.getValue(meshObject);
+   return meshObject;
 }
 
 void CMeshLightTranslator::Export(AtNode* light)
@@ -288,69 +379,18 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
-   MPlug plug = fnDepNode.findPlug("inputMesh");
-   MObject meshObject;
-   plug.getValue(meshObject);
-   MFnMesh mesh(meshObject, &status); 
-   if (!status) // simple mesh export at first, nothing to see here
-      return;
-   
-   m_numVertices = mesh.numVertices();
-   
-   if (m_numVertices == 0)
-      return;
-   
-   MString nodeName = AiNodeGetName(light);
-   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
-   if (meshNode == 0)
+   MObject meshObject = GetMeshObject();
+   AtNode* meshNode = ExportSimpleMesh(meshObject);
+   if (meshNode == NULL)
    {
-      meshNode = AiNode("polymesh");
-      AiNodeSetStr(meshNode, "name", (nodeName + MString("_mesh")).asChar());
-   
-      const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-      AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
-      for (int i = 0; i < m_numVertices; ++i)
-         AiArraySetVec(vlist, i, vertices[i]);
-
-      AiNodeSetArray(meshNode, "vlist", vlist);
-
-      const int numPolygons = mesh.numPolygons();
-      AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
-
-      unsigned int numIndices = 0;
-
-      for(int i = 0; i < numPolygons; ++i)
-      {
-         int vertexCount = mesh.polygonVertexCount(i);
-         numIndices += (unsigned int)vertexCount;
-         AiArraySetUInt(nsides, i, vertexCount);
-      }
-
-      AiNodeSetArray(meshNode, "nsides", nsides);
-
-      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
-
-      for(int i = 0, id = 0; i < numPolygons; ++i)
-      {
-         MIntArray vidx;
-         int vertexCount = AiArrayGetUInt(nsides, i);
-         mesh.getPolygonVertices(i, vidx);
-         for (int j = 0; j < vertexCount; ++j)
-            AiArraySetUInt(vidxs, id++, vidx[j]);  
-      }
-      AiNodeSetArray(meshNode, "vidxs", vidxs);
-
-      AiNodeSetPtr(light, "mesh", meshNode);
-      AiNodeSetPtr(meshNode, "shader", 0);
+      AiMsgWarning("[mtoa] Failed to export mesh for mesh_light");
+      return;
    }
 
-   AtNode* shaderNode = (AtNode*)AiNodeGetPtr(meshNode, "shader");
-   if (shaderNode == 0)
-   {
-      shaderNode = AiNode("meshLightMaterial");
-      AiNodeSetStr(shaderNode, "name", (nodeName + MString("_shader")).asChar());
-      AiNodeSetPtr(meshNode, "shader", shaderNode);
-   }
+   AiNodeSetPtr(light, "mesh", meshNode);
+
+   AtNode* shaderNode = GetArnoldNode("shader");
+   AiNodeSetPtr(meshNode, "shader", shaderNode);
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
@@ -361,35 +401,14 @@ void CMeshLightTranslator::Export(AtNode* light)
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
       AiColorGamma(&color, light_gamma);
       color = color * AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));      
+         powf(2.f, AiNodeGetFlt(light, "exposure"));
       
       // if normalize is set to false, we need to multiply
       // the color with the surface area
       // doing a very simple triangulation, good for
       // approximating the Arnold one
       if (AiNodeGetBool(light, "normalize"))
-      {
-         const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-         const int numPolygons = mesh.numPolygons();
-         double surfaceArea = 0.f;
-         for (int i = 0; i < numPolygons; ++i)
-         {
-            MIntArray vidx;
-            mesh.getPolygonVertices(i, vidx);
-            const int vertexCount = vidx.length();
-            if (vertexCount)
-            {
-               const AtVector p0 = vertices[vidx[0]];
-               for (int j = 1; j < vertexCount - 1; ++j)
-               {
-                  const AtVector p1 = vertices[vidx[j]];
-                  const AtVector p2 = vertices[vidx[j + 1]];
-                  surfaceArea += CalculateTriangleArea(p0, p1, p2);
-               }
-            }
-         }
-         color = color / (float)surfaceArea;
-      }
+         NormalizeColor(meshObject, color);
       
       AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
    }
@@ -407,7 +426,7 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
-   
+
 }
 
 void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
@@ -419,21 +438,28 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
    AiArraySetMtx(matrices, step, matrix);
    
    AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
-   if (meshNode != 0) // just simply copy the matrices
+   if (meshNode != NULL) // just simply copy the matrices
    {
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
        
       MFnDependencyNode fnDepNode(m_dagPath.node());
-      MPlug plug = fnDepNode.findPlug("inputMesh");
-      MObject meshObject;
-      plug.getValue(meshObject);
+      MObject meshObject = GetMeshObject(); // if the returned value is directly given to the
+      // MFnMesh constructor the mesh won't work, probably the MObject is destroyed somewhere
+      // and we need to explicitly create the mobject on the stack to make it work
       MFnMesh mesh(meshObject); // no need to check the status, because if it
       // worked for the first time, it`s going to work for the second
       
+      int numVerts = mesh.numVertices();
+      if (numVerts != m_numVertices)
+      {
+         AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
+                    GetMayaNodeName().asChar(), m_numVertices, numVerts);
+         return;
+      }
       MStatus status;
       const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
       for (int i = 0, j = m_numVertices * step; i < m_numVertices; ++i, ++j)
-         AiArraySetVec(vlist, j, vertices[i]);      
+         AiArraySetVec(vlist, j, vertices[i]);
    }  
 }

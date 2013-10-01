@@ -1,0 +1,83 @@
+Cannot open log file 'C:\solidangle\mtoa\build\windows_x86_64\201217\msvc_opt\testsuite\test_0130\test_0130.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
+00:00:00   147MB ERROR   | [mtoa] Error loading extension library: No se encontró el proceso especificado.
+.
+00:00:00   147MB ERROR   | [mtoa] Error loading extension library: No se encontró el proceso especificado.
+.
+00:00:00   148MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   147MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   147MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   147MB ERROR   | [mtoa] Error loading extension library: No se encontró el proceso especificado.
+.
+00:00:00   147MB WARNING | [mtoa] [shave_shaders] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
+ai.dll loaded from non standard location C:\solidangle\releases\Arnold-4.0.17.0.dev3-windows\bin
+
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, studioImport, mayaHIK, mtoa
+Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.py)
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\initDefaultFilters.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\initDefaultFilters.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+mental ray for Maya 2012 
+mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
+File read in 0 seconds.
+Result: C:/solidangle/mtoa/build/windows_x86_64/201217/msvc_opt/testsuite/test_0130/test.ma
+00:00:00   311MB         | log started Tue Oct 01 16:37:42 2013
+00:00:00   311MB         | Arnold 4.0.17.0.dev windows icc130 oiio10113 rlm944 2013/09/16 13:17:42
+00:00:00   311MB         | running on Pedro-PC
+00:00:00   311MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16341MB
+00:00:00   311MB         |  Windows 7 Professional Service Pack 1 (version 6.1, build 7601)
+00:00:00   311MB         |  
+00:00:00   311MB         | loading plugin: c:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00   311MB         | loaded 84 plugins from 1 lib(s) in 0:00.00
+00:00:00   311MB         | loading plugin: c:/solidangle/mtoadeploy/2012/shaders/shave_shaders.dll ...
+00:00:00   311MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   312MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   312MB         |  
+00:00:06   313MB         | [rlm] checkout of arnold (version 400) from localhost OK
+00:00:06   313MB         |  
+00:00:06   313MB         | there are 1 light and 11 objects:
+00:00:06   313MB         |  11 polymeshes
+00:00:06   313MB         |  
+00:00:06   313MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:06   313MB         |  initializing 44 nodes ...
+00:00:06   314MB         |  node initialization done in 0:00.00
+00:00:06   316MB         |  creating root object list ...
+00:00:06   316MB         |   scene bounds: (-2.89088798 -8.53586292 -13.1079292) -> (2.89088726 8.92393589 11.1946468)
+00:00:06   316MB         |  updating 45 nodes ...
+00:00:06   316MB         |  node update done in 0:00.00
+00:00:06   316MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:06   316MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:06   316MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:06   316MB         |  starting 8 bucket workers of size 64x64 ...
+00:00:06   323MB         |     5% done - 29 rays/pixel
+00:00:06   323MB         |    20% done - 53 rays/pixel
+00:00:06   323MB         |    35% done - 54 rays/pixel
+00:00:06   323MB         |    60% done - 67 rays/pixel
+00:00:06   323MB         |    75% done - 83 rays/pixel
+00:00:06   323MB         |   100% done - 77 rays/pixel
+00:00:06   323MB         |  bucket workers done in 0:00.71
+00:00:06   323MB         | render done
+00:00:06   323MB         | [driver_tiff] writing file `C:/solidangle/mtoa/build/windows_x86_64/201217/msvc_opt/testsuite/test_0130/testrender.tif'
+00:00:06   323MB         |  
+00:00:06   323MB         | releasing resources
+00:00:06   320MB         | Arnold shutdown
+Scene C:\solidangle\mtoa\build\windows_x86_64\201217\msvc_opt\testsuite\test_0130\test.ma completed.

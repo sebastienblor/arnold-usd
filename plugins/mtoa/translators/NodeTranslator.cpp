@@ -720,8 +720,9 @@ void CNodeTranslator::RemoveUpdateCallbacks()
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 {
+   MFnDependencyNode dnode(node);
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: plug that fired: %s, client data: %p.",
-         MFnDependencyNode(node).name().asChar(), plug.name().asChar(), clientData);
+         dnode.name().asChar(), plug.name().asChar(), clientData);
 
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
@@ -735,14 +736,16 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       {
          std::vector< CDagTranslator * > translatorsToUpdate;
          bool reexport = true;
-
-         for(unsigned int i = 0; i < MFnDependencyNode(node).findPlug("dagSetMembers").numElements(); i++)
+         MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
+         const unsigned int numElements = dagSetMembersPlug.numElements();
+         for(unsigned int i = 0; i < numElements; i++)
          {
-            MPlug a = MFnDependencyNode(node).findPlug("dagSetMembers")[i];
+            MPlug a = dagSetMembersPlug[i];
             MPlugArray connectedPlugs;
             a.connectedTo(connectedPlugs,true,false);
 
-            for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+            const unsigned int connectedPlugsLength = connectedPlugs.length();
+            for(unsigned int j = 0; j < connectedPlugsLength; j++)
             {
                MPlug connection = connectedPlugs[j];
                MObject parent = connection.node();
@@ -750,9 +753,14 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                MString nameParent = parentDag.name();
 
                MDagPath dagPath;
-               MDagPath::getAPathTo(parent, dagPath);
+               MStatus status = MDagPath::getAPathTo(parent, dagPath);
+               if (!status)
+                  continue;
 
                CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
+
+               if (translator2 == 0)
+                  continue;
 
                // TODO: By now we have to check the connected nodes and if something that is not a mesh
                //  is connected, we do not reexport, as some crashes may happen.
@@ -800,15 +808,19 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
             std::vector< CDagTranslator * > translatorsToUpdate;
             bool reexport = true;
 
+            MFnDependencyNode shadingEngineDNode(shadingEngine);
+            MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
+            const unsigned int numElements = dagSetMembersPlug.numElements();
             // For each geometry connected to the shading engine
-            for(unsigned int i = 0; i < MFnDependencyNode(shadingEngine).findPlug("dagSetMembers").numElements(); i++)
+            for(unsigned int i = 0; i < numElements; i++)
             {
-               MPlug a = MFnDependencyNode(shadingEngine).findPlug("dagSetMembers")[i];
+               MPlug a = dagSetMembersPlug[i];
                MPlugArray connectedPlugs;
                a.connectedTo(connectedPlugs,true,false);;
 
                // This should be only one connection; connectedPlugs.length() should be 0 or 1
-               for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+               const unsigned int connectedPlugsLength = connectedPlugs.length();
+               for(unsigned int j = 0; j < connectedPlugsLength; j++)
                {
                   MPlug connection = connectedPlugs[j];
                   MObject parent = connection.node();
@@ -816,10 +828,13 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                   MString nameParent = parentDag.name();
 
                   MDagPath dagPath;
-                  MDagPath::getAPathTo(parent, dagPath);
+                  MStatus status = MDagPath::getAPathTo(parent, dagPath);
+                  if (!status)
+                     continue;
 
                   CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
-
+                  if (translator2 == 0)
+                     continue;
 
                   translator2->m_updateMode = AI_RECREATE_NODE;
                   translator2->RequestUpdate(static_cast<void*>(translator2));
