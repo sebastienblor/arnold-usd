@@ -1,10 +1,10 @@
 #include "MayaFluidData.h"
 
+const char* contentsMethodEnums[] = {"Grid", "Gradient", 0};
+
 const char* contentsGradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient", "Z Gradient",
                                            "-X Gradient", "-Y Gradient", "-Z Gradient",
                                            "Center Gradient", 0};
-
-const char* contentsMethodEnums[] = {"Grid", "Gradient", 0};
 
 template <typename T>
 void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
@@ -79,14 +79,19 @@ CMayaFluidData::~CMayaFluidData()
    coordinates.release();
 }
 
-void CMayaFluidData::InitializeShaderParameters(AtList* params)
+void CMayaFluidData::InitializeShaderParameters(AtList* params, bool is3d)
 {
 	AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
-   AiParameterInt("zres", 0);
+
+   if (is3d)
+   {
+      AiParameterInt("zres", 0);
    
-   AiParameterVec("min", 0.f, 0.f, 0.f);
-   AiParameterVec("max", 0.f, 0.f, 0.f);
+      AiParameterVec("min", 0.f, 0.f, 0.f);
+      AiParameterVec("max", 0.f, 0.f, 0.f);
+   }
+   
    
    AiParameterEnum("density_method", CSM_GRADIENT, contentsMethodEnums);
    AiParameterEnum("density_gradient", CG_CONSTANT, contentsGradientTypeEnums);

@@ -1,10 +1,13 @@
 #include <ai.h>
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaFluidTexture2DMtd);
+#include "MayaFluidData.h"
 
+AI_SHADER_NODE_EXPORT_METHODS(MayaFluidTexture2DMtd);
 
 node_parameters
 {
+   CMayaFluidData::InitializeShaderParameters(params, false);
+
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
