@@ -11,4 +11,8 @@ public:
    }
    virtual AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* fluid2d);
+
+private:
+    void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName);
+    void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName);
 };

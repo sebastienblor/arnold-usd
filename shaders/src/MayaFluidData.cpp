@@ -39,7 +39,14 @@ void InitializeFluidShaderParameters(AtList* params, bool is3d)
    
    AiParameterArray("colors", AiArrayAllocate(0, 1, AI_TYPE_RGB));
    
-   AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
+   if (is3d)
+   {
+      AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_VECTOR));
+   }
+   else
+   {
+      AiParameterArray("coordinates", AiArrayAllocate(0, 1, AI_TYPE_POINT2));
+   }
    
    AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
 }
