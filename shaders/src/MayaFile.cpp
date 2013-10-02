@@ -96,7 +96,7 @@ typedef struct AtImageData
    
    static void* operator new(size_t s)
    {
-      return AiMalloc((unsigned long)s);
+      return AiMalloc(s);
    }
    
    static void operator delete(void* p)
@@ -269,14 +269,14 @@ node_update
                   if (rest.substr(0, 8) == "default:")
                   {
                      rest = rest.substr(8);
-                     data.secondExtra = AiMalloc((unsigned long)rest.size() + 1);
+                     data.secondExtra = AiMalloc(rest.size() + 1);
                      data.secondExtraLength = (int)rest.size();
                      strcpy((char*)data.secondExtra, rest.c_str());
                      ((char*)data.secondExtra)[rest.size()] = 0;
                   }
                   attr = attr.substr(0, spacePos);
                }  
-               data.extra = AiMalloc((unsigned long)attr.size() + 1);
+               data.extra = AiMalloc(attr.size() + 1);
                strcpy((char*)data.extra, attr.c_str());
                ((char*)data.extra)[attr.size()] = 0;
                data.nextSize = 0;
@@ -380,12 +380,12 @@ node_update
       idata->ntokens = (unsigned int)tokens.size();
       if (tokens.size())
       {
-         idata->tokens = (TokenData*) AiMalloc((unsigned long) (sizeof(TokenData) * tokens.size()));
+         idata->tokens = (TokenData*) AiMalloc(sizeof(TokenData) * tokens.size());
          int k = 0;
          for (std::vector<TokenData>::const_iterator it = tokens.begin(); it != tokens.end(); ++it, ++k)
             idata->tokens[k] = *it;
 
-         idata->origPath = (char*) AiMalloc((unsigned long)newfname.size() + 1);
+         idata->origPath = (char*) AiMalloc(newfname.size() + 1);
          strcpy(idata->origPath, newfname.c_str());
 
          // For each thread, create a processPath with the first text chunk already copied to it.
