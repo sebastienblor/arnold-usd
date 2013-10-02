@@ -6,6 +6,21 @@ const char* contentsGradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient
                                            "-X Gradient", "-Y Gradient", "-Z Gradient",
                                            "Center Gradient", 0};
 
+
+const char* gradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient",
+                                    "Z Gradient", "Center Gradient", "Density",
+                                    "Temperature", "Fuel", "Pressure", "Speed",
+                                    "Density And Fuel", 0};
+
+
+const char* dropoffShapeEnums[] = {"Off", "Sphere", "Cube", "Cone", "Double Cone",
+                                   "X Gradient", "Y Gradient", "Z Gradient",
+                                   "-X Gradient", "-Y Gradient", "-Z Gradient",
+                                   "Use Falloff Grid", 0};
+
+
+const char* coordinateMethodEnums[] = {"Fixed", "Grid", 0};
+
 void InitializeFluidShaderParameters(AtList* params, bool is3d)
 {
 	AiParameterInt("xres", 0);
@@ -49,6 +64,35 @@ void InitializeFluidShaderParameters(AtList* params, bool is3d)
    }
    
    AiParameterArray("falloff", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+}
+
+void InitializeFluidShaderAdditionalParameters(AtList* params)
+{
+   AiParameterFlt("edge_dropoff", 0.05f);
+
+   AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
+   AiParameterArray("color_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("color_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterArray("color_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
+   AiParameterFlt("color_gradient_input_bias", 0.0f);
+   
+   AiParameterEnum("incandescence_gradient_type", GT_TEMPERATURE, gradientTypeEnums);
+   AiParameterArray("incandescence_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("incandescence_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_RGB));
+   AiParameterArray("incandescence_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
+   AiParameterFlt("incandescence_gradient_input_bias", 0.0f);
+   
+   AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypeEnums);
+   AiParameterArray("opacity_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("opacity_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
+   AiParameterArray("opacity_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
+   AiParameterFlt("opacity_gradient_input_bias", 0.0f);   
+
+   AiParameterEnum("coordinate_method", 0, coordinateMethodEnums);
+   
+   AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
+
+   AiParameterVec("velocity_scale", 1.f, 1.f, 1.f);
 }
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidDataMtd);

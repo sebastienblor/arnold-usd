@@ -24,7 +24,42 @@ enum filterType{
    FT_CUBIC
 };
 
+enum dropoffShape{
+   DS_OFF = 0,
+   DS_SPHERE,
+   DS_CUBE,
+   DS_CONE,
+   DS_DOUBLE_CONE,
+   DS_X_GRADIENT,
+   DS_Y_GRADIENT,
+   DS_Z_GRADIENT,
+   DS_NX_GRADIENT,
+   DS_NY_GRADIENT,
+   DS_NZ_GRADIENT,
+   DS_USE_FALLOFF_GRID
+};
+
+enum gradientType{
+   GT_CONSTANT = 0,
+   GT_X_GRADIENT,
+   GT_Y_GRADIENT,
+   GT_Z_GRADIENT,
+   GT_CENTER_GRADIENT,
+   GT_DENSITY,
+   GT_TEMPERATURE,
+   GT_FUEL,
+   GT_PRESSURE,
+   GT_SPEED,
+   GT_DENSITY_AND_FUEL
+};
+
+enum coordinateMethod{
+   CM_FIXED = 0,
+   CM_GRID
+};
+
 void InitializeFluidShaderParameters(AtList* params, bool is3d = true); // this is required so we can keep backwards compatibility for a while
+void InitializeFluidShaderAdditionalParameters(AtList* params);
 
 template<typename T>
 struct ArrayDescription{

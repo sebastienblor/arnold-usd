@@ -31,6 +31,7 @@ struct MayaFluidTexture2D {
 
 node_parameters
 {
+   InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params, false);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);

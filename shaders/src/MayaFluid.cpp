@@ -24,53 +24,7 @@ enum textureType{
    TT_MANDELBROT
 };
 
-const char* coordinateMethodEnums[] = {"Fixed", "Grid", 0};
-
-enum coordinateMethod{
-   CM_FIXED = 0,
-   CM_GRID
-};
-
 const char* filterTypeEnums[] = {"Closest", "Linear", "Cubic", 0};
-
-const char* gradientTypeEnums[] = {"Constant", "X Gradient", "Y Gradient",
-                                    "Z Gradient", "Center Gradient", "Density",
-                                    "Temperature", "Fuel", "Pressure", "Speed",
-                                    "Density And Fuel", 0};
-
-enum gradientType{
-   GT_CONSTANT = 0,
-   GT_X_GRADIENT,
-   GT_Y_GRADIENT,
-   GT_Z_GRADIENT,
-   GT_CENTER_GRADIENT,
-   GT_DENSITY,
-   GT_TEMPERATURE,
-   GT_FUEL,
-   GT_PRESSURE,
-   GT_SPEED,
-   GT_DENSITY_AND_FUEL
-};
-
-const char* dropoffShapeEnums[] = {"Off", "Sphere", "Cube", "Cone", "Double Cone",
-                                   "X Gradient", "Y Gradient", "Z Gradient",
-                                   "-X Gradient", "-Y Gradient", "-Z Gradient",
-                                   "Use Falloff Grid", 0};
-
-enum dropoffShape{
-   DS_OFF = 0,
-   DS_SPHERE,
-   DS_CUBE,
-   DS_CONE,
-   DS_DOUBLE_CONE,
-   DS_X_GRADIENT,
-   DS_Y_GRADIENT,
-   DS_Z_GRADIENT,
-   DS_NX_GRADIENT,
-   DS_NY_GRADIENT,
-   DS_NZ_GRADIENT,
-   DS_USE_FALLOFF_GRID
-};
 
 const char* billowFalloffEnums[] = {"Linear", "Smooth", "Fast", "Bubble", 0};
 
@@ -88,24 +42,6 @@ node_parameters
    AiParameterRGB("transparency", .1f, .1f, .1f);
    AiMetaDataSetBool(mds, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
-   
-   AiParameterEnum("color_gradient_type", GT_CONSTANT, gradientTypeEnums);
-   AiParameterArray("color_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   AiParameterArray("color_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_RGB));
-   AiParameterArray("color_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
-   AiParameterFlt("color_gradient_input_bias", 0.0f);
-   
-   AiParameterEnum("incandescence_gradient_type", GT_TEMPERATURE, gradientTypeEnums);
-   AiParameterArray("incandescence_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   AiParameterArray("incandescence_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_RGB));
-   AiParameterArray("incandescence_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
-   AiParameterFlt("incandescence_gradient_input_bias", 0.0f);
-   
-   AiParameterEnum("opacity_gradient_type", GT_DENSITY, gradientTypeEnums);
-   AiParameterArray("opacity_gradient_positions", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   AiParameterArray("opacity_gradient_values", AiArrayAllocate(0, 1, AI_TYPE_FLOAT));
-   AiParameterArray("opacity_gradient_interps", AiArrayAllocate(0, 1, AI_TYPE_INT));   
-   AiParameterFlt("opacity_gradient_input_bias", 0.0f);   
    
    AiParameterBool("color_texture", false);
    AiParameterBool("incand_texture", false);
@@ -154,15 +90,9 @@ node_parameters
    
    AiParameterNode("volume_texture", 0);
    
-   AiParameterEnum("coordinate_method", 0, coordinateMethodEnums);
-   
    AiParameterFlt("shadow_opacity", 0.5f);
 
-   AiParameterEnum("dropoff_shape", 2, dropoffShapeEnums);
-   AiParameterFlt("edge_dropoff", 0.05f);
-
-   AiParameterVec("velocity_scale", 1.f, 1.f, 1.f);
-
+   InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -174,24 +104,6 @@ enum MayaFluidParams{
    
    p_transparency,
    p_phase_func,
-   
-   p_color_gradient_type,
-   p_color_gradient_positions,
-   p_color_gradient_values,
-   p_color_gradient_interps,   
-   p_color_gradient_input_bias,
-   
-   p_incandescence_gradient_type,
-   p_incandescence_gradient_positions,
-   p_incandescence_gradient_values,
-   p_incandescence_gradient_interps,   
-   p_incandescence_gradient_input_bias,
-   
-   p_opacity_gradient_type,
-   p_opacity_gradient_positions,
-   p_opacity_gradient_values,
-   p_opacity_gradient_interps,   
-   p_opacity_gradient_input_bias,
    
    p_color_texture,
    p_incand_texture,
@@ -239,14 +151,10 @@ enum MayaFluidParams{
    p_noise_affect_opacity,
    
    p_volume_noise,
-   p_coordinate_method,
    
    p_shadow_opacity,
 
-   p_dropoff_shape,
-   p_edge_dropoff,
-
-   p_velocity_scale
+   p_edge_dropoff
 };
 
 template <typename T>
