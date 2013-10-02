@@ -6,7 +6,7 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaFluidTexture2DMtd);
 
 node_parameters
 {
-   CMayaFluidData::InitializeShaderParameters(params, false);
+   InitializeFluidShaderParameters(params, false);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }

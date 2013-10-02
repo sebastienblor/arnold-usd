@@ -163,7 +163,7 @@ node_parameters
 
    AiParameterVec("velocity_scale", 1.f, 1.f, 1.f);
 
-   CMayaFluidData::InitializeShaderParameters(params);
+   InitializeFluidShaderParameters(params);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);

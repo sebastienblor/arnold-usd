@@ -79,7 +79,7 @@ CMayaFluidData::~CMayaFluidData()
    coordinates.release();
 }
 
-void CMayaFluidData::InitializeShaderParameters(AtList* params, bool is3d)
+void InitializeFluidShaderParameters(AtList* params, bool is3d)
 {
 	AiParameterInt("xres", 0);
    AiParameterInt("yres", 0);
@@ -90,8 +90,7 @@ void CMayaFluidData::InitializeShaderParameters(AtList* params, bool is3d)
    
       AiParameterVec("min", 0.f, 0.f, 0.f);
       AiParameterVec("max", 0.f, 0.f, 0.f);
-   }
-   
+   }   
    
    AiParameterEnum("density_method", CSM_GRADIENT, contentsMethodEnums);
    AiParameterEnum("density_gradient", CG_CONSTANT, contentsGradientTypeEnums);
@@ -122,7 +121,7 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaFluidDataMtd);
 
 node_parameters
 {
-   CMayaFluidData::InitializeShaderParameters(params);
+   InitializeFluidShaderParameters(params);
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 

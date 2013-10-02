@@ -24,6 +24,8 @@ enum filterType{
    FT_CUBIC
 };
 
+void InitializeFluidShaderParameters(AtList* params, bool is3d = true); // this is required so we can keep backwards compatibility for a while
+
 template<typename T>
 struct ArrayDescription{
    T* data;
@@ -86,8 +88,6 @@ inline AtVector ReadFromArray(AtArray* array, int element)
 
 class CMayaFluidData{
 public:
-	static void InitializeShaderParameters(AtList* params, bool is3d = true); // this is required so we can keep backwards compatibility for a while
-
    CMayaFluidData(AtNode* node);
 
    ~CMayaFluidData();
