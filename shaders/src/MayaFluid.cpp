@@ -574,10 +574,10 @@ struct MayaFluidData{
    AtVector velocityScale;
    
    AtNode* volumeTexture;
-   CMayaFluidData* fluidData;
+   CMayaFluidData<true>* fluidData;
 
-   std::map<AtNode*, CMayaFluidData*> fluidDataMap[AI_MAX_THREADS];
-   std::pair<AtNode*, CMayaFluidData*> fluidDataCache[AI_MAX_THREADS];
+   std::map<AtNode*, CMayaFluidData<true>*> fluidDataMap[AI_MAX_THREADS];
+   std::pair<AtNode*, CMayaFluidData<true>*> fluidDataCache[AI_MAX_THREADS];
    
    float colorTexGain;
    float incandTexGain;
@@ -646,7 +646,7 @@ node_update
    data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
    if (data->fluidData != 0)
       delete data->fluidData;
-   data->fluidData = new CMayaFluidData(node);
+   data->fluidData = new CMayaFluidData<true>(node);
    
    data->velocityScale = AiNodeGetVec(node, "velocity_scale");
    
@@ -714,7 +714,7 @@ node_finish
 }
 
 template <typename T, bool M, bool G>
-T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const CMayaFluidData* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, float texture)
+T GetValue(AtShaderGlobals* sg, const MayaFluidData* data, const CMayaFluidData<true>* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, float texture)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
@@ -792,7 +792,7 @@ float DropoffGradient(float value, float edgeDropoff)
 }
 
 inline
-float CalculateDropoff(const CMayaFluidData* data, const AtVector& lPt, int dropoffShape, float edgeDropoff, int filterType)
+float CalculateDropoff(const CMayaFluidData<true>* data, const AtVector& lPt, int dropoffShape, float edgeDropoff, int filterType)
 {
    if (dropoffShape == DS_OFF)
       return 1.f;
@@ -880,18 +880,18 @@ shader_evaluate
 {
    MayaFluidData* data = (MayaFluidData*)AiNodeGetLocalData(node);
 
-   CMayaFluidData* fluidData = data->fluidData;
+   CMayaFluidData<true>* fluidData = data->fluidData;
 
    if (sg->Op == data->fluidDataCache[sg->tid].first)
       fluidData = data->fluidDataCache[sg->tid].second;
    {
-      std::map<AtNode*, CMayaFluidData*>::iterator it = data->fluidDataMap[sg->tid].find(sg->Op);
+      std::map<AtNode*, CMayaFluidData<true>*>::iterator it = data->fluidDataMap[sg->tid].find(sg->Op);
       if (it == data->fluidDataMap[sg->tid].end())
       {
          AtNode* fluidDataContainer = 0;
          if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
-            fluidData = (CMayaFluidData*)AiNodeGetLocalData(fluidDataContainer);
-         data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData*>(sg->Op, fluidData));         
+            fluidData = (CMayaFluidData<true>*)AiNodeGetLocalData(fluidDataContainer);
+         data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData<true>*>(sg->Op, fluidData));         
       }
       else
          fluidData = it->second;
