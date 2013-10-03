@@ -161,15 +161,6 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       else
          AiNodeSetInt(node, "sidedness", 0);
    }
-   
-   
-   // Sub-Surface Scattering
-   plug = FindMayaPlug("aiSssSampleDistribution");
-   if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
-
-   plug = FindMayaPlug("aiSssSampleSpacing");
-   if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
-
 }
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)

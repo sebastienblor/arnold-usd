@@ -76,9 +76,7 @@
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Diffusion SSS"/>
-    <attr n="ai:raysss" s="defaultArnoldRenderOptions.enable_raytraced_SSS" t="boolean" h="Enable raytraced SSS."/>
     <attr n="ai:bssrdfs" s="defaultArnoldRenderOptions.sssBssrdfSamples" t="int" h="Number of BSSRDF Samples."/>
-    <attr n="ai:pntclds" s="defaultArnoldRenderOptions.sssSampleFactor" t="int" h="SSS PointCloud Sample Factor."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Sample Clamping"/>
