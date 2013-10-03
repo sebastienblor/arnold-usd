@@ -1323,7 +1323,6 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
    data.channelBox = false;
-   data.keyable = false;
    data.hasMin = true;
    data.min.FLT = 0.f;
    data.hasSoftMax = true;
