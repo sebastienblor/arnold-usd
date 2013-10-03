@@ -1317,26 +1317,36 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = false;
    data.name = "aiExportTangents";
    data.shortName = "ai_exptan";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportColors";
    data.shortName = "ai_expcol";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
    
    data.defaultValue.BOOL = true;
    data.name = "aiExportRefPoints";
    data.shortName = "ai_exprpt";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportRefNormals";
    data.shortName = "ai_exprnrm";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportRefTangents";
    data.shortName = "ai_exprtan";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
    
    data.defaultValue.INT = 0;
@@ -1345,11 +1355,15 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.enums.append("Bounding Box");
    data.name = "aiVolumeContainerMode";
    data.shortName = "ai_volume_container_mode";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputEnum(data);
    
    data.defaultValue.FLT = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
+   data.channelBox = false;
+   data.keyable = false;
    data.hasMin = true;
    data.min.FLT = 0.f;
    data.hasSoftMax = true;
