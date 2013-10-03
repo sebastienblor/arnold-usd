@@ -62,7 +62,6 @@ MObject CArnoldOptionsNode::s_shutter_offset;
 MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
-MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
 MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
@@ -238,16 +237,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
    s_attributes.MakeInput("sss_bssrdf_samples");
-   s_attributes.MakeInput("sss_sample_factor");
    
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
    s_attributes.MakeInput("region_max_y");
-   
-   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, true);
-   nAttr.setKeyable(false);
-   addAttribute(s_enable_raytraced_SSS);
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -390,8 +384,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMin(0);
    addAttribute(s_motion_frames);
 
-   s_attributes.MakeInput("sss_subpixel_cache");
-   s_attributes.MakeInput("show_samples");
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("shadow_terminator_fix");
    s_attributes.MakeInput("shader_nan_checks");

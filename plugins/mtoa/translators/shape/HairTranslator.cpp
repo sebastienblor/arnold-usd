@@ -277,12 +277,6 @@ void CHairTranslator::Update( AtNode *curve )
    plug = fnDepNodeHair.findPlug("receiveShadows");
    if (!plug.isNull())
       AiNodeSetBool(curve, "receive_shadows", plug.asBool());
-   plug = fnDepNodeHair.findPlug("aiSssSampleDistribution");
-   if (!plug.isNull())
-      AiNodeSetInt(curve, "sss_sample_distribution", plug.asInt());
-   plug = fnDepNodeHair.findPlug("aiSssSampleSpacing");
-   if (!plug.isNull())
-      AiNodeSetFlt(curve, "sss_sample_spacing", plug.asFloat());
    
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur

@@ -451,10 +451,7 @@ void COptionsTranslator::Export(AtNode *options)
          }
          else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
          {
-            if (FindMayaPlug("enable_raytraced_SSS").asBool())
-               CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
-            else
-               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
@@ -576,10 +573,7 @@ void COptionsTranslator::Update(AtNode *options)
          }
          else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
          {
-            if (FindMayaPlug("enable_raytraced_SSS").asBool())
-               CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
-            else
-               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {

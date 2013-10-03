@@ -50,7 +50,6 @@ static MCallbackId                             s_timer_cb = 0;
 static int s_AA_Samples;
 static int s_GI_diffuse_samples;
 static int s_GI_glossy_samples;
-static int s_sss_sample_factor;
 
 static bool s_firstOpen = false;
 static bool s_newRender = false;
@@ -620,8 +619,6 @@ void RenderEnd()
       rvInfo += s_GI_diffuse_samples;
       rvInfo += "/";
       rvInfo += s_GI_glossy_samples;
-      rvInfo += "/";
-      rvInfo += s_sss_sample_factor;
       rvInfo += "]";
       rvInfo += "    ";
 
@@ -693,7 +690,6 @@ void BeginImage()
    s_AA_Samples = AiNodeGetInt(options, "AA_samples");
    s_GI_diffuse_samples = AiNodeGetInt(options, "GI_diffuse_samples");
    s_GI_glossy_samples = AiNodeGetInt(options, "GI_glossy_samples");
-   s_sss_sample_factor = AiNodeGetInt(options, "sss_sample_factor");
 
    s_start_time = time(NULL);
    if (s_outputDriverData.isRegion)
@@ -748,8 +744,6 @@ void EndImage()
       rvInfo += s_GI_diffuse_samples;
       rvInfo += "/";
       rvInfo += s_GI_glossy_samples;
-      rvInfo += "/";
-      rvInfo += s_sss_sample_factor;
       rvInfo += "]";
       rvInfo += "    ";
 

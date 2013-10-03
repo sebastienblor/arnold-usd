@@ -720,10 +720,6 @@ MStatus CArnoldStandInShape::initialize()
 
    //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
 
-   
-   s_attributes.MakeInput("sss_sample_distribution");
-   s_attributes.MakeInput("sss_sample_spacing");
-
    return MStatus::kSuccess;
 }
 
