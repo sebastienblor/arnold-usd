@@ -2084,7 +2084,6 @@ def createArnoldCommonRenderOptions():
 
     pm.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp(attribute="defaultRenderGlobals.enableDefaultLight")
     pm.attrControlGrp('preMelSwGrp',
                         attribute='defaultRenderGlobals.preMel',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderMEL"),

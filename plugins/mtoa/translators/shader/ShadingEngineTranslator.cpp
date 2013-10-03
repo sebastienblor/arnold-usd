@@ -104,7 +104,7 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
             MStatus status;
             MPlug mattePlug = shaderNodeTranslator->FindMayaPlug("aiEnableMatte", &status);
             if (status)
-               AiNodeSetBool(shadingEngine, "enable_matte", mattePlug.asBool());
+               ProcessParameter(shadingEngine, "enable_matte", AI_TYPE_BOOLEAN, mattePlug);
             MPlug matteColorPlug = shaderNodeTranslator->FindMayaPlug("aiMatteColor", &status);
             if (status)
                ProcessParameter(shadingEngine, "matte_color", AI_TYPE_RGBA, matteColorPlug);

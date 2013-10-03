@@ -130,7 +130,7 @@ public:
 
    static void* operator new(size_t size)
    {
-      return AiMalloc((unsigned long)size);
+      return AiMalloc(size);
    }
    
    static void operator delete(void* p)

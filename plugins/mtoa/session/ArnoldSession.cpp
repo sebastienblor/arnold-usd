@@ -1175,7 +1175,7 @@ void CArnoldSession::DoUpdate()
    // Need something finer to determine if the changes have an influence
    if (aDag)
    {
-      AiUniverseCacheFlush(AI_CACHE_SSS & AI_CACHE_HAIR_DIFFUSE);
+      AiUniverseCacheFlush(AI_CACHE_HAIR_DIFFUSE);
    }
    // Now do an update for all the translators in our list
    // TODO : we'll probably need to be able to passe precisely to each

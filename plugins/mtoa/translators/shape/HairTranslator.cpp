@@ -127,7 +127,7 @@ void CHairTranslator::Update( AtNode *curve )
                {
                   plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
                   if (status && !plug.isNull())
-                     AiNodeSetBool(shader, "enable_matte", plug.asBool());
+                     ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
                   plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
                   if (status && !plug.isNull())
                      ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);

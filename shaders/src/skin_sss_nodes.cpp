@@ -538,7 +538,11 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
    if (!AiColorIsZero(cKsss))
    {
       AtColor csss_radius = sss_radius;
+#if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
+      AtColor sss = cKsss * AiSSSLookupCubic(sg, csss_radius);
+#else
       AtColor sss = cKsss * AiSSSPointCloudLookupCubic(sg, csss_radius);
+#endif
       if (Fresnel_on_diff)
          sss *= 1 - refl_fresnel - spec_fresnel;
       output.rgb += sss;
