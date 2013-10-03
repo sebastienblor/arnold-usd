@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ai.h>
+#include <sstream>
 
 #include "MayaFluidData.h"
 
@@ -321,8 +322,8 @@ public:
 };
 
 
-template <typename T, bool M, bool G>
-T GetValue(AtShaderGlobals* sg, const CMayaFluidData<true>* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, int filterType, float texture)
+template <typename T, bool M, bool G, bool IS3D>
+T GetValue(AtShaderGlobals* sg, const CMayaFluidData<IS3D>* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, int filterType, float texture)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
@@ -399,8 +400,8 @@ float DropoffGradient(float value, float edgeDropoff)
    return CLAMP(ret, 0.f, 1.f);
 }
 
-inline
-float CalculateDropoff(const CMayaFluidData<true>* data, const AtVector& lPt, int dropoffShape, float edgeDropoff, int filterType)
+template <bool IS3D>
+inline float CalculateDropoff(const CMayaFluidData<IS3D>* data, const AtVector& lPt, int dropoffShape, float edgeDropoff, int filterType)
 {
    if (dropoffShape == DS_OFF)
       return 1.f;
