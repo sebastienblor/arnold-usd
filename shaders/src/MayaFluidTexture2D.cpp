@@ -100,11 +100,11 @@ shader_evaluate
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
    color.b = MAX(0.f, color.b);
-   //AtRGB incandescence = GetValue(sg, fluidData, lPt, data->incandescenceGradient, data->filterType, incandNoise);
-   //incandescence.r = MAX(0.f, incandescence.r);
-   //incandescence.g = MAX(0.f, incandescence.g);
-   //incandescence.b = MAX(0.f, incandescence.b); // do we need this?
+   AtRGB incandescence = GetValue(sg, data->fluidData, lPt, data->incandescenceGradient, FT_LINEAR, 1.0f);
+   incandescence.r = MAX(0.f, incandescence.r);
+   incandescence.g = MAX(0.f, incandescence.g);
+   incandescence.b = MAX(0.f, incandescence.b); // do we need this?
 
-   sg->out.RGB = color;
+   sg->out.RGB = color + incandescence;
    sg->out_opacity = opacity;
 }
