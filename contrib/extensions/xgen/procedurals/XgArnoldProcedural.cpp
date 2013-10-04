@@ -502,7 +502,7 @@ float Procedural::get( EFloatAttribute in_attr ) const
        getFloat( m_camera, "shutter_start", shutter_start, false );
        getFloat( m_camera, "shutter_end", shutter_end, false );
 
-       float shutter_offset = shutter_start + 0.5*(shutter_end-shutter_start);
+       float shutter_offset = shutter_start + 0.5f*(shutter_end-shutter_start);
        return shutter_offset;
     }
 
@@ -620,11 +620,11 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
    std::string fileBase = "";
    int extPos = 0;
-   if ((extPos = fname.find(".ass")) == ((int)fname.length()-4))
+   if ((extPos = (int)fname.find(".ass")) == ((int)fname.length()-4))
    {
       fileBase = fname.substr(0, extPos);
    }
-   else if ((extPos = fname.find(".ass.gz")) == ((int)fname.length()-7))
+   else if ((extPos = (int)fname.find(".ass.gz")) == ((int)fname.length()-7))
    {
       fileBase = fname.substr(0, extPos);
    }
@@ -853,7 +853,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     }
 
     // Arnold crashes if the radius is too small.
-    const AtFloat k_minRadius = 0.001;
+    const AtFloat k_minRadius = 0.001f;
 
     // Add the constant widths.
     if( widthsSize==0 )
@@ -885,7 +885,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
     AtNode* nodeCurves = AiNode("curves");
     string strParentName = AiNodeGetName( m_node_face );
-   string strID = itoa( m_nodes.size() );
+   string strID = itoa( (int)m_nodes.size() );
    AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
    AiNodeSetStr( nodeCurves, "mode", bFaceCamera ? "ribbon" : "oriented");
     AiNodeSetStr( nodeCurves, "basis", "b-spline" );
@@ -1005,7 +1005,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
             
             // Rotation 1
             if ( axis1[i] != zeroAxis ) {
-                rotation( tmp, axis1[i], angle1[i] );
+                rotation( tmp, axis1[i], (float)angle1[i] );
                 multiply( xP[i], xP[i], tmp );
                 if ( normalParam && (i==0) )
                     xN = tmp;
@@ -1013,7 +1013,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
             
             // Rotation 2
             if ( axis2[i] != zeroAxis ) {
-                rotation( tmp, axis2[i], angle2[i] );
+                rotation( tmp, axis2[i], (float)angle2[i] );
                 multiply( xP[i], xP[i], tmp );
                 if ( normalParam && (i==0) )
                     multiply( xN, xN, tmp );
@@ -1021,16 +1021,16 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
             
             // Scale
          vec3 scaleV;
-         scaleV.x = width[i];
-         scaleV.y = length_[i];
-         scaleV.z = depth[i];
+         scaleV.x = (float)width[i];
+         scaleV.y = (float)length_[i];
+         scaleV.z = (float)depth[i];
          scale( tmp, scaleV );
 
             multiply( xP[i], xP[i], tmp );
             if ( flipParam ) {
-                rotationX( tmp, degtorad(-90.0) );
+                rotationX( tmp, (float)degtorad(-90.0) );
             } else {
-                rotationX( tmp, degtorad(90) );
+                rotationX( tmp, (float)degtorad(90) );
             }
             multiply( xP[i], xP[i], tmp );
             if ( normalParam && (i==0) )
@@ -1050,7 +1050,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         // Add custom parameters and call sphere.
         pc->inverseXformParams( j, xP[0], xN );
 
-        string strID = itoa( m_nodes.size() );
+        string strID = itoa( (int)m_nodes.size() );
 
         char buf[512];
 
@@ -1106,7 +1106,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
       memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
 
-       string strID = itoa( m_nodes.size() );
+       string strID = itoa( (int)m_nodes.size() );
 
       char buf[512];
 
@@ -1175,7 +1175,7 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc )
          if ( attrName.find( e.m_xgen ) != string::npos)
          {
             string fixedAttrName = attrName.substr( e.m_xgen.size() );
-            unsigned int fixAttrCount = attrCount/e.m_components;
+            unsigned int fixAttrCount = (unsigned int)(attrCount/e.m_components);
 
             AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
             AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
@@ -1341,7 +1341,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
             // Rotation 1
             if ( axis1[i] != zeroAxis ) {
-                rotation( tmp, axis1[i], angle1[i] );
+                rotation( tmp, axis1[i], (float)angle1[i] );
                 multiply( xP[i], xP[i], tmp );
                 if ( normalParam && (i==0))
                     xN = tmp;
@@ -1349,7 +1349,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
             // Rotation 2
             if ( axis2[i] != zeroAxis ) {
-                rotation( tmp, axis2[i], angle2[i] );
+                rotation( tmp, axis2[i], (float)angle2[i] );
                 multiply( xP[i], xP[i], tmp );
                 if ( normalParam && (i==0) )
                     multiply( xN, xN, tmp );
@@ -1357,9 +1357,9 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
             // Scale
             vec3 scaleV;
-            scaleV.x = bbox_scale * width[i];
-            scaleV.y = bbox_scale * length_[i];
-            scaleV.z = bbox_scale * depth[i];
+            scaleV.x = (float)(bbox_scale * width[i]);
+            scaleV.y = (float)(bbox_scale * length_[i]);
+            scaleV.z = (float)(bbox_scale * depth[i]);
             scale( tmp, scaleV );
             multiply( xP[i], xP[i], tmp );
 
@@ -1384,7 +1384,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 */
 
       string strParentName = AiNodeGetName( m_node_face );
-      string strID = itoa(m_nodes.size());
+      string strID = itoa((int)m_nodes.size());
 
       string instance_name = strParentName + string("_archive_") + strID;
       //std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
@@ -1440,7 +1440,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
          std::string filename = vecFilenames[i];
          std::string materialName = vecMaterials[i];
 
-         std::string uniqueName = instance_name + "_" + itoa(i);
+         std::string uniqueName = instance_name + "_" + itoa((int)i);
 
          AtNode* materialNode = AiNodeLookUpByName(materialName.c_str());
 
@@ -1621,8 +1621,8 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
    AtNode* abcProc = AiNode("procedural");
    AiNodeSetStr( abcProc, "dso", dso.c_str() );
    //AiNodeSetStr( abcProc, "data", dso_data.c_str() );
-   AiNodeSetPnt( abcProc, "min", arcbox.xmin, arcbox.ymin, arcbox.zmin );
-   AiNodeSetPnt( abcProc, "max", arcbox.xmax, arcbox.ymax, arcbox.zmax );
+   AiNodeSetPnt( abcProc, "min", (float)arcbox.xmin, (float)arcbox.ymin, (float)arcbox.zmin );
+   AiNodeSetPnt( abcProc, "max", (float)arcbox.xmax, (float)arcbox.ymax, (float)arcbox.zmax );
 
    return abcProc;
 }

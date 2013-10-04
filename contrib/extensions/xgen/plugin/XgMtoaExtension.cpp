@@ -171,14 +171,14 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       static map<string, pair<string,float> > s_mapUnitsConv;
       if( s_mapUnitsConv.empty() )
       {
-         s_mapUnitsConv["in"] = pair<string,float>( "2.54", 2.54 );
-         s_mapUnitsConv["ft"] = pair<string,float>( "30.48", 30.48 );
-         s_mapUnitsConv["yd"] = pair<string,float>( "91.44", 91.44 );
-         s_mapUnitsConv["mi"] = pair<string,float>( "160934.4", 160934.4 );
+         s_mapUnitsConv["in"] = pair<string,float>( "2.54", 2.54f );
+         s_mapUnitsConv["ft"] = pair<string,float>( "30.48", 30.48f );
+         s_mapUnitsConv["yd"] = pair<string,float>( "91.44", 91.44f );
+         s_mapUnitsConv["mi"] = pair<string,float>( "160934.4", 160934.4f );
          s_mapUnitsConv["mm"] = pair<string,float>( "0.1", 0.1f );
-         s_mapUnitsConv["km"] = pair<string,float>( "100000.0", 100000. );
-         s_mapUnitsConv["m"] =  pair<string,float>( "100.0", 100. );
-         s_mapUnitsConv["dm"] = pair<string,float>( "10.0", 10. );
+         s_mapUnitsConv["km"] = pair<string,float>( "100000.0", 100000.f );
+         s_mapUnitsConv["m"] =  pair<string,float>( "100.0", 100.f );
+         s_mapUnitsConv["dm"] = pair<string,float>( "10.0", 10.f );
       }
 
       string factor = "1";
@@ -251,16 +251,16 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       }
 
       info.strScene = strScenePath + strSceneName;
-      info.fFrame = MAnimControl::currentTime().value();
+      info.fFrame = (float)MAnimControl::currentTime().value();
 
       // Hardcoded values for now.
       float s = 10000.f * fUnitConvFactor;
       info.setBoundingBox( -s,-s,-s, s, s, s );
       info.bCameraOrtho = false;
-      info.setCameraPos( -48.4233, 29.8617, -21.2033 );
-      info.fCameraFOV = 54.432224;
-      info.setCameraInvMat( -0.397148,0.446873,0.80161,0,5.55112e-17,0.873446,-0.48692,0,0.917755,0.193379,0.346887,0,0.228188,-0.343197,60.712,1 );
-      info.fCamRatio = 1.0;
+      info.setCameraPos( -48.4233f, 29.8617f, -21.2033f );
+      info.fCameraFOV = 54.432224f;
+      info.setCameraInvMat( -0.397148f,0.446873f,0.80161f,0.f,5.55112e-17f,0.873446f,-0.48692f,0.f,0.917755f,0.193379f,0.346887f,0.f,0.228188f,-0.343197f,60.712f,1.f );
+      info.fCamRatio = 1.0f;
    }
 
    char buf[512];
