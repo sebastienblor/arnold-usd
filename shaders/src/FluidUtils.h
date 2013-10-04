@@ -2,6 +2,7 @@
 
 #include <ai.h>
 #include <sstream>
+#include <algorithm>
 
 #include "MayaFluidData.h"
 
