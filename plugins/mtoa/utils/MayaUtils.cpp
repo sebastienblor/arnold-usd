@@ -49,3 +49,10 @@ MStringArray getSourceImagesPath()
    MGlobal::executePythonCommand("import mtoa.utils;mtoa.utils.getSourceImagesDir()", res);
    return res;
 }
+
+MString getProjectFolderPath()
+{
+   MString res;
+   MGlobal::executePythonCommand("import maya.cmds as cmds;cmds.workspace(query=True, rootDirectory=True)", res);
+   return res;
+}

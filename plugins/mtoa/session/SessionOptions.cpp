@@ -102,8 +102,9 @@ MStatus CSessionOptions::GetFromMaya()
 
       plug = fnArnoldRenderOptions.findPlug("procedural_searchpath");
       if (!plug.isNull())
-      {
+      {         
          plug.asString().split(PATHSEP, m_proceduralSearchPaths);
+         m_proceduralSearchPaths.append(getProjectFolderPath());
          for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
             ReplaceSlashes(m_proceduralSearchPaths[i], true);
       }

@@ -493,7 +493,7 @@ void COptionsTranslator::Export(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
 
-   AddSourceImagesToTextureSearchPath(options);
+   AddProjectFoldersToSearchPaths(options);
 
    // BACKGROUND SHADER
    //
@@ -615,7 +615,7 @@ void COptionsTranslator::Update(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
 
-   AddSourceImagesToTextureSearchPath(options);
+   AddProjectFoldersToSearchPaths(options);
    
    // BACKGROUND SHADER
    //
@@ -674,10 +674,12 @@ void COptionsTranslator::ExportAtmosphere(AtNode *options)
    }
 }
 
-void COptionsTranslator::AddSourceImagesToTextureSearchPath(AtNode* options)
+void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
 {
    MString texture_searchpath(AiNodeGetStr(options, "texture_searchpath"));
+   MString procedural_searchpath(AiNodeGetStr(options, "procedural_searchpath"));
    MStringArray sourceImagesDirs = getSourceImagesPath();
+   MString projectPath = getProjectFolderPath();
 #ifdef _WIN32   
    const MString pathsep = ";";
 #else
@@ -691,7 +693,11 @@ void COptionsTranslator::AddSourceImagesToTextureSearchPath(AtNode* options)
       if (i != (sourceImagesDirs.length() -1))
          texture_searchpath += pathsep;
    }
+   if (procedural_searchpath != "")
+      procedural_searchpath += pathsep;
+   procedural_searchpath += projectPath;
    AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+   AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
 }
 
 /// Main entry point to export values to an arnold parameter from a maya plug, recursively following
