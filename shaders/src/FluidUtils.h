@@ -324,7 +324,7 @@ public:
 
 
 template <typename T, bool M, bool G, bool IS3D>
-T GetValue(AtShaderGlobals* sg, const CMayaFluidData<IS3D>* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, int filterType, float texture)
+T GetValue(AtShaderGlobals* sg, const CMayaFluidData<IS3D>* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, int filterType, float texture, const AtVector& velocityScale)
 {
    static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
    float gradientValue = 0.f;
@@ -358,7 +358,7 @@ T GetValue(AtShaderGlobals* sg, const CMayaFluidData<IS3D>* fluidData, const AtV
          gradientValue = fluidData->readPressure(lPt, filterType);
          break;
       case GT_SPEED:
-         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(fluidData->readVelocity(lPt, filterType) /* data->velocityScale*/)); // todo fix this later
+         gradientValue = 1.0f - 1.0f / (1.0f + AiV3Length(fluidData->readVelocity(lPt, filterType) * velocityScale)); // todo fix this later
          break;
       default:
          return GetDefaultValue<T>() * texture;

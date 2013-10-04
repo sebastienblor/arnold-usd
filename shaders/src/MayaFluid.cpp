@@ -341,7 +341,7 @@ shader_evaluate
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, 1.0f)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -505,22 +505,22 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise)) * dropoff * data->transparency;
+   const AtRGB opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * data->transparency;
    AtRGB color = AI_RGB_BLACK;
    if (fluidData->colorGridEmpty())
-      color = GetValue(sg, fluidData, lPt, data->colorGradient, data->filterType, colorNoise);
+      color = GetValue(sg, fluidData, lPt, data->colorGradient, data->filterType, colorNoise, data->velocityScale);
    else
       color = fluidData->readColors(lPt, data->filterType);
 
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
    color.b = MAX(0.f, color.b);
-   AtRGB incandescence = GetValue(sg, fluidData, lPt, data->incandescenceGradient, data->filterType, incandNoise);
+   AtRGB incandescence = GetValue(sg, fluidData, lPt, data->incandescenceGradient, data->filterType, incandNoise, data->velocityScale);
    incandescence.r = MAX(0.f, incandescence.r);
    incandescence.g = MAX(0.f, incandescence.g);
    incandescence.b = MAX(0.f, incandescence.b);
