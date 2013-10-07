@@ -49,8 +49,7 @@ CRenderOptions::CRenderOptions()
 ,  m_log_to_console(false)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
-,  m_log_console_verbosity(DEFAULT_LOG_FLAGS)
-,  m_log_file_verbosity(DEFAULT_LOG_FLAGS)
+,  m_log_verbosity(DEFAULT_LOG_FLAGS)
 ,  m_shader_searchpath("")
 {}
 
@@ -185,8 +184,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console").asBool();
       m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
-      m_log_console_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt());
-      m_log_file_verbosity    = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt());
+      m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity").asInt());
 
       m_shader_searchpath = fnArnoldRenderOptions.findPlug("shader_searchpath").asString();
 
@@ -232,12 +230,12 @@ void CRenderOptions::SetupLog() const
             logPath = logPath + frame + ".log";
       }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
-      AiMsgSetLogFileFlags(m_log_file_verbosity);
+      AiMsgSetLogFileFlags(m_log_verbosity);
    }
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
-      AiMsgSetConsoleFlags(m_log_console_verbosity | AI_LOG_COLOR);   
+      AiMsgSetConsoleFlags(m_log_verbosity | AI_LOG_COLOR);   
 
    // Not working correctly until we can add to callback rather than replace it,
    // or have access to original callback code

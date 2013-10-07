@@ -923,14 +923,12 @@ def LoadFilenameButtonPush(*args):
 def ChangeLogToConsole(*args):
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_console_verbosity', edit=True, enable=logToConsole)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def ChangeLogToFile(*args):
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def createArnoldLogSettings():
@@ -976,15 +974,10 @@ def createArnoldLogSettings():
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
-    pm.attrControlGrp('log_console_verbosity',
-                        label="Console Verbosity Level",
+    pm.attrControlGrp('log_verbosity',
+                        label="Verbosity Level",
                         enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_console_verbosity')
-
-    pm.attrControlGrp('log_file_verbosity',
-                        label="File Verbosity Level",
-                        enable=logToFile,
-                        attribute='defaultArnoldRenderOptions.log_file_verbosity')
+                        attribute='defaultArnoldRenderOptions.log_verbosity')
 
     pm.separator()
 

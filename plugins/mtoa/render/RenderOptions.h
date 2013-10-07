@@ -253,8 +253,7 @@ private:
    bool           m_log_to_console;
    MString        m_log_filename;
    unsigned int   m_log_max_warnings;
-   unsigned int   m_log_console_verbosity;
-   unsigned int   m_log_file_verbosity;
+   unsigned int   m_log_verbosity;
 
    MString m_shader_searchpath;
 };

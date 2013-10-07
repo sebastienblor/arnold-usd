@@ -71,8 +71,7 @@ MObject CArnoldOptionsNode::s_log_to_file;
 MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
-MObject CArnoldOptionsNode::s_log_console_verbosity;
-MObject CArnoldOptionsNode::s_log_file_verbosity;
+MObject CArnoldOptionsNode::s_log_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_atmosphereShader;
@@ -461,17 +460,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
+   s_log_verbosity = nAttr.create("log_verbosity", "logv", MFnNumericData::kInt, 3);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(6);
-   addAttribute(s_log_console_verbosity);
-
-   s_log_file_verbosity = nAttr.create("log_file_verbosity", "logfv", MFnNumericData::kInt, 3);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
-   addAttribute(s_log_file_verbosity);
+   addAttribute(s_log_verbosity);
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
