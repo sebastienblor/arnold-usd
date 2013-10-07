@@ -81,7 +81,6 @@ def updateMotionBlurSettings(*args):
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
     logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable= (name != "") and logToFile)
 
 def getBackgroundShader(*args):
     conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
