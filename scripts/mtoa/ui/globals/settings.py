@@ -801,10 +801,7 @@ def createArnoldOverrideSettings():
                         
     pm.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
-    					
-    pm.attrControlGrp('ignore_mis',
-                        attribute='defaultArnoldRenderOptions.ignore_mis', label='Ignore Multiple Importance Sampling')
-                        
+                       
     
 
     pm.setParent('..')

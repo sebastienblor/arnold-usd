@@ -421,7 +421,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_smoothing");   
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
-   s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
    
    s_attributes.MakeInput("volume_indirect_samples");
