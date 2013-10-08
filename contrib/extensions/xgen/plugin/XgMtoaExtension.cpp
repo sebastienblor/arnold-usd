@@ -373,6 +373,7 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "procedural");
    CShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeMayaVisibilityFlags(helper);
 }
 
 AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
