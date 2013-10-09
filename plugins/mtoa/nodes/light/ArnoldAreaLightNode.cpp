@@ -214,7 +214,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          glCallList(m_displayList);
    }
    // Cylinder
-   else
+   else if (areaType == "cylinder")
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
