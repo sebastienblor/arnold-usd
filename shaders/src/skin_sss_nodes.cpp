@@ -539,7 +539,8 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
    {
       AtColor csss_radius = sss_radius;
 #if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
-      AtColor sss = cKsss * AiSSSLookupCubic(sg, csss_radius);
+      const static AtRGB weights[3] = {AI_RGB_RED, AI_RGB_GREEN, AI_RGB_BLUE};
+      AtColor sss = cKsss * AiBSSRDFCubic(sg, &csss_radius.r, weights, 3);
 #else
       AtColor sss = cKsss * AiSSSPointCloudLookupCubic(sg, csss_radius);
 #endif
