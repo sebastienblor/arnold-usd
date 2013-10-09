@@ -673,7 +673,7 @@ if maya_base_version == '2013':
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + "-" + PACKAGE_SUFFIX
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + PACKAGE_SUFFIX
 
 if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
