@@ -232,8 +232,8 @@ int Procedural::Init(AtNode* node)
          AiNodeSetStr( nodeFaceProc, "dso", strParentDso.c_str() );
          AiNodeSetBool( nodeFaceProc, "load_at_init", bLoadAtInit );
          AiNodeSetPtr( nodeFaceProc, "userptr", (void*)new ProceduralWrapper( pProc, false ) );
-         AiNodeSetPnt( nodeFaceProc, "min", (AtFloat)total.xmin, (AtFloat)total.ymin, (AtFloat)total.zmin );
-         AiNodeSetPnt( nodeFaceProc, "max", (AtFloat)total.xmax, (AtFloat)total.ymax, (AtFloat)total.zmax );
+         AiNodeSetPnt( nodeFaceProc, "min", (float)total.xmin, (float)total.ymin, (float)total.zmin );
+         AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
 
          m_nodes.push_back( nodeFaceProc );
       }
@@ -808,13 +808,13 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     AtArray* radius = AiArrayAllocate( widthsSize>0 ? widthsSize : 1, 1, AI_TYPE_FLOAT );
     AtArray* orientations = bFaceCamera ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
 
-    AtUInt* curNumPoints = (AtUInt*)num_points->data;
+    unsigned int* curNumPoints = (unsigned int*)num_points->data;
     AtPoint* curPoints = (AtPoint*)points->data;
     AtVector* curOrientations = orientations ? (AtVector*)orientations->data : NULL;
-    AtFloat* curRadius = (AtFloat*)radius->data;
+    float* curRadius = (float*)radius->data;
 
     // Add NumPoints
-    for ( AtInt i=0; i < (AtInt)numSamples; i++ )
+    for ( int i=0; i < (int)numSamples; i++ )
     {
         // Add the points.
         XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points." );
@@ -826,7 +826,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
         int* numVertsPtr = (int*)pc->get( PC(NumVertices), i );
         for( unsigned int j=0; j<pc->getSize2( PC(NumVertices), i ); ++j )
         {
-           *curNumPoints = (AtUInt)numVertsPtr[j];
+           *curNumPoints = (unsigned int)numVertsPtr[j];
 
            // Add the normals if necessary.
          if( orientations )
@@ -853,7 +853,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     }
 
     // Arnold crashes if the radius is too small.
-    const AtFloat k_minRadius = 0.001f;
+    const float k_minRadius = 0.001f;
 
     // Add the constant widths.
     if( widthsSize==0 )
@@ -1039,10 +1039,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
         for ( unsigned int i=0; i < numSamples; i++ ) {
            const float* xPi = &xP[i]._00;
-            AtMatrix tmp = {{AtFloat(xPi[0]),AtFloat(xPi[1]),AtFloat(xPi[2]),AtFloat(xPi[3])},
-                            {AtFloat(xPi[4]),AtFloat(xPi[5]),AtFloat(xPi[6]),AtFloat(xPi[7])},
-                            {AtFloat(xPi[8]),AtFloat(xPi[9]),AtFloat(xPi[10]),AtFloat(xPi[11])},
-                            {AtFloat(xPi[12]),AtFloat(xPi[13]),AtFloat(xPi[14]),AtFloat(xPi[15])}};
+            AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
+                            {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
+                            {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
+                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}};
 
             AiArraySetMtx( matrix, i, tmp );
         }
@@ -1080,7 +1080,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
    string strParentName = AiNodeGetName( m_node_face );
 
     AtArray* knots = AiArrayAllocate( 7, 1, AI_TYPE_FLOAT );
-    AtFloat* pKnots = (AtFloat*)knots->data;
+    float* pKnots = (float*)knots->data;
     pKnots[0] = 0;
     pKnots[1] = 0;
     pKnots[2] = 0;
@@ -1142,7 +1142,7 @@ struct CustomParamTypeEntry
 
 const static CustomParamTypeEntry g_mapCustomParamTypes[]=
 {
-   { "uniform float ",    "uniform FLOAT",    sizeof(AtFloat),    1, AI_TYPE_FLOAT },
+   { "uniform float ",    "uniform FLOAT",    sizeof(float),    1, AI_TYPE_FLOAT },
    { "uniform color ",    "uniform RGB",       sizeof(AtRGB),       3, AI_TYPE_RGB },
    { "uniform vector ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
    { "uniform normal ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
@@ -1332,7 +1332,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         // sample and put in a motion block
 
         mat44 xP[2], xN, tmp;
-        AtInt jj=j*lodLevels*numSamples;
+        int jj=j*lodLevels*numSamples;
 
         for ( unsigned int i=0; i<numSamples; i++ ) {
             // Translation
@@ -1392,13 +1392,13 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
         for ( unsigned int i=0; i < numSamples; i++ ) {
            float* xPi = &xP[i]._00;
-            AtMatrix tmp = {{AtFloat(xPi[0]),AtFloat(xPi[1]),AtFloat(xPi[2]),AtFloat(xPi[3])},
-                            {AtFloat(xPi[4]),AtFloat(xPi[5]),AtFloat(xPi[6]),AtFloat(xPi[7])},
-                            {AtFloat(xPi[8]),AtFloat(xPi[9]),AtFloat(xPi[10]),AtFloat(xPi[11])},
-                            {AtFloat(xPi[12]),AtFloat(xPi[13]),AtFloat(xPi[14]),AtFloat(xPi[15])}};
+            AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
+                            {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
+                            {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
+                            {float(xPi[12]),float(xPi[13]),float(xPi[14]),float(xPi[15])}};
             AiArraySetMtx( matrix, i, tmp );
 
-            //std::cout << "Procedural::flushArchives: Transform: " << instance_name << ": " << AtFloat(xPi[12])<< ": " <<AtFloat(xPi[13])<< ": " <<AtFloat(xPi[14])<< ": " <<AtFloat(xPi[15]) << "\n";
+            //std::cout << "Procedural::flushArchives: Transform: " << instance_name << ": " << float(xPi[12])<< ": " <<float(xPi[13])<< ": " <<float(xPi[14])<< ": " <<float(xPi[15]) << "\n";
         }
 
 /*
