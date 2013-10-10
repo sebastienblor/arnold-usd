@@ -8,20 +8,6 @@
 #include <maya/MFnMesh.h>
 #include <maya/MItMeshPolygon.h>
 
-// AmbientLight
-//
-
-void CAmbientLightTranslator::Export(AtNode* light)
-{
-   CLightTranslator::Export(light);
-}
-
-void CAmbientLightTranslator::NodeInitializer(CAbTranslator context)
-{
-   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "ambient_light");
-   MakeCommonAttributes(helper);
-}
-
 // DirectionalLight
 //
 

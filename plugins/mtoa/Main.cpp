@@ -207,10 +207,6 @@ namespace // <anonymous>
                                    "",
                                    CPointLightTranslator::creator,
                                    CPointLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("ambientLight",
-                                   "",
-                                   CAmbientLightTranslator::creator,
-                                   CAmbientLightTranslator::NodeInitializer);
        // Multiple light translators for single Arnold areaLight node
        builtin->RegisterTranslator("aiAreaLight",
                                    "quad",

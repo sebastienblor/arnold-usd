@@ -2,21 +2,6 @@
 
 #include "LightTranslator.h"
 
-class CAmbientLightTranslator : public CLightTranslator
-{
-public:
-   void Export(AtNode* light);
-   static void NodeInitializer(CAbTranslator context);
-   static void* creator()
-   {
-      return new CAmbientLightTranslator();
-   }
-   AtNode* CreateArnoldNodes()
-   {
-      return AddArnoldNode("ambient_light");
-   }
-};
-
 class CDirectionalLightTranslator : public CLightTranslator
 {
 public:
