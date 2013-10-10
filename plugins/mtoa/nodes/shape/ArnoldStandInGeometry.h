@@ -50,10 +50,10 @@ public:
 class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{
 private:
    std::vector<AtVector> m_vlist;
-   std::vector<AtUInt> m_vidxs;
+   std::vector<unsigned int> m_vidxs;
    std::vector<AtVector> m_nlist;
-   std::vector<AtUInt> m_nidxs;
-   std::vector<AtUInt> m_nsides;   
+   std::vector<unsigned int> m_nidxs;
+   std::vector<unsigned int> m_nsides;   
 
    void DrawPolygons() const;
    void DrawWireframe() const;

@@ -509,7 +509,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    // frame number
    AiNodeDeclare(options, "frame", "constant FLOAT");
-   AiNodeSetFlt(options, "frame", (AtFloat)GetExportFrame());
+   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
    // render layer name
    MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
    if (status)

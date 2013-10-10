@@ -99,7 +99,7 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputFloat(data);
 }
 
-void CParticleTranslator::UpdateMotion(AtNode* anode, AtUInt step)
+void CParticleTranslator::UpdateMotion(AtNode* anode, unsigned int step)
 {
    // ProcessRenderFlags(anode);
    // FIXME: Crashes
@@ -414,7 +414,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
 ///
 
-void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
+void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
 {
    AiMsgDebug("[mtoa] Particle system %s exporting step %i", m_fnParticleSystem.partialPathName().asChar(), step);
 
@@ -594,7 +594,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
 // There is an extra attribute  called  "aiInterpolateBlurSteps"  that defines whether to use this or the above
 // function to populate the motion blur steps
 
-void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
+void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int step)
 {
    AiMsgDebug("[mtoa] Particle system %s interpolating step %i", m_fnParticleSystem.partialPathName().asChar(), step);
 
@@ -667,8 +667,8 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    /// Finally set the  position and  radius/aspect values with their cache values minus Transform position
    AtPoint a_v;
    MVector m_v;
-   AtFloat a_r;
-   AtFloat a_a;
+   float a_r;
+   float a_a;
    //getting the matrix of the point particle object
 
    AtMatrix inclMatrix;
@@ -714,13 +714,13 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                m_v = (*m_out_positionArrays[s])[pindex];
 
                AtPoint noisePoint;
-               noisePoint.x = AtFloat(i+j+0.1454329);
-               noisePoint.y = AtFloat(i+j+0.3234548);
-               noisePoint.z = AtFloat(i+j+0.0921081);
+               noisePoint.x = float(i+j+0.1454329);
+               noisePoint.y = float(i+j+0.3234548);
+               noisePoint.z = float(i+j+0.0921081);
 
-               a_v.x = AtFloat(m_v.x+(AiPerlin4(noisePoint,i+j+0.2340970f)*m_multiRadius));
-               a_v.y = AtFloat(m_v.y+(AiPerlin4(noisePoint,i+j+23.1203093f)*m_multiRadius));
-               a_v.z = AtFloat(m_v.z+(AiPerlin4(noisePoint,i+j-0.4874771f)*m_multiRadius));
+               a_v.x = float(m_v.x+(AiPerlin4(noisePoint,i+j+0.2340970f)*m_multiRadius));
+               a_v.y = float(m_v.y+(AiPerlin4(noisePoint,i+j+23.1203093f)*m_multiRadius));
+               a_v.z = float(m_v.z+(AiPerlin4(noisePoint,i+j-0.4874771f)*m_multiRadius));
 
                // MFnParticleSystem::position returns values in different spaces depending on whether
                // the system is cached or not. As a result, we need to apply the inclusive matrix if the
@@ -735,15 +735,15 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
                if (m_isSprite)
                {
-                  a_a = AtFloat((*m_out_spriteScaleXArrays[s])[pindex]/(*m_out_spriteScaleYArrays[s])[pindex]);
+                  a_a = float((*m_out_spriteScaleXArrays[s])[pindex]/(*m_out_spriteScaleYArrays[s])[pindex]);
                   AiArraySetFlt (a_aspectArray, index, a_a);
 
-                  a_r = CLAMP((((AtFloat)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
+                  a_r = CLAMP((((float)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
                   a_r *= radiusMult;
                }
                else
                {
-                  a_r = CLAMP(((AtFloat)(*m_out_radiusArrays[s])[pindex]), minRadius, maxRadius);
+                  a_r = CLAMP(((float)(*m_out_radiusArrays[s])[pindex]), minRadius, maxRadius);
                   a_r *= radiusMult;
                }
 
@@ -792,13 +792,13 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          if (m_hasRGB && (pindex < rgbLength))
          {
             m_rgb = m_out_colorArray[pindex];
-            a_rgb.r = (AtFloat)m_rgb.x;
-            a_rgb.g = (AtFloat)m_rgb.y;
-            a_rgb.b = (AtFloat)m_rgb.z;
+            a_rgb.r = (float)m_rgb.x;
+            a_rgb.g = (float)m_rgb.y;
+            a_rgb.b = (float)m_rgb.z;
          }
          float opacity = 0.0f;
          if (m_hasOpacity && (pindex < opacityLength))
-            opacity = (AtFloat)m_out_opacityArray[pindex];
+            opacity = (float)m_out_opacityArray[pindex];
          for (int j = 0; j< m_multiCount; j++)
          {
             const int index = i * m_multiCount + j;
@@ -852,7 +852,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
             const int pindex = it->second;
             if ((pindex >= 0) && (pindex < inputCount))
             {
-               const AtFloat floatValue = (AtFloat)(doubleIt->second->operator[](pindex));
+               const float floatValue = (float)(doubleIt->second->operator[](pindex));
                for (int j = 0; j< m_multiCount; j++)
                {
                   // Calculated offset index
@@ -881,7 +881,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
             if ((pindex >= 0) && (pindex < inputCount))
             {
                const MVector vectorValue = vecIt->second->operator[](pindex);
-               AtVector a_attr = {(AtFloat)vectorValue.x, (AtFloat)vectorValue.y, (AtFloat)vectorValue.z};
+               AtVector a_attr = {(float)vectorValue.x, (float)vectorValue.y, (float)vectorValue.z};
                for (int j = 0; j< m_multiCount; j++)
                {
                   // Calculated offset index
@@ -1061,7 +1061,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 }
 
 
-AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
+AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int step)
 {
    if (step == 0)
    {
@@ -1101,7 +1101,7 @@ void CParticleTranslator::Update(AtNode *anode)
    ExportMatrix(anode, 0);
 }
 
-void CParticleTranslator::ExportMotion(AtNode* anode, AtUInt step)
+void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    if (IsMasterInstance())
    {

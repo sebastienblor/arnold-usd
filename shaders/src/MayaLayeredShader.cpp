@@ -86,10 +86,10 @@ struct AOVLayer
 struct ShaderData
 {
    AtArray *aovs;
-   AtUInt naovs;
+   unsigned int naovs;
 };
 
-void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, const AtRGB& transparency, AtBoolean useTransparency,
+void layer_op(AtShaderGlobals *sg, int flag, AtRGB color, const AtRGB& transparency, bool useTransparency,
               AtRGB &curColor, AtRGB &curOpacity)
 {
    AtRGB opacity = AI_RGB_BLACK;
@@ -177,22 +177,22 @@ node_parameters
    AiParameterRGB("transparency13", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency14", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency15", 1.0f, 1.0f, 1.0f);
-   AiParameterBOOL("useTransparency0", FALSE);
-   AiParameterBOOL("useTransparency1", FALSE);
-   AiParameterBOOL("useTransparency2", FALSE);
-   AiParameterBOOL("useTransparency3", FALSE);
-   AiParameterBOOL("useTransparency4", FALSE);
-   AiParameterBOOL("useTransparency5", FALSE);
-   AiParameterBOOL("useTransparency6", FALSE);
-   AiParameterBOOL("useTransparency7", FALSE);
-   AiParameterBOOL("useTransparency8", FALSE);
-   AiParameterBOOL("useTransparency9", FALSE);
-   AiParameterBOOL("useTransparency10", FALSE);
-   AiParameterBOOL("useTransparency11", FALSE);
-   AiParameterBOOL("useTransparency12", FALSE);
-   AiParameterBOOL("useTransparency13", FALSE);
-   AiParameterBOOL("useTransparency14", FALSE);
-   AiParameterBOOL("useTransparency15", FALSE);
+   AiParameterBOOL("useTransparency0", false);
+   AiParameterBOOL("useTransparency1", false);
+   AiParameterBOOL("useTransparency2", false);
+   AiParameterBOOL("useTransparency3", false);
+   AiParameterBOOL("useTransparency4", false);
+   AiParameterBOOL("useTransparency5", false);
+   AiParameterBOOL("useTransparency6", false);
+   AiParameterBOOL("useTransparency7", false);
+   AiParameterBOOL("useTransparency8", false);
+   AiParameterBOOL("useTransparency9", false);
+   AiParameterBOOL("useTransparency10", false);
+   AiParameterBOOL("useTransparency11", false);
+   AiParameterBOOL("useTransparency12", false);
+   AiParameterBOOL("useTransparency13", false);
+   AiParameterBOOL("useTransparency14", false);
+   AiParameterBOOL("useTransparency15", false);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -236,7 +236,7 @@ shader_evaluate
       AOVLayer* AOVValues = 0;
       if (localData->naovs > 0)
          AOVValues = (AOVLayer*)AiShaderGlobalsQuickAlloc(sg, sizeof(AOVLayer) * localData->naovs);
-      for (AtUInt ii = 0; ii < localData->naovs; ++ii)
+      for (unsigned int ii = 0; ii < localData->naovs; ++ii)
       {
          AOVLayer& it = AOVValues[ii];
          it.color = AI_RGB_BLACK;
@@ -253,14 +253,14 @@ shader_evaluate
       {
          AtRGB color = AI_RGB_BLACK;
          AtRGB transparency = AI_RGB_BLACK;
-         AtBoolean useTransparency = AiShaderEvalParamBool(p_useTransparency0 + i);
+         bool useTransparency = AiShaderEvalParamBool(p_useTransparency0 + i);
          
          if (useTransparency && (curOpacity.r < 1.f || curOpacity.g < 1.f || curOpacity.b < 1.f))
             transparency = AiShaderEvalParamRGB(p_transparency0 + i);
          if ((curOpacity.r < 1.f || curOpacity.g < 1.f || curOpacity.b < 1.f ) &&
             ((flag != CF_TEXTURE)  || (transparency.r < 1.f || transparency.g < 1.f || transparency.b < 1.f)))
          {
-            for (AtUInt ii = 0; ii < localData->naovs; ++ii)
+            for (unsigned int ii = 0; ii < localData->naovs; ++ii)
             {
                AOVLayer& it = AOVValues[ii];
                // setting a black value before evaluating the layer
@@ -276,7 +276,7 @@ shader_evaluate
 
             sg->out_opacity = orgOpacity;
             
-            for (AtUInt ii = 0; ii < localData->naovs; ++ii)
+            for (unsigned int ii = 0; ii < localData->naovs; ++ii)
             {
                AOVLayer& it = AOVValues[ii];
                AtRGB AOVColor = AI_RGB_BLACK;
@@ -294,7 +294,7 @@ shader_evaluate
       }
       result = post_process(curColor, curOpacity);
       outOpacity = curOpacity;
-      for (AtUInt ii = 0; ii < localData->naovs; ++ii)
+      for (unsigned int ii = 0; ii < localData->naovs; ++ii)
       {
          AOVLayer& it = AOVValues[ii];
          AtRGBA aovResult = post_process(it.color, it.opacity);

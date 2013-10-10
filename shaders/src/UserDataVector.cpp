@@ -40,11 +40,11 @@ node_finish
 shader_evaluate
 {
 
-   const AtChar *name = 0;
+   const char* name = 0;
 
    AtVector v;
    AtRGB c;
-   AtFloat f;
+   float f;
 
    name = AiShaderEvalParamStr(p_vectorAttrName);
    if (AiUDataGetVec(name, &v))
