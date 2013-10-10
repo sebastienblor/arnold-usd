@@ -1,168 +1,58 @@
 
-Starting "/usr/autodesk/maya2014-x64/bin/maya"
+Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
 
-00:00:00   225MB         | log started Wed Oct  9 19:47:52 2013
-00:00:00   225MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/09 16:53:32
-00:00:00   225MB         | running on localhost.localdomain
-00:00:00   225MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   225MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   225MB         |  
-00:00:00   225MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00   225MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00   225MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00   225MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-00:00:00   225MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   225MB         | [mtoa] [<built-in>] Generated 45 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   225MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   226MB         | loaded 84 plugins from 1 lib(s) in 0:00.00
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 13 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 40 translators for 40 Maya nodes (13 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   226MB         | [mtoa] Loading extension xgen(/work/deploy/2014/extensions/xgen.so).
-00:00:00   226MB         | [mtoa] [xgen] Declares a total of 0 new Maya nodes.
-00:00:00   226MB         | [mtoa] [xgen] Declares a total of 1 translators for 1 Maya nodes (0 new and 1 existing).
-00:00:00   226MB         | [mtoa] Successfully loaded extension library xgen(/work/deploy/2014/extensions/xgen.so).
-00:00:00   226MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   226MB WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00   226MB         | no plugins loaded
-00:00:00   226MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   226MB         | [mtoa] [renderview_driver] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   226MB         | loading plugin: /work/deploy/shaders/sitoa_shaders.so ...
-00:00:00   227MB WARNING |  node "skin_sss" is already installed
-00:00:00   227MB         | loaded 131 plugins from 1 lib(s) in 0:00.00
-00:00:00   227MB WARNING | [mtoa] [sitoa_shaders] [node material_phong] Assigning temporary node id 1138176 to associated Maya type name aiMaterialPhong.
-00:00:00   227MB WARNING | [mtoa] [sitoa_shaders] [node material_constant] Assigning temporary node id 1138177 to associated Maya type name aiMaterialConstant.
-00:00:00   227MB WARNING | [mtoa] [sitoa_shaders] [node material_lambert] Assigning temporary node id 1138178 to associated Maya type name aiMaterialLambert.
-00:00:00   227MB WARNING | [mtoa] [sitoa_shaders] [node sib_sprite] Assigning temporary node id 1138179 to associated Maya type name aiSibSprite.
-00:00:00   227MB WARNING | [mtoa] [sitoa_shaders] [node sib_incidence_v2] Assigning temporary node id 1138180 to associated Maya type name aiSibIncidenceV2.
-00:00:00   227MB WARNING | too many messages (>5) of type: "[mtoa] [%s] [node %s] Assigning temporary node id %i to associated Maya type name %s." -- not printing any more!
-00:00:00   227MB         | [mtoa] [sitoa_shaders] Generated 130 new Maya nodes for Arnold plugin /work/deploy/shaders/sitoa_shaders.so.
-00:00:00   227MB         | [mtoa] [sitoa_shaders] Generated 130 translators for 130 Maya nodes (130 new and 0 existing) for Arnold plugin /work/deploy/shaders/sitoa_shaders.so.
-00:00:00   227MB         | [mtoa] Registering 5 loaded extensions:
-00:00:00   228MB WARNING | [mtoa.attr] CBaseAttrHelper passed unknown Arnold node type "ambient_light"
-00:00:00   228MB WARNING | [mtoa.attr] CExtensionAttrHelper was passed an unknown Arnold node type "ambient_light" for Maya node type "ambientLight"
-00:00:00   228MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "cast_shadows"
-00:00:00   228MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "shadow_density"
-00:00:00   228MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "exposure"
-00:00:00   228MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "samples"
-00:00:00   228MB ERROR   | [mtoa.attr] A valid node entry must be passed to query data for parameter "normalize"
-00:00:00   228MB WARNING | too many messages (>5) of type: "[mtoa.attr] A valid node entry must be passed to query data for parameter "%s"" -- not printing any more!
-00:00:00   228MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   229MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   229MB         | [mtoa] Registered extension xgen provided by /work/deploy/2014/extensions/xgen.so.
-00:00:00   229MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   231MB         | [mtoa] Registered extension sitoa_shaders provided by /work/deploy/shaders/sitoa_shaders.so.
+mental ray for Maya 2013 
+mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
+pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
 libai.so already loaded
 
-00:00:00   232MB         | Successfully imported python module 'arnold'
-00:00:00   232MB         | Successfully imported python module 'mtoa'
-pymel.internal.factories : INFO : MFnDagNode.model is deprecated
-pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, xgenToolkit, AbcImport, mtoa
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-00:00:01   319MB         |  
-00:00:01   319MB         | releasing resources
-00:00:01   319MB         | Arnold shutdown
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  node "skin_sss" is already installed
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-mental ray for Maya 2014 
-mental ray: version 3.11.1.12, Aug  6 2013, revision 202006
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  node "skin_sss" is already installed
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  node "skin_sss" is already installed
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  node "skin_sss" is already installed
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  node "skin_sss" is already installed
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0048/test.ma line 447: The aiOptions 'defaultArnoldRenderOptions' has no '.sss_sample_factor' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0048/test.ma line 447: setAttr: No object matches name: .sss_sample_factor
+Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
+Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0048/test.ma line 447: The aiOptions 'defaultArnoldRenderOptions' has no '.sss_sample_factor' attribute.
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0048/test.ma line 447: setAttr: No object matches name: .sss_sample_factor
 File read in 0 seconds.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 Error: line 1: Error reading file.
 Error: line 1: Error reading file.
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  node "skin_sss" is already installed
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00 ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-Warning: file: /tmp/ASTMPbR7Lrn.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /tmp/ASTMPbR7Lrn.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   395MB         | log started Wed Oct  9 19:47:56 2013
-00:00:00   395MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/09 16:53:32
-00:00:00   395MB         | running on localhost.localdomain
-00:00:00   395MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   395MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   395MB         |  
-00:00:00   395MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   395MB         | loaded 84 plugins from 1 lib(s) in 0:00.12
-00:00:00   395MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   395MB WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00   395MB         | no plugins loaded
-00:00:00   395MB         | loading plugin: /work/deploy/shaders/sitoa_shaders.so ...
-00:00:00   395MB WARNING |  node "skin_sss" is already installed
-00:00:00   395MB         | loaded 131 plugins from 1 lib(s) in 0:00.00
-00:00:00   395MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:182) Node entry does not exist
-00:00:00   395MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:186) Found attribute outside a node
-00:00:00   395MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:189) Found attribute outside a node
-00:00:00   395MB ERROR   | [metadata] (/work/deploy/2014/plug-ins/mtoa.mtd:192) Found attribute outside a node
-00:00:00   395MB WARNING | [mtoa] No light in scene
-00:00:00   395MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   396MB         |  
-00:00:00   396MB         | there are 0 lights and 1 object:
-00:00:00   396MB         |  1 polymesh
-00:00:00   396MB         |  
-00:00:00   396MB         | rendering image at 160 x 120, 8 AA samples, 0 GI samples, 1 GI bounces
-00:00:00   396MB         |  initializing 18 nodes ...
-00:00:00   396MB WARNING |   pPlaneShape1: discarded duplicate deformation keys
-00:00:00   396MB         |  node initialization done in 0:00.00
-00:00:00   397MB         |  creating root object list ...
-00:00:00   397MB         |   scene bounds: (-0.639555931 -1.11022302e-16 -0.5) -> (0.626290619 1.11022302e-16 0.5)
-00:00:00   397MB         |  updating 19 nodes ...
-00:00:00   398MB         |  node update done in 0:00.00
-00:00:00   398MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   398MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   398MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   398MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:00   436MB         |     5% done - 61 rays/pixel
-00:00:00   431MB         |    20% done - 61 rays/pixel
-00:00:00   426MB         |    40% done - 62 rays/pixel
-00:00:00   419MB         |    60% done - 62 rays/pixel
-00:00:00   414MB         |    75% done - 62 rays/pixel
-00:00:00   408MB         |   100% done - 62 rays/pixel
-00:00:00   401MB         |  bucket workers done in 0:00.80
-00:00:00   401MB         | render done
-00:00:00   401MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0048/testrender.tif'
-00:00:00   401MB         |  
-00:00:00   401MB         | releasing resources
-00:00:00   401MB         | Arnold shutdown
-Scene /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0048/test.ma completed.
+Warning: file: /usr/tmp/ASTMPS79K0u.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMPS79K0u.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   293MB         | log started Thu Oct 10 16:36:27 2013
+00:00:00   293MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 13:12:13
+00:00:00   293MB         | running on localhost.localdomain
+00:00:00   293MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   293MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
+00:00:00   293MB         |  
+00:00:00   293MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
+00:00:00   294MB         | loaded 84 plugins from 1 lib(s) in 0:00.06
+00:00:00   294MB WARNING | [mtoa] No light in scene
+00:00:00   294MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   294MB         |  
+00:00:00   294MB         | there are 0 lights and 1 object:
+00:00:00   294MB         |  1 polymesh
+00:00:00   294MB         |  
+00:00:00   294MB         | rendering image at 160 x 120, 8 AA samples, 0 GI samples, 1 GI bounces
+00:00:00   294MB         |  initializing 18 nodes ...
+00:00:00   294MB WARNING |   pPlaneShape1: discarded duplicate deformation keys
+00:00:00   294MB         |  node initialization done in 0:00.00
+00:00:00   296MB         |  creating root object list ...
+00:00:00   296MB         |   scene bounds: (-0.639555931 -1.11022302e-16 -0.5) -> (0.626290619 1.11022302e-16 0.5)
+00:00:00   296MB         |  updating 19 nodes ...
+00:00:00   296MB         |  node update done in 0:00.00
+00:00:00   296MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   296MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   296MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00   296MB         |  starting 8 bucket workers of size 64x64 ...
+00:00:00   333MB         |     5% done - 61 rays/pixel
+00:00:00   328MB         |    20% done - 61 rays/pixel
+00:00:00   324MB         |    35% done - 62 rays/pixel
+00:00:00   318MB         |    60% done - 62 rays/pixel
+00:00:00   311MB         |    75% done - 62 rays/pixel
+00:00:01   306MB         |   100% done - 62 rays/pixel
+00:00:01   299MB         |  bucket workers done in 0:01.48
+00:00:01   299MB         | render done
+00:00:01   299MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0048/testrender.tif'
+00:00:01   300MB         |  
+00:00:01   300MB         | releasing resources
+00:00:01   299MB         | Arnold shutdown
+Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0048/test.ma completed.
