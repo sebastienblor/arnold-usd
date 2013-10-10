@@ -179,22 +179,6 @@
 
 # lights
 
-[node ambient_light]
-    maya.name               STRING  "ambientLight"
-    maya.id                 INT     0x414d424c
-    maya.classification     STRING  "light"
-    [attr bounce_factor]
-        min                 FLOAT   0.0
-        softmax             FLOAT   20.0
-    [attr bounces]
-        min                 INT     0
-        max                 INT     10000
-    [attr shadow_density]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-        softmin             FLOAT   0.0
-        softmax             FLOAT   1.0
-
 [node distant_light]
     maya.name               STRING  "directionalLight"
     maya.id                 INT     0x4449524c
