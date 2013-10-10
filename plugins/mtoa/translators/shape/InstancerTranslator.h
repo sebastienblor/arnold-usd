@@ -38,14 +38,14 @@ public:
    static void NodeInitializer(CAbTranslator context);
    virtual void Update(AtNode* anode);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned intstep);
-   virtual void UpdateMotion(AtNode* anode, unsigned intstep);
+   void ExportMotion(AtNode* anode, unsinged int step);
+   virtual void UpdateMotion(AtNode* anode, unsinged int step);
 
 
 protected:
    int ComputeMasterVisibility(const MDagPath& masterDagPath) const;
    virtual void ExportInstancer(AtNode* instancer, bool update);
-   virtual void ExportInstances(AtNode* instancer, unsigned intstep);
+   virtual void ExportInstances(AtNode* instancer, unsinged int step);
 
 
 protected:
