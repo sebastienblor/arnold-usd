@@ -137,13 +137,17 @@ shader_evaluate
       indirectDiffuse *= diffuseColor;
    }
 
+   AtRGB primarySpecular = AI_RGB_BLACK;
+   AtRGB secondarySpecular = AI_RGB_BLACK;
+
    AtRGB shallowScatter = AI_RGB_BLACK;
    AtRGB midScatter = AI_RGB_BLACK;
    AtRGB deepScatter = AI_RGB_BLACK;
 
    const float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
+   const bool enableSSS = sssWeight > AI_EPSILON;
 
-   if (sssWeight > AI_EPSILON)
+   if (enableSSS)
    {
       AtRGB colorWeights[3] = {
          AiShaderEvalParamRGB(p_shallow_scatter_color) * AiShaderEvalParamFlt(p_shallow_scatter_weight),
@@ -155,8 +159,15 @@ shader_evaluate
          AiShaderEvalParamFlt(p_mid_scatter_radius), 
          AiShaderEvalParamFlt(p_deep_scatter_radius)
       };
-      shallowScatter = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
+      if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
+         shallowScatter = AiBSSRDFCubic(sg, &radiuses[0], &colorWeights[0], 1);
+      if (!AiColorIsSmall(colorWeights[1]) && (radiuses[1] > AI_EPSILON))
+         midScatter = AiBSSRDFCubic(sg, &radiuses[1], &colorWeights[1], 1);
+      if (!AiColorIsSmall(colorWeights[2]) && (radiuses[2] > AI_EPSILON))
+         deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
    }
 
-   sg->out.RGB = directDiffuse + indirectDiffuse + shallowScatter + midScatter + deepScatter;
+   sg->out.RGB = directDiffuse + indirectDiffuse +
+                 primarySpecular + secondarySpecular +
+                 shallowScatter + midScatter + deepScatter;
 }
