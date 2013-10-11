@@ -219,6 +219,7 @@ shader_evaluate
    AtRGB midScatter = AI_RGB_BLACK;
    AtRGB deepScatter = AI_RGB_BLACK;
 
+#if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
    const float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
    const bool enableSSS = sssWeight > AI_EPSILON;
 
@@ -235,6 +236,7 @@ shader_evaluate
          AiShaderEvalParamFlt(p_mid_scatter_radius) * globalSSSRadiusMultiplier, 
          AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
+
       if (AiShaderEvalParamBool(p_combine_sss_queries))
       {
          if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
@@ -250,6 +252,7 @@ shader_evaluate
             deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
       }
    }
+#endif
 
 
    sg->out.RGB = directDiffuse + indirectDiffuse +
