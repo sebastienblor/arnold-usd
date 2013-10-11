@@ -34,6 +34,7 @@ node_parameters
    AiParameterFLT("global_sss_radius_multiplier", 10.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
+   AiParameterBOOL("combine_sss_queries", false);
    AiParameterStr("aov_direct_diffuse", "direct_diffuse");
    AiParameterStr("aov_indirect_diffuse", "indirect_diffuse");
    AiParameterStr("aov_primary_specular", "primary_specular");
@@ -79,6 +80,7 @@ enum SSSParams {
    p_global_sss_radius_multiplier,
    p_sample_sss_only_in_gi_rays,
    p_sample_sss_only_in_glossy_rays,
+   p_combine_sss_queries,
    p_aov_direct_diffuse,
    p_aov_indirect_diffuse,
    p_aov_primary_specular,
@@ -149,23 +151,33 @@ shader_evaluate
 
    if (enableSSS)
    {
-      AtRGB colorWeights[3] = {
-         AiShaderEvalParamRGB(p_shallow_scatter_color) * AiShaderEvalParamFlt(p_shallow_scatter_weight),
-         AiShaderEvalParamRGB(p_mid_scatter_color) * AiShaderEvalParamFlt(p_mid_scatter_weight),
-         AiShaderEvalParamRGB(p_deep_scatter_color) * AiShaderEvalParamFlt(p_deep_scatter_weight)
+      const float globalSSSRadiusMultiplier = AiShaderEvalParamFlt(p_global_sss_radius_multiplier);
+      const AtRGB colorWeights[3] = {
+         AiShaderEvalParamRGB(p_shallow_scatter_color) * AiShaderEvalParamFlt(p_shallow_scatter_weight) * sssWeight,
+         AiShaderEvalParamRGB(p_mid_scatter_color) * AiShaderEvalParamFlt(p_mid_scatter_weight) * sssWeight,
+         AiShaderEvalParamRGB(p_deep_scatter_color) * AiShaderEvalParamFlt(p_deep_scatter_weight) * sssWeight
       };
-      float radiuses[3] = {
-         AiShaderEvalParamFlt(p_shallow_scatter_radius), 
-         AiShaderEvalParamFlt(p_mid_scatter_radius), 
-         AiShaderEvalParamFlt(p_deep_scatter_radius)
+      const float radiuses[3] = {
+         AiShaderEvalParamFlt(p_shallow_scatter_radius) * globalSSSRadiusMultiplier, 
+         AiShaderEvalParamFlt(p_mid_scatter_radius) * globalSSSRadiusMultiplier, 
+         AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
-      if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
-         shallowScatter = AiBSSRDFCubic(sg, &radiuses[0], &colorWeights[0], 1);
-      if (!AiColorIsSmall(colorWeights[1]) && (radiuses[1] > AI_EPSILON))
-         midScatter = AiBSSRDFCubic(sg, &radiuses[1], &colorWeights[1], 1);
-      if (!AiColorIsSmall(colorWeights[2]) && (radiuses[2] > AI_EPSILON))
-         deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
+      if (AiShaderEvalParamBool(p_combine_sss_queries))
+      {
+         if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
+            shallowScatter = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
+      }         
+      else
+      {
+         if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
+            shallowScatter = AiBSSRDFCubic(sg, &radiuses[0], &colorWeights[0], 1);
+         if (!AiColorIsSmall(colorWeights[1]) && (radiuses[1] > AI_EPSILON))
+            midScatter = AiBSSRDFCubic(sg, &radiuses[1], &colorWeights[1], 1);
+         if (!AiColorIsSmall(colorWeights[2]) && (radiuses[2] > AI_EPSILON))
+            deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
+      }
    }
+
 
    sg->out.RGB = directDiffuse + indirectDiffuse +
                  primarySpecular + secondarySpecular +
