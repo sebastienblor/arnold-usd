@@ -137,5 +137,26 @@ shader_evaluate
       indirectDiffuse *= diffuseColor;
    }
 
-   sg->out.RGB = directDiffuse + indirectDiffuse;
+   AtRGB shallowScatter = AI_RGB_BLACK;
+   AtRGB midScatter = AI_RGB_BLACK;
+   AtRGB deepScatter = AI_RGB_BLACK;
+
+   const float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
+
+   if (sssWeight > AI_EPSILON)
+   {
+      AtRGB colorWeights[3] = {
+         AiShaderEvalParamRGB(p_shallow_scatter_color) * AiShaderEvalParamFlt(p_shallow_scatter_weight),
+         AiShaderEvalParamRGB(p_mid_scatter_color) * AiShaderEvalParamFlt(p_mid_scatter_weight),
+         AiShaderEvalParamRGB(p_deep_scatter_color) * AiShaderEvalParamFlt(p_deep_scatter_weight)
+      };
+      float radiuses[3] = {
+         AiShaderEvalParamFlt(p_shallow_scatter_radius), 
+         AiShaderEvalParamFlt(p_mid_scatter_radius), 
+         AiShaderEvalParamFlt(p_deep_scatter_radius)
+      };
+      shallowScatter = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
+   }
+
+   sg->out.RGB = directDiffuse + indirectDiffuse + shallowScatter + midScatter + deepScatter;
 }
