@@ -17,20 +17,16 @@ node_parameters
    AiParameterRGB("deep_scatter_color", 0.7f, 0.1f, 0.1f);
    AiParameterFLT("deep_scatter_weight", 1.0f);
    AiParameterFLT("deep_scatter_radius", 0.6f);
-   AiParameterRGB("primary_reflection_color", 0.75f, 0.9f, 1.0f);
-   AiParameterFLT("primary_reflection_weight", 0.8f);
-   AiParameterFLT("primary_reflection_roughness", 0.5f);
-   AiParameterFLT("primary_reflection_specular_weight", 1.0f);
-   AiParameterFLT("primary_reflection_reflection_weight", 0.0f);
-   AiParameterBOOL("primary_reflection_enable_fresnel_falloff", true);
-   AiParameterFLT("primary_reflection_fresnel_coefficient", 0.08f);
-   AiParameterRGB("secondary_reflection_color", 0.75f, 0.9f, 1.0f);
-   AiParameterFLT("secondary_reflection_weight", 0.6f);
-   AiParameterFLT("secondary_reflection_roughness", 0.35f);
-   AiParameterFLT("secondary_reflection_specular_weight", 1.0f);
-   AiParameterFLT("secondary_reflection_reflection_weight", 0.0f);
-   AiParameterBOOL("secondary_reflection_enable_fresnel_falloff", true);
-   AiParameterFLT("secondary_reflection_fresnel_coefficient", 0.08f);
+   AiParameterRGB("primary_specular_color", 0.75f, 0.9f, 1.0f);
+   AiParameterFLT("primary_specular_weight", 0.8f);
+   AiParameterFLT("primary_specular_roughness", 0.5f);
+   AiParameterBOOL("primary_specular_enable_fresnel_falloff", true);
+   AiParameterFLT("primary_specular_ior", 1.33f);
+   AiParameterRGB("secondary_specular_color", 0.75f, 0.9f, 1.0f);
+   AiParameterFLT("secondary_specular_weight", 0.6f);
+   AiParameterFLT("secondary_specular_roughness", 0.35f);
+   AiParameterBOOL("secondary_specular_enable_fresnel_falloff", true);
+   AiParameterFLT("secondary_specular_ior", 1.33f);
    AiParameterFLT("global_sss_radius_multiplier", 10.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
@@ -63,20 +59,16 @@ enum SSSParams {
    p_deep_scatter_color,
    p_deep_scatter_weight,
    p_deep_scatter_radius,
-   p_primary_reflection_color,
-   p_primary_reflection_weight,
-   p_primary_reflection_roughness,
-   p_primary_reflection_specular_weight,
-   p_primary_reflection_reflection_weight,
-   p_primary_reflection_enable_fresnel_falloff,
-   p_primary_reflection_fresnel_coefficient,
-   p_secondary_reflection_color,
-   p_secondary_reflection_weight,
-   p_secondary_reflection_roughness,
-   p_secondary_reflection_specular_weight,
-   p_secondary_reflection_reflection_weight,
-   p_secondary_reflection_enable_fresnel_falloff,
-   p_secondary_reflection_fresnel_coefficient,
+   p_primary_specular_color,
+   p_primary_specular_weight,
+   p_primary_specular_roughness,
+   p_primary_specular_enable_fresnel_falloff,
+   p_primary_specular_ior,
+   p_secondary_specular_color,
+   p_secondary_specular_weight,
+   p_secondary_specular_roughness,
+   p_secondary_specular_enable_fresnel_falloff,
+   p_secondary_specular_ior,
    p_global_sss_radius_multiplier,
    p_sample_sss_only_in_gi_rays,
    p_sample_sss_only_in_glossy_rays,
@@ -103,6 +95,11 @@ node_update
 node_finish
 {
 
+}
+
+float SimpleFresnel(float dt, float ior) // TODO : OPTIMIZE
+{
+   return ((ior - 1.0f) * (ior - 1.0f) + 4.0f * ior * powf(MAX(1.0f - dt, 0.0f), 5.0f)) / ((ior + 1.0f) * (ior + 1.0f));
 }
 
 shader_evaluate
@@ -139,8 +136,84 @@ shader_evaluate
       indirectDiffuse *= diffuseColor;
    }
 
+   float minRoughness = 0.0f;
+   if (sg->Rr_gloss > 0)
+   {
+      // after a specular bounce clamp in proportion to its roughness (scaled by a "sharpness" coefficient)
+      float minRoughness = 0;
+      AiStateGetMsgFlt("previous_roughness", &minRoughness);
+      minRoughness  = 0.9f * minRoughness;
+   }
+
    AtRGB primarySpecular = AI_RGB_BLACK;
+   AtRGB primarySpecularWeight = AI_RGB_BLACK;
+   if ((sg->Rr_diff == 0) && (sg->Rr_gloss == 0))
+   {
+      primarySpecularWeight = AiShaderEvalParamRGB(p_primary_specular_color) * AiShaderEvalParamFlt(p_primary_specular_weight);
+      if (AiShaderEvalParamBool(p_primary_specular_enable_fresnel_falloff))
+         primarySpecularWeight *= SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_primary_specular_ior));
+   }
+   const bool enablePrimarySpecular = !AiColorIsSmall(primarySpecularWeight);
+
+   float lastSpecRoughness = 1.0f;
+   if (enablePrimarySpecular)
+   {
+      float specularExponent = AiShaderEvalParamFlt(p_primary_specular_roughness);      
+      specularExponent *= specularExponent;
+      if (sg->Rr_gloss > 0)
+         specularExponent = MAX(specularExponent, minRoughness);
+      AiStateSetMsgFlt("previous_roughness", specularExponent);
+      void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+      AiLightsPrepare(sg);
+      while (AiLightsGetSample(sg))
+      {
+         if (AiLightGetAffectSpecular(sg->Lp))
+         {
+            const float affectSpecular = AiLightGetSpecular(sg->Lp);
+            if (affectSpecular > AI_EPSILON)
+               primarySpecular += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+         }
+      }
+
+      primarySpecular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+
+      primarySpecular *= primarySpecularWeight;
+   }
+
    AtRGB secondarySpecular = AI_RGB_BLACK;
+   AtRGB secondarySpecularWeight = AI_RGB_BLACK;
+   if ((sg->Rr_diff == 0) && (sg->Rr_gloss == 0))
+   {
+      secondarySpecularWeight = AiShaderEvalParamRGB(p_secondary_specular_color) * AiShaderEvalParamFlt(p_secondary_specular_weight);
+      if (AiShaderEvalParamBool(p_secondary_specular_enable_fresnel_falloff))
+         secondarySpecularWeight *= SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_secondary_specular_ior));
+   }
+   const bool enableSecondarySpecular = !AiColorIsSmall(secondarySpecularWeight);
+
+   if (enableSecondarySpecular)
+   {
+      float specularExponent = AiShaderEvalParamFlt(p_secondary_specular_roughness);
+      specularExponent *= specularExponent;
+      if (sg->Rr_gloss > 0)
+         specularExponent = MAX(specularExponent, minRoughness);
+      if (specularExponent < lastSpecRoughness)
+         AiStateSetMsgFlt("previous_roughness", specularExponent);
+      void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+      AiLightsPrepare(sg);
+      while (AiLightsGetSample(sg))
+      {
+         if (AiLightGetAffectSpecular(sg->Lp))
+         {
+            const float affectSpecular = AiLightGetSpecular(sg->Lp);
+            if (affectSpecular > AI_EPSILON)
+               secondarySpecular += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+         }
+      }
+
+      secondarySpecular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+
+      secondarySpecular *= secondarySpecularWeight;
+   }
 
    AtRGB shallowScatter = AI_RGB_BLACK;
    AtRGB midScatter = AI_RGB_BLACK;
