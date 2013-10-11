@@ -105,5 +105,37 @@ node_finish
 
 shader_evaluate
 {
+   if (sg->Rt & AI_RAY_SHADOW)
+      return;
 
+   const AtRGB diffuseColor = AiShaderEvalParamRGB(p_diffuse_color) * AiShaderEvalParamFlt(p_diffuse_weight);
+   const bool enableDiffuse = !AiColorIsSmall(diffuseColor);
+
+   AtRGB directDiffuse = AI_RGB_BLACK;
+   AtRGB indirectDiffuse = AI_RGB_BLACK;
+   if (enableDiffuse)
+   {
+      const float diffuseRoughness = AiShaderEvalParamFlt(p_diffuse_roughness);   
+      void* orenNayarBRDF = AiOrenNayarMISCreateData(sg, diffuseRoughness);
+
+      AiLightsPrepare(sg);
+      while (AiLightsGetSample(sg))
+      {
+         if (AiLightGetAffectDiffuse(sg->Lp))
+         {
+            const float diffuseAffect = AiLightGetDiffuse(sg->Lp);
+            if (diffuseAffect > AI_EPSILON)
+               directDiffuse += AiEvaluateLightSample(sg, orenNayarBRDF, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF) * diffuseAffect;
+         }
+      }
+
+      if (diffuseRoughness > 0)
+         indirectDiffuse = AiOrenNayarIntegrate(&sg->Nf, sg, diffuseRoughness);
+      else
+         indirectDiffuse = AiIndirectDiffuse(&sg->Nf, sg);
+      directDiffuse *= diffuseColor;
+      indirectDiffuse *= diffuseColor;
+   }
+
+   sg->out.RGB = directDiffuse + indirectDiffuse;
 }
