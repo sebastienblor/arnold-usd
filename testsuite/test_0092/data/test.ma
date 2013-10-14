@@ -1594,7 +1594,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -k true -sn "filter_scalar_mode" -ln "filterScalarMode" -min 0 
 		-max 1 -at "bool";
 	setAttr ".img" -type "string" "tif";
-	setAttr ".enablRaytSSS" no;
 	setAttr ".fltr" -type "string" "gaussian";
 	setAttr ".dgamma" 1;
 	setAttr ".lgamma" 1;
