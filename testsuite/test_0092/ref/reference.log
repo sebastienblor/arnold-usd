@@ -15,42 +15,42 @@ File read in 0 seconds.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
 Error: line 1: Error reading file.
 Error: line 1: Error reading file.
-Warning: file: /usr/tmp/ASTMPHOrhR3.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPHOrhR3.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   295MB         | log started Thu Oct 10 16:33:13 2013
-00:00:00   295MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 13:12:13
-00:00:00   295MB         | running on localhost.localdomain
-00:00:00   295MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   295MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   295MB         |  
-00:00:00   295MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   296MB         | loaded 84 plugins from 1 lib(s) in 0:00.06
-00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+Warning: file: /usr/tmp/ASTMPqXC2DA.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMPqXC2DA.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   296MB         | log started Mon Oct 14 21:59:54 2013
+00:00:00   296MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/14 12:33:38
+00:00:00   296MB         | running on localhost.localdomain
+00:00:00   296MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   296MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
 00:00:00   296MB         |  
-00:00:00   296MB         | there are 2 lights and 3 objects:
-00:00:00   296MB         |  3 polymeshes
-00:00:00   296MB         |  
-00:00:00   296MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:00   296MB         |  initializing 21 nodes ...
-00:00:00   298MB         |  node initialization done in 0:00.00
-00:00:00   300MB         |  creating root object list ...
-00:00:00   300MB         |   scene bounds: (-11.8142939 -0.144510746 -11.8142939) -> (11.8142939 5.58476782 11.8142939)
-00:00:00   300MB         |  updating 22 nodes ...
-00:00:00   300MB         |  node update done in 0:00.00
-00:00:00   300MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   300MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   300MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   300MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:00   308MB         |     5% done - 115 rays/pixel
-00:00:01   308MB         |    25% done - 116 rays/pixel
-00:00:02   308MB         |    45% done - 171 rays/pixel
-00:00:03   308MB         |    55% done - 200 rays/pixel
-00:00:04   308MB         |    75% done - 191 rays/pixel
-00:00:08   306MB         |   100% done - 343 rays/pixel
-00:00:08   306MB         |  bucket workers done in 0:08.55
-00:00:08   306MB         | render done
-00:00:08   306MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0092/testrender.tif'
-00:00:08   307MB         |  
-00:00:08   307MB         | releasing resources
-00:00:08   301MB         | Arnold shutdown
+00:00:00   296MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
+00:00:00   296MB         | loaded 84 plugins from 1 lib(s) in 0:00.12
+00:00:00   297MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   297MB         |  
+00:00:00   297MB         | there are 2 lights and 3 objects:
+00:00:00   297MB         |  3 polymeshes
+00:00:00   297MB         |  
+00:00:00   297MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00   297MB         |  initializing 21 nodes ...
+00:00:00   299MB         |  node initialization done in 0:00.00
+00:00:00   301MB         |  creating root object list ...
+00:00:00   301MB         |   scene bounds: (-11.8142939 -0.144510746 -11.8142939) -> (11.8142939 5.58476782 11.8142939)
+00:00:00   301MB         |  updating 22 nodes ...
+00:00:00   301MB         |  node update done in 0:00.00
+00:00:00   301MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   301MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   301MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00   301MB         |  starting 8 bucket workers of size 64x64 ...
+00:00:00   309MB         |     5% done - 115 rays/pixel
+00:00:01   309MB         |    25% done - 116 rays/pixel
+00:00:01   309MB         |    45% done - 171 rays/pixel
+00:00:02   309MB         |    55% done - 200 rays/pixel
+00:00:03   308MB         |    75% done - 191 rays/pixel
+00:00:06   308MB         |   100% done - 343 rays/pixel
+00:00:06   307MB         |  bucket workers done in 0:06.40
+00:00:06   307MB         | render done
+00:00:06   307MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0092/testrender.tif'
+00:00:06   307MB         |  
+00:00:06   307MB         | releasing resources
+00:00:06   303MB         | Arnold shutdown
 Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0092/test.ma completed.
