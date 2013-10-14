@@ -39,7 +39,7 @@ node_parameters
    AiParameterStr("aov_mid_scatter", "mid_scatter");
    AiParameterStr("aov_deep_scatter", "deep_scatter");
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkinSSSEx");
+   AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
    AiMetaDataSetBool(mds, NULL, "maya.swatch", true);

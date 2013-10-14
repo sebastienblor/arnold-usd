@@ -762,7 +762,7 @@ node_loader
    case SHADER_SKINSSSEX:
       node->methods     = SkinMtd;
       node->output_type = AI_TYPE_RGB;
-      node->name        = "SkinSSSEx";
+      node->name        = "Skin";
       node->node_type   = AI_NODE_SHADER;
       break;
 

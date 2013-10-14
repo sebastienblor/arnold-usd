@@ -4,7 +4,7 @@ import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
-class AEaiSkinSSSExTemplate(ShaderAETemplate):
+class AEaiSkinTemplate(ShaderAETemplate):
 
     def setup(self):
         self.addSwatch()
