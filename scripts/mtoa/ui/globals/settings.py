@@ -984,10 +984,6 @@ def createArnoldLogSettings():
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
                    
 
-    pm.attrControlGrp('texture_per_file_stats',
-                        label="Detailed Texture Stats",
-                        attribute='defaultArnoldRenderOptions.texturePerFileStats')
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
