@@ -395,7 +395,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_untiled");
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
-   s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
    s_attributes.MakeInput("texture_glossy_blur");
    
