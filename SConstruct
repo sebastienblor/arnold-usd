@@ -713,7 +713,11 @@ def deploy(target, source, env):
     f = open(os.path.abspath(package_name), 'rb')
     print 'Sending "%s" to %s/%s...' % (source[0], server, directory)
     command = "STOR %s" % package_name
-    ftp.storbinary(command, f, 81920, ftp_send_binary_cb)
+    try:
+        ftp.storbinary(command, f, 81920, ftp_send_binary_cb)
+    except:
+        # Old python versions have no ftp callback
+        ftp.storbinary(command, f, 81920)
     print
 
     f.close()
