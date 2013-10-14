@@ -57,6 +57,7 @@
 #define ARNOLD_NODEID_USER_DATA_INT             0x00115D1D
 #define ARNOLD_NODEID_PHYSICAL_SKY              0x00115D1E
 #define ARNOLD_NODEID_VOLUME_COLLECTOR          0x00115D1F
+#define ARNOLD_NODEID_SKIN_SSS                  0x00115D20
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
