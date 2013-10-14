@@ -85,7 +85,7 @@ extern AtNodeMethods* MayaDoubleShadingSwitchMtd;
 extern AtNodeMethods* MayaTripleShadingSwitchMtd;
 extern AtNodeMethods* MayaQuadShadingSwitchMtd;
 extern AtNodeMethods* MayaFluidDataMtd;
-extern AtNodeMethods* SkinSSSMtd;
+extern AtNodeMethods* SkinMtd;
 #ifndef DISABLE_COMMON
 extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* VolumeCollectorMtd;
@@ -760,7 +760,7 @@ node_loader
       break;
 
    case SHADER_SKINSSSEX:
-      node->methods     = SkinSSSMtd;
+      node->methods     = SkinMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "SkinSSSEx";
       node->node_type   = AI_NODE_SHADER;
