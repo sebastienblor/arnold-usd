@@ -1312,9 +1312,6 @@
 
 # drivers
 
-[node driver_null]
-    maya.hide               BOOL    true
-
 [node driver_display]
     maya.hide               BOOL    true
 
