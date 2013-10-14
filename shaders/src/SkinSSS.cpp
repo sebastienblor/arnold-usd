@@ -107,8 +107,20 @@ shader_evaluate
    if (sg->Rt & AI_RAY_SHADOW)
       return;
 
-   const AtRGB diffuseColor = AiShaderEvalParamRGB(p_diffuse_color) * AiShaderEvalParamFlt(p_diffuse_weight);
-   const bool enableDiffuse = !AiColorIsSmall(diffuseColor);
+   bool sampleOnlySSS = false;
+   if (sg->Rt & AI_RAY_DIFFUSE && AiShaderEvalParamBool(p_sample_sss_only_in_gi_rays))
+      sampleOnlySSS = true;
+   else if (sg->Rt & AI_RAY_GLOSSY && AiShaderEvalParamBool(p_sample_sss_only_in_glossy_rays))
+      sampleOnlySSS = true;
+
+
+   bool enableDiffuse = false;
+   AtRGB diffuseColor = AI_RGB_BLACK;
+   if (!sampleOnlySSS)
+   {
+      diffuseColor = AiShaderEvalParamRGB(p_diffuse_color) * AiShaderEvalParamFlt(p_diffuse_weight);
+      enableDiffuse = !AiColorIsSmall(diffuseColor);
+   }
 
    AtRGB directDiffuse = AI_RGB_BLACK;
    AtRGB indirectDiffuse = AI_RGB_BLACK;
@@ -137,7 +149,9 @@ shader_evaluate
    }
 
    float minRoughness = 0.0f;
-   if (sg->Rr_gloss > 0)
+   if (sg->Rr_diff > 0)
+      minRoughness = 0.1f;
+   else if (sg->Rr_gloss > 0)
    {
       // after a specular bounce clamp in proportion to its roughness (scaled by a "sharpness" coefficient)
       float minRoughness = 0;
@@ -147,13 +161,14 @@ shader_evaluate
 
    AtRGB primarySpecular = AI_RGB_BLACK;
    AtRGB primarySpecularWeight = AI_RGB_BLACK;
-   if ((sg->Rr_diff == 0) && (sg->Rr_gloss == 0))
+   bool enablePrimarySpecular = false;
+   if ((sg->Rr_diff == 0) && (sg->Rr_gloss == 0) && !sampleOnlySSS)
    {
       primarySpecularWeight = AiShaderEvalParamRGB(p_primary_specular_color) * AiShaderEvalParamFlt(p_primary_specular_weight);
       if (AiShaderEvalParamBool(p_primary_specular_enable_fresnel_falloff))
          primarySpecularWeight *= SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_primary_specular_ior));
+      enablePrimarySpecular = !AiColorIsSmall(primarySpecularWeight);
    }
-   const bool enablePrimarySpecular = !AiColorIsSmall(primarySpecularWeight);
 
    float lastSpecRoughness = 1.0f;
    if (enablePrimarySpecular)
@@ -211,7 +226,6 @@ shader_evaluate
       }
 
       secondarySpecular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
-
       secondarySpecular *= secondarySpecularWeight;
    }
 
