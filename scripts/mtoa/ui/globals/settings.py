@@ -81,7 +81,6 @@ def updateMotionBlurSettings(*args):
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
     logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable= (name != "") and logToFile)
 
 def getBackgroundShader(*args):
     conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
@@ -228,11 +227,6 @@ def createArnoldRenderSettings():
 def updateArnoldFilterOptions(*args):
     pass
 
-def raytracedSSSChanged(someArg=None):
-    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
-    pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
-    pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
-
 def createArnoldSamplingSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -336,25 +330,9 @@ def createArnoldSamplingSettings():
     
     pm.frameLayout(label="Diffusion SSS", collapse=True)
     
-    pm.checkBoxGrp('ss_enable_raytraced_SSS',
-                   label="Raytraced")
-                   
-    pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=1)
-    pm.connectControl('ss_enable_raytraced_SSS', 'defaultArnoldRenderOptions.enable_raytraced_SSS', index=2)
-                   
-    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
-                        
     pm.attrControlGrp('ss_sss_bssrdf_samples',
                    label="BSSRDF Samples",
-                   enable=enableRaytracedSSS,
                    attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
-    
-    pm.attrControlGrp('ss_sss_sample_factor',
-                   label="PointCloud Sample Factor",
-                   enable=not enableRaytracedSSS,
-                   attribute='defaultArnoldRenderOptions.sss_sample_factor')
-                   
-    pm.scriptJob(ac=['defaultArnoldRenderOptions.enable_raytraced_SSS', raytracedSSSChanged])
     
     pm.setParent('..')
     
@@ -658,11 +636,6 @@ def createArnoldMotionBlurSettings():
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=2)
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=3)
 
-
-    
-                        
-    
-
     pm.attrControlGrp('mb_shutter_type',
                         label="Shutter Type",
                         attribute='defaultArnoldRenderOptions.shutter_type')
@@ -673,19 +646,6 @@ def createArnoldMotionBlurSettings():
     pm.attrControlGrp('reference_time',
                    label='Reference Time',
                    attribute='defaultArnoldRenderOptions.reference_time')
-
-    pm.setParent('..')
-
-    pm.setUITemplate(popTemplate=True)
-
-def createArnoldSSSSettings():
-
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.columnLayout(adjustableColumn=True)
-
-    pm.attrControlGrp('mb_show_samples',
-                        label="Show samples",
-                        attribute='defaultArnoldRenderOptions.showSamples')   
 
     pm.setParent('..')
 
@@ -841,10 +801,7 @@ def createArnoldOverrideSettings():
                         
     pm.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
-    					
-    pm.attrControlGrp('ignore_mis',
-                        attribute='defaultArnoldRenderOptions.ignore_mis', label='Ignore Multiple Importance Sampling')
-                        
+                       
     
 
     pm.setParent('..')
@@ -962,14 +919,12 @@ def LoadFilenameButtonPush(*args):
 def ChangeLogToConsole(*args):
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_console_verbosity', edit=True, enable=logToConsole)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def ChangeLogToFile(*args):
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def createArnoldLogSettings():
@@ -1015,15 +970,10 @@ def createArnoldLogSettings():
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
-    pm.attrControlGrp('log_console_verbosity',
-                        label="Console Verbosity Level",
+    pm.attrControlGrp('log_verbosity',
+                        label="Verbosity Level",
                         enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_console_verbosity')
-
-    pm.attrControlGrp('log_file_verbosity',
-                        label="File Verbosity Level",
-                        enable=logToFile,
-                        attribute='defaultArnoldRenderOptions.log_file_verbosity')
+                        attribute='defaultArnoldRenderOptions.log_verbosity')
 
     pm.separator()
 
@@ -1033,10 +983,6 @@ def createArnoldLogSettings():
                               'Enabling this may adversely affect performance.',
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
                    
-
-    pm.attrControlGrp('texture_per_file_stats',
-                        label="Detailed Texture Stats",
-                        attribute='defaultArnoldRenderOptions.texturePerFileStats')
 
     pm.setParent('..')
 
@@ -1144,13 +1090,6 @@ def createArnoldRendererDiagnosticsTab():
     pm.frameLayout('arnoldErrorHandlingSettings', label="Error Handling", cll=True, cl=0)
     createArnoldErrorHandlingSettings()
     pm.setParent('..')
-    
-    # Sub-Surface Scattering
-    #
-    pm.frameLayout('arnoldSSSSettings', label="Pointcloud Sub-Surface Scattering", cll= True, cl=0)
-    createArnoldSSSSettings()
-    pm.setParent('..')
-    
 
     pm.formLayout(parentForm,
                edit=True,

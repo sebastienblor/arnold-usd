@@ -62,7 +62,6 @@ MObject CArnoldOptionsNode::s_shutter_offset;
 MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
-MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
 MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
@@ -72,8 +71,7 @@ MObject CArnoldOptionsNode::s_log_to_file;
 MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
-MObject CArnoldOptionsNode::s_log_console_verbosity;
-MObject CArnoldOptionsNode::s_log_file_verbosity;
+MObject CArnoldOptionsNode::s_log_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_atmosphereShader;
@@ -238,16 +236,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
    s_attributes.MakeInput("sss_bssrdf_samples");
-   s_attributes.MakeInput("sss_sample_factor");
    
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
    s_attributes.MakeInput("region_max_y");
-   
-   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, true);
-   nAttr.setKeyable(false);
-   addAttribute(s_enable_raytraced_SSS);
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -390,8 +383,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMin(0);
    addAttribute(s_motion_frames);
 
-   s_attributes.MakeInput("sss_subpixel_cache");
-   s_attributes.MakeInput("show_samples");
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("shadow_terminator_fix");
    s_attributes.MakeInput("shader_nan_checks");
@@ -404,7 +395,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_untiled");
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
-   s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
    s_attributes.MakeInput("texture_glossy_blur");
    
@@ -430,7 +420,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_smoothing");   
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
-   s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
    
    s_attributes.MakeInput("volume_indirect_samples");
@@ -469,17 +458,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
+   s_log_verbosity = nAttr.create("log_verbosity", "logv", MFnNumericData::kInt, 3);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(6);
-   addAttribute(s_log_console_verbosity);
-
-   s_log_file_verbosity = nAttr.create("log_file_verbosity", "logfv", MFnNumericData::kInt, 3);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
-   addAttribute(s_log_file_verbosity);
+   addAttribute(s_log_verbosity);
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);

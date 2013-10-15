@@ -658,7 +658,7 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
 
    AtNode* options     = AiUniverseGetOptions();
 
-   COptionsTranslator::AddSourceImagesToTextureSearchPath(options);
+   COptionsTranslator::AddProjectFoldersToSearchPaths(options);
    AiNodeDeclare(options, "is_swatch", "constant BOOL");
    AiNodeSetBool(options, "is_swatch", true);
 

@@ -127,7 +127,7 @@ void CHairTranslator::Update( AtNode *curve )
                {
                   plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
                   if (status && !plug.isNull())
-                     AiNodeSetBool(shader, "enable_matte", plug.asBool());
+                     ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
                   plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
                   if (status && !plug.isNull())
                      ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
@@ -277,12 +277,6 @@ void CHairTranslator::Update( AtNode *curve )
    plug = fnDepNodeHair.findPlug("receiveShadows");
    if (!plug.isNull())
       AiNodeSetBool(curve, "receive_shadows", plug.asBool());
-   plug = fnDepNodeHair.findPlug("aiSssSampleDistribution");
-   if (!plug.isNull())
-      AiNodeSetInt(curve, "sss_sample_distribution", plug.asInt());
-   plug = fnDepNodeHair.findPlug("aiSssSampleSpacing");
-   if (!plug.isNull())
-      AiNodeSetFlt(curve, "sss_sample_spacing", plug.asFloat());
    
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur

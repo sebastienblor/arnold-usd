@@ -237,7 +237,6 @@ private:
    unsigned int   m_AA_samples;
    unsigned int   m_GI_diffuse_samples;
    unsigned int   m_GI_glossy_samples;
-   unsigned int   m_sss_sample_factor;
    float    m_AA_sample_clamp;
    float    m_AA_sample_clamp_AOVs;
    bool     m_lock_sampling_noise;
@@ -254,8 +253,7 @@ private:
    bool           m_log_to_console;
    MString        m_log_filename;
    unsigned int   m_log_max_warnings;
-   unsigned int   m_log_console_verbosity;
-   unsigned int   m_log_file_verbosity;
+   unsigned int   m_log_verbosity;
 
    MString m_shader_searchpath;
 };

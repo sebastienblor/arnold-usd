@@ -77,9 +77,7 @@ public:
    static MObject s_shutter_type;
    static MObject s_motion_steps;
    static MObject s_motion_frames;
-   
-   static MObject s_enable_raytraced_SSS;
-   
+      
    static MObject s_autotile;
    static MObject s_use_existing_tiled_textures;
 
@@ -91,8 +89,7 @@ public:
    static MObject s_log_to_console;
    static MObject s_log_filename;
    static MObject s_log_max_warnings;
-   static MObject s_log_console_verbosity;
-   static MObject s_log_file_verbosity;
+   static MObject s_log_verbosity;
 
    static MObject s_background;
    static MObject s_atmosphere;

@@ -86,10 +86,6 @@
         min                 FLOAT   0.0
         max                 FLOAT   10.0
         maya.orig_shortname STRING  "at_t"
-    [attr sss_subpixel_cache]
-        maya.keyable        BOOL    False
-        maya.orig_shortname STRING  "sssspc"
-        default             BOOL    True
     [attr show_samples]
         maya.keyable        BOOL    False   
         maya.orig_shortname STRING  "sssshs"
@@ -168,20 +164,6 @@
         maya.keyable        BOOL    False
         min                 INT     1
         max                 INT     100
-        softmin             INT     1
-        softmax             INT     10
-        default             INT     1
-    [attr sss_sample_factor]
-        maya.keyable        BOOL    False
-        min                 INT     1
-        max                 INT     100
-        softmin             INT     1
-        softmax             INT     10
-        default             INT     4
-    [attr sss_bssrdf_samples]
-        maya.keyable        BOOL    False
-        min                 INT     1
-        max                 INT     100
         softmin             INT     3
         softmax             INT     10        
         default             INT     3
@@ -196,22 +178,6 @@
         softmax             FLOAT   0.1
 
 # lights
-
-[node ambient_light]
-    maya.name               STRING  "ambientLight"
-    maya.id                 INT     0x414d424c
-    maya.classification     STRING  "light"
-    [attr bounce_factor]
-        min                 FLOAT   0.0
-        softmax             FLOAT   20.0
-    [attr bounces]
-        min                 INT     0
-        max                 INT     10000
-    [attr shadow_density]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-        softmin             FLOAT   0.0
-        softmax             FLOAT   1.0
 
 [node distant_light]
     maya.name               STRING  "directionalLight"
@@ -1329,10 +1295,6 @@
     [attr subdiv_pixel_error]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-    [attr sss_sample_spacing]
-        label               STRING  "SSS Sample Spacing"
-        min                 FLOAT   0.0
-        softmax             FLOAT   1.0
 
 [node procedural]
     [attr opaque]
@@ -1347,16 +1309,8 @@
     [attr glossy_visibility]
         maya.name           STRING  "aiGlossyVisibility"
         label               STRING  "Visible In Glossy"
-    [attr sss_sample_spacing]
-        maya.name           STRING  "aiSssSampleSpacing"
-        label               STRING  "SSS Sample Spacing"
-        min                 FLOAT   0.0
-        softmax             FLOAT   1.0
 
 # drivers
-
-[node driver_null]
-    maya.hide               BOOL    true
 
 [node driver_display]
     maya.hide               BOOL    true

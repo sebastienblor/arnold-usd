@@ -275,7 +275,7 @@ static struct dirent *readdir(DIR *dirp)
       if (dirp->search_handle == INVALID_HANDLE_VALUE) {
          return NULL;
       }
-      if (FindNextFileA (dirp->search_handle, &dirp->find_data) == FALSE) {
+      if (FindNextFileA (dirp->search_handle, &dirp->find_data) == false) {
          /* the very last entry has been processed or an error occured */
          FindClose (dirp->search_handle);
          dirp->search_handle = INVALID_HANDLE_VALUE;

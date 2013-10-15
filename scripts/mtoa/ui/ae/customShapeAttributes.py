@@ -10,10 +10,6 @@ import mtoa.core as core
 class ParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
-        self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
-        self.addSeparator()
         self.addControl("aiRenderPointsAs", label="Render Points As")
         self.addControl("aiMinParticleRadius", label="Min Particle Radius")
         self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
@@ -62,8 +58,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
         
         self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
         self.addControl("aiSssSetname", label="SSS Set Name")
         
         self.beginLayout('Subdivision', collapse=False)

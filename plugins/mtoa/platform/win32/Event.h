@@ -10,7 +10,7 @@ public:
 
    CEvent(bool manual = true, bool initialValue = true)
    {
-      m_event = CreateEvent(NULL, manual ? TRUE : FALSE, initialValue ? TRUE : FALSE, NULL);
+      m_event = CreateEvent(NULL, manual ? true : false, initialValue ? true : false, NULL);
    }
 
    ~CEvent()

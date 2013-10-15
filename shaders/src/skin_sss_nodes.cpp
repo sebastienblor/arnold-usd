@@ -538,7 +538,11 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
    if (!AiColorIsZero(cKsss))
    {
       AtColor csss_radius = sss_radius;
+#if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
+      AtColor sss = cKsss * AiBSSRDFCubic(sg, &csss_radius.r, &AI_RGB_WHITE, 1);
+#else
       AtColor sss = cKsss * AiSSSPointCloudLookupCubic(sg, csss_radius);
+#endif
       if (Fresnel_on_diff)
          sss *= 1 - refl_fresnel - spec_fresnel;
       output.rgb += sss;
@@ -650,9 +654,9 @@ void* CScalarToColor::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions
 
    // Never overwrite params.input
    // So, never use params.input in place of input below, else the threads would overwrite it
-   AtFloat input; 
+   float input; 
    if (p_input)
-      input = *(AtFloat*)p_input->Evaluate(node, sg, options);
+      input = *(float*)p_input->Evaluate(node, sg, options);
    else
       input = pParams->input;
 
@@ -667,18 +671,18 @@ void* CScalarToColor::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions
 // SCALAR MULTIPLY
 void* CScalarMultiply::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options)
 {
-   AtFloat *output = &outputs[sg->tid];
+   float *output = &outputs[sg->tid];
    CScalarMultiplyParams *pParams = &params[sg->tid];
 
-   AtFloat input1, input2;
+   float input1, input2;
 
    if (p_input1)
-      input1 = *(AtFloat*)p_input1->Evaluate(node, sg, options);
+      input1 = *(float*)p_input1->Evaluate(node, sg, options);
    else
       input1 = pParams->input1;
 
    if (p_input2)
-      input2 = *(AtFloat*)p_input2->Evaluate(node, sg, options);
+      input2 = *(float*)p_input2->Evaluate(node, sg, options);
    else
       input2 = pParams->input2;
 
@@ -690,18 +694,18 @@ void* CScalarMultiply::Evaluate(AtNode *node, AtShaderGlobals *sg, const COption
 // SCALAR ADD
 void* CScalarAdd::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options)
 {
-   AtFloat *output = &outputs[sg->tid];
+   float *output = &outputs[sg->tid];
    CScalarAddParams *pParams = &params[sg->tid];
 
-   AtFloat input1, input2;
+   float input1, input2;
 
    if (p_input1)
-      input1 = *(AtFloat*)p_input1->Evaluate(node, sg, options);
+      input1 = *(float*)p_input1->Evaluate(node, sg, options);
    else
       input1 = pParams->input1;
 
    if (p_input2)
-      input2 = *(AtFloat*)p_input2->Evaluate(node, sg, options);
+      input2 = *(float*)p_input2->Evaluate(node, sg, options);
    else
       input2 = pParams->input2;
 
@@ -753,9 +757,9 @@ void* CColorsAdd::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opt
 
 // COLORS ADD BOUND
 #define ColorMixAddBound(_r, _b, _c)                \
-{ (_r).r = (AtFloat) CLAMP(((_b).r + (_c).r), 0.0, 1.0);     \
-  (_r).g = (AtFloat) CLAMP(((_b).g + (_c).g), 0.0, 1.0);     \
-  (_r).b = (AtFloat) CLAMP(((_b).b + (_c).b), 0.0, 1.0);     }
+{ (_r).r = (float) CLAMP(((_b).r + (_c).r), 0.0, 1.0);     \
+  (_r).g = (float) CLAMP(((_b).g + (_c).g), 0.0, 1.0);     \
+  (_r).b = (float) CLAMP(((_b).b + (_c).b), 0.0, 1.0);     }
 
 void* CColorClip::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options)
 {
@@ -778,9 +782,9 @@ void* CColorClip::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opt
 
 // COLORS SCREEN
 #define ColorMixScreen(_r, _b, _c)                  \
-{ (_r).r = (AtFloat)(1.0 - ((1.0-(_b).r) * (1.0-(_c).r)));    \
-  (_r).g = (AtFloat)(1.0 - ((1.0-(_b).g) * (1.0-(_c).g)));    \
-  (_r).b = (AtFloat)(1.0 - ((1.0-(_b).b) * (1.0-(_c).b)));    }
+{ (_r).r = (float)(1.0 - ((1.0-(_b).r) * (1.0-(_c).r)));    \
+  (_r).g = (float)(1.0 - ((1.0-(_b).g) * (1.0-(_c).g)));    \
+  (_r).b = (float)(1.0 - ((1.0-(_b).b) * (1.0-(_c).b)));    }
 
 void* CColorsScreen::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options)
 {

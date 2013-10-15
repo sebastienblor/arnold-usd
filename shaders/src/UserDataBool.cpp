@@ -38,9 +38,9 @@ node_finish
 
 shader_evaluate
 {
-   const AtChar *name = AiShaderEvalParamStr(p_boolAttrName);
+   const char *name = AiShaderEvalParamStr(p_boolAttrName);
 
-   AtBoolean value = FALSE;
+   bool value = false;
    if (AiUDataGetBool(name, &value))
       sg->out.BOOL = value;
    else

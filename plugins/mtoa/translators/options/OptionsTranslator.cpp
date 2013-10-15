@@ -413,6 +413,8 @@ void COptionsTranslator::Export(AtNode *options)
    SetCamera(options);
    
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
+   
+   AiNodeSetBool(options, "texture_per_file_stats", true);
 
    MStatus status;
 
@@ -451,10 +453,7 @@ void COptionsTranslator::Export(AtNode *options)
          }
          else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
          {
-            if (FindMayaPlug("enable_raytraced_SSS").asBool())
-               CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
-            else
-               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
@@ -496,7 +495,7 @@ void COptionsTranslator::Export(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
 
-   AddSourceImagesToTextureSearchPath(options);
+   AddProjectFoldersToSearchPaths(options);
 
    // BACKGROUND SHADER
    //
@@ -512,7 +511,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    // frame number
    AiNodeDeclare(options, "frame", "constant FLOAT");
-   AiNodeSetFlt(options, "frame", (AtFloat)GetExportFrame());
+   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
    // render layer name
    MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
    if (status)
@@ -576,10 +575,7 @@ void COptionsTranslator::Update(AtNode *options)
          }
          else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
          {
-            if (FindMayaPlug("enable_raytraced_SSS").asBool())
-               CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
-            else
-               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
@@ -621,7 +617,7 @@ void COptionsTranslator::Update(AtNode *options)
    }
    AiParamIteratorDestroy(nodeParam);
 
-   AddSourceImagesToTextureSearchPath(options);
+   AddProjectFoldersToSearchPaths(options);
    
    // BACKGROUND SHADER
    //
@@ -680,10 +676,12 @@ void COptionsTranslator::ExportAtmosphere(AtNode *options)
    }
 }
 
-void COptionsTranslator::AddSourceImagesToTextureSearchPath(AtNode* options)
+void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
 {
    MString texture_searchpath(AiNodeGetStr(options, "texture_searchpath"));
+   MString procedural_searchpath(AiNodeGetStr(options, "procedural_searchpath"));
    MStringArray sourceImagesDirs = getSourceImagesPath();
+   MString projectPath = getProjectFolderPath();
 #ifdef _WIN32   
    const MString pathsep = ";";
 #else
@@ -697,7 +695,11 @@ void COptionsTranslator::AddSourceImagesToTextureSearchPath(AtNode* options)
       if (i != (sourceImagesDirs.length() -1))
          texture_searchpath += pathsep;
    }
+   if (procedural_searchpath != "")
+      procedural_searchpath += pathsep;
+   procedural_searchpath += projectPath;
    AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
+   AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
 }
 
 /// Main entry point to export values to an arnold parameter from a maya plug, recursively following

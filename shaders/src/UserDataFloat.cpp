@@ -40,9 +40,9 @@ node_finish
 shader_evaluate
 {
 
-   const AtChar *name = 0;
+   const char *name = 0;
 
-   AtFloat f;
+   float f;
 
    name = AiShaderEvalParamStr(p_floatAttrName);
    if (AiUDataGetFlt(name, &f))

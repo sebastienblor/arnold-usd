@@ -1035,7 +1035,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
          colorConnectedToAlpha = (colorSrc == alphaSrc);
 
       sprintf(aiAttr, "colorConnectedToAlpha%u", i);
-      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
+      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? true : false);
 
       if (!colorConnectedToAlpha && alphaSrc.isNull())
       {
@@ -1120,7 +1120,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
       ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
 
       sprintf(aiAttr, "useTransparency%u", i);
-      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
+      AiNodeSetBool(shader, aiAttr, useTransparency ? true : false);
 
       if (useTransparency)
       {

@@ -1,1093 +1,155 @@
 
 Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
 
-00:00:00   155MB         | log started Fri Jan 18 19:39:03 2013
-00:00:00   155MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 18 2013 17:03:52)
-00:00:00   155MB         | running on samadpc003
-00:00:00   155MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   155MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-1.fc17.x86_64
-00:00:00   155MB         |  
-00:00:00   155MB         | Successfully registered Arnold ass file exporter
-00:00:00   155MB         | Successfully registered Arnold ass file importer
-00:00:00   155MB         | Successfully registered tx texture file
-00:00:00   155MB         | Successfully registered Arnold swatch renderer
-00:00:00   155MB         | Successfully registered 'arnoldRender' command
-00:00:00   155MB         | Successfully registered 'arnoldIpr' command
-00:00:00   155MB         | Successfully registered 'arnoldExportAss' command
-00:00:00   155MB         | Successfully registered 'arnoldPlugins' command
-00:00:00   155MB         | Successfully registered 'arnoldListAttributes' command
-00:00:00   155MB         | Successfully registered 'arnoldTemperatureToColor' command
-00:00:00   155MB         | Successfully registered 'arnoldFlushCache' command
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "emission"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "direct_diffuse"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "direct_specular"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "indirect_diffuse"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "indirect_specular"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "reflection"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "refraction"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "sss"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiHair] Registered AOV "direct_diffuse"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiHair] Registered AOV "direct_specular"
-00:00:00   155MB         | [mtoa] [<built-in>] [node aiHair] Registered AOV "indirect_diffuse"
-00:00:00   155MB         | [mtoa] [<built-in>] Generated 16 new Maya nodes for Arnold built-in nodes.
-00:00:00   155MB         | [mtoa] [<built-in>] Generated 44 translators for 28 Maya nodes (16 new and 12 existing) for Arnold built-in nodes.
-00:00:00   155MB         | loading plugin: /work/mtoa-deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   156MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaClamp uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaCondition uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaReverse uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaFile uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaRamp uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaProjection uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MeshInfo uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaChecker uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaBulge uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaCloth uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaGrid uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaFractal uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaNoise uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaCloud uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSnow uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaContrast uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaStucco uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: colorToFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: vectorToFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: pointToFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: point2ToFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: writeColor uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: aovWriteColor uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: writeFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: aovWriteFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: anim_matrix uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: anim_float uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: anim_point uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: anim_vector uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: anim_color uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataFloat uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataVector uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataColor uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataString uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: skin_sss uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: aovWriteVector uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: aovWritePoint uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: aovWritePoint2 uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataBool uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: shadowCatcher uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: MayaHair uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: meshLightMaterial uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: driver_socket uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataPnt2 uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: userDataInt uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: mayaBump2D uses Arnold 4.0.12.0.dev
-00:00:00   156MB         |  mtoa_shaders.so: mayaFluid uses Arnold 4.0.12.0.dev
-00:00:00   156MB         | loaded 78 plugins from 1 lib(s) in 0:00.00
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "direct_diffuse"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "indirect_diffuse"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "primary_specular"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "secondary_specular"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "shallow_scatter"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "mid_scatter"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "deep_scatter"
-00:00:00   156MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/mtoa-deploy/20135/shaders/mtoa_shaders.so.
-00:00:00   156MB         | [mtoa] [mtoa_shaders] Generated 38 translators for 38 Maya nodes (12 new and 26 existing) for Arnold plugin /work/mtoa-deploy/20135/shaders/mtoa_shaders.so.
-00:00:00   156MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   156MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   156MB         | [mtoa] Registering 2 loaded extensions:
-00:00:00   157MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   158MB         | [mtoa] Registered extension mtoa_shaders provided by /work/mtoa-deploy/20135/shaders/mtoa_shaders.so.
-00:00:00   158MB         | Successfully registered Arnold nodes
-00:00:00   160MB         | Successfully imported python module 'arnold'
-00:00:00   160MB         | Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mtoa
-Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.py)
-Standard pymel version 1.0.4 loaded
-00:00:01   238MB         | Successfully registered renderer 'arnold'
-00:00:01   238MB         |  
-00:00:01   238MB         | releasing resources
-00:00:01   238MB         | Arnold shutdown
 mental ray for Maya 2013 
-// Mental ray for Maya: using startup file /usr/autodesk/maya2013.5-x64/mentalray//maya.rayrc.
-mental ray for Maya: setup
-mental ray for Maya: initialize
 mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
-mental ray for Maya: register extensions
-// mental ray Node Factory: loaded
-mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: /usr/autodesk/maya2013.5-x64/mentalray//maya.rayrc
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/AdskShaderSDKWrappers.mi
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/abcimport.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/abcimport.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/architectural.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/architectural.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/base.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/base.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/builtin_bsdf.mi
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/contour.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/contour.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/paint.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/paint.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/physics.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/physics.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/production.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/production.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/ptex.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/ptex.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/subsurface.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/subsurface.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/surfaceSampler.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/surfaceSampler.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/userdata.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/userdata.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2013.5-x64/mentalray/shaders/include/useribl.mi
-// loading /usr/autodesk/maya2013.5-x64/mentalray/shaders/useribl.so
-// generating Maya nodes...
-Warning: file: /work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 696: 'miDefaultOptions.message' is already connected to 'mentalrayItemsList.options'.
-Warning: file: /work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 697: 'miDefaultFramebuffer.message' is already connected to 'mentalrayItemsList.framebuffers'.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
+libai.so already loaded
+
+Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
+Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 224: The aiOptions 'defaultArnoldRenderOptions' has no '.sss_sample_factor' attribute.
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 224: setAttr: No object matches name: .sss_sample_factor
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 236: The aiOptions 'defaultArnoldRenderOptions' has no '.logcv' attribute.
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 236: setAttr: No object matches name: .logcv
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 237: The aiOptions 'defaultArnoldRenderOptions' has no '.logfv' attribute.
+Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma line 237: setAttr: No object matches name: .logfv
 File read in 0 seconds.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: /work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma
-Warning: file: /usr/tmp/ASTMPQQWvKv.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPQQWvKv.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   295MB         | log started Fri Jan 18 19:39:05 2013
-00:00:00   295MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 18 2013 17:03:52)
-00:00:00   295MB         | running on samadpc003
-00:00:00   295MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   295MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-1.fc17.x86_64
-00:00:00   295MB         |  
-00:00:00   295MB         | loading plugin: /work/mtoa-deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   295MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaClamp uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaCondition uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaReverse uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaFile uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaRamp uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaProjection uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MeshInfo uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaChecker uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaBulge uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaCloth uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaGrid uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaFractal uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaNoise uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaCloud uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSnow uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaContrast uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaStucco uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: colorToFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: vectorToFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: pointToFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: point2ToFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: writeColor uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: aovWriteColor uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: writeFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: aovWriteFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: anim_matrix uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: anim_float uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: anim_point uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: anim_vector uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: anim_color uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataFloat uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataVector uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataColor uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataString uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: skin_sss uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: aovWriteVector uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: aovWritePoint uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: aovWritePoint2 uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataBool uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: shadowCatcher uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: MayaHair uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: meshLightMaterial uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: driver_socket uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataPnt2 uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: userDataInt uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: mayaBump2D uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  mtoa_shaders.so: mayaFluid uses Arnold 4.0.12.0.dev
-00:00:00   295MB         |  [metadata] Loading metadata file: /work/mtoa-deploy/20135/shaders/mtoa_shaders.mtd
-00:00:00   296MB         | loaded 78 plugins from 1 lib(s) in 0:00.00
-00:00:00   296MB         | [metadata] Loading metadata file: /work/mtoa-deploy/20135/plug-ins/mtoa.mtd
-00:00:00   296MB         | [mtoa] Exporting scene
-00:00:00   296MB         | [mtoa.session]     Initializing at frame 8.000000
-00:00:00   296MB         | [mtoa] Exporting Arnold options 'defaultArnoldRenderOptions'
-00:00:00   296MB         | [mtoa.extensions]  aiOptions Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldRenderOptions     | Exporting plug defaultArnoldRenderOptions.message for type aiOptions
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldRenderOptions     | Initializing node of type aiOptions
-00:00:00   296MB         |  [mtoa.session]     perspShape                     | Exporting DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     perspShape                     | Initializing DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     topShape                       | Exporting DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     topShape                       | Initializing DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     frontShape                     | Exporting DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     frontShape                     | Initializing DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     sideShape                      | Exporting DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     sideShape                      | Initializing DAG node of type camera
-00:00:00   296MB         |  [mtoa.extensions]  directionalLight Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     directionalLightShape1         | Exporting DAG node of type directionalLight
-00:00:00   296MB         |  [mtoa.session]     directionalLightShape1         | Initializing DAG node of type directionalLight
-00:00:00   296MB         | [mtoa.extensions]  lightLinker Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     lightLinker1                   | Exporting plug lightLinker1.message for type lightLinker
-00:00:00   296MB         |  [mtoa.translator]  lightLinker1 (lightLinker): Translator <built-in> returned an empty Arnold root node.
-00:00:00   296MB         |  [mtoa.translator]  lightLinker1                   | Export requested but no Arnold node was created by this translator (<built-in>)
-00:00:00   296MB         | [mtoa] Parsed light linking information for 1 lights
-00:00:00   296MB         |  [mtoa.session]     groundPlane_transform          | Ignoring DAG node of type transform
-00:00:00   296MB         |  [mtoa.session]     groundPlane                    | Ignoring DAG node of type groundPlane
-00:00:00   296MB         |  [mtoa.session]     pSphere1                       | Ignoring DAG node of type transform
-00:00:00   296MB         |  [mtoa.extensions]  mesh Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     pSphereShape1                  | Exporting DAG node of type mesh
-00:00:00   296MB         |  [mtoa.session]     pSphereShape1                  | Initializing DAG node of type mesh
-00:00:00   296MB         |  [mtoa.session]     pPlane1                        | Ignoring DAG node of type transform
-00:00:00   296MB         |  [mtoa.extensions]  mesh Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     pPlaneShape1                   | Exporting DAG node of type mesh
-00:00:00   296MB         |  [mtoa.session]     pPlaneShape1                   | Initializing DAG node of type mesh
-00:00:00   296MB         |  [mtoa.session]     transform1                     | Ignoring DAG node of type transform
-00:00:00   296MB         |  [mtoa.extensions]  aiSky Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     aiSky1                         | Exporting DAG node of type aiSky
-00:00:00   296MB         |  [mtoa.session]     aiSky1                         | Initializing DAG node of type aiSky
-00:00:00   296MB         |  [mtoa.session]     pSphere2                       | Ignoring DAG node of type transform
-00:00:00   296MB         |  [mtoa.extensions]  mesh Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     pSphereShape2                  | Exporting DAG node of type mesh
-00:00:00   296MB         |  [mtoa.session]     pSphereShape2                  | Initializing DAG node of type mesh
-00:00:00   296MB         |  [mtoa.session]     directionalLight1              | Ignoring DAG node of type transform
-00:00:00   296MB         |  [mtoa.extensions]  directionalLight Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     directionalLightShape1         | Exporting DAG node of type directionalLight
-00:00:00   296MB         |  [mtoa.session]     directionalLightShape1         | Reusing previous export of DAG node of type directionalLight
-00:00:00   296MB         | [mtoa.session]     Exporting step 1 of 1 at frame 8.000000
-00:00:00   296MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exporting Arnold options(options): 0x9a26a80
-00:00:00   296MB         | [mtoa.translator]  defaultArnoldRenderOptions     | Exporting on plug message (<built-in>)
-00:00:00   296MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.translator]  defaultArnoldFilter            | gaussian: Exporting Arnold defaultArnoldFilter@gaussian_filter(gaussian_filter): 0x99496f0
-00:00:00   296MB         |  [mtoa.translator]  defaultArnoldFilter            | Exporting on plug message (gaussian)
-00:00:00   296MB         |  [mtoa.translator]  defaultArnoldFilter            | gaussian: Exported 0 override sets.
-00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   296MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   296MB         | [mtoa] [aov beauty] Setting AOV output: filter and driver.
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   296MB         |  [mtoa.translator]  defaultArnoldDriver            | tif: Exporting Arnold defaultArnoldDriver@driver_tiff(driver_tiff): 0x9acd720
-00:00:00   296MB         |  [mtoa.translator]  defaultArnoldDriver            | Exporting on plug message (tif)
-00:00:00   296MB         |  [mtoa.translator]  defaultArnoldDriver            | tif: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   296MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   296MB         | [mtoa] [aov direct_diffuse] Setting AOV output: filter and driver.
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   296MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   296MB         | [mtoa] [aov indirect_diffuse] Setting AOV output: filter and driver.
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   296MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   296MB         | [mtoa] [aov indirect_specular] Setting AOV output: filter and driver.
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   296MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   296MB         | [mtoa] [aov test] Setting AOV output: filter and driver.
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   296MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   296MB         |  [mtoa.extensions]  aiSky Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     aiSky1                         | Exporting DAG node of type aiSky
-00:00:00   296MB         |  [mtoa.session]     aiSky1                         | Reusing previous export of DAG node of type aiSky
-00:00:00   296MB         | [mtoa.translator]  perspShape                     | perspective: Exporting Arnold perspShape(persp_camera): 0x9ac4180
-00:00:00   296MB         | [mtoa.translator]  perspShape                     | Exporting (perspective)
-00:00:00   296MB         | [mtoa.translator]  topShape                       | orthographic: Exporting Arnold topShape(ortho_camera): 0x9ac4a90
-00:00:00   296MB         | [mtoa.translator]  topShape                       | Exporting (orthographic)
-00:00:00   296MB         | [mtoa.translator]  frontShape                     | orthographic: Exporting Arnold frontShape(ortho_camera): 0x9ac5410
-00:00:00   296MB         | [mtoa.translator]  frontShape                     | Exporting (orthographic)
-00:00:00   296MB         | [mtoa.translator]  sideShape                      | orthographic: Exporting Arnold sideShape(ortho_camera): 0x9ac5b30
-00:00:00   296MB         | [mtoa.translator]  sideShape                      | Exporting (orthographic)
-00:00:00   296MB         | [mtoa.translator]  directionalLightShape1         | <built-in>: Exporting Arnold directionalLightShape1(distant_light): 0x9ac67a0
-00:00:00   296MB         | [mtoa.translator]  directionalLightShape1         | Exporting (<built-in>)
-00:00:00   296MB         | [mtoa.extensions]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |  [mtoa.session]     defaultLightSet                | Exporting plug defaultLightSet.message for type objectSet
-00:00:00   296MB         |  [mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> returned an empty Arnold root node.
-00:00:00   296MB         |  [mtoa.translator]  defaultLightSet                | Export requested but no Arnold node was created by this translator (<built-in>)
-00:00:00   296MB         | [mtoa.translator]  lightLinker1                   | Export requested but no Arnold node was created by this translator (<built-in>)
-00:00:00   296MB         | [mtoa.translator]  pSphereShape1                  | <built-in>: Exporting Arnold pSphereShape1(polymesh): 0x9ac80b0
-00:00:00   296MB         | [mtoa.translator]  pSphereShape1                  | Exporting (<built-in>)
-00:00:00   296MB         | [mtoa.extensions]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/work/mtoa-deploy/20135/shaders/mtoa_shaders.so).
-00:00:00   296MB         |  [mtoa.session]     aiStandard2SG                  | Exporting plug aiStandard2SG.dagSetMembers[0] for type shadingEngine
-00:00:00   296MB         |  [mtoa.translator]  aiStandard2SG                  | mtoa_shaders: Exporting Arnold aiStandard2SG(MayaShadingEngine): 0x9ace870
-00:00:00   296MB         |  [mtoa.translator]  aiStandard2SG                  | Exporting on plug dagSetMembers (mtoa_shaders)
-00:00:00   296MB         |  [mtoa.translator]  aiStandard2SG                  | mtoa_shaders: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa.translator.aov] aiStandard2SG                  | "test" is active on attr aiCustomAOVs[0].aovInput
-00:00:00   296MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug aiStandard2SG.surfaceShader
-00:00:00   296MB         |  [mtoa.extensions]  aiStandard Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |   [mtoa.session]     aiStandard2                    | Exporting plug aiStandard2.outColor for type aiStandard
-00:00:00   296MB         |   [mtoa.translator]  aiStandard2                    | <built-in>: Exporting Arnold aiStandard2(standard): 0x9acf180
-00:00:00   296MB         |   [mtoa.translator]  aiStandard2                    | Exporting on plug outColor (<built-in>)
-00:00:00   296MB         |   [mtoa.translator]  aiStandard2                    | <built-in>: Exported 0 override sets.
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard2                    | "direct_diffuse" is active on attr aov_direct_diffuse
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard2                    | "indirect_diffuse" is active on attr aov_indirect_diffuse
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard2                    | "indirect_specular" is active on attr aov_indirect_specular
-00:00:00   296MB         |  [mtoa.extensions]  surfaceShader Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00   296MB         |   [mtoa.session]     BLUE                           | Exporting plug BLUE.outColor for type surfaceShader
-00:00:00   296MB         |   [mtoa.translator.aov] BLUE                           | adding AOV write node for "test"
-00:00:00   296MB         |   [mtoa.translator]  BLUE                           | mtoa_shaders: Exporting Arnold BLUE(MayaSurfaceShader): 0x9aceff0
-00:00:00   296MB         |   [mtoa.translator]  BLUE                           | Exporting on plug outColor (mtoa_shaders)
-00:00:00   296MB         |   [mtoa.translator]  BLUE                           | mtoa_shaders: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa] [aovs] aiStandard2SG writing accumulated AOVs
-00:00:00   296MB         |  [mtoa] [aovs]     direct_diffuse
-00:00:00   296MB         |  [mtoa] [aovs]     indirect_diffuse
-00:00:00   296MB         |  [mtoa] [aovs]     indirect_specular
-00:00:00   296MB         | [mtoa.translator]  pPlaneShape1                   | <built-in>: Exporting Arnold pPlaneShape1(polymesh): 0x9ac8da0
-00:00:00   296MB         | [mtoa.translator]  pPlaneShape1                   | Exporting (<built-in>)
-00:00:00   296MB         | [mtoa.extensions]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/work/mtoa-deploy/20135/shaders/mtoa_shaders.so).
-00:00:00   296MB         |  [mtoa.session]     aiStandard3SG                  | Exporting plug aiStandard3SG.dagSetMembers[0] for type shadingEngine
-00:00:00   296MB         |  [mtoa.translator]  aiStandard3SG                  | mtoa_shaders: Exporting Arnold aiStandard3SG(MayaShadingEngine): 0x9acec10
-00:00:00   296MB         |  [mtoa.translator]  aiStandard3SG                  | Exporting on plug dagSetMembers (mtoa_shaders)
-00:00:00   296MB         |  [mtoa.translator]  aiStandard3SG                  | mtoa_shaders: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa.translator.aov] aiStandard3SG                  | "test" is active on attr aiCustomAOVs[0].aovInput
-00:00:00   296MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug aiStandard3SG.surfaceShader
-00:00:00   296MB         |  [mtoa.extensions]  aiStandard Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |   [mtoa.session]     aiStandard3                    | Exporting plug aiStandard3.outColor for type aiStandard
-00:00:00   296MB         |   [mtoa.translator]  aiStandard3                    | <built-in>: Exporting Arnold aiStandard3(standard): 0x9ad9620
-00:00:00   296MB         |   [mtoa.translator]  aiStandard3                    | Exporting on plug outColor (<built-in>)
-00:00:00   296MB         |   [mtoa.translator]  aiStandard3                    | <built-in>: Exported 0 override sets.
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard3                    | "direct_diffuse" is active on attr aov_direct_diffuse
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard3                    | "indirect_diffuse" is active on attr aov_indirect_diffuse
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard3                    | "indirect_specular" is active on attr aov_indirect_specular
-00:00:00   296MB         |  [mtoa.extensions]  surfaceShader Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00   296MB         |   [mtoa.session]     GREEN                          | Exporting plug GREEN.outColor for type surfaceShader
-00:00:00   296MB         |   [mtoa.translator.aov] GREEN                          | adding AOV write node for "test"
-00:00:00   296MB         |   [mtoa.translator]  GREEN                          | mtoa_shaders: Exporting Arnold GREEN(MayaSurfaceShader): 0x9adabf0
-00:00:00   296MB         |   [mtoa.translator]  GREEN                          | Exporting on plug outColor (mtoa_shaders)
-00:00:00   296MB         |   [mtoa.translator]  GREEN                          | mtoa_shaders: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa] [aovs] aiStandard3SG writing accumulated AOVs
-00:00:00   296MB         |  [mtoa] [aovs]     direct_diffuse
-00:00:00   296MB         |  [mtoa] [aovs]     indirect_diffuse
-00:00:00   296MB         |  [mtoa] [aovs]     indirect_specular
-00:00:00   296MB         | [mtoa.translator]  aiSky1                         | <built-in>: Exporting Arnold aiSky1(sky): 0x9ac99f0
-00:00:00   296MB         | [mtoa.translator]  aiSky1                         | Exporting (<built-in>)
-00:00:00   296MB         | [mtoa.translator]  pSphereShape2                  | <built-in>: Exporting Arnold pSphereShape2(polymesh): 0x9acbff0
-00:00:00   296MB         | [mtoa.translator]  pSphereShape2                  | Exporting (<built-in>)
-00:00:00   296MB         | [mtoa.extensions]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/work/mtoa-deploy/20135/shaders/mtoa_shaders.so).
-00:00:00   296MB         |  [mtoa.session]     aiStandard1SG                  | Exporting plug aiStandard1SG.dagSetMembers[0] for type shadingEngine
-00:00:00   296MB         |  [mtoa.translator]  aiStandard1SG                  | mtoa_shaders: Exporting Arnold aiStandard1SG(MayaShadingEngine): 0x9adaee0
-00:00:00   296MB         |  [mtoa.translator]  aiStandard1SG                  | Exporting on plug dagSetMembers (mtoa_shaders)
-00:00:00   296MB         |  [mtoa.translator]  aiStandard1SG                  | mtoa_shaders: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa.translator.aov] aiStandard1SG                  | "test" is active on attr aiCustomAOVs[0].aovInput
-00:00:00   296MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug aiStandard1SG.surfaceShader
-00:00:00   296MB         |  [mtoa.extensions]  aiStandard Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   296MB         |   [mtoa.session]     aiStandard1                    | Exporting plug aiStandard1.outColor for type aiStandard
-00:00:00   296MB         |   [mtoa.translator]  aiStandard1                    | <built-in>: Exporting Arnold aiStandard1(standard): 0x9ade030
-00:00:00   296MB         |   [mtoa.translator]  aiStandard1                    | Exporting on plug outColor (<built-in>)
-00:00:00   296MB         |   [mtoa.translator]  aiStandard1                    | <built-in>: Exported 0 override sets.
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard1                    | "direct_diffuse" is active on attr aov_direct_diffuse
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard1                    | "indirect_diffuse" is active on attr aov_indirect_diffuse
-00:00:00   296MB         |   [mtoa.translator.aov] aiStandard1                    | "indirect_specular" is active on attr aov_indirect_specular
-00:00:00   296MB         |  [mtoa.extensions]  surfaceShader Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00   296MB         |   [mtoa.session]     RED                            | Exporting plug RED.outColor for type surfaceShader
-00:00:00   296MB         |   [mtoa.translator.aov] RED                            | adding AOV write node for "test"
-00:00:00   296MB         |   [mtoa.translator]  RED                            | mtoa_shaders: Exporting Arnold RED(MayaSurfaceShader): 0x9addea0
-00:00:00   296MB         |   [mtoa.translator]  RED                            | Exporting on plug outColor (mtoa_shaders)
-00:00:00   296MB         |   [mtoa.translator]  RED                            | mtoa_shaders: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa] [aovs] aiStandard1SG writing accumulated AOVs
-00:00:00   296MB         |  [mtoa] [aovs]     direct_diffuse
-00:00:00   296MB         |  [mtoa] [aovs]     indirect_diffuse
-00:00:00   296MB         |  [mtoa] [aovs]     indirect_specular
-00:00:00   296MB         | [mtoa.session] Setting export camera to "perspShape"
-00:00:00   296MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Updating Arnold options(options): 0x9a26a80
-00:00:00   296MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exported 0 override sets.
-00:00:00   296MB         |  [mtoa.session]     perspShape                     | Exporting DAG node of type camera
-00:00:00   296MB         |  [mtoa.session]     perspShape                     | Reusing previous export of DAG node of type camera
-00:00:00   296MB         | [mtoa] [aov RGBA] output line: RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA
-00:00:00   296MB         | [mtoa] [aov direct_diffuse] output line: direct_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse
-00:00:00   296MB         | [mtoa] [aov indirect_diffuse] output line: indirect_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse
-00:00:00   296MB         | [mtoa] [aov indirect_specular] output line: indirect_specular RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_specular
-00:00:00   296MB         | [mtoa] [aov test] output line: test RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.test
-00:00:00   296MB         |  
-00:00:00   296MB         | there are 1 light and 3 objects:
-00:00:00   296MB         |  3 polymeshes
-00:00:00   296MB         |  
-00:00:00   296MB         | rendering image at 160 x 120, 3 AA samples, 1 GI samples, 1 GI bounces
-00:00:00   296MB         |  active camera: 'perspShape'
-00:00:00   296MB         |  initializing 31 nodes ...
-00:00:00   296MB         |  node initialization done in 0:00.00
-00:00:00   298MB         |  creating root object list ...
-00:00:00   298MB         |   scene bounds: (-9.32950211 -2.07156561e-15 -9.32950211) -> (9.32950211 2.03409481 9.32950211)
-00:00:00   298MB         |  updating 32 nodes ...
-00:00:00   298MB         |   directionalLightShape1: distant_light using 1 sample
-00:00:00   298MB         |  node update done in 0:00.00
-00:00:00   298MB         |  [aov] parsing output statement: "RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA"
-00:00:00   298MB         |  [aov] parsing output statement: "direct_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse"
-00:00:00   298MB         |  [aov] parsing output statement: "indirect_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse"
-00:00:00   298MB         |  [aov] parsing output statement: "indirect_specular RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_specular"
-00:00:00   298MB         |  [aov] parsing output statement: "test RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.test"
-00:00:00   298MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.test" (driver_tiff)
-00:00:00   298MB         |  [aov]  * "test" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   298MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_specular" (driver_tiff)
-00:00:00   298MB         |  [aov]  * "indirect_specular" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   298MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse" (driver_tiff)
-00:00:00   298MB         |  [aov]  * "indirect_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   298MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse" (driver_tiff)
-00:00:00   298MB         |  [aov]  * "direct_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   298MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   298MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   299MB         |  [aov] done preparing 5 AOVs for 5 outputs to 5 drivers (0 deep AOVs)
-00:00:00   299MB         |  starting 8 bucket workers of size 32x32 ...
-00:00:00   305MB         |   [accel] bvh4 done - 0:00.00 - 3 prims, 1 key
-00:00:00   307MB         |   [accel] bvh4 done - 0:00.00 - 760 prims, 1 key
-00:00:00   308MB         |   [accel] bvh4 done - 0:00.00 - 200 prims, 1 key
-00:00:00   308MB         |   [accel] bvh4 done - 0:00.00 - 760 prims, 1 key
-00:00:00   308MB         |     5% done - 9 rays/pixel
-00:00:00   308MB         |    10% done - 9 rays/pixel
-00:00:00   308MB         |    15% done - 9 rays/pixel
-00:00:00   309MB         |    20% done - 10 rays/pixel
-00:00:00   309MB         |    25% done - 11 rays/pixel
-00:00:00   309MB         |    30% done - 9 rays/pixel
-00:00:00   309MB         |    35% done - 9 rays/pixel
-00:00:00   309MB         |    40% done - 10 rays/pixel
-00:00:00   309MB         |    45% done - 23 rays/pixel
-00:00:00   310MB         |    50% done - 25 rays/pixel
-00:00:00   310MB         |    55% done - 28 rays/pixel
-00:00:00   310MB         |    60% done - 18 rays/pixel
-00:00:00   310MB         |    65% done - 16 rays/pixel
-00:00:00   310MB         |    70% done - 17 rays/pixel
+Error: line 1: Error reading file.
+Error: line 1: Error reading file.
+Warning: file: /usr/tmp/ASTMPPul8F5.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMPPul8F5.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   297MB         | log started Thu Oct 10 18:06:08 2013
+00:00:00   297MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 15:28:48
+00:00:00   297MB         | running on localhost.localdomain
+00:00:00   297MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   297MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
+00:00:00   297MB         |  
+00:00:00   297MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
+00:00:00   298MB         | loaded 84 plugins from 1 lib(s) in 0:00.06
+00:00:00   298MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   298MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   298MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   298MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   298MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   298MB         |  
+00:00:00   298MB         | there are 1 light and 3 objects:
+00:00:00   298MB         |  3 polymeshes
+00:00:00   298MB         |  
+00:00:00   298MB         | rendering image at 160 x 120, 3 AA samples, 1 GI samples, 1 GI bounces
+00:00:00   298MB         |  initializing 31 nodes ...
+00:00:00   298MB         |  node initialization done in 0:00.00
+00:00:00   300MB         |  creating root object list ...
+00:00:00   300MB         |   scene bounds: (-9.32950211 -2.07156561e-15 -9.32950211) -> (9.32950211 2.03409481 9.32950211)
+00:00:00   300MB         |  updating 32 nodes ...
+00:00:00   300MB         |  node update done in 0:00.00
+00:00:00   300MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.test" (driver_tiff)
+00:00:00   300MB         |  [aov]  * "test" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   300MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse" (driver_tiff)
+00:00:00   300MB         |  [aov]  * "direct_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   300MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_specular" (driver_tiff)
+00:00:00   300MB         |  [aov]  * "indirect_specular" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   300MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse" (driver_tiff)
+00:00:00   300MB         |  [aov]  * "indirect_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   301MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   301MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   301MB         |  [aov] done preparing 5 AOVs for 5 outputs to 5 drivers (0 deep AOVs)
+00:00:00   301MB         |  starting 8 bucket workers of size 32x32 ...
+00:00:00   310MB         |     5% done - 8 rays/pixel
+00:00:00   310MB         |    10% done - 9 rays/pixel
+00:00:00   310MB         |    15% done - 10 rays/pixel
+00:00:00   310MB         |    20% done - 8 rays/pixel
+00:00:00   310MB         |    25% done - 9 rays/pixel
+00:00:00   310MB         |    30% done - 8 rays/pixel
+00:00:00   310MB         |    35% done - 8 rays/pixel
+00:00:00   310MB         |    40% done - 11 rays/pixel
+00:00:00   310MB         |    45% done - 21 rays/pixel
+00:00:00   310MB         |    50% done - 15 rays/pixel
+00:00:00   310MB         |    55% done - 13 rays/pixel
+00:00:00   310MB         |    60% done - 24 rays/pixel
+00:00:00   310MB         |    65% done - 14 rays/pixel
+00:00:00   310MB         |    70% done - 26 rays/pixel
 00:00:00   310MB         |    75% done - 15 rays/pixel
-00:00:00   310MB         |    80% done - 14 rays/pixel
-00:00:00   310MB         |    85% done - 14 rays/pixel
-00:00:00   310MB         |    90% done - 20 rays/pixel
-00:00:00   310MB         |    95% done - 25 rays/pixel
-00:00:00   308MB         |   100% done - 21 rays/pixel
+00:00:00   310MB         |    80% done - 16 rays/pixel
+00:00:00   310MB         |    85% done - 15 rays/pixel
+00:00:00   310MB         |    90% done - 16 rays/pixel
+00:00:00   310MB         |    95% done - 15 rays/pixel
+00:00:00   310MB         |   100% done - 24 rays/pixel
 00:00:00   308MB         |  bucket workers done in 0:00.21
 00:00:00   308MB         | render done
-00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_test_masterLayer.tif'
-00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_specular_masterLayer.tif'
-00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_diffuse_masterLayer.tif'
-00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_direct_diffuse_masterLayer.tif'
-00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_beauty_masterLayer.tif'
-00:00:00   308MB         |  
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | scene creation time:
-00:00:00   308MB         |  plugin loading               0:00.00
-00:00:00   308MB         |  system/unaccounted           0:00.04
-00:00:00   308MB         |  total                        0:00.04  ( 9.38% machine utilization)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | render time:
-00:00:00   308MB         |  node init                    0:00.00
-00:00:00   308MB         |  bucket rendering             0:00.21
-00:00:00   308MB         |   accel. building             0:00.00
-00:00:00   308MB         |   pixel rendering             0:00.20  (multi-threaded render, this value may not be reliable)
-00:00:00   308MB         |  system/unaccounted           0:00.05
-00:00:00   308MB         |  total                        0:00.21  (77.28% machine utilization)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | memory consumed in MB:
-00:00:00   308MB         |  at startup                    295.83
-00:00:00   308MB         |  plugins                         0.30
-00:00:00   308MB         |  AOV samples                     5.72
-00:00:00   308MB         |  output buffers                  0.79
-00:00:00   308MB         |  node overhead                   0.01
-00:00:00   308MB         |  instance overhead               0.00
-00:00:00   308MB         |  message passing                 0.02
-00:00:00   308MB         |  memory pools                   12.38
-00:00:00   308MB         |  geometry                        0.04
-00:00:00   308MB         |    polymesh                      0.04
-00:00:00   308MB         |  accel. structs                  0.07
-00:00:00   308MB         |  string pool                     0.14 (1140 unique strings, overhead 0.09 MB)
-00:00:00   308MB         |  texture cache                   0.00
-00:00:00   308MB         |  unaccounted                    -5.06
-00:00:00   308MB         |  total peak                    310.24
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
-00:00:00   308MB         |  camera                        195840 (   9.00,    1.00) ( 51.46%) (     0.45) (       1)
-00:00:00   308MB         |  shadow                         96612 (   4.44,    0.49) ( 25.39%) (     0.00) (       0)
-00:00:00   308MB         |  diffuse                        88098 (   4.05,    0.45) ( 23.15%) (     0.18) (       1)
-00:00:00   308MB         |  total                         380550 (  17.49,    1.94) (100.00%) (     0.29) (       1)
-00:00:00   308MB         |  max depth                          1
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | lighting calculations:                (/pixel , /sample)    secondary (/pixel , /sample)
-00:00:00   308MB         |  light loops                    88154 (   4.05,    0.45)        15941 (   0.73,    0.08)
-00:00:00   308MB         |  indirect diffuse               88154 (   4.05,    0.45)            0 (   0.00,    0.00)
-00:00:00   308MB         |  custom sampler                 88154 (   4.05,    0.45)            0 (   0.00,    0.00)
-00:00:00   308MB         |  light lookups                  88154 (   4.05,    0.45)        15941 (   0.73,    0.08)
-00:00:00   308MB         |  lights shaded                  88154 (   4.05,    0.45)        15941 (   0.73,    0.08)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | shader calls:                         (/pixel , /sample) (% total)
-00:00:00   308MB         |  primary                       384498 (  17.67,    1.96) ( 68.13%)
-00:00:00   308MB         |  background                    179843 (   8.26,    0.92) ( 31.87%)
-00:00:00   308MB         |  total                         564341 (  25.93,    2.88) (100.00%)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
-00:00:00   308MB         |  lists                              1 (100.0%) (        0) (      0.00,       0.00)
-00:00:00   308MB         |  polymeshes                         3 (100.0%) (        0) (      0.04,       0.04)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | geometric elements:                   (      min) (       avg.) (      max)
-00:00:00   308MB         |  objects (top level)                3 (        3) (        3.0) (        3)
-00:00:00   308MB         |  polygons                         900 (      100) (      300.0) (      400)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | triangle tessellation:                (      min) (       avg.) (      max) (/ element) (% total)
-00:00:00   308MB         |  polymeshes                      1720 (      200) (      573.3) (      760) (     1.91) (100.00%)
-00:00:00   308MB         |  unique triangles:               1720
-00:00:00   308MB         |  memory use (in MB)              0.04
-00:00:00   308MB         |    vertices                      0.01
-00:00:00   308MB         |    vertex indices                0.00
-00:00:00   308MB         |    polygon base offsets          0.00
-00:00:00   308MB         |    polygon IDs                   0.00
-00:00:00   308MB         |    triangulation                 0.00
-00:00:00   308MB         |    packed normals                0.00
-00:00:00   308MB         |    normal indices                0.00
-00:00:00   308MB         |    uv coords                     0.00
-00:00:00   308MB         |    uv coords idxs                0.00
-00:00:00   308MB         |    uniform indices               0.00
-00:00:00   308MB         |    userdata                      0.00
-00:00:00   308MB         |  largest polymeshes by triangle count:
-00:00:00   308MB         |          760 tris -- pSphereShape2
-00:00:00   308MB         |          760 tris -- pSphereShape1
-00:00:00   308MB         |          200 tris -- pPlaneShape1
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | acceleration structures:              (% total)
-00:00:00   308MB         |  bvh                                4 (100.00%)
-00:00:00   308MB         |  total                              4 (100.00%)
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
-00:00:00   308MB         | number of warnings, warning type:
-00:00:00   308MB         |     5:  [mtoa.extensions]  %s Found no translator named "%s"
-00:00:00   308MB         | -----------------------------------------------------------------------------------------
+00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_test_masterLayer.tif'
+00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_direct_diffuse_masterLayer.tif'
+00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_specular_masterLayer.tif'
+00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_diffuse_masterLayer.tif'
+00:00:00   308MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_beauty_masterLayer.tif'
 00:00:00   308MB         |  
 00:00:00   308MB         | releasing resources
-00:00:00   305MB         |  unloading 1 plugin
-00:00:00   305MB         |   closing mtoa_shaders.so ...
-00:00:00   305MB         |  unloading plugins done
-00:00:00   305MB         | Arnold shutdown
-00:00:00   305MB         | log started Fri Jan 18 19:39:06 2013
-00:00:00   305MB         | Arnold 4.0.12.0.dev linux icc130 glibc215 oiio1015 (build date: Jan 18 2013 17:03:52)
-00:00:00   305MB         | running on samadpc003
-00:00:00   305MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 16006MB
-00:00:00   305MB         |  Fedora 17 (Beefy Miracle), Linux kernel 3.6.11-1.fc17.x86_64
-00:00:00   305MB         |  
-00:00:00   305MB         | loading plugin: /work/mtoa-deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   305MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaClamp uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaCondition uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaReverse uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaFile uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaRamp uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaProjection uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MeshInfo uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaChecker uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaBulge uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaCloth uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaGrid uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaFractal uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaNoise uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaCloud uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSnow uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaContrast uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaStucco uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: colorToFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: vectorToFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: pointToFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: point2ToFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: writeColor uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: aovWriteColor uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: writeFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: aovWriteFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: anim_matrix uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: anim_float uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: anim_point uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: anim_vector uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: anim_color uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataFloat uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataVector uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataColor uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataString uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: skin_sss uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: aovWriteVector uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: aovWritePoint uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: aovWritePoint2 uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataBool uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: shadowCatcher uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: MayaHair uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: meshLightMaterial uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: driver_socket uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataPnt2 uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: userDataInt uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: mayaBump2D uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  mtoa_shaders.so: mayaFluid uses Arnold 4.0.12.0.dev
-00:00:00   305MB         |  [metadata] Loading metadata file: /work/mtoa-deploy/20135/shaders/mtoa_shaders.mtd
-00:00:00   305MB         | loaded 78 plugins from 1 lib(s) in 0:00.00
-00:00:00   305MB         | [metadata] Loading metadata file: /work/mtoa-deploy/20135/plug-ins/mtoa.mtd
-00:00:00   305MB         | [mtoa] Exporting scene
-00:00:00   305MB         | [mtoa.session]     Initializing at frame 8.000000
-00:00:00   305MB         | [mtoa] Exporting Arnold options 'defaultArnoldRenderOptions'
-00:00:00   305MB         | [mtoa.extensions]  aiOptions Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldRenderOptions     | Exporting plug defaultArnoldRenderOptions.message for type aiOptions
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldRenderOptions     | Initializing node of type aiOptions
-00:00:00   305MB         |  [mtoa.session]     perspShape                     | Exporting DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     perspShape                     | Initializing DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     topShape                       | Exporting DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     topShape                       | Initializing DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     frontShape                     | Exporting DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     frontShape                     | Initializing DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     sideShape                      | Exporting DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     sideShape                      | Initializing DAG node of type camera
-00:00:00   305MB         |  [mtoa.extensions]  directionalLight Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     directionalLightShape1         | Exporting DAG node of type directionalLight
-00:00:00   305MB         |  [mtoa.session]     directionalLightShape1         | Initializing DAG node of type directionalLight
-00:00:00   305MB         | [mtoa.extensions]  lightLinker Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     lightLinker1                   | Exporting plug lightLinker1.message for type lightLinker
-00:00:00   305MB         |  [mtoa.translator]  lightLinker1 (lightLinker): Translator <built-in> returned an empty Arnold root node.
-00:00:00   305MB         |  [mtoa.translator]  lightLinker1                   | Export requested but no Arnold node was created by this translator (<built-in>)
-00:00:00   305MB         | [mtoa] Parsed light linking information for 1 lights
-00:00:00   305MB         |  [mtoa.session]     groundPlane_transform          | Ignoring DAG node of type transform
-00:00:00   305MB         |  [mtoa.session]     groundPlane                    | Ignoring DAG node of type groundPlane
-00:00:00   305MB         |  [mtoa.session]     pSphere1                       | Ignoring DAG node of type transform
-00:00:00   305MB         |  [mtoa.extensions]  mesh Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     pSphereShape1                  | Exporting DAG node of type mesh
-00:00:00   305MB         |  [mtoa.session]     pSphereShape1                  | Initializing DAG node of type mesh
-00:00:00   305MB         |  [mtoa.session]     pPlane1                        | Ignoring DAG node of type transform
-00:00:00   305MB         |  [mtoa.extensions]  mesh Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     pPlaneShape1                   | Exporting DAG node of type mesh
-00:00:00   305MB         |  [mtoa.session]     pPlaneShape1                   | Initializing DAG node of type mesh
-00:00:00   305MB         |  [mtoa.session]     transform1                     | Ignoring DAG node of type transform
-00:00:00   305MB         |  [mtoa.extensions]  aiSky Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     aiSky1                         | Exporting DAG node of type aiSky
-00:00:00   305MB         |  [mtoa.session]     aiSky1                         | Initializing DAG node of type aiSky
-00:00:00   305MB         |  [mtoa.session]     pSphere2                       | Ignoring DAG node of type transform
-00:00:00   305MB         |  [mtoa.extensions]  mesh Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     pSphereShape2                  | Exporting DAG node of type mesh
-00:00:00   305MB         |  [mtoa.session]     pSphereShape2                  | Initializing DAG node of type mesh
-00:00:00   305MB         |  [mtoa.session]     directionalLight1              | Ignoring DAG node of type transform
-00:00:00   305MB         |  [mtoa.extensions]  directionalLight Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     directionalLightShape1         | Exporting DAG node of type directionalLight
-00:00:00   305MB         |  [mtoa.session]     directionalLightShape1         | Reusing previous export of DAG node of type directionalLight
-00:00:00   305MB         | [mtoa.session]     Exporting step 1 of 1 at frame 8.000000
-00:00:00   305MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exporting Arnold options(options): 0x98fe1e0
-00:00:00   305MB         | [mtoa.translator]  defaultArnoldRenderOptions     | Exporting on plug message (<built-in>)
-00:00:00   305MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.translator]  defaultArnoldFilter            | gaussian: Exporting Arnold defaultArnoldFilter@gaussian_filter(gaussian_filter): 0x9a7a340
-00:00:00   305MB         |  [mtoa.translator]  defaultArnoldFilter            | Exporting on plug message (gaussian)
-00:00:00   305MB         |  [mtoa.translator]  defaultArnoldFilter            | gaussian: Exported 0 override sets.
-00:00:00   305MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   305MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   305MB         | [mtoa] [aov beauty] Setting AOV output: filter and driver.
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   305MB         |  [mtoa.translator]  defaultArnoldDriver            | tif: Exporting Arnold defaultArnoldDriver@driver_tiff(driver_tiff): 0x9a7a430
-00:00:00   305MB         |  [mtoa.translator]  defaultArnoldDriver            | Exporting on plug message (tif)
-00:00:00   305MB         |  [mtoa.translator]  defaultArnoldDriver            | tif: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa.translator]  tif: Parameter filename is hidden on Arnold node defaultArnoldDriver@driver_tiff(driver_tiff).
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   305MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   305MB         | [mtoa] [aov direct_diffuse] Setting AOV output: filter and driver.
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   305MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   305MB         | [mtoa] [aov indirect_diffuse] Setting AOV output: filter and driver.
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   305MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   305MB         | [mtoa] [aov indirect_specular] Setting AOV output: filter and driver.
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   305MB         |  [mtoa.session]         defaultArnoldDisplayDriver: Maya node type not supported: aiAOVDriver
-00:00:00   305MB         | [mtoa] [aov test] Setting AOV output: filter and driver.
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Exporting plug defaultArnoldFilter.message for type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldFilter            | Reusing previous export of node of type aiAOVFilter
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Exporting plug defaultArnoldDriver.message for type aiAOVDriver
-00:00:00   305MB         |  [mtoa.session]     defaultArnoldDriver            | Reusing previous export of node of type aiAOVDriver
-00:00:00   305MB         |  [mtoa.extensions]  aiSky Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     aiSky1                         | Exporting DAG node of type aiSky
-00:00:00   305MB         |  [mtoa.session]     aiSky1                         | Reusing previous export of DAG node of type aiSky
-00:00:00   305MB         | [mtoa.translator]  perspShape                     | perspective: Exporting Arnold perspShape(persp_camera): 0x9a74850
-00:00:00   305MB         | [mtoa.translator]  perspShape                     | Exporting (perspective)
-00:00:00   305MB         | [mtoa.translator]  topShape                       | orthographic: Exporting Arnold topShape(ortho_camera): 0x9a74cd0
-00:00:00   305MB         | [mtoa.translator]  topShape                       | Exporting (orthographic)
-00:00:00   305MB         | [mtoa.translator]  frontShape                     | orthographic: Exporting Arnold frontShape(ortho_camera): 0x9a74d70
-00:00:00   305MB         | [mtoa.translator]  frontShape                     | Exporting (orthographic)
-00:00:00   305MB         | [mtoa.translator]  sideShape                      | orthographic: Exporting Arnold sideShape(ortho_camera): 0x9a75c60
-00:00:00   305MB         | [mtoa.translator]  sideShape                      | Exporting (orthographic)
-00:00:00   305MB         | [mtoa.translator]  directionalLightShape1         | <built-in>: Exporting Arnold directionalLightShape1(distant_light): 0x9a75d00
-00:00:00   305MB         | [mtoa.translator]  directionalLightShape1         | Exporting (<built-in>)
-00:00:00   305MB         | [mtoa.extensions]  objectSet Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |  [mtoa.session]     defaultLightSet                | Exporting plug defaultLightSet.message for type objectSet
-00:00:00   305MB         |  [mtoa.translator]  defaultLightSet (objectSet): Translator <built-in> returned an empty Arnold root node.
-00:00:00   305MB         |  [mtoa.translator]  defaultLightSet                | Export requested but no Arnold node was created by this translator (<built-in>)
-00:00:00   305MB         | [mtoa.translator]  lightLinker1                   | Export requested but no Arnold node was created by this translator (<built-in>)
-00:00:00   305MB         | [mtoa.translator]  pSphereShape1                  | <built-in>: Exporting Arnold pSphereShape1(polymesh): 0x9a741f0
-00:00:00   305MB         | [mtoa.translator]  pSphereShape1                  | Exporting (<built-in>)
-00:00:00   305MB         | [mtoa.extensions]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/work/mtoa-deploy/20135/shaders/mtoa_shaders.so).
-00:00:00   305MB         |  [mtoa.session]     aiStandard2SG                  | Exporting plug aiStandard2SG.dagSetMembers[0] for type shadingEngine
-00:00:00   305MB         |  [mtoa.translator]  aiStandard2SG                  | mtoa_shaders: Exporting Arnold aiStandard2SG(MayaShadingEngine): 0x9a7b4a0
-00:00:00   305MB         |  [mtoa.translator]  aiStandard2SG                  | Exporting on plug dagSetMembers (mtoa_shaders)
-00:00:00   305MB         |  [mtoa.translator]  aiStandard2SG                  | mtoa_shaders: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa.translator.aov] aiStandard2SG                  | "test" is active on attr aiCustomAOVs[0].aovInput
-00:00:00   305MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug aiStandard2SG.surfaceShader
-00:00:00   305MB         |  [mtoa.extensions]  aiStandard Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |   [mtoa.session]     aiStandard2                    | Exporting plug aiStandard2.outColor for type aiStandard
-00:00:00   305MB         |   [mtoa.translator]  aiStandard2                    | <built-in>: Exporting Arnold aiStandard2(standard): 0x9a7bce0
-00:00:00   305MB         |   [mtoa.translator]  aiStandard2                    | Exporting on plug outColor (<built-in>)
-00:00:00   305MB         |   [mtoa.translator]  aiStandard2                    | <built-in>: Exported 0 override sets.
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard2                    | "direct_diffuse" is active on attr aov_direct_diffuse
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard2                    | "indirect_diffuse" is active on attr aov_indirect_diffuse
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard2                    | "indirect_specular" is active on attr aov_indirect_specular
-00:00:00   305MB         |  [mtoa.extensions]  surfaceShader Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00   305MB         |   [mtoa.session]     BLUE                           | Exporting plug BLUE.outColor for type surfaceShader
-00:00:00   305MB         |   [mtoa.translator.aov] BLUE                           | adding AOV write node for "test"
-00:00:00   305MB         |   [mtoa.translator]  BLUE                           | mtoa_shaders: Exporting Arnold BLUE(MayaSurfaceShader): 0x9a7bd60
-00:00:00   305MB         |   [mtoa.translator]  BLUE                           | Exporting on plug outColor (mtoa_shaders)
-00:00:00   305MB         |   [mtoa.translator]  BLUE                           | mtoa_shaders: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa] [aovs] aiStandard2SG writing accumulated AOVs
-00:00:00   305MB         |  [mtoa] [aovs]     direct_diffuse
-00:00:00   305MB         |  [mtoa] [aovs]     indirect_diffuse
-00:00:00   305MB         |  [mtoa] [aovs]     indirect_specular
-00:00:00   305MB         | [mtoa.translator]  pPlaneShape1                   | <built-in>: Exporting Arnold pPlaneShape1(polymesh): 0x9a77d70
-00:00:00   305MB         | [mtoa.translator]  pPlaneShape1                   | Exporting (<built-in>)
-00:00:00   305MB         | [mtoa.extensions]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/work/mtoa-deploy/20135/shaders/mtoa_shaders.so).
-00:00:00   305MB         |  [mtoa.session]     aiStandard3SG                  | Exporting plug aiStandard3SG.dagSetMembers[0] for type shadingEngine
-00:00:00   305MB         |  [mtoa.translator]  aiStandard3SG                  | mtoa_shaders: Exporting Arnold aiStandard3SG(MayaShadingEngine): 0x9a7d7a0
-00:00:00   305MB         |  [mtoa.translator]  aiStandard3SG                  | Exporting on plug dagSetMembers (mtoa_shaders)
-00:00:00   305MB         |  [mtoa.translator]  aiStandard3SG                  | mtoa_shaders: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa.translator.aov] aiStandard3SG                  | "test" is active on attr aiCustomAOVs[0].aovInput
-00:00:00   305MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug aiStandard3SG.surfaceShader
-00:00:00   305MB         |  [mtoa.extensions]  aiStandard Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |   [mtoa.session]     aiStandard3                    | Exporting plug aiStandard3.outColor for type aiStandard
-00:00:00   305MB         |   [mtoa.translator]  aiStandard3                    | <built-in>: Exporting Arnold aiStandard3(standard): 0x9a86240
-00:00:00   305MB         |   [mtoa.translator]  aiStandard3                    | Exporting on plug outColor (<built-in>)
-00:00:00   305MB         |   [mtoa.translator]  aiStandard3                    | <built-in>: Exported 0 override sets.
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard3                    | "direct_diffuse" is active on attr aov_direct_diffuse
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard3                    | "indirect_diffuse" is active on attr aov_indirect_diffuse
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard3                    | "indirect_specular" is active on attr aov_indirect_specular
-00:00:00   305MB         |  [mtoa.extensions]  surfaceShader Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00   305MB         |   [mtoa.session]     GREEN                          | Exporting plug GREEN.outColor for type surfaceShader
-00:00:00   305MB         |   [mtoa.translator.aov] GREEN                          | adding AOV write node for "test"
-00:00:00   305MB         |   [mtoa.translator]  GREEN                          | mtoa_shaders: Exporting Arnold GREEN(MayaSurfaceShader): 0x9a86d10
-00:00:00   305MB         |   [mtoa.translator]  GREEN                          | Exporting on plug outColor (mtoa_shaders)
-00:00:00   305MB         |   [mtoa.translator]  GREEN                          | mtoa_shaders: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa] [aovs] aiStandard3SG writing accumulated AOVs
-00:00:00   305MB         |  [mtoa] [aovs]     direct_diffuse
-00:00:00   305MB         |  [mtoa] [aovs]     indirect_diffuse
-00:00:00   305MB         |  [mtoa] [aovs]     indirect_specular
-00:00:00   305MB         | [mtoa.translator]  aiSky1                         | <built-in>: Exporting Arnold aiSky1(sky): 0x9a788d0
-00:00:00   305MB         | [mtoa.translator]  aiSky1                         | Exporting (<built-in>)
-00:00:00   305MB         | [mtoa.translator]  pSphereShape2                  | <built-in>: Exporting Arnold pSphereShape2(polymesh): 0x9a78f80
-00:00:00   305MB         | [mtoa.translator]  pSphereShape2                  | Exporting (<built-in>)
-00:00:00   305MB         | [mtoa.extensions]  shadingEngine Using translator mtoa_shaders, provided by mtoa_shaders(/work/mtoa-deploy/20135/shaders/mtoa_shaders.so).
-00:00:00   305MB         |  [mtoa.session]     aiStandard1SG                  | Exporting plug aiStandard1SG.dagSetMembers[0] for type shadingEngine
-00:00:00   305MB         |  [mtoa.translator]  aiStandard1SG                  | mtoa_shaders: Exporting Arnold aiStandard1SG(MayaShadingEngine): 0x9a77dc0
-00:00:00   305MB         |  [mtoa.translator]  aiStandard1SG                  | Exporting on plug dagSetMembers (mtoa_shaders)
-00:00:00   305MB         |  [mtoa.translator]  aiStandard1SG                  | mtoa_shaders: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa.translator.aov] aiStandard1SG                  | "test" is active on attr aiCustomAOVs[0].aovInput
-00:00:00   305MB         |  [mtoa] CShadingEngineTranslator::Export found surfaceShader plug aiStandard1SG.surfaceShader
-00:00:00   305MB         |  [mtoa.extensions]  aiStandard Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00   305MB         |   [mtoa.session]     aiStandard1                    | Exporting plug aiStandard1.outColor for type aiStandard
-00:00:00   305MB         |   [mtoa.translator]  aiStandard1                    | <built-in>: Exporting Arnold aiStandard1(standard): 0x9a86ba0
-00:00:00   305MB         |   [mtoa.translator]  aiStandard1                    | Exporting on plug outColor (<built-in>)
-00:00:00   305MB         |   [mtoa.translator]  aiStandard1                    | <built-in>: Exported 0 override sets.
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard1                    | "direct_diffuse" is active on attr aov_direct_diffuse
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard1                    | "indirect_diffuse" is active on attr aov_indirect_diffuse
-00:00:00   305MB         |   [mtoa.translator.aov] aiStandard1                    | "indirect_specular" is active on attr aov_indirect_specular
-00:00:00   305MB         |  [mtoa.extensions]  surfaceShader Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00   305MB         |   [mtoa.session]     RED                            | Exporting plug RED.outColor for type surfaceShader
-00:00:00   305MB         |   [mtoa.translator.aov] RED                            | adding AOV write node for "test"
-00:00:00   305MB         |   [mtoa.translator]  RED                            | mtoa_shaders: Exporting Arnold RED(MayaSurfaceShader): 0x9a8bab0
-00:00:00   305MB         |   [mtoa.translator]  RED                            | Exporting on plug outColor (mtoa_shaders)
-00:00:00   305MB         |   [mtoa.translator]  RED                            | mtoa_shaders: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa] [aovs] aiStandard1SG writing accumulated AOVs
-00:00:00   305MB         |  [mtoa] [aovs]     direct_diffuse
-00:00:00   305MB         |  [mtoa] [aovs]     indirect_diffuse
-00:00:00   305MB         |  [mtoa] [aovs]     indirect_specular
-00:00:00   305MB         | [mtoa.session] Setting export camera to "perspShape"
-00:00:00   305MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Updating Arnold options(options): 0x98fe1e0
-00:00:00   305MB         | [mtoa.translator]  defaultArnoldRenderOptions     | <built-in>: Exported 0 override sets.
-00:00:00   305MB         |  [mtoa.session]     perspShape                     | Exporting DAG node of type camera
-00:00:00   305MB         |  [mtoa.session]     perspShape                     | Reusing previous export of DAG node of type camera
-00:00:00   305MB         | [mtoa] [aov RGBA] output line: RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA
-00:00:00   305MB         | [mtoa] [aov direct_diffuse] output line: direct_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse
-00:00:00   305MB         | [mtoa] [aov indirect_diffuse] output line: indirect_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse
-00:00:00   305MB         | [mtoa] [aov indirect_specular] output line: indirect_specular RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_specular
-00:00:00   305MB         | [mtoa] [aov test] output line: test RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.test
-00:00:00   305MB         |  
-00:00:00   305MB         | there are 1 light and 3 objects:
-00:00:00   305MB         |  3 polymeshes
-00:00:00   305MB         |  
-00:00:00   305MB         | rendering image at 160 x 120, 3 AA samples, 1 GI samples, 1 GI bounces
-00:00:00   305MB         |  active camera: 'perspShape'
-00:00:00   305MB         |  initializing 31 nodes ...
-00:00:00   305MB         |  node initialization done in 0:00.00
-00:00:00   307MB         |  creating root object list ...
-00:00:00   307MB         |   scene bounds: (-9.32950211 -2.07156561e-15 -9.32950211) -> (9.32950211 2.03409481 9.32950211)
-00:00:00   307MB         |  updating 32 nodes ...
-00:00:00   307MB         |   directionalLightShape1: distant_light using 1 sample
-00:00:00   307MB         |  node update done in 0:00.00
-00:00:00   307MB         |  [aov] parsing output statement: "RGBA RGBA defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA"
-00:00:00   307MB         |  [aov] parsing output statement: "direct_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse"
-00:00:00   307MB         |  [aov] parsing output statement: "indirect_diffuse RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse"
-00:00:00   307MB         |  [aov] parsing output statement: "indirect_specular RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.indirect_specular"
-00:00:00   307MB         |  [aov] parsing output statement: "test RGB defaultArnoldFilter@gaussian_filter defaultArnoldDriver@driver_tiff.RGBA.test"
-00:00:00   307MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse" (driver_tiff)
-00:00:00   307MB         |  [aov]  * "direct_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   307MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse" (driver_tiff)
-00:00:00   307MB         |  [aov]  * "indirect_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   307MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   307MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   307MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.test" (driver_tiff)
-00:00:00   307MB         |  [aov]  * "test" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   307MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_specular" (driver_tiff)
-00:00:00   307MB         |  [aov]  * "indirect_specular" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   307MB         |  [aov] done preparing 5 AOVs for 5 outputs to 5 drivers (0 deep AOVs)
-00:00:00   307MB         |  starting 8 bucket workers of size 32x32 ...
-00:00:00   308MB         |   [accel] bvh4 done - 0:00.00 - 3 prims, 1 key
-00:00:00   309MB         |   [accel] bvh4 done - 0:00.00 - 760 prims, 1 key
-00:00:00   309MB         |   [accel] bvh4 done - 0:00.00 - 200 prims, 1 key
-00:00:00   309MB         |   [accel] bvh4 done - 0:00.00 - 760 prims, 1 key
-00:00:00   309MB         |     5% done - 9 rays/pixel
-00:00:00   309MB         |    10% done - 9 rays/pixel
-00:00:00   309MB         |    15% done - 9 rays/pixel
-00:00:00   309MB         |    20% done - 10 rays/pixel
-00:00:00   309MB         |    25% done - 11 rays/pixel
-00:00:00   309MB         |    30% done - 9 rays/pixel
-00:00:00   309MB         |    35% done - 9 rays/pixel
-00:00:00   309MB         |    40% done - 10 rays/pixel
-00:00:00   309MB         |    45% done - 23 rays/pixel
-00:00:00   309MB         |    50% done - 28 rays/pixel
-00:00:00   309MB         |    55% done - 16 rays/pixel
-00:00:00   309MB         |    60% done - 25 rays/pixel
-00:00:00   309MB         |    65% done - 18 rays/pixel
-00:00:00   309MB         |    70% done - 14 rays/pixel
-00:00:00   310MB         |    75% done - 14 rays/pixel
-00:00:00   310MB         |    80% done - 18 rays/pixel
-00:00:00   310MB         |    85% done - 15 rays/pixel
-00:00:00   310MB         |    90% done - 20 rays/pixel
-00:00:00   310MB         |   100% done - 18 rays/pixel
-00:00:00   310MB         |  bucket workers done in 0:00.21
-00:00:00   310MB         | render done
-00:00:00   310MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_direct_diffuse_defaultRenderLayer1.tif'
-00:00:00   310MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_diffuse_defaultRenderLayer1.tif'
-00:00:00   310MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_beauty_defaultRenderLayer1.tif'
-00:00:00   310MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_test_defaultRenderLayer1.tif'
-00:00:00   310MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_specular_defaultRenderLayer1.tif'
-00:00:00   310MB         |  
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | scene creation time:
-00:00:00   310MB         |  plugin loading               0:00.00
-00:00:00   310MB         |  system/unaccounted           0:00.03
-00:00:00   310MB         |  total                        0:00.04  ( 8.63% machine utilization)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | render time:
-00:00:00   310MB         |  node init                    0:00.00
-00:00:00   310MB         |  bucket rendering             0:00.21
-00:00:00   310MB         |   accel. building             0:00.00
-00:00:00   310MB         |   pixel rendering             0:00.20  (multi-threaded render, this value may not be reliable)
-00:00:00   310MB         |  system/unaccounted           0:00.05
-00:00:00   310MB         |  total                        0:00.22  (76.19% machine utilization)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | memory consumed in MB:
-00:00:00   310MB         |  at startup                    305.53
-00:00:00   310MB         |  plugins                         0.21
-00:00:00   310MB         |  AOV samples                     5.72
-00:00:00   310MB         |  output buffers                  0.79
-00:00:00   310MB         |  node overhead                   0.01
-00:00:00   310MB         |  instance overhead               0.00
-00:00:00   310MB         |  message passing                 0.02
-00:00:00   310MB         |  memory pools                   12.38
-00:00:00   310MB         |  geometry                        0.04
-00:00:00   310MB         |    polymesh                      0.04
-00:00:00   310MB         |  accel. structs                  0.07
-00:00:00   310MB         |  string pool                     0.14 (1140 unique strings, overhead 0.09 MB)
-00:00:00   310MB         |  texture cache                   0.00
-00:00:00   310MB         |  unaccounted                   -14.43
-00:00:00   310MB         |  total peak                    310.48
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
-00:00:00   310MB         |  camera                        195840 (   9.00,    1.00) ( 51.46%) (     0.45) (       1)
-00:00:00   310MB         |  shadow                         96612 (   4.44,    0.49) ( 25.39%) (     0.00) (       0)
-00:00:00   310MB         |  diffuse                        88098 (   4.05,    0.45) ( 23.15%) (     0.18) (       1)
-00:00:00   310MB         |  total                         380550 (  17.49,    1.94) (100.00%) (     0.29) (       1)
-00:00:00   310MB         |  max depth                          1
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | lighting calculations:                (/pixel , /sample)    secondary (/pixel , /sample)
-00:00:00   310MB         |  light loops                    88154 (   4.05,    0.45)        15941 (   0.73,    0.08)
-00:00:00   310MB         |  indirect diffuse               88154 (   4.05,    0.45)            0 (   0.00,    0.00)
-00:00:00   310MB         |  custom sampler                 88154 (   4.05,    0.45)            0 (   0.00,    0.00)
-00:00:00   310MB         |  light lookups                  88154 (   4.05,    0.45)        15941 (   0.73,    0.08)
-00:00:00   310MB         |  lights shaded                  88154 (   4.05,    0.45)        15941 (   0.73,    0.08)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | shader calls:                         (/pixel , /sample) (% total)
-00:00:00   310MB         |  primary                       384498 (  17.67,    1.96) ( 68.13%)
-00:00:00   310MB         |  background                    179843 (   8.26,    0.92) ( 31.87%)
-00:00:00   310MB         |  total                         564341 (  25.93,    2.88) (100.00%)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
-00:00:00   310MB         |  lists                              1 (100.0%) (        0) (      0.00,       0.00)
-00:00:00   310MB         |  polymeshes                         3 (100.0%) (        0) (      0.04,       0.04)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | geometric elements:                   (      min) (       avg.) (      max)
-00:00:00   310MB         |  objects (top level)                3 (        3) (        3.0) (        3)
-00:00:00   310MB         |  polygons                         900 (      100) (      300.0) (      400)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | triangle tessellation:                (      min) (       avg.) (      max) (/ element) (% total)
-00:00:00   310MB         |  polymeshes                      1720 (      200) (      573.3) (      760) (     1.91) (100.00%)
-00:00:00   310MB         |  unique triangles:               1720
-00:00:00   310MB         |  memory use (in MB)              0.04
-00:00:00   310MB         |    vertices                      0.01
-00:00:00   310MB         |    vertex indices                0.00
-00:00:00   310MB         |    polygon base offsets          0.00
-00:00:00   310MB         |    polygon IDs                   0.00
-00:00:00   310MB         |    triangulation                 0.00
-00:00:00   310MB         |    packed normals                0.00
-00:00:00   310MB         |    normal indices                0.00
-00:00:00   310MB         |    uv coords                     0.00
-00:00:00   310MB         |    uv coords idxs                0.00
-00:00:00   310MB         |    uniform indices               0.00
-00:00:00   310MB         |    userdata                      0.00
-00:00:00   310MB         |  largest polymeshes by triangle count:
-00:00:00   310MB         |          760 tris -- pSphereShape1
-00:00:00   310MB         |          760 tris -- pSphereShape2
-00:00:00   310MB         |          200 tris -- pPlaneShape1
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | acceleration structures:              (% total)
-00:00:00   310MB         |  bvh                                4 (100.00%)
-00:00:00   310MB         |  total                              4 (100.00%)
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         | number of warnings, warning type:
-00:00:00   310MB         |     5:  [mtoa.extensions]  %s Found no translator named "%s"
-00:00:00   310MB         | -----------------------------------------------------------------------------------------
-00:00:00   310MB         |  
-00:00:00   310MB         | releasing resources
-00:00:00   308MB         |  unloading 1 plugin
-00:00:00   308MB         |   closing mtoa_shaders.so ...
-00:00:00   308MB         |  unloading plugins done
-00:00:00   308MB         | Arnold shutdown
-Scene /work/mtoa-main/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma completed.
+00:00:00   302MB         | Arnold shutdown
+00:00:00   302MB         | log started Thu Oct 10 18:06:09 2013
+00:00:00   302MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 15:28:48
+00:00:00   302MB         | running on localhost.localdomain
+00:00:00   302MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   302MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
+00:00:00   302MB         |  
+00:00:00   302MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
+00:00:00   303MB         | loaded 84 plugins from 1 lib(s) in 0:00.07
+00:00:00   303MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   303MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   303MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   303MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   303MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   303MB         |  
+00:00:00   303MB         | there are 1 light and 3 objects:
+00:00:00   303MB         |  3 polymeshes
+00:00:00   303MB         |  
+00:00:00   303MB         | rendering image at 160 x 120, 3 AA samples, 1 GI samples, 1 GI bounces
+00:00:00   303MB         |  initializing 31 nodes ...
+00:00:00   303MB         |  node initialization done in 0:00.00
+00:00:00   304MB         |  creating root object list ...
+00:00:00   304MB         |   scene bounds: (-9.32950211 -2.07156561e-15 -9.32950211) -> (9.32950211 2.03409481 9.32950211)
+00:00:00   304MB         |  updating 32 nodes ...
+00:00:00   304MB         |  node update done in 0:00.00
+00:00:00   304MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   304MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   304MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.direct_diffuse" (driver_tiff)
+00:00:00   304MB         |  [aov]  * "direct_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   304MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_specular" (driver_tiff)
+00:00:00   304MB         |  [aov]  * "indirect_specular" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   304MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.indirect_diffuse" (driver_tiff)
+00:00:00   304MB         |  [aov]  * "indirect_diffuse" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   304MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA.test" (driver_tiff)
+00:00:00   304MB         |  [aov]  * "test" of type RGB filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   304MB         |  [aov] done preparing 5 AOVs for 5 outputs to 5 drivers (0 deep AOVs)
+00:00:00   304MB         |  starting 8 bucket workers of size 32x32 ...
+00:00:00   311MB         |     5% done - 8 rays/pixel
+00:00:00   311MB         |    10% done - 9 rays/pixel
+00:00:00   311MB         |    15% done - 10 rays/pixel
+00:00:00   311MB         |    20% done - 8 rays/pixel
+00:00:00   311MB         |    25% done - 8 rays/pixel
+00:00:00   311MB         |    30% done - 9 rays/pixel
+00:00:00   311MB         |    35% done - 8 rays/pixel
+00:00:00   311MB         |    40% done - 11 rays/pixel
+00:00:00   311MB         |    45% done - 21 rays/pixel
+00:00:00   311MB         |    50% done - 15 rays/pixel
+00:00:00   311MB         |    55% done - 13 rays/pixel
+00:00:00   311MB         |    60% done - 26 rays/pixel
+00:00:00   311MB         |    65% done - 14 rays/pixel
+00:00:00   311MB         |    70% done - 15 rays/pixel
+00:00:00   311MB         |    75% done - 15 rays/pixel
+00:00:00   311MB         |    80% done - 16 rays/pixel
+00:00:00   309MB         |    85% done - 16 rays/pixel
+00:00:00   309MB         |    90% done - 15 rays/pixel
+00:00:00   309MB         |   100% done - 24 rays/pixel
+00:00:00   309MB         |  bucket workers done in 0:00.22
+00:00:00   309MB         | render done
+00:00:00   309MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_beauty_defaultRenderLayer1.tif'
+00:00:00   309MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_direct_diffuse_defaultRenderLayer1.tif'
+00:00:00   309MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_specular_defaultRenderLayer1.tif'
+00:00:00   309MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_indirect_diffuse_defaultRenderLayer1.tif'
+00:00:00   309MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/testrender_test_defaultRenderLayer1.tif'
+00:00:00   309MB         |  
+00:00:00   309MB         | releasing resources
+00:00:00   303MB         | Arnold shutdown
+Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0105/test.ma completed.

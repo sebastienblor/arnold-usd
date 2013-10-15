@@ -19,3 +19,5 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      const bool* stricAOVs=NULL);
 
 MStringArray getSourceImagesPath();
+
+MString getProjectFolderPath();

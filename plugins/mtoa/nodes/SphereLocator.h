@@ -65,7 +65,7 @@ public:
    std::vector<unsigned char> m_colorData;
    std::vector<AtVector>      m_positionData;
    std::vector<AtVector2>     m_UVData;
-   std::vector<AtUInt>        m_indexData;
+   std::vector<unsigned int>        m_indexData;
    GLuint m_texture;
    GLuint m_vbo;
 

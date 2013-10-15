@@ -289,7 +289,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 		-max 1 -at "bool";
 	setAttr ".img" -type "string" "tif";
 	setAttr ".sss_bssrdf_samples" 4;
-	setAttr ".enablRaytSSS" yes;
 	setAttr ".fltr" -type "string" "gaussian";
 	setAttr ".dgamma" 1;
 	setAttr ".lgamma" 1;

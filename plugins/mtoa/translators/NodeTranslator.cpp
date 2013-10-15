@@ -2424,10 +2424,14 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
    data.defaultValue.BOOL = true;
    data.name = "aiVisibleInDiffuse";
    data.shortName = "ai_vid";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "aiVisibleInGlossy";
    data.shortName = "ai_vig";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 }
