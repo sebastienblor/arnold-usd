@@ -769,6 +769,12 @@ for ext in os.listdir(ext_base_dir):
         if os.path.exists(pyfile):
             ext_files.append(pyfile)
             env.Install(TARGET_EXTENSION_PATH, pyfile)
+        if ext_arnold and (target_type == 'shader'):
+            mtdfile = os.path.splitext(os.path.basename(ext_arnold))[0] + '.mtd'
+            mtdfile = os.path.join(ext_dir, 'shaders', mtdfile)
+            if os.path.exists(mtdfile):
+                ext_files.append(mtdfile)
+                env.Install(TARGET_SHADER_PATH, mtdfile)
         env.Install(TARGET_EXTENSION_PATH, plugin)
         package_files = []
         if ext_arnold:
