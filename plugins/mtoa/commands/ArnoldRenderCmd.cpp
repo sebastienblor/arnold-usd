@@ -79,6 +79,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // code to support compressed output filename too
    short renderType = 0;
    bool outputAssBoundingBox = false;
+   bool useBinaryEncoding = true;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -92,6 +93,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
       expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
       kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags").asString();
+      useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -105,6 +107,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (exportSelected)
       {
          cmdStr += " -s";
+      }
+      if (useBinaryEncoding)
+      {
+         cmdStr += " -a";
       }      
       if (renderType == MTOA_RENDER_EXPORTASS)
       {
