@@ -137,7 +137,7 @@ shader_evaluate
    float secondaryFresnel = 0.0f;
    AtRGB secondarySpecular = AI_RGB_BLACK;
    AtRGB secondarySpecularWeight = AI_RGB_BLACK;
-   if ((sg->Rr_diff == 0) && (sg->Rr_gloss == 0))
+   if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
       secondarySpecularWeight = AiShaderEvalParamRGB(p_secondary_specular_color) * AiShaderEvalParamFlt(p_secondary_specular_weight);
       if (AiShaderEvalParamBool(p_secondary_specular_enable_fresnel_falloff))
@@ -181,7 +181,7 @@ shader_evaluate
    AtRGB primarySpecular = AI_RGB_BLACK;
    AtRGB primarySpecularWeight = AI_RGB_BLACK;
    bool enablePrimarySpecular = false;
-   if ((sg->Rr_diff == 0) && (sg->Rr_gloss == 0) && !sampleOnlySSS)
+   if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
       primarySpecularWeight = AiShaderEvalParamRGB(p_primary_specular_color) * AiShaderEvalParamFlt(p_primary_specular_weight);
       if (AiShaderEvalParamBool(p_primary_specular_enable_fresnel_falloff))
