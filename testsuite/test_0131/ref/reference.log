@@ -1,0 +1,109 @@
+
+Starting "/usr/autodesk/maya2012-x64/bin/maya"
+
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
+libai.so already loaded
+
+Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
+mental ray for Maya 2012 
+// Mental ray for Maya: using startup file /usr/autodesk/maya2012-x64/mentalray/maya.rayrc.
+mental ray for Maya: setup
+mental ray for Maya: initialize
+mental ray: version 3.9.1.48, Dec  8 2011, revision 162457
+mental ray for Maya: using 1 license
+mental ray for Maya: register extensions
+// mental ray Node Factory: loaded
+mental ray for Maya: successfully registered
+mental ray for Maya: loading startup file: /usr/autodesk/maya2012-x64/mentalray/maya.rayrc
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/AdskShaderSDKWrappers.mi
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/architectural.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/architectural.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/base.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/base.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/contour.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/contour.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/paint.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/paint.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/physics.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/physics.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/production.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/production.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/shaveMRShader.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/shaveMRShader.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/subsurface.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/subsurface.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/surfaceSampler.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/surfaceSampler.so
+// generating Maya nodes...
+// parsing /usr/autodesk/maya2012-x64/mentalray/include/userdata.mi
+// loading /usr/autodesk/maya2012-x64/mentalray/lib/userdata.so
+// generating Maya nodes...
+File read in 0 seconds.
+Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0131/test.ma
+00:00:00   328MB         | log started Tue Oct 15 15:34:42 2013
+00:00:00   328MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/15 12:29:07
+00:00:00   328MB         | running on localhost.localdomain
+00:00:00   328MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   328MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
+00:00:00   328MB         |  
+00:00:00   328MB         | loading plugin: /work/deploy/2012/shaders/mtoa_shaders.so ...
+00:00:00   328MB         | loaded 85 plugins from 1 lib(s) in 0:00.12
+00:00:00   328MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   329MB         |  
+00:00:00   329MB         | there are 2 lights and 3 objects:
+00:00:00   329MB         |  3 polymeshes
+00:00:00   329MB         |  
+00:00:00   329MB         | rendering image at 160 x 120, 8 AA samples, 2 GI samples, 1 GI bounces
+00:00:00   329MB         |  initializing 18 nodes ...
+00:00:00   329MB WARNING |   pSphereShape1: discarded duplicate deformation keys
+00:00:00   329MB WARNING |   pCylinderShape1: discarded duplicate deformation keys
+00:00:00   329MB WARNING |   pTorusShape1: discarded duplicate deformation keys
+00:00:00   329MB         |  node initialization done in 0:00.00
+00:00:00   331MB         |  creating root object list ...
+00:00:00   331MB         |   scene bounds: (-1.46692979 -0.442553192 -0.861160457) -> (1.03514349 0.908915222 0.45002526)
+00:00:00   331MB         |  updating 19 nodes ...
+00:00:00   331MB         |  node update done in 0:00.00
+00:00:00   331MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   331MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   331MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00   331MB         |  starting 8 bucket workers of size 64x64 ...
+00:00:01   371MB         |    10% done - 290 rays/pixel
+00:00:02   366MB         |    25% done - 492 rays/pixel
+00:00:02   360MB         |    35% done - 563 rays/pixel
+00:00:02   356MB         |    60% done - 458 rays/pixel
+00:00:03   349MB         |    80% done - 301 rays/pixel
+00:00:03   343MB         |   100% done - 590 rays/pixel
+00:00:03   336MB         |  bucket workers done in 0:03.63
+00:00:03   336MB         | render done
+00:00:03   336MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0131/testrender.tif'
+00:00:03   336MB         |  
+00:00:03   336MB         | releasing resources
+00:00:03   333MB         | Arnold shutdown
+Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0131/test.ma completed.
