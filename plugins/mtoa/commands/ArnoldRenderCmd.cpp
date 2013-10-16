@@ -108,9 +108,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          cmdStr += " -s";
       }
-      if (useBinaryEncoding)
+      if (!useBinaryEncoding)
       {
-         cmdStr += " -a";
+         cmdStr += " -asciiAss";
       }      
       if (renderType == MTOA_RENDER_EXPORTASS)
       {
