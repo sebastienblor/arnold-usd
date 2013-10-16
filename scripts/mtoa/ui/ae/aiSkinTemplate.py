@@ -6,6 +6,20 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiSkinTemplate(ShaderAETemplate):
 
+    def checkPrimarySpecularFresnel(self, nodeName):
+        fullAttr = '%s.%s'%(nodeName, "primary_specular_enable_fresnel_falloff")
+        useFresnel = pm.getAttr(fullAttr)
+        dim = not useFresnel
+        pm.editorTemplate(dimControl=(nodeName, "primarySpecularFresnelWeight", dim))
+        pm.editorTemplate(dimControl=(nodeName, "primarySpecularIor", dim))
+
+    def checkSecondarySpecularFresnel(self, nodeName):
+        fullAttr = '%s.%s'%(nodeName, "secondary_specular_enable_fresnel_falloff")
+        useFresnel = pm.getAttr(fullAttr)
+        dim = not useFresnel
+        pm.editorTemplate(dimControl=(nodeName, "secondarySpecularFresnelWeight", dim))
+        pm.editorTemplate(dimControl=(nodeName, "secondarySpecularIor", dim))
+
     def setup(self):
         self.addSwatch()
         
@@ -46,7 +60,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl("primary_specular_weight", label="Weight")
         self.addControl("primary_specular_roughness", label="Roughness")
         self.beginLayout("Fresnel")
-        self.addControl("primary_specular_enable_fresnel_falloff", label="Enable")
+        self.addControl("primary_specular_enable_fresnel_falloff", changeCommand=self.checkPrimarySpecularFresnel, label="Enable")
         self.addControl("primary_specular_fresnel_weight", label="Weight")
         self.addControl("primary_specular_ior", label="IOR")
         self.endLayout()
@@ -57,7 +71,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl("secondary_specular_weight", label="Weight")
         self.addControl("secondary_specular_roughness", label="Roughness")
         self.beginLayout("Fresnel")
-        self.addControl("secondary_specular_enable_fresnel_falloff", label="Enable")
+        self.addControl("secondary_specular_enable_fresnel_falloff", changeCommand=self.checkSecondarySpecularFresnel, label="Enable")
         self.addControl("secondary_specular_fresnel_weight", label="Weight")
         self.addControl("secondary_specular_ior", label="IOR")
         self.endLayout()
