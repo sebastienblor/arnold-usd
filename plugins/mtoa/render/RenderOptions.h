@@ -76,6 +76,11 @@ public:
    {
       return m_clearBeforeRender;
    }
+
+   bool useBinaryEncoding() const
+   {
+      return m_useBinaryEncoding;
+   }
    
    bool sceneUpdateBeforeIPRRender() const
    {
@@ -110,6 +115,11 @@ public:
    void SetExpandProcedurals(bool expand_procedurals)
    {
       m_expandProcedurals = expand_procedurals;
+   }
+
+   void SetUseBinaryEncoding(bool ube)
+   {
+      m_useBinaryEncoding = ube;
    }
 
    void SetCamera(MDagPath& camera);
@@ -210,6 +220,7 @@ private:
    bool     m_clearBeforeRender; 
    bool     m_forceSceneUpdateBeforeIPRRefresh;
    bool     m_forceTextureCacheFlushAfterRender;
+   bool     m_useBinaryEncoding;
 
    float    m_startFrame;
    float    m_endFrame;
