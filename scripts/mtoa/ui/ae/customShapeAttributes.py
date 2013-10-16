@@ -349,7 +349,6 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiFiltermap")
         self.addSeparator()
         self.addControl("aiRollingShutter")
-        self.addControl("aiRollingShutterDirection")
         
     def addDOFAttributes(self):
         self.addSeparator()
