@@ -118,7 +118,7 @@ void COptionsTranslator::ExportAOVs()
       {
          // add default driver
          CAOVOutput output;
-         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer);
+         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer, output.raw);
          output.filter = ExportFilter(FindMayaPlug("filter"));
          aovData.outputs.push_back(output);
 
@@ -271,8 +271,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          }
          // output statement
          char str[1024];
-         sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                 AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+         if (output.raw)
+         {
+            sprintf(str, "%s", AiNodeGetName(output.driver));
+         }
+         else
+         {
+            sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                    AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+         }
          AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
 
          outputs.append(MString(str));
@@ -297,7 +304,7 @@ void COptionsTranslator::CreateFileDirectory(const MString &filename) const
    }
 }
 
-AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer)
+AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer, bool& raw)
 {
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
@@ -319,6 +326,8 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
       mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
    else
       mergeAOVs = false;
+   raw = false;
+   AiMetaDataGetBool(entry, NULL, "raw_driver", &raw);
    prefix = fnNode.findPlug("prefix").asString();
    return driver;
 }
@@ -369,7 +378,8 @@ bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
    output.driver = ExportDriver(driverPlug,
                                 output.prefix,
                                 output.mergeAOVs,
-                                output.singleLayer);
+                                output.singleLayer,
+                                output.raw);
    if (output.driver == NULL)
       return false;
    return true;

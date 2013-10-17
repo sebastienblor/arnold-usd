@@ -8,6 +8,7 @@ struct CAOVOutput
    AtNode* filter;
    bool mergeAOVs; // whether or not to split AOVs
    bool singleLayer;
+   bool raw;
    MString prefix;
 };
 
@@ -69,7 +70,8 @@ protected:
    AtNode* ExportDriver(const MPlug& driverPlug,
                         MString& prefix,
                         bool& mergeAOVs,
-                        bool& singleLayer);
+                        bool& singleLayer,
+                        bool& raw);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
