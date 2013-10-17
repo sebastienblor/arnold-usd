@@ -648,41 +648,16 @@ void COptionsTranslator::Update(AtNode *options)
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)
 {
-   MSelectionList list;
-   MPlug        shader;
-   MPlugArray   conns;
-
-   int atmosphere = FindMayaPlug("atmosphere").asInt();
-   switch (atmosphere)
+   MPlugArray conns;
+   MPlug pBG = FindMayaPlug("atmosphere");
+   pBG.connectedTo(conns, true, false);
+   if (conns.length() == 1)
    {
-   case 0:
+      AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+   }
+   else
+   {
       AiNodeSetPtr(options, "atmosphere", NULL);
-      break;
-
-   case 1:  // Fog
-      list.add("defaultFog.outColor");
-      if (list.length() > 0)
-      {
-         list.getPlug(0, shader);
-         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
-      }
-      break;
-
-   case 2:  // Volume Scattering
-      list.add("defaultVolumeScattering.outColor");
-      if (list.length() > 0)
-      {
-         list.getPlug(0, shader);
-         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
-      }
-      break;
-      
-   case 3:
-      shader = FindMayaPlug("atmosphereShader");
-      shader.connectedTo(conns, true, false);
-      if (conns.length())
-         AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
-      break;
    }
 }
 

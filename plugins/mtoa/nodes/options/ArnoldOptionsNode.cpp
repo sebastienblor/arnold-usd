@@ -469,16 +469,10 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setReadable(false);
    addAttribute(s_background);
 
-   s_atmosphere = eAttr.create("atmosphere", "atm", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("None", 0);
-   eAttr.addField("Fog", 1);
-   eAttr.addField("Volume Scattering", 2);
-   eAttr.addField("Custom Shader", 3);
+   s_atmosphere = mAttr.create("atmosphere", "atm");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_atmosphere);
-   
-   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
-   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

@@ -1558,7 +1558,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       //   cannot unlink "ramp2.color.r" as the attribute was not separately linked
       // In order to avoid this warning we would need to do the unlinking inside an attributeChanged callback, where
       // we could know for certain that a plug had been disconnected, instead of calling it blindly as we do now.
-      AiNodeUnlink(arnoldNode, arnoldParamName);
+      if (AiNodeIsLinked(arnoldNode, arnoldParamName))
+         AiNodeUnlink(arnoldNode, arnoldParamName);
       AtNode *connected = ProcessParameterInputs(arnoldNode, plug, arnoldParamName, arnoldParamType);
       // if we're connected, we're done, otherwise call ProcessConstantParameter
       if (connected != NULL)
