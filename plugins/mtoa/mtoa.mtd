@@ -84,7 +84,7 @@
     [attr auto_transparency_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
-        max                 FLOAT   10.0
+        max                 FLOAT   1.0
         maya.orig_shortname STRING  "at_t"
     [attr show_samples]
         maya.keyable        BOOL    False   
