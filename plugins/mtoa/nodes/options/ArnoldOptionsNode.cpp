@@ -454,14 +454,15 @@ MStatus CArnoldOptionsNode::initialize()
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
-   nAttr.setMax(100000);
+   nAttr.setSoftMax(100);
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_verbosity = nAttr.create("log_verbosity", "logv", MFnNumericData::kInt, 3);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
    nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
+   eAttr.addField("Errors", MTOA_LOG_ERRORS);
+   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
 
    s_background = mAttr.create("background", "bkg");

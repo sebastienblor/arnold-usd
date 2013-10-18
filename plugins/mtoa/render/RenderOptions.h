@@ -24,6 +24,13 @@ enum RenderType
    MTOA_RENDER_EXPORTASS_AND_KICK
 };
 
+enum LogVerbosity
+{
+   MTOA_LOG_ERRORS,
+   MTOA_LOG_WANINGS_INFO,
+   MTOA_LOG_DEBUG
+};
+
 class DLLEXPORT CRenderOptions
 {
    friend class CRenderSession;

@@ -999,6 +999,14 @@ def createArnoldLogSettings():
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
 
+    
+    pm.attrControlGrp('log_verbosity',
+                        label="Verbosity Level",
+                        enable=logToConsole,
+                        attribute='defaultArnoldRenderOptions.log_verbosity')
+                        
+                        
+    
     pm.checkBoxGrp('log_to_console',
                     label='Console',
                     changeCommand=ChangeLogToConsole)
@@ -1012,6 +1020,7 @@ def createArnoldLogSettings():
 
     pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
     pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
+    
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
@@ -1034,10 +1043,6 @@ def createArnoldLogSettings():
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
-    pm.attrControlGrp('log_verbosity',
-                        label="Verbosity Level",
-                        enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_verbosity')
 
     pm.separator()
 

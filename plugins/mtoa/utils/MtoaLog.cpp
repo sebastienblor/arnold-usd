@@ -1,4 +1,5 @@
 #include "MtoaLog.h"
+#include "render/RenderOptions.h"
 
 #include <maya/MGlobal.h>
 
@@ -8,13 +9,9 @@ int GetFlagsFromVerbosityLevel(unsigned int level)
 
    switch(level)
    {
-   case 6:  flags = AI_LOG_ALL; break;
-   case 5:  flags = AI_LOG_ALL & ~AI_LOG_DEBUG; break;
-   case 4:  flags |= AI_LOG_PLUGINS | AI_LOG_STATS;
-   case 3:  flags |= AI_LOG_PROGRESS;
-   case 2:  flags |= AI_LOG_INFO;
-   case 1:  flags |= AI_LOG_ERRORS | AI_LOG_WARNINGS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY; break;
-   case 0:  flags = 0; break;   
+   case MTOA_LOG_DEBUG:  flags = AI_LOG_ALL; break;
+   case MTOA_LOG_WANINGS_INFO:  flags |= AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_STATS | AI_LOG_PLUGINS | AI_LOG_PROGRESS;
+   case MTOA_LOG_ERRORS:  flags |= AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_MEMORY | AI_LOG_BACKTRACE ; break; 
    }
 
    return flags;
