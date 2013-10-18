@@ -17,29 +17,33 @@ node_parameters
    AiParameterRGB("deep_scatter_color", 0.7f, 0.1f, 0.1f);
    AiParameterFLT("deep_scatter_weight", 1.0f);
    AiParameterFLT("deep_scatter_radius", 0.6f);
-   AiParameterRGB("primary_specular_color", 0.75f, 0.9f, 1.0f);
-   AiParameterFLT("primary_specular_weight", 0.8f);
-   AiParameterFLT("primary_specular_roughness", 0.5f);
-   AiParameterBOOL("primary_specular_enable_fresnel_falloff", true);
-   AiParameterFLT("primary_specular_fresnel_weight", 1.0f);
-   AiParameterFLT("primary_specular_ior", 1.33f);
-   AiParameterRGB("secondary_specular_color", 0.75f, 0.9f, 1.0f);
-   AiParameterFLT("secondary_specular_weight", 0.6f);
-   AiParameterFLT("secondary_specular_roughness", 0.35f);
-   AiParameterBOOL("secondary_specular_enable_fresnel_falloff", true);
-   AiParameterFLT("secondary_specular_fresnel_weight", 1.0f);
-   AiParameterFLT("secondary_specular_ior", 1.33f);
+   AiParameterRGB("specular_color", 0.75f, 0.9f, 1.0f);
+   AiParameterFLT("specular_weight", 0.8f);
+   AiParameterFLT("specular_roughness", 0.5f);
+   AiParameterBOOL("specular_enable_fresnel_falloff", true);
+   AiParameterFLT("specular_ior", 1.44f);
+   AiParameterRGB("coat_color", 0.75f, 0.9f, 1.0f);
+   AiParameterFLT("coat_weight", 0.6f);
+   AiParameterFLT("coat_roughness", 0.35f);
+   AiParameterBOOL("coat_enable_fresnel_falloff", true);
+   AiParameterFLT("coat_ior", 1.44f);
    AiParameterFLT("global_sss_radius_multiplier", 10.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
    AiParameterBOOL("combine_sss_queries", false);
+   AiParameterFLT("single_scatter_weight", 0.0f);
+   AiParameterRGB("rd", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("mfp", 5.0f, 5.0f, 5.0f);
+   AiParameterFLT("g", 0.0f);
+   AiParameterFLT("eta", 1.44f);
    AiParameterStr("aov_direct_diffuse", "direct_diffuse");
    AiParameterStr("aov_indirect_diffuse", "indirect_diffuse");
-   AiParameterStr("aov_primary_specular", "primary_specular");
-   AiParameterStr("aov_secondary_specular", "secondary_specular");
+   AiParameterStr("aov_specular", "specular");
+   AiParameterStr("aov_coat", "coat");
    AiParameterStr("aov_shallow_scatter", "shallow_scatter");
    AiParameterStr("aov_mid_scatter", "mid_scatter");
    AiParameterStr("aov_deep_scatter", "deep_scatter");
+   AiParameterStr("aov_single_scatter", "single_scatter");   
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
@@ -65,25 +69,29 @@ enum SSSParams {
    p_primary_specular_weight,
    p_primary_specular_roughness,
    p_primary_specular_enable_fresnel_falloff,
-   p_primary_specular_fresnel_weight,
    p_primary_specular_ior,
    p_secondary_specular_color,
    p_secondary_specular_weight,
    p_secondary_specular_roughness,
    p_secondary_specular_enable_fresnel_falloff,
-   p_secondary_specular_fresnel_weight,
    p_secondary_specular_ior,
    p_global_sss_radius_multiplier,
    p_sample_sss_only_in_gi_rays,
    p_sample_sss_only_in_glossy_rays,
    p_combine_sss_queries,
+   p_single_scatter_weight,
+   p_rd,
+   p_mfp,
+   p_g,
+   p_eta,
    p_aov_direct_diffuse,
    p_aov_indirect_diffuse,
    p_aov_primary_specular,
    p_aov_secondary_specular,
    p_aov_shallow_scatter,
    p_aov_mid_scatter,
-   p_aov_deep_scatter
+   p_aov_deep_scatter,
+   p_aov_single_scatter  
 };
 
 node_initialize
@@ -95,11 +103,12 @@ node_update
 {
    AiAOVRegister(AiNodeGetStr(node, "aov_direct_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_indirect_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_primary_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_secondary_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_coat"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_shallow_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_mid_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_deep_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_single_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
 node_finish
@@ -142,12 +151,8 @@ shader_evaluate
       secondarySpecularWeight = AiShaderEvalParamRGB(p_secondary_specular_color) * AiShaderEvalParamFlt(p_secondary_specular_weight);
       if (AiShaderEvalParamBool(p_secondary_specular_enable_fresnel_falloff))
       {
-         const float fresnelWeight = AiShaderEvalParamFlt(p_secondary_specular_fresnel_weight);
-         if (fresnelWeight > AI_EPSILON)
-         {
-            secondaryFresnel = LERP(fresnelWeight, 1.0f, SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_secondary_specular_ior)));
-            secondarySpecularWeight *= secondaryFresnel;
-         }
+         secondaryFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_secondary_specular_ior));
+         secondarySpecularWeight *= secondaryFresnel;
       }
    }
    
@@ -186,12 +191,8 @@ shader_evaluate
       primarySpecularWeight = AiShaderEvalParamRGB(p_primary_specular_color) * AiShaderEvalParamFlt(p_primary_specular_weight);
       if (AiShaderEvalParamBool(p_primary_specular_enable_fresnel_falloff))
       {
-         const float fresnelWeight = AiShaderEvalParamFlt(p_primary_specular_fresnel_weight);
-         if (fresnelWeight > AI_EPSILON)
-         {
-            primaryFresnel = LERP(fresnelWeight, 1.0f, SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_primary_specular_ior)));
-            primarySpecularWeight *= primaryFresnel * (1.0f - secondaryFresnel);
-         }
+         primaryFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_primary_specular_ior));
+         primarySpecularWeight *= primaryFresnel * (1.0f - secondaryFresnel);
       }
       enablePrimarySpecular = !AiColorIsSmall(primarySpecularWeight);
    }
@@ -257,11 +258,12 @@ shader_evaluate
    AtRGB shallowScatter = AI_RGB_BLACK;
    AtRGB midScatter = AI_RGB_BLACK;
    AtRGB deepScatter = AI_RGB_BLACK;
+   AtRGB singleScatter = AI_RGB_BLACK;
 
 #if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
-   const float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
+   float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
    const bool enableSSS = sssWeight > AI_EPSILON;
-
+   bool enableSingleScatter = false;
    if (enableSSS)
    {
       const float globalSSSRadiusMultiplier = AiShaderEvalParamFlt(p_global_sss_radius_multiplier);
@@ -290,12 +292,24 @@ shader_evaluate
          if (!AiColorIsSmall(colorWeights[2]) && (radiuses[2] > AI_EPSILON))
             deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
       }
+
+      sssWeight *= AiShaderEvalParamFlt(p_single_scatter_weight);
+      enableSingleScatter = sssWeight > AI_EPSILON;
+      if (enableSingleScatter)
+      {
+         singleScatter = AiSSSTraceSingleScatter(sg, 
+                                                 AiShaderEvalParamRGB(p_rd),
+                                                 AiShaderEvalParamRGB(p_mfp),
+                                                 AiShaderEvalParamFlt(p_g),
+                                                 AiShaderEvalParamFlt(p_eta)) * sssWeight;
+      }
    }
+   
 #endif
 
    sg->out.RGB = directDiffuse + indirectDiffuse +
                  primarySpecular + secondarySpecular +
-                 shallowScatter + midScatter + deepScatter;
+                 shallowScatter + midScatter + deepScatter + singleScatter;
 
    if (sg->Rt & AI_RAY_CAMERA)
    {
@@ -306,5 +320,6 @@ shader_evaluate
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shallow_scatter), shallowScatter);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_mid_scatter), midScatter);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_deep_scatter), deepScatter);
+      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_single_scatter), singleScatter);      
    }
 }

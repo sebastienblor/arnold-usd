@@ -117,35 +117,41 @@
     [attr deep_scatter_radius]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-    [attr primary_specular_weight]
+    [attr specular_weight]
         min                 FLOAT   0.0
         max                 FLOAT   1.0        
-    [attr primary_specular_roughness]
+    [attr specular_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0   
         default             FLOAT   0.5
-    [attr primary_specular_fresnel_weight]
+    [attr specular_ior]
         min                 FLOAT   0.0
-        max                 FLOAT   1.0
-    [attr primary_specular_ior]
-        min                 FLOAT   0.0
+        softmin             FLOAT   1.0
         softmax             FLOAT   5.0
-    [attr secondary_specular_weight]
+    [attr coat_weight]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr secondary_specular_roughness]
+    [attr coat_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         default             FLOAT   0.5
-    [attr secondary_specular_fresnel_weight]
+    [attr coat_ior]
         min                 FLOAT   0.0
-        max                 FLOAT   1.0
-    [attr secondary_specular_ior]
-        min                 FLOAT   0.0
+        softmin             FLOAT   1.0
         softmax             FLOAT   5.0
     [attr global_sss_radius_multiplier]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
+    [attr single_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr g]
+        min                 FLOAT  -1.0
+        max                 FLOAT   1.0  
+    [attr eta]
+        min                 FLOAT   0.0
+        softmin             FLOAT   1.0
+        softmax             FLOAT   5.0
 
     # AOVs
     [attr aov_direct_diffuse]
