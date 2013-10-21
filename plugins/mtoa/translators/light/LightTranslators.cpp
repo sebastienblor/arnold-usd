@@ -252,7 +252,6 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("filename");
 }
 
-
 // Mesh AreaLight
 
 double CalculateTriangleArea(const AtVector& p0, 
@@ -325,7 +324,35 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    AiNodeSetArray(meshNode, "nsides", nsides);
 
+   bool exportUVs = false;
+   int numUVSets = mesh.numUVSets();
+   AtArray* uvidxs = 0;
+
+   if (numUVSets > 0)
+   {
+      int numUVs = mesh.numUVs();
+      if (numUVs > 0)
+      {
+         exportUVs = true;
+         AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
+         uvidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+      
+         MFloatArray uArray, vArray;
+         mesh.getUVs(uArray, vArray);
+
+         for (int j = 0; j < numUVs; ++j)
+         {
+            AtPoint2 atv;
+            atv.x = uArray[j];
+            atv.y = vArray[j];
+            AiArraySetPnt2(uv, j, atv);
+         }
+         AiNodeSetArray(meshNode, "uvlist", uv);
+      }
+   }
+
    AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+   int uv_id = 0;
 
    for(int i = 0, id = 0; i < numPolygons; ++i)
    {
@@ -333,9 +360,24 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       int vertexCount = AiArrayGetUInt(nsides, i);
       mesh.getPolygonVertices(i, vidx);
       for (int j = 0; j < vertexCount; ++j)
-         AiArraySetUInt(vidxs, id++, vidx[j]);
+      {
+         AiArraySetUInt(vidxs, id, vidx[j]);
+         if (exportUVs)
+         {
+            if (mesh.getPolygonUVid(i, j, uv_id) != MS::kSuccess)
+            {
+               uv_id = 0;
+               AiMsgWarning("[MtoA] No uv coordinate exists for the default uv set at polygon %i at vertex %i on mesh %s.",
+                            i, j, mesh.name().asChar());
+            }
+            AiArraySetUInt(uvidxs, id, uv_id);
+         }
+         ++id;
+      }
    }
    AiNodeSetArray(meshNode, "vidxs", vidxs);
+   if (exportUVs)
+      AiNodeSetArray(meshNode, "uvidxs", uvidxs);
 
    AiNodeSetPtr(meshNode, "shader", NULL);
    return meshNode;
@@ -378,15 +420,17 @@ void CMeshLightTranslator::Export(AtNode* light)
    AtNode* shaderNode = GetArnoldNode("shader");
    AiNodeSetPtr(meshNode, "shader", shaderNode);
 
+   ProcessParameter(shaderNode, "color", AI_TYPE_RGB, FindMayaPlug("color"));
+
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {      
       AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
       
-      AtRGB color = AiNodeGetRGB(light, "color");
+      AtRGB colorMultiplier = AI_RGB_WHITE;
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
-      AiColorGamma(&color, light_gamma);
-      color = color * AiNodeGetFlt(light, "intensity") * 
+      AiColorGamma(&colorMultiplier, light_gamma);
+      colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
          powf(2.f, AiNodeGetFlt(light, "exposure"));
       
       // if normalize is set to false, we need to multiply
@@ -394,14 +438,14 @@ void CMeshLightTranslator::Export(AtNode* light)
       // doing a very simple triangulation, good for
       // approximating the Arnold one
       if (AiNodeGetBool(light, "normalize"))
-         NormalizeColor(meshObject, color);
+         NormalizeColor(meshObject, colorMultiplier);
       
-      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+      AiNodeSetRGB(shaderNode, "color_multiplier", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
    }
    else
    {
       AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
-      AiNodeSetRGB(shaderNode, "color", 0.f, 0.f, 0.f);
+      AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
    }
 }
 

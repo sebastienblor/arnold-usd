@@ -428,7 +428,6 @@
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
         
-        
 [node photometric_light]
     maya.name               STRING  "aiPhotometricLight"
     maya.id                 INT     0x00115C87
@@ -663,6 +662,15 @@
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
+
+
+[node mesh_light]
+    maya.name               STRING  "aiAreaLight"
+    maya.id                 INT     0x00115C86
+    maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+    [attr color]
+        linkable            BOOL    True  
 
 # light filters
 
