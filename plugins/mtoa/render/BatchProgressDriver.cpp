@@ -139,8 +139,6 @@ driver_open
    }
 }
 
-#if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
-
 driver_needs_bucket
 {
    return true;
@@ -150,8 +148,6 @@ driver_process_bucket
 {
 
 }
-
-#endif
 
 driver_prepare_bucket
 {
