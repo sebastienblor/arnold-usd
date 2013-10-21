@@ -420,15 +420,17 @@ void CMeshLightTranslator::Export(AtNode* light)
    AtNode* shaderNode = GetArnoldNode("shader");
    AiNodeSetPtr(meshNode, "shader", shaderNode);
 
+   ProcessParameter(shaderNode, "color", AI_TYPE_RGB, FindMayaPlug("color"));
+
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {      
       AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
       
-      AtRGB color = AiNodeGetRGB(light, "color");
+      AtRGB colorMultiplier = AI_RGB_WHITE;
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
-      AiColorGamma(&color, light_gamma);
-      color = color * AiNodeGetFlt(light, "intensity") * 
+      AiColorGamma(&colorMultiplier, light_gamma);
+      colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
          powf(2.f, AiNodeGetFlt(light, "exposure"));
       
       // if normalize is set to false, we need to multiply
@@ -436,14 +438,14 @@ void CMeshLightTranslator::Export(AtNode* light)
       // doing a very simple triangulation, good for
       // approximating the Arnold one
       if (AiNodeGetBool(light, "normalize"))
-         NormalizeColor(meshObject, color);
+         NormalizeColor(meshObject, colorMultiplier);
       
-      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+      AiNodeSetRGB(shaderNode, "color_multiplier", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
    }
    else
    {
       AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
-      AiNodeSetRGB(shaderNode, "color", 0.f, 0.f, 0.f);
+      AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
    }
 }
 

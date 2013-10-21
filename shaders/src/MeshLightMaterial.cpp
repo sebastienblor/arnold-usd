@@ -3,12 +3,14 @@
 AI_SHADER_NODE_EXPORT_METHODS(MeshLightMaterialMtd);
 
 enum MeshLightMaterialParams{
-   p_color = 0
+   p_color = 0,
+   p_color_multiplier
 };
 
 node_parameters
 {
    AiParameterRGB("color", 0.f, 0.f, 0.f);
+   AiParameterRGB("color_multiplier", 0.0f, 0.0f, 0.0f);
    
    AiMetaDataSetBool(mds, "color", "always_linear", true); // no gamma correction
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMeshLightMaterial");
@@ -38,6 +40,6 @@ shader_evaluate
       return;
    }
    
-   sg->out.RGB = AiShaderEvalParamRGB(p_color);
+   sg->out.RGB = AiShaderEvalParamRGB(p_color) * AiShaderEvalParamRGB(p_color_multiplier);
    sg->out.RGBA.a = 1.f;
 }
