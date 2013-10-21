@@ -43,6 +43,7 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
+#include "translators/shape/XGenTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
