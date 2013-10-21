@@ -304,27 +304,27 @@ namespace // <anonymous>
                                   CSphericalCameraTranslator::creator,
                                   CSphericalCameraTranslator::NodeInitializer);
                                   
-       // Hair
-       builtin->RegisterTranslator("pfxHair",
-                                   "",
-                                   CHairTranslator::creator,
-                                   CHairTranslator::NodeInitializer);
-       // Curves
-              builtin->RegisterTranslator("nurbsCurve",
-                                          "",
-                                          CCurveTranslator::creator,
-                                          CCurveTranslator::NodeInitializer);
+      // Hair
+      builtin->RegisterTranslator("pfxHair",
+                                  "",
+                                  CHairTranslator::creator,
+                                  CHairTranslator::NodeInitializer);
+      // Curves
+      builtin->RegisterTranslator("nurbsCurve",
+                                    "",
+                                    CCurveTranslator::creator,
+                                    CCurveTranslator::NodeInitializer);
 
-       // Particles
-       builtin->RegisterTranslator("particle",
+      // Particles
+      builtin->RegisterTranslator("particle",
                                    "",
                                    CParticleTranslator::creator,
                                    CParticleTranslator::NodeInitializer);
 
-       builtin->RegisterTranslator("nParticle",
-                                   "",
-                                   CNParticleTranslator::creator,
-                                   CNParticleTranslator::NodeInitializer);
+      builtin->RegisterTranslator("nParticle",
+                                  "",
+                                  CNParticleTranslator::creator,
+                                  CNParticleTranslator::NodeInitializer);
 
        builtin->RegisterTranslator("instancer",
                                    "",
@@ -452,6 +452,15 @@ namespace // <anonymous>
                                      "",
                                      CreateQuadShadingSwitchTranslator);
       }
+
+      // register the xgen extesion separately
+      CExtension* xgen = new CExtension("xgen");
+      xgen->Requires("xgenToolkit");
+      xgen->RegisterTranslator("xgmDescription",
+                               "",
+                               CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
+
+      CExtensionsManager::RegisterExtension(xgen);
 
       // Will load all found plugins and try to register nodes and translators
 
