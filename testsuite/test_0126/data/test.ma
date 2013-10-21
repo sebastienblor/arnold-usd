@@ -1,9 +1,9 @@
 //Maya ASCII 2012 scene
 //Name: test.ma
-//Last modified: Wed, Jun 19, 2013 08:20:32 PM
+//Last modified: Tue, Oct 15, 2013 07:52:53 PM
 //Codeset: UTF-8
 requires maya "2012";
-requires "mtoa" "0.25.0.dev";
+requires "mtoa" "1.0.0.dev";
 requires "Mayatomr" "2012.0m - 3.9.1.48 ";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
@@ -11,7 +11,7 @@ fileInfo "application" "maya";
 fileInfo "product" "Maya 2012";
 fileInfo "version" "2012 x64";
 fileInfo "cutIdentifier" "201201172014-821146";
-fileInfo "osv" "Linux 2.6.32-358.11.1.el6.centos.plus.x86_64 #1 SMP Wed Jun 12 19:12:17 UTC 2013 x86_64";
+fileInfo "osv" "Linux 2.6.32-358.18.1.el6.centos.plus.x86_64 #1 SMP Wed Aug 28 16:14:04 UTC 2013 x86_64";
 fileInfo "psyop_attr_pUsers" "yyamashita";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
@@ -2593,7 +2593,7 @@ createNode shadingEngine -n "aiStandard8SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo13";
 createNode aiUtility -n "aiUtility1";
-	setAttr ".color_mode" 20;
+	setAttr ".color_mode" 21;
 	setAttr ".shade_mode" 2;
 select -ne :time1;
 	setAttr -av -k on ".cch";

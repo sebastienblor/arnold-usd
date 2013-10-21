@@ -41,6 +41,7 @@ CRenderOptions::CRenderOptions()
 ,  m_pixelAspectRatio(1.0f)
 ,  m_useRenderRegion(false)
 ,  m_clearBeforeRender(false)
+,  m_useBinaryEncoding(true)
 ,  m_multiCameraRender(false)
 ,  m_use_existing_tiled_textures(true)
 ,  m_outputAssMask(AI_NODE_ALL)
@@ -172,6 +173,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_progressive_rendering     = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
+      m_useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
       m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
       
@@ -179,6 +181,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
+
 
       m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file").asBool();
       m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console").asBool();
