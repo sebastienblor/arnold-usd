@@ -252,7 +252,6 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("filename");
 }
 
-
 // Mesh AreaLight
 
 double CalculateTriangleArea(const AtVector& p0, 
@@ -325,7 +324,35 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    AiNodeSetArray(meshNode, "nsides", nsides);
 
+   bool exportUVs = false;
+   int numUVSets = mesh.numUVSets();
+   AtArray* uvidxs = 0;
+
+   if (numUVSets > 0)
+   {
+      int numUVs = mesh.numUVs();
+      if (numUVs > 0)
+      {
+         exportUVs = true;
+         AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
+         uvidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+      
+         MFloatArray uArray, vArray;
+         mesh.getUVs(uArray, vArray);
+
+         for (int j = 0; j < numUVs; ++j)
+         {
+            AtPoint2 atv;
+            atv.x = uArray[j];
+            atv.y = vArray[j];
+            AiArraySetPnt2(uv, j, atv);
+         }
+         AiNodeSetArray(meshNode, "uvlist", uv);
+      }
+   }
+
    AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+   int uv_id = 0;
 
    for(int i = 0, id = 0; i < numPolygons; ++i)
    {
@@ -333,9 +360,24 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       int vertexCount = AiArrayGetUInt(nsides, i);
       mesh.getPolygonVertices(i, vidx);
       for (int j = 0; j < vertexCount; ++j)
-         AiArraySetUInt(vidxs, id++, vidx[j]);
+      {
+         AiArraySetUInt(vidxs, id, vidx[j]);
+         if (exportUVs)
+         {
+            if (mesh.getPolygonUVid(i, j, uv_id) != MS::kSuccess)
+            {
+               uv_id = 0;
+               AiMsgWarning("[MtoA] No uv coordinate exists for the default uv set at polygon %i at vertex %i on mesh %s.",
+                            i, j, mesh.name().asChar());
+            }
+            AiArraySetUInt(uvidxs, id, uv_id);
+         }
+         ++id;
+      }
    }
    AiNodeSetArray(meshNode, "vidxs", vidxs);
+   if (exportUVs)
+      AiNodeSetArray(meshNode, "uvidxs", uvidxs);
 
    AiNodeSetPtr(meshNode, "shader", NULL);
    return meshNode;
