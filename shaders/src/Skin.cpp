@@ -260,7 +260,6 @@ shader_evaluate
    AtRGB deepScatter = AI_RGB_BLACK;
    AtRGB singleScatter = AI_RGB_BLACK;
 
-#if AI_VERSION_ARCH_NUM == 4 && AI_VERSION_MAJOR_NUM == 1
    float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
    const bool enableSSS = sssWeight > AI_EPSILON;
    bool enableSingleScatter = false;
@@ -304,8 +303,6 @@ shader_evaluate
                                                  AiShaderEvalParamFlt(p_eta)) * sssWeight;
       }
    }
-   
-#endif
 
    sg->out.RGB = directDiffuse + indirectDiffuse +
                  specular + coat +
