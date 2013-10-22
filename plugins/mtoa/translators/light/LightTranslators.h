@@ -125,11 +125,19 @@ public:
 class CMeshLightTranslator : public CLightTranslator
 {
 public:
+   CMeshLightTranslator(bool mesh) : m_numVertices(0), m_isMesh(mesh)
+   {
+   }
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
+   static void NodeInitializerMesh(CAbTranslator context);
    static void* creator()
    {
-      return new CMeshLightTranslator();
+      return new CMeshLightTranslator(false);
+   }
+   static void* creatorMesh()
+   {
+      return new CMeshLightTranslator(true);
    }
    AtNode* CreateArnoldNodes()
    {
@@ -144,4 +152,5 @@ protected:
    virtual MObject GetMeshObject() const;
 
    int m_numVertices;
+   bool m_isMesh;
 };

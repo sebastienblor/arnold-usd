@@ -247,6 +247,10 @@ namespace // <anonymous>
                                   "",
                                   CMeshTranslator::creator,
                                   CMeshTranslator::NodeInitializer);
+      builtin->RegisterTranslator("mesh",
+                                  "mesh_light",
+                                  CMeshLightTranslator::creatorMesh,
+                                  CMeshLightTranslator::NodeInitializerMesh);
       builtin->RegisterTranslator("nurbsSurface",
                                   "",
                                   CNurbsSurfaceTranslator::creator,

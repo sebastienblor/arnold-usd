@@ -385,12 +385,17 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
 MObject CMeshLightTranslator::GetMeshObject() const
 {
-   MFnDependencyNode fnDepNode(m_dagPath.node());
-   MStatus status;
-   MPlug plug = fnDepNode.findPlug("inputMesh", &status);
-   MObject meshObject;
-   plug.getValue(meshObject);
-   return meshObject;
+   if (m_isMesh)
+      return m_dagPath.node();
+   else
+   {
+      MFnDependencyNode fnDepNode(m_dagPath.node());
+      MStatus status;
+      MPlug plug = fnDepNode.findPlug("inputMesh", &status);
+      MObject meshObject;
+      plug.getValue(meshObject);
+      return meshObject;
+   }
 }
 
 void CMeshLightTranslator::Export(AtNode* light)
@@ -456,7 +461,48 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
+}
 
+void CMeshLightTranslator::NodeInitializerMesh(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "mesh_light");
+   // common attributes
+   MakeCommonAttributes(helper);
+   helper.MakeInput("shadow_color");
+   helper.MakeInput("decay_type");
+   CAttrData data;
+
+   data.name = "color";
+   data.shortName = "sc";
+   data.defaultValue.RGB = AI_RGB_WHITE;
+   data.channelBox = true;
+   helper.MakeInputRGB(data);
+
+   data.name = "intensity";
+   data.shortName = "intensity";
+   data.min.FLT = 0.0f;
+   data.softMax.FLT = 10.0f;
+   data.defaultValue.FLT = 1.0f;
+   data.channelBox = true;
+   helper.MakeInputFloat(data);
+
+   data.name = "emitDiffuse";
+   data.shortName = "emitDiffuse";
+   data.defaultValue.BOOL = true;
+   data.channelBox = true;
+   helper.MakeInputBoolean(data);
+
+   data.name = "emitSpecular";
+   data.shortName = "emitSpecular";
+   data.defaultValue.BOOL = true;
+   data.channelBox = true;
+   helper.MakeInputBoolean(data);
+
+   data.name = "lightVisible";
+   data.shortName = "light_visible";
+   data.defaultValue.BOOL = false;
+   data.channelBox = false;
+   helper.MakeInputBoolean(data);
 }
 
 void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
