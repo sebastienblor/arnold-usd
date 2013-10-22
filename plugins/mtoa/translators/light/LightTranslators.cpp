@@ -470,6 +470,9 @@ void CMeshLightTranslator::NodeInitializerMesh(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("cast_volumetric_shadows");
    CAttrData data;
 
    data.name = "color";

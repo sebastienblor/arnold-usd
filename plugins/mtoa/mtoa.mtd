@@ -670,7 +670,37 @@
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
     [attr color]
-        linkable            BOOL    True  
+        linkable            BOOL    True
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr exposure]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
 
 # light filters
 
