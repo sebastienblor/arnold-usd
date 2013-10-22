@@ -593,7 +593,10 @@ if system.os() == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
-    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS[0])
+    for proc in MTOA_PROCS:
+        if str(proc)[-3:] == 'dll':
+            env.Install(env['TARGET_PROCEDURAL_PATH'], proc)
+    
     libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
