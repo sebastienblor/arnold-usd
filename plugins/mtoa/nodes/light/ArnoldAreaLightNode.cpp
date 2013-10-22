@@ -311,7 +311,7 @@ MStatus CArnoldAreaLightNode::initialize()
    addAttribute(s_inputMesh);
    
    s_lightVisible = nAttr.create("lightVisible", "light_visible", MFnNumericData::kBoolean);
-   nAttr.setDefault(true);
+   nAttr.setDefault(false);
    nAttr.setChannelBox(true);
    addAttribute(s_lightVisible);
    
