@@ -379,6 +379,12 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
    if (exportUVs)
       AiNodeSetArray(meshNode, "uvidxs", uvidxs);
 
+   const int textureSubdiv = FindMayaPlug("aiLightTextureSubdivision").asInt();
+   if (textureSubdiv > 0)
+   {
+      AiNodeSetInt(meshNode, "subdiv_iterations", textureSubdiv);
+      AiNodeSetStr(meshNode, "subdiv_type", "linear");
+   }
    AiNodeSetPtr(meshNode, "shader", NULL);
    return meshNode;
 }
@@ -514,6 +520,15 @@ void CMeshLightTranslator::NodeInitializerMesh(CAbTranslator context)
    data.defaultValue.BOOL = false;
    data.channelBox = false;
    helper.MakeInputBoolean(data);
+
+   data.name = "aiLightTextureSubdivision";
+   data.shortName = "ai_light_texture_subdivision";
+   data.defaultValue.INT = 0;
+   data.min.INT = 0;
+   data.softMax.INT = 6;
+   data.hasMin = true;
+   data.hasSoftMax = true;
+   helper.MakeInputInt(data);
 }
 
 void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)

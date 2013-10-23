@@ -88,7 +88,9 @@ class MeshLightMeshTemplate(BaseAreaLightTemplate):
         self.addControl("emitSpecular")
         self.addControl("aiDecayType")
 
+        self.addSeparator()
         self.addControl("lightVisible")
+        self.addControl("aiLightTextureSubdivision", label="Texture Subdivision")
         
         self.addSeparator()
         
