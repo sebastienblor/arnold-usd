@@ -244,7 +244,7 @@ namespace // <anonymous>
 
       // Geometry
       builtin->RegisterTranslator("mesh",
-                                  "",
+                                  "polymesh",
                                   CMeshTranslator::creator,
                                   CMeshTranslator::NodeInitializer);
       builtin->RegisterTranslator("mesh",
