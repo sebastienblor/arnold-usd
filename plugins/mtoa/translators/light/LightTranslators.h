@@ -145,6 +145,8 @@ public:
       AddArnoldNode("meshLightMaterial", "shader");
       return AddArnoldNode("mesh_light");
    }
+
+   virtual void Delete();
    
    virtual void ExportMotion(AtNode* light, unsigned int step);
 protected:

@@ -454,6 +454,14 @@ void CMeshLightTranslator::Export(AtNode* light)
    }
 }
 
+void CMeshLightTranslator::Delete()
+{
+   for (std::map<std::string, AtNode*>::iterator it = m_atNodes.begin(); it != m_atNodes.end(); ++it)
+      AiNodeDestroy(it->second);
+   m_atNode = NULL;
+   m_atNodes.clear();
+}
+
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "mesh_light");
