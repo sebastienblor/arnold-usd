@@ -40,6 +40,12 @@ shader_evaluate
       return;
    }
    
+   if (AiV3Dot(sg->Ng, sg->Ngf) < 0)
+   {
+      sg->out.RGBA = AI_RGBA_BLACK;   
+      return;
+   }
+
    sg->out.RGB = AiShaderEvalParamRGB(p_color) * AiShaderEvalParamRGB(p_color_multiplier);
    sg->out.RGBA.a = 1.f;
 }
