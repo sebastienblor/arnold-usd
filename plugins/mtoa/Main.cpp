@@ -452,7 +452,8 @@ namespace // <anonymous>
                                      "",
                                      CreateQuadShadingSwitchTranslator);
       }
-
+      
+#ifdef ENABLE_XGEN
       // register the xgen extesion separately
       CExtension* xgen = new CExtension("xgen");
       xgen->Requires("xgenToolkit");
@@ -461,6 +462,7 @@ namespace // <anonymous>
                                CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
 
       CExtensionsManager::RegisterExtension(xgen);
+#endif
 
       // Will load all found plugins and try to register nodes and translators
 
