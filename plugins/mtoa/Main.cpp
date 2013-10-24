@@ -64,6 +64,7 @@
 
 namespace // <anonymous>
 {
+   MCallbackId connectionCallback;
 
    static void SetEnv(const MString& env, const MString& val)
    {
@@ -532,6 +533,20 @@ int GetStartupLogLevel()
    } 
 }
 
+void updateEnvironment(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData)
+{
+   MString srcName = srcPlug.partialName(false, false, false, false, false, true);
+   MString destName = destPlug.name();
+   
+   if(srcName == "message")
+   {  
+      if(destName == "defaultArnoldRenderOptions.background")
+         MGlobal::executeCommandOnIdle("updateBackgroundSettings()");
+      else if(destName == "defaultArnoldRenderOptions.atmosphere")
+         MGlobal::executeCommandOnIdle("updateAtmosphereSettings()");
+   }
+}
+
 
 DLLEXPORT MStatus initializePlugin(MObject object)
 {
@@ -781,6 +796,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+   
+   connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
    ArnoldUniverseEnd();
 
@@ -979,6 +996,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister Arnold ass file importer");
    }
 
+   MMessage::removeCallback(connectionCallback);
+   
    ArnoldUniverseEnd();
 
    CMayaScene::DeInit();

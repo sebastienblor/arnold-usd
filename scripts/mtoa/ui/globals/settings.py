@@ -604,7 +604,7 @@ def createArnoldEnvironmentSettings():
     pm.text(label="Background")
     backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
     backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
-    backgroundSelectButton = pm.symbolButton(image="navButtonConnected.png", command=selectBackground, enable=False)
+    backgroundSelectButton = pm.symbolButton("defaultArnoldRenderOptionsBackgroundSelectButton", image="navButtonConnected.png", command=selectBackground, enable=False)
     bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
     pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
 
@@ -622,7 +622,7 @@ def createArnoldEnvironmentSettings():
     pm.text(label="Atmosphere")
     atmosphereTextField = pm.textField("defaultArnoldRenderOptionsAtmosphereTextField",editable=False)
     atmosphereButton = pm.symbolButton(image="navButtonUnconnected.png")
-    atmosphereSelectButton = pm.symbolButton(image="navButtonConnected.png", command=selectAtmosphere, enable=False)
+    atmosphereSelectButton = pm.symbolButton("defaultArnoldRenderOptionsAtmosphereSelectButton", image="navButtonConnected.png", command=selectAtmosphere, enable=False)
     atpopup = pm.popupMenu(parent=atmosphereButton, button=1)
     pm.popupMenu(atpopup, edit=True, postMenuCommand=Callback(buildAtmosphereMenu, atpopup, atmosphereTextField, atmosphereSelectButton))
     
@@ -1297,6 +1297,21 @@ def updateBackgroundSettings(*args):
     background = getBackgroundShader()
     if pm.textField( 'defaultArnoldRenderOptionsBackgroundTextField', query=True, exists=True):
         pm.textField('defaultArnoldRenderOptionsBackgroundTextField', edit=True, text=background)
+    if pm.symbolButton( 'defaultArnoldRenderOptionsBackgroundSelectButton', query=True, exists=True):
+        if not background:
+            pm.symbolButton('defaultArnoldRenderOptionsBackgroundSelectButton', edit=True, enable=False)
+        else:
+            pm.symbolButton('defaultArnoldRenderOptionsBackgroundSelectButton', edit=True, enable=True)
+            
+def updateAtmosphereSettings(*args):
+    atmosphere = getAtmosphereShader()
+    if pm.textField( 'defaultArnoldRenderOptionsAtmosphereTextField', query=True, exists=True):
+        pm.textField('defaultArnoldRenderOptionsAtmosphereTextField', edit=True, text=atmosphere)
+    if pm.symbolButton( 'defaultArnoldRenderOptionsAtmosphereSelectButton', query=True, exists=True):
+        if not atmosphere:
+            pm.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=False)
+        else:
+            pm.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=True)
 
 def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
