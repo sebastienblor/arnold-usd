@@ -145,6 +145,10 @@ void CFluidTexture2DTranslator::Export(AtNode* fluid2d)
    ProcessParameter(fluid2d, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");
    ProcessParameter(fluid2d, "velocity_scale", AI_TYPE_VECTOR, "velocityScale");
 
+   MPlug renderInterpolatorPlug = FindMayaPlug("renderInterpolator");
+   if (!renderInterpolatorPlug.isNull())
+      AiNodeSetInt(fluid2d, "filter_type", renderInterpolatorPlug.asInt() == 3 ? 1 : 0);   
+
    unsigned int xRes, yRes;
 
    mayaFluid.getResolution(xRes, yRes);

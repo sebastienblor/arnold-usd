@@ -13,6 +13,7 @@ struct MayaFluidTexture2D {
    GradientDescription<float, false, false> opacityGradient;  
 
    int dropoffShape;
+   int filterType;
    
 
    static void* operator new(size_t size)
@@ -41,8 +42,13 @@ enum FluidTexture2DParams{
    p_edge_dropoff = 0
 };
 
+
+const char* filterType2DEnums[] = {"Closest", "Linear", 0};
+
 node_parameters
 {
+   AiParameterEnum("filter_type", FT_LINEAR, filterType2DEnums);
+
    InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params, false);
 
@@ -77,7 +83,8 @@ node_update
                                     AiNodeGetArray(node, "opacity_gradient_positions"),
                                     AiNodeGetArray(node, "opacity_gradient_interps"));
 
-   data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");   
+   data->dropoffShape = AiNodeGetInt(node, "dropoff_shape");
+   data->filterType = AiNodeGetInt(node, "filter_type");
 }
 
 node_finish
@@ -89,18 +96,18 @@ shader_evaluate
 {
    MayaFluidTexture2D* data = reinterpret_cast<MayaFluidTexture2D*>(AiNodeGetLocalData(node));
    AtVector lPt = {sg->u, sg->v, 0.0f};
-   float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), FT_LINEAR);
-   const AtRGB opacity = MAX(0.f, GetValue(sg, data->fluidData, lPt, data->opacityGradient, FT_LINEAR, 1.0f, AI_V3_ONE)) * dropoff * AI_RGB_WHITE; // * data->transparency;
+   float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType);
+   const AtRGB opacity = MAX(0.f, GetValue(sg, data->fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, AI_V3_ONE)) * dropoff * AI_RGB_WHITE; // * data->transparency;
    AtRGB color = AI_RGB_BLACK;
    if (data->fluidData->colorGridEmpty())
-      color = GetValue(sg, data->fluidData, lPt, data->colorGradient, FT_LINEAR, 1.0f, AI_V3_ONE);
+      color = GetValue(sg, data->fluidData, lPt, data->colorGradient, data->filterType, 1.0f, AI_V3_ONE);
    else
       color = data->fluidData->readColors(lPt, FT_LINEAR);
 
    color.r = MAX(0.f, color.r);
    color.g = MAX(0.f, color.g);
    color.b = MAX(0.f, color.b);
-   AtRGB incandescence = GetValue(sg, data->fluidData, lPt, data->incandescenceGradient, FT_LINEAR, 1.0f, AI_V3_ONE);
+   AtRGB incandescence = GetValue(sg, data->fluidData, lPt, data->incandescenceGradient, data->filterType, 1.0f, AI_V3_ONE);
    incandescence.r = MAX(0.f, incandescence.r);
    incandescence.g = MAX(0.f, incandescence.g);
    incandescence.b = MAX(0.f, incandescence.b); // do we need this?
