@@ -89,3 +89,82 @@
     aov.type                INT     0x05
     
     
+[node Skin]
+    [attr diffuse_weight]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr diffuse_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr sss_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr shallow_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr shallow_scatter_radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr mid_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr mid_scatter_radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0        
+    [attr deep_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr deep_scatter_radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr specular_weight]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0        
+    [attr specular_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0   
+        default             FLOAT   0.5
+    [attr specular_ior]
+        min                 FLOAT   0.0
+        softmin             FLOAT   1.0
+        softmax             FLOAT   5.0
+    [attr coat_weight]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+    [attr coat_roughness]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        default             FLOAT   0.5
+    [attr coat_ior]
+        min                 FLOAT   0.0
+        softmin             FLOAT   1.0
+        softmax             FLOAT   5.0
+    [attr global_sss_radius_multiplier]
+        min                 FLOAT   0.0
+        softmax             FLOAT   20.0
+    [attr single_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr g]
+        min                 FLOAT  -1.0
+        max                 FLOAT   1.0  
+    [attr eta]
+        min                 FLOAT   0.0
+        softmin             FLOAT   1.0
+        softmax             FLOAT   5.0
+
+    # AOVs
+    [attr aov_direct_diffuse]
+    aov.type                INT     0x05
+    [attr aov_indirect_diffuse]
+    aov.type                INT     0x05
+    [attr aov_primary_specular]
+    aov.type                INT     0x05
+    [attr aov_secondary_specular]
+    aov.type                INT     0x05    
+    [attr aov_shallow_scatter]
+    aov.type                INT     0x05
+    [attr aov_mid_scatter]
+    aov.type                INT     0x05
+    [attr aov_deep_scatter]
+    aov.type                INT     0x05

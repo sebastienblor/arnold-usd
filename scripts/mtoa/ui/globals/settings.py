@@ -81,7 +81,6 @@ def updateMotionBlurSettings(*args):
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
     logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable= (name != "") and logToFile)
 
 def getBackgroundShader(*args):
     conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
@@ -94,7 +93,7 @@ def selectBackground(*args):
     if node:
         pm.select(node, r=True)
 
-def changeBackground(node, field):
+def changeBackground(node, field, select):
     connection = pm.listConnections('defaultArnoldRenderOptions.background')
     if connection:
         if pm.nodeType(connection[0]) == 'transform':
@@ -105,24 +104,26 @@ def changeBackground(node, field):
     pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
     if field is not None:
         pm.textField(field, edit=True, text=node)
+        pm.symbolButton(select, edit=True, enable=True)
     selectBackground()
 
-def createBackground(type, field):
+def createBackground(type, field, select):
     bg = getBackgroundShader()
     #if bg:
         #pm.delete(bg)
     node = pm.shadingNode(type, asShader=True, name=type)
-    changeBackground(node, field)
+    changeBackground(node, field, select)
 
-def removeBackground(field, doDelete):
+def removeBackground(field, doDelete, select):
     node = getBackgroundShader()
     if node:
         pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
         pm.textField(field, edit=True, text="")
+        pm.symbolButton(select, edit=True, enable=False)
         if doDelete:
             pm.delete(node)
 
-def buildBackgroundMenu(popup, field):
+def buildBackgroundMenu(popup, field, select):
 
     switches = pm.ls(type='aiRaySwitch')
     skies = pm.ls(type='aiSky')
@@ -130,38 +131,90 @@ def buildBackgroundMenu(popup, field):
 
     pm.popupMenu(popup, edit=True, deleteAllItems=True)
     for item in skies:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
+        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
 
     pm.menuItem(parent=popup, divider=True)
     
     for item in pSkies:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
+        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
 
     pm.menuItem(parent=popup, divider=True)
 
     for item in switches:
-        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
+        pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field, select))
 
     pm.menuItem(parent=popup, divider=True)
     
 
-    pm.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field))
-    pm.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field))
-    pm.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field))
+    pm.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field, select))
+    pm.menuItem(parent=popup, label="Create Physical Sky Shader", command=Callback(createBackground, "aiPhysicalSky", field, select))
+    pm.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field, select))
 
     pm.menuItem(parent=popup, divider=True)
 
-    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False))
-    pm.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True))
+    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeBackground, field, False, select))
+    pm.menuItem(parent=popup, label="Delete", command=Callback(removeBackground, field, True, select))
+
+    
+def getAtmosphereShader(*args):
+    conns = pm.listConnections('defaultArnoldRenderOptions.atmosphere', s=True, d=False, p=True)
+    if conns:
+        return conns[0].split('.')[0]
+    return ""
 
 def selectAtmosphere(*args):
-    bkg = pm.getAttr('defaultArnoldRenderOptions.atmosphere')
+    node = getAtmosphereShader()
+    if node:
+        pm.select(node, r=True)
+        
+def changeAtmosphere(node, field, select):
+    connection = pm.listConnections('defaultArnoldRenderOptions.atmosphere')
+    if connection:
+        if pm.nodeType(connection[0]) == 'transform':
+            connection = pm.listRelatives(connection[0], s=True)
+        if str(connection[0]) == str(node):
+            selectAtmosphere()
+            return 0
+    pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.atmosphere', force=True)
+    if field is not None:
+        pm.textField(field, edit=True, text=node)
+        pm.symbolButton(select, edit=True, enable=True)
+    selectAtmosphere()
 
-    if bkg == 1:
-        pm.createNode('aiFog', shared=True, name='defaultFog')
-    elif bkg == 2:
-        pm.createNode('aiVolumeScattering', shared=True, name='defaultVolumeScattering')
+def createAtmosphere(type, field, select):
+    bg = getAtmosphereShader()
+    node = pm.shadingNode(type, asShader=True, name=type)
+    changeAtmosphere(node, field, select)
 
+def removeAtmosphere(field, doDelete, select):
+    node = getAtmosphereShader()
+    if node:
+        pm.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.atmosphere')
+        pm.textField(field, edit=True, text="")
+        pm.symbolButton(select, edit=True, enable=False)
+        if doDelete:
+            pm.delete(node)
+    
+def buildAtmosphereMenu(popup, field, select):
+
+    pm.popupMenu(popup, edit=True, deleteAllItems=True)
+
+    for typ in pm.listNodeTypes(['rendernode/arnold/shader/volume/atmosphere']) or []:
+        shaders = pm.ls(type=typ)
+        for item in shaders:
+            pm.menuItem(parent=popup, label=item, command=Callback(changeAtmosphere, item, field, select))
+    
+    pm.menuItem(parent=popup, divider=True)
+    
+    for typ in pm.listNodeTypes(['rendernode/arnold/shader/volume/atmosphere']) or []:
+        menuLabel = "Create "+typ
+        pm.menuItem(parent=popup, label=menuLabel, command=Callback(createAtmosphere, typ, field, select))
+        
+    pm.menuItem(parent=popup, divider=True)
+
+    pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
+    pm.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
+    
 
 
 def createArnoldRenderSettings():
@@ -547,30 +600,40 @@ def createArnoldEnvironmentSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.rowLayout(adjustableColumn=2, numberOfColumns=3)
+    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
     pm.text(label="Background")
     backgroundTextField = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
-    bgpopup = pm.popupMenu(parent=backgroundTextField)
-    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField))
-    pm.button(label="Select", height=22, width=50, command=selectBackground)
+    backgroundButton = pm.symbolButton(image="navButtonUnconnected.png")
+    backgroundSelectButton = pm.symbolButton(image="navButtonConnected.png", command=selectBackground, enable=False)
+    bgpopup = pm.popupMenu(parent=backgroundButton, button=1)
+    pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, backgroundTextField, backgroundSelectButton))
+
     pm.setParent('..')
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
         pm.textField(backgroundTextField, edit=True, text=conns[0])
+        pm.symbolButton(backgroundSelectButton, edit=True, enable=True)
 
     pm.separator(style="none")
 
-    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
-    pm.separator(style="none")
-    pm.attrEnumOptionMenu('es_atmosphere',
-                            label = 'Atmosphere',
-                            attribute='defaultArnoldRenderOptions.atmosphere',
-                            cc=selectAtmosphere)
-    pm.connectControl('es_atmosphere', 'defaultArnoldRenderOptions.atmosphere', index=1)
-    pm.connectControl('es_atmosphere', 'defaultArnoldRenderOptions.atmosphere', index=2)
+    
+    pm.rowLayout(adjustableColumn=2, numberOfColumns=4)
+    pm.text(label="Atmosphere")
+    atmosphereTextField = pm.textField("defaultArnoldRenderOptionsAtmosphereTextField",editable=False)
+    atmosphereButton = pm.symbolButton(image="navButtonUnconnected.png")
+    atmosphereSelectButton = pm.symbolButton(image="navButtonConnected.png", command=selectAtmosphere, enable=False)
+    atpopup = pm.popupMenu(parent=atmosphereButton, button=1)
+    pm.popupMenu(atpopup, edit=True, postMenuCommand=Callback(buildAtmosphereMenu, atpopup, atmosphereTextField, atmosphereSelectButton))
     
     pm.setParent('..')
+
+    conns = cmds.listConnections('defaultArnoldRenderOptions.atmosphere', s=True, d=False)
+    if conns:
+        pm.textField(atmosphereTextField, edit=True, text=conns[0])
+        pm.symbolButton(atmosphereSelectButton, edit=True, enable=True)
+
+    
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -802,10 +865,7 @@ def createArnoldOverrideSettings():
                         
     pm.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
-    					
-    pm.attrControlGrp('ignore_mis',
-                        attribute='defaultArnoldRenderOptions.ignore_mis', label='Ignore Multiple Importance Sampling')
-                        
+                       
     
 
     pm.setParent('..')
@@ -923,14 +983,12 @@ def LoadFilenameButtonPush(*args):
 def ChangeLogToConsole(*args):
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
-    pm.attrControlGrp('log_console_verbosity', edit=True, enable=logToConsole)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def ChangeLogToFile(*args):
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
     cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
-    pm.attrControlGrp('log_file_verbosity', edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def createArnoldLogSettings():
@@ -941,6 +999,14 @@ def createArnoldLogSettings():
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
 
+    
+    pm.attrControlGrp('log_verbosity',
+                        label="Verbosity Level",
+                        enable=logToConsole,
+                        attribute='defaultArnoldRenderOptions.log_verbosity')
+                        
+                        
+    
     pm.checkBoxGrp('log_to_console',
                     label='Console',
                     changeCommand=ChangeLogToConsole)
@@ -954,6 +1020,7 @@ def createArnoldLogSettings():
 
     pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
     pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
+    
     
     path = cmds.textFieldButtonGrp("ls_log_filename",
                                    label="Filename",
@@ -976,15 +1043,6 @@ def createArnoldLogSettings():
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
-    pm.attrControlGrp('log_console_verbosity',
-                        label="Console Verbosity Level",
-                        enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_console_verbosity')
-
-    pm.attrControlGrp('log_file_verbosity',
-                        label="File Verbosity Level",
-                        enable=logToFile,
-                        attribute='defaultArnoldRenderOptions.log_file_verbosity')
 
     pm.separator()
 
@@ -994,10 +1052,6 @@ def createArnoldLogSettings():
                               'Enabling this may adversely affect performance.',
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
                    
-
-    pm.attrControlGrp('texture_per_file_stats',
-                        label="Detailed Texture Stats",
-                        attribute='defaultArnoldRenderOptions.texturePerFileStats')
 
     pm.setParent('..')
 

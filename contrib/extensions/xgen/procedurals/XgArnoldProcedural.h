@@ -19,7 +19,7 @@
 using namespace XGenRenderAPI;
 
 // Forward Decl
-class AtNode;
+struct AtNode;
 struct AtArray;
 class XgMutex;
 

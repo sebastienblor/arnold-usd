@@ -38,19 +38,19 @@ public:
    static void NodeInitializer(CAbTranslator context);
    virtual void Update(AtNode* anode);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, AtUInt step);
-   virtual void UpdateMotion(AtNode* anode, AtUInt step);
+   void ExportMotion(AtNode* anode, unsigned int step);
+   virtual void UpdateMotion(AtNode* anode, unsigned int step);
 
 
 protected:
    int ComputeMasterVisibility(const MDagPath& masterDagPath) const;
    virtual void ExportInstancer(AtNode* instancer, bool update);
-   virtual void ExportInstances(AtNode* instancer, AtUInt step);
+   virtual void ExportInstances(AtNode* instancer, unsigned int step);
 
 
 protected:
    MFnParticleSystem m_fnParticleSystem;
-   AtInt m_particleCount;
+   int m_particleCount;
    MString m_customAttrs;
 
 

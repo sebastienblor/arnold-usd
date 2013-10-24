@@ -214,7 +214,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          glCallList(m_displayList);
    }
    // Cylinder
-   else
+   else if (areaType == "cylinder")
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
@@ -311,7 +311,7 @@ MStatus CArnoldAreaLightNode::initialize()
    addAttribute(s_inputMesh);
    
    s_lightVisible = nAttr.create("lightVisible", "light_visible", MFnNumericData::kBoolean);
-   nAttr.setDefault(true);
+   nAttr.setDefault(false);
    nAttr.setChannelBox(true);
    addAttribute(s_lightVisible);
    

@@ -41,6 +41,7 @@ CRenderOptions::CRenderOptions()
 ,  m_pixelAspectRatio(1.0f)
 ,  m_useRenderRegion(false)
 ,  m_clearBeforeRender(false)
+,  m_useBinaryEncoding(true)
 ,  m_multiCameraRender(false)
 ,  m_use_existing_tiled_textures(true)
 ,  m_outputAssMask(AI_NODE_ALL)
@@ -49,8 +50,7 @@ CRenderOptions::CRenderOptions()
 ,  m_log_to_console(false)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
-,  m_log_console_verbosity(DEFAULT_LOG_FLAGS)
-,  m_log_file_verbosity(DEFAULT_LOG_FLAGS)
+,  m_log_verbosity(DEFAULT_LOG_FLAGS)
 ,  m_shader_searchpath("")
 {}
 
@@ -173,6 +173,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_progressive_rendering     = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
+      m_useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
       m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
       
@@ -181,12 +182,12 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 
+
       m_log_to_file           = fnArnoldRenderOptions.findPlug("log_to_file").asBool();
       m_log_to_console        = fnArnoldRenderOptions.findPlug("log_to_console").asBool();
       m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
-      m_log_console_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt());
-      m_log_file_verbosity    = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt());
+      m_log_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_verbosity").asInt());
 
       m_shader_searchpath = fnArnoldRenderOptions.findPlug("shader_searchpath").asString();
 
@@ -232,12 +233,12 @@ void CRenderOptions::SetupLog() const
             logPath = logPath + frame + ".log";
       }
       AiMsgSetLogFileName(logPath.expandEnvironmentVariablesAndTilde().asChar());
-      AiMsgSetLogFileFlags(m_log_file_verbosity);
+      AiMsgSetLogFileFlags(m_log_verbosity);
    }
    
    AiMsgSetMaxWarnings(m_log_max_warnings);
    if (m_log_to_console)
-      AiMsgSetConsoleFlags(m_log_console_verbosity | AI_LOG_COLOR);   
+      AiMsgSetConsoleFlags(m_log_verbosity | AI_LOG_COLOR);   
 
    // Not working correctly until we can add to callback rather than replace it,
    // or have access to original callback code

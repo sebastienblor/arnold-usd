@@ -87,7 +87,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 #       ui.addSeparator()
 #       ui.addControl("enableProcedural")
 #       ui.addControl("dso")
-templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
+templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
+core.registerDefaultTranslator("mesh", "polymesh")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
@@ -347,6 +348,8 @@ class CameraTemplate(templates.AttributeTemplate):
     def addCommonAttributes(self):
         self.addControl("aiExposure")
         self.addControl("aiFiltermap")
+        self.addSeparator()
+        self.addControl("aiRollingShutter")
         
     def addDOFAttributes(self):
         self.addSeparator()

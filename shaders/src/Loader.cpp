@@ -86,6 +86,7 @@ extern AtNodeMethods* MayaTripleShadingSwitchMtd;
 extern AtNodeMethods* MayaQuadShadingSwitchMtd;
 extern AtNodeMethods* MayaFluidDataMtd;
 extern AtNodeMethods* MayaFluidTexture2DMtd;
+extern AtNodeMethods* SkinMtd;
 #ifndef DISABLE_COMMON
 extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* VolumeCollectorMtd;
@@ -175,6 +176,7 @@ enum{
    SHADER_MAYAQUADSHADINGSWITCH,
    SHADER_MAYAFLUIDDATA,
    SHADER_MAYAFLUIDTEXTURE2D,
+   SHADER_SKIN,
 #ifndef DISABLE_COMMON
    SHADER_VOLUMECOLLECTOR,
    SHADER_SKINSSS
@@ -763,6 +765,13 @@ node_loader
       node->methods     = MayaFluidTexture2DMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaFluidTexture2D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_SKIN:
+      node->methods     = SkinMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "Skin";
       node->node_type   = AI_NODE_SHADER;
       break;
 

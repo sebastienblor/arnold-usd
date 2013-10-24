@@ -24,6 +24,13 @@ enum RenderType
    MTOA_RENDER_EXPORTASS_AND_KICK
 };
 
+enum LogVerbosity
+{
+   MTOA_LOG_ERRORS,
+   MTOA_LOG_WANINGS_INFO,
+   MTOA_LOG_DEBUG
+};
+
 class DLLEXPORT CRenderOptions
 {
    friend class CRenderSession;
@@ -76,6 +83,11 @@ public:
    {
       return m_clearBeforeRender;
    }
+
+   bool useBinaryEncoding() const
+   {
+      return m_useBinaryEncoding;
+   }
    
    bool sceneUpdateBeforeIPRRender() const
    {
@@ -110,6 +122,11 @@ public:
    void SetExpandProcedurals(bool expand_procedurals)
    {
       m_expandProcedurals = expand_procedurals;
+   }
+
+   void SetUseBinaryEncoding(bool ube)
+   {
+      m_useBinaryEncoding = ube;
    }
 
    void SetCamera(MDagPath& camera);
@@ -210,6 +227,7 @@ private:
    bool     m_clearBeforeRender; 
    bool     m_forceSceneUpdateBeforeIPRRefresh;
    bool     m_forceTextureCacheFlushAfterRender;
+   bool     m_useBinaryEncoding;
 
    float    m_startFrame;
    float    m_endFrame;
@@ -253,8 +271,7 @@ private:
    bool           m_log_to_console;
    MString        m_log_filename;
    unsigned int   m_log_max_warnings;
-   unsigned int   m_log_console_verbosity;
-   unsigned int   m_log_file_verbosity;
+   unsigned int   m_log_verbosity;
 
    MString m_shader_searchpath;
 };

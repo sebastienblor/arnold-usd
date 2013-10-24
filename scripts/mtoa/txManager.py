@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import maya.utils as utils
 import os.path
 import glob
 import re
@@ -47,7 +48,7 @@ class MakeTxThread (threading.Thread):
         
         # Custom options
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'lineEdit']);
-        cmd += ' '+cmds.textField(ctrlPath, query=True, text=True);
+        cmd += ' '+utils.executeInMainThreadWithResult(cmds.textField, ctrlPath, query=True, text=True);
         
         cmd += ' "'+texture+'"'
         #print cmd
@@ -62,7 +63,7 @@ class MakeTxThread (threading.Thread):
             return
             
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
-        cmds.button(ctrlPath, edit=True, enable=True);
+        utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True);
             
         for texture in self.txManager.selectedFiles:
             if not texture:
@@ -83,7 +84,7 @@ class MakeTxThread (threading.Thread):
                         self.createdErrors += 1
                         
                         
-                    updateProgressMessage(self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)    
+                    utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
                         
             else:
                 if self.makeTx(texture) is 0:
@@ -91,12 +92,12 @@ class MakeTxThread (threading.Thread):
                 else:
                     self.createdErrors += 1
                     
-            updateProgressMessage(self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
+            utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
         
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
-        cmds.button(ctrlPath, edit=True, enable=False);
+        utils.executeDeferred(cmds.button, ctrlPath, edit=True, enable=False);
         self.txManager.process = True
-        self.txManager.updateList()
+        utils.executeDeferred(self.txManager.updateList)
 
 
 class MtoATxManager(object):

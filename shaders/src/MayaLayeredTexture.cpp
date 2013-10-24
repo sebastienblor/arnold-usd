@@ -144,14 +144,14 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
 
    for (int i = start; i < end && !finished; ++i)
    {
-      if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
+      if (AiShaderEvalParamBool(p_visible0+i) == false)   // Disabled, skip
          continue;
 
       AtRGBA color = AI_RGBA_BLACK;
       float alpha = 0.0f;
       int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
 
-      AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
+      bool colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
 
       if (colorConnectedToAlpha)
       {
@@ -442,7 +442,7 @@ AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
 node_parameters
 {
    AiParameterUINT("numInputs", 0);
-   AiParameterBOOL("alphaIsLuminance", FALSE);
+   AiParameterBOOL("alphaIsLuminance", false);
    AiParameterRGBA("color0", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color1", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color2", 0.0f, 0.0f, 0.0f, 1.0f);
@@ -475,22 +475,22 @@ node_parameters
    AiParameterFLT("alpha13", 1.0f);
    AiParameterFLT("alpha14", 1.0f);
    AiParameterFLT("alpha15", 1.0f);
-   AiParameterBOOL("colorConnectedToAlpha0", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha1", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha2", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha3", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha4", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha5", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha6", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha7", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha8", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha9", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha10", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha11", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha12", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha13", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha14", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha15", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha0", false);
+   AiParameterBOOL("colorConnectedToAlpha1", false);
+   AiParameterBOOL("colorConnectedToAlpha2", false);
+   AiParameterBOOL("colorConnectedToAlpha3", false);
+   AiParameterBOOL("colorConnectedToAlpha4", false);
+   AiParameterBOOL("colorConnectedToAlpha5", false);
+   AiParameterBOOL("colorConnectedToAlpha6", false);
+   AiParameterBOOL("colorConnectedToAlpha7", false);
+   AiParameterBOOL("colorConnectedToAlpha8", false);
+   AiParameterBOOL("colorConnectedToAlpha9", false);
+   AiParameterBOOL("colorConnectedToAlpha10", false);
+   AiParameterBOOL("colorConnectedToAlpha11", false);
+   AiParameterBOOL("colorConnectedToAlpha12", false);
+   AiParameterBOOL("colorConnectedToAlpha13", false);
+   AiParameterBOOL("colorConnectedToAlpha14", false);
+   AiParameterBOOL("colorConnectedToAlpha15", false);
    AiParameterENUM("blendMode0", 0, gs_BlendModeNames);
    AiParameterENUM("blendMode1", 0, gs_BlendModeNames);
    AiParameterENUM("blendMode2", 0, gs_BlendModeNames);
@@ -507,22 +507,22 @@ node_parameters
    AiParameterENUM("blendMode13", 0, gs_BlendModeNames);
    AiParameterENUM("blendMode14", 0, gs_BlendModeNames);
    AiParameterENUM("blendMode15", 0, gs_BlendModeNames);
-   AiParameterBOOL("visible0", FALSE);
-   AiParameterBOOL("visible1", FALSE);
-   AiParameterBOOL("visible2", FALSE);
-   AiParameterBOOL("visible3", FALSE);
-   AiParameterBOOL("visible4", FALSE);
-   AiParameterBOOL("visible5", FALSE);
-   AiParameterBOOL("visible6", FALSE);
-   AiParameterBOOL("visible7", FALSE);
-   AiParameterBOOL("visible8", FALSE);
-   AiParameterBOOL("visible9", FALSE);
-   AiParameterBOOL("visible10", FALSE);
-   AiParameterBOOL("visible11", FALSE);
-   AiParameterBOOL("visible12", FALSE);
-   AiParameterBOOL("visible13", FALSE);
-   AiParameterBOOL("visible14", FALSE);
-   AiParameterBOOL("visible15", FALSE);
+   AiParameterBOOL("visible0", false);
+   AiParameterBOOL("visible1", false);
+   AiParameterBOOL("visible2", false);
+   AiParameterBOOL("visible3", false);
+   AiParameterBOOL("visible4", false);
+   AiParameterBOOL("visible5", false);
+   AiParameterBOOL("visible6", false);
+   AiParameterBOOL("visible7", false);
+   AiParameterBOOL("visible8", false);
+   AiParameterBOOL("visible9", false);
+   AiParameterBOOL("visible10", false);
+   AiParameterBOOL("visible11", false);
+   AiParameterBOOL("visible12", false);
+   AiParameterBOOL("visible13", false);
+   AiParameterBOOL("visible14", false);
+   AiParameterBOOL("visible15", false);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -550,7 +550,7 @@ shader_evaluate
       result = process_layers(sg, node, 0, numInputs);
    }
 
-   if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
+   if (AiShaderEvalParamBool(p_alphaIsLuminance) == true)
    {
       result.a = Luminance(result); // NTSC luminance
    }

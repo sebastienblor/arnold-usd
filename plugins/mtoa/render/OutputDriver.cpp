@@ -170,6 +170,16 @@ driver_open
    }
 }
 
+driver_needs_bucket
+{
+   return true;
+}
+
+driver_process_bucket
+{
+
+}
+
 driver_prepare_bucket
 {
 }

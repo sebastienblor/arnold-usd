@@ -316,8 +316,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          arnoldSession->SetShadowLinkMode(ArnoldShadowLinkMode(shadowLinks));
       }
+      
       MFnDependencyNode fnCam;
-
       MString mayaVersion = MGlobal::mayaVersion();     
       MString appString = MString("MtoA ") + MTOA_VERSION + " Maya " + mayaVersion;
       AiSetAppString(appString.asChar());
@@ -361,11 +361,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          if (cameras.length() > 1 || writeBox)
             // Use preserve_scene_data = true only when necessary as this value will be set also to true in the exported file
             AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
-            
-         // ascii ass export
-         if (!asciiAss){
-            AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
-         }
+         
+         renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed);
 
          if (writeBox)

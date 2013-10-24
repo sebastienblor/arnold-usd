@@ -12,7 +12,7 @@ node_parameters
    AiParameterFLT("translucence", .5f);
    AiParameterRGB("specularColor", .35f, .35f, .299995f);
    AiParameterFLT("specularPower", 3.f);
-   AiParameterBOOL("castShadows", TRUE);
+   AiParameterBOOL("castShadows", true);
    
    AiParameterFLT("diffuseRand", .2f);
    AiParameterFLT("specularRand", .4f);

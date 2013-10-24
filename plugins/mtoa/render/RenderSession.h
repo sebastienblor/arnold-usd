@@ -119,6 +119,7 @@ public:
    
    /// Set Expand Procedurals
    inline void SetExpandProcedurals(bool expand_procedurals) { m_renderOptions.SetExpandProcedurals(expand_procedurals); }
+   inline void SetUseBinaryEncoding(bool ube) { m_renderOptions.SetUseBinaryEncoding(ube); }
 
    /// Set the resolution of the render.
    /// \param width width in pixels.

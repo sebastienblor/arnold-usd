@@ -2,21 +2,6 @@
 
 #include "LightTranslator.h"
 
-class CAmbientLightTranslator : public CLightTranslator
-{
-public:
-   void Export(AtNode* light);
-   static void NodeInitializer(CAbTranslator context);
-   static void* creator()
-   {
-      return new CAmbientLightTranslator();
-   }
-   AtNode* CreateArnoldNodes()
-   {
-      return AddArnoldNode("ambient_light");
-   }
-};
-
 class CDirectionalLightTranslator : public CLightTranslator
 {
 public:
@@ -140,11 +125,19 @@ public:
 class CMeshLightTranslator : public CLightTranslator
 {
 public:
+   CMeshLightTranslator(bool mesh) : m_numVertices(0), m_isMesh(mesh)
+   {
+   }
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
+   static void NodeInitializerMesh(CAbTranslator context);
    static void* creator()
    {
-      return new CMeshLightTranslator();
+      return new CMeshLightTranslator(false);
+   }
+   static void* creatorMesh()
+   {
+      return new CMeshLightTranslator(true);
    }
    AtNode* CreateArnoldNodes()
    {
@@ -152,6 +145,8 @@ public:
       AddArnoldNode("meshLightMaterial", "shader");
       return AddArnoldNode("mesh_light");
    }
+
+   virtual void Delete();
    
    virtual void ExportMotion(AtNode* light, unsigned int step);
 protected:
@@ -159,4 +154,5 @@ protected:
    virtual MObject GetMeshObject() const;
 
    int m_numVertices;
+   bool m_isMesh;
 };

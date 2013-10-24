@@ -437,6 +437,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    
    AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
+   AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
 
    if (IsMotionBlurEnabled())
    {
@@ -630,6 +631,7 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
 {
    helper.MakeInput("exposure");
    helper.MakeInput("filtermap");
+   helper.MakeInput("rolling_shutter");
 }
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)

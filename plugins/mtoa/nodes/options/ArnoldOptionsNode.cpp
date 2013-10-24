@@ -71,8 +71,7 @@ MObject CArnoldOptionsNode::s_log_to_file;
 MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
-MObject CArnoldOptionsNode::s_log_console_verbosity;
-MObject CArnoldOptionsNode::s_log_file_verbosity;
+MObject CArnoldOptionsNode::s_log_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_atmosphereShader;
@@ -153,8 +152,6 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("batch_only", 2);
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
-   
-   s_attributes.MakeInput("enable_aov_composition");   
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
@@ -396,7 +393,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_untiled");
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
-   s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
    s_attributes.MakeInput("texture_glossy_blur");
    
@@ -422,7 +418,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_smoothing");   
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
-   s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
    
    s_attributes.MakeInput("volume_indirect_samples");
@@ -457,37 +452,26 @@ MStatus CArnoldOptionsNode::initialize()
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
-   nAttr.setMax(100000);
+   nAttr.setSoftMax(100);
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
    nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
-   addAttribute(s_log_console_verbosity);
-
-   s_log_file_verbosity = nAttr.create("log_file_verbosity", "logfv", MFnNumericData::kInt, 3);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
-   addAttribute(s_log_file_verbosity);
+   eAttr.addField("Errors", MTOA_LOG_ERRORS);
+   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Debug", MTOA_LOG_DEBUG);
+   addAttribute(s_log_verbosity);
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
    mAttr.setReadable(false);
    addAttribute(s_background);
 
-   s_atmosphere = eAttr.create("atmosphere", "atm", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("None", 0);
-   eAttr.addField("Fog", 1);
-   eAttr.addField("Volume Scattering", 2);
-   eAttr.addField("Custom Shader", 3);
+   s_atmosphere = mAttr.create("atmosphere", "atm");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_atmosphere);
-   
-   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
-   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

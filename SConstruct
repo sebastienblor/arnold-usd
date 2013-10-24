@@ -713,7 +713,11 @@ def deploy(target, source, env):
     f = open(os.path.abspath(package_name), 'rb')
     print 'Sending "%s" to %s/%s...' % (source[0], server, directory)
     command = "STOR %s" % package_name
-    ftp.storbinary(command, f, 81920, ftp_send_binary_cb)
+    try:
+        ftp.storbinary(command, f, 81920, ftp_send_binary_cb)
+    except:
+        # Old python versions have no ftp callback
+        ftp.storbinary(command, f, 81920)
     print
 
     f.close()
@@ -765,6 +769,12 @@ for ext in os.listdir(ext_base_dir):
         if os.path.exists(pyfile):
             ext_files.append(pyfile)
             env.Install(TARGET_EXTENSION_PATH, pyfile)
+        if ext_arnold and (target_type == 'shader'):
+            mtdfile = os.path.splitext(os.path.basename(ext_arnold))[0] + '.mtd'
+            mtdfile = os.path.join(ext_dir, 'shaders', mtdfile)
+            if os.path.exists(mtdfile):
+                ext_files.append(mtdfile)
+                env.Install(TARGET_SHADER_PATH, mtdfile)
         env.Install(TARGET_EXTENSION_PATH, plugin)
         package_files = []
         if ext_arnold:
@@ -779,7 +789,7 @@ for ext in os.listdir(ext_base_dir):
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        extension_package_name = '%s-%s-MtoA-%s-maya%s%s' % (ext, system.os(), MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+        extension_package_name = '%s-MtoA-%s-%s-%s%s' % (ext, MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
         EXT_PACKAGE = local_env.MakePackage(extension_package_name, EXT)        
         top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)        
         local_env.AlwaysBuild(EXT_PACKAGE)
