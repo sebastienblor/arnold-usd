@@ -44,6 +44,7 @@
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
+#include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
 #include "render/RenderSwatch.h"
@@ -455,6 +456,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("quadShadingSwitch",
                                      "",
                                      CreateQuadShadingSwitchTranslator);
+         shaders->RegisterTranslator("fluidTexture2D",
+                                     "",
+                                     CFluidTexture2DTranslator::creator);
       }
 
       // Will load all found plugins and try to register nodes and translators

@@ -24,6 +24,43 @@ enum filterType{
    FT_CUBIC
 };
 
+enum dropoffShape{
+   DS_OFF = 0,
+   DS_SPHERE,
+   DS_CUBE,
+   DS_CONE,
+   DS_DOUBLE_CONE,
+   DS_X_GRADIENT,
+   DS_Y_GRADIENT,
+   DS_Z_GRADIENT,
+   DS_NX_GRADIENT,
+   DS_NY_GRADIENT,
+   DS_NZ_GRADIENT,
+   DS_USE_FALLOFF_GRID
+};
+
+enum gradientType{
+   GT_CONSTANT = 0,
+   GT_X_GRADIENT,
+   GT_Y_GRADIENT,
+   GT_Z_GRADIENT,
+   GT_CENTER_GRADIENT,
+   GT_DENSITY,
+   GT_TEMPERATURE,
+   GT_FUEL,
+   GT_PRESSURE,
+   GT_SPEED,
+   GT_DENSITY_AND_FUEL
+};
+
+enum coordinateMethod{
+   CM_FIXED = 0,
+   CM_GRID
+};
+
+void InitializeFluidShaderParameters(AtList* params, bool is3d = true); // this is required so we can keep backwards compatibility for a while
+void InitializeFluidShaderAdditionalParameters(AtList* params);
+
 template<typename T>
 struct ArrayDescription{
    T* data;
@@ -84,13 +121,12 @@ inline AtVector ReadFromArray(AtArray* array, int element)
    return AiArrayGetVec(array, element);
 }
 
-class CMayaFluidData{
+template <bool IS3D>
+class CMayaFluidData {
 public:
-	static void InitializeShaderParameters(AtList* params); // this is required so we can keep backwards compatibility for a while
+   inline CMayaFluidData(AtNode* node);
 
-   CMayaFluidData(AtNode* node);
-
-   ~CMayaFluidData();
+   inline ~CMayaFluidData();
 
    static void* operator new(size_t size)
    {
@@ -129,7 +165,92 @@ private:
    ArrayDescription<float> falloff;
 };
 
-AtVector CMayaFluidData::ConvertToLocalSpace(const AtVector& cPt) const
+template <typename T>
+void ReadArray(AtArray* array, int cm, int cmg, int numVoxels, ArrayDescription<T>& arrayDesc)
+{
+   arrayDesc.release();
+
+   if (cm == CSM_GRID)
+   {
+      if ((int)array->nelements == numVoxels)
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T) * numVoxels);
+         for (int i = 0; i < numVoxels; ++i)
+            arrayDesc.data[i] = ReadFromArray<T>(array, i);
+      }
+      else if (array->nelements == 1) // only one value
+      {
+         arrayDesc.single = true;
+         arrayDesc.data = (T*)AiMalloc(sizeof(T));
+         *arrayDesc.data = ReadFromArray<T>(array, 0);
+      }
+      else
+      {
+         arrayDesc.single = false;
+         arrayDesc.data = 0;
+      }
+      arrayDesc.isGradient = false;
+   }
+   else
+   {
+      arrayDesc.isGradient = true;
+      arrayDesc.gradientType = cmg;
+   }
+}
+
+template <bool IS3D>
+CMayaFluidData<IS3D>::CMayaFluidData(AtNode* node)
+{
+   xres = AiNodeGetInt(node, "xres");
+   yres = AiNodeGetInt(node, "yres");
+
+   int numVoxels = 0;
+
+   if (IS3D)
+   {
+      zres = AiNodeGetInt(node, "zres");
+      numVoxels = xres * yres * zres;
+   }
+   else numVoxels = xres * yres;
+   
+   if (numVoxels == 0)
+      return;
+
+   if (IS3D)
+   {
+      dmin = AiNodeGetVec(node, "min");
+      dmax = AiNodeGetVec(node, "max");
+      dmax = dmax - dmin;
+      dmax.x = 1.f / dmax.x;
+      dmax.y = 1.f / dmax.y;
+      dmax.z = 1.f / dmax.z;
+   }   
+
+   ReadArray(AiNodeGetArray(node, "density"), AiNodeGetInt(node, "density_method"), AiNodeGetInt(node, "density_gradient"), numVoxels, density);
+   ReadArray(AiNodeGetArray(node, "fuel"), AiNodeGetInt(node, "fuel_method"), AiNodeGetInt(node, "fuel_gradient"), numVoxels, fuel);
+   ReadArray(AiNodeGetArray(node, "temperature"), AiNodeGetInt(node, "temperature_method"), AiNodeGetInt(node, "temperature_gradient"), numVoxels, temperature);
+   ReadArray(AiNodeGetArray(node, "pressure"), CSM_GRID, CG_CONSTANT, numVoxels, pressure);
+   ReadArray(AiNodeGetArray(node, "velocity"), AiNodeGetInt(node, "velocity_method"), AiNodeGetInt(node, "velocity_gradient"), numVoxels, velocity);
+   ReadArray(AiNodeGetArray(node, "colors"), CSM_GRID, CG_CONSTANT, numVoxels, colors);
+   ReadArray(AiNodeGetArray(node, "coordinates"), CSM_GRID, CG_CONSTANT, numVoxels, coordinates);
+   ReadArray(AiNodeGetArray(node, "falloff"), CSM_GRID, CG_CONSTANT, numVoxels, falloff);
+}
+
+template <bool IS3D>
+CMayaFluidData<IS3D>::~CMayaFluidData()
+{
+   density.release();
+   fuel.release();
+   temperature.release();
+   pressure.release();
+   velocity.release();
+   colors.release();
+   coordinates.release();
+}
+
+template <bool IS3D>
+AtVector CMayaFluidData<IS3D>::ConvertToLocalSpace(const AtVector& cPt) const
 {
    AtVector lPt;
    lPt = (cPt - dmin) * dmax;
@@ -261,14 +382,13 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
          default:
             return GetDefaultValue<T>();
       }
-
    }
-   else if (filterType == FT_CLOSEST)
-   {
-      if (arrayDesc.data == 0)
-         return GetDefaultValue<T>();
-      if (arrayDesc.single)
-         return *arrayDesc.data;
+   if (arrayDesc.data == 0)
+      return GetDefaultValue<T>();
+   if (arrayDesc.single)
+      return *arrayDesc.data;
+   if (filterType == FT_CLOSEST)
+   {      
       // position in the voxel grid
       const AtVector fc = {lPt.x * (float)xres, lPt.y * (float)yres, lPt.z * (float)zres};
       // voxel coordiantes
@@ -279,10 +399,6 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    }
    else if (filterType == FT_LINEAR)
    {
-      if (arrayDesc.data == 0)
-         return GetDefaultValue<T>();
-      if (arrayDesc.single)
-         return *arrayDesc.data;
       // position in the voxel grid
       const AtVector fc = {lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f};
 
@@ -318,10 +434,6 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    }
    else
    {
-      if (arrayDesc.data == 0)
-         return GetDefaultValue<T>();
-      if (arrayDesc.single)
-         return *arrayDesc.data;
       // position in the voxel grid
       const AtVector fc = {lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f, lPt.z * (float)zres - .5f};
       // lower voxel coordiantes
@@ -433,52 +545,176 @@ inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int f
    }
 }
 
-float CMayaFluidData::readDensity(const AtVector& lPt, int filterType) const
+template <typename T>
+inline T Filter(const AtVector& lPt, const ArrayDescription<T>& arrayDesc, int filterType, int xres, int yres) // maybe add a simpler filter in the future
+{
+   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
+   if (arrayDesc.isGradient)
+   {
+      switch(arrayDesc.gradientType)
+      {
+         case CG_CONSTANT:
+            return GetConstantValue<T>();
+         case CG_X_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.x);
+         case CG_Y_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.y);
+         case CG_Z_GRADIENT:
+            return ConvertFloat<T>(1.f - lPt.z);
+         case CG_NX_GRADIENT:
+            return ConvertFloat<T>(lPt.x);
+         case CG_NY_GRADIENT:
+            return ConvertFloat<T>(lPt.y);
+         case CG_NZ_GRADIENT:
+            return ConvertFloat<T>(lPt.z);
+         case CG_CENTER_GRADIENT:
+            return ConvertFloat<T>(1.f - 1.41421356f * AiV3Length(lPt - middlePoint));
+         default:
+            return GetDefaultValue<T>();
+      }
+   }
+   if (arrayDesc.data == 0)
+      return GetDefaultValue<T>();
+   if (arrayDesc.single)
+      return *arrayDesc.data;
+   if (filterType == FT_CLOSEST)
+   {
+      // position in the voxel grid
+      const AtPoint2 fc = {lPt.x * (float)xres, lPt.y * (float)yres};
+      // voxel coordiantes
+      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
+      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
+      return arrayDesc.data[lcx + lcy * xres];
+   }
+   else
+   {      
+      // position in the voxel grid
+      const AtPoint2 fc = {lPt.x * (float)xres - .5f, lPt.y * (float)yres - .5f};
+
+      const int lcx = CLAMP((int)fc.x, 0, xres - 1);
+      const int lcy = CLAMP((int)fc.y, 0, yres - 1);
+
+      const int hcx = MIN(lcx + 1, xres - 1);
+      const int hcy = MIN(lcy + 1, yres - 1);
+
+      const AtPoint2 pc = {fc.x - (float)lcx, fc.y - (float)lcy};
+
+      const AtPoint2 npc = {1.f - pc.x, 1.f - pc.y};
+
+      const int c00 = lcx + lcy * xres;
+      const int c01 = lcx + hcy * xres;
+      const int c10 = hcx + lcy * xres;
+      const int c11 = hcx + hcy * xres;
+
+      return (arrayDesc.data[c00] * npc.y + arrayDesc.data[c01] * pc.y) * npc.x +
+             (arrayDesc.data[c10] * npc.y + arrayDesc.data[c11] * pc.y) * pc.x;
+   }
+}
+
+template <>
+inline float CMayaFluidData<true>::readDensity(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, density, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readTemperature(const AtVector& lPt, int filterType) const
+template <>
+inline float CMayaFluidData<true>::readTemperature(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, temperature, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readFuel(const AtVector& lPt, int filterType) const
+template <>
+inline float CMayaFluidData<true>::readFuel(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, fuel, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readPressure(const AtVector& lPt, int filterType) const
+template <>
+inline float CMayaFluidData<true>::readPressure(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, pressure, filterType, xres, yres, zres);
 }
 
-AtVector CMayaFluidData::readVelocity(const AtVector& lPt, int filterType) const
+template <>
+inline AtVector CMayaFluidData<true>::readVelocity(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, velocity, filterType, xres, yres, zres);
 }
 
-AtRGB CMayaFluidData::readColors(const AtVector& lPt, int filterType) const
+template <>
+inline AtRGB CMayaFluidData<true>::readColors(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, colors, filterType, xres, yres, zres);
 }
 
-AtVector CMayaFluidData::readCoordinates(const AtVector& lPt, int filterType) const
+template <>
+inline AtVector CMayaFluidData<true>::readCoordinates(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, coordinates, filterType, xres, yres, zres);
 }
 
-float CMayaFluidData::readFalloff(const AtVector& lPt, int filterType) const
+template <>
+inline float CMayaFluidData<true>::readFalloff(const AtVector& lPt, int filterType) const
 {
    return Filter(lPt, falloff, filterType, xres, yres, zres);
 }
 
-bool CMayaFluidData::coordinatesEmpty() const
+template <>
+inline float CMayaFluidData<false>::readDensity(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, density, filterType, xres, yres);
+}
+
+template <>
+inline float CMayaFluidData<false>::readTemperature(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, temperature, filterType, xres, yres);
+}
+
+template <>
+inline float CMayaFluidData<false>::readFuel(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, fuel, filterType, xres, yres);
+}
+
+template <>
+inline float CMayaFluidData<false>::readPressure(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, pressure, filterType, xres, yres);
+}
+
+template <>
+inline AtVector CMayaFluidData<false>::readVelocity(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, velocity, filterType, xres, yres);
+}
+
+template <>
+inline AtRGB CMayaFluidData<false>::readColors(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, colors, filterType, xres, yres);
+}
+
+template <>
+inline AtVector CMayaFluidData<false>::readCoordinates(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, coordinates, filterType, xres, yres);
+}
+
+template <>
+inline float CMayaFluidData<false>::readFalloff(const AtVector& lPt, int filterType) const
+{
+   return Filter(lPt, falloff, filterType, xres, yres);
+}
+
+template <bool IS3D>
+bool CMayaFluidData<IS3D>::coordinatesEmpty() const
 {
    return coordinates.data == 0;
 }
 
-bool CMayaFluidData::colorGridEmpty() const
+template <bool IS3D>
+bool CMayaFluidData<IS3D>::colorGridEmpty() const
 {
    return colors.data == 0;
 }

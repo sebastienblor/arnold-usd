@@ -83,7 +83,7 @@ AtNode* CFluidTranslator::CreateArnoldNodes()
    return AddArnoldNode("box");
 }
 
-void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsigned int numVoxels)
+inline void ExportFloatGrid(AtNode* fluid, float* values, const char* paramName, unsigned int numVoxels)
 {
    if (values == 0)
       return;
@@ -189,7 +189,7 @@ enum GradientType{
    GT_DENSITY_AND_FUEL
 };
 
-void SetContentsGradientMode(AtNode* node, const char* parameter, MFnFluid::FluidGradient fluidGradient)
+inline void SetContentsGradientMode(AtNode* node, const char* parameter, MFnFluid::FluidGradient fluidGradient)
 {
    if (fluidGradient == MFnFluid::kConstant)
       AiNodeSetStr(node, parameter, "Constant");
