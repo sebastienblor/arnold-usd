@@ -106,10 +106,10 @@ void CQuadLightTranslator::Export(AtNode* light)
 
    AtPoint vertices[4];
 
-   AiV3Create(vertices[0], 1, 1, 0);
-   AiV3Create(vertices[1], 1, -1, 0);
-   AiV3Create(vertices[2], -1, -1, 0);
-   AiV3Create(vertices[3], -1, 1, 0);
+   AiV3Create(vertices[3], 1, 1, 0);
+   AiV3Create(vertices[0], 1, -1, 0);
+   AiV3Create(vertices[1], -1, -1, 0);
+   AiV3Create(vertices[2], -1, 1, 0);
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices));
 
