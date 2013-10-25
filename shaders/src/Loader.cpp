@@ -771,7 +771,7 @@ node_loader
    case SHADER_SKIN:
       node->methods     = SkinMtd;
       node->output_type = AI_TYPE_RGB;
-      node->name        = "Skin";
+      node->name        = "skin";
       node->node_type   = AI_NODE_SHADER;
       break;
 
