@@ -155,6 +155,8 @@ public:
    virtual ~CBaseAttrHelper() {};
    bool GetAttrData(const char* paramName, CAttrData& data);
 
+   virtual void MakeInputByte(MObject& attrib, const char* paramName);
+   virtual void MakeInputByte(CAttrData& data);
    virtual void MakeInputInt(MObject& attrib, const char* paramName);
    virtual void MakeInputInt(CAttrData& data);
    virtual void MakeInputBoolean(MObject& attrib, const char* paramName);
@@ -222,6 +224,7 @@ protected:
    void ReadPrefixMetadata();
 
    virtual void MakeInputInt(MObject& attrib, CAttrData& data);
+   virtual void MakeInputByte(MObject& attrib, CAttrData& data);
    virtual void MakeInputBoolean(MObject& attrib, CAttrData& data);
    virtual void MakeInputFloat(MObject& attrib, CAttrData& data);
    virtual void MakeInputRGB(MObject& attrib, CAttrData& data);
