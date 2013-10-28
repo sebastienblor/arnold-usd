@@ -867,6 +867,8 @@ elif system.os() == 'darwin':
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
 def create_installer(target, source, env):
+    if system.os() == "windows":
+        return
     import tempfile
     import shutil
     package_name = str(source[0])
