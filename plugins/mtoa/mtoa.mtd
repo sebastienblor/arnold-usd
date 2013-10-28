@@ -84,7 +84,7 @@
     [attr auto_transparency_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
-        max                 FLOAT   10.0
+        max                 FLOAT   1.0
         maya.orig_shortname STRING  "at_t"
     [attr show_samples]
         maya.keyable        BOOL    False   
@@ -428,7 +428,6 @@
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
         
-        
 [node photometric_light]
     maya.name               STRING  "aiPhotometricLight"
     maya.id                 INT     0x00115C87
@@ -662,6 +661,45 @@
     [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
+        maya.channelbox     BOOL    True
+
+
+[node mesh_light]
+    maya.name               STRING  "aiAreaLight"
+    maya.id                 INT     0x00115C86
+    maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+    [attr color]
+        linkable            BOOL    True
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr exposure]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
 
 # light filters

@@ -77,9 +77,34 @@ class MeshLightTemplate(BaseAreaLightTemplate):
         
         self.addCommonParameters()
 
+class MeshLightMeshTemplate(BaseAreaLightTemplate):
+    def setup(self):
+        self.addControl("color")
+        self.addControl("intensity")
+        self.addControl("aiExposure", label = "Exposure")
+        self.addSeparator()        
+        self.setupColorTemperature("ArnoldArea")
+        self.addControl("emitDiffuse")
+        self.addControl("emitSpecular")
+        self.addControl("aiDecayType")
+
+        self.addSeparator()
+        self.addControl("lightVisible")
+        self.addControl("aiLightTextureSubdivision", label="Texture Subdivision")
+        
+        self.addSeparator()
+        
+        self.addCommonParameters()
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+
+
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "cylinder")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "disk")
 templates.registerTranslatorUI(MeshLightTemplate, "aiAreaLight", "mesh")
 templates.registerDefaultTranslator('aiAreaLight', "quad")
+templates.registerTranslatorUI(MeshLightMeshTemplate, "mesh", "mesh_light")

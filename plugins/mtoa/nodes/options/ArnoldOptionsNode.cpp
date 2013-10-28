@@ -152,8 +152,6 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("batch_only", 2);
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
-   
-   s_attributes.MakeInput("enable_aov_composition");   
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
@@ -454,14 +452,15 @@ MStatus CArnoldOptionsNode::initialize()
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
-   nAttr.setMax(100000);
+   nAttr.setSoftMax(100);
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_verbosity = nAttr.create("log_verbosity", "logv", MFnNumericData::kInt, 3);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
    nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
+   eAttr.addField("Errors", MTOA_LOG_ERRORS);
+   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Debug", MTOA_LOG_DEBUG);
    addAttribute(s_log_verbosity);
 
    s_background = mAttr.create("background", "bkg");
@@ -469,16 +468,10 @@ MStatus CArnoldOptionsNode::initialize()
    mAttr.setReadable(false);
    addAttribute(s_background);
 
-   s_atmosphere = eAttr.create("atmosphere", "atm", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("None", 0);
-   eAttr.addField("Fog", 1);
-   eAttr.addField("Volume Scattering", 2);
-   eAttr.addField("Custom Shader", 3);
+   s_atmosphere = mAttr.create("atmosphere", "atm");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_atmosphere);
-   
-   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
-   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);

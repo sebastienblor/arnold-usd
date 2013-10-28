@@ -7,18 +7,16 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiSkinTemplate(ShaderAETemplate):
 
     def checkPrimarySpecularFresnel(self, nodeName):
-        fullAttr = '%s.%s'%(nodeName, "primary_specular_enable_fresnel_falloff")
+        fullAttr = '%s.%s'%(nodeName, "specular_enable_fresnel_falloff")
         useFresnel = pm.getAttr(fullAttr)
         dim = not useFresnel
-        pm.editorTemplate(dimControl=(nodeName, "primarySpecularFresnelWeight", dim))
-        pm.editorTemplate(dimControl=(nodeName, "primarySpecularIor", dim))
+        pm.editorTemplate(dimControl=(nodeName, "specularIor", dim))
 
     def checkSecondarySpecularFresnel(self, nodeName):
-        fullAttr = '%s.%s'%(nodeName, "secondary_specular_enable_fresnel_falloff")
+        fullAttr = '%s.%s'%(nodeName, "coat_enable_fresnel_falloff")
         useFresnel = pm.getAttr(fullAttr)
         dim = not useFresnel
-        pm.editorTemplate(dimControl=(nodeName, "secondarySpecularFresnelWeight", dim))
-        pm.editorTemplate(dimControl=(nodeName, "secondarySpecularIor", dim))
+        pm.editorTemplate(dimControl=(nodeName, "coatIor", dim))
 
     def setup(self):
         self.addSwatch()
@@ -35,6 +33,13 @@ class AEaiSkinTemplate(ShaderAETemplate):
         
         self.beginLayout("SSS", collapse=False)
         self.addControl("sss_weight", label="SSS Weight")
+
+        self.beginLayout("Single Scatter", collapse=True)
+        self.addControl("single_scatter_weight", label="Weight")
+        self.addControl("rd", label="Reduced Albedo Term")
+        self.addControl("mfp", label="Mean Free Path")
+        self.addControl("g", label="Anisotropy")
+        self.addControl("eta", label="IOR")
         self.endLayout()
 
         self.beginLayout("Shallow Scatter", collapse=False)
@@ -54,26 +59,26 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl("deep_scatter_weight", label="Weight")
         self.addControl("deep_scatter_radius", label="Radius")
         self.endLayout()
+
+        self.endLayout()
         
-        self.beginLayout("Primary Specular", collapse=False)
-        self.addControl("primary_specular_color", label="Color")
-        self.addControl("primary_specular_weight", label="Weight")
-        self.addControl("primary_specular_roughness", label="Roughness")
+        self.beginLayout("Specular", collapse=False)
+        self.addControl("specular_color", label="Color")
+        self.addControl("specular_weight", label="Weight")
+        self.addControl("specular_roughness", label="Roughness")
         self.beginLayout("Fresnel")
-        self.addControl("primary_specular_enable_fresnel_falloff", changeCommand=self.checkPrimarySpecularFresnel, label="Enable")
-        self.addControl("primary_specular_fresnel_weight", label="Weight")
-        self.addControl("primary_specular_ior", label="IOR")
+        self.addControl("specular_enable_fresnel_falloff", changeCommand=self.checkPrimarySpecularFresnel, label="Enable")
+        self.addControl("specular_ior", label="IOR")
         self.endLayout()
         self.endLayout()
         
-        self.beginLayout("Secondary Specular", collapse=False)
-        self.addControl("secondary_specular_color", label="Color")
-        self.addControl("secondary_specular_weight", label="Weight")
-        self.addControl("secondary_specular_roughness", label="Roughness")
+        self.beginLayout("Coat Layer", collapse=False)
+        self.addControl("coat_color", label="Color")
+        self.addControl("coat_weight", label="Weight")
+        self.addControl("coat_roughness", label="Roughness")
         self.beginLayout("Fresnel")
-        self.addControl("secondary_specular_enable_fresnel_falloff", changeCommand=self.checkSecondarySpecularFresnel, label="Enable")
-        self.addControl("secondary_specular_fresnel_weight", label="Weight")
-        self.addControl("secondary_specular_ior", label="IOR")
+        self.addControl("coat_enable_fresnel_falloff", changeCommand=self.checkSecondarySpecularFresnel, label="Enable")
+        self.addControl("coat_ior", label="IOR")
         self.endLayout()
         self.endLayout()
         
@@ -87,7 +92,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addBumpLayout()
         
         self.beginLayout("Hardware Texturing", collapse=True)
-        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color")')
+        
         self.endLayout()
 
         self.addAOVLayout()

@@ -765,10 +765,6 @@ def createArnoldAOVTab():
                                            allowDisable=False)
     _aovDisplayCtrl._setToChildMode()
     _aovDisplayCtrl._doSetup(aovNode.node.name() + '.displayAOV')
-
-    pm.attrControlGrp('enable_aov_composition',
-                      attribute = 'defaultArnoldRenderOptions.enable_aov_composition',
-                      label = 'Enable AOV Composition')
     
     pm.setParent(parentForm)
 

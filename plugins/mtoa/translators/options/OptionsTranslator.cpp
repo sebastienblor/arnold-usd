@@ -118,7 +118,7 @@ void COptionsTranslator::ExportAOVs()
       {
          // add default driver
          CAOVOutput output;
-         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer);
+         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer, output.raw);
          output.filter = ExportFilter(FindMayaPlug("filter"));
          aovData.outputs.push_back(output);
 
@@ -271,8 +271,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          }
          // output statement
          char str[1024];
-         sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                 AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+         if (output.raw)
+         {
+            sprintf(str, "%s", AiNodeGetName(output.driver));
+         }
+         else
+         {
+            sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                    AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+         }
          AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
 
          outputs.append(MString(str));
@@ -297,7 +304,7 @@ void COptionsTranslator::CreateFileDirectory(const MString &filename) const
    }
 }
 
-AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer)
+AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer, bool& raw)
 {
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
@@ -319,6 +326,8 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
       mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
    else
       mergeAOVs = false;
+   raw = false;
+   AiMetaDataGetBool(entry, NULL, "raw_driver", &raw);
    prefix = fnNode.findPlug("prefix").asString();
    return driver;
 }
@@ -369,7 +378,8 @@ bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
    output.driver = ExportDriver(driverPlug,
                                 output.prefix,
                                 output.mergeAOVs,
-                                output.singleLayer);
+                                output.singleLayer,
+                                output.raw);
    if (output.driver == NULL)
       return false;
    return true;
@@ -415,6 +425,8 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
    
    AiNodeSetBool(options, "texture_per_file_stats", true);
+   
+   AiNodeSetBool(options, "enable_aov_composition", true);
 
    MStatus status;
 
@@ -638,41 +650,16 @@ void COptionsTranslator::Update(AtNode *options)
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)
 {
-   MSelectionList list;
-   MPlug        shader;
-   MPlugArray   conns;
-
-   int atmosphere = FindMayaPlug("atmosphere").asInt();
-   switch (atmosphere)
+   MPlugArray conns;
+   MPlug pBG = FindMayaPlug("atmosphere");
+   pBG.connectedTo(conns, true, false);
+   if (conns.length() == 1)
    {
-   case 0:
+      AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+   }
+   else
+   {
       AiNodeSetPtr(options, "atmosphere", NULL);
-      break;
-
-   case 1:  // Fog
-      list.add("defaultFog.outColor");
-      if (list.length() > 0)
-      {
-         list.getPlug(0, shader);
-         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
-      }
-      break;
-
-   case 2:  // Volume Scattering
-      list.add("defaultVolumeScattering.outColor");
-      if (list.length() > 0)
-      {
-         list.getPlug(0, shader);
-         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
-      }
-      break;
-      
-   case 3:
-      shader = FindMayaPlug("atmosphereShader");
-      shader.connectedTo(conns, true, false);
-      if (conns.length())
-         AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
-      break;
    }
 }
 
