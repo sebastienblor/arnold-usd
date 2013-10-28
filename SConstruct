@@ -867,8 +867,20 @@ elif system.os() == 'darwin':
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
 def create_installer(target, source, env):
+    import tempfile
+    import shutil
     package_name = str(source[0])
     package_name += '.zip'
+    tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
+    print tempdir
+
+    shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
+    #shutil.copyfile(os.path.abspath('installer/unix_installer.sh'), os.path.join(tempdir, 'unix_installer.sh'))
+    shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
+
+    subprocess.call(['installer/makeself.sh', tempdir, os.path.abspath('./unix_installer.run'),
+                     'MtoA for Linux Installer', os.path.abspath('installer/unix_installer.sh')])
+
     print 'yeah!'
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
