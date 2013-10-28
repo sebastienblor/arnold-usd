@@ -866,6 +866,15 @@ elif system.os() == 'darwin':
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
+def create_installer(target, source, env):
+    package_name = str(source[0])
+    package_name += '.zip'
+    print 'yeah!'
+
+env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
+
+INSTALLER = env.PackageInstaller('create_installer', package_name)
+
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
 ################################
@@ -897,8 +906,10 @@ top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
+top_level_alias(env, 'installer', INSTALLER)
 
 env.Depends(DEPLOY, PACKAGE)
+env.Depends(INSTALLER, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
 
