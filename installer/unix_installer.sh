@@ -1,1 +1,1 @@
-python ./unix_installer.sh
+python ./unix_installer.py;
