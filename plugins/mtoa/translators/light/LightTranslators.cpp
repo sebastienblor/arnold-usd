@@ -382,7 +382,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
    const int textureSubdiv = FindMayaPlug("aiLightTextureSubdivision").asInt();
    if (textureSubdiv > 0)
    {
-      AiNodeSetByte(meshNode, "subdiv_iterations", textureSubdiv);
+      AiNodeSetInt(meshNode, "subdiv_iterations", textureSubdiv);
       AiNodeSetStr(meshNode, "subdiv_type", "linear");
    }
    AiNodeSetPtr(meshNode, "shader", NULL);

@@ -1046,7 +1046,7 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetByte(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
       AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
