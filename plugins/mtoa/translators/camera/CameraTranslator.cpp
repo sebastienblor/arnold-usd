@@ -87,16 +87,9 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
       if (type == 0)
       {
-         // get data
-         if (step == 0)
-         {
-            MString frameNumber("0");
-            frameNumber += GetExportFrame() + fnRes.findPlug("frameOffset").asInt();
-            imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
-            imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
-            mImage = MImage();
-            mImage.readFromFile(imageName);
-         }
+         imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
+         mImage = MImage();
+         mImage.readFromFile(imageName);
 
          //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
          mImage.getSize(iWidth, iHeight);
