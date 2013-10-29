@@ -116,7 +116,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Select Not Tiled</string>
+     <string>Select Non Tiled</string>
     </property>
     <property name="+command" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.selectNonTx</string>
