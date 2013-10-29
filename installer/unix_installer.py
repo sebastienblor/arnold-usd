@@ -82,7 +82,7 @@ if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser('~')
     mayaBaseDir = ''
     if sys.platform == 'darwin':
-        pass
+        mayaBaseDir = os.path.join(homeDir, 'Library', 'Preferences', 'Autodesk', 'maya', '%s-x64' % mayaVersion)
     else
         mayaBaseDir = os.path.join(homeDir, 'maya', '%s-x64' % mayaVersion)
     if not os.path.exists(mayaBaseDir):
