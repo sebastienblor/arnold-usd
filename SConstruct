@@ -877,6 +877,7 @@ def create_installer(target, source, env):
 
     shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
     shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
+    shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
 
     subprocess.call(['installer/makeself.sh', tempdir, os.path.abspath('./mtoa_installer.run'),
                      'MtoA for Linux Installer', os.path.abspath('installer/unix_installer.sh')])
