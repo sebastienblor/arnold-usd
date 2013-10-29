@@ -1,1 +1,0 @@
-python ./unix_installer.py;
