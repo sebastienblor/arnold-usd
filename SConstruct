@@ -879,8 +879,15 @@ def create_installer(target, source, env):
     shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
 
-    subprocess.call(['installer/makeself.sh', tempdir, os.path.abspath('./mtoa_installer.run'),
-                     'MtoA for Linux Installer', os.path.abspath('installer/unix_installer.sh')])
+    commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
+    commandFile = open(commandFilePath, 'w')
+    commandFile.write('python ./unix_installer.py %s' % maya_base_version)
+    commandFile.close()
+    subprocess.call(['chmod', '+x', commandFilePath])
+    installerPath = os.path.abspath('./mtoa-%s-%s-%s.run' % (MTOA_VERSION, system.os(), maya_base_version))
+    subprocess.call(['installer/makeself.sh', tempdir, installerPath,
+                     'MtoA for Linux Installer', commandFilePath])
+    subprocess.call(['chmod', '+x', installerPath])
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 
