@@ -96,7 +96,7 @@ if installMode == 1: # do the proper installation
     additionToEnv = ['PATH=$PATH:%s\n' % os.path.join(installDir, 'bin'), 
                      'MAYA_RENDER_DESC_PATH=$MAYA_RENDER_DESC_PATH:%s\n' % installDir]    
     if os.path.exists(mayaEnvPath):
-        for line in open(mayaEnvPath, 'r').read():
+        for line in open(mayaEnvPath, 'r').readlines():
             if line in additionToEnv:
                 continue
             mayaEnvContents.append(line)
