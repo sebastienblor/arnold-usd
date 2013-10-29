@@ -80,7 +80,11 @@ mtoaMod.close()
 
 if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser('~')
-    mayaBaseDir = os.path.join(homeDir, 'maya', '%s-x64' % mayaVersion)
+    mayaBaseDir = ''
+    if sys.platform == 'darwin':
+        pass
+    else
+        mayaBaseDir = os.path.join(homeDir, 'maya', '%s-x64' % mayaVersion)
     if not os.path.exists(mayaBaseDir):
         os.system('clear')
         print 'Home directory for Maya %s does not exists.' % mayaVersion
