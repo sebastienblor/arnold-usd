@@ -63,16 +63,17 @@ MStatus CSessionOptions::GetFromMaya()
 
       if (m_motion.enable_mask)
       {
-         m_motion.shutter_size    = fnArnoldRenderOptions.findPlug("shutter_size").asFloat();
-         m_motion.shutter_offset  = fnArnoldRenderOptions.findPlug("shutter_offset").asFloat();
-         m_motion.shutter_type    = fnArnoldRenderOptions.findPlug("shutter_type").asInt();
-         m_motion.by_frame        = fnArnoldRenderOptions.findPlug("motion_frames").asFloat();
          m_motion.steps           = fnArnoldRenderOptions.findPlug("motion_steps").asInt();
+         m_motion.range_type      = fnArnoldRenderOptions.findPlug("range_type").asInt();
+         m_motion.motion_frames   = fnArnoldRenderOptions.findPlug("motion_frames").asFloat();
+         m_motion.motion_start    = fnArnoldRenderOptions.findPlug("motion_start").asFloat();
+         m_motion.motion_end      = fnArnoldRenderOptions.findPlug("motion_end").asFloat();
       }
       else
       {
-         m_motion.by_frame        = 0;
          m_motion.steps           = 1;
+         m_motion.range_type      = MTOA_MBLUR_TYPE_START;
+         m_motion.motion_frames   = 0;
       }
 
       plug = fnArnoldRenderOptions.findPlug("absolute_texture_paths");
