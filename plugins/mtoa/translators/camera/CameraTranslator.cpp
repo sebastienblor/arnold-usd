@@ -439,13 +439,9 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
 
-   if (IsMotionBlurEnabled())
-   {
-      float halfShutter = GetShutterSize() * 0.5f;
-      AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
-      AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
-      AiNodeSetInt(camera, "shutter_type", GetShutterType());
-   }
+   // The values will be overriden if they are supplied in the camera "User Options"
+   AiNodeSetFlt(camera, "shutter_start", 0.0f);
+   AiNodeSetFlt(camera, "shutter_end", 1.0f);
 
    GetMatrix(matrix);
    

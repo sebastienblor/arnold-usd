@@ -505,17 +505,66 @@ MStatus CArnoldSession::UpdateMotionFrames()
    double exportFrame         = m_sessionOptions.m_frame;
    if (m_sessionOptions.m_motion.enable_mask)
    {
-      double byFrame             = m_sessionOptions.m_motion.by_frame;
-      double shutterOffset       = m_sessionOptions.m_motion.shutter_offset;
+      unsigned int range_type    = m_sessionOptions.m_motion.range_type;
       unsigned int motionSteps   = m_sessionOptions.m_motion.steps;
-      double stepSize            = byFrame / double(motionSteps - 1);
       if (m_motion_frames.size() != motionSteps) m_motion_frames.clear();
       if (m_motion_frames.capacity() != motionSteps) m_motion_frames.reserve(motionSteps);
-
-      double frame = exportFrame - byFrame * 0.5 + shutterOffset;
-      for (unsigned int step=0; (step < motionSteps); ++step)
+      
+      double motionFrames;
+      double stepSize;
+      double startFrame;
+      double endFrame;
+      
+      switch(range_type)
       {
-         m_motion_frames.push_back(frame + (double)step * stepSize);
+         case MTOA_MBLUR_TYPE_START:
+            motionFrames = m_sessionOptions.m_motion.motion_frames;
+            stepSize = motionFrames / double(motionSteps - 1);
+            startFrame = exportFrame;
+            endFrame = exportFrame + motionFrames;
+            for (unsigned int step=0; (step < motionSteps - 1); ++step)
+            {
+               m_motion_frames.push_back(startFrame + (double)step * stepSize);
+            }
+            m_motion_frames.push_back(endFrame);
+            break;
+         case MTOA_MBLUR_TYPE_CENTER:
+            motionFrames = m_sessionOptions.m_motion.motion_frames;
+            stepSize = motionFrames / double(motionSteps - 1);
+            startFrame = exportFrame - motionFrames * 0.5;
+            endFrame = exportFrame + motionFrames * 0.5;
+            for (unsigned int step=0; (step < motionSteps - 1); ++step)
+            {
+               if((motionSteps%2 == 1) && (step == ((motionSteps-1)/2)) )
+                  m_motion_frames.push_back(exportFrame);
+               else
+                  m_motion_frames.push_back(startFrame + (double)step * stepSize);
+            }
+            m_motion_frames.push_back(endFrame);
+            break;
+         case MTOA_MBLUR_TYPE_END:
+            motionFrames = m_sessionOptions.m_motion.motion_frames;
+            stepSize = motionFrames / double(motionSteps - 1);
+            startFrame = exportFrame - motionFrames;
+            endFrame = exportFrame;
+            m_motion_frames.push_back(startFrame);
+            for (unsigned int step=1; (step < motionSteps - 1); ++step)
+            {
+               m_motion_frames.push_back(endFrame - (double)(motionSteps - 1 - step) * stepSize);
+            }
+            m_motion_frames.push_back(endFrame);
+            break;
+         case MTOA_MBLUR_TYPE_CUSTOM:
+            startFrame = exportFrame + m_sessionOptions.m_motion.motion_start;
+            endFrame = exportFrame + m_sessionOptions.m_motion.motion_end;
+            motionFrames = endFrame - startFrame;
+            stepSize = motionFrames / double(motionSteps - 1);
+            for (unsigned int step=0; (step < motionSteps - 1); ++step)
+            {
+               m_motion_frames.push_back(startFrame + (double)step * stepSize);
+            }
+            m_motion_frames.push_back(endFrame);
+            break;
       }
    }
    else
