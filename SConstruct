@@ -886,7 +886,7 @@ def create_installer(target, source, env):
     subprocess.call(['chmod', '+x', commandFilePath])
     installerPath = os.path.abspath('./mtoa-%s-%s-%s.run' % (MTOA_VERSION, system.os(), maya_base_version))
     subprocess.call(['installer/makeself.sh', tempdir, installerPath,
-                     'MtoA for Linux Installer', commandFilePath])
+                     'MtoA for Linux Installer', './unix_installer'])
     subprocess.call(['chmod', '+x', installerPath])
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
