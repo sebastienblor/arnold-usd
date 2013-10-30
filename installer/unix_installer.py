@@ -44,14 +44,14 @@ installDir = ''
 mayaVersion = sys.argv[1] if sys.argv[1] != '20135' else '2013.5'
 
 while True:
+    homeDir = os.path.expanduser('~')
     InstallerHeader()
+    installDir = os.path.join(homeDir, 'solidangle', 'mtoa', mayaVersion)
     print '''
     Select the installation directory.
-    [/opt/solidangle/mtoa/%s]
-          ''' % mayaVersion
-    inp = raw_input('    ').lstrip()
-
-    installDir = '/opt/solidangle/mtoa/%s' % mayaVersion
+    [%s]
+          ''' % installDir
+    inp = raw_input('    ').lstrip()   
     if inp != '':
         installDir = inp
     if not EnsureDir(installDir):
