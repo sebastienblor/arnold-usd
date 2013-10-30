@@ -880,12 +880,18 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
         shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
-        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
-        shutil.copyfile(os.path.abspath('installer/MtoA%s.nsi' % maya_base_version), os.path.join(tempdir, 'MtoA.nsi'))
+        shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+        shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
         zipfile.ZipFile(os.path.abspath(package_name), 'r').extractall(tempdir)
         NSIS_PATH = env.subst(env['NSIS_PATH'])
         os.environ['NSISDIR'] = NSIS_PATH
         os.environ['NSISCONFDIR'] = NSIS_PATH
+        mtoaVersionString = MTOA_VERSION
+        mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
+        mayaVersionString = maya_base_version
+        mayaVersionString = mayaVersionString.replace('20135', '2013.5')
+        os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
+        os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), 'MtoA-%s-%s.exe' % (MTOA_VERSION, maya_base_version))
     else:
