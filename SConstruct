@@ -866,6 +866,33 @@ elif system.os() == 'darwin':
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
+def create_installer(target, source, env):
+    if system.os() == "windows":
+        return
+    import tempfile
+    import shutil
+    package_name = str(source[0])
+    package_name += '.zip'
+    tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
+
+    shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
+    shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
+    shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+
+    commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
+    commandFile = open(commandFilePath, 'w')
+    commandFile.write('python ./unix_installer.py %s' % maya_base_version)
+    commandFile.close()
+    subprocess.call(['chmod', '+x', commandFilePath])
+    installerPath = os.path.abspath('./mtoa-%s-%s-%s.run' % (MTOA_VERSION, system.os(), maya_base_version))
+    subprocess.call(['installer/makeself.sh', tempdir, installerPath,
+                     'MtoA for Linux Installer', './unix_installer.sh'])
+    subprocess.call(['chmod', '+x', installerPath])
+
+env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
+
+INSTALLER = env.PackageInstaller('create_installer', package_name)
+
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
 ################################
@@ -897,8 +924,10 @@ top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
+top_level_alias(env, 'installer', INSTALLER)
 
 env.Depends(DEPLOY, PACKAGE)
+env.Depends(INSTALLER, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
 
