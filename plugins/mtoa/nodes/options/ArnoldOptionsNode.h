@@ -109,5 +109,6 @@ public:
    static MObject s_kick_render_flags;
    static MObject s_absolute_texture_paths;
    static MObject s_absolute_procedural_paths;
+   static MObject s_force_translate_shading_engines;
 
 };  // class CArnoldOptionsNode
