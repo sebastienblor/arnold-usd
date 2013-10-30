@@ -657,8 +657,8 @@ def arnoldMotionBlurPositionChanged(*args):
         arnoldMotionFramesChanged()
 
 def arnoldMotionFramesChanged(*args):
-    leght = pm.getAttr('defaultArnoldRenderOptions.motion_frames')
-    angle = leght * 360
+    length = pm.getAttr('defaultArnoldRenderOptions.motion_frames')
+    angle = length * 360
     pm.text( "textArnoldMBAngle",
                edit=True, 
                label=u'  Shutter Angle : %i°' % angle)
