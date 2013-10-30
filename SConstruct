@@ -133,6 +133,8 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('TOOLS_PATH',
                  'Where to find external tools required for sh',
+                 '.', PathVariable.PathIsDir),
+    PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
                  '.', PathVariable.PathIsDir)
 )
 
@@ -867,27 +869,37 @@ elif system.os() == 'darwin':
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
 def create_installer(target, source, env):
-    if system.os() == "windows":
-        return
     import tempfile
     import shutil
     package_name = str(source[0])
     package_name += '.zip'
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
-
-    shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
-    shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
-
-    commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
-    commandFile = open(commandFilePath, 'w')
-    commandFile.write('python ./unix_installer.py %s' % maya_base_version)
-    commandFile.close()
-    subprocess.call(['chmod', '+x', commandFilePath])
-    installerPath = os.path.abspath('./mtoa-%s-%s-%s.run' % (MTOA_VERSION, system.os(), maya_base_version))
-    subprocess.call(['installer/makeself.sh', tempdir, installerPath,
-                     'MtoA for Linux Installer', './unix_installer.sh'])
-    subprocess.call(['chmod', '+x', installerPath])
+    if system.os() == "windows":
+        import zipfile
+        shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
+        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
+        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
+        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
+        shutil.copyfile(os.path.abspath('installer/MtoA%s.nsi' % maya_base_version), os.path.join(tempdir, 'MtoA.nsi'))
+        zipfile.ZipFile(os.path.abspath(package_name), 'r').extractall(tempdir)
+        NSIS_PATH = env.subst(env['NSIS_PATH'])
+        os.environ['NSISDIR'] = NSIS_PATH
+        os.environ['NSISCONFDIR'] = NSIS_PATH
+        subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), 'MtoA-%s-%s.exe' % (MTOA_VERSION, maya_base_version))
+    else:
+        shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
+        shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
+        commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
+        commandFile = open(commandFilePath, 'w')
+        commandFile.write('python ./unix_installer.py %s' % maya_base_version)
+        commandFile.close()
+        subprocess.call(['chmod', '+x', commandFilePath])
+        installerPath = os.path.abspath('./mtoa-%s-%s-%s.run' % (MTOA_VERSION, system.os(), maya_base_version))
+        subprocess.call(['installer/makeself.sh', tempdir, installerPath,
+                         'MtoA for Linux Installer', './unix_installer.sh'])
+        subprocess.call(['chmod', '+x', installerPath])
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 

@@ -1,7 +1,7 @@
 !include "MUI2.nsh"
 
 Name "MtoA 0.20.0 Maya 2013"
-OutFile "MtoA-0.20.0-win64-2013.exe"
+OutFile "MtoA.exe"
 
 ;Default installation folder
 InstallDir "C:\solidangle\mtoadeploy\2013"
