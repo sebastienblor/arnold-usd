@@ -1,7 +1,7 @@
 !include "MUI2.nsh"
 
 Name "MtoA 0.25.0 Dev Maya 2015"
-OutFile "MtoA-0.25.0_dev-win64-2015.exe"
+OutFile "MtoA.exe"
 
 ;Default installation folder
 InstallDir "C:\solidangle\mtoadeploy\2015"

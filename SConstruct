@@ -883,6 +883,12 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoA%s.nsi' % maya_base_version), os.path.join(tempdir, 'MtoA.nsi'))
         zipfile.ZipFile(os.path.abspath(package_name), 'r').extractall(tempdir)
+        NSIS_PATH = env.subst(env['NSIS_PATH'])
+        os.environ['NSISDIR'] = NSIS_PATH
+        os.environ['NSISCONFDIR'] = NSIS_PATH
+        subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), 'MtoA-%s-%s.exe' % (MTOA_VERSION, maya_base_version))
+        print tempdir
     else:
         shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
