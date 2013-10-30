@@ -108,13 +108,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString optionsName = "";
    MString assExtension = "ass";
 
-   bool writeBox          = false;
-   bool createDirectory   = true;
-   bool isSequence        = false;
-   bool subFrames         = false;
-   bool compressed        = false;
-   bool asciiAss          = true;
-   bool expandProcedurals = false;
+   bool writeBox                     = false;
+   bool createDirectory              = true;
+   bool isSequence                   = false;
+   bool subFrames                    = false;
+   bool compressed                   = false;
+   bool asciiAss                     = true;
+   bool expandProcedurals            = false;
+   bool forceTranslateShadingEngines = false;
    int mask        = -1;
    int lightLinks  = -1;
    int shadowLinks = -1;
@@ -237,6 +238,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    if (argDB.isFlagSet("expandProcedurals"))
    {
       expandProcedurals = true;
+   }
+
+   if (argDB.isFlagSet("forceTranslateShadingEngines"))
+   {
+      forceTranslateShadingEngines = true;
    }
 
    // Get Maya scene information
@@ -365,6 +371,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          
          renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed);
+         renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
 
          if (writeBox)
          {
