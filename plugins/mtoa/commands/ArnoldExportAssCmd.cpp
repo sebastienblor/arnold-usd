@@ -39,6 +39,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ll", "lightLinks", MSyntax::kUnsigned);
    syntax.addFlag("sl", "shadowLinks", MSyntax::kUnsigned);
    syntax.addFlag("ep", "expandProcedurals");
+   syntax.addFlag("fsh", "forceTranslateShadingEngines");
 
    syntax.setObjectType(MSyntax::kSelectionList);
    return syntax;

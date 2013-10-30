@@ -197,6 +197,16 @@ public:
       m_progressive_rendering = is_progressive;
    }
 
+   bool forceTranslateShadingEngines() const
+   {
+      return m_force_translate_shading_engines;
+   }
+
+   void SetForceTranslateShadingEngines(const bool force_translate_shading_engines)
+   {
+      m_force_translate_shading_engines = force_translate_shading_engines;
+   }
+
    MStatus GetFromMaya();
 
    void SetupLog() const;
@@ -266,6 +276,7 @@ private:
    bool     m_outputAssBoundingBox;
    unsigned int   m_outputAssMask;
    bool m_expandProcedurals;
+   bool m_force_translate_shading_engines;
 
    bool           m_log_to_file;
    bool           m_log_to_console;
