@@ -323,6 +323,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          arnoldSession->SetShadowLinkMode(ArnoldShadowLinkMode(shadowLinks));
       }
+      renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
       
       MFnDependencyNode fnCam;
       MString mayaVersion = MGlobal::mayaVersion();     
@@ -371,7 +372,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          
          renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed);
-         renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
 
          if (writeBox)
          {

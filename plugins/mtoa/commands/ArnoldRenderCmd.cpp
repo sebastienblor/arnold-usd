@@ -80,6 +80,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    short renderType = 0;
    bool outputAssBoundingBox = false;
    bool useBinaryEncoding = true;
+   bool forceTranslateShadingEngines = false;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -94,6 +95,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
       kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags").asString();
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
+      forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -118,6 +120,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             cmdStr += " -ep";
          if (outputAssBoundingBox)
             cmdStr += " -bb";
+      }
+      if (forceTranslateShadingEngines)
+      {
+         cmdStr += " -forceTranslateShadingEngines";
       }
       
       if (renderGlobals.isAnimated())
