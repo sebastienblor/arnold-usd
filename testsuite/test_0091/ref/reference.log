@@ -1,60 +1,28 @@
 
-Starting "/usr/autodesk/maya2014-x64/bin/maya"
+Starting "/usr/autodesk/maya2012-x64/bin/maya"
 
-00:00:00   225MB         | log started Thu Oct 24 18:08:44 2013
-00:00:00   225MB         | Arnold 4.1.1.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/24 13:10:52
-00:00:00   225MB         | running on localhost.localdomain
-00:00:00   225MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   225MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.23.2.el6.centos.plus.x86_64
-00:00:00   225MB         |  
-00:00:00   225MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   225MB         | [mtoa] [<built-in>] Generated 45 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   225MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   226MB         | loaded 85 plugins from 1 lib(s) in 0:00.00
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 14 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 41 translators for 41 Maya nodes (14 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   226MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   226MB WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00   226MB         | no plugins loaded
-00:00:00   226MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   226MB         | [mtoa] [renderview_driver] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   226MB         | [mtoa] Registering 3 loaded extensions:
-00:00:00   227MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   228MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   228MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
 libai.so already loaded
 
-00:00:00   229MB         | Successfully imported python module 'arnold'
-00:00:00   229MB         | Successfully imported python module 'mtoa'
-pymel.internal.factories : INFO : MFnDagNode.model is deprecated
-pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, xgenToolkit, AbcImport, mtoa
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
-Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-00:00:01   316MB         |  
-00:00:01   316MB         | releasing resources
-00:00:01   315MB         | Arnold shutdown
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-mental ray for Maya 2014 
-mental ray: version 3.11.1.12, Aug  6 2013, revision 202006
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
+Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
 File read in 0 seconds.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0091/test.ma
-00:00:00 WARNING |  unable to load dynamic library: /work/deploy/renderview/driver/renderview_driver.sog: cannot open shared object file: No such file or directory
-Warning: file: /tmp/ASTMPi7C1bI.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /tmp/ASTMPi7C1bI.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Scene /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0091/test.ma completed.
+Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0091/test.ma
+Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0091/test.ma completed.
