@@ -197,7 +197,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>maketx options</string>
+     <string>maketx options:</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_8">

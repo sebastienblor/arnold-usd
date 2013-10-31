@@ -71,14 +71,6 @@ class QuadAreaLightTemplate(BaseAreaLightTemplate):
 
 class MeshLightTemplate(BaseAreaLightTemplate):
     def setup(self):
-        self.addControl("lightVisible")
-        
-        self.addSeparator()
-        
-        self.addCommonParameters()
-
-class MeshLightMeshTemplate(BaseAreaLightTemplate):
-    def setup(self):
         self.addControl("color")
         self.addControl("intensity")
         self.addControl("aiExposure", label = "Exposure")
@@ -105,6 +97,5 @@ templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "cylinder")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "disk")
-templates.registerTranslatorUI(MeshLightTemplate, "aiAreaLight", "mesh")
 templates.registerDefaultTranslator('aiAreaLight', "quad")
-templates.registerTranslatorUI(MeshLightMeshTemplate, "mesh", "mesh_light")
+templates.registerTranslatorUI(MeshLightTemplate, "mesh", "mesh_light")

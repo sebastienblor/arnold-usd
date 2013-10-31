@@ -391,17 +391,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
 MObject CMeshLightTranslator::GetMeshObject() const
 {
-   if (m_isMesh)
-      return m_dagPath.node();
-   else
-   {
-      MFnDependencyNode fnDepNode(m_dagPath.node());
-      MStatus status;
-      MPlug plug = fnDepNode.findPlug("inputMesh", &status);
-      MObject meshObject;
-      plug.getValue(meshObject);
-      return meshObject;
-   }
+   return m_dagPath.node();
 }
 
 void CMeshLightTranslator::Export(AtNode* light)
@@ -469,15 +459,6 @@ void CMeshLightTranslator::Delete()
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
-{
-   CExtensionAttrHelper helper(context.maya, "mesh_light");
-   // common attributes
-   MakeCommonAttributes(helper);
-   helper.MakeInput("shadow_color");
-   helper.MakeInput("decay_type");
-}
-
-void CMeshLightTranslator::NodeInitializerMesh(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "mesh_light");
    // common attributes
