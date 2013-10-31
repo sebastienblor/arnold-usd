@@ -104,7 +104,8 @@ void CHairTranslator::Update( AtNode *curve )
    ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
    int visibility = ComputeVisibility(m_dagPath);
    
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
    {
       // The shader nodes
       // TODO: Kill these and export it properly.

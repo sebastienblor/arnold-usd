@@ -1070,7 +1070,8 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
 
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
 
