@@ -9,7 +9,7 @@ def InstallerHeader():
 
 InstallerHeader()
 print '''
-    Please Type in Accept to conform the Eula,
+    Please Type in Accept to confirm the EULA,
     or press enter to exit.
       '''
 inp = raw_input('    ').replace(' ', '').lower()
