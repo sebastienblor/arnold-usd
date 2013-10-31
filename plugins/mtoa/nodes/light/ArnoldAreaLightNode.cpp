@@ -32,8 +32,6 @@ MObject CArnoldAreaLightNode::s_color;
 MObject CArnoldAreaLightNode::s_intensity;
 MObject CArnoldAreaLightNode::s_affectDiffuse;
 MObject CArnoldAreaLightNode::s_affectSpecular;
-MObject CArnoldAreaLightNode::s_inputMesh;
-MObject CArnoldAreaLightNode::s_lightVisible;
 MObject CArnoldAreaLightNode::s_update;
 // Arnold outputs
 MObject CArnoldAreaLightNode::s_OUT_colorR;
@@ -59,8 +57,7 @@ MObject CArnoldAreaLightNode::aLightBlindData;
 MObject CArnoldAreaLightNode::aLightData;
 
 CArnoldAreaLightNode::CArnoldAreaLightNode() :
-        m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0)),
-        m_displayList(-1)
+        m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
 { }
 
 CArnoldAreaLightNode::~CArnoldAreaLightNode() {}
@@ -74,54 +71,7 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    // do this calculation every time if
    // the mesh is changed, because aiTranslator cannot affect update
    block.setClean(s_update);
-   
-   MStatus status;
-   
-   MFnMesh inputMesh(block.inputValue(s_inputMesh).asMesh(), &status);
-   
-   if (m_displayList != -1)
-      glDeleteLists(m_displayList, 1);
-   
-   m_displayList = -1;   
-   
-   if (!status)
-      return MS::kSuccess;
-   
-   const int numVertices = inputMesh.numVertices();
-   
-   if (numVertices == 0)
-      return MS::kSuccess;
-   
-   m_boundingBox.clear();
-   
-   const AtVector* vertices = (const AtVector*)inputMesh.getRawPoints(&status);
-   for (int i = 0; i < numVertices; ++i)
-   {
-      const AtVector& cv = vertices[i];
-      m_boundingBox.expand(MPoint(cv.x, cv.y, cv.z));
-   }
-   
-   m_displayList = glGenLists(1); // these are kinda old, but still one of the
-   // fastest solution for simple display
-   
-   glNewList(m_displayList, GL_COMPILE);
-   
-   const int numPolygons = inputMesh.numPolygons();         
-
-   for (int i = 0; i < numPolygons; ++i) 
-   {
-      glBegin(GL_LINE_STRIP);
-      MIntArray vidx;
-      inputMesh.getPolygonVertices(i, vidx);
-      const unsigned int numVertices = vidx.length();
-      for (unsigned int j = 0; j < numVertices; ++j)
-         glVertex3fv(&vertices[vidx[j]].x);
-      glVertex3fv(&vertices[vidx[0]].x);
-      glEnd();
-   }
-   
-   glEndList();
-   
+      
    return MS::kSuccess;
 }
 
@@ -203,15 +153,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       glVertex3f( 0.0f, 0.0f, 0.0f);
       glVertex3f( 0.0f, 0.0f,-1.0f);
       glEnd();
-   }
-   // Mesh
-   else if (areaType == "mesh")
-   {
-      setBoundingBox = false;
-      if (MPlug(tmo, s_update).asBool()) // forcing the compute to be called
-         return;
-      if (m_displayList != -1)
-         glCallList(m_displayList);
    }
    // Cylinder
    else if (areaType == "cylinder")
@@ -305,15 +246,6 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setWritable(true);
    nAttr.setChannelBox(true);
    addAttribute(s_normalCamera);
-   
-   s_inputMesh = tAttr.create("inputMesh", "input_mesh", MFnData::kMesh);
-   tAttr.setStorable(true);
-   addAttribute(s_inputMesh);
-   
-   s_lightVisible = nAttr.create("lightVisible", "light_visible", MFnNumericData::kBoolean);
-   nAttr.setDefault(false);
-   nAttr.setChannelBox(true);
-   addAttribute(s_lightVisible);
    
    s_update = nAttr.create("update", "upt", MFnNumericData::kBoolean);
    nAttr.setDefault(false);
@@ -415,9 +347,6 @@ MStatus CArnoldAreaLightNode::initialize()
    attributeAffects(s_intensity, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
-   attributeAffects(s_inputMesh, aLightData);
-   
-   attributeAffects(s_inputMesh, s_update);
 
    return MS::kSuccess;
 }

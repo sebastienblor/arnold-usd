@@ -221,11 +221,7 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiAreaLight",
                                   "disk",
                                   CDiskLightTranslator::creator,
-                                  CDiskLightTranslator::NodeInitializer);       
-      builtin->RegisterTranslator("aiAreaLight",
-                                  "mesh",
-                                  CMeshLightTranslator::creator,
-                                  CMeshLightTranslator::NodeInitializer);
+                                  CDiskLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiLightBlocker",
                                   "",
                                   CLightBlockerTranslator::creator);
@@ -251,8 +247,8 @@ namespace // <anonymous>
                                   CMeshTranslator::NodeInitializer);
       builtin->RegisterTranslator("mesh",
                                   "mesh_light",
-                                  CMeshLightTranslator::creatorMesh,
-                                  CMeshLightTranslator::NodeInitializerMesh);
+                                  CMeshLightTranslator::creator,
+                                  CMeshLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("nurbsSurface",
                                   "",
                                   CNurbsSurfaceTranslator::creator,
