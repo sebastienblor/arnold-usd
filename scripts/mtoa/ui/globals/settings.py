@@ -387,13 +387,9 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.frameLayout(label="Diffusion SSS", collapse=True)
-    
     pm.attrControlGrp('ss_sss_bssrdf_samples',
-                   label="BSSRDF Samples",
-                   attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
-    
-    pm.setParent('..')
+                      label="SSS Samples",
+                      attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
     
     pm.frameLayout(label="Volumes", collapse=True)                      
     pm.attrControlGrp('ss_volume_indirect_samples',
