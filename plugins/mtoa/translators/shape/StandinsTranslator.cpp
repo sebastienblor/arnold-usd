@@ -218,7 +218,8 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    m_DagNode.setObject(masterInstance);
    
    if (m_DagNode.findPlug("overrideShaders").asBool() &&
-      (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER))
+      ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+       || CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines()))
    {
       ExportStandinsShaders(instance);
    }

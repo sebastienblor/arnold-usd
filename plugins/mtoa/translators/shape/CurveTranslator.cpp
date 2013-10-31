@@ -109,7 +109,8 @@ void CCurveTranslator::Update( AtNode *curve )
 
 
    // Check if we using a custom curve shader.
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
    {
       AtNode* shader = NULL;
       MPlugArray curveShaderPlugs;

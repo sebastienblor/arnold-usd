@@ -85,6 +85,7 @@ MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
 MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
+MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -547,6 +548,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(true);
    addAttribute(s_absolute_procedural_paths);
+
+   s_force_translate_shading_engines = nAttr.create("forceTranslateShadingEngines", "force_translate_shading_engines", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_force_translate_shading_engines);
 
    return MS::kSuccess;
 }
