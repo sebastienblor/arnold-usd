@@ -1,6 +1,6 @@
 //Maya ASCII 2012 scene
 //Name: test.ma
-//Last modified: Thu, Oct 24, 2013 05:18:41 PM
+//Last modified: Mon, Nov 04, 2013 06:57:43 PM
 //Codeset: UTF-8
 requires maya "2012";
 requires "mtoa" "1.0.0.dev";
@@ -131,6 +131,10 @@ createNode transform -n "pPlane2";
 	setAttr ".t" -type "double3" -0.7 0.5 -2 ;
 	setAttr ".r" -type "double3" 90 0 0 ;
 createNode mesh -n "pPlaneShape2" -p "pPlane2";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
 	setAttr -k off ".v";
 	setAttr ".vir" yes;
 	setAttr ".vif" yes;
@@ -140,7 +144,8 @@ createNode mesh -n "pPlaneShape2" -p "pPlane2";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".ai_exposure" 4;
-	setAttr ".ai_light_texture_subdivision" 6;
+	setAttr ".ai_subdiv_type" 2;
+	setAttr ".ai_subdiv_iterations" 6;
 	setAttr ".ai_translator" -type "string" "mesh_light";
 createNode transform -n "pPlane3";
 	setAttr ".t" -type "double3" -1.9138922662783444 0.5 -2 ;
@@ -166,7 +171,8 @@ createNode mesh -n "pPlaneShape3" -p "pPlane3";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".ai_exposure" 4;
 	setAttr ".light_visible" yes;
-	setAttr ".ai_light_texture_subdivision" 6;
+	setAttr ".ai_subdiv_type" 2;
+	setAttr ".ai_subdiv_iterations" 6;
 	setAttr ".ai_translator" -type "string" "mesh_light";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -sn "driver_exr_compression" -ln "driverExrCompression" -dv 2 
@@ -209,7 +215,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	setAttr ".sgamma" 1;
 	setAttr ".tgamma" 1;
 	setAttr ".mb_en" yes;
-	setAttr ".shuto" -10.574000358581543;
 	setAttr ".mots" 23;
 	setAttr ".motf" 30.566999435424805;
 	setAttr -k on ".driver_tiled" no;
