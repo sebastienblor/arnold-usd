@@ -379,13 +379,23 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
    if (exportUVs)
       AiNodeSetArray(meshNode, "uvidxs", uvidxs);
 
-   const int textureSubdiv = FindMayaPlug("aiLightTextureSubdivision").asInt();
-   if (textureSubdiv > 0)
-   {
-      AiNodeSetInt(meshNode, "subdiv_iterations", textureSubdiv);
-      AiNodeSetStr(meshNode, "subdiv_type", "linear");
-   }
    AiNodeSetPtr(meshNode, "shader", NULL);
+
+   const int subdivision = FindMayaPlug("aiSubdivType").asInt();
+   if (subdivision!=0)
+   {
+      if (subdivision==1)
+         AiNodeSetStr(meshNode, "subdiv_type",           "catclark");
+      else
+         AiNodeSetStr(meshNode, "subdiv_type",           "linear");
+      AiNodeSetInt(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(meshNode, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(meshNode, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+
+      ProcessParameter(meshNode, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
+   }
    return meshNode;
 }
 
@@ -501,15 +511,6 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = false;
    data.channelBox = false;
    helper.MakeInputBoolean(data);
-
-   data.name = "aiLightTextureSubdivision";
-   data.shortName = "ai_light_texture_subdivision";
-   data.defaultValue.INT = 0;
-   data.min.INT = 0;
-   data.softMax.INT = 6;
-   data.hasMin = true;
-   data.hasSoftMax = true;
-   helper.MakeInputInt(data);
 }
 
 void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)

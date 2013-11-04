@@ -82,7 +82,6 @@ class MeshLightTemplate(BaseAreaLightTemplate):
 
         self.addSeparator()
         self.addControl("lightVisible")
-        self.addControl("aiLightTextureSubdivision", label="Texture Subdivision")
         
         self.addSeparator()
         
@@ -90,7 +89,20 @@ class MeshLightTemplate(BaseAreaLightTemplate):
 
         self.addSeparator()
 
-        self.commonLightAttributes()
+        self.commonLightAttributes(False)
+
+        self.beginLayout('Subdivision', collapse=True)
+        self.addControl("aiSubdivType", label="Type")
+        self.addControl("aiSubdivIterations", label="Iterations")
+        self.addControl("aiSubdivAdaptiveMetric", label="Adaptive Metric")
+        self.addControl("aiSubdivPixelError", label="Pixel Error")
+        # TODO: add dicing camera UI
+        self.addControl("aiSubdivDicingCamera", label="Dicing Camera")
+        self.addControl("aiSubdivUvSmoothing", label="UV Smoothing")
+        self.addControl("aiSubdivSmoothDerivs", label="Smooth Tangents")
+        self.endLayout()
+
+        self.addControl("aiUserOptions", "User Options")
 
 
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
