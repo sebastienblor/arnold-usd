@@ -1070,7 +1070,8 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
 
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
 
@@ -1085,7 +1086,8 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
    ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
@@ -1112,7 +1114,8 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    int visibility = AiNodeGetInt(masterNode, "visibility");
    AiNodeSetInt(instance, "visibility", visibility);
 
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
    {
       //
       // SHADERS

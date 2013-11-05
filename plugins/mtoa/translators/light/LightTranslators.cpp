@@ -106,10 +106,10 @@ void CQuadLightTranslator::Export(AtNode* light)
 
    AtPoint vertices[4];
 
-   AiV3Create(vertices[0], 1, 1, 0);
-   AiV3Create(vertices[1], 1, -1, 0);
-   AiV3Create(vertices[2], -1, -1, 0);
-   AiV3Create(vertices[3], -1, 1, 0);
+   AiV3Create(vertices[3], 1, 1, 0);
+   AiV3Create(vertices[0], 1, -1, 0);
+   AiV3Create(vertices[1], -1, -1, 0);
+   AiV3Create(vertices[2], -1, 1, 0);
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices));
 
@@ -252,7 +252,6 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("filename");
 }
 
-
 // Mesh AreaLight
 
 double CalculateTriangleArea(const AtVector& p0, 
@@ -325,7 +324,35 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    AiNodeSetArray(meshNode, "nsides", nsides);
 
+   bool exportUVs = false;
+   int numUVSets = mesh.numUVSets();
+   AtArray* uvidxs = 0;
+
+   if (numUVSets > 0)
+   {
+      int numUVs = mesh.numUVs();
+      if (numUVs > 0)
+      {
+         exportUVs = true;
+         AtArray* uv = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
+         uvidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+      
+         MFloatArray uArray, vArray;
+         mesh.getUVs(uArray, vArray);
+
+         for (int j = 0; j < numUVs; ++j)
+         {
+            AtPoint2 atv;
+            atv.x = uArray[j];
+            atv.y = vArray[j];
+            AiArraySetPnt2(uv, j, atv);
+         }
+         AiNodeSetArray(meshNode, "uvlist", uv);
+      }
+   }
+
    AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+   int uv_id = 0;
 
    for(int i = 0, id = 0; i < numPolygons; ++i)
    {
@@ -333,22 +360,48 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
       int vertexCount = AiArrayGetUInt(nsides, i);
       mesh.getPolygonVertices(i, vidx);
       for (int j = 0; j < vertexCount; ++j)
-         AiArraySetUInt(vidxs, id++, vidx[j]);
+      {
+         AiArraySetUInt(vidxs, id, vidx[j]);
+         if (exportUVs)
+         {
+            if (mesh.getPolygonUVid(i, j, uv_id) != MS::kSuccess)
+            {
+               uv_id = 0;
+               AiMsgWarning("[MtoA] No uv coordinate exists for the default uv set at polygon %i at vertex %i on mesh %s.",
+                            i, j, mesh.name().asChar());
+            }
+            AiArraySetUInt(uvidxs, id, uv_id);
+         }
+         ++id;
+      }
    }
    AiNodeSetArray(meshNode, "vidxs", vidxs);
+   if (exportUVs)
+      AiNodeSetArray(meshNode, "uvidxs", uvidxs);
 
    AiNodeSetPtr(meshNode, "shader", NULL);
+
+   const int subdivision = FindMayaPlug("aiSubdivType").asInt();
+   if (subdivision!=0)
+   {
+      if (subdivision==1)
+         AiNodeSetStr(meshNode, "subdiv_type",           "catclark");
+      else
+         AiNodeSetStr(meshNode, "subdiv_type",           "linear");
+      AiNodeSetInt(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(meshNode, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(meshNode, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+
+      ProcessParameter(meshNode, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
+   }
    return meshNode;
 }
 
 MObject CMeshLightTranslator::GetMeshObject() const
 {
-   MFnDependencyNode fnDepNode(m_dagPath.node());
-   MStatus status;
-   MPlug plug = fnDepNode.findPlug("inputMesh", &status);
-   MObject meshObject;
-   plug.getValue(meshObject);
-   return meshObject;
+   return m_dagPath.node();
 }
 
 void CMeshLightTranslator::Export(AtNode* light)
@@ -378,15 +431,17 @@ void CMeshLightTranslator::Export(AtNode* light)
    AtNode* shaderNode = GetArnoldNode("shader");
    AiNodeSetPtr(meshNode, "shader", shaderNode);
 
+   ProcessParameter(shaderNode, "color", AI_TYPE_RGB, FindMayaPlug("color"));
+
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {      
       AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
       
-      AtRGB color = AiNodeGetRGB(light, "color");
+      AtRGB colorMultiplier = AI_RGB_WHITE;
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
-      AiColorGamma(&color, light_gamma);
-      color = color * AiNodeGetFlt(light, "intensity") * 
+      AiColorGamma(&colorMultiplier, light_gamma);
+      colorMultiplier = colorMultiplier * AiNodeGetFlt(light, "intensity") * 
          powf(2.f, AiNodeGetFlt(light, "exposure"));
       
       // if normalize is set to false, we need to multiply
@@ -394,15 +449,23 @@ void CMeshLightTranslator::Export(AtNode* light)
       // doing a very simple triangulation, good for
       // approximating the Arnold one
       if (AiNodeGetBool(light, "normalize"))
-         NormalizeColor(meshObject, color);
+         NormalizeColor(meshObject, colorMultiplier);
       
-      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+      AiNodeSetRGB(shaderNode, "color_multiplier", colorMultiplier.r, colorMultiplier.g, colorMultiplier.b);
    }
    else
    {
       AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
-      AiNodeSetRGB(shaderNode, "color", 0.f, 0.f, 0.f);
+      AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
    }
+}
+
+void CMeshLightTranslator::Delete()
+{
+   for (std::map<std::string, AtNode*>::iterator it = m_atNodes.begin(); it != m_atNodes.end(); ++it)
+      AiNodeDestroy(it->second);
+   m_atNode = NULL;
+   m_atNodes.clear();
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
@@ -412,7 +475,42 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
    helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("cast_volumetric_shadows");
+   CAttrData data;
 
+   data.name = "color";
+   data.shortName = "sc";
+   data.defaultValue.RGB = AI_RGB_WHITE;
+   data.channelBox = true;
+   helper.MakeInputRGB(data);
+
+   data.name = "intensity";
+   data.shortName = "intensity";
+   data.min.FLT = 0.0f;
+   data.softMax.FLT = 10.0f;
+   data.defaultValue.FLT = 1.0f;
+   data.channelBox = true;
+   helper.MakeInputFloat(data);
+
+   data.name = "emitDiffuse";
+   data.shortName = "emitDiffuse";
+   data.defaultValue.BOOL = true;
+   data.channelBox = true;
+   helper.MakeInputBoolean(data);
+
+   data.name = "emitSpecular";
+   data.shortName = "emitSpecular";
+   data.defaultValue.BOOL = true;
+   data.channelBox = true;
+   helper.MakeInputBoolean(data);
+
+   data.name = "lightVisible";
+   data.shortName = "light_visible";
+   data.defaultValue.BOOL = false;
+   data.channelBox = false;
+   helper.MakeInputBoolean(data);
 }
 
 void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)

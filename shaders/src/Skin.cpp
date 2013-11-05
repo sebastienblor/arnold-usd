@@ -118,7 +118,7 @@ node_finish
 
 float SimpleFresnel(float dt, float ior) // TODO : OPTIMIZE
 {
-   return ((ior - 1.0f) * (ior - 1.0f) + 4.0f * ior * powf(MAX(1.0f - dt, 0.0f), 5.0f)) / ((ior + 1.0f) * (ior + 1.0f));
+   return ((ior - 1.0f) * (ior - 1.0f) + 4.0f * ior * powf(CLAMP(1.0f - dt, 0.0f, 1.0f), 5.0f)) / ((ior + 1.0f) * (ior + 1.0f));
 }
 
 shader_evaluate

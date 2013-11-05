@@ -125,6 +125,9 @@ public:
 class CMeshLightTranslator : public CLightTranslator
 {
 public:
+   CMeshLightTranslator() : m_numVertices(0)
+   {
+   }
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
@@ -137,6 +140,8 @@ public:
       AddArnoldNode("meshLightMaterial", "shader");
       return AddArnoldNode("mesh_light");
    }
+
+   virtual void Delete();
    
    virtual void ExportMotion(AtNode* light, unsigned int step);
 protected:

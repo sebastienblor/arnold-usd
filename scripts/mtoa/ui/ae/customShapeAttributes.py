@@ -87,7 +87,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 #       ui.addSeparator()
 #       ui.addControl("enableProcedural")
 #       ui.addControl("dso")
-templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
+templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
+core.registerDefaultTranslator("mesh", "polymesh")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
@@ -471,11 +472,24 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
                                         ('orthographic', cameraOrthographicChanged)])
 
 def registerDriverTemplates():
+    skipDrivers = ['exr']
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
+        if not (transName in skipDrivers): # we want to use a custom ui for the EXR translator
+            templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
+
+class EXRDriverTranslatorUI(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl('exrCompression', label='Compression')
+        self.addControl('halfPrecision', label='Half Precision')
+        self.addControl('preserveLayerName', label='Preserve Layer Name')
+        self.addControl('tiled', label='Tiled')
+        self.addControl('autocrop', label='Autocrop')
+        self.addControl('append', label='Append')
+
+templates.registerTranslatorUI(EXRDriverTranslatorUI, 'aiAOVDriver', 'exr')
 
 def registerFilterTemplates():
     # register driver templates

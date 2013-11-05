@@ -9,7 +9,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 def LoadStandInButtonPush(nodeName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
     projectDir = cmds.workspace(query=True, directory=True)     
-    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4, startingDirectory=projectDir)
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=1, startingDirectory=projectDir)
     if ret is not None and len(ret):
         ArnoldStandInDsoEdit(nodeName, ret[0], True)
 
@@ -776,7 +776,6 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addCustom('data', ArnoldStandInTemplateDataNew, ArnoldStandInTemplateDataReplace)
         self.addControl('mode')
         self.addSeparator()
-        self.addControl('useFrameExtension')
         self.addControl('frameNumber', label='Frame')
         self.addControl('frameOffset')
         
@@ -868,6 +867,10 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.suppress('ghostFrames')
         self.suppress('ghosting')
         self.suppress('ghostCustomSteps')
+        self.suppress('ghostColorPreA')
+        self.suppress('ghostColorPre')
+        self.suppress('ghostColorPostA')
+        self.suppress('ghostColorPost')
         self.suppress('tweak')
         self.suppress('relativeTweak')
         self.suppress('currentUVSet')

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>682</width>
-    <height>505</height>
+    <height>508</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>440</y>
+     <y>460</y>
      <width>661</width>
      <height>32</height>
     </rect>
@@ -36,7 +36,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
+     <y>30</y>
      <width>351</width>
      <height>421</height>
     </rect>
@@ -110,8 +110,13 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>Select Unprocessed</string>
+     <string>Select Untiled</string>
     </property>
     <property name="+command" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.selectNonTx</string>
@@ -160,13 +165,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>70</y>
-      <width>111</width>
+      <y>20</y>
+      <width>71</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Create .tx textures</string>
+     <string>Create .tx</string>
     </property>
     <property name="+command" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.createTx</string>
@@ -176,7 +181,7 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>40</y>
+      <y>70</y>
       <width>271</width>
       <height>20</height>
      </rect>
@@ -186,13 +191,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>20</y>
+      <y>50</y>
       <width>81</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Options</string>
+     <string>maketx options:</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_8">
@@ -224,8 +229,8 @@
    <widget class="QPushButton" name="pushButton_7">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>70</y>
+      <x>210</x>
+      <y>20</y>
       <width>75</width>
       <height>23</height>
      </rect>
@@ -242,13 +247,13 @@
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>400</y>
+     <y>420</y>
      <width>231</width>
-     <height>31</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>Processed textures (tx) will be used only when &quot;Use Existing .tx Textures&quot; option is enabled.</string>
+    <string>Tiled textures (tx) will be used only when the &quot;Use Existing .tx Textures&quot; option is enabled.</string>
    </property>
    <property name="wordWrap">
     <bool>true</bool>
@@ -258,13 +263,13 @@
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>360</y>
-     <width>181</width>
+     <y>380</y>
+     <width>221</width>
      <height>21</height>
     </rect>
    </property>
    <property name="text">
-    <string>(tx) = Original + Processed Texture</string>
+    <string>(tx) = Original + .tx</string>
    </property>
    <property name="textFormat">
     <enum>Qt::AutoText</enum>
@@ -274,20 +279,20 @@
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>380</y>
+     <y>400</y>
      <width>171</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>[tx] = Only .tx Texture is Available</string>
+    <string>[tx] = .tx only</string>
    </property>
   </widget>
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>300</y>
+     <y>310</y>
      <width>301</width>
      <height>51</height>
     </rect>
@@ -300,12 +305,12 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>111</width>
+      <width>71</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Delete .tx textures</string>
+     <string>Delete .tx</string>
     </property>
     <property name="+command" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.deleteTx</string>
@@ -329,13 +334,13 @@
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>10</y>
+     <y>30</y>
      <width>301</width>
      <height>81</height>
     </rect>
    </property>
    <property name="title">
-    <string>Textures Folder</string>
+    <string>Texture Folder</string>
    </property>
    <widget class="QPushButton" name="pushButton_5">
     <property name="geometry">
@@ -376,7 +381,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Search in subfolders</string>
+     <string>Search in Subfolders</string>
     </property>
     <property name="+changeCommand" stdset="0">
      <string>mtoa.txManager.MtoATxManager.use.selectedFilesFromFolder</string>
@@ -386,8 +391,8 @@
   <widget class="QRadioButton" name="radioButton">
    <property name="geometry">
     <rect>
-     <x>380</x>
-     <y>100</y>
+     <x>210</x>
+     <y>10</y>
      <width>141</width>
      <height>17</height>
     </rect>
@@ -399,26 +404,26 @@
     <string>mtoa.txManager.MtoATxManager.use.selectChange</string>
    </property>
    <attribute name="buttonGroup">
-    <string>buttonGroup</string>
+    <string notr="true">buttonGroup</string>
    </attribute>
   </widget>
   <widget class="QRadioButton" name="radioButton_2">
    <property name="geometry">
     <rect>
-     <x>520</x>
-     <y>100</y>
+     <x>370</x>
+     <y>10</y>
      <width>141</width>
      <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>Use Folder Textures</string>
+    <string>Use Textures in Folder</string>
    </property>
    <property name="+onCommand" stdset="0">
     <string>mtoa.txManager.MtoATxManager.use.selectedFilesFromFolder</string>
    </property>
    <attribute name="buttonGroup">
-    <string>buttonGroup</string>
+    <string notr="true">buttonGroup</string>
    </attribute>
   </widget>
  </widget>

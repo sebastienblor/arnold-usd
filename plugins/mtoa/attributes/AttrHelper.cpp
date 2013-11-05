@@ -229,7 +229,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 
    switch (data.type)
    {
-       case AI_TYPE_INT:
+      case AI_TYPE_INT:
       {
          int val;
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
@@ -250,6 +250,31 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
             data.softMax.INT = val;
+            data.hasSoftMax = true;
+         }
+         break;
+      }
+      case AI_TYPE_BYTE:
+      {
+         int val;
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         {
+            data.min.BYTE = (int)val;
+            data.hasMin = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         {
+            data.max.BYTE = (int)val;
+            data.hasMax = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         {
+            data.softMin.BYTE = (int)val;
+            data.hasSoftMin = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         {
+            data.softMax.BYTE = (int)val;
             data.hasSoftMax = true;
          }
          break;
@@ -355,6 +380,46 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
       nAttr.setSoftMin((int)data.softMin.INT);
    if (data.hasSoftMax)
       nAttr.setSoftMax((int)data.softMax.INT);
+   nAttr.setArray(data.isArray);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setConnectable(data.linkable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   nAttr.setChannelBox(data.channelBox);
+}
+
+void CBaseAttrHelper::MakeInputByte(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputByte(attrib, data);
+      addAttribute(attrib);
+   }
+}
+
+void CBaseAttrHelper::MakeInputByte(CAttrData& data)
+{
+   MObject attrib;
+   MakeInputByte(attrib, data);
+   addAttribute(attrib);
+}
+
+void CBaseAttrHelper::MakeInputByte(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+   MStatus status;
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kByte, data.defaultValue.BYTE, &status);
+   CHECK_MSTATUS(status);
+   if (data.hasMin)
+      nAttr.setMin(data.min.BYTE);
+   if (data.hasMax)
+      nAttr.setMax(data.max.BYTE);
+   if (data.hasSoftMin)
+      nAttr.setSoftMin(data.softMin.BYTE);
+   if (data.hasSoftMax)
+      nAttr.setSoftMax(data.softMax.BYTE);
    nAttr.setArray(data.isArray);
    nAttr.setKeyable(data.keyable);
    nAttr.setConnectable(data.linkable);
@@ -845,6 +910,12 @@ void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
          break;
       }
 
+      case AI_TYPE_BYTE:
+      {
+         MakeInputByte(input, attrData);
+         break;
+      }
+
       case AI_TYPE_UINT:
       {
          MakeInputInt(input, attrData);
@@ -914,7 +985,6 @@ void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
          MakeInputEnum(input, attrData);
          break;
       }
-      case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(attrData.type);

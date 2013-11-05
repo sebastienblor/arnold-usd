@@ -2593,7 +2593,7 @@ createNode shadingEngine -n "aiStandard8SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo13";
 createNode aiUtility -n "aiUtility1";
-	setAttr ".color_mode" 21;
+	setAttr ".color_mode" 22;
 	setAttr ".shade_mode" 2;
 select -ne :time1;
 	setAttr -av -k on ".cch";

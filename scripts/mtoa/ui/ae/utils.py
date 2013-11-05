@@ -214,6 +214,7 @@ class AttrControlGrp(object):
         'color':  pm.cmds.attrColorSliderGrp,
         'bool':   pm.cmds.attrControlGrp,
         'long':   pm.cmds.attrFieldSliderGrp,
+        'byte':   pm.cmds.attrFieldSliderGrp,
         'long2':  pm.cmds.attrFieldGrp,
         'long3':  pm.cmds.attrFieldGrp,
         'short':  pm.cmds.attrFieldSliderGrp,

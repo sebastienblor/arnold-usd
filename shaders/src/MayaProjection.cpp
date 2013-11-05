@@ -390,9 +390,13 @@ node_update
       
    if (data->camera != NULL)
    {
-      data->camera_fov = AiArrayCopy(AiNodeGetArray(data->camera, "fov"));
-      for (int i = 0; i < data->camera_fov->nkeys; ++i)
-         AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
+      AtArray* fov = AiNodeGetArray(data->camera, "fov");
+      if(fov != NULL)
+      {
+         data->camera_fov = AiArrayCopy(fov);
+         for (int i = 0; i < data->camera_fov->nkeys; ++i)
+            AiArraySetFlt(data->camera_fov, i, ((float)AI_PI * AiArrayGetFlt(data->camera_fov, i)) / 180.f);
+      }
    }
 
    data->image_aspect = 1.0f;

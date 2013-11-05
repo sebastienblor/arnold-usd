@@ -1,0 +1,5 @@
+Camera 'Image Plane' motion blurs when motion blur is enabled. (Ticket #1471)
+
+Enabling motion blur should not motion blur any image planes in the scene.
+
+author: r3D

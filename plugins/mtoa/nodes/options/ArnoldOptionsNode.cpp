@@ -57,11 +57,11 @@ MObject CArnoldOptionsNode::s_mb_camera_enable;
 MObject CArnoldOptionsNode::s_mb_objects_enable;
 MObject CArnoldOptionsNode::s_mb_object_deform_enable;
 MObject CArnoldOptionsNode::s_mb_shader_enable;
-MObject CArnoldOptionsNode::s_shutter_size;
-MObject CArnoldOptionsNode::s_shutter_offset;
-MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
+MObject CArnoldOptionsNode::s_range_type;
 MObject CArnoldOptionsNode::s_motion_frames;
+MObject CArnoldOptionsNode::s_motion_start;
+MObject CArnoldOptionsNode::s_motion_end;
 MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
@@ -85,6 +85,7 @@ MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
 MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
+MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -350,36 +351,39 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_mb_shader_enable);
 
-   s_shutter_size = nAttr.create("shutter_size", "shuts", MFnNumericData::kFloat, 1.0f);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(1);
-   addAttribute(s_shutter_size);
-
-   s_shutter_offset = nAttr.create("shutter_offset", "shuto", MFnNumericData::kFloat, 0.0f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(-0.5f);
-   nAttr.setSoftMax(0.5f);
-   addAttribute(s_shutter_offset);
-
-   s_shutter_type = eAttr.create("shutter_type", "shutt", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("Box", 0);
-   eAttr.addField("Triangle", 1);
-   addAttribute(s_shutter_type);
-
    s_motion_steps = nAttr.create("motion_steps", "mots", MFnNumericData::kInt, 2);
    nAttr.setKeyable(false);
    nAttr.setMin(2);
-   nAttr.setMax(30);
+   nAttr.setSoftMax(30);
    addAttribute(s_motion_steps);
-
+   
+   s_range_type = eAttr.create("range_type", "rgtp");
+   eAttr.setKeyable(false);
+   eAttr.addField("Start On Frame", MTOA_MBLUR_TYPE_START);
+   eAttr.addField("Center On Frame", MTOA_MBLUR_TYPE_CENTER);
+   eAttr.addField("End On Frame", MTOA_MBLUR_TYPE_END);
+   eAttr.addField("Custom", MTOA_MBLUR_TYPE_CUSTOM);
+   eAttr.setDefault(MTOA_MBLUR_TYPE_CENTER);
+   addAttribute(s_range_type);
+   
    s_motion_frames = nAttr.create("motion_frames", "motf", MFnNumericData::kFloat, 0.5f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(1);
    nAttr.setMin(0);
    addAttribute(s_motion_frames);
+   
+   s_motion_start = nAttr.create("motion_start", "motstart", MFnNumericData::kFloat, -0.25f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(-1);
+   nAttr.setSoftMax(0);
+   addAttribute(s_motion_start);
+   
+   s_motion_end = nAttr.create("motion_end", "motend", MFnNumericData::kFloat, 0.25f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(1);
+   addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("shadow_terminator_fix");
@@ -544,6 +548,11 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(true);
    addAttribute(s_absolute_procedural_paths);
+
+   s_force_translate_shading_engines = nAttr.create("forceTranslateShadingEngines", "force_translate_shading_engines", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_force_translate_shading_engines);
 
    return MS::kSuccess;
 }

@@ -8,6 +8,8 @@
 #include <maya/MPointArray.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
+#include <maya/MRenderUtil.h>
+#include <maya/MFloatMatrix.h>
 #include <vector>
 
 void CCurveTranslator::NodeInitializer(CAbTranslator context)
@@ -109,7 +111,8 @@ void CCurveTranslator::Update( AtNode *curve )
 
 
    // Check if we using a custom curve shader.
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
    {
       AtNode* shader = NULL;
       MPlugArray curveShaderPlugs;
@@ -274,13 +277,12 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
 
 MStatus CCurveTranslator::GetCurveLines(MObject& curve)
 {
-   MPlug plug;
    float globalWidth = 1.0;
    MFnDependencyNode fnNode(GetMayaObject());
-   plug = FindMayaPlug("aiCurveWidth");
-   if (!plug.isNull())
+   MPlug widthPlug = FindMayaPlug("aiCurveWidth");
+   if (!widthPlug.isNull())
    {
-     globalWidth =  plug.asFloat();
+     globalWidth =  widthPlug.asFloat();
    }
 
    //plug = fnNode.findPlug("widthProfile");
@@ -297,6 +299,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
 
    if (stat == MStatus::kSuccess)
    {
+      MPlug plug;
       MFnNurbsCurve nurbsCurve(curve);
 
       MPointArray cvs;
@@ -333,43 +336,43 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
 
       MVectorArray line(numcvs);
       MDoubleArray width(numcvs);
-      MVectorArray color(numcvs,fcolor);
+      MVectorArray color(numcvs,fcolor);      
 
-      double minDomain, maxDomain = 0;
-      nurbsCurve.getKnotDomain(minDomain,maxDomain);
-
-      /// HACK, but ramp stuff is a pain to initialize
-      //  this rule basically says, if the curve has no entries, then set it all to 1.0
-      /*if (curveWidthTable.getNumEntries() == 0)
+      MPlugArray conns;
+      widthPlug.connectedTo(conns, true, false);
+      if (conns.length() > 0)
       {
-        MFloatArray positions(1);
-        MFloatArray values(1);
-        MIntArray interps(1);
-        positions[0] = 0.0;
-        values[0] = 1.0;
-        interps[0] = 1;
-        curveWidthTable.addEntries(positions,values,interps);
-      }*/
-
+         MFloatArray uCoords;
+         MFloatArray vCoords;
+         uCoords.setLength(numcvs);
+         vCoords.setLength(numcvs);
+         MFloatVectorArray resultColors;
+         MFloatVectorArray resultTransparencies;
+         MFloatArray filterSizes;
+         filterSizes.setLength(numcvs);
+         for (unsigned int i = 0; i < numcvs; ++i)
+         {
+            uCoords[i] = 0.0f;
+            vCoords[i] = (float)i / (float)(numcvs + 1);
+            filterSizes[i] = 0.001f;
+         }
+         MRenderUtil::sampleShadingNetwork(widthPlug.name(), numcvs, false, false, MFloatMatrix().setToIdentity(), 
+                                          0, &uCoords, &vCoords, 0, 0, 0, 0, &filterSizes,
+                                          resultColors, resultTransparencies);
+         for (unsigned int i = 0; i < numcvs; ++i)
+            width[i] = resultColors[i].x;
+      }
+      else
+      {
+         for (unsigned int i = 0; i < numcvs; ++i)
+            width[i] = globalWidth;
+      }
 
       // Transform from MPointArray to MVectorArray
-      for (unsigned int j = 0; j < numcvs; j++)
+      for (unsigned int j = 0; j < numcvs; ++j)
       {
          MVector vector(cvs[j]);
          line[j] = vector;
-         /*double rampParam;
-         double closestPointTolerance = .1;
-
-         nurbsCurve.getParamAtPoint(cvs[j], rampParam, closestPointTolerance);
-
-         //cout << cvs[j] << " " << j << " -> " << rampParam << endl;
-         // Transform the param value to 0 .. 1 range
-         rampParam = (rampParam + minDomain) / (maxDomain + minDomain);
-         float rampValue;
-         curveWidthTable.getValueAtPosition(float(rampParam), rampValue);
-         width[j] = globalWidth * rampValue;*/
-         width[j] = globalWidth;
-
       }
 
       mayaCurve.SetCurvePoints(line);
