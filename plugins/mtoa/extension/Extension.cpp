@@ -299,6 +299,11 @@ MStatus CExtension::DoUnloadArnoldPlugin(const MString &resolved)
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
       MString nentryFile = AiNodeEntryGetFilename(nentry);
+      const char* nentryFileChar = AiNodeEntryGetFilename(nentry);
+      if (nentryFileChar != 0)
+         nentryFile = nentryFileChar;
+      else
+         nentryFile = "";
       if (nentryFile == resolved)
       {
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
@@ -391,7 +396,12 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
       MString nodeName = AiNodeEntryGetName(nentry);
-      MString nodeFile = AiNodeEntryGetFilename(nentry);
+      MString nodeFile;
+      const char* nodeFileChar = AiNodeEntryGetFilename(nentry);
+      if (nodeFileChar != 0)
+         nodeFile = nodeFileChar;
+      else
+         nodeFile = "";
       if (nodeFile == plugin)
       {
          // If the Arnold node is marked as a node that should be ignored
