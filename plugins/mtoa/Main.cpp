@@ -460,7 +460,7 @@ namespace // <anonymous>
       
 #ifdef ENABLE_XGEN
       // register the xgen extesion separately
-      CExtension* xgen = new CExtension("xgen");
+      CExtension* xgen = CExtensionsManager::NewExtension("xgen");
       xgen->Requires("xgenToolkit");
       xgen->RegisterTranslator("xgmDescription",
                                "",

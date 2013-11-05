@@ -72,10 +72,10 @@ public:
    static MString GetDefaultTranslator(const MString& nodeName);
    static MStringArray ListLoadedExtensions();
 
-protected:
-   static MStatus DoUnloadExtension(CExtension* extension);
-
    static CExtension* NewExtension(const MString &extensionFile);
+
+protected:
+   static MStatus DoUnloadExtension(CExtension* extension);   
    static MStatus DeleteExtension(CExtension* &extension);
 
    static MStatus RegisterMayaNode(const CPxMayaNode &mayaNode);
