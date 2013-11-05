@@ -1,47 +1,12 @@
-//-
-// ==================================================================
-// Copyright 2012 Autodesk, Inc.  All rights reserved.
-//
-// This computer source code  and related  instructions and comments are
-// the unpublished confidential and proprietary information of Autodesk,
-// Inc. and are  protected  under applicable  copyright and trade secret
-// law. They may not  be disclosed to, copied or used by any third party
-// without the prior written consent of Autodesk, Inc.
-// ==================================================================
-//+
-
-#include <extension/Extension.h>
-#include <utils/time.h>
+#include "extension/Extension.h"
+#include "utils/time.h"
 
 #include <maya/MFileObject.h>
 
-#include "XgMtoaExtension.h"
+#include "XGenTranslator.h"
 
 #include <string>
-
-
-//#define DEBUG_MTOA
-
-using namespace std;
-
-extern "C"
-{
-
-DLLEXPORT void initializeExtension(CExtension& extension)
-{
-   MStatus status;
-
-   extension.Requires("xgenToolkit");
-   status = extension.RegisterTranslator("xgmDescription",
-       "",
-       CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
-}
-
-DLLEXPORT void deinitializeExtension(CExtension& extension)
-{
-}
-
-}
+#include <vector>
 
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {
@@ -57,10 +22,10 @@ void CXgDescriptionTranslator::Export(AtNode* instance)
 
 struct DescInfo
 {
-   string strScene;
-   string strPalette;
-   string strDescription;
-   vector<string> vecPatches;
+   std::string strScene;
+   std::string strPalette;
+   std::string strDescription;
+   std::vector<std::string> vecPatches;
    float fFrame;
 
    bool  bCameraOrtho;
@@ -127,14 +92,14 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    //unsigned int pluginPathLength = path.length();
    //string basepath = path.substr(0,pluginPathLength-11);
    //string(getenv("MTOA_EXTENSIONS_PATH")) + string("/procedurals/libXgArnoldProcedural.so");
-   static string strDSO = string(getenv("MTOA_PATH")) + string("/procedurals/xgen_procedural.so");
+   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgen_procedural.so");
    //static string strDSO = basepath + string("/procedurals/xgen_procedural.so");
    //static string strDSO = string("C:/solidangle/mtoadeploy/2014/procedurals/xgen_procedural.dll");
 
    // Get strings based on the current scene name.
-   string strScenePath; // The path to the directory containing the scene.
-   string strSceneFile; // The filename of the scene with the extension.
-   string strSceneName; // The filename of the scene without the extension.
+   std::string strScenePath; // The path to the directory containing the scene.
+   std::string strSceneFile; // The filename of the scene with the extension.
+   std::string strSceneName; // The filename of the scene without the extension.
    {
       MString mstrCurrentScene;
       MGlobal::executeCommand("file -q -sn", mstrCurrentScene);
@@ -157,10 +122,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 #endif
 
    // Get current units
-   string strUnitConvMat;
+   std::string strUnitConvMat;
    float fUnitConvFactor = 1.f;
    {
-      string strCurrentUnits;
+      std::string strCurrentUnits;
       {
          MString mstrCurrentUnits;
          MGlobal::executeCommand("currentUnit -q -linear", mstrCurrentUnits);
@@ -168,21 +133,21 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       }
 
 
-      static map<string, pair<string,float> > s_mapUnitsConv;
+      static std::map<std::string, std::pair<std::string,float> > s_mapUnitsConv;
       if( s_mapUnitsConv.empty() )
       {
-         s_mapUnitsConv["in"] = pair<string,float>( "2.54", 2.54f );
-         s_mapUnitsConv["ft"] = pair<string,float>( "30.48", 30.48f );
-         s_mapUnitsConv["yd"] = pair<string,float>( "91.44", 91.44f );
-         s_mapUnitsConv["mi"] = pair<string,float>( "160934.4", 160934.4f );
-         s_mapUnitsConv["mm"] = pair<string,float>( "0.1", 0.1f );
-         s_mapUnitsConv["km"] = pair<string,float>( "100000.0", 100000.f );
-         s_mapUnitsConv["m"] =  pair<string,float>( "100.0", 100.f );
-         s_mapUnitsConv["dm"] = pair<string,float>( "10.0", 10.f );
+         s_mapUnitsConv["in"] = std::pair<std::string,float>( "2.54", 2.54f );
+         s_mapUnitsConv["ft"] = std::pair<std::string,float>( "30.48", 30.48f );
+         s_mapUnitsConv["yd"] = std::pair<std::string,float>( "91.44", 91.44f );
+         s_mapUnitsConv["mi"] = std::pair<std::string,float>( "160934.4", 160934.4f );
+         s_mapUnitsConv["mm"] = std::pair<std::string,float>( "0.1", 0.1f );
+         s_mapUnitsConv["km"] = std::pair<std::string,float>( "100000.0", 100000.f );
+         s_mapUnitsConv["m"]  = std::pair<std::string,float>( "100.0", 100.f );
+         s_mapUnitsConv["dm"] = std::pair<std::string,float>( "10.0", 10.f );
       }
 
-      string factor = "1";
-      map<string, pair<string,float> >::const_iterator it = s_mapUnitsConv.find( strCurrentUnits );
+      std::string factor = "1";
+      std::map<std::string, std::pair<std::string,float> >::const_iterator it = s_mapUnitsConv.find( strCurrentUnits );
       if( it!=s_mapUnitsConv.end() )
       {
          factor = it->second.first;
@@ -220,7 +185,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             MDagPath childDagPath;
             MDagPath::getAPathTo( descDagPath.child(i),childDagPath );
 
-            string strChild = childDagPath.fullPathName().asChar();
+            std::string strChild = childDagPath.fullPathName().asChar();
             strChild = strChild.substr( 1+ info.strPalette.size() + 1 + info.strDescription.size() + 1 );
 
             // Ignore the first child. It should be the description shape
@@ -234,7 +199,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             else
             {
                // Perform a check on the description suffix.
-               string strCheckDesc = strChild.substr( strChild.size()-info.strDescription.size() );
+               std::string strCheckDesc = strChild.substr( strChild.size()-info.strDescription.size() );
 #ifdef DEBUG_MTOA
                printf( "%s == %s\n", strCheckDesc.c_str(), info.strDescription.c_str() );
 #endif
@@ -269,11 +234,11 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
    // The geom cache file should contain all the patches the palette uses.
    // Xgen gives an error if a patch used in the palette isn't found: Caf error. No geometry named 'pPlane1' found in caf file(frame):
-   string strGeomFile = info.strScene + "__" + info.strPalette + ".caf";
+   std::string strGeomFile = info.strScene + "__" + info.strPalette + ".caf";
 
    for( unsigned int i=0; i<info.vecPatches.size(); ++i )
    {
-      const string& strPatch = info.vecPatches[i];
+      const std::string& strPatch = info.vecPatches[i];
 
       // Create a nested procedural node
       AtNode* shape;
@@ -314,10 +279,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // Set the procedural arguments
       {
          // Build the data argument
-         string strData;
+         std::string strData;
          strData =  "-debug 1 -warning 1 -stats 1 ";
          sprintf(buf,"%f",info.fFrame );
-         strData += " -frame "+ string(buf) +" -shutter 0.0";
+         strData += " -frame "+ std::string(buf) +" -shutter 0.0";
          strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
          strData += " -palette " + info.strPalette;
          strData += " -geom " + strGeomFile;
@@ -392,5 +357,3 @@ AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
 
    return NULL;
 }
-
-

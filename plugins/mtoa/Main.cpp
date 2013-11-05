@@ -43,6 +43,7 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
+#include "translators/shape/XGenTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
@@ -304,7 +305,7 @@ namespace // <anonymous>
                                   "spherical",
                                   CSphericalCameraTranslator::creator,
                                   CSphericalCameraTranslator::NodeInitializer);
-                                  
+                                 
        // Hair
       builtin->RegisterTranslator("pfxHair",
                                   "",
@@ -456,6 +457,17 @@ namespace // <anonymous>
                                      "",
                                      CFluidTexture2DTranslator::creator);
       }
+      
+#ifdef ENABLE_XGEN
+      // register the xgen extesion separately
+      CExtension* xgen = CExtensionsManager::NewExtension("xgen");
+      xgen->Requires("xgenToolkit");
+      xgen->RegisterTranslator("xgmDescription",
+                               "",
+                               CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
+
+      CExtensionsManager::RegisterExtension(xgen);
+#endif
 
       // Will load all found plugins and try to register nodes and translators
 

@@ -206,11 +206,14 @@ TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
+env['ENABLE_XGEN'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
 maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 maya_version_base = maya_version[0:4]
+if int(maya_version) >= 201450:
+    env['ENABLE_XGEN'] = 1
 
 mercurial_id = ""
 try:
@@ -415,6 +418,9 @@ elif env['COMPILER'] == 'icc':
 if env['MODE'] == 'debug':
     env.Append(CPPDEFINES = Split('ARNOLD_DEBUG'))
 
+if env['ENABLE_XGEN'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_XGEN'))
+
 ## platform related defines
 if system.os() == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
@@ -430,6 +436,7 @@ env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
     ## hide long compile lines from the user
@@ -594,7 +601,13 @@ if system.os() == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
-    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS[0])
+    nprocs = []
+    for proc in MTOA_PROCS:
+        if str(proc)[-3:] == 'dll':
+            nprocs.append(proc)
+    MTOA_PROCS = nprocs
+    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
+    
     libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
@@ -824,6 +837,9 @@ PACKAGE_FILES = [
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'HOW_TO_INSTALL.txt'), 'doc'],
 ]
+
+for p in MTOA_PROCS:
+    PACKAGE_FILES += [[p, 'procedurals']]
 
 if not env['DISABLE_COMMON']:
     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
