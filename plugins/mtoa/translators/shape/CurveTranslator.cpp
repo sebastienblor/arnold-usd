@@ -99,6 +99,13 @@ void CCurveTranslator::Update( AtNode *curve )
       return;
    }
 
+   plug = FindMayaPlug("aiExportRefPoints");
+
+   if (!plug.isNull())
+      exportReferenceObject = plug.asBool();
+   else
+      exportReferenceObject = false;
+
    MObject objectCurveShape(m_dagPath.node());
 
    MFnDagNode fnDagNodeCurveShape(objectCurveShape);
@@ -179,15 +186,22 @@ void CCurveTranslator::Update( AtNode *curve )
    AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints,              GetNumMotionSteps(), AI_TYPE_FLOAT);
    AtArray* curveColors = AiArrayAllocate(1,                      GetNumMotionSteps(), AI_TYPE_RGB);
+   AtArray* referenceCurvePoints = exportReferenceObject ? AiArrayAllocate(numPoints, 1, AI_TYPE_POINT) : 0;
 
    ProcessCurveLines(0,
                     curvePoints,
+                    referenceCurvePoints,
                     curveWidths,
                     curveColors);
 
    // Extra attributes
    AiNodeDeclare(curve, "colors",                  "uniform  ARRAY RGB");
 
+   if (exportReferenceObject)
+   {
+      AiNodeDeclare(curve, "Pref", "varying POINT");
+      AiNodeSetArray(curve, "Pref", referenceCurvePoints);
+   }
 
    // curve specific Arnold render settings.
    plug = FindMayaPlug("aiMinPixelWidth");
@@ -227,6 +241,7 @@ void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
    {
    ProcessCurveLines(step,
                     AiNodeGetArray(curve, "points"),
+                    0,
                     AiNodeGetArray(curve, "radius"),
                     AiNodeGetArray(curve, "colors"));
    }
@@ -234,25 +249,29 @@ void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
 
 void CCurveTranslator::ProcessCurveLines(unsigned int step,
                                        AtArray* curvePoints,
+                                       AtArray* referenceCurvePoints,
                                        AtArray* curveWidths,
                                        AtArray* curveColors)
 {
-   const int numPointsPerStep         = mayaCurve.curveNumPointsInterp;
+   const int numPointsPerStep = mayaCurve.curveNumPointsInterp;
 
    // Process all curve lines
 
    MVectorArray line;
    mayaCurve.GetCurvePoints(line);
+   MVectorArray referenceLine;
+   mayaCurve.GetReferenceCurvePoints(referenceLine);
    MDoubleArray widths;
    mayaCurve.GetCurveWidths(widths);
    MVectorArray colors;
    mayaCurve.GetCurveColors(colors);
    const int renderLineLength = line.length();
 
+   exportReferenceObject = exportReferenceObject && (referenceCurvePoints != 0);
+
    // Ignore one or less cv curves
    if (renderLineLength > 1)
    {
-
       MVector* lineVertex = &(line[0]);
 
       // We need a couple extra points for interpolation
@@ -272,6 +291,12 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
          // Animated widths are not supported, so just export on step 0
          if (step == 0)
          {
+            if (exportReferenceObject)
+            {
+               MVector referenceLineVertex = referenceLine[j + 1];
+               AiV3Create(curvePoint, static_cast<float>(referenceLineVertex.x), static_cast<float>(referenceLineVertex.y), static_cast<float>(referenceLineVertex.z));
+               AiArraySetPnt(referenceCurvePoints, j, curvePoint);
+            }
             AiArraySetFlt(curveWidths, j, static_cast<float>(widths[j]/2.0));
             // AiArraySetRGB(curveColors, j, AiColorCreate(colors[j].x, colors[j].y, colors[j].z));
          }
@@ -386,7 +411,36 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       mayaCurve.SetCurveWidths(width);
       mayaCurve.SetCurveColors(color);
 
-   }
+      if (exportReferenceObject)
+      {
+         MPlugArray conns;
+         plug = FindMayaPlug("referenceObject");
+         plug.connectedTo(conns, true, false);
+         if (conns.length() > 0)
+         {
+            MObject referenceObject = conns[0].node();
+            MFnNurbsCurve referenceCurve(referenceObject, &stat);
+            if (stat)
+            {
+               for(unsigned int i = 0; i < numcvs - 1; i++)
+               {
+                  referenceCurve.getPointAtParam(start + incPerSample * (double)i, point, MSpace::kWorld);
+                  cvs[i] = point;
+               }
+               referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
+               cvs[numcvs - 1] = point;
+               for (unsigned int j = 0; j < numcvs; ++j)
+               {
+                  MVector vector(cvs[j]);
+                  line[j] = vector;
+               }
 
+               mayaCurve.SetReferenceCurvePoints(line);
+            }
+            else exportReferenceObject = false;
+         }
+         else exportReferenceObject = false;
+      }
+   }
    return MStatus::kSuccess;
 }
