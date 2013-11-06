@@ -31,11 +31,6 @@ node_parameters
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
    AiParameterBOOL("combine_sss_queries", false);
-   AiParameterFLT("single_scatter_weight", 0.0f);
-   AiParameterRGB("rd", 1.0f, 1.0f, 1.0f);
-   AiParameterRGB("mfp", 5.0f, 5.0f, 5.0f);
-   AiParameterFLT("g", 0.0f);
-   AiParameterFLT("eta", 1.44f);
    AiParameterStr("aov_direct_diffuse", "direct_diffuse");
    AiParameterStr("aov_indirect_diffuse", "indirect_diffuse");
    AiParameterStr("aov_specular", "specular");
@@ -79,11 +74,6 @@ enum SSSParams {
    p_sample_sss_only_in_gi_rays,
    p_sample_sss_only_in_glossy_rays,
    p_combine_sss_queries,
-   p_single_scatter_weight,
-   p_rd,
-   p_mfp,
-   p_g,
-   p_eta,
    p_aov_direct_diffuse,
    p_aov_indirect_diffuse,
    p_aov_specular,
@@ -108,7 +98,6 @@ node_update
    AiAOVRegister(AiNodeGetStr(node, "aov_shallow_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_mid_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_deep_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_single_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
 node_finish
@@ -258,11 +247,9 @@ shader_evaluate
    AtRGB shallowScatter = AI_RGB_BLACK;
    AtRGB midScatter = AI_RGB_BLACK;
    AtRGB deepScatter = AI_RGB_BLACK;
-   AtRGB singleScatter = AI_RGB_BLACK;
 
    float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
    const bool enableSSS = sssWeight > AI_EPSILON;
-   bool enableSingleScatter = false;
    if (enableSSS)
    {
       const float globalSSSRadiusMultiplier = AiShaderEvalParamFlt(p_global_sss_radius_multiplier);
@@ -291,22 +278,11 @@ shader_evaluate
          if (!AiColorIsSmall(colorWeights[2]) && (radiuses[2] > AI_EPSILON))
             deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
       }
-
-      sssWeight *= AiShaderEvalParamFlt(p_single_scatter_weight);
-      enableSingleScatter = sssWeight > AI_EPSILON;
-      if (enableSingleScatter)
-      {
-         singleScatter = AiSSSTraceSingleScatter(sg, 
-                                                 AiShaderEvalParamRGB(p_rd),
-                                                 AiShaderEvalParamRGB(p_mfp),
-                                                 AiShaderEvalParamFlt(p_g),
-                                                 AiShaderEvalParamFlt(p_eta)) * sssWeight;
-      }
    }
 
    sg->out.RGB = directDiffuse + indirectDiffuse +
                  specular + coat +
-                 shallowScatter + midScatter + deepScatter + singleScatter;
+                 shallowScatter + midScatter + deepScatter;
 
    if (sg->Rt & AI_RAY_CAMERA)
    {
@@ -317,6 +293,5 @@ shader_evaluate
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shallow_scatter), shallowScatter);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_mid_scatter), midScatter);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_deep_scatter), deepScatter);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_single_scatter), singleScatter);      
    }
 }
