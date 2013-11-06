@@ -56,6 +56,13 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.RGB = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
 
+   data.defaultValue.BOOL = true;
+   data.name = "aiExportRefPoints";
+   data.shortName = "ai_exprpt";
+   data.channelBox = false;
+   data.keyable = false;
+   helper.MakeInputBoolean(data);
+
    /*data.name = "widthProfile";
    data.shortName = "wdthP";
    helper.MakeInputCurveRamp(data);*/
