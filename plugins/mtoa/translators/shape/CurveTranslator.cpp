@@ -159,18 +159,13 @@ void CCurveTranslator::Update( AtNode *curve )
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate
-   int numPoints = 0;
-   int numPointsInterpolation = 0;
    MStatus status;
-   MVectorArray line;
 
-   mayaCurve.GetCurvePoints(line);
-
-   const int numRenderLineCVs = line.length();
+   const int numRenderLineCVs = mayaCurve.GetCurvePointsCount();
    const int pointsInterpolationLine = numRenderLineCVs + 2;
 
-   numPoints += numRenderLineCVs;
-   numPointsInterpolation += pointsInterpolationLine;
+   const int numPoints = numRenderLineCVs;
+   const int numPointsInterpolation = pointsInterpolationLine;
 
    // Set num points
    AiArraySetInt(curveNumPoints, 0, pointsInterpolationLine);
@@ -235,6 +230,7 @@ void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
 
    // Get curve lines
    MObject objectCurveShape(m_dagPath.node());
+   exportReferenceObject = false;
    MStatus stat = GetCurveLines(objectCurveShape);
 
    if (stat == MStatus::kSuccess)
@@ -257,14 +253,10 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
 
    // Process all curve lines
 
-   MVectorArray line;
-   mayaCurve.GetCurvePoints(line);
-   MVectorArray referenceLine;
-   mayaCurve.GetReferenceCurvePoints(referenceLine);
-   MDoubleArray widths;
-   mayaCurve.GetCurveWidths(widths);
-   MVectorArray colors;
-   mayaCurve.GetCurveColors(colors);
+   const MVectorArray& line = mayaCurve.GetCurvePoints();
+   const MVectorArray& referenceLine = mayaCurve.GetReferenceCurvePoints();
+   const MDoubleArray& widths = mayaCurve.GetCurveWidths();
+   const MVectorArray& colors = mayaCurve.GetCurveColors();
    const int renderLineLength = line.length();
 
    exportReferenceObject = exportReferenceObject && (referenceCurvePoints != 0);
@@ -272,28 +264,28 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
    // Ignore one or less cv curves
    if (renderLineLength > 1)
    {
-      MVector* lineVertex = &(line[0]);
-
       // We need a couple extra points for interpolation
       // One at the beginning and one at the end (JUST POINTS , NO ATTRS)
       AtPoint curvePoint;
-      AiV3Create(curvePoint, static_cast<float>(lineVertex->x), static_cast<float>(lineVertex->y), static_cast<float>(lineVertex->z));
+      const MVector& lineVertex0 = line[0];
+      AiV3Create(curvePoint, static_cast<float>(lineVertex0.x), static_cast<float>(lineVertex0.y), static_cast<float>(lineVertex0.z));
       AiArraySetPnt(curvePoints, (step * numPointsPerStep), curvePoint);
 
       AiArraySetRGB(curveColors, (step),
                     AiColorCreate(static_cast<float>(colors[0].x), static_cast<float>(colors[0].y), static_cast<float>(colors[0].z)));
 
       // Run down the strand adding the points and widths.
-      for (int j = 0; j < renderLineLength; ++j, ++lineVertex)
+      for (int j = 0; j < renderLineLength; ++j)
       {
-         AiV3Create(curvePoint, static_cast<float>(lineVertex->x), static_cast<float>(lineVertex->y), static_cast<float>(lineVertex->z));
+         const MVector& lineVertex = line[j];
+         AiV3Create(curvePoint, static_cast<float>(lineVertex.x), static_cast<float>(lineVertex.y), static_cast<float>(lineVertex.z));
          AiArraySetPnt(curvePoints, j+1 + (step * numPointsPerStep), curvePoint);
          // Animated widths are not supported, so just export on step 0
          if (step == 0)
          {
             if (exportReferenceObject)
             {
-               MVector referenceLineVertex = referenceLine[j + 1];
+               const MVector& referenceLineVertex = referenceLine[j + 1];
                AiV3Create(curvePoint, static_cast<float>(referenceLineVertex.x), static_cast<float>(referenceLineVertex.y), static_cast<float>(referenceLineVertex.z));
                AiArraySetPnt(referenceCurvePoints, j, curvePoint);
             }
@@ -301,7 +293,8 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
             // AiArraySetRGB(curveColors, j, AiColorCreate(colors[j].x, colors[j].y, colors[j].z));
          }
       }
-
+      const MVector& lineVertex = line[renderLineLength];
+      AiV3Create(curvePoint, static_cast<float>(lineVertex.x), static_cast<float>(lineVertex.y), static_cast<float>(lineVertex.z));
       // Last point duplicated.
       AiArraySetPnt(curvePoints, renderLineLength+1 +  (step * numPointsPerStep), curvePoint);
     }
@@ -413,7 +406,6 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
 
       if (exportReferenceObject)
       {
-         MPlugArray conns;
          plug = FindMayaPlug("referenceObject");
          plug.connectedTo(conns, true, false);
          if (conns.length() > 0)
@@ -422,20 +414,26 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
             MFnNurbsCurve referenceCurve(referenceObject, &stat);
             if (stat)
             {
+               MPointArray referenceCVS;
+               referenceCVS.setLength(numcvs);
+               MVectorArray referenceLine;
+               referenceLine.setLength(numcvs);
+               referenceCurve.getKnotDomain(start, end);
+               incPerSample = (end - start) / (double)numcvs;
                for(unsigned int i = 0; i < numcvs - 1; i++)
                {
-                  referenceCurve.getPointAtParam(start + incPerSample * (double)i, point, MSpace::kWorld);
-                  cvs[i] = point;
+                  referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+                  referenceCVS[i] = point;
                }
                referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
-               cvs[numcvs - 1] = point;
+               referenceCVS[numcvs - 1] = point;
                for (unsigned int j = 0; j < numcvs; ++j)
                {
-                  MVector vector(cvs[j]);
-                  line[j] = vector;
+                  MVector vector(referenceCVS[j]);
+                  referenceLine[j] = vector;
                }
 
-               mayaCurve.SetReferenceCurvePoints(line);
+               mayaCurve.SetReferenceCurvePoints(referenceLine);
             }
             else exportReferenceObject = false;
          }

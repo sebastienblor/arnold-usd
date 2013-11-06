@@ -8,14 +8,15 @@
 class CCurveLine
 {
 public:
-   void SetCurvePoints(MVectorArray &points) { curvePoints = points; }
-   void SetReferenceCurvePoints(MVectorArray &points) { referenceCurvePoints = points; }
-   void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; }
-   void SetCurveColors(MVectorArray &colors) { curveColors = colors; }
-   void GetCurvePoints(MVectorArray &points) const { points = curvePoints; }
-   void GetReferenceCurvePoints(MVectorArray &points) const { points = referenceCurvePoints; }
-   void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; }
-   void GetCurveColors(MVectorArray &colors) { colors = curveColors; }
+   void SetCurvePoints(const MVectorArray &points) { curvePoints = points; }
+   void SetReferenceCurvePoints(const MVectorArray &points) { referenceCurvePoints = points; }
+   void SetCurveWidths(const MDoubleArray &widths) { curveWidths = widths; }
+   void SetCurveColors(const MVectorArray &colors) { curveColors = colors; }
+   const MVectorArray& GetCurvePoints() const { return curvePoints; }
+   const MVectorArray& GetReferenceCurvePoints() const { return referenceCurvePoints; }
+   const MDoubleArray& GetCurveWidths() const { return curveWidths; }
+   const MVectorArray& GetCurveColors() const { return curveColors; }
+   unsigned int GetCurvePointsCount() const { return curvePoints.length(); }
    void clear()
    {
       curvePoints.clear();
