@@ -14,9 +14,6 @@ struct CCurveLine
       widths.clear();
       colors.clear();
    }
-   unsigned int curveNumPoints;
-   unsigned int curveNumPointsInterp;
-
    std::vector<AtVector> points;
    std::vector<AtVector> referencePoints;
    std::vector<float> widths;

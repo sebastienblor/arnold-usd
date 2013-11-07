@@ -167,9 +167,6 @@ void CCurveTranslator::Update( AtNode *curve )
    // Set num points
    AiArraySetInt(curveNumPoints, 0, numPointsInterpolation);
 
-   mayaCurve.curveNumPoints = numPoints;
-   mayaCurve.curveNumPointsInterp = numPointsInterpolation;
-
    ProcessRenderFlags(curve);
 
    // Allocate memory for all curve points and widths
@@ -244,10 +241,10 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
                                        AtArray* curveWidths,
                                        AtArray* curveColors)
 {
-    const int numPointsPerStep = mayaCurve.curveNumPointsInterp;
-
    // Process all curve lines
    const int renderLineLength = mayaCurve.points.size();
+
+   const int numPointsPerStep = renderLineLength + 2;
 
    exportReferenceObject = exportReferenceObject && (referenceCurvePoints != 0);
 
