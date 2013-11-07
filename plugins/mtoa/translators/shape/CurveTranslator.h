@@ -5,33 +5,22 @@
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
 
-class CCurveLine
+struct CCurveLine
 {
-public:
-   void SetCurvePoints(const MVectorArray &points) { curvePoints = points; }
-   void SetReferenceCurvePoints(const MVectorArray &points) { referenceCurvePoints = points; }
-   void SetCurveWidths(const MDoubleArray &widths) { curveWidths = widths; }
-   void SetCurveColors(const MVectorArray &colors) { curveColors = colors; }
-   const MVectorArray& GetCurvePoints() const { return curvePoints; }
-   const MVectorArray& GetReferenceCurvePoints() const { return referenceCurvePoints; }
-   const MDoubleArray& GetCurveWidths() const { return curveWidths; }
-   const MVectorArray& GetCurveColors() const { return curveColors; }
-   unsigned int GetCurvePointsCount() const { return curvePoints.length(); }
    void clear()
    {
-      curvePoints.clear();
-      referenceCurvePoints.clear();
-      curveWidths.clear();
-      curveColors.clear();
+      points.clear();
+      referencePoints.clear();
+      widths.clear();
+      colors.clear();
    }
    unsigned int curveNumPoints;
    unsigned int curveNumPointsInterp;
 
-private:
-   MVectorArray curvePoints;
-   MVectorArray referenceCurvePoints;
-   MDoubleArray curveWidths;
-   MVectorArray curveColors;
+   std::vector<AtVector> points;
+   std::vector<AtVector> referencePoints;
+   std::vector<float> widths;
+   std::vector<AtRGB> colors;
 };
 
 class CCurveTranslator

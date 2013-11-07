@@ -161,19 +161,14 @@ void CCurveTranslator::Update( AtNode *curve )
    // Iterate over all lines to get sizes for AiArrayAllocate
    MStatus status;
 
-   const int numRenderLineCVs = mayaCurve.GetCurvePointsCount();
-   const int pointsInterpolationLine = numRenderLineCVs + 2;
-
-   const int numPoints = numRenderLineCVs;
-   const int numPointsInterpolation = pointsInterpolationLine;
+   const int numPoints = (int)mayaCurve.points.size();
+   const int numPointsInterpolation = numPoints + 2;
 
    // Set num points
-   AiArraySetInt(curveNumPoints, 0, pointsInterpolationLine);
-
+   AiArraySetInt(curveNumPoints, 0, numPointsInterpolation);
 
    mayaCurve.curveNumPoints = numPoints;
    mayaCurve.curveNumPointsInterp = numPointsInterpolation;
-
 
    ProcessRenderFlags(curve);
 
@@ -249,15 +244,10 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
                                        AtArray* curveWidths,
                                        AtArray* curveColors)
 {
-   const int numPointsPerStep = mayaCurve.curveNumPointsInterp;
+    const int numPointsPerStep = mayaCurve.curveNumPointsInterp;
 
    // Process all curve lines
-
-   const MVectorArray& line = mayaCurve.GetCurvePoints();
-   const MVectorArray& referenceLine = mayaCurve.GetReferenceCurvePoints();
-   const MDoubleArray& widths = mayaCurve.GetCurveWidths();
-   const MVectorArray& colors = mayaCurve.GetCurveColors();
-   const int renderLineLength = line.length();
+   const int renderLineLength = mayaCurve.points.size();
 
    exportReferenceObject = exportReferenceObject && (referenceCurvePoints != 0);
 
@@ -266,74 +256,46 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
    {
       // We need a couple extra points for interpolation
       // One at the beginning and one at the end (JUST POINTS , NO ATTRS)
-      AtPoint curvePoint;
-      const MVector& lineVertex0 = line[0];
-      AiV3Create(curvePoint, static_cast<float>(lineVertex0.x), static_cast<float>(lineVertex0.y), static_cast<float>(lineVertex0.z));
-      AiArraySetPnt(curvePoints, (step * numPointsPerStep), curvePoint);
-
-      AiArraySetRGB(curveColors, (step),
-                    AiColorCreate(static_cast<float>(colors[0].x), static_cast<float>(colors[0].y), static_cast<float>(colors[0].z)));
+      AiArraySetPnt(curvePoints, (step * numPointsPerStep), mayaCurve.points[0]);
+      AiArraySetRGB(curveColors, step, mayaCurve.colors[0]);
 
       // Run down the strand adding the points and widths.
       for (int j = 0; j < renderLineLength; ++j)
       {
-         const MVector& lineVertex = line[j];
-         AiV3Create(curvePoint, static_cast<float>(lineVertex.x), static_cast<float>(lineVertex.y), static_cast<float>(lineVertex.z));
-         AiArraySetPnt(curvePoints, j+1 + (step * numPointsPerStep), curvePoint);
+         AiArraySetPnt(curvePoints, j + 1 + (step * numPointsPerStep), mayaCurve.points[j]);
          // Animated widths are not supported, so just export on step 0
          if (step == 0)
          {
             if (exportReferenceObject)
-            {
-               const MVector& referenceLineVertex = referenceLine[j + 1];
-               AiV3Create(curvePoint, static_cast<float>(referenceLineVertex.x), static_cast<float>(referenceLineVertex.y), static_cast<float>(referenceLineVertex.z));
-               AiArraySetPnt(referenceCurvePoints, j, curvePoint);
-            }
-            AiArraySetFlt(curveWidths, j, static_cast<float>(widths[j]/2.0));
-            // AiArraySetRGB(curveColors, j, AiColorCreate(colors[j].x, colors[j].y, colors[j].z));
+               AiArraySetPnt(referenceCurvePoints, j, mayaCurve.referencePoints[j]);
+            AiArraySetFlt(curveWidths, j, static_cast<float>(mayaCurve.widths[j] / 2.0));
          }
       }
-      const MVector& lineVertex = line[renderLineLength];
-      AiV3Create(curvePoint, static_cast<float>(lineVertex.x), static_cast<float>(lineVertex.y), static_cast<float>(lineVertex.z));
-      // Last point duplicated.
-      AiArraySetPnt(curvePoints, renderLineLength+1 +  (step * numPointsPerStep), curvePoint);
+      AiArraySetPnt(curvePoints, renderLineLength + 1 +  (step * numPointsPerStep), mayaCurve.points[renderLineLength - 1]);
     }
  }
 
 MStatus CCurveTranslator::GetCurveLines(MObject& curve)
 {
-   float globalWidth = 1.0;
-   MFnDependencyNode fnNode(GetMayaObject());
-   MPlug widthPlug = FindMayaPlug("aiCurveWidth");
-   if (!widthPlug.isNull())
-   {
-     globalWidth =  widthPlug.asFloat();
-   }
-
-   //plug = fnNode.findPlug("widthProfile");
-   //MRampAttribute curveWidthTable(plug);
-
-
+   mayaCurve.clear(); // just to be sure
    MFnDependencyNode fnDepNodeCurve(curve);
-
-   MVector fcolor;
-   fcolor = MVector(1.0, 1.0, 1.0);
-
    MStatus stat;
    MPlug outputCurvePlug = fnDepNodeCurve.findPlug("editPoints", &stat);
-
    if (stat == MStatus::kSuccess)
    {
-      MPlug plug;
+      float globalWidth = 1.0;
+      MPlug widthPlug = FindMayaPlug("aiCurveWidth");
+      if (!widthPlug.isNull())
+         globalWidth =  widthPlug.asFloat();
+
       MFnNurbsCurve nurbsCurve(curve);
 
-      MPointArray cvs;
       double start, end;
       unsigned int numcvs;
       unsigned int sampleRate = 5;
       double incPerSample;
 
-      plug = FindMayaPlug("aiSampleRate");
+      MPlug plug = FindMayaPlug("aiSampleRate");
       if (!plug.isNull())
       {
         sampleRate =  plug.asInt();
@@ -345,23 +307,22 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       numcvs = (unsigned int)std::ceil((end - start) * sampleRate); 
       incPerSample = 1.0 / sampleRate;
 
+      if (numcvs <=0)
+         return MStatus::kFailure;
+
+      mayaCurve.points.resize(numcvs);
+
       MPoint point;
-      for(unsigned int i = 0; i < numcvs - 1; i++)
+      for(unsigned int i = 0; i < (numcvs - 1); i++)
       {
-         nurbsCurve.getPointAtParam(start + incPerSample * (double)i, point, MSpace::kWorld);
-         cvs.append(point);
+         nurbsCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
+         AiV3Create(mayaCurve.points[i], (float)point.x, (float)point.y, (float)point.z);
       }
       nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
-      cvs.append(point);
+      AiV3Create(mayaCurve.points[numcvs - 1], (float)point.x, (float)point.y, (float)point.z);
 
-      if (numcvs <=0)
-      {
-         return MStatus::kFailure;
-      }
-
-      MVectorArray line(numcvs);
-      MDoubleArray width(numcvs);
-      MVectorArray color(numcvs,fcolor);      
+      mayaCurve.widths.resize(numcvs);
+      mayaCurve.colors.resize(numcvs, AI_RGB_WHITE);
 
       MPlugArray conns;
       widthPlug.connectedTo(conns, true, false);
@@ -385,24 +346,13 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
                                           0, &uCoords, &vCoords, 0, 0, 0, 0, &filterSizes,
                                           resultColors, resultTransparencies);
          for (unsigned int i = 0; i < numcvs; ++i)
-            width[i] = resultColors[i].x;
+            mayaCurve.widths[i] = resultColors[i].x;
       }
       else
       {
          for (unsigned int i = 0; i < numcvs; ++i)
-            width[i] = globalWidth;
+            mayaCurve.widths[i] = globalWidth;
       }
-
-      // Transform from MPointArray to MVectorArray
-      for (unsigned int j = 0; j < numcvs; ++j)
-      {
-         MVector vector(cvs[j]);
-         line[j] = vector;
-      }
-
-      mayaCurve.SetCurvePoints(line);
-      mayaCurve.SetCurveWidths(width);
-      mayaCurve.SetCurveColors(color);
 
       if (exportReferenceObject)
       {
@@ -414,26 +364,16 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
             MFnNurbsCurve referenceCurve(referenceObject, &stat);
             if (stat)
             {
-               MPointArray referenceCVS;
-               referenceCVS.setLength(numcvs);
-               MVectorArray referenceLine;
-               referenceLine.setLength(numcvs);
                referenceCurve.getKnotDomain(start, end);
                incPerSample = (end - start) / (double)numcvs;
+               mayaCurve.referencePoints.resize(numcvs);
                for(unsigned int i = 0; i < numcvs - 1; i++)
                {
                   referenceCurve.getPointAtParam(MIN(start + incPerSample * (double)i, end), point, MSpace::kWorld);
-                  referenceCVS[i] = point;
+                  AiV3Create(mayaCurve.referencePoints[i], (float)point.x, (float)point.y, (float)point.z);
                }
                referenceCurve.getPointAtParam(end, point, MSpace::kWorld);
-               referenceCVS[numcvs - 1] = point;
-               for (unsigned int j = 0; j < numcvs; ++j)
-               {
-                  MVector vector(referenceCVS[j]);
-                  referenceLine[j] = vector;
-               }
-
-               mayaCurve.SetReferenceCurvePoints(referenceLine);
+               AiV3Create(mayaCurve.referencePoints[numcvs - 1], (float)point.x, (float)point.y, (float)point.z);
             }
             else exportReferenceObject = false;
          }
