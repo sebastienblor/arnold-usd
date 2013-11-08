@@ -176,6 +176,9 @@
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
+    [attr shader_timing_stats]
+        maya.keyable        BOOL    False
+        maya.name           STRING  "shaderTimingStats"
 
 # lights
 

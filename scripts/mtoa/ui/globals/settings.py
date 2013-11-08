@@ -1073,11 +1073,15 @@ def createArnoldLogSettings():
     pm.separator()
 
     pm.attrControlGrp('os_shader_nan_checks',
-                   label="Warn on Shader NaN's",
+                   label="Shader NaN Warnings",
                    annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
                               'Enabling this may adversely affect performance.',
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
-                   
+
+    pm.attrControlGrp('os_shader_timing_stats',
+                    label='Shader Timing Stats',
+                    annotation='Collect shader timing statistics. Enabling this adversely affect performance.',
+                    attribute='defaultArnoldRenderOptions.shaderTimingStats')
 
     pm.setParent('..')
 
