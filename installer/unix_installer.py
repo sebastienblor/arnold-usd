@@ -103,6 +103,8 @@ if installMode == 1: # do the proper installation
         for line in open(mayaEnvPath, 'r').readlines():
             if line in additionToEnv:
                 continue
+            if line[-1:] != '\n':
+                line += '\n'
             mayaEnvContents.append(line)
     mayaEnv = open(mayaEnvPath, 'w')
     for line in mayaEnvContents:
