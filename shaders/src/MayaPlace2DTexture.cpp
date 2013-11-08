@@ -5,6 +5,8 @@
 #endif
 #include <cmath>
 
+#include <string>
+
 #include "MayaUtils.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlace2DTextureMtd);
@@ -25,7 +27,8 @@ enum MayaPlace2DTextureParams
    p_repeat,
    p_offset,
    p_rotate,
-   p_noise
+   p_noise,
+   p_uvset_name
 };
 
 inline void rotate2d(float rot, float &u, float &v)
@@ -43,6 +46,25 @@ inline void rotate2d(float rot, float &u, float &v)
 
 };
 
+struct MayaPlace2DTextureData{
+   std::string uvSetName;
+   bool useCustomUVSet;
+
+   MayaPlace2DTextureData() : useCustomUVSet(false)
+   {
+   }   
+
+   static void* operator new(size_t s)
+   {
+      return AiMalloc(s);
+   }
+   
+   static void operator delete(void* p)
+   {
+      AiFree(p);
+   }
+};
+
 node_parameters
 {
    AiParameterPNT2("coverage", 1.0f, 1.0f);
@@ -57,20 +79,26 @@ node_parameters
    AiParameterPNT2("offsetUV", 0.0f, 0.0f);
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
+   AiParameterSTR("uvSetName", "");
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize
 {
+   AiNodeSetLocalData(node, new MayaPlace2DTextureData());
 }
 
 node_update
 {
+   MayaPlace2DTextureData* data = (MayaPlace2DTextureData*)AiNodeGetLocalData(node);
+   data->uvSetName = AiNodeGetStr(node, "uvSetName");
+   data->useCustomUVSet = data->uvSetName.length() > 0;
 }
 
 node_finish
 {
+   delete (MayaPlace2DTextureData*)AiNodeGetLocalData(node);
 }
 
 shader_evaluate
@@ -88,8 +116,28 @@ shader_evaluate
    float rotate = AiShaderEvalParamFlt(p_rotate);
    AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
 
-   float inU = sg->u;
-   float inV = sg->v;
+   MayaPlace2DTextureData* data = (MayaPlace2DTextureData*)AiNodeGetLocalData(node);
+   float inU, inV;
+
+   if (data->useCustomUVSet)
+   {
+      AtPoint2 altuv;
+      if (AiUDataGetPnt2(data->uvSetName.c_str(), &altuv))
+      {         
+         inU = altuv.x;
+         inV = altuv.y;
+      }
+      else
+      {
+         inU = sg->u;
+         inV = sg->v;
+      }
+   }
+   else
+   {
+      inU = sg->u;
+      inV = sg->v;
+   }  
 
    float outU = inU;
    float outV = inV;

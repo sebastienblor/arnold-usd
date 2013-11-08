@@ -966,6 +966,16 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
    ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, "offset");
    ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
+
+   MFnDependencyNode fnNode(GetMayaObject());
+   MPlugArray connections;
+   fnNode.findPlug("uvCoord").connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      MFnDependencyNode uvcNodeFn(connections[0].node());
+      if (uvcNodeFn.typeName() == "uvChooser")
+         AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+   }
 }
 
 // LayeredTexture
