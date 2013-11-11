@@ -81,6 +81,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    bool outputAssBoundingBox = false;
    bool useBinaryEncoding = true;
    bool forceTranslateShadingEngines = false;
+   bool progressiveRefinement = true;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -96,6 +97,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags").asString();
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
+      progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -163,6 +165,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
             else
             {
+               if (!progressiveRefinement)
+                  kickRenderFlags += " -dp";
 #ifdef _WIN32
                kickCmd = "Start kick " + kickRenderFlags + " \"" + assFileNames[0] + "\"";
 #else
