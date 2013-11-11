@@ -72,6 +72,7 @@ try:
     zipfile.ZipFile(os.path.abspath('package.zip'), 'r').extractall(installDir)
 except:
     print 'Error extracting the contents of the package.'
+    sys.exit(0)
 
 # regenerating the module file
 mtoaModPath = os.path.join(installDir, 'mtoa.mod')
@@ -81,6 +82,15 @@ if not enableEnvInstall:
     mtoaMod.write('PATH +:= bin\n')
     mtoaMod.write('MAYA_RENDER_DESC_PATH +:= \n')
 mtoaMod.close()
+
+# setting up executables properly
+exList = [os.path.join('bin', 'kick'), os.path.join('bin', 'maketx')]
+for ex in exList:
+    try:
+        subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
+    except:
+        print 'Error adding +x to executable %s' % ex
+        sys.exit(0)
 
 if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser('~')
