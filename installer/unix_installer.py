@@ -42,6 +42,7 @@ def EnsureDir(d):
 installDir = ''
 
 mayaVersion = sys.argv[1] if sys.argv[1] != '20135' else '2013.5'
+enableEnvInstall = mayaVersion == '2012'
 
 while True:
     homeDir = os.path.expanduser('~')
@@ -75,7 +76,10 @@ except:
 # regenerating the module file
 mtoaModPath = os.path.join(installDir, 'mtoa.mod')
 mtoaMod = open(mtoaModPath, 'w')
-mtoaMod.write('+ mtoa any %s' % installDir)
+mtoaMod.write('+ mtoa any %s\n' % installDir)
+if not enableEnvInstall:
+    mtoaMod.write('PATH +:= bin\n')
+    mtoaMod.write('MAYA_RENDER_DESC_PATH +:= \n')
 mtoaMod.close()
 
 if installMode == 1: # do the proper installation
@@ -95,23 +99,24 @@ if installMode == 1: # do the proper installation
         print 'Modules directory for the current Maya Version cannot be created.'
         sys.exit(1)
     shutil.copy(mtoaModPath, os.path.join(modulesDir, 'mtoa.mod'))
-    mayaEnvPath = os.path.join(mayaBaseDir, 'Maya.env')
-    mayaEnvContents = []
-    additionToEnv = ['PATH=$PATH:%s\n' % os.path.join(installDir, 'bin'), 
+    if enableEnvInstall:
+        mayaEnvPath = os.path.join(mayaBaseDir, 'Maya.env')
+        mayaEnvContents = []
+        additionToEnv = ['PATH=$PATH:%s\n' % os.path.join(installDir, 'bin'), 
                      'MAYA_RENDER_DESC_PATH=$MAYA_RENDER_DESC_PATH:%s\n' % installDir]    
-    if os.path.exists(mayaEnvPath):
-        for line in open(mayaEnvPath, 'r').readlines():
-            if line in additionToEnv:
-                continue
-            if line[-1:] != '\n':
-                line += '\n'
-            mayaEnvContents.append(line)
-    mayaEnv = open(mayaEnvPath, 'w')
-    for line in mayaEnvContents:
-        mayaEnv.write(line)
-    for line in additionToEnv:
-        mayaEnv.write(line)
-    mayaEnv.close()
+        if os.path.exists(mayaEnvPath):
+            for line in open(mayaEnvPath, 'r').readlines():
+                if line in additionToEnv:
+                    continue
+                if line[-1:] != '\n':
+                    line += '\n'
+                mayaEnvContents.append(line)
+        mayaEnv = open(mayaEnvPath, 'w')
+        for line in mayaEnvContents:
+            mayaEnv.write(line)
+        for line in additionToEnv:
+            mayaEnv.write(line)
+        mayaEnv.close()
 
 os.system('clear')
 print 'Installation successful!'
