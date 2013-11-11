@@ -70,12 +70,17 @@ def updateComputeSamples(*args):
 def updateMotionBlurSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     pm.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
-    pm.attrControlGrp('mb_shutter_size', edit=True, enable=flag)
-    pm.attrControlGrp('mb_shutter_offset', edit=True, enable=flag)
-    pm.attrControlGrp('mb_shutter_type', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
-    pm.attrControlGrp('reference_time', edit=True, enable=flag)
+    pm.attrControlGrp('textArnoldMBAngle', edit=True, enable=flag)
+    pm.attrControlGrp('mb_position', edit=True, enable=flag)
+    if flag:
+        arnoldMotionBlurPositionChanged()
+    else:
+        pm.attrControlGrp('mb_motion_frames', edit=True, enable=False)
+        pm.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
+        pm.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
+        
 
 
 def updateLogSettings(*args):
@@ -382,19 +387,13 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.frameLayout(label="Diffusion SSS", collapse=True)
-    
     pm.attrControlGrp('ss_sss_bssrdf_samples',
-                   label="BSSRDF Samples",
-                   attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
+                      label="SSS Samples",
+                      attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
     
-    pm.setParent('..')
-    
-    pm.frameLayout(label="Volumes", collapse=True)                      
     pm.attrControlGrp('ss_volume_indirect_samples',
-                      label='Indirect Samples',
-                      attribute='defaultArnoldRenderOptions.volume_indirect_samples')                      
-    pm.setParent('..')
+                      label='Volume Diffuse Samples',
+                      attribute='defaultArnoldRenderOptions.volume_indirect_samples')
     
     pm.frameLayout(label="Clamping", collapse=True)
 
@@ -638,6 +637,77 @@ def createArnoldEnvironmentSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def arnoldMotionBlurPositionChanged(*args):
+    sel = pm.optionMenuGrp('mb_position', q=True, select=True) - 1
+    if (sel is 3):
+        pm.attrControlGrp('mb_motion_frames', edit=True, enable=False)
+        pm.attrControlGrp('mb_motion_range_start', edit=True, enable=True)
+        pm.attrControlGrp('mb_motion_range_end', edit=True, enable=True)
+        arnoldMotionCustomChanged()
+    else:
+        pm.attrControlGrp('mb_motion_frames', edit=True, enable=True)
+        pm.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
+        pm.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
+        arnoldMotionFramesChanged()
+
+def arnoldMotionFramesChanged(*args):
+    length = pm.getAttr('defaultArnoldRenderOptions.motion_frames')
+    angle = length * 360
+    pm.text( "textArnoldMBAngle",
+               edit=True, 
+               label=u'  Shutter Angle : %i°' % angle)
+    
+def arnoldMotionCustomChanged(*args):
+    start = pm.getAttr('defaultArnoldRenderOptions.motion_start')
+    end = pm.getAttr('defaultArnoldRenderOptions.motion_end')
+    angle = abs(end-start) * 360
+    pm.text( "textArnoldMBAngle",
+               edit=True, 
+               label=u'  Shutter Angle : %i°' % angle)
+    
+def createArnoldMotionBlurRange(*args):
+
+    pm.text( "textArnoldMBAngle", 
+               font = "smallBoldLabelFont",
+               align='left',
+               enable=False
+               )
+    
+    pm.text( "textArnoldMBAngle",
+               edit=True, 
+               label=u'  Shutter Angle : %i°' % 180)
+
+               
+    cmds.optionMenuGrp('mb_position', label='Position')
+    cmds.optionMenuGrp('mb_position', edit=True, changeCommand=pm.Callback(arnoldMotionBlurPositionChanged))
+    cmds.menuItem( label='Start On Frame', data=0)
+    cmds.menuItem( label='Center On Frame', data=1)
+    cmds.menuItem( label='End On Frame', data=2)
+    cmds.menuItem( label='Custom', data=3)
+    
+    cmds.connectControl('mb_position', 'defaultArnoldRenderOptions.range_type', index=1)
+    cmds.connectControl('mb_position', 'defaultArnoldRenderOptions.range_type', index=2)
+
+    
+    
+    pm.attrFieldSliderGrp('mb_motion_frames',
+                        label="Length",
+                        ann='Motion Range in Frames',
+                        attribute='defaultArnoldRenderOptions.motion_frames',
+                        cc=arnoldMotionFramesChanged)
+                        
+    pm.attrFieldSliderGrp('mb_motion_range_start',
+                        label="Start",
+                        ann='Motion Range Start in Frames',
+                        attribute='defaultArnoldRenderOptions.motion_start',
+                        cc=arnoldMotionCustomChanged)
+                        
+    pm.attrFieldSliderGrp('mb_motion_range_end',
+                        label="End",
+                        ann='Motion Range End in Frames',
+                        attribute='defaultArnoldRenderOptions.motion_end',
+                        cc=arnoldMotionCustomChanged)
+    
 def createArnoldMotionBlurSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -657,59 +727,14 @@ def createArnoldMotionBlurSettings():
                      
     pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=1)
     pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=2)
-
-    '''
-    pm.attrControlGrp('mb_lights_enable',
-                        label="Lights",
-                        attribute='defaultArnoldRenderOptions.mb_lights_enable')
-
-    pm.attrControlGrp('mb_camera_enable',
-                        label="Camera",
-                        attribute='defaultArnoldRenderOptions.mb_camera_enable')
-
-    pm.attrControlGrp('mb_objects_enable',
-                        label="Objects",
-                        attribute='defaultArnoldRenderOptions.mb_objects_enable')
-
-    pm.attrControlGrp('mb_shader_enable',
-                        label="Shaders",
-                        attribute='defaultArnoldRenderOptions.mb_shader_enable')  '''                      
-                        
-    pm.separator()
     
-    pm.attrFieldSliderGrp('mb_motion_frames',
-                        label="Motion Range",
-                        ann='Motion Range in Frames',
-                        attribute='defaultArnoldRenderOptions.motion_frames')
-                        
     pm.attrControlGrp('mb_motion_steps',
-                        label="Motion Steps",
-                        attribute='defaultArnoldRenderOptions.motion_steps')
+                        label="Keys",
+                        attribute='defaultArnoldRenderOptions.motion_steps')                   
                         
     pm.separator()
     
-    pm.attrFieldSliderGrp('mb_shutter_offset',
-                        label="Shutter Offset",
-                        ann='Shutter Offset in Frames',
-                        attribute='defaultArnoldRenderOptions.shutter_offset')
-
-    pm.floatSliderGrp('mb_shutter_size',
-                      label="Shutter Size"
-                      )
-    pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=1)
-    pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=2)
-    pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=3)
-
-    pm.attrControlGrp('mb_shutter_type',
-                        label="Shutter Type",
-                        attribute='defaultArnoldRenderOptions.shutter_type')
-
-    pm.separator()
-                        
-                        
-    pm.attrControlGrp('reference_time',
-                   label='Reference Time',
-                   attribute='defaultArnoldRenderOptions.reference_time')
+    createArnoldMotionBlurRange()
 
     pm.setParent('..')
 
@@ -865,8 +890,9 @@ def createArnoldOverrideSettings():
                         
     pm.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss', label='Ignore Sub-Surface Scattering')
-                       
-    
+
+    pm.attrControlGrp('force_translate_shading_engines',
+                       attribute='defaultArnoldRenderOptions.forceTranslateShadingEngines', label='Force Translate Shading Engines')
 
     pm.setParent('..')
 
@@ -1047,11 +1073,15 @@ def createArnoldLogSettings():
     pm.separator()
 
     pm.attrControlGrp('os_shader_nan_checks',
-                   label="Warn on Shader NaN's",
+                   label="Shader NaN Warnings",
                    annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
                               'Enabling this may adversely affect performance.',
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
-                   
+
+    pm.attrControlGrp('os_shader_timing_stats',
+                    label='Shader Timing Stats',
+                    annotation='Collect shader timing statistics. Enabling this adversely affect performance.',
+                    attribute='defaultArnoldRenderOptions.shaderTimingStats')
 
     pm.setParent('..')
 

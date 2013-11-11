@@ -34,14 +34,6 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.beginLayout("SSS", collapse=False)
         self.addControl("sss_weight", label="SSS Weight")
 
-        self.beginLayout("Single Scatter", collapse=True)
-        self.addControl("single_scatter_weight", label="Weight")
-        self.addControl("rd", label="Reduced Albedo Term")
-        self.addControl("mfp", label="Mean Free Path")
-        self.addControl("g", label="Anisotropy")
-        self.addControl("eta", label="IOR")
-        self.endLayout()
-
         self.beginLayout("Shallow Scatter", collapse=False)
         self.addControl("shallow_scatter_color", label="Color")
         self.addControl("shallow_scatter_weight", label="Weight")

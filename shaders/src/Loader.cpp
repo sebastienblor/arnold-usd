@@ -779,7 +779,7 @@ node_loader
    case SHADER_VOLUMECOLLECTOR:
       node->methods     = VolumeCollectorMtd;
       node->output_type = AI_TYPE_RGB;
-      node->name        = "volumeCollector";
+      node->name        = "volume_collector";
       node->node_type   = AI_NODE_SHADER;
       break;
 

@@ -72,11 +72,11 @@ public:
    static MObject s_mb_object_deform_enable;
    static MObject s_mb_lights_enable;
    static MObject s_mb_shader_enable;
-   static MObject s_shutter_size;
-   static MObject s_shutter_offset;
-   static MObject s_shutter_type;
    static MObject s_motion_steps;
+   static MObject s_range_type;
    static MObject s_motion_frames;
+   static MObject s_motion_start;
+   static MObject s_motion_end;
       
    static MObject s_autotile;
    static MObject s_use_existing_tiled_textures;
@@ -109,5 +109,6 @@ public:
    static MObject s_kick_render_flags;
    static MObject s_absolute_texture_paths;
    static MObject s_absolute_procedural_paths;
+   static MObject s_force_translate_shading_engines;
 
 };  // class CArnoldOptionsNode

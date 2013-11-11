@@ -1065,7 +1065,8 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
 {
    if (step == 0)
    {
-      if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+      if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+          CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
          ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);

@@ -1,4 +1,5 @@
 #include "ShadingEngineTranslator.h"
+#include "scene/MayaScene.h"
 
 AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 {
@@ -79,6 +80,8 @@ void CShadingEngineTranslator::ComputeAOVs()
 /// the remaining custom AOVs are processed by CShadingEngineTranslator::Export.
 void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 {
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) == 0)
+      return;
    std::vector<AtNode*> aovShaders;
    AtNode* rootShader = NULL;
    MPlugArray        connections;

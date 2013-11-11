@@ -43,6 +43,7 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
+#include "translators/shape/XGenTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
@@ -221,11 +222,7 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiAreaLight",
                                   "disk",
                                   CDiskLightTranslator::creator,
-                                  CDiskLightTranslator::NodeInitializer);       
-      builtin->RegisterTranslator("aiAreaLight",
-                                  "mesh",
-                                  CMeshLightTranslator::creator,
-                                  CMeshLightTranslator::NodeInitializer);
+                                  CDiskLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiLightBlocker",
                                   "",
                                   CLightBlockerTranslator::creator);
@@ -251,8 +248,8 @@ namespace // <anonymous>
                                   CMeshTranslator::NodeInitializer);
       builtin->RegisterTranslator("mesh",
                                   "mesh_light",
-                                  CMeshLightTranslator::creatorMesh,
-                                  CMeshLightTranslator::NodeInitializerMesh);
+                                  CMeshLightTranslator::creator,
+                                  CMeshLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("nurbsSurface",
                                   "",
                                   CNurbsSurfaceTranslator::creator,
@@ -308,7 +305,7 @@ namespace // <anonymous>
                                   "spherical",
                                   CSphericalCameraTranslator::creator,
                                   CSphericalCameraTranslator::NodeInitializer);
-                                  
+                                 
        // Hair
       builtin->RegisterTranslator("pfxHair",
                                   "",
@@ -460,6 +457,17 @@ namespace // <anonymous>
                                      "",
                                      CFluidTexture2DTranslator::creator);
       }
+      
+#ifdef ENABLE_XGEN
+      // register the xgen extesion separately
+      CExtension* xgen = CExtensionsManager::NewExtension("xgen");
+      xgen->Requires("xgenToolkit");
+      xgen->RegisterTranslator("xgmDescription",
+                               "",
+                               CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
+
+      CExtensionsManager::RegisterExtension(xgen);
+#endif
 
       // Will load all found plugins and try to register nodes and translators
 

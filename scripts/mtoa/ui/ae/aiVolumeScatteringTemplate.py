@@ -16,7 +16,6 @@ class AEaiVolumeScatteringTemplate(ShaderAETemplate):
         self.addSeparator()
         self.addControl('eccentricity', label='Anisotropy')
         self.addSeparator()
-        self.addControl('importance_sampling', label='Importance Sampling')
         self.addControl('sampling_pattern', label='Sampling Pattern')
         self.addControl('samples', label='Samples')
         self.endLayout()

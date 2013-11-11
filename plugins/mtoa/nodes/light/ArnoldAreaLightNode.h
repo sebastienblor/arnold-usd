@@ -47,8 +47,6 @@ public:
    static  MObject s_intensity;
    static  MObject s_affectDiffuse;
    static  MObject s_affectSpecular;
-   static  MObject s_inputMesh; // for the mesh_light
-   static  MObject s_lightVisible;
    static  MObject s_update;
 
    // Arnold outputs
@@ -76,6 +74,5 @@ public:
 
 public:
    MBoundingBox         m_boundingBox;
-   int                  m_displayList;
    static   MTypeId     id;
 };  // class CArnoldAreaLightNode

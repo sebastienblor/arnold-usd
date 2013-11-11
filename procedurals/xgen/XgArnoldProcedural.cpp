@@ -862,7 +862,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
       XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Constant width: " + ftoa(constantWidth));
       {string s = "Constant width: " + ftoa(constantWidth) + "\n";
-      printf( s.c_str() );}
+      printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
       if( *curRadius < k_minRadius )
          *curRadius = k_minRadius;

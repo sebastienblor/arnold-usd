@@ -175,7 +175,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
     def validFilters(self):
         return getLightFilterClassification(self.nodeType())
 
-    def commonLightAttributes(self):        
+    def commonLightAttributes(self, addUserOptions = True):        
         self.addControl("aiAffectVolumetrics", label="Affect Volumetrics")        
         self.addControl("aiCastVolumetricShadows", label="Cast Volumetric Shadows")
         
@@ -191,7 +191,8 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
 
         self.lightFiltersLayout()
         
-        self.addControl("aiUserOptions", "User Options")
+        if addUserOptions:
+            self.addControl("aiUserOptions", "User Options")
 
     def lightFiltersLayout(self):
         self.beginLayout("Light Filters", collapse=False)

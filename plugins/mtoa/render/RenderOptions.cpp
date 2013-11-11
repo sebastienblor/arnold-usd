@@ -35,23 +35,24 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
-CRenderOptions::CRenderOptions()
-:  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
-,  m_width(0), m_height(0)
-,  m_pixelAspectRatio(1.0f)
-,  m_useRenderRegion(false)
-,  m_clearBeforeRender(false)
-,  m_useBinaryEncoding(true)
-,  m_multiCameraRender(false)
-,  m_use_existing_tiled_textures(true)
-,  m_outputAssMask(AI_NODE_ALL)
-,  m_expandProcedurals(false)
-,  m_log_to_file(false)
-,  m_log_to_console(false)
-,  m_log_filename("")
-,  m_log_max_warnings(100)
-,  m_log_verbosity(DEFAULT_LOG_FLAGS)
-,  m_shader_searchpath("")
+CRenderOptions::CRenderOptions() 
+: m_log_filename(""),
+  m_shader_searchpath(""),
+  m_pixelAspectRatio(1.0f),
+  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0),
+  m_width(0), m_height(0),
+  m_log_max_warnings(100),
+  m_log_verbosity(DEFAULT_LOG_FLAGS),
+  m_outputAssMask(AI_NODE_ALL),
+  m_useRenderRegion(false),
+  m_clearBeforeRender(false),
+  m_useBinaryEncoding(true),
+  m_log_to_file(false),
+  m_log_to_console(false),
+  m_expandProcedurals(false),
+  m_force_translate_shading_engines(false),
+  m_use_existing_tiled_textures(true),
+  m_multiCameraRender(false)
 {}
 
 MStatus CRenderOptions::GetFromMaya()

@@ -87,16 +87,9 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
       if (type == 0)
       {
-         // get data
-         if (step == 0)
-         {
-            MString frameNumber("0");
-            frameNumber += GetExportFrame() + fnRes.findPlug("frameOffset").asInt();
-            imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
-            imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
-            mImage = MImage();
-            mImage.readFromFile(imageName);
-         }
+         imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
+         mImage = MImage();
+         mImage.readFromFile(imageName);
 
          //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
          mImage.getSize(iWidth, iHeight);
@@ -439,13 +432,9 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
 
-   if (IsMotionBlurEnabled())
-   {
-      float halfShutter = GetShutterSize() * 0.5f;
-      AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
-      AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
-      AiNodeSetInt(camera, "shutter_type", GetShutterType());
-   }
+   // The values will be overriden if they are supplied in the camera "User Options"
+   AiNodeSetFlt(camera, "shutter_start", 0.0f);
+   AiNodeSetFlt(camera, "shutter_end", 1.0f);
 
    GetMatrix(matrix);
    

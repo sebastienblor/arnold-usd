@@ -298,8 +298,13 @@ MStatus CExtension::DoUnloadArnoldPlugin(const MString &resolved)
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* nentryFile = AiNodeEntryGetFilename(nentry);
-      if (strcmp(nentryFile, resolved.asChar()) == 0)
+      MString nentryFile = AiNodeEntryGetFilename(nentry);
+      const char* nentryFileChar = AiNodeEntryGetFilename(nentry);
+      if (nentryFileChar != 0)
+         nentryFile = nentryFileChar;
+      else
+         nentryFile = "";
+      if (nentryFile == resolved)
       {
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
          // remove from arnold
@@ -379,8 +384,6 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
 {
    MStatus status(MStatus::kSuccess);
 
-   // Arnold api doc says AiNodeEntryGetFilename returns <buit-in> for
-   // built-in nodes, but it seems to return an empty string.
    MString pluginName = (plugin.numChars()==0) ? "built-in nodes" : MString("plugin ") + plugin;
    AiMsgDebug("[mtoa] [%s] Generating new Maya nodes and translators for Arnold %s.", m_extensionName.asChar(), pluginName.asChar());
 
@@ -392,15 +395,20 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* nodeName = AiNodeEntryGetName(nentry);
-      const char* nodeFile = AiNodeEntryGetFilename(nentry);
-      if (strcmp(nodeFile, plugin.asChar()) == 0)
+      MString nodeName = AiNodeEntryGetName(nentry);
+      MString nodeFile;
+      const char* nodeFileChar = AiNodeEntryGetFilename(nentry);
+      if (nodeFileChar != 0)
+         nodeFile = nodeFileChar;
+      else
+         nodeFile = "";
+      if (nodeFile == plugin)
       {
          // If the Arnold node is marked as a node that should be ignored
          bool hide;
          if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
          {
-            AiMsgDebug("[mtoa] [%s] [node %s] Marked as hidden.", m_extensionName.asChar(), nodeName);
+            AiMsgDebug("[mtoa] [%s] [node %s] Marked as hidden.", m_extensionName.asChar(), nodeName.asChar());
             continue;
          }
 

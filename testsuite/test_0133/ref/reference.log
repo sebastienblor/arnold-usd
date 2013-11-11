@@ -1,0 +1,82 @@
+Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201450\msvc_opt\testsuite\test_0133\test_0133.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2014\bin\mayabatch.exe"
+ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+pymel.internal.factories : INFO : MFnDagNode.model is deprecated
+pymel.core : INFO : Updating pymel with pre-loaded plugins: DirectConnect, mayaHIK, AbcImport, mtoa, tiffFloatReader, xgenToolkit, VectorRender, gpuCache, rotateHelper, xgenMR, Substance, MayaMuscle, AutodeskPacketFile, autoLoader, fbxmaya, matrixNodes, ik2Bsolver, modelingToolkit, OpenEXRLoader, ikSpringSolver, AbcExport, ArubaTessellator, quatNodes, mayaCharacterization, retargeterNodes, sceneAssembly
+Maya 2014 importing module pymel 1.0.5 (C:\Program Files\Autodesk\Maya2014\Python\lib\site-packages\pymel\__init__.pyc)
+Warning: [mtoa] Registering UI for translator "<built-in>" for Maya node ambientLight, but node has no translators. Did you mean to call registerAETemplate?
+Maya 2014 sourcing MEL override C:\solidAngle\mtoadeploy\2014\scripts\mtoa\2014\mel\initDefaultFilters.mel
+Maya 2014 sourcing MEL override C:\solidAngle\mtoadeploy\2014\scripts\mtoa\2014\mel\initDefaultFilters.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2014/scripts/startup/initDefaultFilters.mel
+Successfully registered renderer 'arnold'
+mental ray for Maya 2014 
+// Mental ray for Maya: using startup file C:/Program Files/Autodesk/mentalrayForMaya2014//maya.rayrc.
+mental ray for Maya: setup
+mental ray for Maya: initialize
+mental ray: version 3.11.1.12, Aug  6 2013, revision 202006
+mental ray for Maya: register extensions
+// mental ray Node Factory: loaded
+mental ray for Maya: successfully registered
+mental ray for Maya: loading startup file: C:/Program Files/Autodesk/mentalrayForMaya2014//maya.rayrc
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/abcimport.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/abcimport.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/AdskShaderSDKWrappers.mi
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/architectural.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/architectural.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/base.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/base.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/basehair.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/basehair.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/builtin_bsdf.mi
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/contour.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/contour.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/paint.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/paint.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/physics.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/physics.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/production.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/production.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/ptex.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/ptex.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/subsurface.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/subsurface.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/surfaceSampler.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/surfaceSampler.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/userdata.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/userdata.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/useribl.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/useribl.dll
+// generating Maya nodes...
+// parsing C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/include/xgenMR.mi
+// loading C:/Program Files/Autodesk/mentalrayForMaya2014/shaders/xgenMR.dll
+// generating Maya nodes...
+File read in 2 seconds.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
+Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201450/msvc_opt/testsuite/test_0133/test.ma
+Warning: file: C:\Users\borja\AppData\Local\Temp\AST60355288.tmp line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: C:\Users\borja\AppData\Local\Temp\AST60355288.tmp line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201450\msvc_opt\testsuite\test_0133\test.ma completed.

@@ -177,8 +177,6 @@ protected:
    }
    inline unsigned int GetMotionStep() const {return m_step;}
    inline unsigned int GetNumMotionSteps() const {return m_session->GetNumMotionSteps();}
-   inline float GetShutterSize() const {return m_session->GetShutterSize();}
-   inline unsigned int GetShutterType() const {return m_session->GetShutterType();}
    inline CArnoldSession* GetSession() const {return m_session;}
    inline const CSessionOptions& GetSessionOptions() const  { return m_session->GetSessionOptions(); }
    inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}

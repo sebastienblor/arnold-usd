@@ -133,6 +133,8 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('TOOLS_PATH',
                  'Where to find external tools required for sh',
+                 '.', PathVariable.PathIsDir),
+    PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
                  '.', PathVariable.PathIsDir)
 )
 
@@ -204,11 +206,14 @@ TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
+env['ENABLE_XGEN'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
 maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 maya_version_base = maya_version[0:4]
+if int(maya_version) >= 201450:
+    env['ENABLE_XGEN'] = 1
 
 mercurial_id = ""
 try:
@@ -413,6 +418,9 @@ elif env['COMPILER'] == 'icc':
 if env['MODE'] == 'debug':
     env.Append(CPPDEFINES = Split('ARNOLD_DEBUG'))
 
+if env['ENABLE_XGEN'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_XGEN'))
+
 ## platform related defines
 if system.os() == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
@@ -428,6 +436,7 @@ env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
     ## hide long compile lines from the user
@@ -592,7 +601,13 @@ if system.os() == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
-    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS[0])
+    nprocs = []
+    for proc in MTOA_PROCS:
+        if str(proc)[-3:] == 'dll':
+            nprocs.append(proc)
+    MTOA_PROCS = nprocs
+    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
+    
     libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
@@ -823,6 +838,9 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'HOW_TO_INSTALL.txt'), 'doc'],
 ]
 
+for p in MTOA_PROCS:
+    PACKAGE_FILES += [[p, 'procedurals']]
+
 if not env['DISABLE_COMMON']:
     PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
 
@@ -866,6 +884,49 @@ elif system.os() == 'darwin':
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
+def create_installer(target, source, env):
+    import tempfile
+    import shutil
+    package_name = str(source[0])
+    package_name += '.zip'
+    tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
+    shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+    if system.os() == "windows":
+        import zipfile
+        shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
+        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
+        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
+        shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+        shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
+        zipfile.ZipFile(os.path.abspath(package_name), 'r').extractall(tempdir)
+        NSIS_PATH = env.subst(env['NSIS_PATH'])
+        os.environ['NSISDIR'] = NSIS_PATH
+        os.environ['NSISCONFDIR'] = NSIS_PATH
+        mtoaVersionString = MTOA_VERSION
+        mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
+        mayaVersionString = maya_base_version
+        mayaVersionString = mayaVersionString.replace('20135', '2013.5')
+        os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
+        os.environ['MAYA_VERSION'] = mayaVersionString
+        subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), 'MtoA-%s-%s.exe' % (MTOA_VERSION, maya_base_version))
+    else:
+        shutil.copyfile(os.path.abspath(package_name), os.path.join(tempdir, "package.zip"))
+        shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
+        commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
+        commandFile = open(commandFilePath, 'w')
+        commandFile.write('python ./unix_installer.py %s' % maya_base_version)
+        commandFile.close()
+        subprocess.call(['chmod', '+x', commandFilePath])
+        installerPath = os.path.abspath('./mtoa-%s-%s-%s.run' % (MTOA_VERSION, system.os(), maya_base_version))
+        subprocess.call(['installer/makeself.sh', tempdir, installerPath,
+                         'MtoA for Linux Installer', './unix_installer.sh'])
+        subprocess.call(['chmod', '+x', installerPath])
+
+env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
+
+INSTALLER = env.PackageInstaller('create_installer', package_name)
+
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
 ################################
@@ -897,8 +958,10 @@ top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
+top_level_alias(env, 'installer', INSTALLER)
 
 env.Depends(DEPLOY, PACKAGE)
+env.Depends(INSTALLER, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
 
