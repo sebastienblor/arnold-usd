@@ -322,65 +322,6 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
 
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
-
-   /*
-   // FIXME: this would best be handled by a kind of translator post-process hook.
-
-   // check visibility for all image planes.
-   MDagPath dagPath;
-   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-   // for all cameras
-   for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
-   {
-      if (!dagIterCameras.getPath(dagPath))
-      {
-         AiMsgError("[mtoa] Could not get path for DAG iterator");
-         return;
-      }
-      bool isRenderingCamera = false;
-      if (dagPath == cameraNode)
-         isRenderingCamera = true;
-
-      // check all of it's imageplanes
-      MPlugArray connectedPlugs;
-      MPlug      imagePlanePlug;
-      MPlug      imagePlaneNodePlug;
-      MFnDagNode fnDagNode(dagPath);
-      imagePlanePlug = fnDagNode.findPlug("imagePlane");
-      if (imagePlanePlug.numConnectedElements() > 0)
-      {
-         for(unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
-         {
-            MStatus status;
-            imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-            imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-            MObject resNode = connectedPlugs[0].node(&status);
-            if (status)
-            {
-               // get the dependency node of the image plane
-               MFnDependencyNode fnRes(resNode);
-               MString imagePlaneName(fnDagNode.partialPathName());
-               imagePlaneName += "_IP_";
-               imagePlaneName += ips;
-               bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
-               AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
-               int visibility = 0;
-               AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.partialPathName().asChar(), m_renderOptions.GetImageFilename().asChar());
-
-               if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
-               {
-                  visibility = AI_RAY_CAMERA;
-               }
-               if ((displayOnlyIfCurrent && !isRenderingCamera))
-               {
-                  visibility = 0;
-               }
-               AiNodeSetInt(imagePlane, "visibility", visibility);
-            }
-         }
-      }
-   }*/
 }
 
 void CRenderSession::SetRenderViewPanelName(const MString &panel)

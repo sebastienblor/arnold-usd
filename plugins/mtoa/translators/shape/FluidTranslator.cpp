@@ -215,7 +215,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    MFnDependencyNode mayaFluidNode(GetMayaObject());
    
    ExportMatrix(fluid, 0);
-   AiNodeSetInt(fluid, "visibility", ComputeVisibility());
+   AiNodeSetByte(fluid, "visibility", ComputeVisibility());
    ExportTraceSets(fluid, FindMayaPlug("aiTraceSets"));
    ProcessParameter(fluid, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
    

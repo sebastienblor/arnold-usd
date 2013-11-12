@@ -60,9 +60,9 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
-   int visibility = ComputeVisibility();
+   AtByte visibility = ComputeVisibility();
    AiNodeSetBool(shader, "opaque_alpha", (int)(visibility & AI_RAY_CAMERA));
-   AiNodeSetInt(shader, "visibility", visibility);
+   AiNodeSetByte(shader, "visibility", visibility);
 }
 
 // Lambert

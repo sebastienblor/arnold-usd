@@ -59,13 +59,13 @@ void CInstancerTranslator::UpdateMotion(AtNode* anode, unsigned int step)
    ExportMatrix(anode, step);
 }
 
-int CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
+AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
 
    MObject node = masterDagPath.node();
    MFnDagNode fnNode;
    fnNode.setObject(node);
    
-   int visibility = AI_RAY_ALL;
+   AtByte visibility = AI_RAY_ALL;
    
    MPlug plug = fnNode.findPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
@@ -511,8 +511,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
             //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
            
             // need this in case instance sources are hidden
-            int visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
-            AiNodeSetInt(instance, "visibility", visibility);
+            AtByte visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
+            AiNodeSetByte(instance, "visibility", visibility);
 
             // add the custom user selected attributes to export
             std::map<std::string, MVectorArray>::iterator custVect;

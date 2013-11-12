@@ -436,7 +436,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {      
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
+      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);
       
       AtRGB colorMultiplier = AI_RGB_WHITE;
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
@@ -455,7 +455,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    }
    else
    {
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
+      AiNodeSetByte(meshNode, "visibility", AI_RAY_GLOSSY);
       AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
    }
 }

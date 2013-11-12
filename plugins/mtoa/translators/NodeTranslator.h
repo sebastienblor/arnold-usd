@@ -280,8 +280,8 @@ protected:
    virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, unsigned int step);
    // for computing a path different from m_dagPath
-   int ComputeVisibility(const MDagPath& path);
-   int ComputeVisibility();   
+   AtByte ComputeVisibility(const MDagPath& path);
+   AtByte ComputeVisibility();   
 
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
