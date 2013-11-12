@@ -157,9 +157,9 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("doubleSided");
       
       if (!plug.isNull() && plug.asBool())
-         AiNodeSetInt(node, "sidedness", 65535);
+         AiNodeSetByte(node, "sidedness", AI_RAY_ALL);
       else
-         AiNodeSetInt(node, "sidedness", 0);
+         AiNodeSetByte(node, "sidedness", 0);
    }
 }
 

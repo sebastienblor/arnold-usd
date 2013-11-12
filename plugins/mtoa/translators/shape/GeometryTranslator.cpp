@@ -1030,11 +1030,11 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    AiNodeSetBool(polymesh, "smoothing", FindMayaPlug("smoothShading").asBool());
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
    else
    {
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
+      AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
    // Subdivision surfaces
@@ -1063,11 +1063,11 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
    ProcessRenderFlags(polymesh);
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
    else
    {
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
+      AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
