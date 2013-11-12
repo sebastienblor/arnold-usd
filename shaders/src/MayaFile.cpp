@@ -543,8 +543,15 @@ shader_evaluate
        Mod(outV, 1.0f) > coverage.y ||
        (!wrapU && (outU < 0 || outU > coverage.x)) ||
        (!wrapV && (outV < 0 || outV > coverage.y)))
-   {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+   {      
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);      
+      // restore shader globals
+      sg->u = oldU;
+      sg->v = oldV;
+      sg->dudx = oldUdx; 
+      sg->dudy = oldUdy; 
+      sg->dvdx = oldVdx; 
+      sg->dvdy = oldVdy;
    }
    else
    {
@@ -848,17 +855,15 @@ shader_evaluate
       {       
          sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
       }
+      sg->u = oldU;
+      sg->v = oldV;
+      sg->dudx = oldUdx; 
+      sg->dudy = oldUdy; 
+      sg->dvdx = oldVdx; 
+      sg->dvdy = oldVdy;
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       else if (success)
          MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);     
    }
-
-   // restore shader globals
-   sg->u = oldU;
-   sg->v = oldV;
-   sg->dudx = oldUdx; 
-   sg->dudy = oldUdy; 
-   sg->dvdx = oldVdx; 
-   sg->dvdy = oldVdy;
 }
