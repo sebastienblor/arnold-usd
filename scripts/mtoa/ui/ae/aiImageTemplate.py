@@ -36,7 +36,6 @@ class AEaiImageTemplate(ShaderAETemplate):
         except:
             import traceback, sys
             traceback.print_exc(file=sys.__stderr__)
-            pass
 
     def uvsetNew(self, attrName):
         cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)

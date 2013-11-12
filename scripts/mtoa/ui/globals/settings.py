@@ -325,7 +325,7 @@ def createArnoldSamplingSettings():
     pm.separator()
 
     pm.intSliderGrp('ss_AA_samples',
-                        label="AA Samples",
+                        label="AA",
                         minValue = 1,
                         maxValue = 10,
                         fieldMinValue=-10,
@@ -337,16 +337,8 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
 
-    '''
-    pm.attrControlGrp('ss_AA_samples',
-                        label="AA Samples",
-                        attribute='defaultArnoldRenderOptions.AASamples',
-                        cc=updateComputeSamples
-                        
-                        )
-    '''
     pm.intSliderGrp('ss_hemi_samples',
-                        label="Diffuse Samples",
+                        label="Diffuse",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -354,15 +346,9 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=1)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
-    '''
-    pm.attrControlGrp('ss_hemi_samples',
-                        label="Hemi Samples",
-                        attribute='defaultArnoldRenderOptions.GIDiffuseSamples')
-    '''
-
     
     pm.intSliderGrp('ss_glossy_samples',
-                        label="Glossy Samples",
+                        label="Glossy",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -372,7 +358,7 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
     
     pm.intSliderGrp('ss_refraction_samples',
-                        label="Refraction Samples",
+                        label='Refraction',
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -381,21 +367,15 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
     pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=3)    
 
-    '''
-    pm.attrControlGrp('ss_glossy_samples',
-                        label="Glossy Samples",
-                        attribute='defaultArnoldRenderOptions.giGlossySamples')
-    '''
-    
     pm.attrControlGrp('ss_sss_bssrdf_samples',
-                      label="SSS Samples",
+                      label='SSS',
                       attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
     
     pm.attrControlGrp('ss_volume_indirect_samples',
-                      label='Volume Diffuse Samples',
+                      label='Volume Diffuse',
                       attribute='defaultArnoldRenderOptions.volume_indirect_samples')
     
-    pm.frameLayout(label="Clamping", collapse=True)
+    pm.frameLayout(label='Clamping', collapse=True)
 
     pm.checkBoxGrp('ss_clamp_sample_values',
                      cc=updateSamplingSettings,
@@ -410,13 +390,6 @@ def createArnoldSamplingSettings():
 
     pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=1)
     pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=2)
-    
-    '''
-    pm.attrControlGrp('ss_clamp_sample_values',
-                        label="Clamp Sample Values",
-                        attribute='defaultArnoldRenderOptions.use_sample_clamp',
-                        cc=updateSamplingSettings)
-    '''
 
     pm.attrControlGrp('ss_max_value',
                         label="Max Value",
@@ -432,57 +405,6 @@ def createArnoldSamplingSettings():
                          default='gaussian')
      
     pm.setParent('..')
-
-#    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
-#    pm.separator(style='none')
-
-    # TODO: connect node to options
-    
-
-#    pm.attrEnumOptionMenu('os_filter_type',
-#                               cc=updateArnoldFilterOptions,
-#                               attribute='defaultArnoldRenderOptions.filter_type',
-#                               label='Filter Type')
-#    pm.setParent('..')
-#    '''
-#    pm.attrControlGrp('os_filter_type',
-#                        label="Filter Type",
-#                        attribute='defaultArnoldRenderOptions.filter_type',
-#                        cc=updateArnoldFilterOptions)
-#    '''
-#
-#    pm.columnLayout('cl_filter_width', vis=0)
-#    pm.attrControlGrp('os_filter_width',
-#                        label="Filter Width",
-#                        attribute='defaultArnoldRenderOptions.filter_width')
-#
-#    pm.setParent('..')
-#
-#    pm.columnLayout('cl_filter_domain', vis=0)
-#    pm.attrControlGrp('os_filter_domain',
-#                         label="Filter Domain",
-#                         attribute='defaultArnoldRenderOptions.filter_domain')
-#
-#    pm.setParent('..')
-#
-#    pm.columnLayout('cl_filter_scalar_mode', vis=0)
-#    pm.attrControlGrp('os_filter_scalar_mode',
-#                        label="Filter Scalar Mode",
-#                        attribute='defaultArnoldRenderOptions.filter_scalar_mode')
-#
-#    pm.setParent('..')
-#
-#    pm.columnLayout('cl_filter_minmax', vis=0)
-#    pm.attrControlGrp('os_filter_minimum',
-#                        label="Filter Minimum",
-#                        attribute='defaultArnoldRenderOptions.filter_minimum')
-#
-#    pm.attrControlGrp('os_filter_maximum',
-#                        label="Filter Maximum",
-#                        attribute='defaultArnoldRenderOptions.filter_maximum')
-#
-#    pm.setParent('..')
-
     pm.setParent('..') # column layout
 
     pm.setUITemplate(popTemplate=True)
@@ -1017,6 +939,16 @@ def ChangeLogToFile(*args):
     cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
+def ChangeLogVerbosity(*args):
+    logVerbosity = cmds.getAttr('defaultArnoldRenderOptions.log_verbosity')
+    try:
+        if logVerbosity > 0:
+            pm.attrControlGrp('os_shader_timing_stats', edit=True, enable=True)
+        else:
+            pm.attrControlGrp('os_shader_timing_stats', edit=True, enable=False)
+    except:
+        pass
+
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -1029,8 +961,8 @@ def createArnoldLogSettings():
     pm.attrControlGrp('log_verbosity',
                         label="Verbosity Level",
                         enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_verbosity')
-                        
+                        attribute='defaultArnoldRenderOptions.log_verbosity',
+                        changeCommand=ChangeLogVerbosity)                
                         
     
     pm.checkBoxGrp('log_to_console',
@@ -1082,6 +1014,8 @@ def createArnoldLogSettings():
                     label='Shader Timing Stats',
                     annotation='Collect shader timing statistics. Enabling this adversely affect performance.',
                     attribute='defaultArnoldRenderOptions.shaderTimingStats')
+
+    ChangeLogVerbosity()
 
     pm.setParent('..')
 
