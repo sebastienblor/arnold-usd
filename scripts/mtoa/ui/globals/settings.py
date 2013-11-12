@@ -358,7 +358,7 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
     
     pm.intSliderGrp('ss_refraction_samples',
-                        label="Refraction",
+                        label='Refraction',
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -939,6 +939,16 @@ def ChangeLogToFile(*args):
     cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
+def ChangeLogVerbosity(*args):
+    logVerbosity = cmds.getAttr('defaultArnoldRenderOptions.log_verbosity')
+    try:
+        if logVerbosity > 0:
+            pm.attrControlGrp('os_shader_timing_stats', edit=True, enable=True)
+        else:
+            pm.attrControlGrp('os_shader_timing_stats', edit=True, enable=False)
+    except:
+        pass
+
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -951,8 +961,8 @@ def createArnoldLogSettings():
     pm.attrControlGrp('log_verbosity',
                         label="Verbosity Level",
                         enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_verbosity')
-                        
+                        attribute='defaultArnoldRenderOptions.log_verbosity',
+                        changeCommand=ChangeLogVerbosity)                
                         
     
     pm.checkBoxGrp('log_to_console',
@@ -1004,6 +1014,8 @@ def createArnoldLogSettings():
                     label='Shader Timing Stats',
                     annotation='Collect shader timing statistics. Enabling this adversely affect performance.',
                     attribute='defaultArnoldRenderOptions.shaderTimingStats')
+
+    ChangeLogVerbosity()
 
     pm.setParent('..')
 
