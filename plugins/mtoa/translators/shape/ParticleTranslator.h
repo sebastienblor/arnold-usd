@@ -36,7 +36,8 @@ public:
       m_spriteScaleY(1),
       m_doExtraAttributes(false),
       m_inheritCacheTxfm(false),
-      m_exportId(false)
+      m_exportId(false),
+      m_minPixelWidth(0.0f)
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method
@@ -87,16 +88,16 @@ protected:
    // by solid angle's conventions m_renderTypeSphere should be formatted like:  PARTICLE_TYPE_SPHERE
    enum ParticleRenderType
    {
-          PARTICLE_TYPE_CLOUD,           // 0
-          PARTICLE_TYPE_TUBE,            // 1
-          PARTICLE_TYPE_BLOBBYSURFACE,   // 2
-          PARTICLE_TYPE_MULTIPOINT,      // 3
-          PARTICLE_TYPE_MULTISTREAK,     // 4
-          PARTICLE_TYPE_NUMERIC,         // 5
-          PARTICLE_TYPE_POINT,           // 6
-          PARTICLE_TYPE_SPHERE,          // 7
-          PARTICLE_TYPE_SPRITE,          // 8
-          PARTICLE_TYPE_STREAK           // 9
+         PARTICLE_TYPE_CLOUD,           // 0
+         PARTICLE_TYPE_TUBE,            // 1
+         PARTICLE_TYPE_BLOBBYSURFACE,   // 2
+         PARTICLE_TYPE_MULTIPOINT,      // 3
+         PARTICLE_TYPE_MULTISTREAK,     // 4
+         PARTICLE_TYPE_NUMERIC,         // 5
+         PARTICLE_TYPE_POINT,           // 6
+         PARTICLE_TYPE_SPHERE,          // 7
+         PARTICLE_TYPE_SPRITE,          // 8
+         PARTICLE_TYPE_STREAK           // 9
    };
 
    // these hold  each frame steps values
@@ -144,5 +145,6 @@ protected:
    bool		m_deleteDeadParticles;
    bool		m_inheritCacheTxfm;
    bool		m_exportId;
+   float    m_minPixelWidth;
 
 };
