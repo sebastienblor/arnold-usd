@@ -269,6 +269,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   geom->m_geometryList.insert(std::make_pair(node, g));
                   geom->bbox.expand(g->GetBBox());
                }
+               else if(AiNodeIs(node, "box"))
+               {
+                  CArnoldBoxGeometry* g = new CArnoldBoxGeometry(node);
+                  geom->m_geometryList.insert(std::make_pair(node, g));
+                  geom->bbox.expand(g->GetBBox());  
+               }
             }
          }
 

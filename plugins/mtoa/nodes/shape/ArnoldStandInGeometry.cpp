@@ -379,3 +379,37 @@ void CArnoldProceduralGeometry::DrawNormalAndPolygons() const
 {
    DrawBoundingBox();
 }
+
+CArnoldBoxGeometry::CArnoldBoxGeometry(AtNode* node) : CArnoldStandInGeometry()
+{
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   AiArrayGetMtx(p_matrices, 0, m_matrix);
+
+   m_BBMin = AiNodeGetPnt(node, "min");
+   m_BBMax = AiNodeGetPnt(node, "max");
+}
+
+CArnoldBoxGeometry::~CArnoldBoxGeometry()
+{
+   
+}
+
+void CArnoldBoxGeometry::DrawPolygons() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldBoxGeometry::DrawWireframe() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldBoxGeometry::DrawPoints() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldBoxGeometry::DrawNormalAndPolygons() const
+{
+   DrawBoundingBox();
+}

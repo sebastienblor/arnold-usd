@@ -100,3 +100,14 @@ public:
    CArnoldProceduralGeometry(AtNode* node);
    ~CArnoldProceduralGeometry();
 };
+
+class CArnoldBoxGeometry : public CArnoldStandInGeometry{
+private:
+   void DrawPolygons() const;
+   void DrawWireframe() const;
+   void DrawPoints() const;
+   void DrawNormalAndPolygons() const;
+public:
+   CArnoldBoxGeometry(AtNode* node);
+   ~CArnoldBoxGeometry();
+};
