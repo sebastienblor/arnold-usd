@@ -141,6 +141,19 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
          
          m_vlist[i] = pnt;
       }
+      for (AtUInt32 i = vlist->nelements; i < (vlist->nelements * vlist->nkeys); ++i)
+      {
+         AtPoint pnt = AiArrayGetPnt(vlist, i);
+         if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
+            continue;
+         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         
+         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+      }
    }
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
