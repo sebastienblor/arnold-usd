@@ -13,6 +13,8 @@
 #include <maya/MHardwareRenderer.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MMatrix.h>
+#include <maya/MTransformationMatrix.h>
 
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR          15 // white
@@ -142,11 +144,24 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    }
    // Disk
    else if (areaType == "disk")
-   {
+   {      
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();
-      gluDisk(qobj, 0.0f, 1.0f, 20, 1);
+      MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
+      double scale[3];
+      transformMatrix.getScale(scale, MSpace::kWorld);
+      float diskSize = 1.0f;
+      if (scale[0] != scale[1]) // non uniform scaling across x and y
+      {     
+         if (scale[0] != 0.0)
+            glScaled(1.0 / scale[0], 1.0, 1.0);
+         if (scale[1] != 0)
+            glScaled(1.0, 1.0 / scale[1], 0.0);
+         const double avs = (scale[0] + scale[1]) * 0.5;
+         glScaled(avs, avs, 1.0);
+      }
+      gluDisk(qobj, 0.0f, diskSize, 20, 1);
       glPopMatrix();
       glBegin(GL_LINES);
       // Done Drawing The direction
