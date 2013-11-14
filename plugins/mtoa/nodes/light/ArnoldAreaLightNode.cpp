@@ -151,7 +151,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
       transformMatrix.getScale(scale, MSpace::kWorld);
-      float diskSize = 1.0f;
       if (scale[0] != scale[1]) // non uniform scaling across x and y
       {     
          if (scale[0] != 0.0)
@@ -174,7 +173,19 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
-      glPushMatrix();
+      glPushMatrix();      
+      MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
+      double scale[3];
+      transformMatrix.getScale(scale, MSpace::kWorld);
+      if (scale[0] != scale[2]) // non uniform scaling across x and y
+      {     
+         if (scale[0] != 0.0)
+            glScaled(1.0 / scale[0], 1.0, 1.0);
+         if (scale[2] != 0)
+            glScaled(1.0, 1.0, 1.0 / scale[2]);
+         const double avs = (scale[0] + scale[2]) * 0.5;
+         glScaled(avs, 1.0, avs);
+      }
       glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
       glTranslatef(0.0f, 0.0f, -1.0f);
       gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
