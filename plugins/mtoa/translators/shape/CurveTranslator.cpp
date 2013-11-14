@@ -113,7 +113,7 @@ void CCurveTranslator::Update( AtNode *curve )
 
    // Get curve lines
    MStatus stat;
-   stat = GetCurveLines(objectCurveShape);
+   stat = GetCurveLines(objectCurveShape, 0);
    // Bail if there isn't any curve data
    if (stat != MStatus::kSuccess) return;
 
@@ -171,8 +171,8 @@ void CCurveTranslator::Update( AtNode *curve )
 
    // Allocate memory for all curve points and widths
    AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
-   AtArray* curveWidths = AiArrayAllocate(numPoints,              GetNumMotionSteps(), AI_TYPE_FLOAT);
-   AtArray* curveColors = AiArrayAllocate(1,                      GetNumMotionSteps(), AI_TYPE_RGB);
+   AtArray* curveWidths = AiArrayAllocate(numPoints,              mayaCurve.widthConnected ? GetNumMotionSteps() : 1, AI_TYPE_FLOAT);
+   AtArray* curveColors = AiArrayAllocate(1,                      1, AI_TYPE_RGB);
    AtArray* referenceCurvePoints = exportReferenceObject ? AiArrayAllocate(numPoints, 1, AI_TYPE_POINT) : 0;
 
    ProcessCurveLines(0,
@@ -223,15 +223,15 @@ void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
    // Get curve lines
    MObject objectCurveShape(m_dagPath.node());
    exportReferenceObject = false;
-   MStatus stat = GetCurveLines(objectCurveShape);
+   MStatus stat = GetCurveLines(objectCurveShape, step);
 
    if (stat == MStatus::kSuccess)
    {
    ProcessCurveLines(step,
                     AiNodeGetArray(curve, "points"),
                     0,
-                    AiNodeGetArray(curve, "radius"),
-                    AiNodeGetArray(curve, "colors"));
+                    mayaCurve.widthConnected ? AiNodeGetArray(curve, "radius") : 0,
+                    0);
    }
 }
 
@@ -254,7 +254,8 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
       // We need a couple extra points for interpolation
       // One at the beginning and one at the end (JUST POINTS , NO ATTRS)
       AiArraySetPnt(curvePoints, (step * numPointsPerStep), mayaCurve.points[0]);
-      AiArraySetRGB(curveColors, step, mayaCurve.colors[0]);
+      if (curveColors)
+         AiArraySetRGB(curveColors, step, mayaCurve.color);
 
       // Run down the strand adding the points and widths.
       for (int j = 0; j < renderLineLength; ++j)
@@ -267,12 +268,14 @@ void CCurveTranslator::ProcessCurveLines(unsigned int step,
                AiArraySetPnt(referenceCurvePoints, j, mayaCurve.referencePoints[j]);
             AiArraySetFlt(curveWidths, j, static_cast<float>(mayaCurve.widths[j] / 2.0));
          }
+         else if (mayaCurve.widthConnected)
+            AiArraySetFlt(curveWidths, j + (step * renderLineLength), static_cast<float>(mayaCurve.widths[j] / 2.0));
       }
       AiArraySetPnt(curvePoints, renderLineLength + 1 +  (step * numPointsPerStep), mayaCurve.points[renderLineLength - 1]);
     }
  }
 
-MStatus CCurveTranslator::GetCurveLines(MObject& curve)
+MStatus CCurveTranslator::GetCurveLines(MObject& curve, unsigned int step)
 {
    mayaCurve.clear(); // just to be sure
    MFnDependencyNode fnDepNodeCurve(curve);
@@ -319,12 +322,13 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       AiV3Create(mayaCurve.points[numcvs - 1], (float)point.x, (float)point.y, (float)point.z);
 
       mayaCurve.widths.resize(numcvs);
-      mayaCurve.colors.resize(numcvs, AI_RGB_WHITE);
+      mayaCurve.color = AI_RGB_WHITE;
 
       MPlugArray conns;
       widthPlug.connectedTo(conns, true, false);
       if (conns.length() > 0)
       {
+         mayaCurve.widthConnected = true;
          MFloatArray uCoords;
          MFloatArray vCoords;
          uCoords.setLength(numcvs);
@@ -345,10 +349,14 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
          for (unsigned int i = 0; i < numcvs; ++i)
             mayaCurve.widths[i] = resultColors[i].x;
       }
-      else
+      else 
       {
-         for (unsigned int i = 0; i < numcvs; ++i)
-            mayaCurve.widths[i] = globalWidth;
+         mayaCurve.widthConnected = false;
+         if (step == 0)
+         {
+            for (unsigned int i = 0; i < numcvs; ++i)
+               mayaCurve.widths[i] = globalWidth;
+         }
       }
 
       if (exportReferenceObject)

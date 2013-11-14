@@ -103,6 +103,10 @@ void CHairTranslator::Update( AtNode *curve )
    //ProcessRenderFlags(curve);
    ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
    int visibility = ComputeVisibility(m_dagPath);
+   if (fnDepNodeHair.findPlug("visibleInReflections").asBool())
+      visibility |= AI_RAY_REFLECTED;
+   if (fnDepNodeHair.findPlug("visibleInRefractions").asBool())
+      visibility |= AI_RAY_REFRACTED;
    
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
        CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())

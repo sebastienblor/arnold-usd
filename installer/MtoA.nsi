@@ -1,4 +1,5 @@
 !include "MUI2.nsh"
+!include "LogicLib.nsh"
 
 Name "MtoA $%MTOA_VERSION_NAME% Maya $%MAYA_VERSION%"
 OutFile "MtoA.exe"
@@ -63,7 +64,11 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
   CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
   FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
-  FileWrite $0 "+ mtoa any $INSTDIR"
+  FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
+  ${If} "$%MAYA_VERSION%" != "2012"
+  FileWrite $0 "PATH +:= bin$\r$\n"
+  FileWrite $0 "MAYA_RENDER_DESC_PATH +:= $\r$\n"
+  ${EndIf}
   FileClose $0
   
   ;Store installation folder
@@ -97,7 +102,7 @@ Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVari
     SetRegView 64
     ReadRegStr $R0 HKCU "Software\MtoA$%MAYA_VERSION%" ""
     
-    
+    ${If} "$%MAYA_VERSION%" == "2012"
     ;Create a backup of Maya.env
     CreateDirectory "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup"
     CopyFiles "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env" "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env"
@@ -114,6 +119,8 @@ Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVari
     FileWrite $1 "$\r$\nMAYA_RENDER_DESC_PATH = $R0"
     FileWrite $1 "$\r$\nPATH = %PATH%;$R0\bin;$\r$\n"
     FileClose $1
+    
+    ${EndIf}
 
 SectionEnd
 
