@@ -475,7 +475,7 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
                                         ('orthographic', cameraOrthographicChanged)])
 
 def registerDriverTemplates():
-    skipDrivers = ['exr']
+    skipDrivers = ['exr', 'deepexr']
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
         if not (transName in skipDrivers): # we want to use a custom ui for the EXR translator
