@@ -161,7 +161,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          const double avs = (scale[0] + scale[1]) * 0.5;
          glScaled(avs, avs, 1.0);
       }
-      gluDisk(qobj, 0.0f, diskSize, 20, 1);
+      gluDisk(qobj, 0.0f, 1.0f, 20, 1);
       glPopMatrix();
       glBegin(GL_LINES);
       // Done Drawing The direction
