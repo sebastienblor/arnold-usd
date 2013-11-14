@@ -1364,11 +1364,6 @@
         maya.name           STRING  "exrCompression"
         maya.shortname      STRING  "exr_compression"
 
-[node driver_deepexr]
-    maya.translator         STRING  "deepexr"
-    [attr filename]
-        maya.hide           BOOL    true
-
 [node driver_jpeg]
     maya.translator         STRING  "jpeg"
     [attr filename]
