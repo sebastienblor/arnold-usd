@@ -33,7 +33,7 @@ protected:
 
    AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
    AtNode* ExportProcedural(AtNode* procedural, bool update);
-   int ComputeOverrideVisibility();
+   AtByte ComputeOverrideVisibility();
 
 protected:
    MFnDagNode m_DagNode;

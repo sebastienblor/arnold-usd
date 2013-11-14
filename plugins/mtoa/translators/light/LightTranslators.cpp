@@ -388,7 +388,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
          AiNodeSetStr(meshNode, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(meshNode, "subdiv_type",           "linear");
-      AiNodeSetInt(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetByte(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(meshNode, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
       AiNodeSetFlt(meshNode, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
       AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
@@ -436,7 +436,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {      
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
+      AiNodeSetByte(meshNode, "visibility", AI_RAY_ALL);
       
       AtRGB colorMultiplier = AI_RGB_WHITE;
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
@@ -455,7 +455,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    }
    else
    {
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_GLOSSY);
+      AiNodeSetByte(meshNode, "visibility", AI_RAY_GLOSSY);
       AiNodeSetRGB(shaderNode, "color_multiplier", 0.f, 0.f, 0.f);
    }
 }

@@ -1030,11 +1030,11 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    AiNodeSetBool(polymesh, "smoothing", FindMayaPlug("smoothShading").asBool());
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
    else
    {
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
+      AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
    // Subdivision surfaces
@@ -1046,7 +1046,7 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetByte(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
       AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
@@ -1063,11 +1063,11 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
    ProcessRenderFlags(polymesh);
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
    else
    {
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
+      AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
@@ -1111,8 +1111,8 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   int visibility = AiNodeGetInt(masterNode, "visibility");
-   AiNodeSetInt(instance, "visibility", visibility);
+   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   AiNodeSetByte(instance, "visibility", visibility);
 
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
        CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())

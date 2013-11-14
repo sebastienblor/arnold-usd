@@ -50,7 +50,7 @@ int DJB2Hash(unsigned char *str)
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetInt(node, "visibility", ComputeVisibility());
+   AiNodeSetByte(node, "visibility", ComputeVisibility());
 
    MPlug plug;
 

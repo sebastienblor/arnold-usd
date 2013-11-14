@@ -227,7 +227,7 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
          AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_POINT, p1, p2, p3, p4));
          AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
          AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_POINT2, uv1, uv2, uv3, uv4));
-         AiNodeSetInt(imagePlane, "visibility", 65425);
+         AiNodeSetByte(imagePlane, "visibility", AI_RAY_CAMERA | AI_RAY_DIFFUSE);
 
          // create a flat shader with the needed image
          MPlug colorPlug;

@@ -102,7 +102,7 @@ void CHairTranslator::Update( AtNode *curve )
    
    //ProcessRenderFlags(curve);
    ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
-   int visibility = ComputeVisibility(m_dagPath);
+   AtByte visibility = ComputeVisibility(m_dagPath);
    if (fnDepNodeHair.findPlug("visibleInReflections").asBool())
       visibility |= AI_RAY_REFLECTED;
    if (fnDepNodeHair.findPlug("visibleInRefractions").asBool())
@@ -203,7 +203,7 @@ void CHairTranslator::Update( AtNode *curve )
       if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
    }
    
-   AiNodeSetInt(curve, "visibility", visibility);  
+   AiNodeSetByte(curve, "visibility", visibility);  
    
    // Export hair data   
    MRenderLineArray mainLines;

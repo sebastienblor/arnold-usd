@@ -43,7 +43,7 @@ public:
 
 
 protected:
-   int ComputeMasterVisibility(const MDagPath& masterDagPath) const;
+   AtByte ComputeMasterVisibility(const MDagPath& masterDagPath) const;
    virtual void ExportInstancer(AtNode* instancer, bool update);
    virtual void ExportInstances(AtNode* instancer, unsigned int step);
 

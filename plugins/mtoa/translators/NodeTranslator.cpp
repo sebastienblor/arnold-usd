@@ -2317,13 +2317,13 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    }
 }
 
-int CDagTranslator::ComputeVisibility(const MDagPath& path)
+AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == m_session->IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
-   int visibility = AI_RAY_ALL;
+   AtByte visibility = AI_RAY_ALL;
    MPlug plug;
 
    plug = FindMayaPlug("castsShadows");
@@ -2367,7 +2367,7 @@ int CDagTranslator::ComputeVisibility(const MDagPath& path)
 }
 
 // use standardized render flag names to compute an arnold visibility mask
-int CDagTranslator::ComputeVisibility()
+AtByte CDagTranslator::ComputeVisibility()
 {
    return ComputeVisibility(m_dagPath);
 }

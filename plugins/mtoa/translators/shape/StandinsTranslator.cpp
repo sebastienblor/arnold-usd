@@ -49,13 +49,13 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
-int CArnoldStandInsTranslator::ComputeOverrideVisibility()
+AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == m_session->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
-   int visibility = AI_RAY_ALL;
+   AtByte visibility = AI_RAY_ALL;
    MPlug plug;
 
    plug = FindMayaPlug("overrideCastsShadows");
@@ -125,7 +125,7 @@ int CArnoldStandInsTranslator::ComputeOverrideVisibility()
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetInt(node, "visibility", ComputeOverrideVisibility());
+   AiNodeSetByte(node, "visibility", ComputeOverrideVisibility());
 
    MPlug plug;
    
@@ -157,9 +157,9 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("doubleSided");
       
       if (!plug.isNull() && plug.asBool())
-         AiNodeSetInt(node, "sidedness", 65535);
+         AiNodeSetByte(node, "sidedness", AI_RAY_ALL);
       else
-         AiNodeSetInt(node, "sidedness", 0);
+         AiNodeSetByte(node, "sidedness", 0);
    }
 }
 
@@ -212,8 +212,8 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   int visibility = AiNodeGetInt(masterNode, "visibility");
-   AiNodeSetInt(instance, "visibility", visibility);
+   AtByte visibility = AiNodeGetInt(masterNode, "visibility");
+   AiNodeSetByte(instance, "visibility", visibility);
 
    m_DagNode.setObject(masterInstance);
    
