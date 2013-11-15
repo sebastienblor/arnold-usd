@@ -131,16 +131,19 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       
       if (renderGlobals.isAnimated())
-      {
-         float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
-         float endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
-         float byframestep = renderGlobals.frameBy;
-         cmdStr += " -sf ";
-         cmdStr += startframe;
-         cmdStr += " -ef ";
-         cmdStr += endframe;
-         cmdStr += " -fs ";
-         cmdStr += byframestep;
+      {     
+         if (!((renderType == MTOA_RENDER_EXPORTASS_AND_KICK) && !batch))
+         {
+            float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
+            float endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit())); 
+            float byframestep = renderGlobals.frameBy;
+            cmdStr += " -sf ";
+            cmdStr += startframe;
+            cmdStr += " -ef ";
+            cmdStr += endframe;
+            cmdStr += " -fs ";
+            cmdStr += byframestep;
+         }         
       }
       if (camera != "")
       {
