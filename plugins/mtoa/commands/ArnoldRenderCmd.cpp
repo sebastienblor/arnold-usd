@@ -166,7 +166,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             MString kickCmd;
             if (batch)
             {
-               kickCmd = "kick -dw -dp \"" + assFileNames[0] + "\"";
+               const unsigned int numAssfiles = assFileNames.length();
+               kickCmd = "";
+               for (unsigned int i = 0; i < numAssfiles; ++i)
+                  kickCmd += "kick -dw -dp \"" + assFileNames[i] + "\";";
             }
             else
             {
