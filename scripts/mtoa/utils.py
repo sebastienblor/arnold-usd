@@ -386,12 +386,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     if pathType in [pm.api.MCommonRenderSettingsData.kRelativePath, 'relative']:
         return partialPath
 
-    rootPath = pm.workspace(q=True, rd=True)
     imageDir = pm.workspace(fileType, q=True, fileRuleEntry=True)
     imageDir = imageDir if imageDir else 'data'
-
-    if not os.path.isabs(imageDir):
-        imageDir = os.path.join(rootPath, imageDir)
+    imageDir = pm.workspace(expandName=imageDir);
 
     if pathType in [pm.api.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
         result = os.path.join(imageDir, 'tmp', partialPath)
