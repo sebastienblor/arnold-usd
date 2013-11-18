@@ -115,7 +115,7 @@ void CArnoldStandInGeom::Draw(int DrawMode)
       (*it)->Draw(DrawMode);
 }
 
-CArnoldStandInShape::CArnoldStandInShape()
+CArnoldStandInShape::CArnoldStandInShape() : m_refreshAvoided(false)
 {
 }
 
@@ -150,22 +150,18 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       geom->bbox.clear();
       return MS::kSuccess;
    }
-   
+
+   if (AiUniverseIsActive())
+   {
+      m_refreshAvoided = true;
+      return MS::kSuccess;
+   } else m_refreshAvoided = false;   
 
    MString assfile = geom->filename;
    MString dsoData = geom->data;
    bool AiUniverseCreated = false;
    if (assfile != "")
-   {
-      if (AiUniverseIsActive())
-      {
-         AiMsgWarning("[mtoa] There can only be one RenderSession active.");
-         AiRenderAbort();
-         CMayaScene::GetRenderSession()->InterruptRender();
-         ArnoldUniverseEnd();
-         CMayaScene::End();
-      }
-      
+   {  
       AiUniverseCreated = ArnoldUniverseBegin();
 
       bool processRead = false;
