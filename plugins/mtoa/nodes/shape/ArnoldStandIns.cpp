@@ -1202,8 +1202,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       case DM_WIREFRAME: // wireframe
          glNewList(geom->dList, GL_COMPILE);
          geom->Draw(GM_WIREFRAME);
-         glEndList();
-         
+         glEndList();         
          break;
 
       case DM_POINT_CLOUD: // points
@@ -1225,8 +1224,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glNewList(geom->dList, GL_COMPILE);
          glPushAttrib(GL_ALL_ATTRIB_BITS);
          glEnable(GL_POLYGON_OFFSET_FILL);
-         glEnable(GL_LIGHTING);
-         
+                  
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
          geom->Draw(GM_NORMAL_AND_POLYGONS);
          glPopAttrib();
@@ -1236,8 +1234,6 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       case DM_SHADED: // shaded
          glNewList(geom->dList, GL_COMPILE);
          glPushAttrib(GL_ALL_ATTRIB_BITS);
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         glEnable(GL_LIGHTING);
          
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
          geom->Draw(GM_NORMAL_AND_POLYGONS);
@@ -1251,12 +1247,16 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
 
    if (geom->dList != 0)
    {
+      const bool enableLighting = ((geom->mode == DM_SHADED) || (geom->mode == DM_SHADED_POLYWIRE))
+                                    && (view.displayStyle() == M3dView::kGouraudShaded);
+      if (enableLighting)
+         glEnable(GL_LIGHTING);
       glCallList(geom->dList);
+      if (enableLighting)
+         glEnable(GL_LIGHTING);
       // Draw scaled BBox
       if(geom->deferStandinLoad)
-      {
          glCallList(geom->dList+1);
-      }
    }
    glPopAttrib();
    view.endGL();
