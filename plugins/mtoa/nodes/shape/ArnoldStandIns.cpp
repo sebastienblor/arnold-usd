@@ -65,6 +65,7 @@ enum StandinDrawingMode{
    DM_POLYWIRE,
    DM_WIREFRAME,
    DM_POINT_CLOUD,
+   DM_SHADED_POLYWIRE,
    DM_SHADED
 };
 
@@ -596,6 +597,7 @@ MStatus CArnoldStandInShape::initialize()
    eAttr.addField("Polywire", DM_POLYWIRE);
    eAttr.addField("Wireframe", DM_WIREFRAME);
    eAttr.addField("Point Cloud", DM_POINT_CLOUD);
+   eAttr.addField("Shaded Polywire", DM_SHADED_POLYWIRE);
    eAttr.addField("Shaded", DM_SHADED);
    //eAttr.setInternal(true);
    addAttribute(s_mode);
@@ -1219,7 +1221,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glDisable(GL_POINT_SMOOTH);
          glPopAttrib();
          break;
-      case DM_SHADED: // shaded
+      case DM_SHADED_POLYWIRE: // shaded polywire
          glNewList(geom->dList, GL_COMPILE);
          glPushAttrib(GL_ALL_ATTRIB_BITS);
          glEnable(GL_POLYGON_OFFSET_FILL);
@@ -1230,7 +1232,18 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glPopAttrib();
          geom->Draw(GM_WIREFRAME);
          glEndList();         
-         break;            
+         break;
+      case DM_SHADED: // shaded
+         glNewList(geom->dList, GL_COMPILE);
+         glPushAttrib(GL_ALL_ATTRIB_BITS);
+         glEnable(GL_POLYGON_OFFSET_FILL);
+         glEnable(GL_LIGHTING);
+         
+         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+         geom->Draw(GM_NORMAL_AND_POLYGONS);
+         glPopAttrib();
+         glEndList();         
+         break;
       }
       geom->Clear();
       geom->updateView = false;
