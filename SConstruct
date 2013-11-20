@@ -894,8 +894,6 @@ else:
 def create_installer(target, source, env):
     import tempfile
     import shutil
-    print target
-    print source    
     local_package_name = package_name + '.zip'
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
