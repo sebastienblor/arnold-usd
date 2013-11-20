@@ -705,7 +705,7 @@ def deploy(target, source, env):
     def ftp_send_binary_cb(block):
         print "\b#",
 
-    package_name = str(source[0])
+    package_name = str(source[0]).lower()
     if system.os() == "windows":
         package_name += '.exe'
     else:
