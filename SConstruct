@@ -706,7 +706,10 @@ def deploy(target, source, env):
         print "\b#",
 
     package_name = str(source[0])
-    package_name += '.zip'
+    if system.os() == "windows":
+        package_name += '.exe'
+    else:
+        package_name += '.run'
 
     server = env['FTP']
 
@@ -960,7 +963,7 @@ top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
 
-env.Depends(DEPLOY, PACKAGE)
+env.Depends(DEPLOY, INSTALLER)
 env.Depends(INSTALLER, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
