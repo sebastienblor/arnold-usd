@@ -933,7 +933,7 @@ def create_installer(target, source, env):
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 
-INSTALLER = env.PackageInstaller('create_installer', installer_name)
+INSTALLER = env.PackageInstaller('create_installer', package_name)
 DEPLOY = env.PackageDeploy('deploy', installer_name)
 
 ################################
