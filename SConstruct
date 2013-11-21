@@ -910,7 +910,7 @@ def create_installer(target, source, env):
         os.environ['NSISCONFDIR'] = NSIS_PATH
         mtoaVersionString = MTOA_VERSION
         mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
-        mtoaVersionString = mtoaVersionString.replace('.RC1', ' RC1')
+        mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
         mayaVersionString = maya_base_version
         mayaVersionString = mayaVersionString.replace('20135', '2013.5')
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
