@@ -63,7 +63,6 @@ vars.AddVariables(
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
-    BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
 
     PathVariable('MAYA_ROOT',
                  'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
@@ -592,8 +591,7 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
 SConscriptChdir(1)
 
 env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
-if not env['DISABLE_COMMON']:
-    env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
+env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
 if system.os() == 'windows':
     # Rename plugins as .mll and install them in the target path
@@ -842,8 +840,7 @@ PACKAGE_FILES = [
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
-if not env['DISABLE_COMMON']:
-    PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
+PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
 
 for p in scriptfiles:
     (d, f) = os.path.split(p)
