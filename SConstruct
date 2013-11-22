@@ -704,10 +704,6 @@ def deploy(target, source, env):
         print "\b#",
 
     local_package_name = str(source[0])
-    if system.os() == "windows":
-        local_package_name += '.exe'
-    else:
-        local_package_name += '.run'
 
     server = env['FTP']
 
@@ -884,9 +880,9 @@ env['PACKAGE_FILES'] = PACKAGE_FILES
 
 installer_name = ''
 if system.os() == "windows":
-    installer_name = 'MtoA-%s-%s%s' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
 else:
-    installer_name = 'MtoA-%s-%s-%s%s' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
     import tempfile
@@ -912,7 +908,7 @@ def create_installer(target, source, env):
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
-        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), '%s.exe' % (installer_name))
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
     else:
         shutil.copyfile(os.path.abspath(local_package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
@@ -921,7 +917,7 @@ def create_installer(target, source, env):
         commandFile.write('python ./unix_installer.py %s' % maya_base_version)
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
-        installerPath = os.path.abspath('./%s.run' % (installer_name))
+        installerPath = os.path.abspath('./%s' % installer_name)
         subprocess.call(['installer/makeself.sh', tempdir, installerPath,
                          'MtoA for Linux Installer', './unix_installer.sh'])
         subprocess.call(['chmod', '+x', installerPath])
@@ -963,8 +959,9 @@ top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
 
-env.Depends(DEPLOY, INSTALLER)
 env.Depends(INSTALLER, PACKAGE)
+env.Depends(DEPLOY, INSTALLER)
+
 
 env.AlwaysBuild(PACKAGE)
 
