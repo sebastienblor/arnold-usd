@@ -497,6 +497,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         name = cmds.textField(attrNameText, query=True, text=True)
         
         # Update the name in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
         for templateName in templatesNames:
             cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeName", edit=True, text=name.replace(" ", ""))
         
@@ -515,6 +516,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         type = cmds.optionMenu(menu, query=True, value=True)
         
         # Update the type in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
         for templateName in templatesNames:
             cmds.optionMenu(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeType", edit=True, select=typeNumber)
             
@@ -532,6 +534,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         value = cmds.textField(attrValueText, query=True, text=True)
         
         # Update the value in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
         for templateName in templatesNames:
             cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeValue", edit=True, text=value)
         
@@ -585,6 +588,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
         
     def updatedMetadata(self, nodeName):
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
         for templateName in templatesNames:
             cmds.setParent(templateName)
             #Remove all attributes controls and rebuild them again with the metadata updated content
