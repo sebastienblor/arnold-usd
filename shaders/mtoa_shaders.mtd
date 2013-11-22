@@ -158,13 +158,9 @@
     aov.type                INT     0x05
     [attr aov_indirect_diffuse]
     aov.type                INT     0x05
-    [attr aov_primary_specular]
+    [attr aov_specular]
     aov.type                INT     0x05
-    [attr aov_secondary_specular]
-    aov.type                INT     0x05    
-    [attr aov_shallow_scatter]
+    [attr aov_coat]
     aov.type                INT     0x05
-    [attr aov_mid_scatter]
-    aov.type                INT     0x05
-    [attr aov_deep_scatter]
+    [attr aov_scatter]
     aov.type                INT     0x05

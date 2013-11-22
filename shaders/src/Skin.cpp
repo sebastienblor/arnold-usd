@@ -30,15 +30,11 @@ node_parameters
    AiParameterFLT("global_sss_radius_multiplier", 10.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
-   AiParameterBOOL("combine_sss_queries", false);
    AiParameterStr("aov_direct_diffuse", "direct_diffuse");
    AiParameterStr("aov_indirect_diffuse", "indirect_diffuse");
    AiParameterStr("aov_specular", "specular");
    AiParameterStr("aov_coat", "coat");
-   AiParameterStr("aov_shallow_scatter", "shallow_scatter");
-   AiParameterStr("aov_mid_scatter", "mid_scatter");
-   AiParameterStr("aov_deep_scatter", "deep_scatter");
-   AiParameterStr("aov_single_scatter", "single_scatter");   
+   AiParameterStr("aov_scatter", "scatter");
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
@@ -73,15 +69,11 @@ enum SSSParams {
    p_global_sss_radius_multiplier,
    p_sample_sss_only_in_gi_rays,
    p_sample_sss_only_in_glossy_rays,
-   p_combine_sss_queries,
    p_aov_direct_diffuse,
    p_aov_indirect_diffuse,
    p_aov_specular,
    p_aov_coat,
-   p_aov_shallow_scatter,
-   p_aov_mid_scatter,
-   p_aov_deep_scatter,
-   p_aov_single_scatter  
+   p_aov_scatter,
 };
 
 node_initialize
@@ -95,9 +87,7 @@ node_update
    AiAOVRegister(AiNodeGetStr(node, "aov_indirect_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_coat"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_shallow_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_mid_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_deep_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
 node_finish
@@ -244,9 +234,7 @@ shader_evaluate
       indirectDiffuse *= diffuseColor;
    }
 
-   AtRGB shallowScatter = AI_RGB_BLACK;
-   AtRGB midScatter = AI_RGB_BLACK;
-   AtRGB deepScatter = AI_RGB_BLACK;
+   AtRGB scatter = AI_RGB_BLACK;
 
    float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
    const bool enableSSS = sssWeight > AI_EPSILON;
@@ -264,25 +252,12 @@ shader_evaluate
          AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
 
-      if (AiShaderEvalParamBool(p_combine_sss_queries))
-      {
-         if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
-            shallowScatter = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
-      }         
-      else
-      {
-         if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
-            shallowScatter = AiBSSRDFCubic(sg, &radiuses[0], &colorWeights[0], 1);
-         if (!AiColorIsSmall(colorWeights[1]) && (radiuses[1] > AI_EPSILON))
-            midScatter = AiBSSRDFCubic(sg, &radiuses[1], &colorWeights[1], 1);
-         if (!AiColorIsSmall(colorWeights[2]) && (radiuses[2] > AI_EPSILON))
-            deepScatter = AiBSSRDFCubic(sg, &radiuses[2], &colorWeights[2], 1);
-      }
+      if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
+         scatter = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
    }
 
    sg->out.RGB = directDiffuse + indirectDiffuse +
-                 specular + coat +
-                 shallowScatter + midScatter + deepScatter;
+                 specular + coat + scatter;
 
    if (sg->Rt & AI_RAY_CAMERA)
    {
@@ -290,8 +265,6 @@ shader_evaluate
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_diffuse), indirectDiffuse);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_specular), specular);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_coat), coat);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shallow_scatter), shallowScatter);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_mid_scatter), midScatter);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_deep_scatter), deepScatter);
+      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_scatter), scatter);
    }
 }
