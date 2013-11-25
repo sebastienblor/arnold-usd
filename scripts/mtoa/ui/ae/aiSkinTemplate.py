@@ -87,7 +87,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         
         self.endLayout()
 
-        self.addAOVLayout()
+        self.addAOVLayout(aovReorder = ['diffuse', 'specular', 'coat', 'sss'])
         
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

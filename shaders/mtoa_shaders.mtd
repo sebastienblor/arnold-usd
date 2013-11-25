@@ -154,13 +154,11 @@
         softmax             FLOAT   5.0
 
     # AOVs
-    [attr aov_direct_diffuse]
-    aov.type                INT     0x05
-    [attr aov_indirect_diffuse]
+    [attr aov_diffuse]
     aov.type                INT     0x05
     [attr aov_specular]
     aov.type                INT     0x05
     [attr aov_coat]
     aov.type                INT     0x05
-    [attr aov_scatter]
+    [attr aov_sss]
     aov.type                INT     0x05
