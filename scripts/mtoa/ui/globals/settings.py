@@ -914,7 +914,7 @@ def createArnoldLicensingSettings():
 def LoadFilenameButtonPush(*args):
     import os
     basicFilter = 'All Files (*.*)'
-    initFolder = cmds.textFieldButtonGrp("ls_log_filename", query=True, text=True)
+    initFolder = cmds.textFieldGrp("ls_log_filename", query=True, text=True)
     if "$MTOA_LOG_PATH" in initFolder:
         logPath = pm.mel.eval('getenv "MTOA_LOG_PATH"')
         if not logPath:
@@ -925,7 +925,7 @@ def LoadFilenameButtonPush(*args):
     resolvedFolder = os.path.split(resolvedFolder)
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Select Log File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
     if ret is not None and len(ret):
-        cmds.textFieldButtonGrp("ls_log_filename", edit=True, text=ret[0])
+        cmds.textFieldGrp("ls_log_filename", edit=True, text=ret[0])
         cmds.setAttr("defaultArnoldRenderOptions.log_filename", ret[0], type="string")
 
 def ChangeLogToConsole(*args):
@@ -936,7 +936,8 @@ def ChangeLogToConsole(*args):
 def ChangeLogToFile(*args):
     logToFile = cmds.getAttr('defaultArnoldRenderOptions.log_to_file')
     logToConsole = cmds.getAttr('defaultArnoldRenderOptions.log_to_console')
-    cmds.textFieldButtonGrp('ls_log_filename', edit=True, enable=logToFile)
+    cmds.textFieldGrp('ls_log_filename', edit=True, enable=logToFile)
+    cmds.symbolButton("ls_log_filename_button", edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
 def ChangeLogVerbosity(*args):
@@ -979,15 +980,16 @@ def createArnoldLogSettings():
     pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=1)
     pm.connectControl('log_to_file', 'defaultArnoldRenderOptions.log_to_file', index=2)
     
-    
-    path = cmds.textFieldButtonGrp("ls_log_filename",
+    cmds.rowLayout(numberOfColumns=2, columnWidth2=(80,220), adjustableColumn=2, columnAttach=[(1, 'left', 0), (2, 'left', -10)])
+    path = cmds.textFieldGrp("ls_log_filename",
                                    label="Filename",
                                    enable=logToFile,
                                    cc=updateLogSettings,
-                                   width=300)
-    cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...", buttonCommand=LoadFilenameButtonPush)
+                                   width=325)
+    cmds.symbolButton("ls_log_filename_button", image='navButtonBrowse.png', command=LoadFilenameButtonPush, enable=logToFile)
     pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
     pm.connectControl('ls_log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
+    pm.setParent('..')
     
     '''
     pm.attrControlGrp('log_filename',
