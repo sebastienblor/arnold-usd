@@ -31,14 +31,14 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
                                 cap='Load Photometry File',okc='Load',fm=4, startingDirectory=projectDir)
         if ret is not None and len(ret):
             self.filenameEdit(ret[0])
-            cmds.textFieldButtonGrp("filenameGrp", edit=True, text=ret[0])
+            cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
             
     def filenameNew(self, nodeName):
-        path = cmds.textFieldButtonGrp("filenameGrp", label="Photometry File",
-                                        changeCommand=self.filenameEdit, width=300)
-        cmds.textFieldButtonGrp(path, edit=True, text=cmds.getAttr(nodeName))
-        cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...",
-        buttonCommand=self.LoadFilenameButtonPush)
+        cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
+        path = cmds.textFieldGrp("filenameGrp", label="Photometry File",
+                                        changeCommand=self.filenameEdit)
+        cmds.textFieldGrp(path, edit=True, text=cmds.getAttr(nodeName))
+        cmds.symbolButton( image='navButtonBrowse.png', command=self.LoadFilenameButtonPush)
      
     def filenameReplace(self, nodeName):
         cmds.textFieldButtonGrp("filenameGrp", edit=True,
