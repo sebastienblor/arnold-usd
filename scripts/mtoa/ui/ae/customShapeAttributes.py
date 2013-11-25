@@ -491,7 +491,8 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         # Get the attribute name, type and value
         attrName = nodeName+'['+str(index)+']'
         metadata = cmds.getAttr(attrName)
-        result = re.match(r'(.*?) ?(POINT2|INT|FLOAT|MATRIX16|STRING) ?(.*)', metadata)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
         
         # Get the new name
         name = cmds.textField(attrNameText, query=True, text=True)
@@ -502,14 +503,15 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeName", edit=True, text=name.replace(" ", ""))
         
         # Update the metadata value
-        metadata = name.replace(" ", "")+" "+result.group(2)+" "+result.group(3)
+        metadata = result[0]+" "+name.replace(" ", "")+" "+result[2]
         cmds.setAttr(attrName, metadata, type="string")
     
     def changeAttrType(self, nodeName, menu, index):
         # Get the attribute name, type and value
         attrName = nodeName+'['+str(index)+']'
         metadata = cmds.getAttr(attrName)
-        result = re.match(r'(.*?) ?(POINT2|INT|FLOAT|MATRIX16|STRING) ?(.*)', metadata)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
         
         # Get the new type
         typeNumber = cmds.optionMenu(menu, query=True, select=True)
@@ -521,14 +523,15 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.optionMenu(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeType", edit=True, select=typeNumber)
             
         # Update the metadata value
-        metadata = result.group(1).replace(" ", "")+" "+type+" "+result.group(3)
+        metadata = type+" "+result[1]+" "+result[2]
         cmds.setAttr(attrName, metadata, type="string")
         
     def changeAttrValue(self, nodeName, attrValueText, index):
         # Get the attribute name, type and value
         attrName = nodeName+'['+str(index)+']'
         metadata = cmds.getAttr(attrName)
-        result = re.match(r'(.*?) ?(POINT2|INT|FLOAT|MATRIX16|STRING) ?(.*)', metadata)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
 
         # Get the new value
         value = cmds.textField(attrValueText, query=True, text=True)
@@ -539,7 +542,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeValue", edit=True, text=value)
         
         # Update the metadata value
-        metadata = result.group(1).replace(" ", "")+" "+result.group(2)+" "+value
+        metadata = result[0]+" "+result[1]+" "+value
         cmds.setAttr(attrName, metadata, type="string")
         
     def removeAttribute(self, nodeName, index):
@@ -555,10 +558,17 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         
     def updateLine(self, nodeName, metadata, index):
         # Attribute controls will be created with the current metadata content
-        result = re.match(r'(.*?) ?(POINT2|INT|FLOAT|MATRIX16|STRING) ?(.*)', metadata)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        if len(result) < 1:
+            result.append("")
+        if len(result) < 2:
+            result.append("")
+        if len(result) < 3:
+            result.append("")
         
         # Attribute Name
-        attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result.group(1).replace(" ", ""))
+        attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
         cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
         
         # Attribute Type
@@ -568,20 +578,20 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.menuItem( label='POINT2', data=2)
         cmds.menuItem( label='MATRIX16', data=3)
         cmds.menuItem( label='STRING', data=4)
-        if result.group(2) == 'INT':
+        if result[0] == 'INT':
             cmds.optionMenu(menu, edit=True, select=1)
-        elif result.group(2) == 'FLOAT':
+        elif result[0] == 'FLOAT':
             cmds.optionMenu(menu, edit=True, select=2)
-        elif result.group(2) == 'POINT2':
+        elif result[0] == 'POINT2':
             cmds.optionMenu(menu, edit=True, select=3)
-        elif result.group(2) == 'MATRIX16':
+        elif result[0] == 'MATRIX16':
             cmds.optionMenu(menu, edit=True, select=4)
-        elif result.group(2) == 'STRING':
+        elif result[0] == 'STRING':
             cmds.optionMenu(menu, edit=True, select=5)
         cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
         
         # Attribute Value
-        attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result.group(3))
+        attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
         cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
         
         # Remove button
