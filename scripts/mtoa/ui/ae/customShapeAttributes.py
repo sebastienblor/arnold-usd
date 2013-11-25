@@ -560,12 +560,6 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         # Attribute controls will be created with the current metadata content
         result = metadata.split(' ', 2 )
         result += [""] * (3-len(result))
-        if len(result) < 1:
-            result.append("")
-        if len(result) < 2:
-            result.append("")
-        if len(result) < 3:
-            result.append("")
         
         # Attribute Name
         attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
@@ -576,7 +570,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.menuItem( label='INT', data=0)
         cmds.menuItem( label='FLOAT', data=1)
         cmds.menuItem( label='POINT2', data=2)
-        cmds.menuItem( label='MATRIX16', data=3)
+        cmds.menuItem( label='MATRIX', data=3)
         cmds.menuItem( label='STRING', data=4)
         if result[0] == 'INT':
             cmds.optionMenu(menu, edit=True, select=1)
@@ -584,7 +578,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
             cmds.optionMenu(menu, edit=True, select=2)
         elif result[0] == 'POINT2':
             cmds.optionMenu(menu, edit=True, select=3)
-        elif result[0] == 'MATRIX16':
+        elif result[0] == 'MATRIX':
             cmds.optionMenu(menu, edit=True, select=4)
         elif result[0] == 'STRING':
             cmds.optionMenu(menu, edit=True, select=5)
