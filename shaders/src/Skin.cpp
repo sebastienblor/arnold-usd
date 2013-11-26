@@ -25,7 +25,7 @@ node_parameters
    AiParameterFLT("coat_weight", 0.6f);
    AiParameterFLT("coat_roughness", 0.35f);   
    AiParameterFLT("coat_ior", 1.44f);
-   AiParameterFLT("global_sss_radius_multiplier", 10.0f);
+   AiParameterFLT("global_sss_radius_multiplier", 1.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
    AiParameterStr("aov_diffuse", "diffuse");
