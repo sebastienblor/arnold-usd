@@ -194,6 +194,7 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
+        max                 FLOAT   180.0
     [attr samples]
         min                 INT     1
         softmax             INT     10
