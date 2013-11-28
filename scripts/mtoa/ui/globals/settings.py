@@ -372,7 +372,7 @@ def createArnoldSamplingSettings():
                       attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
     
     pm.attrControlGrp('ss_volume_indirect_samples',
-                      label='Volume Diffuse',
+                      label='Volume Indirect',
                       attribute='defaultArnoldRenderOptions.volume_indirect_samples')
     
     pm.frameLayout(label='Clamping', collapse=True)
