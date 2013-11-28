@@ -48,11 +48,11 @@ def updateComputeSamples(*args):
 
     pm.text( "textAASamples",
                edit=True, 
-               label='AA Samples : %i' % AASamplesComputed)
+               label='Camera Samples : %i' % AASamplesComputed)
 
     pm.text( "textGISamples",
                edit=True, 
-               label='GI Samples (with Max Depth) : %i (%i)' % (GISamplesComputed, GISamplesComputedDepth))
+               label='Diffuse Samples (with Max Depth) : %i (%i)' % (GISamplesComputed, GISamplesComputedDepth))
     
     pm.text( "textGlossySamples",
                edit=True, 
@@ -325,7 +325,7 @@ def createArnoldSamplingSettings():
     pm.separator()
 
     pm.intSliderGrp('ss_AA_samples',
-                        label="AA",
+                        label="Camera",
                         minValue = 1,
                         maxValue = 10,
                         fieldMinValue=-10,
@@ -397,10 +397,10 @@ def createArnoldSamplingSettings():
                         
     pm.setParent('..')
     
-    pm.frameLayout(label="Sample Filtering", collapse=True)
+    pm.frameLayout(label="Filter", collapse=True)
     
     createTranslatorMenu('defaultArnoldFilter',
-                         label='Filter Type',
+                         label='Type',
                          nodeType='aiAOVFilter',
                          default='gaussian')
      
