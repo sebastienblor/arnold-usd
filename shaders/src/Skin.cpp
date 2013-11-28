@@ -23,7 +23,7 @@ node_parameters
    AiParameterFLT("specular_ior", 1.44f);
    AiParameterRGB("coat_color", 0.75f, 0.9f, 1.0f);
    AiParameterFLT("coat_weight", 0.6f);
-   AiParameterFLT("coat_roughness", 0.35f);   
+   AiParameterFLT("coat_roughness", 0.35f);
    AiParameterFLT("coat_ior", 1.44f);
    AiParameterFLT("global_sss_radius_multiplier", 1.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
@@ -120,8 +120,8 @@ shader_evaluate
    AtRGB coatWeight = AI_RGB_BLACK;
    if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
-      coatWeight = AiShaderEvalParamRGB(p_coat_color) * AiShaderEvalParamFlt(p_coat_weight);
-      coatFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_coat_ior));
+      coatWeight = AiShaderEvalParamRGB(p_coat_color);
+      coatFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_coat_ior)) * AiShaderEvalParamFlt(p_coat_weight);
       coatWeight *= coatFresnel;
    }
    
@@ -157,8 +157,8 @@ shader_evaluate
    bool enableSpecular = false;
    if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
-      specularWeight = AiShaderEvalParamRGB(p_specular_color) * AiShaderEvalParamFlt(p_specular_weight);
-      specularFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_specular_ior));
+      specularWeight = AiShaderEvalParamRGB(p_specular_color);
+      specularFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_specular_ior)) * AiShaderEvalParamFlt(p_specular_weight);
       specularWeight *= specularFresnel * (1.0f - coatFresnel);
       enableSpecular = !AiColorIsSmall(specularWeight);
    }
