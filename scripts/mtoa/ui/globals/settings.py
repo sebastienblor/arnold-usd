@@ -52,19 +52,19 @@ def updateComputeSamples(*args):
 
     pm.text( "textGISamples",
                edit=True, 
-               label='Diffuse Samples (with Max Depth) : %i (%i)' % (GISamplesComputed, GISamplesComputedDepth))
+               label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
     pm.text( "textGlossySamples",
                edit=True, 
-               label='Glossy Samples (with Max Depth) : %i (%i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+               label='Glossy Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
         
     pm.text( "textRefractionSamples",
                edit=True, 
-               label='Refraction Samples (with Max Depth) : %i (%i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
+               label='Refraction Samples : %i (max : %i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
         
     pm.text( "textTotalSamples",
                edit=True, 
-               label='Total Samples without lights (with Max Depth) : %i (%i)' % (totalSamples, totalSamplesDepth))
+               label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
 
 
 def updateMotionBlurSettings(*args):
