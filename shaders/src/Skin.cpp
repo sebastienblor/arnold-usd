@@ -22,7 +22,7 @@ node_parameters
    AiParameterFLT("specular_roughness", 0.5f);
    AiParameterFLT("specular_ior", 1.44f);
    AiParameterRGB("coat_color", 0.75f, 0.9f, 1.0f);
-   AiParameterFLT("coat_weight", 0.6f);
+   AiParameterFLT("coat_weight", 0.0f);
    AiParameterFLT("coat_roughness", 0.35f);
    AiParameterFLT("coat_ior", 1.44f);
    AiParameterFLT("global_sss_radius_multiplier", 1.0f);
