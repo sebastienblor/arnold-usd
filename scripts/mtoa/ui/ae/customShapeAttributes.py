@@ -476,7 +476,7 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
                                         ('orthographic', cameraOrthographicChanged)])
 
 def registerDriverTemplates():
-    skipDrivers = ['exr']
+    skipDrivers = ['exr', 'deepexr']
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
         if not (transName in skipDrivers): # we want to use a custom ui for the EXR translator
@@ -630,6 +630,20 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         self.endLayout()
 
 templates.registerTranslatorUI(EXRDriverTranslatorUI, 'aiAOVDriver', 'exr')
+
+class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl('tiled', label='Tiled')
+        self.addControl('subpixelMerge', label='Subpixel Merge')
+        self.addControl('useRGBOpacity', label='Use RGB Opacity')
+        self.addControl('alphaTolerance', label='Alpha Tolerance')
+        self.addControl('depthTolerance', label='Depth Tolerance')
+        self.addControl('layerHalfPrecision', label='Layer Half Precision')
+        self.addControl('alphaHalfPrecision', label='Alpha Half Precision')
+        self.addControl('depthHalfPrecision', label='Depth Half Precision')
+        self.addControl('layerEnableFiltering', label='Layer Enable Filtering')
+
+templates.registerTranslatorUI(DeepEXRDriverTranslatorUI, 'aiAOVDriver', 'deepexr')
 
 def registerFilterTemplates():
     # register driver templates
