@@ -192,7 +192,9 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          {
             const char* ext = "";
             AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
-
+            if(strcmp (ext,"deepexr") == 0)
+               ext = "exr";
+            
             MString tokens = aovData.tokens;
             MString path = output.prefix;
             if (path == "")

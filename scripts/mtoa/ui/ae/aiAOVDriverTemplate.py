@@ -28,6 +28,9 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         pm.mel.AEdependNodeTemplate(self.nodeName)
         
         self.suppress('customAttributes')
+        self.suppress('layerHalfPrecision')
+        self.suppress('layerTolerance')
+        self.suppress('layerEnableFiltering')
         self.addExtraControls()
 
         self.endScrollLayout()
