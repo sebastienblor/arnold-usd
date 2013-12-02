@@ -1108,6 +1108,7 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr lacunarity]
+        min                 FLOAT   0.0001
         softmin             FLOAT   1.0
         softmax             FLOAT   5.0
     [attr amplitude]
