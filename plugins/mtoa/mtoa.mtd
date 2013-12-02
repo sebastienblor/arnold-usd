@@ -196,7 +196,7 @@
         maya.channelbox     BOOL    True
         max                 FLOAT   180.0
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -254,7 +254,7 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -314,7 +314,7 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -509,7 +509,7 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -634,7 +634,7 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
