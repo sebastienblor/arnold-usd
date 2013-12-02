@@ -52,11 +52,11 @@ def updateComputeSamples(*args):
 
     pm.text( "textGISamples",
                edit=True, 
-               label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
+               label='Indirect Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
     pm.text( "textGlossySamples",
                edit=True, 
-               label='Glossy Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+               label='Indirect Specular Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
         
     pm.text( "textRefractionSamples",
                edit=True, 
@@ -338,7 +338,7 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
 
     pm.intSliderGrp('ss_hemi_samples',
-                        label="Diffuse",
+                        label="Indirect Diffuse",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -348,7 +348,7 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     
     pm.intSliderGrp('ss_glossy_samples',
-                        label="Glossy",
+                        label="Indirect Specular",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -372,7 +372,7 @@ def createArnoldSamplingSettings():
                       attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
     
     pm.attrControlGrp('ss_volume_indirect_samples',
-                      label='Volume Indirect',
+                      label='Volume Indirect Diffuse',
                       attribute='defaultArnoldRenderOptions.volume_indirect_samples')
     
     pm.frameLayout(label='Clamping', collapse=True)
