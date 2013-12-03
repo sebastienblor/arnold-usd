@@ -412,20 +412,43 @@ class MayaTestRunner(object):
         ## get number of failed tests
         passed = 0
         failed = 0
+        test_statuses = {}
         for test_dir in self.tests:
             f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
             status = f.readline() ## just one line
             f.close()
             if status == 'OK':
+                test_statuses[test_dir] = True
                 passed += 1
             else:
+                test_statuses[test_dir] = False
                 failed += 1
 
         if failed == 0:
             print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_green + 'ALL TESTS OK' 
         else:
             print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_red + ('%d failed!' % failed)
-    
+
+        import xml.etree.ElementTree as ET
+        root = ET.Element('testsuite')
+        root.attrib['test'] = str(len(self.tests))
+        tree = ET.ElementTree(root)
+
+        for key, value in test_statuses.items():
+            test = ET.Element('testcase')
+            test.attrib['name'] = key.replace('test_', '')
+            test.attrib['classname'] = 'maya_batch'
+            if not value:
+                failure = ET.Element('failure')
+                failure.text = 'Render Failed.'
+                test.append(failure)
+            root.append(test)
+
+        junit_file = html_index.replace('index.html', 'junit.xml')
+        tree.write(junit_file)
+
+        print 'Junit results xml at: file://%s' % (os.path.abspath(junit_file))
+
         if len(self.tests) <= 1:
             return passed, failed
 
