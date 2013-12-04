@@ -173,7 +173,6 @@
     <sep desc="Log"/>
     <attrString n="ai:lfn" s="defaultArnoldRenderOptions.log_filename" t="string" h="Log filename."/>
     <attr n="ai:lmw" s="defaultArnoldRenderOptions.log_max_warnings" t="int" h="Maximum number of warnings."/>
-    <attr n="ai:lcv" s="defaultArnoldRenderOptions.log_console_verbosity" t="int" h="Log console verbosity. (0 - 6)"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Mel callbacks"/>
