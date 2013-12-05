@@ -237,8 +237,7 @@ shader_evaluate
          AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
 
-      if (!AiColorIsSmall(colorWeights[0]) && (radiuses[0] > AI_EPSILON))
-         sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
+      sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
    }
 
    sg->out.RGB = diffuse + specular + coat + sss;
