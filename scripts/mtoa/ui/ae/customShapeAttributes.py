@@ -7,6 +7,7 @@ import mtoa.ui.ae.templates as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
 import re
+import mtoa.aovs as aovs
 
 class ParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
@@ -614,6 +615,7 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
         # This template could be created more than once in different panels
         templatesNames.append(layout)
         self.updatedMetadata('defaultArnoldDriver.custom_attributes')
+        cmds.setParent( '..' )
 
     def metadataReplace(self, nodeName):
         pass
@@ -631,17 +633,113 @@ class EXRDriverTranslatorUI(templates.AttributeTemplate):
 
 templates.registerTranslatorUI(EXRDriverTranslatorUI, 'aiAOVDriver', 'exr')
 
+
+deepexrToleranceTemplates = []
+deepexrHalfPrecisionTemplates = []
+deepexrEnableFilteringTemplates = []
+
 class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
+    def __init__(self, nodeType):
+        aovs.addAOVChangedCallback(self.updateLayerTolerance, 'DeepEXRDriverTranslatorUITolerance')
+        aovs.addAOVChangedCallback(self.updateLayerHalfPrecision, 'DeepEXRDriverTranslatorUIHalfPrecision')
+        aovs.addAOVChangedCallback(self.updateLayerEnableFiltering, 'DeepEXRDriverTranslatorUIEnableFiltering')
+        super(DeepEXRDriverTranslatorUI, self).__init__(nodeType)
+
+    def updateLayerTolerance(self):
+        aovList = aovs.getAOVs(enabled=True)
+        
+        deepexrToleranceTemplates[:] = [tup for tup in deepexrToleranceTemplates if cmds.columnLayout(tup, exists=True)]
+        for templateName in deepexrToleranceTemplates:
+            cmds.setParent(templateName)
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+                
+            cmds.attrFieldSliderGrp(label='alpha' , at='defaultArnoldDriver.alphaTolerance' )
+            cmds.attrFieldSliderGrp(label='depth' , at='defaultArnoldDriver.depthTolerance' )
+            cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]' )
+            for i in range(0,len(aovList)):
+                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    labelStr = aovList[i].name
+                    attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
+                    cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
+            
+    def updateLayerHalfPrecision(self):
+        aovList = aovs.getAOVs(enabled=True)
+        
+        deepexrHalfPrecisionTemplates[:] = [tup for tup in deepexrHalfPrecisionTemplates if cmds.columnLayout(tup, exists=True)]
+        for templateName in deepexrHalfPrecisionTemplates:
+            cmds.setParent(templateName)
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+            cmds.attrControlGrp(label='alpha' , a='defaultArnoldDriver.alphaHalfPrecision' )
+            cmds.attrControlGrp(label='depth' , a='defaultArnoldDriver.depthHalfPrecision' )
+            cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerHalfPrecision[0]' )
+            for i in range(0,len(aovList)):
+                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    labelStr = aovList[i].name
+                    attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
+                    cmds.attrControlGrp(label=labelStr , a=attrStr )
+        
+    def updateLayerEnableFiltering(self):
+        aovList = aovs.getAOVs(enabled=True)
+        
+        deepexrEnableFilteringTemplates[:] = [tup for tup in deepexrEnableFilteringTemplates if cmds.columnLayout(tup, exists=True)]
+        for templateName in deepexrEnableFilteringTemplates:
+            cmds.setParent(templateName)
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+            cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
+            for i in range(0,len(aovList)):
+                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    labelStr = aovList[i].name
+                    attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
+                    cmds.attrControlGrp(label=labelStr , a=attrStr )
+     
+    def layerToleranceNew(self, nodeName):
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        deepexrToleranceTemplates.append(layout)
+        self.updateLayerTolerance()
+        cmds.setParent( '..' )
+        
+    def layerToleranceReplace(self, nodeName):
+        self.updateLayerTolerance()
+        cmds.setParent( '..' )
+        
+    def layerHalfPrecisionNew(self, nodeName):
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        deepexrHalfPrecisionTemplates.append(layout)
+        self.updateLayerHalfPrecision()
+        cmds.setParent( '..' )
+        
+    def layerHalfPrecisionReplace(self, nodeName):
+        self.updateLayerHalfPrecision()
+        cmds.setParent( '..' )
+        
+    def layerEnableFilteringNew(self, nodeName):
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        deepexrEnableFilteringTemplates.append(layout)
+        self.updateLayerEnableFiltering()
+        cmds.setParent( '..' )
+        
+    def layerEnableFilteringReplace(self, nodeName):
+        self.updateLayerEnableFiltering()
+        cmds.setParent( '..' )
+
     def setup(self):
         self.addControl('tiled', label='Tiled')
         self.addControl('subpixelMerge', label='Subpixel Merge')
         self.addControl('useRGBOpacity', label='Use RGB Opacity')
-        self.addControl('alphaTolerance', label='Alpha Tolerance')
-        self.addControl('depthTolerance', label='Depth Tolerance')
-        self.addControl('layerHalfPrecision', label='Layer Half Precision')
-        self.addControl('alphaHalfPrecision', label='Alpha Half Precision')
-        self.addControl('depthHalfPrecision', label='Depth Half Precision')
-        self.addControl('layerEnableFiltering', label='Layer Enable Filtering')
+        self.beginLayout("Tolerance Values", collapse=False)
+        self.addCustom('layerToleranceSection', self.layerToleranceNew, self.layerToleranceReplace)
+        self.endLayout()
+        
+        self.beginLayout("Half Precision", collapse=False)
+        self.addCustom('layerHalfPrecisionSection', self.layerHalfPrecisionNew, self.layerHalfPrecisionReplace)
+        self.endLayout()
+        
+        self.beginLayout("Enable Filtering", collapse=False)
+        self.addCustom('layerEnableFilteringSection', self.layerEnableFilteringNew, self.layerEnableFilteringReplace)
+        self.endLayout()
 
 templates.registerTranslatorUI(DeepEXRDriverTranslatorUI, 'aiAOVDriver', 'deepexr')
 
