@@ -452,7 +452,7 @@ def createArnoldRayDepthSettings():
 
     
     pm.intSliderGrp('rs_diffuse_depth',
-                        label="Diffuse",
+                        label="Indirect Diffuse",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -468,7 +468,7 @@ def createArnoldRayDepthSettings():
     '''
     
     pm.intSliderGrp('rs_glossy_depth',
-                        label="Glossy",
+                        label="Indirect Specular",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
