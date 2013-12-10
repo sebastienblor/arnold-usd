@@ -58,16 +58,13 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
 
   NotInstalled:
   SetOutPath "$INSTDIR"
-  File /r /x *.nsi *.*
+  File /r /x *.nsi /x mtoa.mod *.*
 
-  ;Add a mtoa.mod file in the Maya modules folder
-  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
-  CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
-  FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
+  ;Add a mtoa.mod file in the installer folder
+  FileOpen $0 "$INSTDIR\mtoa.mod" w
   FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
   ${If} "$%MAYA_VERSION%" != "2012"
   FileWrite $0 "PATH +:= bin$\r$\n"
-  FileWrite $0 "MAYA_RENDER_DESC_PATH +:= $\r$\n"
   ${EndIf}
   FileClose $0
   
@@ -116,11 +113,24 @@ Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVari
     FileClose $0
     
     ;Add new enviroment variables to Maya.env
-    FileWrite $1 "$\r$\nMAYA_RENDER_DESC_PATH = $R0"
     FileWrite $1 "$\r$\nPATH = %PATH%;$R0\bin;$\r$\n"
     FileClose $1
     
     ${EndIf}
+    
+    ;Add a mtoa.mod file in the Maya modules folder
+    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+    CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
+    FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
+    FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
+    ${If} "$%MAYA_VERSION%" != "2012"
+    FileWrite $0 "PATH +:= bin$\r$\n"
+    ${EndIf}
+    FileClose $0
+    
+    ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
+    StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
+    CopyFiles "$INSTDIR\arnoldRenderer.xml" "$R1$R2"
 
 SectionEnd
 
@@ -151,6 +161,10 @@ Section "Uninstall"
   SetRegView 64
   ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
   Delete "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod"
+  
+  ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
+  StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
+  Delete "$R1$R2"
   
   IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
   deleteMayaEnv:
