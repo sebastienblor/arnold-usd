@@ -1067,7 +1067,7 @@ createNode file -n "file_udim";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<udim>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<udim>.tif";
 createNode place2dTexture -n "place2dTexture1";
 createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".b" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
@@ -1111,7 +1111,7 @@ createNode file -n "file_tile";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mudbox.<tile>.jpg";
+	setAttr ".ftn" -type "string" "./test/mudbox.<tile>.tif";
 createNode place2dTexture -n "place2dTexture2";
 createNode materialInfo -n "pasted__materialInfo1";
 createNode shadingEngine -n "pasted__aiStandard1SG";
@@ -1131,7 +1131,7 @@ createNode file -n "pasted__file1";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<udim>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<udim>.tif";
 createNode place2dTexture -n "pasted__place2dTexture1";
 createNode polyPlane -n "polyPlane2";
 	setAttr ".w" 4.9910908449713203;
@@ -1158,7 +1158,7 @@ createNode file -n "file_attr";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<attr:myString>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<attr:myString>.tif";
 createNode place2dTexture -n "place2dTexture3";
 createNode aiStandard -n "aiStandard4";
 createNode shadingEngine -n "aiStandard4SG";
@@ -1178,7 +1178,7 @@ createNode file -n "file_utile_vtile";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mudbox._u<utile>_v<vtile>.jpg";
+	setAttr ".ftn" -type "string" "./test/mudbox._u<utile>_v<vtile>.tif";
 createNode place2dTexture -n "place2dTexture4";
 createNode materialInfo -n "pasted__materialInfo4";
 createNode shadingEngine -n "pasted__aiStandard4SG";
@@ -1199,7 +1199,7 @@ createNode file -n "file_shapeName";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.tif";
 createNode place2dTexture -n "pasted__place2dTexture4";
 createNode materialInfo -n "pasted__materialInfo5";
 createNode shadingEngine -n "pasted__aiStandard4SG1";
@@ -1219,7 +1219,7 @@ createNode file -n "pasted__file5";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.tif";
 createNode place2dTexture -n "pasted__place2dTexture5";
 createNode materialInfo -n "pasted__materialInfo6";
 createNode shadingEngine -n "pasted__aiStandard4SG2";
@@ -1239,7 +1239,7 @@ createNode file -n "pasted__file6";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<shapeName>.tif";
 createNode place2dTexture -n "pasted__place2dTexture6";
 createNode aiStandard -n "aiStandard5";
 createNode shadingEngine -n "aiStandard5SG";
@@ -1260,7 +1260,7 @@ createNode file -n "file_shapePath";
 		-at "enum";
 	addAttr -ci true -sn "ai_useDefaultColor" -ln "aiUseDefaultColor" -dv 1 -min 0 -max 
 		1 -at "bool";
-	setAttr ".ftn" -type "string" "./test/mari.<shapePath>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<shapePath>.tif";
 createNode place2dTexture -n "place2dTexture5";
 select -ne :time1;
 	setAttr -av -k on ".cch";

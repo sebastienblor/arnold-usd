@@ -604,7 +604,7 @@ createNode polySphere -n "polySphere1";
 	setAttr ".sh" 10;
 createNode imagePlane -n "imagePlane1";
 	setAttr ".fc" 12;
-	setAttr ".imn" -type "string" "C:/solidangle/mtoa/mtoa-main/testsuite/test_0064/data/mirroredball.jpg";
+	setAttr ".imn" -type "string" "C:/solidangle/mtoa/mtoa-main/testsuite/test_0064/data/mirroredball.tif";
 	setAttr ".cov" -type "short2" 193 128 ;
 	setAttr ".s" -type "double2" 0.18897637724876404 0.14173229038715363 ;
 	setAttr ".c" -type "double3" 0.074084798276048858 -0.084474274295615714 0.021730520540735682 ;
