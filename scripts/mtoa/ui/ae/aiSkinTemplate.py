@@ -25,12 +25,6 @@ class AEaiSkinTemplate(ShaderAETemplate):
         
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
-        self.beginLayout("Diffuse", collapse=False)     
-        self.addControl("diffuse_color",  label="Color", annotation="Diffuse Color")
-        self.addControl("diffuse_weight", label="Weight")
-        self.addControl("diffuse_roughness", label="Roughness")
-        self.endLayout()
-        
         self.beginLayout("SSS", collapse=False)
         self.addControl("sss_weight", label="SSS Weight")
         self.addControl("global_sss_radius_multiplier", label="Radius Multiplier")
@@ -80,7 +74,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         
         self.endLayout()
 
-        self.addAOVLayout(aovReorder = ['diffuse', 'specular', 'coat', 'sss'])
+        self.addAOVLayout(aovReorder = ['specular', 'coat', 'sss'])
         
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

@@ -4,9 +4,6 @@ AI_SHADER_NODE_EXPORT_METHODS(SkinMtd);
 
 node_parameters
 {
-   AiParameterRGB("diffuse_color", 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("diffuse_weight", 0.3f);
-   AiParameterFLT("diffuse_roughness" , 0.0f);  // in [0,1]
    AiParameterFLT("sss_weight", 1.0f);
    AiParameterRGB("shallow_scatter_color", 1.0f, 0.909f, 0.769f);
    AiParameterFLT("shallow_scatter_weight", 0.5f);
@@ -28,7 +25,6 @@ node_parameters
    AiParameterFLT("global_sss_radius_multiplier", 1.0f);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
-   AiParameterStr("aov_diffuse", "diffuse");
    AiParameterStr("aov_specular", "specular");
    AiParameterStr("aov_coat", "coat");
    AiParameterStr("aov_sss", "sss");
@@ -40,9 +36,6 @@ node_parameters
 }
 
 enum SSSParams {
-   p_diffuse_color,
-   p_diffuse_weight,
-   p_diffuse_roughness,
    p_sss_weight,
    p_shallow_scatter_color,
    p_shallow_scatter_weight,
@@ -64,7 +57,6 @@ enum SSSParams {
    p_global_sss_radius_multiplier,
    p_sample_sss_only_in_gi_rays,
    p_sample_sss_only_in_glossy_rays,
-   p_aov_diffuse,
    p_aov_specular,
    p_aov_coat,
    p_aov_sss,
@@ -77,7 +69,6 @@ node_initialize
 
 node_update
 {
-   AiAOVRegister(AiNodeGetStr(node, "aov_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_coat"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_sss"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
@@ -187,41 +178,9 @@ shader_evaluate
       specular *= specularWeight;
    }
 
-   bool enableDiffuse = false;
-   AtRGB diffuseColor = AI_RGB_BLACK;
-   if (!sampleOnlySSS)
-   {
-      diffuseColor = AiShaderEvalParamRGB(p_diffuse_color) * AiShaderEvalParamFlt(p_diffuse_weight) * (1.0f - specularFresnel) * (1.0f - coatFresnel);
-      enableDiffuse = !AiColorIsSmall(diffuseColor);
-   }
-
-   AtRGB diffuse = AI_RGB_BLACK;
-   if (enableDiffuse)
-   {
-      const float diffuseRoughness = AiShaderEvalParamFlt(p_diffuse_roughness);   
-      void* orenNayarBRDF = AiOrenNayarMISCreateData(sg, diffuseRoughness);
-
-      AiLightsPrepare(sg);
-      while (AiLightsGetSample(sg))
-      {
-         if (AiLightGetAffectDiffuse(sg->Lp))
-         {
-            const float diffuseAffect = AiLightGetDiffuse(sg->Lp);
-            if (diffuseAffect > AI_EPSILON)
-               diffuse += AiEvaluateLightSample(sg, orenNayarBRDF, AiOrenNayarMISSample, AiOrenNayarMISBRDF, AiOrenNayarMISPDF) * diffuseAffect;
-         }
-      }
-
-      if (diffuseRoughness > 0)
-         diffuse = AiOrenNayarIntegrate(&sg->Nf, sg, diffuseRoughness);
-      else
-         diffuse = AiIndirectDiffuse(&sg->Nf, sg);
-      diffuse *= diffuseColor;
-   }
-
    AtRGB sss = AI_RGB_BLACK;
 
-   float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
+   float sssWeight = AiShaderEvalParamFlt(p_sss_weight) * (1.0f - specularFresnel) * (1.0f - coatFresnel);
    const bool enableSSS = sssWeight > AI_EPSILON;
    if (enableSSS)
    {
@@ -240,11 +199,10 @@ shader_evaluate
       sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
    }
 
-   sg->out.RGB = diffuse + specular + coat + sss;
+   sg->out.RGB = specular + coat + sss;
 
    if (sg->Rt & AI_RAY_CAMERA)
-   {
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_diffuse), diffuse);
+   {      
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_specular), specular);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_coat), coat);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sss), sss);
