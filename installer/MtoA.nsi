@@ -91,7 +91,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
 
 SectionEnd
 
-Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVariables
+Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariables
 
   SetOutPath "$INSTDIR"
   
@@ -138,8 +138,8 @@ SectionEnd
 ;Descriptions
 
   ;Language strings
-  LangString DESC_MtoA$%MAYA_VERSION% ${LANG_ENGLISH} "Install all MtoA for Maya $%MAYA_VERSION% files."
-  LangString DESC_MtoA$%MAYA_VERSION%EnvVariables ${LANG_ENGLISH} "Configure MtoA for Maya $%MAYA_VERSION% Maya Environment variables."
+  LangString DESC_MtoA$%MAYA_VERSION% ${LANG_ENGLISH} "Install MtoA for Maya $%MAYA_VERSION% files."
+  LangString DESC_MtoA$%MAYA_VERSION%EnvVariables ${LANG_ENGLISH} "Setup MtoA module configuration files for Maya $%MAYA_VERSION%."
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
