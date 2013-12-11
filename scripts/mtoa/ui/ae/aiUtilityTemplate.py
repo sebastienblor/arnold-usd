@@ -6,12 +6,12 @@ def aiUtilityCreateColorMode(attr):
     cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
     cmds.attrEnumOptionMenuGrp('AIUtilityColorMode', attribute=attr, label="Color Mode", 
                                enumeratedItem=[(0, 'Color'), (3, 'Normal'), (1, 'Geometric Normal'), (2, 'Un-bumped Normal'), (22, 'Bump Difference'),
-                                               (4, 'Barycentric Coords'), (5, 'UV Coords'), (6, 'U Coords'), (7, 'V Coords'),
-                                               (8, 'U Surface Derivative (dPdu)'), (9, 'V Surface Derivative (dPdv)'),
-                                               (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'), (12, 'Uniform ID'),
-                                               (13, 'Triangle Wireframe'), (14, 'Polygon Wireframe'), (15, 'Object'),
-                                               (16, 'Subdivision Edge Length'), (17, 'Floatgrid'), (18, 'Reflection Lines'),
-                                               (19, 'Bad UVs'), (20, 'Number of Lights'), (21, 'Object ID')])
+                                                (4, 'Barycentric Coords'), (5, 'UV Coords'), (6, 'U Coords'), (7, 'V Coords'),
+                                                (8, 'U Surface Derivative (dPdu)'), (9, 'V Surface Derivative (dPdv)'),
+                                                (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'), (12, 'Uniform ID'),
+                                                (13, 'Triangle Wireframe'), (14, 'Polygon Wireframe'), (15, 'Object'),
+                                                (16, 'Subdivision Edge Length'), (17, 'Floatgrid'), (18, 'Reflection Lines'),
+                                                (19, 'Bad UVs'), (20, 'Number of Lights'), (21, 'Object ID')])
     cmds.setUITemplate(popTemplate=True)
 
 def aiUtilitySetColorMode(attr):
