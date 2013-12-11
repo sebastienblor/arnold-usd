@@ -40,7 +40,7 @@ else:
             sys.exit(0)
     except:
         print 'Root privileges are required to configure MtoA for Maya.'
-            sys.exit(0)
+        sys.exit(0)
 
 def EnsureDir(d):
     try:        
