@@ -1,17 +1,29 @@
 import pymel.core as pm
 import maya.cmds as cmds
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import arnold as ai
 
 def aiUtilityCreateColorMode(attr):
     cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
-    cmds.attrEnumOptionMenuGrp('AIUtilityColorMode', attribute=attr, label="Color Mode", 
-                               enumeratedItem=[(0, 'Color'), (3, 'Normal'), (1, 'Geometric Normal'), (2, 'Un-bumped Normal'), (23, 'Bump Difference'),
-                                                (4, 'Barycentric Coords'), (5, 'UV Coords'), (6, 'U Coords'), (7, 'V Coords'),
-                                                (8, 'U Surface Derivative (dPdu)'), (9, 'V Surface Derivative (dPdv)'),
-                                                (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'), (12, 'Uniform ID'),
-                                                (13, 'Triangle Wireframe'), (14, 'Polygon Wireframe'), (15, 'Object'), (16, 'Object + Wireframe'),
-                                                (17, 'Subdivision Edge Length'), (18, 'Floatgrid'), (19, 'Reflection Lines'),
-                                                (20, 'Bad UVs'), (21, 'Number of Lights'), (22, 'Object ID')])
+    if int(ai.AiGetVersion()[2]) > 2:
+        cmds.attrEnumOptionMenuGrp('AIUtilityColorMode', attribute=attr, label="Color Mode", 
+                                   enumeratedItem=[(0, 'Color'), (3, 'Normal'), (1, 'Geometric Normal'), (2, 'Un-bumped Normal'), (22, 'Bump Difference'),
+                                                    (4, 'Barycentric Coords'), (5, 'UV Coords'), (6, 'U Coords'), (7, 'V Coords'),
+                                                    (8, 'U Surface Derivative (dPdu)'), (9, 'V Surface Derivative (dPdv)'),
+                                                    (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'), (12, 'Uniform ID'),
+                                                    (13, 'Triangle Wireframe'), (14, 'Polygon Wireframe'), (15, 'Object'),
+                                                    (16, 'Subdivision Edge Length'), (17, 'Floatgrid'), (18, 'Reflection Lines'),
+                                                    (19, 'Bad UVs'), (20, 'Number of Lights'), (21, 'Object ID')])
+    else:
+        cmds.attrEnumOptionMenuGrp('AIUtilityColorMode', attribute=attr, label="Color Mode", 
+                                   enumeratedItem=[(0, 'Color'), (3, 'Normal'), (1, 'Geometric Normal'), (2, 'Un-bumped Normal'), (23, 'Bump Difference'),
+                                                    (4, 'Barycentric Coords'), (5, 'UV Coords'), (6, 'U Coords'), (7, 'V Coords'),
+                                                    (8, 'U Surface Derivative (dPdu)'), (9, 'V Surface Derivative (dPdv)'),
+                                                    (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'), (12, 'Uniform ID'),
+                                                    (13, 'Triangle Wireframe'), (14, 'Polygon Wireframe'), (15, 'Object'), (16, 'Object + Wireframe'),
+                                                    (17, 'Subdivision Edge Length'), (18, 'Floatgrid'), (19, 'Reflection Lines'),
+                                                    (20, 'Bad UVs'), (21, 'Number of Lights'), (22, 'Object ID')])
+    
     cmds.setUITemplate(popTemplate=True)
 
 def aiUtilitySetColorMode(attr):
@@ -28,6 +40,8 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.beginLayout('Utility Attributes', collapse=False)
         self.addControl('shade_mode', label='Shade Mode')
         self.addCustom('color_mode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
+        if int(ai.AiGetVersion()[2]) > 2:
+            self.addControl('overlay_mode', label='Overlay Mode')
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
         self.endLayout()
