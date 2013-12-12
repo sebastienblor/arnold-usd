@@ -48,7 +48,7 @@ def updateComputeSamples(*args):
 
     pm.text( "textAASamples",
                edit=True, 
-               label='Camera Samples : %i' % AASamplesComputed)
+               label='Camera (AA) Samples : %i' % AASamplesComputed)
 
     pm.text( "textGISamples",
                edit=True, 
@@ -315,17 +315,11 @@ def createArnoldSamplingSettings():
                font = "smallBoldLabelFont",
                align='left',
                )
-
-    pm.separator()
-    
-    pm.attrControlGrp('ss_lock_sampling_noise',
-                        label="Lock Sampling Pattern",
-                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
                         
     pm.separator()
 
     pm.intSliderGrp('ss_AA_samples',
-                        label="Camera",
+                        label="Camera (AA)",
                         minValue = 1,
                         maxValue = 10,
                         fieldMinValue=-10,
@@ -372,8 +366,14 @@ def createArnoldSamplingSettings():
                       attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
     
     pm.attrControlGrp('ss_volume_indirect_samples',
-                      label='Volume Indirect Diffuse',
+                      label='Volume Indirect',
                       attribute='defaultArnoldRenderOptions.volume_indirect_samples')
+
+    pm.separator()
+    
+    pm.attrControlGrp('ss_lock_sampling_noise',
+                        label="Lock Sampling Pattern",
+                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
     
     pm.frameLayout(label='Clamping', collapse=True)
 
