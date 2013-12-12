@@ -166,14 +166,21 @@ if installMode == 1: # do the proper installation
     except:
         print 'Error setting the user as the owner of the Installation Directory.'
     # install the renderer description file in the maya dir
-    mayaInstallDir = os.path.join('/usr', 'autodesk', 'maya%s-x64' % mayaVersion)
+    mayaInstallDir = ''
+    if sys.platform == 'darwin':
+        mayaInstallDir = os.path.join('/Applications', 'autodesk', 'maya%s' % mayaVersion)
+    else:
+        mayaInstallDir = os.path.join('/usr', 'autodesk', 'maya%s-x64' % mayaVersion)
     if not os.path.exists(mayaInstallDir):
         print '''
             Please specify maya installation directory
             for version %s :
         ''' % mayaVersion
         mayaInstallDir = raw_input('    ')
-    renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
+    if sys.platform == 'darwin':
+        renderDescFolder = os.path.join(mayaInstallDir, 'Maya.app', 'Contents', 'bin', 'rendererDesc')
+    else:
+        renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
     shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
 
 os.system('clear')
