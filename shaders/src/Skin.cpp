@@ -108,74 +108,67 @@ shader_evaluate
 
    float coatFresnel = 0.0f;
    AtRGB coat = AI_RGB_BLACK;
-   AtRGB coatWeight = AI_RGB_BLACK;
-   if ((sg->Rr_diff == 0) && !sampleOnlySSS)
-   {
-      coatWeight = AiShaderEvalParamRGB(p_coat_color);
-      coatFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_coat_ior)) * AiShaderEvalParamFlt(p_coat_weight);
-      coatWeight *= coatFresnel;
-   }
-   
-   const bool enableCoat = !AiColorIsSmall(coatWeight);
-   float lastSpecRoughness = 1.0f;
-   if (enableCoat)
-   {
-      float specularExponent = AiShaderEvalParamFlt(p_coat_roughness);
-      specularExponent *= specularExponent;
-      if (sg->Rr_gloss > 0)
-         specularExponent = MAX(specularExponent, minRoughness);
-      if (specularExponent < lastSpecRoughness)
-         AiStateSetMsgFlt("previous_roughness", specularExponent);
-      void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
-      AiLightsPrepare(sg);
-      while (AiLightsGetSample(sg))
-      {
-         if (AiLightGetAffectSpecular(sg->Lp))
-         {
-            const float affectSpecular = AiLightGetSpecular(sg->Lp);
-            if (affectSpecular > AI_EPSILON)
-               coat += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
-         }
-      }
-
-      coat += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
-      coat *= coatWeight;
-   }
 
    float specularFresnel = 0.0f;
    AtRGB specular = AI_RGB_BLACK;
-   AtRGB specularWeight = AI_RGB_BLACK;
-   bool enableSpecular = false;
+   
    if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
-      specularWeight = AiShaderEvalParamRGB(p_specular_color);
-      specularFresnel = SimpleFresnel(-AiV3Dot(sg->Rd, sg->Nf), AiShaderEvalParamFlt(p_specular_ior)) * AiShaderEvalParamFlt(p_specular_weight);
-      specularWeight *= specularFresnel * (1.0f - coatFresnel);
-      enableSpecular = !AiColorIsSmall(specularWeight);
-   }
+      AtRGB coatWeight = AiShaderEvalParamRGB(p_coat_color);
+      const float RDNF = -AiV3Dot(sg->Rd, sg->Nf);
+      coatFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_coat_ior)) * AiShaderEvalParamFlt(p_coat_weight);
+      coatWeight *= coatFresnel;
    
-   if (enableSpecular)
-   {
-      float specularExponent = AiShaderEvalParamFlt(p_specular_roughness); 
-      specularExponent *= specularExponent;
-      if (sg->Rr_gloss > 0)
-         specularExponent = MAX(specularExponent, minRoughness);
-      AiStateSetMsgFlt("previous_roughness", specularExponent);
-      void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
-      AiLightsPrepare(sg);
-      while (AiLightsGetSample(sg))
+      float lastSpecRoughness = 1.0f;
+      if (!AiColorIsSmall(coatWeight))
       {
-         if (AiLightGetAffectSpecular(sg->Lp))
+         float specularExponent = AiShaderEvalParamFlt(p_coat_roughness);
+         specularExponent *= specularExponent;
+         if (sg->Rr_gloss > 0)
+            specularExponent = MAX(specularExponent, minRoughness);
+         if (specularExponent < lastSpecRoughness)
+            AiStateSetMsgFlt("previous_roughness", specularExponent);
+         void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         AiLightsPrepare(sg);
+         while (AiLightsGetSample(sg))
          {
-            const float affectSpecular = AiLightGetSpecular(sg->Lp);
-            if (affectSpecular > AI_EPSILON)
-               specular += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+            if (AiLightGetAffectSpecular(sg->Lp))
+            {
+               const float affectSpecular = AiLightGetSpecular(sg->Lp);
+               if (affectSpecular > AI_EPSILON)
+                  coat += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+            }
          }
+
+         coat += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         coat *= coatWeight;
       }
 
-      specular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+      AtRGB specularWeight = AiShaderEvalParamRGB(p_specular_color);
+      specularFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_specular_ior)) * AiShaderEvalParamFlt(p_specular_weight);
+      specularWeight *= specularFresnel * (1.0f - coatFresnel);
 
-      specular *= specularWeight;
+      if (!AiColorIsSmall(specularWeight))
+      {
+         float specularExponent = AiShaderEvalParamFlt(p_specular_roughness); 
+         specularExponent *= specularExponent;
+         if (sg->Rr_gloss > 0)
+            specularExponent = MAX(specularExponent, minRoughness);
+         AiStateSetMsgFlt("previous_roughness", specularExponent);
+         void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         AiLightsPrepare(sg);
+         while (AiLightsGetSample(sg))
+         {
+            if (AiLightGetAffectSpecular(sg->Lp))
+            {
+               const float affectSpecular = AiLightGetSpecular(sg->Lp);
+               if (affectSpecular > AI_EPSILON)
+                  specular += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+            }
+         }
+         specular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         specular *= specularWeight;
+      }
    }
 
    AtRGB sss = AI_RGB_BLACK;
