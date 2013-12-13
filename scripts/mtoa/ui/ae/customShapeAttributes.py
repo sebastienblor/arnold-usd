@@ -81,7 +81,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         self.beginLayout('Volume Attributes', collapse=False)
         self.addControl('aiStepSize', label='Step Size')
-        self.addControl('aiVolumeContainerMode', label='Container Mode')
         self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
