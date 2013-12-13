@@ -63,9 +63,9 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl("coat_ior", label="IOR")
         self.endLayout()
         
-        self.beginLayout("Options", collapse=True)
-        self.addControl("sample_sss_only_in_gi_rays", label="Sample only SSS in GI rays")
-        self.addControl("sample_sss_only_in_glossy_rays", label="Sample only SSS in Glossy rays")
+        self.beginLayout("Optimizations", collapse=True)
+        self.addControl("sample_sss_only_in_gi_rays", label="Ignore Specular in Diffuse Rays")
+        self.addControl("sample_sss_only_in_glossy_rays", label="Ignore Specular in Glossy Rays")
         self.endLayout()
 
         self.addBumpLayout()
