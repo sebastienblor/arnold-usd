@@ -219,6 +219,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          // Do not wait if Arnold license is not present
          AiNodeSetBool(options, "skip_license_check", true);
          AtNode * procedural = AiNode("procedural");
+         if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
+            AiNodeSetBool(procedural, "used_for_maya_display", true);
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetStr(procedural, "data", dsoData.asChar());
          CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
