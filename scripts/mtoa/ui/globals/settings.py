@@ -940,16 +940,6 @@ def ChangeLogToFile(*args):
     cmds.symbolButton("ls_log_filename_button", edit=True, enable=logToFile)
     pm.attrControlGrp('log_max_warnings', edit=True, enable=logToConsole or logToFile)
 
-def ChangeLogVerbosity(*args):
-    logVerbosity = cmds.getAttr('defaultArnoldRenderOptions.log_verbosity')
-    try:
-        if logVerbosity > 0:
-            pm.attrControlGrp('os_shader_timing_stats', edit=True, enable=True)
-        else:
-            pm.attrControlGrp('os_shader_timing_stats', edit=True, enable=False)
-    except:
-        pass
-
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -962,8 +952,7 @@ def createArnoldLogSettings():
     pm.attrControlGrp('log_verbosity',
                         label="Verbosity Level",
                         enable=logToConsole,
-                        attribute='defaultArnoldRenderOptions.log_verbosity',
-                        changeCommand=ChangeLogVerbosity)                
+                        attribute='defaultArnoldRenderOptions.log_verbosity')                
                         
     
     pm.checkBoxGrp('log_to_console',
@@ -1011,13 +1000,6 @@ def createArnoldLogSettings():
                    annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
                               'Enabling this may adversely affect performance.',
                    attribute='defaultArnoldRenderOptions.shaderNanChecks')
-
-    pm.attrControlGrp('os_shader_timing_stats',
-                    label='Shader Timing Stats',
-                    annotation='Collect shader timing statistics. Enabling this adversely affect performance.',
-                    attribute='defaultArnoldRenderOptions.shaderTimingStats')
-
-    ChangeLogVerbosity()
 
     pm.setParent('..')
 
