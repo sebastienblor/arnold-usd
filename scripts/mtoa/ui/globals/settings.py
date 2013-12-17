@@ -20,53 +20,6 @@ def updateSamplingSettings(*args):
     pm.attrControlGrp('ss_max_value', edit=True, enable=flag)
     pm.attrControlGrp('ss_clamp_sample_values_AOVs', edit=True, enable=flag)
 
-def updateComputeSamples(*args):
-    AASamples = pm.getAttr('defaultArnoldRenderOptions.AASamples')
-    GISamples = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
-    glossySamples = pm.getAttr('defaultArnoldRenderOptions.GIGlossySamples')
-    refractionSamples = pm.getAttr('defaultArnoldRenderOptions.GIRefractionSamples')
-    
-    diffuseDepth = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
-    glossyDepth = pm.getAttr('defaultArnoldRenderOptions.GIGlossyDepth')
-    refractionDepth = pm.getAttr('defaultArnoldRenderOptions.GIRefractionDepth')
-    
-    if AASamples <= 0:
-        AASamples = 1
-    AASamplesComputed = AASamples * AASamples
-    
-    GISamplesComputed = GISamples * GISamples * AASamplesComputed
-    GISamplesComputedDepth = GISamplesComputed*diffuseDepth
-    
-    glossySamplesComputed = glossySamples * glossySamples * AASamplesComputed
-    glossySamplesComputedDepth = glossySamplesComputed*glossyDepth
-    
-    refractionSamplesComputed = refractionSamples * refractionSamples * AASamplesComputed
-    refractionSamplesComputedDepth = refractionSamplesComputed*refractionDepth
-    
-    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
-    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
-
-    pm.text( "textAASamples",
-               edit=True, 
-               label='Camera (AA) Samples : %i' % AASamplesComputed)
-
-    pm.text( "textGISamples",
-               edit=True, 
-               label='Indirect Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
-    
-    pm.text( "textGlossySamples",
-               edit=True, 
-               label='Indirect Specular Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
-        
-    pm.text( "textRefractionSamples",
-               edit=True, 
-               label='Refraction Samples : %i (max : %i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
-        
-    pm.text( "textTotalSamples",
-               edit=True, 
-               label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
-
-
 def updateMotionBlurSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     pm.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
@@ -80,8 +33,6 @@ def updateMotionBlurSettings(*args):
         pm.attrControlGrp('mb_motion_frames', edit=True, enable=False)
         pm.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
         pm.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
-        
-
 
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
@@ -291,41 +242,12 @@ def createArnoldSamplingSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.text( "textAASamples", 
-               font = "smallBoldLabelFont",
-               align='left',
-               )
-    
-    pm.text( "textGISamples", 
-               font = "smallBoldLabelFont",
-               align='left',
-               )
-    
-    pm.text( "textGlossySamples", 
-               font = "smallBoldLabelFont",
-               align='left',
-               )
-
-    pm.text( "textRefractionSamples", 
-               font = "smallBoldLabelFont",
-               align='left',
-               )
-
-    pm.text( "textTotalSamples", 
-               font = "smallBoldLabelFont",
-               align='left',
-               )
-                        
-    pm.separator()
-
     pm.intSliderGrp('ss_AA_samples',
                         label="Camera (AA)",
                         minValue = 1,
                         maxValue = 10,
                         fieldMinValue=-10,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples)
-                        )
+                        fieldMaxValue=100)
 
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=1)
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
@@ -334,8 +256,7 @@ def createArnoldSamplingSettings():
     pm.intSliderGrp('ss_hemi_samples',
                         label="Indirect Diffuse",
                         maxValue = 10,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        fieldMaxValue=100)
     
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=1)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
@@ -344,8 +265,7 @@ def createArnoldSamplingSettings():
     pm.intSliderGrp('ss_glossy_samples',
                         label="Indirect Specular",
                         maxValue = 10,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        fieldMaxValue=100)
     
     pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=1)
     pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=2)
@@ -354,8 +274,7 @@ def createArnoldSamplingSettings():
     pm.intSliderGrp('ss_refraction_samples',
                         label='Refraction',
                         maxValue = 10,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        fieldMaxValue=100)
     
     pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=1)
     pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
@@ -454,8 +373,7 @@ def createArnoldRayDepthSettings():
     pm.intSliderGrp('rs_diffuse_depth',
                         label="Indirect Diffuse",
                         maxValue = 16,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        fieldMaxValue=100)
     
     pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=1)
     pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=2)
@@ -470,8 +388,7 @@ def createArnoldRayDepthSettings():
     pm.intSliderGrp('rs_glossy_depth',
                         label="Indirect Specular",
                         maxValue = 16,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        fieldMaxValue=100)
     
     pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=1)
     pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=2)
@@ -490,8 +407,7 @@ def createArnoldRayDepthSettings():
     pm.intSliderGrp('rs_refraction_depth',
                         label="Refraction ",
                         maxValue = 16,
-                        fieldMaxValue=100,
-                        cc=lambda *args: pm.evalDeferred(updateComputeSamples))
+                        fieldMaxValue=100)
     
     pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=1)
     pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=2)
@@ -1262,7 +1178,6 @@ def updateAtmosphereSettings(*args):
             pm.symbolButton('defaultArnoldRenderOptionsAtmosphereSelectButton', edit=True, enable=True)
 
 def updateArnoldRendererGlobalsTab(*args):
-    updateComputeSamples()
     updateSamplingSettings()
     updateMotionBlurSettings()
     updateAutotileSettings()
