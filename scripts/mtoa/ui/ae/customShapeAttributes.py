@@ -725,7 +725,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.setParent( '..' )
 
     def setup(self):
-        self.addControl('tiled', label='Tiled')
+        #self.addControl('tiled', label='Tiled')
         self.addControl('subpixelMerge', label='Subpixel Merge')
         self.addControl('useRGBOpacity', label='Use RGB Opacity')
         self.beginLayout("Tolerance Values", collapse=False)
