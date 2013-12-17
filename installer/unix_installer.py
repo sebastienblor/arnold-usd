@@ -5,11 +5,11 @@ subprocess.call(['less', '-e', os.path.abspath('MtoAEULA.txt')])
 
 def InstallerHeader():
     os.system('clear')
-    print '   --== MtoA Installer == --    '
+    print '   --== Maya to Arnold Installer ==--    '
 
 InstallerHeader()
 print '''
-    Please Type in Accept to confirm the EULA,
+    Please type accept and press enter to agree to the terms and conditions,
     or press enter to exit.
       '''
 inp = raw_input('    ').replace(' ', '').lower()
@@ -20,7 +20,7 @@ if inp != 'accept':
 InstallerHeader()
 print ''' 
     Installation modes:
-        1) Default (Set up Maya Module and arnoldRenderer.xml)
+        1) Automatic (set up Maya module and arnoldRenderer.xml)
         2) Extract the package
       '''
 inp = raw_input('    Please select mode [1] : ')
@@ -90,8 +90,8 @@ while True:
     if not EnsureDir(installDir):
         InstallerHeader()
         print '''
-    Cannot create target Directory.
-    Do you want to a different Directory?
+    Cannot create target directory.
+    Do you want to install to a different directory?
     [yes / no]
               '''
         inp = raw_input('    ').replace(' ', '').lower()
@@ -137,7 +137,7 @@ if installMode == 1: # do the proper installation
     modulesDir = os.path.join(mayaBaseDir, 'modules')
     if not EnsureDir(modulesDir):
         os.system('clear')
-        print 'Modules directory for the current Maya Version cannot be created.'
+        print 'Modules directory for the current Maya version cannot be created.'
         sys.exit(1)
     shutil.copy(mtoaModPath, os.path.join(modulesDir, 'mtoa.mod'))
     try:
@@ -164,7 +164,7 @@ if installMode == 1: # do the proper installation
     try:
         subprocess.call(['chown', '-R', sudoUser, installDir])
     except:
-        print 'Error setting the user as the owner of the Installation Directory.'
+        print 'Error setting the user as the owner of the installation directory.'
     # install the renderer description file in the maya dir
     mayaInstallDir = ''
     if sys.platform == 'darwin':
@@ -173,8 +173,8 @@ if installMode == 1: # do the proper installation
         mayaInstallDir = os.path.join('/usr', 'autodesk', 'maya%s-x64' % mayaVersion)
     if not os.path.exists(mayaInstallDir):
         print '''
-            Please specify maya installation directory
-            for version %s :
+    Please specify maya installation directory
+    for version %s :
         ''' % mayaVersion
         mayaInstallDir = raw_input('    ')
     if sys.platform == 'darwin':
