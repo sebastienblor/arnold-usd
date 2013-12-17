@@ -186,50 +186,24 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isSo = true;
       }
 
-      // If it is a .ass or a .ass.gz file.
-      if ((nchars > 4 && assfile.substring(nchars - 4, nchars).toLowerCase() == ".ass") ||
-          (nchars > 7 && assfile.substring(nchars - 7, nchars).toLowerCase() == ".ass.gz"))
-      {
-         if (AiASSLoad(assfile.asChar()) == 0)
-         {
-            processRead = true;
-         }
-      }
-      // If it is a .obj or a .ply file
-      else if (nchars > 4 && (assfile.substring(nchars - 4, nchars).toLowerCase() == ".obj" || 
-              assfile.substring(nchars - 4, nchars).toLowerCase() == ".ply"))
-      {
-         AtNode *options = AiUniverseGetOptions();
-         AiNodeSetBool(options, "preserve_scene_data", true);
-         // Do not wait if Arnold license is not present
-         AiNodeSetBool(options, "skip_license_check", true);
-         AtNode * procedural = AiNode("procedural");
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
-         AiNodeSetBool(procedural, "load_at_init", true);
-         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-         {
-            processRead = true;
-         }
-      }
+      AtNode *options = AiUniverseGetOptions();
+      AiNodeSetBool(options, "preserve_scene_data", true);
+      AiNodeSetBool(options, "skip_license_check", true);
+      AtNode * procedural = AiNode("procedural");
+      AiNodeSetStr(procedural, "dso", assfile.asChar());
+      AiNodeSetBool(procedural, "load_at_init", true);
+
       // If it is a lib file
-      else if (isSo)
+      if (isSo)
       {
-         AtNode *options = AiUniverseGetOptions();
-         AiNodeSetBool(options, "preserve_scene_data", true);
-         // Do not wait if Arnold license is not present
-         AiNodeSetBool(options, "skip_license_check", true);
-         AtNode * procedural = AiNode("procedural");
          if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
             AiNodeSetBool(procedural, "used_for_maya_display", true);
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetStr(procedural, "data", dsoData.asChar());
          CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-         AiNodeSetBool(procedural, "load_at_init", true);
-         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-         {
-            processRead = true;
-         }
       }
+
+      if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+         processRead = true;
       
       if (processRead)
       {
