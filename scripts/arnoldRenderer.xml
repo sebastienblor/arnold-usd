@@ -70,9 +70,9 @@
     <!-- ______________________________________________________________ -->
     <sep desc="Samples options"/>
     <attr n="ai:as" s="defaultArnoldRenderOptions.AASamples" t="int" h="Set anti-aliasing samples"/>
-    <attr n="ai:hs" s="defaultArnoldRenderOptions.GIDiffuseSamples" t="int" h="Set diffuse samples"/>
-    <attr n="ai:gs" s="defaultArnoldRenderOptions.GIGlossySamples" t="int" h="Set glossy samples"/>
-    <attr n="ai:rs" s="defaultArnoldRenderOptions.GIRefractionSamples" t="int" h="Set glossy samples"/>
+    <attr n="ai:hs" s="defaultArnoldRenderOptions.GIDiffuseSamples" t="int" h="Set indirect diffuse samples"/>
+    <attr n="ai:gs" s="defaultArnoldRenderOptions.GIGlossySamples" t="int" h="Set indirect specular samples"/>
+    <attr n="ai:rs" s="defaultArnoldRenderOptions.GIRefractionSamples" t="int" h="Set refraction samples"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Diffusion SSS"/>
@@ -87,8 +87,8 @@
     <!-- ______________________________________________________________ -->
     <sep desc="Depth options"/>
     <attr n="ai:td" s="defaultArnoldRenderOptions.GITotalDepth" t="int" h="Set total depth."/>
-    <attr n="ai:dif" s="defaultArnoldRenderOptions.GIDiffuseDepth" t="int" h="Set diffuse depth."/>
-    <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set glossy depth."/>
+    <attr n="ai:dif" s="defaultArnoldRenderOptions.GIDiffuseDepth" t="int" h="Set indirect diffuse depth."/>
+    <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set indirect specular depth."/>
     <attr n="ai:rfl" s="defaultArnoldRenderOptions.GIReflectionDepth" t="int" h="Set reflection depth."/>
     <attr n="ai:rfr" s="defaultArnoldRenderOptions.GIRefractionDepth" t="int" h="Set refraction depth."/>
     <attr n="ai:atd" s="defaultArnoldRenderOptions.autoTransparencyDepth" t="int" h="Set auto-transparency depth."/>
