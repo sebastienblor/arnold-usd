@@ -3,6 +3,7 @@
 #include "translators/NodeTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
+#include "utils/MayaUtils.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>
@@ -192,6 +193,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       AtNode * procedural = AiNode("procedural");
       AiNodeSetStr(procedural, "dso", assfile.asChar());
       AiNodeSetBool(procedural, "load_at_init", true);
+      AtMatrix mtx;
+      AiM4Identity(mtx);
+      AiNodeSetMatrix(procedural, "matrix", mtx);
 
       // If it is a lib file
       if (isSo)
@@ -201,6 +205,34 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AiNodeSetStr(procedural, "data", dsoData.asChar());
          CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
       }
+
+      // setup procedural search path
+      MString proceduralPath = "";
+      MSelectionList list;
+      MObject node;
+      list.add("defaultArnoldRenderOptions");
+      if (list.length() > 0)
+      {
+         list.getDependNode(0, node);
+         MFnDependencyNode fnArnoldRenderOptions(node, &status);
+         if (status)
+         {
+            MPlug plug = fnArnoldRenderOptions.findPlug("procedural_searchpath");            
+            if (!plug.isNull())
+               proceduralPath = plug.asString();
+         }
+      }
+      if (proceduralPath != "")
+      {
+#ifdef _WIN32   
+         const MString pathsep = ";";
+#else
+         const MString pathsep = ":";
+#endif
+         proceduralPath += pathsep;
+      }
+      proceduralPath += getProjectFolderPath();
+      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());
 
       if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
          processRead = true;
