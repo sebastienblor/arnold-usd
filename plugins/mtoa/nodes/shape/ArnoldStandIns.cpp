@@ -294,11 +294,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+               if (AiNodeGetInt(node, "visibility") == 0)
+                  continue;
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
                bool inherit_xform = true;
                while(AiNodeIs(node, "ginstance"))
-               {
+               {                  
                   AtMatrix current_matrix;
                   AiNodeGetMatrix(node, "matrix", current_matrix);
                   if (inherit_xform)
