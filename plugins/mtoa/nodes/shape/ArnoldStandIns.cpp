@@ -256,6 +256,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+               if (AiNodeGetInt(node, "visibility") == 0)
+                  continue;
                if (AiNodeIs(node, "polymesh"))
                {
                   CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
