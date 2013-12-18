@@ -25,6 +25,7 @@ protected:
    AtVector m_BBMin, m_BBMax;
    AtMatrix m_matrix;
    AtArray* p_matrices;
+   bool m_visible;
 
    // simple polygons, without normals
    virtual void DrawPolygons() const = 0;
@@ -45,6 +46,7 @@ public:
 
    virtual void Draw(int drawMode, bool applyTransform = true);   
    MBoundingBox GetBBox(bool transformed = true);
+   bool Visible() const;
 };
 
 class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{

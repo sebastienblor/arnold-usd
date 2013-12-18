@@ -18,6 +18,7 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
 
    p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
    AiArrayGetMtx(p_matrices, 0, m_matrix);
+   m_visible = AiNodeGetInt(node, "visibility") != 0;
 }
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
@@ -117,6 +118,11 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed)
       return bboxRet;
    }
    else return MBoundingBox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
+}
+
+bool CArnoldStandInGeometry::Visible() const
+{
+   return m_visible;
 }
 
 CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry(node)

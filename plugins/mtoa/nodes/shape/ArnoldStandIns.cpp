@@ -255,31 +255,21 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
-            {
+            {  
+               CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, "polymesh"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldPolymeshGeometry(node);
                else if (AiNodeIs(node, "points"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldPointsGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldPointsGeometry(node);
                else if(AiNodeIs(node, "procedural"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldProceduralGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldProceduralGeometry(node);
                else if(AiNodeIs(node, "box"))
-               {
-                  CArnoldBoxGeometry* g = new CArnoldBoxGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
+                  g = new CArnoldBoxGeometry(node);
+               else
+                  continue;
+               if (g->Visible)
                   geom->bbox.expand(g->GetBBox());  
-               }
+               geom->m_geometryList.insert(std::make_pair(node, g));
             }
          }
 
