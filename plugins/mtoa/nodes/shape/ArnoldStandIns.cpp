@@ -110,7 +110,10 @@ void CArnoldStandInGeom::Draw(int DrawMode)
 {
    for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
-      it->second->Draw(DrawMode);
+   {
+      if (it->second->Visible())
+         it->second->Draw(DrawMode);
+   }
 
    for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
@@ -267,7 +270,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   g = new CArnoldBoxGeometry(node);
                else
                   continue;
-               if (g->Visible)
+               if (g->Visible())
                   geom->bbox.expand(g->GetBBox());  
                geom->m_geometryList.insert(std::make_pair(node, g));
             }
