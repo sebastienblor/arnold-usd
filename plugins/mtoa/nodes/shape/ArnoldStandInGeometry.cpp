@@ -5,7 +5,7 @@
 #include <maya/MPxSurfaceShape.h>
 #include <maya/MPxSurfaceShapeUI.h>
 
-CArnoldStandInGeometry::CArnoldStandInGeometry()
+CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
 {
    m_BBMin.x = AI_BIG;
    m_BBMin.y = AI_BIG;
@@ -15,6 +15,9 @@ CArnoldStandInGeometry::CArnoldStandInGeometry()
    m_BBMax.y = -AI_BIG;
    m_BBMax.z = -AI_BIG;
    AiM4Identity(m_matrix);
+
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   AiArrayGetMtx(p_matrices, 0, m_matrix);
 }
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
@@ -116,11 +119,8 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed)
    else return MBoundingBox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry()
-{
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-   
+CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+{  
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
    
    if ((vlist != 0) && vlist->nelements)
@@ -267,11 +267,8 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
    }
 }
 
-CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry()
-{
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-   
+CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+{   
    AtArray* points = AiNodeGetArray(node, "points");
    
    if ((points != 0) && points->nelements > 0)
@@ -359,11 +356,8 @@ MBoundingBox CArnoldStandInGInstance::GetBBox()
    }
 }
 
-CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry()
+CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-
    m_BBMin = AiNodeGetPnt(node, "min");
    m_BBMax = AiNodeGetPnt(node, "max");
 }
@@ -393,11 +387,8 @@ void CArnoldProceduralGeometry::DrawNormalAndPolygons() const
    DrawBoundingBox();
 }
 
-CArnoldBoxGeometry::CArnoldBoxGeometry(AtNode* node) : CArnoldStandInGeometry()
+CArnoldBoxGeometry::CArnoldBoxGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-
    m_BBMin = AiNodeGetPnt(node, "min");
    m_BBMax = AiNodeGetPnt(node, "max");
 }

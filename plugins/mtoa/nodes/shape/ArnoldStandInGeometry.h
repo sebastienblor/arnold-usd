@@ -20,7 +20,7 @@ enum GeometryDrawingMode{
 // pointclouds or other primitives
 class CArnoldStandInGeometry{
 protected:
-   CArnoldStandInGeometry();
+   CArnoldStandInGeometry(AtNode* node); // basic visibility and matrix queries
    
    AtVector m_BBMin, m_BBMax;
    AtMatrix m_matrix;
