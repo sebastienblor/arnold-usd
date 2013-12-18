@@ -19,6 +19,7 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
    p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
    AiArrayGetMtx(p_matrices, 0, m_matrix);
    m_visible = AiNodeGetInt(node, "visibility") != 0;
+   m_invalid = false;
 }
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
@@ -125,6 +126,11 @@ bool CArnoldStandInGeometry::Visible() const
    return m_visible;
 }
 
+bool CArnoldStandInGeometry::Invalid() const
+{
+   return m_invalid;
+}
+
 CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {  
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
@@ -161,6 +167,11 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
          m_BBMax.z = MAX(m_BBMax.z, pnt.z);
       }
    }
+   else
+   {
+      m_invalid = true;
+      return;
+   }
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
    
@@ -169,6 +180,25 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
       m_vidxs.resize(vidxs->nelements);
       for (AtUInt32 i = 0; i < vidxs->nelements; ++i)
          m_vidxs[i] = AiArrayGetUInt(vidxs, i);
+   }
+   else
+   {
+      m_invalid = true;
+      return;
+   }
+
+   AtArray* nsides = AiNodeGetArray(node, "nsides");
+   
+   if ((nsides != 0) && nsides->nelements)
+   {
+      m_nsides.resize(nsides->nelements);
+      for (AtUInt32 i = 0; i < nsides->nelements; ++i)
+         m_nsides[i] = AiArrayGetUInt(nsides, i);
+   }
+   else
+   {
+      m_invalid = true;
+      return;
    }
    
    AtArray* nlist = AiNodeGetArray(node, "nlist");
@@ -187,15 +217,6 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
       m_nidxs.resize(nidxs->nelements);
       for (AtUInt32 i = 0; i < nidxs->nelements; ++i)
          m_nidxs[i] = AiArrayGetUInt(nidxs, i);
-   }
-   
-   AtArray* nsides = AiNodeGetArray(node, "nsides");
-   
-   if ((nsides != 0) && nsides->nelements)
-   {
-      m_nsides.resize(nsides->nelements);
-      for (AtUInt32 i = 0; i < nsides->nelements; ++i)
-         m_nsides[i] = AiArrayGetUInt(nsides, i);
    }
 }
 
@@ -295,6 +316,8 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeome
          m_points[i] = pnt;
       }
    }
+   else
+      m_invalid = true;
 }
 
 CArnoldPointsGeometry::~CArnoldPointsGeometry()

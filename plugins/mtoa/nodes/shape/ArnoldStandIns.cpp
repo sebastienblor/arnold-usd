@@ -270,6 +270,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   g = new CArnoldBoxGeometry(node);
                else
                   continue;
+               if (g->Invalid())
+               {
+                  delete g;
+                  continue;
+               }
                if (g->Visible())
                   geom->bbox.expand(g->GetBBox());  
                geom->m_geometryList.insert(std::make_pair(node, g));
