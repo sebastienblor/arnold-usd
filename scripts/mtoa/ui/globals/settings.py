@@ -838,7 +838,7 @@ def LoadFilenameButtonPush(*args):
     else:
         resolvedFolder = initFolder
     resolvedFolder = os.path.split(resolvedFolder)
-    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Select Log File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Select Log File',okc='Select',fm=0,startingDirectory=resolvedFolder[0])
     if ret is not None and len(ret):
         cmds.textFieldGrp("ls_log_filename", edit=True, text=ret[0])
         cmds.setAttr("defaultArnoldRenderOptions.log_filename", ret[0], type="string")

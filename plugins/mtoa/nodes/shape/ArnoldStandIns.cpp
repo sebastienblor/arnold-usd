@@ -823,13 +823,12 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
       if(start >= 0)
       {
-         fGeometry.dso.substring(start,end).split('.',pattern);
          if(fGeometry.dso.substring(start-1,start-1) == "_")
             newDso = fGeometry.dso.substring(0,start-2) + ".#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
          else
             newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
-         fGeometry.dso = newDso;
 
+         fGeometry.dso.substring(start,end).split('.',pattern);
          if(pattern.length() > 0)
          {
             framePadding = pattern[0].length();
@@ -840,6 +839,10 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
             subFramePadding = pattern[1].length();
             b = pattern[1];
          }
+      }
+      else
+      {
+         newDso = fGeometry.dso;
       }
 
       if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
@@ -858,26 +861,24 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       }
       frameNumber = frameExtWithDot;
 
-      resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+      resolved = MRenderUtil::exactFileTextureName(newDso, fGeometry.useFrameExtension,
             frameNumber, fGeometry.filename);
 
       if (!resolved)
       {
          frameNumber = frameExtWithHash;
-         resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+         resolved = MRenderUtil::exactFileTextureName(newDso, fGeometry.useFrameExtension,
             frameNumber, fGeometry.filename);
       }
 
       if (!resolved)
       {
-         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         // If file has something after frame number, MRenderUtil::exactFileTextureName has problems to
          //  find the file.
-         int len = fGeometry.dso.length();
-         if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
+         if (start >= 0)
          {
-            MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
-            resolved = MRenderUtil::exactFileTextureName(baseName, false,
-            frameNumber, fGeometry.filename);
+            MString baseName = fGeometry.dso.substring(0,start-1) + frameExt + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+            resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, fGeometry.filename);
          }
       }
 

@@ -27,7 +27,7 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'IES Photometry File (*.ies);;All Files (*.*)'
         projectDir = cmds.workspace(query=True, directory=True)
-        ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,
+        ret = cmds.fileDialog2(fileFilter=basicFilter,
                                 cap='Load Photometry File',okc='Load',fm=4, startingDirectory=projectDir)
         if ret is not None and len(ret):
             self.filenameEdit(ret[0])
