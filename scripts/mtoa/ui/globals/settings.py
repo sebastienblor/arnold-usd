@@ -171,7 +171,14 @@ def buildAtmosphereMenu(popup, field, select):
     pm.menuItem(parent=popup, label="Disconnect", command=Callback(removeAtmosphere, field, False, select))
     pm.menuItem(parent=popup, label="Delete", command=Callback(removeAtmosphere, field, True, select))
     
-
+def changeRenderType():
+    try:
+        enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2
+        pm.attrControlGrp('os_kickRenderFlags',
+                            edit=True,
+                            enable=enabled)
+    except:
+        pass
 
 def createArnoldRenderSettings():
 
@@ -180,6 +187,7 @@ def createArnoldRenderSettings():
 
     pm.attrControlGrp('os_renderType',
                         label="Render Type",
+                        changeCommand=changeRenderType,
                         attribute='defaultArnoldRenderOptions.renderType')
 
     
@@ -226,9 +234,12 @@ def createArnoldRenderSettings():
 
     pm.separator()
 
+    enabled = pm.getAttr('defaultArnoldRenderOptions.renderType') == 2
+
     pm.attrControlGrp('os_kickRenderFlags',
                         label='Kick Render Flags',
-                        attribute='defaultArnoldRenderOptions.kickRenderFlags');
+                        enable=enabled,
+                        attribute='defaultArnoldRenderOptions.kickRenderFlags')
              
     pm.setParent('..')
 
