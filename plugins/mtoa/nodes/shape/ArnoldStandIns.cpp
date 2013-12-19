@@ -110,7 +110,10 @@ void CArnoldStandInGeom::Draw(int DrawMode)
 {
    for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
-      it->second->Draw(DrawMode);
+   {
+      if (it->second->Visible())
+         it->second->Draw(DrawMode);
+   }
 
    for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
@@ -255,31 +258,26 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
-            {
+            {  
+               CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, "polymesh"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldPolymeshGeometry(node);
                else if (AiNodeIs(node, "points"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldPointsGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldPointsGeometry(node);
                else if(AiNodeIs(node, "procedural"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldProceduralGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldProceduralGeometry(node);
                else if(AiNodeIs(node, "box"))
+                  g = new CArnoldBoxGeometry(node);
+               else
+                  continue;
+               if (g->Invalid())
                {
-                  CArnoldBoxGeometry* g = new CArnoldBoxGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());  
+                  delete g;
+                  continue;
                }
+               if (g->Visible())
+                  geom->bbox.expand(g->GetBBox());  
+               geom->m_geometryList.insert(std::make_pair(node, g));
             }
          }
 
@@ -292,11 +290,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+               if (AiNodeGetInt(node, "visibility") == 0)
+                  continue;
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
                bool inherit_xform = true;
                while(AiNodeIs(node, "ginstance"))
-               {
+               {                  
                   AtMatrix current_matrix;
                   AiNodeGetMatrix(node, "matrix", current_matrix);
                   if (inherit_xform)
@@ -490,6 +490,16 @@ MStatus CArnoldStandInShape::SetPointPlugValue(MPlug plug, float3   value)
    return MS::kSuccess;
 }
 
+float convertToFloat(const char *number)
+{
+   if (!strcmp(number, "infinity"))
+      return AI_BIG;
+   else if (!strcmp(number, "-infinity"))
+      return -AI_BIG;
+   else
+      return static_cast<float>(atof(number));
+}
+
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
@@ -520,17 +530,23 @@ bool CArnoldStandInShape::LoadBoundingBox()
       strcpy(str, line.c_str());
 
       strtok(str, " ");
-      double xmin = atof(strtok(NULL, " "));
-      double ymin = atof(strtok(NULL, " "));
-      double zmin = atof(strtok(NULL, " "));
-      double xmax = atof(strtok(NULL, " "));
-      double ymax = atof(strtok(NULL, " "));
-      double zmax = atof(strtok(NULL, " "));
+      double xmin = convertToFloat(strtok(NULL, " "));
+      double ymin = convertToFloat(strtok(NULL, " "));
+      double zmin = convertToFloat(strtok(NULL, " "));
+      double xmax = convertToFloat(strtok(NULL, " "));
+      double ymax = convertToFloat(strtok(NULL, " "));
+      double zmax = convertToFloat(strtok(NULL, " "));
 
       file.close();
-      MPoint min(xmin, ymin, zmin);
-      MPoint max(xmax, ymax, zmax);
-      geom->bbox = MBoundingBox(min, max);
+      if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
+      {
+         MPoint min(xmin, ymin, zmin);
+         MPoint max(xmax, ymax, zmax);
+         geom->bbox = MBoundingBox(min, max);
+      } 
+      else
+         geom->bbox = MBoundingBox();
+
       delete []str;
       return true;
    }
