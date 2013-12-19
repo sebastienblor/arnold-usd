@@ -412,7 +412,7 @@ class MtoATxManager(object):
         folder = cmds.textField(ctrlPath, query=True, text=True);
         if not os.path.isdir(folder):
             folder = cmds.workspace(query=True, directory=True)     
-        ret = cmds.fileDialog2(dialogStyle=2,cap='Select Folder',okc='Select',fm=2, startingDirectory=folder)
+        ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=2, startingDirectory=folder)
         if ret is not None and len(ret):
             ctrlPath = '|'.join([self.window, 'groupBox_4', 'lineEdit_2']);
             cmds.textField(ctrlPath, edit=True, text=ret[0]);
