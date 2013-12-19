@@ -490,6 +490,16 @@ MStatus CArnoldStandInShape::SetPointPlugValue(MPlug plug, float3   value)
    return MS::kSuccess;
 }
 
+float convertToFloat(const char *number)
+{
+   if (!strcmp(number, "infinity"))
+      return AI_BIG;
+   else if (!strcmp(number, "-infinity"))
+      return -AI_BIG;
+   else
+      return static_cast<float>(atof(number));
+}
+
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
@@ -520,17 +530,23 @@ bool CArnoldStandInShape::LoadBoundingBox()
       strcpy(str, line.c_str());
 
       strtok(str, " ");
-      double xmin = atof(strtok(NULL, " "));
-      double ymin = atof(strtok(NULL, " "));
-      double zmin = atof(strtok(NULL, " "));
-      double xmax = atof(strtok(NULL, " "));
-      double ymax = atof(strtok(NULL, " "));
-      double zmax = atof(strtok(NULL, " "));
+      double xmin = convertToFloat(strtok(NULL, " "));
+      double ymin = convertToFloat(strtok(NULL, " "));
+      double zmin = convertToFloat(strtok(NULL, " "));
+      double xmax = convertToFloat(strtok(NULL, " "));
+      double ymax = convertToFloat(strtok(NULL, " "));
+      double zmax = convertToFloat(strtok(NULL, " "));
 
       file.close();
-      MPoint min(xmin, ymin, zmin);
-      MPoint max(xmax, ymax, zmax);
-      geom->bbox = MBoundingBox(min, max);
+      if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
+      {
+         MPoint min(xmin, ymin, zmin);
+         MPoint max(xmax, ymax, zmax);
+         geom->bbox = MBoundingBox(min, max);
+      } 
+      else
+         geom->bbox = MBoundingBox();
+
       delete []str;
       return true;
    }
