@@ -23,8 +23,7 @@ node_parameters
    AiParameterFLT("coat_roughness", 0.35f);
    AiParameterFLT("coat_ior", 1.44f);
    AiParameterFLT("global_sss_radius_multiplier", 1.0f);
-   AiParameterBOOL("sample_sss_only_in_gi_rays", true);
-   AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
+   AiParameterBOOL("specular_in_secondary_rays", false);
    AiParameterStr("aov_specular", "specular");
    AiParameterStr("aov_coat", "coat");
    AiParameterStr("aov_sss", "sss");
@@ -55,8 +54,7 @@ enum SSSParams {
    p_coat_roughness,
    p_coat_ior,
    p_global_sss_radius_multiplier,
-   p_sample_sss_only_in_gi_rays,
-   p_sample_sss_only_in_glossy_rays,
+   p_specular_in_secondary_rays,
    p_aov_specular,
    p_aov_coat,
    p_aov_sss,
@@ -90,9 +88,7 @@ shader_evaluate
       return;
 
    bool sampleOnlySSS = false;
-   if (sg->Rt & AI_RAY_DIFFUSE && AiShaderEvalParamBool(p_sample_sss_only_in_gi_rays))
-      sampleOnlySSS = true;
-   else if (sg->Rt & AI_RAY_GLOSSY && AiShaderEvalParamBool(p_sample_sss_only_in_glossy_rays))
+   if ((sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_GLOSSY) && (!AiShaderEvalParamBool(p_specular_in_secondary_rays)))
       sampleOnlySSS = true;
 
    float minRoughness = 0.0f;

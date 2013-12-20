@@ -64,10 +64,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.endLayout()
         
         self.beginLayout("Optimizations", collapse=True)
-        self.beginNoOptimize()
-        self.addControl("sample_sss_only_in_gi_rays", label="Ignore Specular in Indirect Diffuse Rays")
-        self.addControl("sample_sss_only_in_glossy_rays", label="Ignore Specular in Indirect Specular Rays")
-        self.endNoOptimize()
+        self.addControl("specular_in_secondary_rays", label="Specular in Secondary Rays")
         self.endLayout()
 
         self.addBumpLayout()
