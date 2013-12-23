@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+﻿
 from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
@@ -20,6 +20,19 @@ def updateSamplingSettings(*args):
     pm.attrControlGrp('ss_max_value', edit=True, enable=flag)
     pm.attrControlGrp('ss_clamp_sample_values_AOVs', edit=True, enable=flag)
 
+def calculateRayCounts(AASamples, rayTypeSamples, rayTypeDepth):
+    computed = 0
+    computedDepth = 0
+
+    if rayTypeDepth > 1:
+        computed = AASamples * rayTypeSamples * rayTypeSamples
+        computedDepth = (rayTypeSamples * rayTypeSamples + rayTypeDepth - 1) * AASamples
+    elif rayTypeDepth == 1:
+        computed = AASamples * rayTypeSamples * rayTypeSamples
+        computedDepth = computed
+
+    return (computed, computedDepth)
+
 def updateComputeSamples(*args):
     AASamples = pm.getAttr('defaultArnoldRenderOptions.AASamples')
     GISamples = pm.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
@@ -33,15 +46,10 @@ def updateComputeSamples(*args):
     if AASamples <= 0:
         AASamples = 1
     AASamplesComputed = AASamples * AASamples
-    
-    GISamplesComputed = GISamples * GISamples * AASamplesComputed
-    GISamplesComputedDepth = GISamplesComputed*diffuseDepth
-    
-    glossySamplesComputed = glossySamples * glossySamples * AASamplesComputed
-    glossySamplesComputedDepth = glossySamplesComputed*glossyDepth
-    
-    refractionSamplesComputed = refractionSamples * refractionSamples * AASamplesComputed
-    refractionSamplesComputedDepth = refractionSamplesComputed*refractionDepth
+
+    GISamplesComputed, GISamplesComputedDepth = calculateRayCounts(AASamplesComputed, GISamples, diffuseDepth)
+    glossySamplesComputed, glossySamplesComputedDepth = calculateRayCounts(AASamplesComputed, glossySamples, glossyDepth)
+    refractionSamplesComputed, refractionSamplesComputedDepth = calculateRayCounts(AASamplesComputed, refractionSamples, refractionDepth)
     
     totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
     totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
@@ -80,8 +88,6 @@ def updateMotionBlurSettings(*args):
         pm.attrControlGrp('mb_motion_frames', edit=True, enable=False)
         pm.attrControlGrp('mb_motion_range_start', edit=True, enable=False)
         pm.attrControlGrp('mb_motion_range_end', edit=True, enable=False)
-        
-
 
 def updateLogSettings(*args):
     name = pm.getAttr('defaultArnoldRenderOptions.log_filename')
