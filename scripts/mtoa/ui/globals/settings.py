@@ -54,26 +54,25 @@ def updateComputeSamples(*args):
     totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
     totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
 
-    pm.text( "textAASamples",
-               edit=True, 
-               label='Camera (AA) Samples : %i' % AASamplesComputed)
+    pm.text("textAASamples",
+            edit=True, 
+            label='Camera (AA) Samples : %i' % AASamplesComputed)
 
-    pm.text( "textGISamples",
-               edit=True, 
-               label='Indirect Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
+    pm.text("textGISamples",
+            edit=True, 
+            label='Indirect Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
-    pm.text( "textGlossySamples",
-               edit=True, 
-               label='Indirect Specular Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+    pm.text("textGlossySamples",
+            edit=True, 
+            label='Indirect Specular Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
         
-    pm.text( "textRefractionSamples",
-               edit=True, 
-               label='Refraction Samples : %i (max : %i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
+    pm.text("textRefractionSamples",
+            edit=True, 
+            label='Refraction Samples : %i (max : %i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
         
-    pm.text( "textTotalSamples",
-               edit=True, 
-               label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
-
+    pm.text("textTotalSamples",
+            edit=True, 
+            label='Total (no lights) : %i (max : %i)' % (totalSamples, totalSamplesDepth))
 
 def updateMotionBlurSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
