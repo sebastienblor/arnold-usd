@@ -60,11 +60,11 @@ def updateComputeSamples(*args):
 
     pm.text("textGISamples",
             edit=True, 
-            label='Indirect Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
+            label='Diffuse Samples : %i (max : %i)' % (GISamplesComputed, GISamplesComputedDepth))
     
     pm.text("textGlossySamples",
             edit=True, 
-            label='Indirect Specular Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+            label='Glossy Samples : %i (max : %i)' % (glossySamplesComputed, glossySamplesComputedDepth))
         
     pm.text("textRefractionSamples",
             edit=True, 
@@ -348,7 +348,7 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
 
     pm.intSliderGrp('ss_hemi_samples',
-                        label="Indirect Diffuse",
+                        label="Diffuse",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -358,7 +358,7 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     
     pm.intSliderGrp('ss_glossy_samples',
-                        label="Indirect Specular",
+                        label="Glossy",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -468,7 +468,7 @@ def createArnoldRayDepthSettings():
 
     
     pm.intSliderGrp('rs_diffuse_depth',
-                        label="Indirect Diffuse",
+                        label="Diffuse",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
@@ -484,7 +484,7 @@ def createArnoldRayDepthSettings():
     '''
     
     pm.intSliderGrp('rs_glossy_depth',
-                        label="Indirect Specular",
+                        label="Glossy",
                         maxValue = 16,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
