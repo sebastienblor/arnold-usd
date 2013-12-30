@@ -77,9 +77,15 @@ node_finish
 
 }
 
-float SimpleFresnel(float dt, float ior) // TODO : OPTIMIZE
+float SimpleFresnel(float dt, float ior)
 {
-   return ((ior - 1.0f) * (ior - 1.0f) + 4.0f * ior * powf(CLAMP(1.0f - dt, 0.0f, 1.0f), 5.0f)) / ((ior + 1.0f) * (ior + 1.0f));
+   const float iorn = ior - 1.0f;
+   const float iorp = ior + 1.0f;
+   const float dtc = 1.0f - CLAMP(dt, 0.0f, 1.0f);
+   float dt5 = dtc * dtc;
+   dt5 *= dt5;
+   dt5 *= dtc;
+   return (iorn * iorn + 4.0f * ior * dt5) / (iorp * iorp);
 }
 
 shader_evaluate
