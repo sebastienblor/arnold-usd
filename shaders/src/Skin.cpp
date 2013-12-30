@@ -117,7 +117,10 @@ shader_evaluate
    if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
       AtRGB coatWeight = AiShaderEvalParamRGB(p_coat_color);
-      const float RDNF = -AiV3Dot(sg->Rd, sg->Nf);
+      AtVector reflected;
+      AiReflect(&sg->Rd, &sg->Ns, &reflected);
+      const AtVector N = (AiV3Dot(sg->Ngf, reflected) < 0) ? sg->Ngf : sg->Nf;
+      const float RDNF = -AiV3Dot(sg->Rd, N);
       coatFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_coat_ior)) * AiShaderEvalParamFlt(p_coat_weight);
       coatWeight *= coatFresnel;
    
