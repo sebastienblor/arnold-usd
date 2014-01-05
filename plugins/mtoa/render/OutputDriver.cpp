@@ -51,7 +51,7 @@ static int s_AA_Samples;
 static int s_GI_diffuse_samples;
 static int s_GI_glossy_samples;
 static int s_GI_refraction_samples;
-static int s_sss_brdf_samples;
+static int s_sss_bssrdf_samples;
 static int s_volume_indirect_samples;
 
 static bool s_firstOpen = false;
@@ -635,7 +635,7 @@ void RenderEnd()
       rvInfo += "/";
       rvInfo += s_GI_refraction_samples;
       rvInfo += "/";
-      rvInfo += s_sss_brdf_samples;
+      rvInfo += s_sss_bssrdf_samples;
       rvInfo += "/";
       rvInfo += s_volume_indirect_samples;
       rvInfo += "]";
@@ -710,7 +710,7 @@ void BeginImage()
    s_GI_diffuse_samples       = AiNodeGetInt(options, "GI_diffuse_samples");
    s_GI_glossy_samples        = AiNodeGetInt(options, "GI_glossy_samples");
    s_GI_refraction_samples    = AiNodeGetInt(options, "GI_refraction_samples");
-   s_sss_brdf_samples         = AiNodeGetInt(options, "sss_brdf_samples");
+   s_sss_bssrdf_samples         = AiNodeGetInt(options, "sss_bssrdf_samples");
    s_volume_indirect_samples  = AiNodeGetInt(options, "volume_indirect_samples");
 
    s_start_time = time(NULL);
@@ -769,7 +769,7 @@ void EndImage()
       rvInfo += "/";
       rvInfo += s_GI_refraction_samples;
       rvInfo += "/";
-      rvInfo += s_sss_brdf_samples;
+      rvInfo += s_sss_bssrdf_samples;
       rvInfo += "/";
       rvInfo += s_volume_indirect_samples;
       rvInfo += "]";
