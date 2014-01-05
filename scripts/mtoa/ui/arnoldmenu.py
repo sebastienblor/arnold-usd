@@ -105,7 +105,7 @@ def createArnoldMenu():
         pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light",
                     c=lambda *args: mutils.createLocator('spotLight', asLight=True))
         pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
-                    c=lambda *args: mutils.createLocator('quadLight', asLight=True))
+                    c=lambda *args: mutils.createLocator('areaLight', asLight=True))
                     
         pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",
