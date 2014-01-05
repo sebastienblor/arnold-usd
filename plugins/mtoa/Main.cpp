@@ -71,9 +71,13 @@ namespace // <anonymous>
    static void SetEnv(const MString& env, const MString& val)
    {
 #ifdef WIN32
+   #if _MSC_VER >= 1700 // checking for vs 2012
+      MGlobal::executePythonCommand(MString("import os;os.environ['")+env+MString("']='")+val+MString("'"));
+   #else
       MString val2 = val;
       MString envStr = env + MString("=") + val2.toLowerCase();
       _putenv(envStr.asChar());
+   #endif
 #else
       setenv(env.asChar(), val.asChar(), true);
 #endif      
