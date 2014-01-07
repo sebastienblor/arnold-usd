@@ -50,10 +50,7 @@ static void GetAttributesFromNode(const MFnDependencyNode& node, std::map<std::s
 }
 
 static void GetAttributesFromDgPath(const MDagPath& dg, std::map<std::string, std::string>& attributeList)
-{   
-   if (dg.isInstanced())
-      if (dg.instanceNumber() != 0)
-         return;
+{
    std::string fullName = dg.fullPathName().asChar();
    MFnDependencyNode node(dg.node());
    GetAttributesFromNode(node, attributeList, &fullName);
