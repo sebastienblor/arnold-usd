@@ -8,6 +8,7 @@ struct CAOVOutput
    AtNode* filter;
    bool mergeAOVs; // whether or not to split AOVs
    bool singleLayer;
+   bool raw;
    MString prefix;
 };
 
@@ -44,7 +45,7 @@ public:
       return m_aovs;
    }
 
-   static void AddSourceImagesToTextureSearchPath(AtNode* options);
+   static void AddProjectFoldersToSearchPaths(AtNode* options);
 protected:
    COptionsTranslator()  :
       CNodeTranslator(),
@@ -59,6 +60,7 @@ protected:
    void ProcessAOVs();
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();
+   void ExportAtmosphere(AtNode* options);
    void CreateFileDirectory(const MString &filename) const;
    unsigned int GetOutputArray(const CAOV& aov,
                                      std::vector<CAOVOutput>& outputs);
@@ -68,8 +70,11 @@ protected:
    AtNode* ExportDriver(const MPlug& driverPlug,
                         MString& prefix,
                         bool& mergeAOVs,
-                        bool& singleLayer);
+                        bool& singleLayer,
+                        bool& raw);
    AtNode* ExportFilter(const MPlug& filterPlug);
+
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
 protected:
    AOVSet m_aovs;

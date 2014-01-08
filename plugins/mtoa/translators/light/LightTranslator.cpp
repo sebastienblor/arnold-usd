@@ -65,8 +65,6 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light,  "diffuse",         FindMayaPlug("aiDiffuse").asFloat());
    AiNodeSetFlt(light,  "specular",        FindMayaPlug("aiSpecular").asFloat());
 
-
-
    GetMatrix(matrix);
 
    ProcessParameter(light, "filters", AI_TYPE_ARRAY, FindMayaPlug("aiFilters"));

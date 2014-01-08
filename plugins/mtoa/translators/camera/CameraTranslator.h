@@ -29,7 +29,17 @@ public:
    // FIXME: this method shouldn't be required.
    virtual bool RequiresMotionData()
    {
-      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");
+      if (motionBlurOverridePlug.isNull())
+         return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      else
+      {
+         const short motionBlurOverride = motionBlurOverridePlug.asShort();
+         if (motionBlurOverride == 0)
+            return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+         else
+            return (motionBlurOverride == 1) ? true : false;
+      }      
    }
 
 protected:

@@ -231,16 +231,27 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
 void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime, void *data)
 {
-   if (s_comp != 0 && AiRendering())
+   const bool rendering = AiRendering();
+   if (rendering)
    {
-      if (s_comp->isInterruptRequested())
-         AiRenderInterrupt();
-      // This causes AiRender to break, after which the CMayaScene::End()
-      // which clears this callback.      
-      // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
-      // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
-      // AiRenderAbort();
+      if (s_comp != 0)
+      {
+         if (s_comp->isInterruptRequested())
+            AiRenderInterrupt();
+         // This causes AiRender to break, after which the CMayaScene::End()
+         // which clears this callback.      
+         // Which callback is more useful: AiRenderAbort or AiRenderInterrupt?
+         // AiRenderAbort will draw uncomplete buckets while AiRenderInterrupt will not.
+         // AiRenderAbort();
+      }
+      else if (!CMayaScene::IsActive(MTOA_SESSION_IPR))
+      {
+         s_comp = new MComputation();
+         s_comp->beginComputation();
+         s_comp->endComputation();
+      }
    }
+   
    
    CCritSec::CScopedLock sc(m_render_lock);
    if (m_renderCallback != 0)
@@ -253,7 +264,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
       }
       m_renderCallback();
    }
-   else if (s_comp != 0)
+   else if (!rendering && s_comp != 0)
    {
       s_comp->endComputation();
       delete s_comp;
@@ -311,65 +322,6 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
 
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
-
-   /*
-   // FIXME: this would best be handled by a kind of translator post-process hook.
-
-   // check visibility for all image planes.
-   MDagPath dagPath;
-   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-   // for all cameras
-   for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
-   {
-      if (!dagIterCameras.getPath(dagPath))
-      {
-         AiMsgError("[mtoa] Could not get path for DAG iterator");
-         return;
-      }
-      bool isRenderingCamera = false;
-      if (dagPath == cameraNode)
-         isRenderingCamera = true;
-
-      // check all of it's imageplanes
-      MPlugArray connectedPlugs;
-      MPlug      imagePlanePlug;
-      MPlug      imagePlaneNodePlug;
-      MFnDagNode fnDagNode(dagPath);
-      imagePlanePlug = fnDagNode.findPlug("imagePlane");
-      if (imagePlanePlug.numConnectedElements() > 0)
-      {
-         for(unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
-         {
-            MStatus status;
-            imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-            imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-            MObject resNode = connectedPlugs[0].node(&status);
-            if (status)
-            {
-               // get the dependency node of the image plane
-               MFnDependencyNode fnRes(resNode);
-               MString imagePlaneName(fnDagNode.partialPathName());
-               imagePlaneName += "_IP_";
-               imagePlaneName += ips;
-               bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
-               AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
-               int visibility = 0;
-               AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.partialPathName().asChar(), m_renderOptions.GetImageFilename().asChar());
-
-               if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
-               {
-                  visibility = AI_RAY_CAMERA;
-               }
-               if ((displayOnlyIfCurrent && !isRenderingCamera))
-               {
-                  visibility = 0;
-               }
-               AiNodeSetInt(imagePlane, "visibility", visibility);
-            }
-         }
-      }
-   }*/
 }
 
 void CRenderSession::SetRenderViewPanelName(const MString &panel)
@@ -382,7 +334,9 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
    // set progressive start point on AA
    const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   const int progressive_start = MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel());
+   const int progressive_start = renderSession->m_renderOptions.isProgressive() ? 
+                                 MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
+                                 : num_aa_samples;
    const int steps = (progressive_start < 0) ? abs(progressive_start) + 1 : 1;
    int ai_status(AI_SUCCESS);
    renderSession->SetRendering(true);
@@ -531,7 +485,7 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
 
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
-      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals());
+      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), m_renderOptions.expandProcedurals(), m_renderOptions.useBinaryEncoding());
    }
 }
 
@@ -647,7 +601,9 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
 
    AtNode* options     = AiUniverseGetOptions();
 
-   COptionsTranslator::AddSourceImagesToTextureSearchPath(options);
+   COptionsTranslator::AddProjectFoldersToSearchPaths(options);
+   AiNodeDeclare(options, "is_swatch", "constant BOOL");
+   AiNodeSetBool(options, "is_swatch", true);
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
@@ -661,6 +617,8 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AiNodeSetInt(options, "xres", resolution);
    AiNodeSetInt(options, "yres", resolution);
    AiNodeSetInt(options, "bucket_size", resolution/4);
+   AiNodeSetInt(options, "sss_bssrdf_samples", 4);
+
 
    // Close existing render if any
    InterruptRender();

@@ -23,6 +23,8 @@ else:
    local_env.Append(LIBS=Split('ai'))
    local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
+if env['DISABLE_COMMON']:
+   local_env.Append(CPPDEFINES = Split('DISABLE_COMMON'))
 
 MTOA_SHADERS = local_env.SharedLibrary('mtoa_shaders', source_files, LIBPREFIX='')
 

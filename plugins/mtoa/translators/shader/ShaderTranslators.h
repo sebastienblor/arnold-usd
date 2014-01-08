@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShaderTranslator.h"
+#include <string>
 
 #define SHADER_TRANSLATOR(name)\
    class name : public CShaderTranslator\
@@ -46,7 +47,24 @@ SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
+SHADER_TRANSLATOR(CMayaPhongTranslator);
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
+
+class CMayaShadingSwitchTranslator : public CShaderTranslator{
+private:
+   std::string m_nodeType;
+   int m_paramType;
+public:
+   CMayaShadingSwitchTranslator(const char* nodeType, int paramType);
+   void Export(AtNode* shadingSwitch);
+   AtNode* CreateArnoldNodes();
+};
+
+void* CreateSingleShadingSwitchTranslator();
+void* CreateDoubleShadingSwitchTranslator();
+void* CreateTripleShadingSwitchTranslator();
+void* CreateQuadShadingSwitchTranslator();
+
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 

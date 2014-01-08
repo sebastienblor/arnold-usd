@@ -39,6 +39,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ll", "lightLinks", MSyntax::kUnsigned);
    syntax.addFlag("sl", "shadowLinks", MSyntax::kUnsigned);
    syntax.addFlag("ep", "expandProcedurals");
+   syntax.addFlag("fsh", "forceTranslateShadingEngines");
 
    syntax.setObjectType(MSyntax::kSelectionList);
    return syntax;
@@ -107,13 +108,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString optionsName = "";
    MString assExtension = "ass";
 
-   bool writeBox          = false;
-   bool createDirectory   = true;
-   bool isSequence        = false;
-   bool subFrames         = false;
-   bool compressed        = false;
-   bool asciiAss          = true;
-   bool expandProcedurals = false;
+   bool writeBox                     = false;
+   bool createDirectory              = true;
+   bool isSequence                   = false;
+   bool subFrames                    = false;
+   bool compressed                   = false;
+   bool asciiAss                     = true;
+   bool expandProcedurals            = false;
+   bool forceTranslateShadingEngines = false;
    int mask        = -1;
    int lightLinks  = -1;
    int shadowLinks = -1;
@@ -238,6 +240,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       expandProcedurals = true;
    }
 
+   if (argDB.isFlagSet("forceTranslateShadingEngines"))
+   {
+      forceTranslateShadingEngines = true;
+   }
+
    // Get Maya scene information
    MString sceneName = MFileIO::currentFile();
    // If camera name is not set, default to active view camera in interactive mode
@@ -316,8 +323,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          arnoldSession->SetShadowLinkMode(ArnoldShadowLinkMode(shadowLinks));
       }
+      renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
+      
       MFnDependencyNode fnCam;
-
       MString mayaVersion = MGlobal::mayaVersion();     
       MString appString = MString("MtoA ") + MTOA_VERSION + " Maya " + mayaVersion;
       AiSetAppString(appString.asChar());
@@ -361,11 +369,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          if (cameras.length() > 1 || writeBox)
             // Use preserve_scene_data = true only when necessary as this value will be set also to true in the exported file
             AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
-            
-         // ascii ass export
-         if (!asciiAss){
-            AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
-         }
+         
+         renderSession->SetUseBinaryEncoding(asciiAss);
          renderSession->DoAssWrite(curfilename, compressed);
 
          if (writeBox)

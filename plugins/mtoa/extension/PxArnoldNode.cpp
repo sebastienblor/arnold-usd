@@ -14,7 +14,11 @@ CPxArnoldNode::CPxArnoldNode(const MString &nodeName)
    if (name.numChars() > 0) entry = AiNodeEntryLookUp(name.asChar());
    if (NULL != entry)
    {
-      file = AiNodeEntryGetFilename(entry);
+      const char* fileChar = AiNodeEntryGetFilename(entry);
+      if (fileChar != 0)
+         file = fileChar;
+      else
+         file = "";
       MStringArray split;
       file.split('/', split);
       unsigned int l = split.length();
@@ -29,7 +33,11 @@ CPxArnoldNode::CPxArnoldNode(const AtNodeEntry* nodeEntry)
    if (NULL != entry) name = AiNodeEntryGetName(entry);
    if (NULL != entry)
    {
-      file = AiNodeEntryGetFilename(entry);
+      const char* fileChar = AiNodeEntryGetFilename(entry);
+      if (fileChar != 0)
+         file = fileChar;
+      else
+         file = "";
       MStringArray split;
       file.split('/', split);
       unsigned int l = split.length();

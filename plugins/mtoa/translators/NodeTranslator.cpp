@@ -737,13 +737,15 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          std::vector< CDagTranslator * > translatorsToUpdate;
          bool reexport = true;
          MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
-         for(unsigned int i = 0; i < dagSetMembersPlug.numElements(); i++)
+         const unsigned int numElements = dagSetMembersPlug.numElements();
+         for(unsigned int i = 0; i < numElements; i++)
          {
             MPlug a = dagSetMembersPlug[i];
             MPlugArray connectedPlugs;
             a.connectedTo(connectedPlugs,true,false);
 
-            for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+            const unsigned int connectedPlugsLength = connectedPlugs.length();
+            for(unsigned int j = 0; j < connectedPlugsLength; j++)
             {
                MPlug connection = connectedPlugs[j];
                MObject parent = connection.node();
@@ -808,15 +810,17 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
 
             MFnDependencyNode shadingEngineDNode(shadingEngine);
             MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
+            const unsigned int numElements = dagSetMembersPlug.numElements();
             // For each geometry connected to the shading engine
-            for(unsigned int i = 0; i < dagSetMembersPlug.numElements(); i++)
+            for(unsigned int i = 0; i < numElements; i++)
             {
                MPlug a = dagSetMembersPlug[i];
                MPlugArray connectedPlugs;
                a.connectedTo(connectedPlugs,true,false);;
 
                // This should be only one connection; connectedPlugs.length() should be 0 or 1
-               for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+               const unsigned int connectedPlugsLength = connectedPlugs.length();
+               for(unsigned int j = 0; j < connectedPlugsLength; j++)
                {
                   MPlug connection = connectedPlugs[j];
                   MObject parent = connection.node();
@@ -1208,7 +1212,7 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
    }
 }
 
-void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
+void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator)
 {
    MFnDependencyNode fnDepNode(object);
 
@@ -1252,7 +1256,11 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
       else
          AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_!");
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
-         continue;      
+         continue;
+
+      if (translator)
+         pAttr = translator->GetOverridePlug(pAttr);
+
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {
          MFnNumericAttribute nAttr(oAttr);
@@ -1341,7 +1349,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
    // TODO: allow overrides here too ?
-   ExportUserAttributes(anode, GetMayaObject());
+   ExportUserAttributes(anode, GetMayaObject(), this);
    
    // Exporting the UnexposedOptions parameter
    MPlug plug = FindMayaPlug("aiUserOptions");
@@ -1554,7 +1562,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       //   cannot unlink "ramp2.color.r" as the attribute was not separately linked
       // In order to avoid this warning we would need to do the unlinking inside an attributeChanged callback, where
       // we could know for certain that a plug had been disconnected, instead of calling it blindly as we do now.
-      AiNodeUnlink(arnoldNode, arnoldParamName);
+      if (AiNodeIsLinked(arnoldNode, arnoldParamName))
+         AiNodeUnlink(arnoldNode, arnoldParamName);
       AtNode *connected = ProcessParameterInputs(arnoldNode, plug, arnoldParamName, arnoldParamType);
       // if we're connected, we're done, otherwise call ProcessConstantParameter
       if (connected != NULL)
@@ -2312,13 +2321,13 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    }
 }
 
-int CDagTranslator::ComputeVisibility(const MDagPath& path)
+AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == m_session->IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
-   int visibility = AI_RAY_ALL;
+   AtByte visibility = AI_RAY_ALL;
    MPlug plug;
 
    plug = FindMayaPlug("castsShadows");
@@ -2362,7 +2371,7 @@ int CDagTranslator::ComputeVisibility(const MDagPath& path)
 }
 
 // use standardized render flag names to compute an arnold visibility mask
-int CDagTranslator::ComputeVisibility()
+AtByte CDagTranslator::ComputeVisibility()
 {
    return ComputeVisibility(m_dagPath);
 }
@@ -2420,10 +2429,14 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
    data.defaultValue.BOOL = true;
    data.name = "aiVisibleInDiffuse";
    data.shortName = "ai_vid";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "aiVisibleInGlossy";
    data.shortName = "ai_vig";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 }

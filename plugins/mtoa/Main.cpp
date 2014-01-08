@@ -43,7 +43,9 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
+#include "translators/shape/XGenTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
+#include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
 #include "render/RenderSwatch.h"
@@ -60,15 +62,22 @@
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
 
+#include <ai.h>
+
 namespace // <anonymous>
 {
+   MCallbackId connectionCallback;
 
    static void SetEnv(const MString& env, const MString& val)
    {
 #ifdef WIN32
+   #if _MSC_VER >= 1700 // checking for vs 2012
+      MGlobal::executePythonCommand(MString("import os;os.environ['")+env+MString("']='")+val+MString("'"));
+   #else
       MString val2 = val;
       MString envStr = env + MString("=") + val2.toLowerCase();
       _putenv(envStr.asChar());
+   #endif
 #else
       setenv(env.asChar(), val.asChar(), true);
 #endif      
@@ -174,114 +183,110 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiOptions",
                                   "",
                                   COptionsTranslator::creator);
-       // A Dag node in Maya but a depend node in Arnold
-       builtin->RegisterTranslator("aiSky",
-                                   "",
-                                   CSkyShaderTranslator::creator);
-       builtin->RegisterTranslator("aiPhysicalSky",
-                                     "",
-                                     CPhysicalSkyTranslator::creator);
-       builtin->RegisterTranslator("aiHair",
-                                   "",
-                                   CAiHairTranslator::creator,
-                                   CAiHairTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiImage",
-                                   "",
-                                   CAiImageTranslator::creator);
-       // Lights
-       builtin->RegisterTranslator("directionalLight",
-                                   "",
-                                   CDirectionalLightTranslator::creator,
-                                   CDirectionalLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("spotLight",
-                                   "",
-                                   CSpotLightTranslator::creator,
-                                   CSpotLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("areaLight",
-                                   "",
-                                   CQuadLightTranslator::creator,
-                                   CQuadLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("pointLight",
-                                   "",
-                                   CPointLightTranslator::creator,
-                                   CPointLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("ambientLight",
-                                   "",
-                                   CAmbientLightTranslator::creator,
-                                   CAmbientLightTranslator::NodeInitializer);
-       // Multiple light translators for single Arnold areaLight node
-       builtin->RegisterTranslator("aiAreaLight",
-                                   "quad",
-                                   CQuadLightTranslator::creator,
-                                   CQuadLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiAreaLight",
-                                   "cylinder",
-                                   CCylinderLightTranslator::creator,
-                                   CCylinderLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiAreaLight",
-                                   "disk",
-                                   CDiskLightTranslator::creator,
-                                   CDiskLightTranslator::NodeInitializer);       
-       builtin->RegisterTranslator("aiAreaLight",
-                                   "mesh",
-                                   CMeshLightTranslator::creator,
-                                   CMeshLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiLightBlocker",
-                                   "",
-                                   CLightBlockerTranslator::creator);
-       // Arnold skyDomeLight node
-       builtin->RegisterTranslator("aiSkyDomeLight",
-                                   "",
-                                   CSkyDomeLightTranslator::creator,
-                                   CSkyDomeLightTranslator::NodeInitializer);
+      // A Dag node in Maya but a depend node in Arnold
+      builtin->RegisterTranslator("aiSky",
+                                  "",
+                                  CSkyShaderTranslator::creator);
+      builtin->RegisterTranslator("aiPhysicalSky",
+                                  "",
+                                  CPhysicalSkyTranslator::creator);
+      builtin->RegisterTranslator("aiHair",
+                                  "",
+                                  CAiHairTranslator::creator,
+                                  CAiHairTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiImage",
+                                  "",
+                                  CAiImageTranslator::creator);
+      // Lights
+      builtin->RegisterTranslator("directionalLight",
+                                  "",
+                                  CDirectionalLightTranslator::creator,
+                                  CDirectionalLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("spotLight",
+                                  "",
+                                  CSpotLightTranslator::creator,
+                                  CSpotLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("areaLight",
+                                  "",
+                                  CQuadLightTranslator::creator,
+                                  CQuadLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("pointLight",
+                                  "",
+                                  CPointLightTranslator::creator,
+                                  CPointLightTranslator::NodeInitializer);
+      // Multiple light translators for single Arnold areaLight node
+      builtin->RegisterTranslator("aiAreaLight",
+                                  "quad",
+                                  CQuadLightTranslator::creator,
+                                  CQuadLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiAreaLight",
+                                  "cylinder",
+                                  CCylinderLightTranslator::creator,
+                                  CCylinderLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiAreaLight",
+                                  "disk",
+                                  CDiskLightTranslator::creator,
+                                  CDiskLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiLightBlocker",
+                                  "",
+                                  CLightBlockerTranslator::creator);
+      // Arnold skyDomeLight node
+      builtin->RegisterTranslator("aiSkyDomeLight",
+                                  "",
+                                  CSkyDomeLightTranslator::creator,
+                                  CSkyDomeLightTranslator::NodeInitializer);
                                    
       builtin->RegisterTranslator("aiPhotometricLight",
-                                   "",
-                                   CPhotometricLightTranslator::creator,
-                                   CPhotometricLightTranslator::NodeInitializer);
+                                  "",
+                                  CPhotometricLightTranslator::creator,
+                                  CPhotometricLightTranslator::NodeInitializer);
 
-       builtin->RegisterTranslator("lightLinker",
-                                   "",
-                                   CLightLinkerTranslator::creator);
+      builtin->RegisterTranslator("lightLinker",
+                                  "",
+                                  CLightLinkerTranslator::creator);
 
-       // Geometry
-       builtin->RegisterTranslator("mesh",
-                                   "",
-                                   CMeshTranslator::creator,
-                                   CMeshTranslator::NodeInitializer);
-       builtin->RegisterTranslator("nurbsSurface",
-                                   "",
-                                   CNurbsSurfaceTranslator::creator,
-                                   CNurbsSurfaceTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiStandIn",
-                                   "",
-                                   CArnoldStandInsTranslator::creator,
-                                   CArnoldStandInsTranslator::NodeInitializer);
-       builtin->RegisterTranslator("fluidShape",
-                                   "",
-                                   CFluidTranslator::creator,
-                                   CFluidTranslator::NodeInitializer);
-       // Multiple camera translators for single Maya camera node
-       builtin->RegisterTranslator("camera",
-                                   "perspective",
-                                   CStandardCameraTranslator::creator,
-                                   CStandardCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "orthographic",
-                                   CStandardCameraTranslator::creator,
-                                   CStandardCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "fisheye",
-                                   CFishEyeCameraTranslator::creator,
-                                   CFishEyeCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "cylindrical",
-                                   CCylCameraTranslator::creator,
-                                   CCylCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "spherical",
-                                   CSphericalCameraTranslator::creator,
-                                   CSphericalCameraTranslator::NodeInitializer);
+      // Geometry
+      builtin->RegisterTranslator("mesh",
+                                  "polymesh",
+                                  CMeshTranslator::creator,
+                                  CMeshTranslator::NodeInitializer);
+      builtin->RegisterTranslator("mesh",
+                                  "mesh_light",
+                                  CMeshLightTranslator::creator,
+                                  CMeshLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("nurbsSurface",
+                                  "",
+                                  CNurbsSurfaceTranslator::creator,
+                                  CNurbsSurfaceTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiStandIn",
+                                  "",
+                                  CArnoldStandInsTranslator::creator,
+                                  CArnoldStandInsTranslator::NodeInitializer);
+      builtin->RegisterTranslator("fluidShape",
+                                  "",
+                                  CFluidTranslator::creator,
+                                  CFluidTranslator::NodeInitializer);
+      // Multiple camera translators for single Maya camera node
+      builtin->RegisterTranslator("camera",
+                                  "perspective",
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "orthographic",
+                                  CStandardCameraTranslator::creator,
+                                  CStandardCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "fisheye",
+                                  CFishEyeCameraTranslator::creator,
+                                  CFishEyeCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "cylindrical",
+                                  CCylCameraTranslator::creator,
+                                  CCylCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "spherical",
+                                  CSphericalCameraTranslator::creator,
+                                  CSphericalCameraTranslator::NodeInitializer);
 
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
@@ -304,38 +309,38 @@ namespace // <anonymous>
                                   "spherical",
                                   CSphericalCameraTranslator::creator,
                                   CSphericalCameraTranslator::NodeInitializer);
-                                  
+                                 
        // Hair
-       builtin->RegisterTranslator("pfxHair",
-                                   "",
-                                   CHairTranslator::creator,
-                                   CHairTranslator::NodeInitializer);
-       // Curves
-              builtin->RegisterTranslator("nurbsCurve",
-                                          "",
-                                          CCurveTranslator::creator,
-                                          CCurveTranslator::NodeInitializer);
+      builtin->RegisterTranslator("pfxHair",
+                                  "",
+                                  CHairTranslator::creator,
+                                  CHairTranslator::NodeInitializer);
+      // Curves
+      builtin->RegisterTranslator("nurbsCurve",
+                                  "",
+                                  CCurveTranslator::creator,
+                                  CCurveTranslator::NodeInitializer);
 
-       // Particles
-       builtin->RegisterTranslator("particle",
-                                   "",
-                                   CParticleTranslator::creator,
-                                   CParticleTranslator::NodeInitializer);
+      // Particles
+      builtin->RegisterTranslator("particle",
+                                  "",
+                                  CParticleTranslator::creator,
+                                  CParticleTranslator::NodeInitializer);
 
-       builtin->RegisterTranslator("nParticle",
-                                   "",
-                                   CNParticleTranslator::creator,
-                                   CNParticleTranslator::NodeInitializer);
+      builtin->RegisterTranslator("nParticle",
+                                  "",
+                                  CNParticleTranslator::creator,
+                                  CNParticleTranslator::NodeInitializer);
 
-       builtin->RegisterTranslator("instancer",
-                                   "",
-                                   CInstancerTranslator::creator,
-                                   CInstancerTranslator::NodeInitializer);
+      builtin->RegisterTranslator("instancer",
+                                  "",
+                                  CInstancerTranslator::creator,
+                                  CInstancerTranslator::NodeInitializer);
 
-       builtin->RegisterTranslator("objectSet",
-                                   "",
-                                   CObjectSetTranslator::creator,
-                                   CObjectSetTranslator::NodeInitializer);
+      builtin->RegisterTranslator("objectSet",
+                                  "",
+                                  CObjectSetTranslator::creator,
+                                  CObjectSetTranslator::NodeInitializer);
 
       // Load all plugins path or only shaders?
       CExtension* shaders;
@@ -344,6 +349,7 @@ namespace // <anonymous>
       if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
+         SetEnv("MTOA_PATH",pluginPath);
          MString modulePluginPath = pluginPath + MString("shaders");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
@@ -436,7 +442,36 @@ namespace // <anonymous>
          shaders->RegisterTranslator("blinn",
                                      "",
                                      CMayaBlinnTranslator::creator);
+         shaders->RegisterTranslator("phong",
+                                     "",
+                                     CMayaPhongTranslator::creator);
+         shaders->RegisterTranslator("singleShadingSwitch",
+                                     "",
+                                     CreateSingleShadingSwitchTranslator);
+         shaders->RegisterTranslator("doubleShadingSwitch",
+                                     "",
+                                     CreateDoubleShadingSwitchTranslator);
+         shaders->RegisterTranslator("tripleShadingSwitch",
+                                     "",
+                                     CreateTripleShadingSwitchTranslator);
+         shaders->RegisterTranslator("quadShadingSwitch",
+                                     "",
+                                     CreateQuadShadingSwitchTranslator);
+         shaders->RegisterTranslator("fluidTexture2D",
+                                     "",
+                                     CFluidTexture2DTranslator::creator);
       }
+      
+#ifdef ENABLE_XGEN
+      // register the xgen extesion separately
+      CExtension* xgen = CExtensionsManager::NewExtension("xgen");
+      xgen->Requires("xgenToolkit");
+      xgen->RegisterTranslator("xgmDescription",
+                               "",
+                               CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
+
+      CExtensionsManager::RegisterExtension(xgen);
+#endif
 
       // Will load all found plugins and try to register nodes and translators
 
@@ -494,6 +529,40 @@ namespace // <anonymous>
    }
 } // namespace
 
+int GetStartupLogLevel()
+{
+   const char* env = getenv("MTOA_STARTUP_LOG_VERBOSITY");
+   int baseFlags = AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_TIMESTAMP | AI_LOG_COLOR;
+   if (env == 0)
+      return AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+   else
+   {
+      int envRes = atoi(env);
+      if (envRes == 1)
+         return AI_LOG_ERRORS | AI_LOG_WARNINGS | baseFlags;
+      else if (envRes == 2)
+         return AI_LOG_ERRORS | AI_LOG_WARNINGS | AI_LOG_INFO | baseFlags;
+      else if (envRes == 3)
+         return AI_LOG_ALL;
+      else
+         return 0;
+   } 
+}
+
+void updateEnvironment(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData)
+{
+   MString srcName = srcPlug.partialName(false, false, false, false, false, true);
+   MString destName = destPlug.name();
+   
+   if(srcName == "message")
+   {  
+      if(destName == "defaultArnoldRenderOptions.background")
+         MGlobal::executeCommandOnIdle("updateBackgroundSettings()");
+      else if(destName == "defaultArnoldRenderOptions.atmosphere")
+         MGlobal::executeCommandOnIdle("updateAtmosphereSettings()");
+   }
+}
+
 
 DLLEXPORT MStatus initializePlugin(MObject object)
 {
@@ -512,19 +581,19 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString metafile = loadpath + "/" + "mtoa.mtd";
    SetMetafile(metafile);
 
-   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
+   ArnoldUniverseBegin(GetStartupLogLevel());
 
    // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
-         CArnoldAssTranslator::fileIcon,
-         CArnoldAssTranslator::exportCreator,
-         CArnoldAssTranslator::optionScriptExport,
-         CArnoldAssTranslator::optionDefault,
-         false);
+                                          CArnoldAssTranslator::fileIcon,
+                                          CArnoldAssTranslator::exportCreator,
+                                          CArnoldAssTranslator::optionScriptExport,
+                                          CArnoldAssTranslator::optionDefault,
+                                          false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold ass file exporter");
+      AiMsgDebug("Successfully registered Arnold ass file exporter");
    }
    else
    {
@@ -535,15 +604,15 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeImport,
-         CArnoldAssTranslator::fileIcon,
-         CArnoldAssTranslator::importCreator,
-         CArnoldAssTranslator::optionScriptImport,
-         CArnoldAssTranslator::optionDefault,
-         false);
+                                          CArnoldAssTranslator::fileIcon,
+                                          CArnoldAssTranslator::importCreator,
+                                          CArnoldAssTranslator::optionScriptImport,
+                                          CArnoldAssTranslator::optionDefault,
+                                          false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold ass file importer");
+      AiMsgDebug("Successfully registered Arnold ass file importer");
    }
    else
    {
@@ -558,12 +627,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    extensions.append("tex");
    extensions.append("tx");
    plugin.registerImageFile(CTxTextureFile::fileName,
-                           CTxTextureFile::creator, 
-                           extensions);
+                            CTxTextureFile::creator, 
+                            extensions);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered tx texture file");
+      AiMsgDebug("Successfully registered tx texture file");
    }
    else
    {
@@ -579,7 +648,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold swatch renderer");
+      AiMsgDebug("Successfully registered Arnold swatch renderer");
    }
    else
    {
@@ -593,7 +662,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldRender' command");
+      AiMsgDebug("Successfully registered 'arnoldRender' command");
    }
    else
    {
@@ -606,7 +675,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldIpr' command");
+      AiMsgDebug("Successfully registered 'arnoldIpr' command");
    }
    else
    {
@@ -619,7 +688,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldExportAss' command");
+      AiMsgDebug("Successfully registered 'arnoldExportAss' command");
    }
    else
    {
@@ -632,7 +701,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldPlugins' command");
+      AiMsgDebug("Successfully registered 'arnoldPlugins' command");
    }
    else
    {
@@ -646,7 +715,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldListAttributes' command");
+      AiMsgDebug("Successfully registered 'arnoldListAttributes' command");
    }
    else
    {
@@ -660,7 +729,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldTemperatureToColor' command");
+      AiMsgDebug("Successfully registered 'arnoldTemperatureToColor' command");
    }
    else
    {
@@ -674,7 +743,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered 'arnoldFlushCache' command");
+      AiMsgDebug("Successfully registered 'arnoldFlushCache' command");
    }
    else
    {
@@ -687,7 +756,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    status = RegisterArnoldNodes(object);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold nodes");
+      AiMsgDebug("Successfully registered Arnold nodes");
    }
    else
    {
@@ -733,7 +802,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered renderer 'arnold'");
+      AiMsgDebug("Successfully registered renderer 'arnold'");
       MGlobal::displayInfo("Successfully registered renderer 'arnold'");
    }
    else
@@ -743,6 +812,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+   
+   connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
    ArnoldUniverseEnd();
 
@@ -760,7 +831,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    // Should be done when render finishes
    CMayaScene::End();
 
-   ArnoldUniverseBegin(AI_LOG_ALL & ~AI_LOG_DEBUG);
+   ArnoldUniverseBegin(GetStartupLogLevel());
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
@@ -941,6 +1012,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister Arnold ass file importer");
    }
 
+   MMessage::removeCallback(connectionCallback);
+   
    ArnoldUniverseEnd();
 
    CMayaScene::DeInit();

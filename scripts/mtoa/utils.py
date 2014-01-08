@@ -258,6 +258,12 @@ def expandFileTokens(path, tokens, leaveUnmatchedTokens=False):
             result.append(_substitute(parts, tokens, allOrNothing=False, leaveUnmatchedTokens=leaveUnmatchedTokens))
     return ''.join(result)
 
+def translatorToExtension(translatorName):
+    if (translatorName == "deepexr") :
+        return "exr"
+    else :
+        return translatorName
+    
 def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
                  createDirectory=False, isSequence=None, leaveUnmatchedTokens=False,
                  catchErrors=True, **kwargs):
@@ -350,7 +356,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     path += schemes[settings.namingScheme]
 
     if '<Extension>' in path and 'Extension' not in tokens:
-        tokens['Extension'] = pm.getAttr('defaultArnoldDriver.aiTranslator')
+        tokens['Extension'] = translatorToExtension(pm.getAttr('defaultArnoldDriver.aiTranslator'))
     if '<Frame>' in path and 'Frame' not in tokens:
         # TODO: add handling of sub-frames
         if frame is None:
@@ -386,12 +392,9 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     if pathType in [pm.api.MCommonRenderSettingsData.kRelativePath, 'relative']:
         return partialPath
 
-    rootPath = pm.workspace(q=True, rd=True)
     imageDir = pm.workspace(fileType, q=True, fileRuleEntry=True)
     imageDir = imageDir if imageDir else 'data'
-
-    if not os.path.isabs(imageDir):
-        imageDir = os.path.join(rootPath, imageDir)
+    imageDir = pm.workspace(expandName=imageDir);
 
     if pathType in [pm.api.MCommonRenderSettingsData.kFullPathTmp, 'temp']:
         result = os.path.join(imageDir, 'tmp', partialPath)

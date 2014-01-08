@@ -50,7 +50,9 @@ static MCallbackId                             s_timer_cb = 0;
 static int s_AA_Samples;
 static int s_GI_diffuse_samples;
 static int s_GI_glossy_samples;
-static int s_sss_sample_factor;
+static int s_GI_refraction_samples;
+static int s_sss_bssrdf_samples;
+static int s_volume_indirect_samples;
 
 static bool s_firstOpen = false;
 static bool s_newRender = false;
@@ -169,6 +171,16 @@ driver_open
    {
       s_outputDriverData.swatchImageWidth = display_window.maxx - display_window.minx + 1;
    }
+}
+
+driver_needs_bucket
+{
+   return true;
+}
+
+driver_process_bucket
+{
+
 }
 
 driver_prepare_bucket
@@ -494,14 +506,14 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    }
    
    MStatus status;
-   MString camName = AiNodeGetName(AiUniverseGetCamera());
+   const char* camName = AiNodeGetName(AiUniverseGetCamera());
    MDagPath camera;
    MSelectionList list;
    list.add(camName);
    if (list.length() > 0)
       list.getDagPath(0, camera);
-   else
-      AiMsgError("[mtoa] display driver could not find render camera \"%s\"", camName.asChar());
+   else if (camName)
+      AiMsgError("[mtoa] display driver could not find render camera \"%s\"", camName);
    // An alternate solution:
    //       MDagPath camera = CMayaScene::GetRenderSession()->GetCamera();
    status = MRenderView::setCurrentCamera(camera);
@@ -621,7 +633,11 @@ void RenderEnd()
       rvInfo += "/";
       rvInfo += s_GI_glossy_samples;
       rvInfo += "/";
-      rvInfo += s_sss_sample_factor;
+      rvInfo += s_GI_refraction_samples;
+      rvInfo += "/";
+      rvInfo += s_sss_bssrdf_samples;
+      rvInfo += "/";
+      rvInfo += s_volume_indirect_samples;
       rvInfo += "]";
       rvInfo += "    ";
 
@@ -690,10 +706,12 @@ void BeginImage()
                                                  &status);
 
    AtNode* options = AiUniverseGetOptions();
-   s_AA_Samples = AiNodeGetInt(options, "AA_samples");
-   s_GI_diffuse_samples = AiNodeGetInt(options, "GI_diffuse_samples");
-   s_GI_glossy_samples = AiNodeGetInt(options, "GI_glossy_samples");
-   s_sss_sample_factor = AiNodeGetInt(options, "sss_sample_factor");
+   s_AA_Samples               = AiNodeGetInt(options, "AA_samples");
+   s_GI_diffuse_samples       = AiNodeGetInt(options, "GI_diffuse_samples");
+   s_GI_glossy_samples        = AiNodeGetInt(options, "GI_glossy_samples");
+   s_GI_refraction_samples    = AiNodeGetInt(options, "GI_refraction_samples");
+   s_sss_bssrdf_samples         = AiNodeGetInt(options, "sss_bssrdf_samples");
+   s_volume_indirect_samples  = AiNodeGetInt(options, "volume_indirect_samples");
 
    s_start_time = time(NULL);
    if (s_outputDriverData.isRegion)
@@ -749,7 +767,11 @@ void EndImage()
       rvInfo += "/";
       rvInfo += s_GI_glossy_samples;
       rvInfo += "/";
-      rvInfo += s_sss_sample_factor;
+      rvInfo += s_GI_refraction_samples;
+      rvInfo += "/";
+      rvInfo += s_sss_bssrdf_samples;
+      rvInfo += "/";
+      rvInfo += s_volume_indirect_samples;
       rvInfo += "]";
       rvInfo += "    ";
 

@@ -21,10 +21,16 @@ class AEaiAOVDriverTemplate(ShaderAETemplate):
         self.addControl('prefix', label="Override Path Prefix")
         self.addControl('mergeAOVs', label="Merge AOVs")
         self.addControl('outputMode')
+        #self.addControl('customAttributes')
         self.endLayout()
 
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
+        
+        self.suppress('customAttributes')
+        self.suppress('layerHalfPrecision')
+        self.suppress('layerTolerance')
+        self.suppress('layerEnableFiltering')
         self.addExtraControls()
 
         self.endScrollLayout()

@@ -15,13 +15,8 @@ class CArnoldSkyNode
 
 public:
 
-   static void removeSky(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData)
+   ~CArnoldSkyNode()
    {
-      MString srcName = srcPlug.partialName(false, false, false, false, false, true);
-      MString destName = destPlug.name();
-      
-      if(srcName == "message" && destName == "defaultArnoldRenderOptions.background")
-         MGlobal::executeCommandOnIdle("updateBackgroundSettings()");
    }
 
    virtual void postConstructor()
@@ -30,8 +25,6 @@ public:
       CSphereLocator::postConstructor();
 
       setMPSafe(true);
-
-      MDGMessage::addConnectionCallback(removeSky);
    }
 
    static void* creator();

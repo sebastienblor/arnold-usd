@@ -24,6 +24,13 @@ enum RenderType
    MTOA_RENDER_EXPORTASS_AND_KICK
 };
 
+enum LogVerbosity
+{
+   MTOA_LOG_ERRORS,
+   MTOA_LOG_WANINGS_INFO,
+   MTOA_LOG_DEBUG
+};
+
 class DLLEXPORT CRenderOptions
 {
    friend class CRenderSession;
@@ -76,6 +83,11 @@ public:
    {
       return m_clearBeforeRender;
    }
+
+   bool useBinaryEncoding() const
+   {
+      return m_useBinaryEncoding;
+   }
    
    bool sceneUpdateBeforeIPRRender() const
    {
@@ -110,6 +122,11 @@ public:
    void SetExpandProcedurals(bool expand_procedurals)
    {
       m_expandProcedurals = expand_procedurals;
+   }
+
+   void SetUseBinaryEncoding(bool ube)
+   {
+      m_useBinaryEncoding = ube;
    }
 
    void SetCamera(MDagPath& camera);
@@ -180,6 +197,16 @@ public:
       m_progressive_rendering = is_progressive;
    }
 
+   bool forceTranslateShadingEngines() const
+   {
+      return m_force_translate_shading_engines;
+   }
+
+   void SetForceTranslateShadingEngines(const bool force_translate_shading_engines)
+   {
+      m_force_translate_shading_engines = force_translate_shading_engines;
+   }
+
    MStatus GetFromMaya();
 
    void SetupLog() const;
@@ -202,60 +229,55 @@ private:
    void SetupImageFilter() const;
 
 private:
+   MCommonRenderSettingsData m_defaultRenderGlobalsData;
+
+   MDagPath m_camera;
+
+   MObject m_options;
+
+   MString m_arnoldRenderImageFormat;
+   MString m_plugins_path;
+   MString m_outputAssFile;
+   MString m_log_filename;
+   MString m_renderDriver;
+   MString m_imageFileExtension;
+   MString m_imageFilename;
+   MString m_panel;
+   MString m_shader_searchpath;
+
+   float m_pixelAspectRatio;
+   float m_startFrame;
+   float m_endFrame;
+   float m_byFrameStep;
+   float m_AA_sample_clamp;
+   float m_AA_sample_clamp_AOVs;
 
    AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
    AtUInt32 m_width, m_height;
-   float    m_pixelAspectRatio;
-   bool     m_useRenderRegion;
-   bool     m_clearBeforeRender; 
-   bool     m_forceSceneUpdateBeforeIPRRefresh;
-   bool     m_forceTextureCacheFlushAfterRender;
-
-   float    m_startFrame;
-   float    m_endFrame;
-   float    m_byFrameStep;
-   bool     m_multiCameraRender;
-
-   MObject  m_options;
-   MDagPath m_camera;
-   MString  m_panel;
-
-   MString  m_renderDriver;
-   MString  m_imageFileExtension;
-   MString  m_imageFilename;
    AtUInt32 m_extensionPadding;
-   MString  m_arnoldRenderImageFormat;
-   bool     m_isAnimated;
 
-   MCommonRenderSettingsData m_defaultRenderGlobalsData;
+   unsigned int m_log_max_warnings;
+   unsigned int m_log_verbosity;
+   unsigned int m_AA_samples;
+   unsigned int m_GI_diffuse_samples;
+   unsigned int m_GI_glossy_samples;
+   unsigned int m_outputAssMask;
+   unsigned int m_progressive_initial_level;
+   unsigned int m_threads;
 
-   bool     m_progressive_rendering;
-   unsigned int   m_progressive_initial_level;
-   unsigned int   m_threads;
-   MString  m_plugins_path;
-
-   unsigned int   m_AA_samples;
-   unsigned int   m_GI_diffuse_samples;
-   unsigned int   m_GI_glossy_samples;
-   unsigned int   m_sss_sample_factor;
-   float    m_AA_sample_clamp;
-   float    m_AA_sample_clamp_AOVs;
-   bool     m_lock_sampling_noise;
-
-   bool m_use_existing_tiled_textures;
-   
-   MString  m_outputAssFile;
-
-   bool     m_outputAssBoundingBox;
-   unsigned int   m_outputAssMask;
+   bool m_useRenderRegion;
+   bool m_clearBeforeRender; 
+   bool m_forceSceneUpdateBeforeIPRRefresh;
+   bool m_forceTextureCacheFlushAfterRender;
+   bool m_useBinaryEncoding;
+   bool m_log_to_file;
+   bool m_log_to_console;
    bool m_expandProcedurals;
-
-   bool           m_log_to_file;
-   bool           m_log_to_console;
-   MString        m_log_filename;
-   unsigned int   m_log_max_warnings;
-   unsigned int   m_log_console_verbosity;
-   unsigned int   m_log_file_verbosity;
-
-   MString m_shader_searchpath;
+   bool m_force_translate_shading_engines;
+   bool m_lock_sampling_noise;
+   bool m_use_existing_tiled_textures;
+   bool m_outputAssBoundingBox;
+   bool m_progressive_rendering;
+   bool m_isAnimated;
+   bool m_multiCameraRender;  
 };

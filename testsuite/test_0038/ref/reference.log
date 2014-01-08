@@ -1,205 +1,53 @@
 
-Starting "/usr/autodesk/maya2014-x64/bin/maya"
+Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
 
-00:00:00   171MB         | log started Fri Jun  7 16:15:12 2013
-00:00:00   171MB         | Arnold 4.0.16.0.dev linux icc130 glibc212 oiio1016 (build date: Jun  7 2013 14:22:12)
-00:00:00   171MB         | running on localhost.localdomain
-00:00:00   171MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   171MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.6.2.el6.centos.plus.x86_64
-00:00:00   171MB         |  
-00:00:00   171MB         | Successfully registered Arnold ass file exporter
-00:00:00   171MB         | Successfully registered Arnold ass file importer
-00:00:00   171MB         | Successfully registered tx texture file
-00:00:00   171MB         | Successfully registered Arnold swatch renderer
-00:00:00   171MB         | Successfully registered 'arnoldRender' command
-00:00:00   171MB         | Successfully registered 'arnoldIpr' command
-00:00:00   171MB         | Successfully registered 'arnoldExportAss' command
-00:00:00   171MB         | Successfully registered 'arnoldPlugins' command
-00:00:00   171MB         | Successfully registered 'arnoldListAttributes' command
-00:00:00   171MB         | Successfully registered 'arnoldTemperatureToColor' command
-00:00:00   171MB         | Successfully registered 'arnoldFlushCache' command
-00:00:00   171MB ERROR   | [mtoa.attr] Arnold parameter "procedural.doubleSided" does not exist.
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "emission"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "direct_diffuse"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "direct_specular"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "indirect_diffuse"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "indirect_specular"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "reflection"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "refraction"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiStandard] Registered AOV "sss"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiHair] Registered AOV "direct_diffuse"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiHair] Registered AOV "direct_specular"
-00:00:00   172MB         | [mtoa] [<built-in>] [node aiHair] Registered AOV "indirect_diffuse"
-00:00:00   172MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   172MB         | [mtoa] [<built-in>] Generated 45 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   172MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   172MB         |  mtoa_shaders.so: MayaMultiplyDivide uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaClamp uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaGammaCorrect uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaCondition uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaReverse uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaBlendColors uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSamplerInfo1D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSamplerInfo2D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaRemapValueToValue uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaRemapValueToColor uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaRemapColor uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaFile uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaPlace2DTexture uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaRamp uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaProjection uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MeshInfo uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaChecker uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaBulge uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaCloth uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaGrid uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaFractal uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaNoise uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaPlace3DTexture uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaRgbToHsv uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaHsvToRgb uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaLuminance uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaCloud uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaCloudAlpha uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSnow uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaContrast uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaLayeredTexture uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaLayeredShader uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSolidFractal uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaVolumeNoise uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaBrownian uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaStucco uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaRemapHsv uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSetRange uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaImagePlane uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSurfaceShader uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: colorToFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: vectorToFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: pointToFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: point2ToFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: writeColor uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: aovWriteColor uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: writeFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: aovWriteFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaEnvSphere uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: anim_matrix uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: anim_float uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: anim_point uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: anim_vector uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: anim_color uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataFloat uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataVector uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataColor uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataString uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaShadingEngine uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: skin_sss uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaSamplerInfo3D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: aovWriteVector uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: aovWritePoint uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: aovWritePoint2 uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaNormalDisplacement uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaVectorDisplacement uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataBool uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: shadowCatcher uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: MayaHair uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: meshLightMaterial uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataPnt2 uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: userDataInt uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: mayaBump2D uses Arnold 4.0.16.0.dev
-00:00:00   172MB         |  mtoa_shaders.so: mayaFluid uses Arnold 4.0.16.0.dev
-00:00:00   173MB         |  mtoa_shaders.so: mayaMarble uses Arnold 4.0.16.0.dev
-00:00:00   173MB         | loaded 78 plugins from 1 lib(s) in 0:00.00
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "direct_diffuse"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "indirect_diffuse"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "primary_specular"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "secondary_specular"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "shallow_scatter"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "mid_scatter"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] [node aiSkinSss] Registered AOV "deep_scatter"
-00:00:00   173MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   173MB         | [mtoa] [mtoa_shaders] Generated 39 translators for 39 Maya nodes (12 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   173MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   173MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   173MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   173MB         |  renderview_driver.so: driver_socket uses Arnold 4.0.14.0.dev
-00:00:00   173MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   173MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   173MB         | [mtoa] [renderview_driver] Generated 1 translators for 1 Maya nodes (0 new and 1 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   173MB         | loading plugin: /work/deploy/shaders/TestShaders.so ...
-00:00:00   173MB         |  TestShaders.so: dWarthog uses Arnold 4.0.14.0.dev
-00:00:00   173MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   173MB WARNING | [mtoa] [TestShaders] [node dWarthog] Assigning temporary node id 1138176 to associated Maya type name dWarthog.
-00:00:00   173MB         | [mtoa] [TestShaders] Generated 1 new Maya nodes for Arnold plugin /work/deploy/shaders/TestShaders.so.
-00:00:00   173MB         | [mtoa] [TestShaders] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/shaders/TestShaders.so.
-00:00:00   173MB         | [mtoa] Registering 4 loaded extensions:
-00:00:00   174MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   174MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
-00:00:00   174MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   174MB         | [mtoa] Registered extension TestShaders provided by /work/deploy/shaders/TestShaders.so.
-00:00:00   174MB         | Successfully registered Arnold nodes
+mental ray for Maya 2013 
+mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
+pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
 libai.so already loaded
 
-00:00:00   177MB         | Successfully imported python module 'arnold'
-00:00:00   177MB         | Successfully imported python module 'mtoa'
-pymel.internal.factories : INFO : MFnDagNode.model is deprecated
-pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, AbcImport, mtoa
-Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.pyc)
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
-00:00:01   273MB         | Successfully registered renderer 'arnold'
-00:00:01   273MB         |  
-00:00:01   273MB         | releasing resources
-00:00:01   273MB         | Arnold shutdown
-mental ray for Maya 2014 
-mental ray: version 3.11.1.4, Jan 25 2013, revision 189569
-file -f -options "v=0;"  -typ "mayaAscii" -o "/work/mtoa/build/linux_x86_64/201400/gcc_opt/testsuite/test_0038/test.ma";addRecentFile("/work/mtoa/build/linux_x86_64/201400/gcc_opt/testsuite/test_0038/test.ma", "mayaAscii");
+Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
+Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
 File read in 0 seconds.
-Warning: line 0: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Warning: file: /tmp/ASTMPDi8Xkk.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /tmp/ASTMPDi8Xkk.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   333MB         | log started Fri Jun  7 16:15:15 2013
-00:00:00   333MB         | Arnold 4.0.16.0.dev linux icc130 glibc212 oiio1016 (build date: Jun  7 2013 14:22:12)
-00:00:00   333MB         | running on localhost.localdomain
-00:00:00   333MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   333MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.6.2.el6.centos.plus.x86_64
-00:00:00   333MB         |  
-00:00:00   333MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
-00:00:00   333MB         | loaded 78 plugins from 1 lib(s) in 0:00.06
-00:00:00   333MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   333MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   333MB         | loading plugin: /work/deploy/shaders/TestShaders.so ...
-00:00:00   333MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   333MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   333MB WARNING | cannot unlink parameter "background" from an options node
-00:00:00   333MB WARNING | cannot unlink parameter "atmosphere" from an options node
-00:00:00   334MB         |  
-00:00:00   334MB         | there are 1 light and 1 object:
-00:00:00   334MB         |  1 polymesh
-00:00:00   334MB         |  
-00:00:00   334MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:00   334MB         |  initializing 15 nodes ...
-00:00:00   334MB         |  node initialization done in 0:00.00
-00:00:00   336MB         |  creating root object list ...
-00:00:00   336MB         |   scene bounds: (-10.0000057 -10 -9.98027611) -> (10 10 9.98027039)
-00:00:00   336MB         |  updating 16 nodes ...
-00:00:00   336MB         |  node update done in 0:00.00
-00:00:00   336MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   336MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   336MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   336MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:00   345MB         |    10% done - 9 rays/pixel
-00:00:00   345MB         |    20% done - 9 rays/pixel
-00:00:00   344MB         |    35% done - 18 rays/pixel
-00:00:00   344MB         |    60% done - 21 rays/pixel
-00:00:01   345MB         |    80% done - 53 rays/pixel
-00:00:01   345MB         |   100% done - 46 rays/pixel
-00:00:01   345MB         |  bucket workers done in 0:00.97
-00:00:01   345MB         | render done
-00:00:01   345MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201400/gcc_opt/testsuite/test_0038/testrender.tif'
-00:00:01   345MB         |  
-00:00:01   345MB         | releasing resources
-00:00:01   342MB         | Arnold shutdown
-Scene /work/mtoa/build/linux_x86_64/201400/gcc_opt/testsuite/test_0038/test.ma completed.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Result: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0038/test.ma
+Warning: file: /usr/tmp/ASTMPtj5MM5.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMPtj5MM5.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   296MB         | log started Thu Oct 10 17:56:05 2013
+00:00:00   296MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 15:28:48
+00:00:00   296MB         | running on localhost.localdomain
+00:00:00   296MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   296MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
+00:00:00   296MB         |  
+00:00:00   296MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
+00:00:00   296MB         | loaded 84 plugins from 1 lib(s) in 0:00.06
+00:00:00   296MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
+00:00:00   297MB         |  
+00:00:00   297MB         | there are 1 light and 1 object:
+00:00:00   297MB         |  1 polymesh
+00:00:00   297MB         |  
+00:00:00   297MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00   297MB         |  initializing 15 nodes ...
+00:00:00   297MB         |  node initialization done in 0:00.00
+00:00:00   298MB         |  creating root object list ...
+00:00:00   298MB         |   scene bounds: (-10.0000057 -10 -9.98027611) -> (10 10 9.98027039)
+00:00:00   298MB         |  updating 16 nodes ...
+00:00:00   298MB         |  node update done in 0:00.00
+00:00:00   298MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
+00:00:00   298MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
+00:00:00   299MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00   299MB         |  starting 8 bucket workers of size 64x64 ...
+00:00:00   304MB         |    10% done - 9 rays/pixel
+00:00:00   304MB         |    20% done - 9 rays/pixel
+00:00:00   305MB         |    35% done - 18 rays/pixel
+00:00:00   305MB         |    60% done - 21 rays/pixel
+00:00:00   305MB         |    75% done - 46 rays/pixel
+00:00:00   305MB         |   100% done - 53 rays/pixel
+00:00:00   305MB         |  bucket workers done in 0:00.40
+00:00:00   305MB         | render done
+00:00:00   305MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0038/testrender.tif'
+00:00:00   305MB         |  
+00:00:00   305MB         | releasing resources
+00:00:00   301MB         | Arnold shutdown
+Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0038/test.ma completed.

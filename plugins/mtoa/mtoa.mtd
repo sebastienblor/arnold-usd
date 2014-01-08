@@ -84,12 +84,8 @@
     [attr auto_transparency_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
-        max                 FLOAT   10.0
+        max                 FLOAT   1.0
         maya.orig_shortname STRING  "at_t"
-    [attr sss_subpixel_cache]
-        maya.keyable        BOOL    False
-        maya.orig_shortname STRING  "sssspc"
-        default             BOOL    True
     [attr show_samples]
         maya.keyable        BOOL    False   
         maya.orig_shortname STRING  "sssshs"
@@ -166,23 +162,9 @@
         softmax             INT     10
     [attr sss_bssrdf_samples]
         maya.keyable        BOOL    False
-        min                 INT     1
+        min                 INT     0
         max                 INT     100
-        softmin             INT     1
-        softmax             INT     10
-        default             INT     1
-    [attr sss_sample_factor]
-        maya.keyable        BOOL    False
-        min                 INT     1
-        max                 INT     100
-        softmin             INT     1
-        softmax             INT     10
-        default             INT     4
-    [attr sss_bssrdf_samples]
-        maya.keyable        BOOL    False
-        min                 INT     1
-        max                 INT     100
-        softmin             INT     3
+        softmin             INT     0
         softmax             INT     10        
         default             INT     3
     [attr volume_indirect_samples]
@@ -197,22 +179,6 @@
 
 # lights
 
-[node ambient_light]
-    maya.name               STRING  "ambientLight"
-    maya.id                 INT     0x414d424c
-    maya.classification     STRING  "light"
-    [attr bounce_factor]
-        min                 FLOAT   0.0
-        softmax             FLOAT   20.0
-    [attr bounces]
-        min                 INT     0
-        max                 INT     10000
-    [attr shadow_density]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0
-        softmin             FLOAT   0.0
-        softmax             FLOAT   1.0
-
 [node distant_light]
     maya.name               STRING  "directionalLight"
     maya.id                 INT     0x4449524c
@@ -225,8 +191,9 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
+        max                 FLOAT   180.0
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -284,7 +251,7 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -344,7 +311,7 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -462,7 +429,6 @@
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
         
-        
 [node photometric_light]
     maya.name               STRING  "aiPhotometricLight"
     maya.id                 INT     0x00115C87
@@ -540,7 +506,7 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -665,7 +631,7 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -696,6 +662,45 @@
     [attr affect_volumetrics]
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
+        maya.channelbox     BOOL    True
+
+
+[node mesh_light]
+    maya.name               STRING  "aiAreaLight"
+    maya.id                 INT     0x00115C86
+    maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+    [attr color]
+        linkable            BOOL    True
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr exposure]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr diffuse]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr specular]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr sss]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
 
 # light filters
@@ -769,7 +774,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -791,7 +796,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight mesh"
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -828,9 +833,9 @@
         # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
-        min                 INT     3
+        min                 INT     0
         max                 INT     40
-        default             INT     6
+        default             INT     0
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
@@ -846,6 +851,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
 
 [node ortho_camera]
     maya.name               STRING  "camera"
@@ -856,6 +869,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
 
 [node fisheye_camera]
     maya.name               STRING  "camera"
@@ -881,9 +902,9 @@
         # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
-        min                 INT     3
+        min                 INT     0
         max                 INT     40
-        # default           INT     6
+        default             INT     0
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
@@ -899,6 +920,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
         
 [node cyl_camera]
     maya.name               STRING  "camera"
@@ -918,7 +947,15 @@
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
-        softmax             FLOAT   5.0        
+        softmax             FLOAT   5.0    
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0        
 
 [node spherical_camera]
     maya.name               STRING  "camera"
@@ -929,6 +966,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
         
 # shaders
 
@@ -1100,6 +1145,7 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr lacunarity]
+        min                 FLOAT   0.0001
         softmin             FLOAT   1.0
         softmax             FLOAT   5.0
     [attr amplitude]
@@ -1130,6 +1176,18 @@
     maya.name               STRING  "aiMotionVector"
     maya.id                 INT     0x00115D0F
     maya.classification     STRING  "shader/utility"
+    [attr time0]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.0
+    [attr time1]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   1.0
+    [attr max_displace]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.0
 
 [node bump3d]
     desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
@@ -1317,10 +1375,6 @@
     [attr subdiv_pixel_error]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-    [attr sss_sample_spacing]
-        label               STRING  "SSS Sample Spacing"
-        min                 FLOAT   0.0
-        softmax             FLOAT   1.0
 
 [node procedural]
     [attr opaque]
@@ -1335,20 +1389,17 @@
     [attr glossy_visibility]
         maya.name           STRING  "aiGlossyVisibility"
         label               STRING  "Visible In Glossy"
-    [attr sss_sample_spacing]
-        maya.name           STRING  "aiSssSampleSpacing"
-        label               STRING  "SSS Sample Spacing"
-        min                 FLOAT   0.0
-        softmax             FLOAT   1.0
 
 # drivers
-
-[node driver_null]
-    maya.hide               BOOL    true
 
 [node driver_display]
     maya.hide               BOOL    true
 
+[node driver_deepexr]
+    maya.translator         STRING  "deepexr"
+    [attr filename]
+        maya.hide           BOOL    true
+    
 [node driver_exr]
     maya.translator         STRING  "exr"
     [attr filename]

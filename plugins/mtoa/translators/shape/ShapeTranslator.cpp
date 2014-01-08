@@ -50,15 +50,13 @@ int DJB2Hash(unsigned char *str)
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetInt(node, "visibility", ComputeVisibility());
+   AiNodeSetByte(node, "visibility", ComputeVisibility());
 
    MPlug plug;
 
    ProcessParameter(node, "self_shadows", AI_TYPE_BOOLEAN, "aiSelfShadows");
    ProcessParameter(node, "opaque", AI_TYPE_BOOLEAN, "aiOpaque");
    ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
-   ProcessParameter(node, "sss_sample_distribution", AI_TYPE_INT, "aiSssSampleDistribution");
-   ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, "aiSssSampleSpacing");   
    MStatus status;
    plug = FindMayaPlug("aiSssSetname", &status);
    if (status && !plug.isNull())
@@ -92,9 +90,6 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
    MString nodeType = helper.GetMayaNodeTypeName();
    AiMsgDebug("[mtoa] Creating common Arnold shape attributes on Maya \"%s\" nodes", nodeType.asChar());
-
-   helper.MakeInput("sss_sample_distribution");
-   helper.MakeInput("sss_sample_spacing");
 
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");

@@ -798,7 +798,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
    //   
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
-   unsigned int numPolys = fnMesh.numPolygons();
    
    const float* vertices = 0;
    // Get all vertices
@@ -864,10 +863,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            if (strcmp(it->first.c_str(), "sss_faceset") != 0)
-               AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
-            else
-               AiNodeDeclare(polymesh, "sss_faceset", "uniform BOOL");
+            AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
             ++it;
          }
       }
@@ -984,44 +980,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            if (strcmp(it->first.c_str(), "sss_faceset") != 0)
-            {
-               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
-            }
-            else
-            {
-               int m_colorId;
-               float m_count = 0.0f;
-               MColorArray colors;
-               MString m_colorSetName = "sss_faceset";
-               MColor m_defaultColor  = MColor(0.0f, 0.0f, 0.0f);
-
-               AtArray *m_sss_faceset_bool = AiArray(numPolys, 1, AI_TYPE_BOOLEAN, NULL);
-
-               fnMesh.getFaceVertexColors(colors, &m_colorSetName, &m_defaultColor);
-
-               for (int m_polygonId = 0; (m_polygonId < (int)numPolys); m_polygonId++)
-               {
-                  MIntArray m_vertexList;
-                  fnMesh.getPolygonVertices(m_polygonId, m_vertexList);
-
-                  m_count = 0.0f;
-                  for (int m_vertexId = 0; (m_vertexId < (int)m_vertexList.length()); m_vertexId++)
-                  {
-                     fnMesh.getFaceVertexColorIndex(m_polygonId, m_vertexId, m_colorId, &m_colorSetName);
-                     m_count += (colors[m_colorId][0]+colors[m_colorId][1]+colors[m_colorId][2])/3.0f;
-                  }
-                  if (m_count/(float)m_vertexList.length() >= 0.5f)
-                  {
-                     AiArraySetBool(m_sss_faceset_bool, m_polygonId, true);
-                  }
-                  else
-                  {
-                     AiArraySetBool(m_sss_faceset_bool, m_polygonId, false);
-                  }
-               }
-               AiNodeSetArray(polymesh, "sss_faceset", m_sss_faceset_bool);
-            }
+            AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
             ++it;
          }
       }
@@ -1071,11 +1030,11 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    AiNodeSetBool(polymesh, "smoothing", FindMayaPlug("smoothShading").asBool());
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
    else
    {
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
+      AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
    // Subdivision surfaces
@@ -1087,7 +1046,7 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetByte(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
       AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
@@ -1104,14 +1063,15 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
    ProcessRenderFlags(polymesh);
 
    if (FindMayaPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetByte(polymesh, "sidedness", AI_RAY_ALL);
    else
    {
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
+      AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
 
@@ -1126,7 +1086,8 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
    ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
@@ -1150,10 +1111,11 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   int visibility = AiNodeGetInt(masterNode, "visibility");
-   AiNodeSetInt(instance, "visibility", visibility);
+   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   AiNodeSetByte(instance, "visibility", visibility);
 
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
    {
       //
       // SHADERS
@@ -1317,39 +1279,42 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = false;
    data.name = "aiExportTangents";
    data.shortName = "ai_exptan";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportColors";
    data.shortName = "ai_expcol";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
    
    data.defaultValue.BOOL = true;
    data.name = "aiExportRefPoints";
    data.shortName = "ai_exprpt";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportRefNormals";
    data.shortName = "ai_exprnrm";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportRefTangents";
    data.shortName = "ai_exprtan";
+   data.channelBox = false;
+   data.keyable = false;
    helper.MakeInputBoolean(data);
-   
-   data.defaultValue.INT = 0;
-   data.enums.clear();
-   data.enums.append("Mesh");
-   data.enums.append("Bounding Box");
-   data.name = "aiVolumeContainerMode";
-   data.shortName = "ai_volume_container_mode";
-   helper.MakeInputEnum(data);
-   
+      
    data.defaultValue.FLT = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";
+   data.channelBox = false;
    data.hasMin = true;
    data.min.FLT = 0.f;
    data.hasSoftMax = true;

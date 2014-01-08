@@ -102,9 +102,29 @@ void CHairTranslator::Update( AtNode *curve )
    
    //ProcessRenderFlags(curve);
    ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
-   int visibility = ComputeVisibility(m_dagPath);
+
+   AtByte visibility = AI_RAY_ALL;
+   plug = fnDepNodeHair.findPlug("castShadows");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_SHADOW;
+   plug = fnDepNodeHair.findPlug("primaryVisibility");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_CAMERA;
+   plug = fnDepNodeHair.findPlug("visibleInReflections");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_REFLECTED;
+   plug = fnDepNodeHair.findPlug("visibleInRefractions");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_REFRACTED;
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuse");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_DIFFUSE;
+   plug = fnDepNodeHair.findPlug("aiVisibleInGlossy");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_GLOSSY;   
    
-   if (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
    {
       // The shader nodes
       // TODO: Kill these and export it properly.
@@ -127,7 +147,7 @@ void CHairTranslator::Update( AtNode *curve )
                {
                   plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
                   if (status && !plug.isNull())
-                     AiNodeSetBool(shader, "enable_matte", plug.asBool());
+                     ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
                   plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
                   if (status && !plug.isNull())
                      ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
@@ -198,7 +218,7 @@ void CHairTranslator::Update( AtNode *curve )
       if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
    }
    
-   AiNodeSetInt(curve, "visibility", visibility);  
+   AiNodeSetByte(curve, "visibility", visibility);  
    
    // Export hair data   
    MRenderLineArray mainLines;
@@ -277,12 +297,6 @@ void CHairTranslator::Update( AtNode *curve )
    plug = fnDepNodeHair.findPlug("receiveShadows");
    if (!plug.isNull())
       AiNodeSetBool(curve, "receive_shadows", plug.asBool());
-   plug = fnDepNodeHair.findPlug("aiSssSampleDistribution");
-   if (!plug.isNull())
-      AiNodeSetInt(curve, "sss_sample_distribution", plug.asInt());
-   plug = fnDepNodeHair.findPlug("aiSssSampleSpacing");
-   if (!plug.isNull())
-      AiNodeSetFlt(curve, "sss_sample_spacing", plug.asFloat());
    
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur

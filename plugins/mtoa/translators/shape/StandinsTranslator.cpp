@@ -49,13 +49,13 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
-int CArnoldStandInsTranslator::ComputeOverrideVisibility()
+AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == m_session->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
-   int visibility = AI_RAY_ALL;
+   AtByte visibility = AI_RAY_ALL;
    MPlug plug;
 
    plug = FindMayaPlug("overrideCastsShadows");
@@ -125,7 +125,7 @@ int CArnoldStandInsTranslator::ComputeOverrideVisibility()
 /// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
 void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
 {
-   AiNodeSetInt(node, "visibility", ComputeOverrideVisibility());
+   AiNodeSetByte(node, "visibility", ComputeOverrideVisibility());
 
    MPlug plug;
    
@@ -157,19 +157,10 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       plug = FindMayaPlug("doubleSided");
       
       if (!plug.isNull() && plug.asBool())
-         AiNodeSetInt(node, "sidedness", 65535);
+         AiNodeSetByte(node, "sidedness", AI_RAY_ALL);
       else
-         AiNodeSetInt(node, "sidedness", 0);
+         AiNodeSetByte(node, "sidedness", 0);
    }
-   
-   
-   // Sub-Surface Scattering
-   plug = FindMayaPlug("aiSssSampleDistribution");
-   if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
-
-   plug = FindMayaPlug("aiSssSampleSpacing");
-   if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
-
 }
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)
@@ -221,13 +212,14 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   int visibility = AiNodeGetInt(masterNode, "visibility");
-   AiNodeSetInt(instance, "visibility", visibility);
+   AtByte visibility = AiNodeGetInt(masterNode, "visibility");
+   AiNodeSetByte(instance, "visibility", visibility);
 
    m_DagNode.setObject(masterInstance);
    
    if (m_DagNode.findPlug("overrideShaders").asBool() &&
-      (CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER))
+      ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
+       || CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines()))
    {
       ExportStandinsShaders(instance);
    }
@@ -268,6 +260,12 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
          /*AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input.",
                fnDGNode.name().asChar());*/
          AiNodeSetPtr(procedural, "shader", NULL);
+      }
+      if (meshShaders.size() > 0)
+      {
+         AiNodeDeclare(procedural, "mtoa_shading_groups", "constant ARRAY NODE");
+         AiNodeSetArray(procedural, "mtoa_shading_groups",
+                        AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
       }
    }
 }
@@ -339,13 +337,12 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 
       if(start >= 0)
       {
-         dso.substring(start,end).split('.',pattern);
          if(dso.substring(start-1,start-1) == "_")
             newDso = dso.substring(0,start-2) + ".#" + dso.substring(end+1,dso.length());
          else
             newDso = dso.substring(0,start-1) + "#" + dso.substring(end+1,dso.length());
-         dso = newDso;
          
+         dso.substring(start,end).split('.',pattern);
          if(pattern.length() > 0)
          {
             framePadding = pattern[0].length();
@@ -356,6 +353,10 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
             subFramePadding = pattern[1].length();
             b = pattern[1];
          }
+      }
+      else
+      {
+         newDso = dso;
       }
 
       if (subFrames || useSubFrame || (subFramePadding != 0))
@@ -374,22 +375,21 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       }
       frameNumber = frameExtWithDot;
 
-      resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+      resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, filename);
    
       if (!resolved)
       {
          frameNumber = frameExtWithHash;
-         resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+         resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, filename);
       }
    
       if (!resolved)
       {
-         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         // If file has something after frame number, MRenderUtil::exactFileTextureName has problems to
          //  find the file.
-         int len = dso.length();
-         if (len > 8 && dso.substring(len - 7, len - 1) == ".ass.gz")
+         if (start >= 0)
          {
-            MString baseName = dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            MString baseName = dso.substring(0,start-1) + frameExt + dso.substring(end+1,dso.length());
             resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, filename);
          }
       }

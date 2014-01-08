@@ -238,7 +238,7 @@ MStatus CRenderSwatchGenerator::DefaultArnoldScene()
       if (NULL != geometry)
       {
          AiNodeSetStr(geometry, "name", "geometry");
-         AiNodeSetInt(geometry, "subdiv_iterations", 1);
+         AiNodeSetByte(geometry, "subdiv_iterations", 1);
          AiNodeSetBool(geometry, "opaque", false);
          return MStatus::kSuccess;
       }

@@ -79,10 +79,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // code to support compressed output filename too
    short renderType = 0;
    bool outputAssBoundingBox = false;
+   bool useBinaryEncoding = true;
+   bool forceTranslateShadingEngines = false;
+   bool progressiveRefinement = true;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
    bool expandProcedurals = false;
+   float displayGamma = 2.2f;
    MString kickRenderFlags = "";
    if (list.length() > 0)
    {
@@ -92,6 +96,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
       expandProcedurals = fnArnoldRenderOptions.findPlug("expandProcedurals").asBool();
       kickRenderFlags = fnArnoldRenderOptions.findPlug("kickRenderFlags").asString();
+      useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
+      forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
+      progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      displayGamma = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
    }
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
@@ -105,7 +113,11 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (exportSelected)
       {
          cmdStr += " -s";
-      }      
+      }
+      if (!useBinaryEncoding)
+      {
+         cmdStr += " -asciiAss";
+      }
       if (renderType == MTOA_RENDER_EXPORTASS)
       {
          if (expandProcedurals)
@@ -113,18 +125,25 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          if (outputAssBoundingBox)
             cmdStr += " -bb";
       }
+      if (forceTranslateShadingEngines)
+      {
+         cmdStr += " -forceTranslateShadingEngines";
+      }
       
       if (renderGlobals.isAnimated())
-      {
-         float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
-         float endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
-         float byframestep = renderGlobals.frameBy;
-         cmdStr += " -sf ";
-         cmdStr += startframe;
-         cmdStr += " -ef ";
-         cmdStr += endframe;
-         cmdStr += " -fs ";
-         cmdStr += byframestep;
+      {     
+         if (!((renderType == MTOA_RENDER_EXPORTASS_AND_KICK) && !batch))
+         {
+            float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
+            float endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit())); 
+            float byframestep = renderGlobals.frameBy;
+            cmdStr += " -sf ";
+            cmdStr += startframe;
+            cmdStr += " -ef ";
+            cmdStr += endframe;
+            cmdStr += " -fs ";
+            cmdStr += byframestep;
+         }         
       }
       if (camera != "")
       {
@@ -147,10 +166,19 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             MString kickCmd;
             if (batch)
             {
-               kickCmd = "kick -dw -dp \"" + assFileNames[0] + "\"";
+               const unsigned int numAssfiles = assFileNames.length();
+               kickCmd = "";
+               for (unsigned int i = 0; i < numAssfiles; ++i)
+                  kickCmd += "kick -dw -dp \"" + assFileNames[i] + "\";";
             }
             else
             {
+               if (!progressiveRefinement)
+                  kickRenderFlags += " -dp";
+               MString gammaFlags = "-g ";
+               gammaFlags += displayGamma;
+               gammaFlags += " ";
+               kickRenderFlags = gammaFlags + kickRenderFlags;
 #ifdef _WIN32
                kickCmd = "Start kick " + kickRenderFlags + " \"" + assFileNames[0] + "\"";
 #else

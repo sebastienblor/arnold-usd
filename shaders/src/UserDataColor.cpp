@@ -41,13 +41,13 @@ node_finish
 shader_evaluate
 {
 
-   const AtChar *name = 0;
-   AtChar transp[] = "opacityPP";
+   const char *name = 0;
+   char transp[] = "opacityPP";
 
    AtRGB c;
    AtRGBA ca;
    AtVector v;
-   AtFloat f;
+   float f;
 
    name = AiShaderEvalParamStr(p_colorAttrName);
 

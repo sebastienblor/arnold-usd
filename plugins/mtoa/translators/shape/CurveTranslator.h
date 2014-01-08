@@ -5,28 +5,24 @@
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
 
-class CCurveLine
+struct CCurveLine
 {
-public:
-   void SetCurvePoints(MVectorArray &points) { curvePoints = points; }
-   void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; }
-   void SetCurveColors(MVectorArray &colors) { curveColors = colors; }
-   void GetCurvePoints(MVectorArray &points) const { points = curvePoints; }
-   void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; }
-   void GetCurveColors(MVectorArray &colors) { colors = curveColors; }
+   CCurveLine() : widthConnected(false)
+   {
+
+   }
    void clear()
    {
-      curvePoints.clear();
-      curveWidths.clear();
-      curveColors.clear();
+      points.clear();
+      referencePoints.clear();
+      widths.clear();
+      widthConnected = false;
    }
-   unsigned int curveNumPoints;
-   unsigned int curveNumPointsInterp;
-
-private:
-   MVectorArray curvePoints;
-   MDoubleArray curveWidths;
-   MVectorArray curveColors;
+   std::vector<AtVector> points;
+   std::vector<AtVector> referencePoints;
+   std::vector<float> widths;
+   AtRGB color;
+   bool widthConnected;
 };
 
 class CCurveTranslator
@@ -39,6 +35,7 @@ public:
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method
       m_abstract.arnold = "curves";
+      exportReferenceObject = false;
    }
 
    virtual void Export(AtNode* curve);
@@ -55,14 +52,16 @@ public:
 private:
    void ProcessCurveLines(unsigned int step,
                          AtArray* curvePoints,
+                         AtArray* referenceCurvePoints,
                          AtArray* curveWidths,
                          AtArray* curveColors);
-   MStatus GetCurveLines(MObject& curve);
+   MStatus GetCurveLines(MObject& curve, unsigned int step);
 
 
 private:
 
    CCurveLine mayaCurve;
+   bool exportReferenceObject;
 
 
 };

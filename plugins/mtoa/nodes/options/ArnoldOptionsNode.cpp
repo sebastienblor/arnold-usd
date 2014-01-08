@@ -57,12 +57,11 @@ MObject CArnoldOptionsNode::s_mb_camera_enable;
 MObject CArnoldOptionsNode::s_mb_objects_enable;
 MObject CArnoldOptionsNode::s_mb_object_deform_enable;
 MObject CArnoldOptionsNode::s_mb_shader_enable;
-MObject CArnoldOptionsNode::s_shutter_size;
-MObject CArnoldOptionsNode::s_shutter_offset;
-MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
+MObject CArnoldOptionsNode::s_range_type;
 MObject CArnoldOptionsNode::s_motion_frames;
-MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
+MObject CArnoldOptionsNode::s_motion_start;
+MObject CArnoldOptionsNode::s_motion_end;
 MObject CArnoldOptionsNode::s_autotile;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
@@ -72,8 +71,7 @@ MObject CArnoldOptionsNode::s_log_to_file;
 MObject CArnoldOptionsNode::s_log_to_console;
 MObject CArnoldOptionsNode::s_log_filename;
 MObject CArnoldOptionsNode::s_log_max_warnings;
-MObject CArnoldOptionsNode::s_log_console_verbosity;
-MObject CArnoldOptionsNode::s_log_file_verbosity;
+MObject CArnoldOptionsNode::s_log_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_atmosphereShader;
@@ -87,6 +85,8 @@ MObject CArnoldOptionsNode::s_expand_procedurals;
 MObject CArnoldOptionsNode::s_kick_render_flags;
 MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
+MObject CArnoldOptionsNode::s_force_translate_shading_engines;
+MObject CArnoldOptionsNode::s_version;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -154,8 +154,6 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("batch_only", 2);
    eAttr.setDefault(1);
    addAttribute(s_aovMode);
-   
-   s_attributes.MakeInput("enable_aov_composition");   
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
@@ -181,8 +179,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMin(-3);
    nAttr.setSoftMax(10);
    addAttribute(s_progressive_initial_level);
-
-   s_attributes.MakeInput("physically_based");
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -240,16 +236,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
    s_attributes.MakeInput("sss_bssrdf_samples");
-   s_attributes.MakeInput("sss_sample_factor");
    
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
    s_attributes.MakeInput("region_min_y");   
    s_attributes.MakeInput("region_max_y");
-   
-   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, true);
-   nAttr.setKeyable(false);
-   addAttribute(s_enable_raytraced_SSS);
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -361,39 +352,40 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_mb_shader_enable);
 
-   s_shutter_size = nAttr.create("shutter_size", "shuts", MFnNumericData::kFloat, 1.0f);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(1);
-   addAttribute(s_shutter_size);
-
-   s_shutter_offset = nAttr.create("shutter_offset", "shuto", MFnNumericData::kFloat, 0.0f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(-0.5f);
-   nAttr.setSoftMax(0.5f);
-   addAttribute(s_shutter_offset);
-
-   s_shutter_type = eAttr.create("shutter_type", "shutt", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("Box", 0);
-   eAttr.addField("Triangle", 1);
-   addAttribute(s_shutter_type);
-
    s_motion_steps = nAttr.create("motion_steps", "mots", MFnNumericData::kInt, 2);
    nAttr.setKeyable(false);
    nAttr.setMin(2);
-   nAttr.setMax(30);
+   nAttr.setSoftMax(30);
    addAttribute(s_motion_steps);
-
+   
+   s_range_type = eAttr.create("range_type", "rgtp");
+   eAttr.setKeyable(false);
+   eAttr.addField("Start On Frame", MTOA_MBLUR_TYPE_START);
+   eAttr.addField("Center On Frame", MTOA_MBLUR_TYPE_CENTER);
+   eAttr.addField("End On Frame", MTOA_MBLUR_TYPE_END);
+   eAttr.addField("Custom", MTOA_MBLUR_TYPE_CUSTOM);
+   eAttr.setDefault(MTOA_MBLUR_TYPE_CENTER);
+   addAttribute(s_range_type);
+   
    s_motion_frames = nAttr.create("motion_frames", "motf", MFnNumericData::kFloat, 0.5f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(1);
    nAttr.setMin(0);
    addAttribute(s_motion_frames);
+   
+   s_motion_start = nAttr.create("motion_start", "motstart", MFnNumericData::kFloat, -0.25f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(-1);
+   nAttr.setSoftMax(0);
+   addAttribute(s_motion_start);
+   
+   s_motion_end = nAttr.create("motion_end", "motend", MFnNumericData::kFloat, 0.25f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(1);
+   addAttribute(s_motion_end);
 
-   s_attributes.MakeInput("sss_subpixel_cache");
-   s_attributes.MakeInput("show_samples");
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("shadow_terminator_fix");
    s_attributes.MakeInput("shader_nan_checks");
@@ -406,11 +398,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_untiled");
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
-   s_attributes.MakeInput("texture_per_file_stats");
    s_attributes.MakeInput("texture_diffuse_blur");
-   s_attributes.MakeInput("texture_glossy_blur");
-   
-   
+   s_attributes.MakeInput("texture_glossy_blur");   
    
    s_autotile = nAttr.create("autotile", "autotile", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -432,7 +421,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_smoothing");   
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
-   s_attributes.MakeInput("ignore_mis");
    s_attributes.MakeInput("ignore_dof");
    
    s_attributes.MakeInput("volume_indirect_samples");
@@ -467,44 +455,37 @@ MStatus CArnoldOptionsNode::initialize()
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
-   nAttr.setMax(100000);
+   nAttr.setSoftMax(100);
    nAttr.setDefault(5);
    addAttribute(s_log_max_warnings);
 
-   s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 3);
+   s_log_verbosity = eAttr.create("log_verbosity", "logv", 0);
    nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
-   addAttribute(s_log_console_verbosity);
-
-   s_log_file_verbosity = nAttr.create("log_file_verbosity", "logfv", MFnNumericData::kInt, 3);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(6);
-   addAttribute(s_log_file_verbosity);
+   eAttr.addField("Errors", MTOA_LOG_ERRORS);
+   eAttr.addField("Warnings + Info", MTOA_LOG_WANINGS_INFO);
+   eAttr.addField("Debug", MTOA_LOG_DEBUG);
+   addAttribute(s_log_verbosity);
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
    mAttr.setReadable(false);
    addAttribute(s_background);
 
-   s_atmosphere = eAttr.create("atmosphere", "atm", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("None", 0);
-   eAttr.addField("Fog", 1);
-   eAttr.addField("Volume Scattering", 2);
-   eAttr.addField("Custom Shader", 3);
+   s_atmosphere = mAttr.create("atmosphere", "atm");
+   mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_atmosphere);
-   
-   s_atmosphereShader = mAttr.create("atmosphereShader", "atmosphere_shader");
-   addAttribute(s_atmosphereShader);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create("beauty"));
    addAttribute(s_displayAOV);
 
-   s_attributes.MakeInput("binary_ass");
+   //s_attributes.MakeInput("binary_ass");
+   MObject tempAttr = nAttr.create(s_attributes.GetMayaAttrName("binary_ass"), s_attributes.GetMayaAttrShortName("binary_ass"), MFnNumericData::kBoolean);
+   nAttr.setDefault(true);
+   nAttr.setKeyable(false);
+   addAttribute(tempAttr);
 
    s_attributes.MakeInput("reference_time");
       
@@ -566,6 +547,15 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(true);
    addAttribute(s_absolute_procedural_paths);
+
+   s_force_translate_shading_engines = nAttr.create("forceTranslateShadingEngines", "force_translate_shading_engines", MFnNumericData::kBoolean);
+   nAttr.setKeyable(false);
+   nAttr.setDefault(false);
+   addAttribute(s_force_translate_shading_engines);
+   
+   s_version = tAttr.create("version", "version", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_version);
 
    return MS::kSuccess;
 }

@@ -6,14 +6,12 @@ from mtoa.ui.ae.utils import aeCallback
 import mtoa.ui.ae.templates as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
+import re
+import mtoa.aovs as aovs
 
 class ParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
-        self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
-        self.addSeparator()
         self.addControl("aiRenderPointsAs", label="Render Points As")
         self.addControl("aiMinParticleRadius", label="Min Particle Radius")
         self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
@@ -62,8 +60,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
         
         self.addSeparator()
-        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
         self.addControl("aiSssSetname", label="SSS Set Name")
         
         self.beginLayout('Subdivision', collapse=False)
@@ -85,7 +81,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         self.beginLayout('Volume Attributes', collapse=False)
         self.addControl('aiStepSize', label='Step Size')
-        self.addControl('aiVolumeContainerMode', label='Container Mode')
         self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
@@ -93,7 +88,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 #       ui.addSeparator()
 #       ui.addControl("enableProcedural")
 #       ui.addControl("dso")
-templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
+templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
+core.registerDefaultTranslator("mesh", "polymesh")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
@@ -205,6 +201,9 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
+        self.addSeparator()
+        self.addControl("aiExportRefPoints", "Export Reference Points")
+        self.addSeparator()
         self.commonShapeAttributes()
         self.addSeparator()
         self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
@@ -353,6 +352,8 @@ class CameraTemplate(templates.AttributeTemplate):
     def addCommonAttributes(self):
         self.addControl("aiExposure")
         self.addControl("aiFiltermap")
+        self.addSeparator()
+        self.addControl("aiRollingShutter")
         
     def addDOFAttributes(self):
         self.addSeparator()
@@ -362,6 +363,12 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiApertureBlades")
         self.addControl("aiApertureBladeCurvature")
         self.addControl("aiApertureRotation")
+        
+    def addShutterAttributes(self):
+        self.addSeparator()
+        self.addControl("motionBlurOverride", label="Camera Motion Blur")
+        self.addControl("aiShutterStart")
+        self.addControl("aiShutterEnd")
 
 class PerspCameraTemplate(CameraTemplate):
     def setup(self):
@@ -369,6 +376,7 @@ class PerspCameraTemplate(CameraTemplate):
         self.addDOFAttributes()
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -379,6 +387,7 @@ templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspect
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -392,6 +401,7 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiFov')
         self.addControl('aiAutocrop')
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -404,6 +414,7 @@ class CylCameraTemplate(CameraTemplate):
         self.addControl('aiHorizontalFov')
         self.addControl('aiVerticalFov')
         self.addControl('aiProjective')
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -413,6 +424,7 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 class SphericalCameraTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -475,11 +487,271 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
                                         ('orthographic', cameraOrthographicChanged)])
 
 def registerDriverTemplates():
+    skipDrivers = ['exr', 'deepexr']
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
+        if not (transName in skipDrivers): # we want to use a custom ui for the EXR translator
+            templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName, skipEmpty=True)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
+
+templatesNames = []
+    
+class EXRDriverTranslatorUI(templates.AttributeTemplate):
+    def changeAttrName(self, nodeName, attrNameText, index):
+        # Get the attribute name, type and value
+        attrName = nodeName+'['+str(index)+']'
+        metadata = cmds.getAttr(attrName)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        
+        # Get the new name
+        name = cmds.textField(attrNameText, query=True, text=True)
+        
+        # Update the name in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeName", edit=True, text=name.replace(" ", ""))
+        
+        # Update the metadata value
+        metadata = result[0]+" "+name.replace(" ", "")+" "+result[2]
+        cmds.setAttr(attrName, metadata, type="string")
+    
+    def changeAttrType(self, nodeName, menu, index):
+        # Get the attribute name, type and value
+        attrName = nodeName+'['+str(index)+']'
+        metadata = cmds.getAttr(attrName)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        
+        # Get the new type
+        typeNumber = cmds.optionMenu(menu, query=True, select=True)
+        type = cmds.optionMenu(menu, query=True, value=True)
+        
+        # Update the type in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.optionMenu(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeType", edit=True, select=typeNumber)
+            
+        # Update the metadata value
+        metadata = type+" "+result[1]+" "+result[2]
+        cmds.setAttr(attrName, metadata, type="string")
+        
+    def changeAttrValue(self, nodeName, attrValueText, index):
+        # Get the attribute name, type and value
+        attrName = nodeName+'['+str(index)+']'
+        metadata = cmds.getAttr(attrName)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+
+        # Get the new value
+        value = cmds.textField(attrValueText, query=True, text=True)
+        
+        # Update the value in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeValue", edit=True, text=value)
+        
+        # Update the metadata value
+        metadata = result[0]+" "+result[1]+" "+value
+        cmds.setAttr(attrName, metadata, type="string")
+        
+    def removeAttribute(self, nodeName, index):
+        cmds.removeMultiInstance(nodeName+'['+str(index)+']')
+        self.updatedMetadata(nodeName)
+        
+    def addAttribute(self, nodeName):
+        next = 0
+        if cmds.getAttr(nodeName, multiIndices=True):
+            next = cmds.getAttr(nodeName, multiIndices=True)[-1] + 1
+        cmds.setAttr(nodeName+'['+str(next)+']', "INT", type="string")
+        self.updatedMetadata(nodeName)
+        
+    def updateLine(self, nodeName, metadata, index):
+        # Attribute controls will be created with the current metadata content
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        
+        # Attribute Name
+        attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
+        cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
+        
+        # Attribute Type
+        menu = cmds.optionMenu("MtoA_exrMAttributeType")
+        cmds.menuItem( label='INT', data=0)
+        cmds.menuItem( label='FLOAT', data=1)
+        cmds.menuItem( label='POINT2', data=2)
+        cmds.menuItem( label='MATRIX', data=3)
+        cmds.menuItem( label='STRING', data=4)
+        if result[0] == 'INT':
+            cmds.optionMenu(menu, edit=True, select=1)
+        elif result[0] == 'FLOAT':
+            cmds.optionMenu(menu, edit=True, select=2)
+        elif result[0] == 'POINT2':
+            cmds.optionMenu(menu, edit=True, select=3)
+        elif result[0] == 'MATRIX':
+            cmds.optionMenu(menu, edit=True, select=4)
+        elif result[0] == 'STRING':
+            cmds.optionMenu(menu, edit=True, select=5)
+        cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
+        
+        # Attribute Value
+        attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
+        cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
+        
+        # Remove button
+        cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
+        
+    def updatedMetadata(self, nodeName):
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.setParent(templateName)
+            #Remove all attributes controls and rebuild them again with the metadata updated content
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+            for index in cmds.getAttr(nodeName, multiIndices=True) or []:
+                attrName = nodeName+'['+str(index)+']'
+                metadata = cmds.getAttr(attrName)
+                if metadata:
+                    cmds.rowLayout('mtoa_exrMetadataRow_'+str(index),nc=4, cw4=(120,80,120,20), cl4=('center', 'center', 'center', 'right'))
+                    self.updateLine(nodeName, metadata, index)
+                    cmds.setParent('..')
+        
+    def metadataNew(self, nodeName):
+        cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
+        cmds.button( label='Add New Attribute', command=pm.Callback(self.addAttribute, 'defaultArnoldDriver.custom_attributes'))
+        cmds.setParent( '..' )
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        # This template could be created more than once in different panels
+        templatesNames.append(layout)
+        self.updatedMetadata('defaultArnoldDriver.custom_attributes')
+        cmds.setParent( '..' )
+
+    def metadataReplace(self, nodeName):
+        pass
+
+    def setup(self):
+        self.addControl('exrCompression', label='Compression')
+        self.addControl('halfPrecision', label='Half Precision')
+        self.addControl('preserveLayerName', label='Preserve Layer Name')
+        self.addControl('tiled', label='Tiled')
+        self.addControl('autocrop', label='Autocrop')
+        self.addControl('append', label='Append')
+        self.beginLayout("Metadata (name, type, value)", collapse=True)
+        self.addCustom('custom_attributes', self.metadataNew, self.metadataReplace)
+        self.endLayout()
+
+templates.registerTranslatorUI(EXRDriverTranslatorUI, 'aiAOVDriver', 'exr')
+
+
+deepexrToleranceTemplates = []
+deepexrHalfPrecisionTemplates = []
+deepexrEnableFilteringTemplates = []
+
+class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
+    def __init__(self, nodeType):
+        aovs.addAOVChangedCallback(self.updateLayerTolerance, 'DeepEXRDriverTranslatorUITolerance')
+        aovs.addAOVChangedCallback(self.updateLayerHalfPrecision, 'DeepEXRDriverTranslatorUIHalfPrecision')
+        aovs.addAOVChangedCallback(self.updateLayerEnableFiltering, 'DeepEXRDriverTranslatorUIEnableFiltering')
+        super(DeepEXRDriverTranslatorUI, self).__init__(nodeType)
+
+    def updateLayerTolerance(self):
+        aovList = aovs.getAOVs(enabled=True)
+        
+        deepexrToleranceTemplates[:] = [tup for tup in deepexrToleranceTemplates if cmds.columnLayout(tup, exists=True)]
+        for templateName in deepexrToleranceTemplates:
+            cmds.setParent(templateName)
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+                
+            cmds.attrFieldSliderGrp(label='alpha' , at='defaultArnoldDriver.alphaTolerance' )
+            cmds.attrFieldSliderGrp(label='depth' , at='defaultArnoldDriver.depthTolerance' )
+            cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]' )
+            for i in range(0,len(aovList)):
+                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    labelStr = aovList[i].name
+                    attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
+                    cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
+            
+    def updateLayerHalfPrecision(self):
+        aovList = aovs.getAOVs(enabled=True)
+        
+        deepexrHalfPrecisionTemplates[:] = [tup for tup in deepexrHalfPrecisionTemplates if cmds.columnLayout(tup, exists=True)]
+        for templateName in deepexrHalfPrecisionTemplates:
+            cmds.setParent(templateName)
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+            cmds.attrControlGrp(label='alpha' , a='defaultArnoldDriver.alphaHalfPrecision' )
+            cmds.attrControlGrp(label='depth' , a='defaultArnoldDriver.depthHalfPrecision' )
+            cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerHalfPrecision[0]' )
+            for i in range(0,len(aovList)):
+                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    labelStr = aovList[i].name
+                    attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
+                    cmds.attrControlGrp(label=labelStr , a=attrStr )
+        
+    def updateLayerEnableFiltering(self):
+        aovList = aovs.getAOVs(enabled=True)
+        
+        deepexrEnableFilteringTemplates[:] = [tup for tup in deepexrEnableFilteringTemplates if cmds.columnLayout(tup, exists=True)]
+        for templateName in deepexrEnableFilteringTemplates:
+            cmds.setParent(templateName)
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+            cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
+            for i in range(0,len(aovList)):
+                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                    labelStr = aovList[i].name
+                    attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
+                    cmds.attrControlGrp(label=labelStr , a=attrStr )
+     
+    def layerToleranceNew(self, nodeName):
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        deepexrToleranceTemplates.append(layout)
+        self.updateLayerTolerance()
+        cmds.setParent( '..' )
+        
+    def layerToleranceReplace(self, nodeName):
+        self.updateLayerTolerance()
+        cmds.setParent( '..' )
+        
+    def layerHalfPrecisionNew(self, nodeName):
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        deepexrHalfPrecisionTemplates.append(layout)
+        self.updateLayerHalfPrecision()
+        cmds.setParent( '..' )
+        
+    def layerHalfPrecisionReplace(self, nodeName):
+        self.updateLayerHalfPrecision()
+        cmds.setParent( '..' )
+        
+    def layerEnableFilteringNew(self, nodeName):
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        deepexrEnableFilteringTemplates.append(layout)
+        self.updateLayerEnableFiltering()
+        cmds.setParent( '..' )
+        
+    def layerEnableFilteringReplace(self, nodeName):
+        self.updateLayerEnableFiltering()
+        cmds.setParent( '..' )
+
+    def setup(self):
+        #self.addControl('tiled', label='Tiled')
+        self.addControl('subpixelMerge', label='Subpixel Merge')
+        self.addControl('useRGBOpacity', label='Use RGB Opacity')
+        self.beginLayout("Tolerance Values", collapse=False)
+        self.addCustom('layerToleranceSection', self.layerToleranceNew, self.layerToleranceReplace)
+        self.endLayout()
+        
+        self.beginLayout("Half Precision", collapse=False)
+        self.addCustom('layerHalfPrecisionSection', self.layerHalfPrecisionNew, self.layerHalfPrecisionReplace)
+        self.endLayout()
+        
+        self.beginLayout("Enable Filtering", collapse=False)
+        self.addCustom('layerEnableFilteringSection', self.layerEnableFilteringNew, self.layerEnableFilteringReplace)
+        self.endLayout()
+
+templates.registerTranslatorUI(DeepEXRDriverTranslatorUI, 'aiAOVDriver', 'deepexr')
 
 def registerFilterTemplates():
     # register driver templates

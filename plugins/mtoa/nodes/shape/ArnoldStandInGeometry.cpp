@@ -5,7 +5,7 @@
 #include <maya/MPxSurfaceShape.h>
 #include <maya/MPxSurfaceShapeUI.h>
 
-CArnoldStandInGeometry::CArnoldStandInGeometry()
+CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
 {
    m_BBMin.x = AI_BIG;
    m_BBMin.y = AI_BIG;
@@ -15,6 +15,11 @@ CArnoldStandInGeometry::CArnoldStandInGeometry()
    m_BBMax.y = -AI_BIG;
    m_BBMax.z = -AI_BIG;
    AiM4Identity(m_matrix);
+
+   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
+   AiArrayGetMtx(p_matrices, 0, m_matrix);
+   m_visible = AiNodeGetInt(node, "visibility") != 0;
+   m_invalid = false;
 }
 
 CArnoldStandInGeometry::~CArnoldStandInGeometry()
@@ -116,11 +121,18 @@ MBoundingBox CArnoldStandInGeometry::GetBBox(bool transformed)
    else return MBoundingBox(MPoint(m_BBMin.x, m_BBMin.y, m_BBMin.z), MPoint(m_BBMax.x, m_BBMax.y, m_BBMax.z));
 }
 
-CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry()
+bool CArnoldStandInGeometry::Visible() const
 {
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-   
+   return m_visible;
+}
+
+bool CArnoldStandInGeometry::Invalid() const
+{
+   return m_invalid;
+}
+
+CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+{  
    AtArray* vlist = AiNodeGetArray(node, "vlist");  
    
    if ((vlist != 0) && vlist->nelements)
@@ -141,6 +153,24 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
          
          m_vlist[i] = pnt;
       }
+      for (AtUInt32 i = vlist->nelements; i < (vlist->nelements * vlist->nkeys); ++i)
+      {
+         AtPoint pnt = AiArrayGetPnt(vlist, i);
+         if (!AiIsFinite(pnt.x) || !AiIsFinite(pnt.y) || !AiIsFinite(pnt.z))
+            continue;
+         m_BBMin.x = MIN(m_BBMin.x, pnt.x);
+         m_BBMin.y = MIN(m_BBMin.y, pnt.y);
+         m_BBMin.z = MIN(m_BBMin.z, pnt.z);
+         
+         m_BBMax.x = MAX(m_BBMax.x, pnt.x);
+         m_BBMax.y = MAX(m_BBMax.y, pnt.y);
+         m_BBMax.z = MAX(m_BBMax.z, pnt.z);
+      }
+   }
+   else
+   {
+      m_invalid = true;
+      return;
    }
    
    AtArray* vidxs = AiNodeGetArray(node, "vidxs");
@@ -150,6 +180,25 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
       m_vidxs.resize(vidxs->nelements);
       for (AtUInt32 i = 0; i < vidxs->nelements; ++i)
          m_vidxs[i] = AiArrayGetUInt(vidxs, i);
+   }
+   else
+   {
+      m_invalid = true;
+      return;
+   }
+
+   AtArray* nsides = AiNodeGetArray(node, "nsides");
+   
+   if ((nsides != 0) && nsides->nelements)
+   {
+      m_nsides.resize(nsides->nelements);
+      for (AtUInt32 i = 0; i < nsides->nelements; ++i)
+         m_nsides[i] = AiArrayGetUInt(nsides, i);
+   }
+   else
+   {
+      m_invalid = true;
+      return;
    }
    
    AtArray* nlist = AiNodeGetArray(node, "nlist");
@@ -169,15 +218,6 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
       for (AtUInt32 i = 0; i < nidxs->nelements; ++i)
          m_nidxs[i] = AiArrayGetUInt(nidxs, i);
    }
-   
-   AtArray* nsides = AiNodeGetArray(node, "nsides");
-   
-   if ((nsides != 0) && nsides->nelements)
-   {
-      m_nsides.resize(nsides->nelements);
-      for (AtUInt32 i = 0; i < nsides->nelements; ++i)
-         m_nsides[i] = AiArrayGetUInt(nsides, i);
-   }
 }
 
 CArnoldPolymeshGeometry::~CArnoldPolymeshGeometry()
@@ -191,11 +231,11 @@ void CArnoldPolymeshGeometry::DrawPolygons() const
       return;
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
-      const AtUInt ns = m_nsides[i];
+      const unsigned int ns = m_nsides[i];
       glBegin(GL_POLYGON);
-      for (AtUInt j = 0; j < ns; ++j)
+      for (unsigned int j = 0; j < ns; ++j)
       {
-         const AtUInt vid = m_vidxs[id++];
+         const unsigned int vid = m_vidxs[id++];
          glVertex3fv(&m_vlist[vid].x);
       }
       glEnd();
@@ -208,11 +248,11 @@ void CArnoldPolymeshGeometry::DrawWireframe() const
       return;
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
-      const AtUInt ns = m_nsides[i];
+      const unsigned int ns = m_nsides[i];
       glBegin(GL_LINE_STRIP);
-      for (AtUInt j = 0; j < ns; ++j, ++id)
+      for (unsigned int j = 0; j < ns; ++j, ++id)
       {
-         const AtUInt vid = m_vidxs[id];
+         const unsigned int vid = m_vidxs[id];
          glVertex3fv(&m_vlist[vid].x);
       }
       glEnd();
@@ -241,12 +281,12 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
    
    for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
    {
-      const AtUInt ns = m_nsides[i];
+      const unsigned int ns = m_nsides[i];
       glBegin(GL_POLYGON);
-      for (AtUInt j = 0; j < ns; ++j, ++id)
+      for (unsigned int j = 0; j < ns; ++j, ++id)
       {
-         const AtUInt vid = m_vidxs[id];
-         const AtUInt nid = m_nidxs[id];
+         const unsigned int vid = m_vidxs[id];
+         const unsigned int nid = m_nidxs[id];
          glNormal3fv(&m_nlist[nid].x);
          glVertex3fv(&m_vlist[vid].x);         
       }
@@ -254,11 +294,8 @@ void CArnoldPolymeshGeometry::DrawNormalAndPolygons() const
    }
 }
 
-CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry()
-{
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-   
+CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+{   
    AtArray* points = AiNodeGetArray(node, "points");
    
    if ((points != 0) && points->nelements > 0)
@@ -279,6 +316,8 @@ CArnoldPointsGeometry::CArnoldPointsGeometry(AtNode* node) : CArnoldStandInGeome
          m_points[i] = pnt;
       }
    }
+   else
+      m_invalid = true;
 }
 
 CArnoldPointsGeometry::~CArnoldPointsGeometry()
@@ -346,11 +385,8 @@ MBoundingBox CArnoldStandInGInstance::GetBBox()
    }
 }
 
-CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry()
+CArnoldProceduralGeometry::CArnoldProceduralGeometry(AtNode* node) : CArnoldStandInGeometry(node)
 {
-   p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
-   AiArrayGetMtx(p_matrices, 0, m_matrix);
-
    m_BBMin = AiNodeGetPnt(node, "min");
    m_BBMax = AiNodeGetPnt(node, "max");
 }
@@ -376,6 +412,37 @@ void CArnoldProceduralGeometry::DrawPoints() const
 }
 
 void CArnoldProceduralGeometry::DrawNormalAndPolygons() const
+{
+   DrawBoundingBox();
+}
+
+CArnoldBoxGeometry::CArnoldBoxGeometry(AtNode* node) : CArnoldStandInGeometry(node)
+{
+   m_BBMin = AiNodeGetPnt(node, "min");
+   m_BBMax = AiNodeGetPnt(node, "max");
+}
+
+CArnoldBoxGeometry::~CArnoldBoxGeometry()
+{
+   
+}
+
+void CArnoldBoxGeometry::DrawPolygons() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldBoxGeometry::DrawWireframe() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldBoxGeometry::DrawPoints() const
+{
+   DrawBoundingBox();
+}
+
+void CArnoldBoxGeometry::DrawNormalAndPolygons() const
 {
    DrawBoundingBox();
 }

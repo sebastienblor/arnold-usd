@@ -58,21 +58,26 @@ struct CMayaExportFilter
 #define MTOA_MBLUR_SHADER  0x0010
 #define MTOA_MBLUR_ANY     0xFFFF
 
+#define MTOA_MBLUR_TYPE_START    0x0000
+#define MTOA_MBLUR_TYPE_CENTER   0x0001
+#define MTOA_MBLUR_TYPE_END      0x0002
+#define MTOA_MBLUR_TYPE_CUSTOM   0x0003
+
 struct CMotionBlurOptions
 {
    unsigned int   enable_mask;
-   float          shutter_size;
-   float          shutter_offset;
-   unsigned int   shutter_type;
    unsigned int   steps;
-   double         by_frame;
+   unsigned int   range_type;
+   double         motion_frames;
+   double         motion_start;
+   double         motion_end;
 
    CMotionBlurOptions() :  enable_mask(MTOA_MBLUR_DISABLE),
-                           shutter_size(0.0f),
-                           shutter_offset(0.0f),
-                           shutter_type(0),
                            steps(1),
-                           by_frame(0.0) {}
+                           range_type(MTOA_MBLUR_TYPE_CENTER),
+                           motion_frames(0.0),
+                           motion_start(-0.25),
+                           motion_end(0.25) {}
 };
 
 /// Structure to hold options relative to a CArnoldSession
@@ -116,11 +121,10 @@ private:
    inline void SetExportFilterMask(unsigned int mask) { m_filter.state_mask = mask; }
 
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return (m_motion.enable_mask & type) != 0; }
+   inline unsigned int GetRangeType() const {return m_motion.range_type;}
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
-   inline float GetShutterSize() const { return m_motion.shutter_size; }
-   inline unsigned int GetShutterType() const { return m_motion.shutter_type; }
    inline double GetExportFrame() const { return m_frame; }
-   inline double GetMotionByFrame() const { return m_motion.by_frame; }
+   inline double GetMotionByFrame() const { return m_motion.motion_frames; }
 
    inline const MObject& GetArnoldRenderOptions() const { return m_options; }
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }

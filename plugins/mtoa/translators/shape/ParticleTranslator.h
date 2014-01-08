@@ -36,7 +36,8 @@ public:
       m_spriteScaleY(1),
       m_doExtraAttributes(false),
       m_inheritCacheTxfm(false),
-      m_exportId(false)
+      m_exportId(false),
+      m_minPixelWidth(0.0f)
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method
@@ -53,8 +54,8 @@ public:
    static void NodeInitializer(CAbTranslator context);
    virtual void Update(AtNode* anode);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, AtUInt step);
-   virtual void UpdateMotion(AtNode* anode, AtUInt step);
+   void ExportMotion(AtNode* anode, unsigned int step);
+   virtual void UpdateMotion(AtNode* anode, unsigned int step);
 
 
 protected:
@@ -63,8 +64,8 @@ protected:
    virtual void ExportCustomParticleData(AtNode* particle);
    virtual void ExportPreambleData(AtNode* particle);
    virtual void GatherFirstStep(AtNode* particle);
-   virtual void GatherBlurSteps(AtNode* particle, AtUInt step);
-   virtual void InterpolateBlurSteps(AtNode* particle, AtUInt step);
+   virtual void GatherBlurSteps(AtNode* particle, unsigned int step);
+   virtual void InterpolateBlurSteps(AtNode* particle, unsigned int step);
    virtual void WriteOutParticle(AtNode* particle);
    virtual bool IsCached();
 
@@ -78,8 +79,8 @@ protected:
                                      MIntArray        &particleId);
 
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
-   //AtNode* ExportParticle(AtNode* particle, bool update, AtUInt step);
-   AtNode* ExportParticleNode(AtNode* particle, AtUInt step);
+   //AtNode* ExportParticle(AtNode* particle, bool update, unsigned int step);
+   AtNode* ExportParticleNode(AtNode* particle, unsigned int step);
 
 
 protected:
@@ -87,16 +88,16 @@ protected:
    // by solid angle's conventions m_renderTypeSphere should be formatted like:  PARTICLE_TYPE_SPHERE
    enum ParticleRenderType
    {
-          PARTICLE_TYPE_CLOUD,           // 0
-          PARTICLE_TYPE_TUBE,            // 1
-          PARTICLE_TYPE_BLOBBYSURFACE,   // 2
-          PARTICLE_TYPE_MULTIPOINT,      // 3
-          PARTICLE_TYPE_MULTISTREAK,     // 4
-          PARTICLE_TYPE_NUMERIC,         // 5
-          PARTICLE_TYPE_POINT,           // 6
-          PARTICLE_TYPE_SPHERE,          // 7
-          PARTICLE_TYPE_SPRITE,          // 8
-          PARTICLE_TYPE_STREAK           // 9
+         PARTICLE_TYPE_CLOUD,           // 0
+         PARTICLE_TYPE_TUBE,            // 1
+         PARTICLE_TYPE_BLOBBYSURFACE,   // 2
+         PARTICLE_TYPE_MULTIPOINT,      // 3
+         PARTICLE_TYPE_MULTISTREAK,     // 4
+         PARTICLE_TYPE_NUMERIC,         // 5
+         PARTICLE_TYPE_POINT,           // 6
+         PARTICLE_TYPE_SPHERE,          // 7
+         PARTICLE_TYPE_SPRITE,          // 8
+         PARTICLE_TYPE_STREAK           // 9
    };
 
    // these hold  each frame steps values
@@ -121,7 +122,7 @@ protected:
    MVectorArray m_instantVeloArray;
    MFnDagNode m_DagNode;
    MFnParticleSystem m_fnParticleSystem;
-   AtInt m_particleCount;
+   int m_particleCount;
    MString m_customAttrs;
 
 
@@ -144,5 +145,6 @@ protected:
    bool		m_deleteDeadParticles;
    bool		m_inheritCacheTxfm;
    bool		m_exportId;
+   float    m_minPixelWidth;
 
 };

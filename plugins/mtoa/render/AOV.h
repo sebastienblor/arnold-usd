@@ -49,7 +49,8 @@ public:
 
    inline bool operator==(const CAOV& other) const { return m_name == other.GetName(); }
    inline bool operator!=(const CAOV& other) const { return m_name != other.GetName(); }
-   inline bool operator<(const CAOV& other) const { return strcmp(m_name.asChar(), other.GetName().asChar()) < 0; }
+   inline bool operator<(const CAOV& other) const { // "beauty" AOV will be first
+      return (strcmp(other.GetName().asChar(),"beauty") != 0) && ((strcmp(m_name.asChar(),"beauty") == 0) || (strcmp(m_name.asChar(), other.GetName().asChar()) < 0)); }
 
    inline const MString& GetName() const { return m_name; }
    inline void SetName(const MString &name) { m_name = name; }

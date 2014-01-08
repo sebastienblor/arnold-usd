@@ -12,9 +12,9 @@ void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
 {
    AiM4Copy(outMatrix, matrix);
 
-   outMatrix[3][0] = matrix[3][0] + (AtFloat)velocityVector.x;
-   outMatrix[3][1] = matrix[3][1] + (AtFloat)velocityVector.y;
-   outMatrix[3][2] = matrix[3][2] + (AtFloat)velocityVector.z;
+   outMatrix[3][0] = matrix[3][0] + (float)velocityVector.x;
+   outMatrix[3][1] = matrix[3][1] + (float)velocityVector.y;
+   outMatrix[3][2] = matrix[3][2] + (float)velocityVector.z;
 
 }
 
@@ -38,7 +38,7 @@ void CInstancerTranslator::Update(AtNode *anode)
    ExportInstancer(anode, true);
 }
 
-void CInstancerTranslator::ExportMotion(AtNode* anode, AtUInt step)
+void CInstancerTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    if (IsMasterInstance())
    {
@@ -54,18 +54,18 @@ void CInstancerTranslator::ExportMotion(AtNode* anode, AtUInt step)
    }
 }
 
-void CInstancerTranslator::UpdateMotion(AtNode* anode, AtUInt step)
+void CInstancerTranslator::UpdateMotion(AtNode* anode, unsigned int step)
 {
    ExportMatrix(anode, step);
 }
 
-int CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
+AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
 
    MObject node = masterDagPath.node();
    MFnDagNode fnNode;
    fnNode.setObject(node);
    
-   int visibility = AI_RAY_ALL;
+   AtByte visibility = AI_RAY_ALL;
    
    MPlug plug = fnNode.findPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
@@ -116,7 +116,7 @@ void CInstancerTranslator::ExportInstancer(AtNode* instancer, bool update)
 
 }
 
-void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
+void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 {
 
    MTime oneSec(1.0, MTime::kSeconds);
@@ -511,8 +511,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
            
             // need this in case instance sources are hidden
-            int visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
-            AiNodeSetInt(instance, "visibility", visibility);
+            AtByte visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
+            AiNodeSetByte(instance, "visibility", visibility);
 
             // add the custom user selected attributes to export
             std::map<std::string, MVectorArray>::iterator custVect;
@@ -523,18 +523,18 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                if (MString(custVect->first.c_str()) == "rgbPP")
                {
                   AiNodeDeclare(instance, custVect->first.c_str(), "constant RGB");
-                  AiNodeSetRGB(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
+                  AiNodeSetRGB(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
                                                 }
                else
                {
                   AiNodeDeclare(instance, custVect->first.c_str(), "constant VECTOR");
-                  AiNodeSetVec(instance, custVect->first.c_str(),(AtFloat)vecAttrValue.x,(AtFloat)vecAttrValue.y, (AtFloat)vecAttrValue.z );
+                  AiNodeSetVec(instance, custVect->first.c_str(),(float)vecAttrValue.x,(float)vecAttrValue.y, (float)vecAttrValue.z );
                }
             }
             std::map<std::string, MDoubleArray>::iterator custDouble;
             for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
             {
-               AtFloat doubleAttrValue = (AtFloat)custDouble->second[j];
+               float doubleAttrValue = (float)custDouble->second[j];
 
                   AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
                   AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );
@@ -543,7 +543,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             std::map<std::string, MIntArray>::iterator custInt;
             for (custInt = m_out_customIntAttrArrays.begin(); custInt != m_out_customIntAttrArrays.end(); custInt++)
             {
-               AtInt intAttrValue = custInt->second[j];
+               int intAttrValue = custInt->second[j];
 
                   AiNodeDeclare(instance, custInt->first.c_str(), "constant INT");
                   AiNodeSetInt(instance, custInt->first.c_str(), intAttrValue );

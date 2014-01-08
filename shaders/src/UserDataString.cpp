@@ -40,8 +40,8 @@ node_finish
 shader_evaluate
 {
 
-   const AtChar *name = 0;
-   const AtChar *value = 0;
+   const char *name = 0;
+   const char *value = 0;
 
    name = AiShaderEvalParamStr(p_stringAttrName);
    if (AiUDataGetStr(name, &value))

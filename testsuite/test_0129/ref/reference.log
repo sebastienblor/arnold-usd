@@ -1,0 +1,55 @@
+
+Starting "/usr/autodesk/maya2014-x64/bin/maya"
+
+00:00:00   225MB         | log started Thu Dec 12 19:51:53 2013
+00:00:00   225MB         | Arnold 4.1.3.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/12/12 13:30:15
+00:00:00   225MB         | running on localhost.localdomain
+00:00:00   225MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   225MB         |  CentOS 6.5 (Final), Linux kernel 2.6.32-431.el6.centos.plus.x86_64
+00:00:00   225MB         |  
+00:00:00   225MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
+00:00:00   225MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
+00:00:00   225MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
+00:00:00   225MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
+00:00:00   225MB         | [mtoa] [mtoa_shaders] Generated 14 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
+00:00:00   225MB         | [mtoa] [mtoa_shaders] Generated 41 translators for 41 Maya nodes (14 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
+00:00:00   225MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
+00:00:00   225MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
+00:00:00   226MB         | [mtoa] Registered extension xgen provided by xgen.
+00:00:00   226MB         | [mtoa] Loading extension shave(/work/deploy/2014/extensions/shave.so).
+00:00:00   226MB         | loading plugin: /work/deploy/2014/shaders/shave_shaders.so ...
+00:00:00   227MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   227MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
+00:00:00   227MB         | [mtoa] [shave] Generated 1 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
+00:00:00   227MB         | [mtoa] [shave] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
+00:00:00   227MB         | [mtoa] [shave] Declares a total of 1 new Maya nodes.
+00:00:00   227MB         | [mtoa] [shave] Declares a total of 1 translators for 1 Maya nodes (1 new and 0 existing).
+00:00:00   227MB         | [mtoa] Successfully loaded extension library shave(/work/deploy/2014/extensions/shave.so).
+00:00:00   227MB         | [mtoa] Registering 4 loaded extensions:
+00:00:00   227MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
+00:00:00   228MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
+00:00:00   228MB WARNING | [mtoa] Extension shave(/work/deploy/2014/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
+libai.so already loaded
+
+00:00:00   229MB         | Successfully imported python module 'arnold'
+00:00:00   229MB         | Successfully imported python module 'mtoa'
+pymel.internal.factories : INFO : MFnDagNode.model is deprecated
+pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, xgenToolkit, mtoa
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
+Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
+Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
+Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
+00:00:01   316MB         |  
+00:00:01   316MB         | releasing resources
+00:00:01   315MB         | Arnold shutdown
+File read in 0 seconds.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Result: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0129/test.ma
+Warning: file: /tmp/ASTMPQgxMBe.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /tmp/ASTMPQgxMBe.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Scene /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0129/test.ma completed.

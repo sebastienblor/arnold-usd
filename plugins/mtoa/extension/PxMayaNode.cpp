@@ -243,7 +243,7 @@ void CPxMayaNode::RegisterAOV(const MString &aovName,
    data.attribute = aovAttr;
    data.name = aovName;
    data.type = dataType;
-   AiMsgInfo("[mtoa] [%s] [node %s] Registered AOV \"%s\"",
+   AiMsgDebug("[mtoa] [%s] [node %s] Registered AOV \"%s\"",
              provider.asChar(), name.asChar(), aovName.asChar());
    m_aovs.push_back(data);
 }

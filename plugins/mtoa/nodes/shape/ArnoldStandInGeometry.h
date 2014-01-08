@@ -20,11 +20,13 @@ enum GeometryDrawingMode{
 // pointclouds or other primitives
 class CArnoldStandInGeometry{
 protected:
-   CArnoldStandInGeometry();
+   CArnoldStandInGeometry(AtNode* node); // basic visibility and matrix queries
    
    AtVector m_BBMin, m_BBMax;
    AtMatrix m_matrix;
    AtArray* p_matrices;
+   bool m_visible;
+   bool m_invalid;
 
    // simple polygons, without normals
    virtual void DrawPolygons() const = 0;
@@ -45,15 +47,17 @@ public:
 
    virtual void Draw(int drawMode, bool applyTransform = true);   
    MBoundingBox GetBBox(bool transformed = true);
+   bool Visible() const;
+   bool Invalid() const;
 };
 
 class CArnoldPolymeshGeometry : public CArnoldStandInGeometry{
 private:
    std::vector<AtVector> m_vlist;
-   std::vector<AtUInt> m_vidxs;
+   std::vector<unsigned int> m_vidxs;
    std::vector<AtVector> m_nlist;
-   std::vector<AtUInt> m_nidxs;
-   std::vector<AtUInt> m_nsides;   
+   std::vector<unsigned int> m_nidxs;
+   std::vector<unsigned int> m_nsides;   
 
    void DrawPolygons() const;
    void DrawWireframe() const;
@@ -99,4 +103,15 @@ private:
 public:
    CArnoldProceduralGeometry(AtNode* node);
    ~CArnoldProceduralGeometry();
+};
+
+class CArnoldBoxGeometry : public CArnoldStandInGeometry{
+private:
+   void DrawPolygons() const;
+   void DrawWireframe() const;
+   void DrawPoints() const;
+   void DrawNormalAndPolygons() const;
+public:
+   CArnoldBoxGeometry(AtNode* node);
+   ~CArnoldBoxGeometry();
 };

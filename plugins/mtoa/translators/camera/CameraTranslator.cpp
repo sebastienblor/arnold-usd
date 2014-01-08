@@ -87,16 +87,9 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
       if (type == 0)
       {
-         // get data
-         if (step == 0)
-         {
-            MString frameNumber("0");
-            frameNumber += GetExportFrame() + fnRes.findPlug("frameOffset").asInt();
-            imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
-            imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
-            mImage = MImage();
-            mImage.readFromFile(imageName);
-         }
+         imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
+         mImage = MImage();
+         mImage.readFromFile(imageName);
 
          //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
          mImage.getSize(iWidth, iHeight);
@@ -234,7 +227,7 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
          AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_POINT, p1, p2, p3, p4));
          AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
          AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_POINT2, uv1, uv2, uv3, uv4));
-         AiNodeSetInt(imagePlane, "visibility", 65425);
+         AiNodeSetByte(imagePlane, "visibility", AI_RAY_CAMERA | AI_RAY_DIFFUSE);
 
          // create a flat shader with the needed image
          MPlug colorPlug;
@@ -437,14 +430,10 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    
    AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
+   AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
 
-   if (IsMotionBlurEnabled())
-   {
-      float halfShutter = GetShutterSize() * 0.5f;
-      AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
-      AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
-      AiNodeSetInt(camera, "shutter_type", GetShutterType());
-   }
+   AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
+   AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
 
    GetMatrix(matrix);
    
@@ -630,6 +619,9 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
 {
    helper.MakeInput("exposure");
    helper.MakeInput("filtermap");
+   helper.MakeInput("rolling_shutter");
+   helper.MakeInput("shutter_start");
+   helper.MakeInput("shutter_end");
 }
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)

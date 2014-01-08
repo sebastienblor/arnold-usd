@@ -72,6 +72,15 @@ struct TokenData
    int nextSize;    // Size of next string chunk after token. For the UDIM token, it does
                     //  not have any meaning so it will be 0
    void* extra;
+   void* secondExtra; // for the default value
+   int secondExtraLength; // for the default value
+
+   TokenData()
+   {
+      extra = 0;
+      secondExtra = 0;
+      secondExtraLength = 0;
+   }
 };
 
 typedef struct AtImageData
@@ -87,7 +96,7 @@ typedef struct AtImageData
    
    static void* operator new(size_t s)
    {
-      return AiMalloc((unsigned long)s);
+      return AiMalloc(s);
    }
    
    static void operator delete(void* p)
@@ -252,7 +261,22 @@ node_update
                TokenData data;
                data.mode = USER_PARAM;
                data.position = (int) newfname.size();
-               data.extra = AiMalloc((unsigned long)attr.size() + 1);
+               size_t spacePos = attr.find(" ");
+               data.secondExtra = 0;
+               if (spacePos != std::string::npos)
+               {
+                  std::string rest = attr.substr(spacePos + 1);
+                  if (rest.substr(0, 8) == "default:")
+                  {
+                     rest = rest.substr(8);
+                     data.secondExtra = AiMalloc(rest.size() + 1);
+                     data.secondExtraLength = (int)rest.size();
+                     strcpy((char*)data.secondExtra, rest.c_str());
+                     ((char*)data.secondExtra)[rest.size()] = 0;
+                  }
+                  attr = attr.substr(0, spacePos);
+               }  
+               data.extra = AiMalloc(attr.size() + 1);
                strcpy((char*)data.extra, attr.c_str());
                ((char*)data.extra)[attr.size()] = 0;
                data.nextSize = 0;
@@ -356,12 +380,12 @@ node_update
       idata->ntokens = (unsigned int)tokens.size();
       if (tokens.size())
       {
-         idata->tokens = (TokenData*) AiMalloc((unsigned long) (sizeof(TokenData) * tokens.size()));
+         idata->tokens = (TokenData*) AiMalloc(sizeof(TokenData) * tokens.size());
          int k = 0;
          for (std::vector<TokenData>::const_iterator it = tokens.begin(); it != tokens.end(); ++it, ++k)
             idata->tokens[k] = *it;
 
-         idata->origPath = (char*) AiMalloc((unsigned long)newfname.size() + 1);
+         idata->origPath = (char*) AiMalloc(newfname.size() + 1);
          strcpy(idata->origPath, newfname.c_str());
 
          // For each thread, create a processPath with the first text chunk already copied to it.
@@ -398,6 +422,8 @@ node_finish
          {
             if (token->extra != NULL)
                AiFree(token->extra);
+            if (token->secondExtra != NULL)
+               AiFree(token->secondExtra);
          }
          AiFree(idata->tokens);
          AiFree(idata->origPath);
@@ -517,8 +543,15 @@ shader_evaluate
        Mod(outV, 1.0f) > coverage.y ||
        (!wrapU && (outU < 0 || outU > coverage.x)) ||
        (!wrapV && (outV < 0 || outV > coverage.y)))
-   {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+   {      
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);      
+      // restore shader globals
+      sg->u = oldU;
+      sg->v = oldV;
+      sg->dudx = oldUdx; 
+      sg->dudy = oldUdy; 
+      sg->dvdx = oldVdx; 
+      sg->dvdy = oldVdy;
    }
    else
    {
@@ -697,12 +730,26 @@ shader_evaluate
                   }
                   else
                   {
-                     // TODO: only warn once
-                     // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
-                     idata->processPath[sg->tid][pos] = 0;
-                     success = false;
-                     const char* shapeName = AiNodeGetName(sg->shader);
-                     AiMsgWarning("[MayaFile] Could not find user attribute %s for file node %s, setting to default color", (const char*)token->extra, shapeName);
+                     if (token->secondExtra != 0)
+                     {
+                        int len = token->secondExtraLength;
+                        memcpy(&(idata->processPath[sg->tid][pos]),token->secondExtra,len);
+                        pos += (unsigned int) len;
+                        // Copy next text chunk to the "processPath"
+                        memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
+                        pos += token->nextSize;
+                        // Set the end of the string
+                        idata->processPath[sg->tid][pos] = 0;
+                     }
+                     else
+                     {
+                        // TODO: only warn once
+                        // AiMsgWarning("could not find user attribute %s for token %s", attr.c_str(), sub.c_str());
+                        idata->processPath[sg->tid][pos] = 0;
+                        success = false;
+                        const char* shapeName = AiNodeGetName(sg->shader);
+                        AiMsgWarning("[MayaFile] Could not find user attribute %s for file node %s, setting to default color", (const char*)token->extra, shapeName);
+                     }
                   }
                   break;
                }
@@ -808,17 +855,15 @@ shader_evaluate
       {       
          sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
       }
+      sg->u = oldU;
+      sg->v = oldV;
+      sg->dudx = oldUdx; 
+      sg->dudy = oldUdy; 
+      sg->dvdx = oldVdx; 
+      sg->dvdy = oldVdy;
       if (useDefaultColor && !success)
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       else if (success)
          MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);     
    }
-
-   // restore shader globals
-   sg->u = oldU;
-   sg->v = oldV;
-   sg->dudx = oldUdx; 
-   sg->dudy = oldUdy; 
-   sg->dvdx = oldVdx; 
-   sg->dvdy = oldVdy;
 }

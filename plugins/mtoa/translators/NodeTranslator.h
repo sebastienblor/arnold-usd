@@ -102,7 +102,7 @@ public:
    virtual void RequestUpdate(void * clientData = NULL);
 
    static void NodeInitializer(CAbTranslator context);
-   static void ExportUserAttributes(AtNode* anode, MObject object);
+   static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
 
 protected:
    CNodeTranslator()  :
@@ -177,8 +177,6 @@ protected:
    }
    inline unsigned int GetMotionStep() const {return m_step;}
    inline unsigned int GetNumMotionSteps() const {return m_session->GetNumMotionSteps();}
-   inline float GetShutterSize() const {return m_session->GetShutterSize();}
-   inline unsigned int GetShutterType() const {return m_session->GetShutterType();}
    inline CArnoldSession* GetSession() const {return m_session;}
    inline const CSessionOptions& GetSessionOptions() const  { return m_session->GetSessionOptions(); }
    inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
@@ -282,8 +280,8 @@ protected:
    virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, unsigned int step);
    // for computing a path different from m_dagPath
-   int ComputeVisibility(const MDagPath& path);
-   int ComputeVisibility();   
+   AtByte ComputeVisibility(const MDagPath& path);
+   AtByte ComputeVisibility();   
 
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);

@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import maya.utils as utils
 import os.path
 import glob
 import re
@@ -47,7 +48,7 @@ class MakeTxThread (threading.Thread):
         
         # Custom options
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'lineEdit']);
-        cmd += ' '+cmds.textField(ctrlPath, query=True, text=True);
+        cmd += ' '+utils.executeInMainThreadWithResult(cmds.textField, ctrlPath, query=True, text=True);
         
         cmd += ' "'+texture+'"'
         #print cmd
@@ -62,7 +63,7 @@ class MakeTxThread (threading.Thread):
             return
             
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
-        cmds.button(ctrlPath, edit=True, enable=True);
+        utils.executeDeferred(cmds.button,ctrlPath, edit=True, enable=True);
             
         for texture in self.txManager.selectedFiles:
             if not texture:
@@ -83,7 +84,7 @@ class MakeTxThread (threading.Thread):
                         self.createdErrors += 1
                         
                         
-                    updateProgressMessage(self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)    
+                    utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
                         
             else:
                 if self.makeTx(texture) is 0:
@@ -91,12 +92,12 @@ class MakeTxThread (threading.Thread):
                 else:
                     self.createdErrors += 1
                     
-            updateProgressMessage(self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
+            utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
         
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
-        cmds.button(ctrlPath, edit=True, enable=False);
+        utils.executeDeferred(cmds.button, ctrlPath, edit=True, enable=False);
         self.txManager.process = True
-        self.txManager.updateList()
+        utils.executeDeferred(self.txManager.updateList)
 
 
 class MtoATxManager(object):
@@ -127,6 +128,7 @@ class MtoATxManager(object):
             cmds.deleteUI(self.window);
         self.window = cmds.loadUI(uiFile=self.uiFile, verbose=False)
         
+        cmds.showWindow(self.window);
         try:
             initPos = cmds.windowPref( self.window, query=True, topLeftCorner=True )
             if initPos[0] < 0:
@@ -136,9 +138,6 @@ class MtoATxManager(object):
             cmds.windowPref( self.window, edit=True, topLeftCorner=initPos )
         except :
             pass
-        
-        
-        cmds.showWindow(self.window);
         
         ctrlPath = '|'.join([self.window, 'radioButton']);
         cmds.radioButton(ctrlPath, edit=True, select=True);
@@ -248,6 +247,8 @@ class MtoATxManager(object):
                 cmds.textScrollList(ctrlPath, edit=True, append=['(tx) '+texture[0]]);
             elif(texture[1] == 2):
                 cmds.textScrollList(ctrlPath, edit=True, append=['       '+texture[0]]);
+            elif(texture[1] == -1):
+                cmds.textScrollList(ctrlPath, edit=True, append=['~~  '+texture[0]]);
 
         self.listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
                 
@@ -296,6 +297,44 @@ class MtoATxManager(object):
     
     def selectChange(self, *args):
         self.selectedFilesFromList()
+        
+    def selectLine(self, *args):
+        ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
+        
+        listElements = cmds.textScrollList(ctrlPath, query=True, ai=True);
+        selectedList = cmds.textScrollList(ctrlPath, query=True, si=True);
+        selectedIndexList = cmds.textScrollList(ctrlPath, query=True, sii=True);
+
+        selected = selectedList[0];
+        firstIndex = listElements.index(selected)
+        number = selectedIndexList[0] - firstIndex
+        
+        if selected.startswith('       '):
+            selected = selected.replace('       ','',1)
+        elif selected.startswith('(tx) '):
+            selected = selected.replace('(tx) ','',1)
+        elif selected.startswith('[tx] '):
+            selected = selected.replace('[tx] ','',1)
+        elif selected.startswith('~~  '):
+            selected = selected.replace('~~  ','',1)
+        
+        list = cmds.ls(type='file')
+        for node in list:
+            texture = cmds.getAttr(node+'.fileTextureName')
+            if texture == selected:
+                number -= 1
+                if number == 0:
+                    cmds.select(node)
+                    return
+                    
+        list = cmds.ls(type='aiImage')
+        for node in list:
+            texture = cmds.getAttr(node+'.filename')
+            if texture == selected:
+                number -= 1
+                if number == 0:
+                    cmds.select(node)
+                    return
     
     # Set the variables self.selectedFiles, self.filesToCreate, self.filesCreated and self.createdErrors
     #  from the Scroll List selection
@@ -321,8 +360,6 @@ class MtoATxManager(object):
                 self.selectedFiles[i] = texture.replace('(tx) ','',1)
             else:
                 self.selectedFiles[i] = ""
-                idx = list.index(texture) + 1
-                cmds.textScrollList(ctrlPath, edit=True, deselectIndexedItem=idx);
                 continue;
             texture = self.selectedFiles[i]
             if 'udim' in os.path.basename(texture):
@@ -375,7 +412,7 @@ class MtoATxManager(object):
         folder = cmds.textField(ctrlPath, query=True, text=True);
         if not os.path.isdir(folder):
             folder = cmds.workspace(query=True, directory=True)     
-        ret = cmds.fileDialog2(dialogStyle=2,cap='Select Folder',okc='Select',fm=2, startingDirectory=folder)
+        ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=2, startingDirectory=folder)
         if ret is not None and len(ret):
             ctrlPath = '|'.join([self.window, 'groupBox_4', 'lineEdit_2']);
             cmds.textField(ctrlPath, edit=True, text=ret[0]);
@@ -422,3 +459,4 @@ class MtoATxManager(object):
         if not self.thread:
             self.thread = MakeTxThread(self)
             self.thread.start()
+

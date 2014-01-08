@@ -51,6 +51,11 @@ vars.AddVariables(
     PathVariable('LINK', 'Linker to use', None),
     PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
     PathVariable('SHCXX', 'Path to C++ (gcc) compiler used for generating shared-library objects', None),
+    ('FTP'            , 'Path of the FTP to upload the package'        , ''),
+    ('FTP_SUBDIR'     , 'Subdirectory on the FTP to place the package' , ''),
+    ('FTP_USER'       , 'Username for the FTP'                         , ''),
+    ('FTP_PASS'       , 'Password for the FTP'                         , ''),
+    ('PACKAGE_SUFFIX' , 'Suffix for the package names'                 , ''),
                   
     BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', True),
     EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
@@ -58,6 +63,7 @@ vars.AddVariables(
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
+    BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
 
     PathVariable('MAYA_ROOT',
                  'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
@@ -127,11 +133,13 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('TOOLS_PATH',
                  'Where to find external tools required for sh',
+                 '.', PathVariable.PathIsDir),
+    PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
                  '.', PathVariable.PathIsDir)
 )
 
 if system.os() == 'windows':
-    vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0', '10.0Exp')))
+    vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0', '10.0Exp', '11.0')))
 
 if system.os() == 'windows':
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
@@ -191,16 +199,21 @@ TARGET_INCLUDE_PATH = env.subst(env['TARGET_INCLUDE_PATH'])
 TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])  
 TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
 TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
+TARGET_PROCEDURAL_PATH = env.subst(env['TARGET_PROCEDURAL_PATH'])
 TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 SHAVE_API = env.subst(env['SHAVE_API'])
+PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
+env['ENABLE_XGEN'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
 maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 maya_version_base = maya_version[0:4]
+if int(maya_version) >= 201450:
+    env['ENABLE_XGEN'] = 1
 
 mercurial_id = ""
 try:
@@ -405,6 +418,9 @@ elif env['COMPILER'] == 'icc':
 if env['MODE'] == 'debug':
     env.Append(CPPDEFINES = Split('ARNOLD_DEBUG'))
 
+if env['ENABLE_XGEN'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_XGEN'))
+
 ## platform related defines
 if system.os() == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
@@ -420,6 +436,7 @@ env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
     ## hide long compile lines from the user
@@ -461,10 +478,10 @@ if system.os() == 'windows':
                                                       duplicate   = 0,
                                                       exports     = 'env')
 
-    [MTOA_PROCS, MTOA_PROCS_PRJ] = env.SConscript(os.path.join('procedurals', 'SConscript'),
-                                                  variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
-                                                  duplicate   = 0,
-                                                  exports     = 'env')
+    MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
+                                              variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
+                                              duplicate   = 0,
+                                              exports     = 'env')
 
     INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
                                   srcs = [],
@@ -575,7 +592,8 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
 SConscriptChdir(1)
 
 env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
-env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
+if not env['DISABLE_COMMON']:
+    env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
 if system.os() == 'windows':
     # Rename plugins as .mll and install them in the target path
@@ -583,8 +601,14 @@ if system.os() == 'windows':
     env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
     env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
-    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS[0])
-    libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
+    nprocs = []
+    for proc in MTOA_PROCS:
+        if str(proc)[-3:] == 'dll':
+            nprocs.append(proc)
+    MTOA_PROCS = nprocs
+    env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
+    
+    libs = MTOA_API[1]
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -656,26 +680,68 @@ env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer
 env.MakeModule(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
+maya_base_version = maya_version[:4]
+
+if maya_base_version == '2013':
+    if int(maya_version[-2:]) >= 50:
+        maya_base_version = '20135'
+
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_version
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + PACKAGE_SUFFIX
 
 if env['MODE'] in ['debug', 'profile']:
     package_name += '-' + env['MODE']
 
 package_name_inst = package_name
 
-package_extension = ""
-
-if system.os() == 'windows':
-    package_extension += ".rar"
-else:
-    package_extension += ".tgz"
-
-package_name += package_extension
-
 PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
+
+import ftplib
+
+def deploy(target, source, env):
+
+    def ftp_send_binary_cb(block):
+        print "\b#",
+
+    local_package_name = str(source[0])
+    if system.os() == "windows":
+        local_package_name += '.exe'
+    else:
+        local_package_name += '.run'
+
+    server = env['FTP']
+
+    ftp = ftplib.FTP(server)
+
+    ftp.login(env['FTP_USER'], env['FTP_PASS'])
+
+    directory = env['FTP_SUBDIR']
+
+    directory_split = directory.split('/')
+
+    for d in directory_split:
+        try:
+            ftp.cwd(d)
+        except:
+            ftp.mkd(d)
+            ftp.cwd(d)    
+
+    f = open(os.path.abspath(local_package_name), 'rb')
+    print 'Sending "%s" to %s/%s...' % (source[0], server, directory)
+    command = "STOR %s" % local_package_name
+    try:
+        ftp.storbinary(command, f, 81920, ftp_send_binary_cb)
+    except:
+        # Old python versions have no ftp callback
+        ftp.storbinary(command, f, 81920)
+    print
+
+    f.close()
+    ftp.close()
+
+env['BUILDERS']['PackageDeploy']  = Builder(action = Action(deploy,  "Deploying release package: '$SOURCE'"))
 
 ################################
 ## EXTENSIONS
@@ -691,7 +757,7 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS)):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS)):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):        
@@ -703,10 +769,13 @@ for ext in os.listdir(ext_base_dir):
             EXT_SHADERS = EXT[1]        
         
         # EXT may contain a shader result
-        ext_shader = None
+        ext_arnold = None
+        target_type = 'shader'
         ext_files = []
         if len(EXT) > 1:
-            ext_shader = str(EXT[1][0])
+            ext_arnold = str(EXT[1][0])
+            if hasattr(EXT[1], 'target_type'):
+                target_type = EXT[1].target_type
             plugin = str(EXT[0][0])
         else:
             plugin = str(EXT[0])
@@ -716,21 +785,36 @@ for ext in os.listdir(ext_base_dir):
         if os.path.exists(pyfile):
             ext_files.append(pyfile)
             env.Install(TARGET_EXTENSION_PATH, pyfile)
+        if ext_arnold and (target_type == 'shader'):
+            mtdfile = os.path.splitext(os.path.basename(ext_arnold))[0] + '.mtd'
+            mtdfile = os.path.join(ext_dir, 'shaders', mtdfile)
+            if os.path.exists(mtdfile):
+                ext_files.append(mtdfile)
+                env.Install(TARGET_SHADER_PATH, mtdfile)
         env.Install(TARGET_EXTENSION_PATH, plugin)
         package_files = []
-        if ext_shader:
-            env.Install(TARGET_SHADER_PATH, ext_shader)
-            package_files += [[ext_shader, 'shaders']]
+        if ext_arnold:
+            target_path = "shaders"
+            if target_type == 'procedural':
+                env.Install(TARGET_PROCEDURAL_PATH, ext_arnold)
+                target_path = "procedurals"
+            else:
+                env.Install(TARGET_SHADER_PATH, ext_arnold)
+            package_files += [[ext_arnold, target_path]]
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
         local_env['PACKAGE_FILES'] = package_files
-        EXT_PACKAGE = local_env.MakePackage('%s-%s-maya%s%s' % (ext, system.os(), maya_version, package_extension), EXT)        
-        top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)
+        extension_package_name = '%s-MtoA-%s-%s-%s%s' % (ext, MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+        EXT_PACKAGE = local_env.MakePackage(extension_package_name, EXT)        
+        top_level_alias(local_env, '%spack' % ext, EXT_PACKAGE)        
         local_env.AlwaysBuild(EXT_PACKAGE)
         top_level_alias(env, ext, EXT)
+        EXT_PACKAGE_DEPLOY = local_env.PackageDeploy('%sdeploy' % ext, extension_package_name)
+        top_level_alias(env, '%sdeploy' % ext, EXT_PACKAGE_DEPLOY)
         Depends(EXT, MTOA_API[0])
         Depends(EXT_PACKAGE, EXT)
+        Depends(EXT_PACKAGE_DEPLOY, EXT_PACKAGE)
 
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
@@ -749,13 +833,17 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
-[os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'HOW_TO_INSTALL.txt'), 'doc'],
 ]
 
+for p in MTOA_PROCS:
+    PACKAGE_FILES += [[p, 'procedurals']]
+
+if not env['DISABLE_COMMON']:
+    PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
 
 for p in scriptfiles:
     (d, f) = os.path.split(p)
@@ -797,6 +885,56 @@ elif system.os() == 'darwin':
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
+installer_name = ''
+if system.os() == "windows":
+    installer_name = 'MtoA-%s-%s%s' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+else:
+    installer_name = 'MtoA-%s-%s-%s%s' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+
+def create_installer(target, source, env):
+    import tempfile
+    import shutil
+    local_package_name = package_name + '.zip'
+    tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
+    shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+    if system.os() == "windows":
+        import zipfile
+        shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))
+        shutil.copyfile(os.path.abspath('installer/left.bmp'), os.path.join(tempdir, 'left.bmp'))
+        shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
+        shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+        shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
+        zipfile.ZipFile(os.path.abspath(local_package_name), 'r').extractall(tempdir)
+        NSIS_PATH = env.subst(env['NSIS_PATH'])
+        os.environ['NSISDIR'] = NSIS_PATH
+        os.environ['NSISCONFDIR'] = NSIS_PATH
+        mtoaVersionString = MTOA_VERSION
+        mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
+        mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
+        mayaVersionString = maya_base_version
+        mayaVersionString = mayaVersionString.replace('20135', '2013.5')
+        os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
+        os.environ['MAYA_VERSION'] = mayaVersionString
+        subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), '%s.exe' % (installer_name))
+    else:
+        shutil.copyfile(os.path.abspath(local_package_name), os.path.join(tempdir, "package.zip"))
+        shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
+        commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
+        commandFile = open(commandFilePath, 'w')
+        commandFile.write('python ./unix_installer.py %s' % maya_base_version)
+        commandFile.close()
+        subprocess.call(['chmod', '+x', commandFilePath])
+        installerPath = os.path.abspath('./%s.run' % (installer_name))
+        subprocess.call(['installer/makeself.sh', tempdir, installerPath,
+                         'MtoA for Linux Installer', './unix_installer.sh'])
+        subprocess.call(['chmod', '+x', installerPath])
+
+env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
+
+INSTALLER = env.PackageInstaller('create_installer', package_name)
+DEPLOY = env.PackageDeploy('deploy', installer_name)
+
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
 ################################
@@ -805,7 +943,6 @@ if system.os() == 'windows':
     env.Depends(SOLUTION, MTOA_PRJ)
     env.Depends(SOLUTION, MTOA_API_PRJ)
     env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
-    env.Depends(SOLUTION, MTOA_PROCS_PRJ)
     env.Depends(SOLUTION, INSTALL_PRJ)
     env.AlwaysBuild(INSTALL_PRJ)
     top_level_alias(env, 'solution', SOLUTION)
@@ -828,6 +965,11 @@ top_level_alias(env, 'shaders', MTOA_SHADERS)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
+top_level_alias(env, 'deploy', DEPLOY)
+top_level_alias(env, 'installer', INSTALLER)
+
+env.Depends(DEPLOY, INSTALLER)
+env.Depends(INSTALLER, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
 

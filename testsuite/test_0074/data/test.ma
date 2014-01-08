@@ -157,7 +157,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	setAttr ".GI_diffuse_samples" 1;
 	setAttr ".GI_glossy_samples" 1;
 	setAttr ".GI_refraction_samples" 1;
-	setAttr ".sss_sample_factor" 1;
 	setAttr ".mb_en" yes;
 	setAttr ".mots" 5;
 	setAttr ".motf" 1;

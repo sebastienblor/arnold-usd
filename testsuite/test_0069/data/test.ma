@@ -9338,7 +9338,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	setAttr ".tgamma" 1;
 	setAttr ".llnk" 0;
 	setAttr ".slnk" 0;
-	setAttr ".shutt" 1;
 	setAttr ".mots" 3;
 	setAttr ".lumaID" -type "string" "a:1331058662.53:0.837618735152";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";

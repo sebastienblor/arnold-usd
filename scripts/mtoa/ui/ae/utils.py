@@ -214,6 +214,7 @@ class AttrControlGrp(object):
         'color':  pm.cmds.attrColorSliderGrp,
         'bool':   pm.cmds.attrControlGrp,
         'long':   pm.cmds.attrFieldSliderGrp,
+        'byte':   pm.cmds.attrFieldSliderGrp,
         'long2':  pm.cmds.attrFieldGrp,
         'long3':  pm.cmds.attrFieldGrp,
         'short':  pm.cmds.attrFieldSliderGrp,
@@ -237,6 +238,8 @@ class AttrControlGrp(object):
         else:
             self.callback = None
         kwargs['attribute'] = self.attribute
+        if self.type not in self.UI_TYPES:
+            return
         cmd = self.UI_TYPES[self.type]
         try:
             self.control = cmd(*args, **kwargs)
@@ -249,10 +252,14 @@ class AttrControlGrp(object):
 
     def edit(self, **kwargs):
         kwargs['edit'] = True
+        if self.type not in self.UI_TYPES:
+            return
         self.UI_TYPES[self.type](self.control, **kwargs)
 
     def setAttribute(self, attribute):
         self.attribute = attribute
+        if self.type not in self.UI_TYPES:
+            return
         self.UI_TYPES[self.type](self.control, edit=True, attribute=self.attribute)
         if self.callback:
             pm.scriptJob(attributeChange=[self.attribute, self.callback],

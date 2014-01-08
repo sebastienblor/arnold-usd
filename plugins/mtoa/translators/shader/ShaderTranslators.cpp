@@ -60,7 +60,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
-   int visibility = ComputeVisibility();
+   AtByte visibility = ComputeVisibility();
    AiNodeSetBool(shader, "opaque_alpha", (int)(visibility & AI_RAY_CAMERA));
    AiNodeSetInt(shader, "visibility", visibility);
 }
@@ -198,6 +198,12 @@ bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, 
 #ifdef _WIN32
    if (slashPos == std::string::npos) // we don't get the right slashes from the aiImage node
       slashPos = original_filename.rfind('\\');
+   else
+   {
+      size_t slashPos2 = original_filename.rfind('\\');
+      if (slashPos2 != std::string::npos)
+         slashPos = MAX(slashPos2, slashPos);
+   }
 #endif
    if (slashPos != std::string::npos)
    {
@@ -960,6 +966,16 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
    ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, "offset");
    ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
+
+   MFnDependencyNode fnNode(GetMayaObject());
+   MPlugArray connections;
+   fnNode.findPlug("uvCoord").connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      MFnDependencyNode uvcNodeFn(connections[0].node());
+      if (uvcNodeFn.typeName() == "uvChooser")
+         AiNodeSetStr(shader, "uvSetName", uvcNodeFn.findPlug("uvSets").elementByPhysicalIndex(0).asString().asChar());
+   }
 }
 
 // LayeredTexture
@@ -1029,7 +1045,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
          colorConnectedToAlpha = (colorSrc == alphaSrc);
 
       sprintf(aiAttr, "colorConnectedToAlpha%u", i);
-      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
+      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? true : false);
 
       if (!colorConnectedToAlpha && alphaSrc.isNull())
       {
@@ -1114,7 +1130,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
       ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
 
       sprintf(aiAttr, "useTransparency%u", i);
-      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
+      AiNodeSetBool(shader, aiAttr, useTransparency ? true : false);
 
       if (useTransparency)
       {
@@ -1236,6 +1252,29 @@ AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode("standard"));
 }
 
+void CMayaPhongTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   
+   AiNodeSetFlt(shader, "Ks", 1.f);
+   MPlug cosinePowerPlug = FindMayaPlug("cosinePower");
+   float rougness = sqrtf(1.0f / (0.454f * cosinePowerPlug.asFloat() + 3.357f));
+   AiNodeSetFlt(shader, "specular_roughness", rougness);
+   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   
+   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaPhongTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
 void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("aiHair");
@@ -1302,4 +1341,76 @@ void CAiImageTranslator::Export(AtNode* image)
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
    }
+}
+
+CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
+{
+
+}
+
+void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
+{
+   ProcessParameter(shadingSwitch, "default", m_paramType, "default");
+   std::vector<AtNode*> inputs;
+   std::vector<AtNode*> shapes;
+
+   MFnDependencyNode dnode(GetMayaObject());
+
+   MPlug inputPlug = dnode.findPlug("input");
+   MIntArray existingIndices;
+   inputPlug.getExistingArrayAttributeIndices(existingIndices);
+   if (existingIndices.length() == 0)
+      return;
+   for (unsigned int i = 0; i < existingIndices.length(); ++i)
+   {
+      MPlug currentInputPlug = inputPlug.elementByLogicalIndex(existingIndices[i]);      
+      MPlug shapePlug = currentInputPlug.child(1);
+      MPlugArray conns;
+      shapePlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShapePlug = conns[0];
+      MPlug shaderPlug = currentInputPlug.child(0);      
+      shaderPlug.connectedTo(conns, true, false);
+      if (conns.length() == 0)
+         continue;
+      MPlug inputShaderPlug = conns[0];
+      AtNode* shader = ExportNode(inputShaderPlug);
+      if (shader == 0)
+         continue;
+      AtNode* shape = ExportNode(inputShapePlug);
+      if (shape == 0)
+         continue;
+      inputs.push_back(shader);
+      shapes.push_back(shape);
+   }
+   if (inputs.size() == 0)
+      return;
+   AiNodeSetArray(shadingSwitch, "inputs", AiArrayConvert((unsigned int)inputs.size(), 1, AI_TYPE_NODE, &inputs[0]));
+   AiNodeSetArray(shadingSwitch, "shapes", AiArrayConvert((unsigned int)shapes.size(), 1, AI_TYPE_NODE, &shapes[0]));
+}
+
+AtNode* CMayaShadingSwitchTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode(m_nodeType.c_str());
+}
+
+void* CreateSingleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaSingleShadingSwitch", AI_TYPE_FLOAT);
+}
+
+void* CreateDoubleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaDoubleShadingSwitch", AI_TYPE_POINT2);
+}
+
+void* CreateTripleShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaTripleShadingSwitch", AI_TYPE_RGB);
+}
+
+void* CreateQuadShadingSwitchTranslator()
+{
+   return new CMayaShadingSwitchTranslator("MayaQuadShadingSwitch", AI_TYPE_RGBA);
 }

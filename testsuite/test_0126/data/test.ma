@@ -1,9 +1,9 @@
 //Maya ASCII 2012 scene
 //Name: test.ma
-//Last modified: Wed, Jun 19, 2013 08:20:32 PM
+//Last modified: Thu, Dec 12, 2013 07:50:29 PM
 //Codeset: UTF-8
 requires maya "2012";
-requires "mtoa" "0.25.0.dev";
+requires "mtoa" "1.0.0.RC3";
 requires "Mayatomr" "2012.0m - 3.9.1.48 ";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
@@ -11,7 +11,7 @@ fileInfo "application" "maya";
 fileInfo "product" "Maya 2012";
 fileInfo "version" "2012 x64";
 fileInfo "cutIdentifier" "201201172014-821146";
-fileInfo "osv" "Linux 2.6.32-358.11.1.el6.centos.plus.x86_64 #1 SMP Wed Jun 12 19:12:17 UTC 2013 x86_64";
+fileInfo "osv" "Linux 2.6.32-431.el6.centos.plus.x86_64 #1 SMP Fri Nov 29 23:11:12 UTC 2013 x86_64";
 fileInfo "psyop_attr_pUsers" "yyamashita";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
@@ -85,6 +85,7 @@ createNode mesh -n "pSphereShape1" -p "pSphere1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
+	setAttr ".ai_translator" -type "string" "polymesh";
 createNode transform -n "pSphere2";
 	setAttr ".t" -type "double3" 11.633853814246233 10.956725019674963 14.181209297876578 ;
 createNode mesh -n "pSphereShape2" -p "pSphere2";
@@ -1219,6 +1220,7 @@ createNode mesh -n "pSphereShape2" -p "pSphere2";
 	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
 	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr ".ai_translator" -type "string" "polymesh";
 createNode transform -n "pSphere3";
 	setAttr ".t" -type "double3" -1.423236959887678 10.956725019674963 14.181209297876578 ;
 createNode mesh -n "pSphereShape3" -p "pSphere3";
@@ -2353,6 +2355,7 @@ createNode mesh -n "pSphereShape3" -p "pSphere3";
 	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
 	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr ".ai_translator" -type "string" "polymesh";
 createNode lightLinker -s -n "lightLinker1";
 	setAttr -s 15 ".lnk";
 	setAttr -s 15 ".slnk";
@@ -2370,7 +2373,6 @@ createNode aiAOVDriver -s -n "defaultArnoldDriver";
 	addAttr -ci true -sn "host_name" -ln "hostName" -dt "string";
 	addAttr -ci true -sn "port" -ln "port" -dv 4242 -at "long";
 	addAttr -ci true -sn "bucket_threshold" -ln "bucketThreshold" -dv -3 -at "long";
-	setAttr ".tiled" no;
 	setAttr ".ai_translator" -type "string" "tif";
 createNode place2dTexture -n "place2dTexture1";
 createNode place2dTexture -n "difColTexture_place2d";
@@ -2593,7 +2595,7 @@ createNode shadingEngine -n "aiStandard8SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo13";
 createNode aiUtility -n "aiUtility1";
-	setAttr ".color_mode" 20;
+	setAttr ".color_mode" 21;
 	setAttr ".shade_mode" 2;
 select -ne :time1;
 	setAttr -av -k on ".cch";

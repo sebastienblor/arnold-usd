@@ -444,7 +444,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	setAttr ".GI_diffuse_samples" 0;
 	setAttr ".GI_glossy_samples" 0;
 	setAttr ".GI_refraction_samples" 0;
-	setAttr ".sss_sample_factor" 1;
 	setAttr ".fltr" -type "string" "gaussian";
 	setAttr ".mb_en" yes;
 	setAttr ".oamask" 255;
