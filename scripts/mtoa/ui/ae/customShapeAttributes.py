@@ -354,6 +354,8 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiFiltermap")
         self.addSeparator()
         self.addControl("aiRollingShutter")
+        self.addSeparator()
+        self.addControl("motionBlurOverride", label="Motion Blur")
         
     def addDOFAttributes(self):
         self.addSeparator()
