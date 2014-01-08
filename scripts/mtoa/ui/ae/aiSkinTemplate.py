@@ -63,8 +63,9 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl("coat_ior", label="IOR")
         self.endLayout()
         
-        self.beginLayout("Optimizations", collapse=True)
+        self.beginLayout("Advanced", collapse=True)
         self.addControl("specular_in_secondary_rays", label="Specular in Secondary Rays")
+        self.addControl("fresnel_affect_sss", label="Fresnel Affect SSS")
         self.endLayout()
 
         self.addBumpLayout()

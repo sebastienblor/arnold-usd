@@ -27,6 +27,7 @@ node_parameters
    AiParameterStr("aov_specular", "specular");
    AiParameterStr("aov_coat", "coat");
    AiParameterStr("aov_sss", "sss");
+   AiParameterBool("fresnel_affect_sss", true);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
@@ -58,6 +59,7 @@ enum SSSParams {
    p_aov_specular,
    p_aov_coat,
    p_aov_sss,
+   p_fresnel_affect_sss
 };
 
 node_initialize
@@ -178,7 +180,9 @@ shader_evaluate
 
    AtRGB sss = AI_RGB_BLACK;
 
-   float sssWeight = AiShaderEvalParamFlt(p_sss_weight) * (1.0f - specularFresnel) * (1.0f - coatFresnel);
+   float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
+   if (AiShaderEvalParamBool(p_fresnel_affect_sss))
+      sssWeight *= (1.0f - specularFresnel) * (1.0f - coatFresnel);
    const bool enableSSS = sssWeight > AI_EPSILON;
    if (enableSSS)
    {
