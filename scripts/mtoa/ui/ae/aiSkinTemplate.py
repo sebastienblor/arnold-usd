@@ -66,7 +66,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.beginLayout("Advanced", collapse=True)
         self.beginNoOptimize()
         self.addControl("specular_in_secondary_rays", label="Specular in Secondary Rays")
-        self.addControl("fresnel_affect_sss", label="Fresnel Affect SSS")
+        self.addControl("fresnel_affect_sss", label="Fresnel Affects SSS")
         self.endNoOptimize()
         self.endLayout()
 
