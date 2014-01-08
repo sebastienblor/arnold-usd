@@ -354,8 +354,6 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiFiltermap")
         self.addSeparator()
         self.addControl("aiRollingShutter")
-        self.addSeparator()
-        self.addControl("motionBlurOverride", label="Motion Blur")
         
     def addDOFAttributes(self):
         self.addSeparator()
@@ -366,8 +364,9 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiApertureBladeCurvature")
         self.addControl("aiApertureRotation")
         
-    def addSutterAttributes(self):
+    def addShutterAttributes(self):
         self.addSeparator()
+        self.addControl("motionBlurOverride", label="Camera Motion Blur")
         self.addControl("aiShutterStart")
         self.addControl("aiShutterEnd")
 
@@ -377,7 +376,7 @@ class PerspCameraTemplate(CameraTemplate):
         self.addDOFAttributes()
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
-        self.addSutterAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -388,7 +387,7 @@ templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspect
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
-        self.addSutterAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -402,7 +401,7 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiFov')
         self.addControl('aiAutocrop')
-        self.addSutterAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -415,7 +414,7 @@ class CylCameraTemplate(CameraTemplate):
         self.addControl('aiHorizontalFov')
         self.addControl('aiVerticalFov')
         self.addControl('aiProjective')
-        self.addSutterAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -425,7 +424,7 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 class SphericalCameraTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
-        self.addSutterAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
