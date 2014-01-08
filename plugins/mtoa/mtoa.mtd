@@ -833,9 +833,9 @@
         # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
-        min                 INT     3
+        min                 INT     0
         max                 INT     40
-        default             INT     6
+        default             INT     0
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
@@ -851,6 +851,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
 
 [node ortho_camera]
     maya.name               STRING  "camera"
@@ -861,6 +869,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
 
 [node fisheye_camera]
     maya.name               STRING  "camera"
@@ -886,9 +902,9 @@
         # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
-        min                 INT     3
+        min                 INT     0
         max                 INT     40
-        # default           INT     6
+        default             INT     0
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
@@ -904,6 +920,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
         
 [node cyl_camera]
     maya.name               STRING  "camera"
@@ -923,7 +947,15 @@
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
-        softmax             FLOAT   5.0        
+        softmax             FLOAT   5.0    
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0        
 
 [node spherical_camera]
     maya.name               STRING  "camera"
@@ -934,6 +966,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
         
 # shaders
 
