@@ -128,14 +128,14 @@
         min                 FLOAT   0.0
         softmin             FLOAT   1.0
         softmax             FLOAT   5.0
-    [attr coat_weight]
+    [attr sheen_weight]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr coat_roughness]
+    [attr sheen_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
         default             FLOAT   0.5
-    [attr coat_ior]
+    [attr sheen_ior]
         min                 FLOAT   0.0
         softmin             FLOAT   1.0
         softmax             FLOAT   5.0
@@ -158,7 +158,7 @@
     aov.type                INT     0x05
     [attr aov_specular]
     aov.type                INT     0x05
-    [attr aov_coat]
+    [attr aov_sheen]
     aov.type                INT     0x05
     [attr aov_sss]
     aov.type                INT     0x05

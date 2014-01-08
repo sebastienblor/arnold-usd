@@ -18,14 +18,14 @@ node_parameters
    AiParameterFLT("specular_weight", 0.8f);
    AiParameterFLT("specular_roughness", 0.5f);
    AiParameterFLT("specular_ior", 1.44f);
-   AiParameterRGB("coat_color", 0.75f, 0.9f, 1.0f);
-   AiParameterFLT("coat_weight", 0.0f);
-   AiParameterFLT("coat_roughness", 0.35f);
-   AiParameterFLT("coat_ior", 1.44f);
+   AiParameterRGB("sheen_color", 0.75f, 0.9f, 1.0f);
+   AiParameterFLT("sheen_weight", 0.0f);
+   AiParameterFLT("sheen_roughness", 0.35f);
+   AiParameterFLT("sheen_ior", 1.44f);
    AiParameterFLT("global_sss_radius_multiplier", 1.0f);
    AiParameterBOOL("specular_in_secondary_rays", false);
    AiParameterStr("aov_specular", "specular");
-   AiParameterStr("aov_coat", "coat");
+   AiParameterStr("aov_sheen", "sheen");
    AiParameterStr("aov_sss", "sss");
    AiParameterBool("fresnel_affect_sss", true);
 
@@ -50,14 +50,14 @@ enum SSSParams {
    p_specular_weight,
    p_specular_roughness,
    p_specular_ior,
-   p_coat_color,
-   p_coat_weight,
-   p_coat_roughness,
-   p_coat_ior,
+   p_sheen_color,
+   p_sheen_weight,
+   p_sheen_roughness,
+   p_sheen_ior,
    p_global_sss_radius_multiplier,
    p_specular_in_secondary_rays,
    p_aov_specular,
-   p_aov_coat,
+   p_aov_sheen,
    p_aov_sss,
    p_fresnel_affect_sss
 };
@@ -70,7 +70,7 @@ node_initialize
 node_update
 {
    AiAOVRegister(AiNodeGetStr(node, "aov_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_coat"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_sheen"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
    AiAOVRegister(AiNodeGetStr(node, "aov_sss"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
@@ -110,26 +110,26 @@ shader_evaluate
       minRoughness  = 0.9f * minRoughness;
    }
 
-   float coatFresnel = 0.0f;
-   AtRGB coat = AI_RGB_BLACK;
+   float sheenFresnel = 0.0f;
+   AtRGB sheen = AI_RGB_BLACK;
 
    float specularFresnel = 0.0f;
    AtRGB specular = AI_RGB_BLACK;
    
    if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
-      AtRGB coatWeight = AiShaderEvalParamRGB(p_coat_color);
+      AtRGB sheenWeight = AiShaderEvalParamRGB(p_sheen_color);
       AtVector reflected;
       AiReflect(&sg->Rd, &sg->Ns, &reflected);
       const AtVector N = (AiV3Dot(sg->Ngf, reflected) < 0) ? sg->Ngf : sg->Nf;
       const float RDNF = -AiV3Dot(sg->Rd, N);
-      coatFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_coat_ior)) * AiShaderEvalParamFlt(p_coat_weight);
-      coatWeight *= coatFresnel;
+      sheenFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_sheen_ior)) * AiShaderEvalParamFlt(p_sheen_weight);
+      sheenWeight *= sheenFresnel;
    
       float lastSpecRoughness = 1.0f;
-      if (!AiColorIsSmall(coatWeight))
+      if (!AiColorIsSmall(sheenWeight))
       {
-         float specularExponent = AiShaderEvalParamFlt(p_coat_roughness);
+         float specularExponent = AiShaderEvalParamFlt(p_sheen_roughness);
          specularExponent *= specularExponent;
          if (sg->Rr_gloss > 0)
             specularExponent = MAX(specularExponent, minRoughness);
@@ -143,17 +143,17 @@ shader_evaluate
             {
                const float affectSpecular = AiLightGetSpecular(sg->Lp);
                if (affectSpecular > AI_EPSILON)
-                  coat += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+                  sheen += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
             }
          }
 
-         coat += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
-         coat *= coatWeight;
+         sheen += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         sheen *= sheenWeight;
       }
 
       AtRGB specularWeight = AiShaderEvalParamRGB(p_specular_color);
       specularFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_specular_ior)) * AiShaderEvalParamFlt(p_specular_weight);
-      specularWeight *= specularFresnel * (1.0f - coatFresnel);
+      specularWeight *= specularFresnel * (1.0f - sheenFresnel);
 
       if (!AiColorIsSmall(specularWeight))
       {
@@ -182,7 +182,7 @@ shader_evaluate
 
    float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
    if (AiShaderEvalParamBool(p_fresnel_affect_sss))
-      sssWeight *= (1.0f - specularFresnel) * (1.0f - coatFresnel);
+      sssWeight *= (1.0f - specularFresnel) * (1.0f - sheenFresnel);
    const bool enableSSS = sssWeight > AI_EPSILON;
    if (enableSSS)
    {
@@ -201,12 +201,12 @@ shader_evaluate
       sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
    }
 
-   sg->out.RGB = specular + coat + sss;
+   sg->out.RGB = specular + sheen + sss;
 
    if (sg->Rt & AI_RAY_CAMERA)
    {      
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_specular), specular);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_coat), coat);
+      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sheen), sheen);
       AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sss), sss);
    }
 }
