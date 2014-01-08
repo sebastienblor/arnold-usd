@@ -95,6 +95,7 @@
     <sep desc="Motion blur"/>
     <attr n="ai:mben" s="defaultArnoldRenderOptions.motion_blur_enable" t="boolean" h="Enable motion blur."/>
     <attr n="ai:mbdf" s="defaultArnoldRenderOptions.mb_object_deform_enable" t="boolean" h="Enable object deformation motion blur."/>
+    <attr n="ai:mbcen" s="defaultArnoldRenderOptions.mb_camera_enable" t="boolean" h="Enable camera motion blur."/>
     <attr n="ai:mbrt" s="defaultArnoldRenderOptions.range_type" t="int" h="Position. (0 - Start On Frame, 1 - Center On Frame, 2 - End On Frame, 3 - Custom)"/>
     <attr n="ai:mbfr" s="defaultArnoldRenderOptions.motion_frames" t="float" h="Shutter Length."/>
     <attr n="ai:mbstart" s="defaultArnoldRenderOptions.motion_start" t="float" h="Motion Start."/>
