@@ -77,6 +77,7 @@ def updateComputeSamples(*args):
 def updateMotionBlurSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     pm.attrControlGrp('mb_object_deform_enable', edit=True, enable=flag)
+    pm.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
     pm.attrControlGrp('textArnoldMBAngle', edit=True, enable=flag)
@@ -664,6 +665,12 @@ def createArnoldMotionBlurSettings():
                      
     pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=1)
     pm.connectControl('mb_object_deform_enable', 'defaultArnoldRenderOptions.mb_object_deform_enable', index=2)
+    
+    pm.checkBoxGrp('mb_camera_enable',
+                    label='Camera')
+                     
+    pm.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=1)
+    pm.connectControl('mb_camera_enable', 'defaultArnoldRenderOptions.mb_camera_enable', index=2)
     
     pm.attrControlGrp('mb_motion_steps',
                         label="Keys",
