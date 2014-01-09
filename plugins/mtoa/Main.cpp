@@ -76,7 +76,6 @@ namespace // <anonymous>
    #else
       _putenv_s(env.asChar(), val.asChar());
    #endif
-   #endif
 #else
       setenv(env.asChar(), val.asChar(), true);
 #endif      
