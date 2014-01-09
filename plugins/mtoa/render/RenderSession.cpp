@@ -617,6 +617,8 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AiNodeSetInt(options, "xres", resolution);
    AiNodeSetInt(options, "yres", resolution);
    AiNodeSetInt(options, "bucket_size", resolution/4);
+   AiNodeSetInt(options, "sss_bssrdf_samples", 4);
+
 
    // Close existing render if any
    InterruptRender();

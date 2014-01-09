@@ -623,7 +623,7 @@ if system.os() == 'windows':
     MTOA_PROCS = nprocs
     env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
     
-    libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
+    libs = MTOA_API[1]
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -920,6 +920,7 @@ def create_installer(target, source, env):
         os.environ['NSISCONFDIR'] = NSIS_PATH
         mtoaVersionString = MTOA_VERSION
         mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
+        mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
         mayaVersionString = maya_base_version
         mayaVersionString = mayaVersionString.replace('20135', '2013.5')
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString

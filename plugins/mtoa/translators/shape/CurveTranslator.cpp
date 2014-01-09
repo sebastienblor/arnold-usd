@@ -30,6 +30,10 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.FLT = 0.01f;
    data.name = "aiCurveWidth";
    data.shortName = "cwdth";
+   data.hasMin = true;
+   data.min.FLT = 0.0f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 1.0f;
    helper.MakeInputFloat(data);
 
    data.defaultValue.INT = 5;
@@ -37,7 +41,10 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "srate";
    data.hasMin = true;
    data.min.INT = 1;
+   data.softMax.INT = 20;
    helper.MakeInputInt(data);
+
+   data.hasSoftMax = false;
 
    // FIXME: look into using CDagTranslator::MakeMayaVisibilityFlags
    data.defaultValue.BOOL = true;

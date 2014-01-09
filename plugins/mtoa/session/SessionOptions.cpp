@@ -30,6 +30,18 @@ void ReplaceSlashes(MString& str, bool isDir = false)
       str += "/";
 }
 
+void ExpandEnvVariables(MString& str)
+{
+   std::string str2 = str.asChar();
+   size_t token;
+   while ((token = str2.find("]")) != std::string::npos)
+      str2.replace(token, token + 1, "}");
+   while ((token = str2.find("[")) != std::string::npos)
+      str2.replace(token, token + 1, "${");
+   str = str2.c_str();
+   str = str.expandEnvironmentVariablesAndTilde();
+}
+
 MStatus CSessionOptions::GetFromMaya()
 {
    MStatus status;
@@ -53,7 +65,7 @@ MStatus CSessionOptions::GetFromMaya()
       if (fnArnoldRenderOptions.findPlug("mb_en").asBool())
       {
          m_motion.enable_mask   = (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_LIGHT)
-                                | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_CAMERA)
+                                | (fnArnoldRenderOptions.findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA)
                                 | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_OBJECT)
                                 | (fnArnoldRenderOptions.findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM)
                                 | (fnArnoldRenderOptions.findPlug("mb_en").asBool() * MTOA_MBLUR_SHADER);
@@ -90,7 +102,10 @@ MStatus CSessionOptions::GetFromMaya()
          for (unsigned int i = 0; i < arr.length(); ++i)
             m_textureSearchPaths.append(arr[i]);
          for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
-            ReplaceSlashes(m_textureSearchPaths[i], true);
+         {
+            ExpandEnvVariables(m_textureSearchPaths[i]);
+            ReplaceSlashes(m_textureSearchPaths[i], true);            
+         }
       }
       else
          m_textureSearchPaths.clear();
@@ -107,7 +122,10 @@ MStatus CSessionOptions::GetFromMaya()
          plug.asString().split(PATHSEP, m_proceduralSearchPaths);
          m_proceduralSearchPaths.append(getProjectFolderPath());
          for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
-            ReplaceSlashes(m_proceduralSearchPaths[i], true);
+         {
+            ExpandEnvVariables(m_proceduralSearchPaths[i]);
+            ReplaceSlashes(m_proceduralSearchPaths[i], true);            
+         }
       }
       else
          m_proceduralSearchPaths.clear();

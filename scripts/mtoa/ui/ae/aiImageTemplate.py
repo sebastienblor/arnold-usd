@@ -12,7 +12,7 @@ class AEaiImageTemplate(ShaderAETemplate):
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'All Files (*.*)'
-        ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load Image File',okc='Load',fm=4)
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load Image File',okc='Load',fm=4)
         if ret is not None and len(ret):
             self.filenameEdit(ret[0])
             cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])

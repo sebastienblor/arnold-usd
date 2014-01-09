@@ -481,7 +481,6 @@ createNode aiAOVDriver -s -n "defaultArnoldDisplayDriver";
 	setAttr ".ai_translator" -type "string" "maya";
 createNode aiSkin -n "aiSkin1";
 	setAttr ".deep_scatter_weight" 2;
-	setAttr ".combine_sss_queries" yes;
 createNode shadingEngine -n "aiSkin1SG";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;

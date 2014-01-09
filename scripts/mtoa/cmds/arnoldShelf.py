@@ -10,7 +10,7 @@ def removeArnoldShelf():
 
 def createPhysicalSky():
    if cmds.objExists('defaultArnoldRenderOptions'):
-      settings.createBackground('aiPhysicalSky', None)
+      settings.createBackground('aiPhysicalSky', None, False)
    else:
       cmds.confirmDialog(message='The Arnold Render Options node does not exists!')
 
