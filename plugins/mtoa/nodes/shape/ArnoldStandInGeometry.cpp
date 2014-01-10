@@ -18,7 +18,7 @@ CArnoldStandInGeometry::CArnoldStandInGeometry(AtNode* node)
 
    p_matrices = AiArrayCopy(AiNodeGetArray(node, "matrix"));
    AiArrayGetMtx(p_matrices, 0, m_matrix);
-   m_visible = AiNodeGetInt(node, "visibility") != 0;
+   m_visible = AiNodeGetByte(node, "visibility") != 0;
    m_invalid = false;
 }
 
