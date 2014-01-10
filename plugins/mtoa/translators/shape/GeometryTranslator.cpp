@@ -1111,7 +1111,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   AtByte visibility = ComputeVisibility();
    AiNodeSetByte(instance, "visibility", visibility);
 
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
