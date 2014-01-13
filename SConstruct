@@ -15,7 +15,7 @@ from colorama import init
 init()
 from colorama import Fore, Back, Style
 
-MTOA_VERSION = get_mtoa_version(3)
+MTOA_VERSION = get_mtoa_version(4)
 
 ################################################################################
 #   Operating System detection
