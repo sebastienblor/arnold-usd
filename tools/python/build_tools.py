@@ -107,13 +107,14 @@ def process_return_code(retcode):
             status = 'FAILED'
    return status      
 
-def get_mtoa_version(components = 3):
+def get_mtoa_version(components = 4):
    '''
    Obtains MtoA version by parsing 'Version.cpp'
    '''
-   MAJOR_VERSION =''
-   MINOR_VERSION =''
-   FIX_VERSION =''
+   ARCH_VERSION = ''
+   MAJOR_VERSION = ''
+   MINOR_VERSION = ''
+   FIX_VERSION = ''
 
    # TODO: define in the plug-in the symbols necessary to get MtoA version 
    f = open(os.path.join('plugins', 'mtoa', 'utils', 'Version.h'), 'r')
@@ -124,7 +125,9 @@ def get_mtoa_version(components = 3):
          break
       if line.startswith('#define'):
          tokens = line.split()
-         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
+         if tokens[1] == 'MTOA_ARCH_VERSION_NUM':
+            ARCH_VERSION = tokens[2]
+         elif tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
             MAJOR_VERSION = tokens[2]
          elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
             MINOR_VERSION = tokens[2]
@@ -134,10 +137,12 @@ def get_mtoa_version(components = 3):
    
    version = ''
    if (components > 0):
-      version += MAJOR_VERSION
+      version += ARCH_VERSION
    if (components > 1):
-      version += '.' + MINOR_VERSION
+      version += '.' + MAJOR_VERSION
    if (components > 2):
+      version += '.' + MINOR_VERSION
+   if (components > 3):
       version += '.' + FIX_VERSION
    return version      
 

@@ -290,7 +290,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
-               if (AiNodeGetInt(node, "visibility") == 0)
+               if (AiNodeGetByte(node, "visibility") == 0)
                   continue;
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);

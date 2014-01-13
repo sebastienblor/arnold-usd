@@ -11,7 +11,7 @@ InstallDir "C:\solidangle\mtoadeploy\$%MAYA_VERSION%"
 InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
 
 ;Request application privileges for Windows Vista
-RequestExecutionLevel user
+RequestExecutionLevel admin
 
 Var StartMenuFolder
 
