@@ -253,6 +253,23 @@ print 'Mercurial ID   : %s' % mercurial_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
 
+try:
+   import json
+except ImportError:
+   import simplejson as json
+
+try:
+    json_data = open('dependencies.json')
+    data = json.load(json_data)
+    if data['arnold'] != arnold_version:
+        print '''
+        You are building with arnold %s instead
+        of the officially supported version %s. 
+        You might encounter bugs, build errors 
+        or undefined behavior.
+        ''' % (arnold_version, data['arnold'])
+except:
+    pass
 
 ################################
 ## COMPILER OPTIONS
