@@ -176,9 +176,6 @@
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
-    [attr shader_timing_stats]
-        maya.keyable        BOOL    False
-        maya.name           STRING  "shaderTimingStats"
 
 # lights
 
@@ -194,8 +191,9 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
+        max                 FLOAT   180.0
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -253,7 +251,7 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -313,7 +311,7 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -508,7 +506,7 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -633,7 +631,7 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr samples]
-        min                 INT     1
+        min                 INT     0
         softmax             INT     10
         max                 INT     100
         default             INT     1
@@ -776,7 +774,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight"
+    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0
@@ -798,7 +796,7 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight"
+    maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight mesh"
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -835,9 +833,9 @@
         # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
-        min                 INT     3
+        min                 INT     0
         max                 INT     40
-        default             INT     6
+        default             INT     0
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
@@ -853,6 +851,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
 
 [node ortho_camera]
     maya.name               STRING  "camera"
@@ -863,6 +869,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
 
 [node fisheye_camera]
     maya.name               STRING  "camera"
@@ -888,9 +902,9 @@
         # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
-        min                 INT     3
+        min                 INT     0
         max                 INT     40
-        # default           INT     6
+        default             INT     0
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
@@ -906,6 +920,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
         
 [node cyl_camera]
     maya.name               STRING  "camera"
@@ -925,7 +947,15 @@
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
-        softmax             FLOAT   5.0        
+        softmax             FLOAT   5.0    
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0        
 
 [node spherical_camera]
     maya.name               STRING  "camera"
@@ -936,6 +966,14 @@
         max                 FLOAT   100.0
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+    [attr shutter_start]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     0.0
+    [attr shutter_end]
+        min                 FLOAT     0.0
+        max                 FLOAT     1.0
+        default             FLOAT     1.0
         
 # shaders
 
@@ -1107,6 +1145,7 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   10.0
     [attr lacunarity]
+        min                 FLOAT   0.0001
         softmin             FLOAT   1.0
         softmax             FLOAT   5.0
     [attr amplitude]

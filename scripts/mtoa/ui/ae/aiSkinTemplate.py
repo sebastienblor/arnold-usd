@@ -13,10 +13,10 @@ class AEaiSkinTemplate(ShaderAETemplate):
         pm.editorTemplate(dimControl=(nodeName, "specularIor", dim))
 
     def checkSecondarySpecularFresnel(self, nodeName):
-        fullAttr = '%s.%s'%(nodeName, "coat_enable_fresnel_falloff")
+        fullAttr = '%s.%s'%(nodeName, "sheen_enable_fresnel_falloff")
         useFresnel = pm.getAttr(fullAttr)
         dim = not useFresnel
-        pm.editorTemplate(dimControl=(nodeName, "coatIor", dim))
+        pm.editorTemplate(dimControl=(nodeName, "sheenIor", dim))
 
     def setup(self):
         self.addSwatch()
@@ -25,14 +25,9 @@ class AEaiSkinTemplate(ShaderAETemplate):
         
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
         
-        self.beginLayout("Diffuse", collapse=False)     
-        self.addControl("diffuse_color",  label="Color", annotation="Diffuse Color")
-        self.addControl("diffuse_weight", label="Weight")
-        self.addControl("diffuse_roughness", label="Roughness")
-        self.endLayout()
-        
         self.beginLayout("SSS", collapse=False)
         self.addControl("sss_weight", label="SSS Weight")
+        self.addControl("global_sss_radius_multiplier", label="Radius Multiplier")
 
         self.beginLayout("Shallow Scatter", collapse=False)
         self.addControl("shallow_scatter_color", label="Color")
@@ -58,27 +53,21 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl("specular_color", label="Color")
         self.addControl("specular_weight", label="Weight")
         self.addControl("specular_roughness", label="Roughness")
-        self.beginLayout("Fresnel")
-        self.addControl("specular_enable_fresnel_falloff", changeCommand=self.checkPrimarySpecularFresnel, label="Enable")
         self.addControl("specular_ior", label="IOR")
         self.endLayout()
+        
+        self.beginLayout("Sheen Layer", collapse=False)
+        self.addControl("sheen_color", label="Color")
+        self.addControl("sheen_weight", label="Weight")
+        self.addControl("sheen_roughness", label="Roughness")
+        self.addControl("sheen_ior", label="IOR")
         self.endLayout()
         
-        self.beginLayout("Coat Layer", collapse=False)
-        self.addControl("coat_color", label="Color")
-        self.addControl("coat_weight", label="Weight")
-        self.addControl("coat_roughness", label="Roughness")
-        self.beginLayout("Fresnel")
-        self.addControl("coat_enable_fresnel_falloff", changeCommand=self.checkSecondarySpecularFresnel, label="Enable")
-        self.addControl("coat_ior", label="IOR")
-        self.endLayout()
-        self.endLayout()
-        
-        self.beginLayout("Options", collapse=True)
-        self.addControl("global_sss_radius_multiplier", label="SSS Radius Multiplier")
-        self.addControl("combine_sss_queries", label="Combine SSS Queries")
-        self.addControl("sample_sss_only_in_gi_rays", label="Sample only SSS in GI rays")
-        self.addControl("sample_sss_only_in_glossy_rays", label="Sample only SSS in Glossy rays")
+        self.beginLayout("Advanced", collapse=True)
+        self.beginNoOptimize()
+        self.addControl("specular_in_secondary_rays", label="Specular in Secondary Rays")
+        self.addControl("fresnel_affect_sss", label="Fresnel Affects SSS")
+        self.endNoOptimize()
         self.endLayout()
 
         self.addBumpLayout()
@@ -87,7 +76,7 @@ class AEaiSkinTemplate(ShaderAETemplate):
         
         self.endLayout()
 
-        self.addAOVLayout()
+        self.addAOVLayout(aovReorder = ['specular', 'sheen', 'sss'])
         
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)

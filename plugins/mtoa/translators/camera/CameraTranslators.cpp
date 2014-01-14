@@ -29,6 +29,17 @@ void CStandardCameraTranslator::NodeInitializer(CAbTranslator context)
    
    CExtensionAttrHelper helper2(context.maya, "ortho_camera");
    MakeDefaultAttributes(helper2);
+
+   CAttrData data;
+   data.name = "motionBlurOverride";
+   data.shortName = "motion_blur_override";
+   data.enums.append("Use Global Settings");
+   data.enums.append("On");
+   data.enums.append("Off");
+   data.defaultValue.INT = 0;
+
+   helper.MakeInputEnum(data);
+   helper2.MakeInputEnum(data);
 }
 
 AtNode* CStandardCameraTranslator::CreateArnoldNodes()

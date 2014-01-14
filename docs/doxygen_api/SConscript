@@ -12,7 +12,7 @@ def build_api_docs(target, source, env):
    
    # Prepare environment variables for doxygen
    os.environ['DOCS_DESTDIR'] = os.path.abspath(DOCS_TARGET_PATH)
-   os.environ['MTOA_VERSION'] = get_mtoa_version(3)
+   os.environ['MTOA_VERSION'] = get_mtoa_version(4)
 
    # Path to doxygen related files
    DOXYFILES = os.path.join('docs', 'doxygen_api')

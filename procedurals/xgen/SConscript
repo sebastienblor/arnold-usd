@@ -6,10 +6,15 @@ src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'procedurals', 'xgen')
 include_files = [os.path.join(src_base_dir, 'XgArnoldProcedural.h')]
 source_files  = [os.path.join(src_base_dir, 'XgArnoldProcedural.cpp')]
 
-proc_env.Append(CPPPATH = [os.path.join(proc_env['MAYA_ROOT'], 'include')])
-proc_env.Append(CPPPATH = [os.path.join(proc_env['MAYA_ROOT'], 'plug-ins', 'xgen', 'include')])
-proc_env.Append(CPPPATH = [os.path.join(proc_env['MAYA_ROOT'], 'plug-ins', 'xgen', 'include', 'xgen')])
-proc_env.Append(LIBPATH = [os.path.join(proc_env['MAYA_ROOT'], 'plug-ins', 'xgen', 'lib')])
+mayaRoot = proc_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include')])
+proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen')])
+proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 if system.os() =='windows':
    proc_env.Append(CPPPATH = ['.'])   

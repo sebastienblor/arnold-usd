@@ -1111,7 +1111,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   AtByte visibility = ComputeVisibility();
    AiNodeSetByte(instance, "visibility", visibility);
 
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
@@ -1310,17 +1310,7 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
-   
-   data.defaultValue.INT = 0;
-   data.enums.clear();
-   data.enums.append("Mesh");
-   data.enums.append("Bounding Box");
-   data.name = "aiVolumeContainerMode";
-   data.shortName = "ai_volume_container_mode";
-   data.channelBox = false;
-   data.keyable = false;
-   helper.MakeInputEnum(data);
-   
+      
    data.defaultValue.FLT = 0.f;
    data.name = "aiStepSize";
    data.shortName = "ai_step_size";

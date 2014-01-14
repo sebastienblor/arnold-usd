@@ -15,7 +15,7 @@ from colorama import init
 init()
 from colorama import Fore, Back, Style
 
-MTOA_VERSION = get_mtoa_version(3)
+MTOA_VERSION = get_mtoa_version(4)
 
 ################################################################################
 #   Operating System detection
@@ -63,6 +63,7 @@ vars.AddVariables(
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
+    BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
 
     PathVariable('MAYA_ROOT',
                  'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
@@ -489,10 +490,10 @@ if system.os() == 'windows':
                                       duplicate   = 0,
                                       exports     = 'maya_env')
 
-    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                                variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
-                                                duplicate   = 0,
-                                                exports     = 'env')
+    [MTOA_SHADERS, MTOA_SHADERS_PRJ] = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
+                                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                                      duplicate   = 0,
+                                                      exports     = 'env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
                                               variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
@@ -608,7 +609,8 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
 SConscriptChdir(1)
 
 env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
-env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
+if not env['DISABLE_COMMON']:
+    env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
 
 if system.os() == 'windows':
     # Rename plugins as .mll and install them in the target path
@@ -623,7 +625,7 @@ if system.os() == 'windows':
     MTOA_PROCS = nprocs
     env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
     
-    libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
+    libs = MTOA_API[1]
 else:
     env.Install(TARGET_PLUGIN_PATH, MTOA)
     env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
@@ -721,6 +723,10 @@ def deploy(target, source, env):
         print "\b#",
 
     local_package_name = str(source[0])
+    if system.os() == "windows":
+        local_package_name += '.exe'
+    else:
+        local_package_name += '.run'
 
     server = env['FTP']
 
@@ -853,7 +859,8 @@ PACKAGE_FILES = [
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
-PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
+if not env['DISABLE_COMMON']:
+    PACKAGE_FILES.append([os.path.join('shaders', 'mtoa_shaders.mtd'), 'shaders'])
 
 for p in scriptfiles:
     (d, f) = os.path.split(p)
@@ -897,9 +904,9 @@ env['PACKAGE_FILES'] = PACKAGE_FILES
 
 installer_name = ''
 if system.os() == "windows":
-    installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s%s' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
 else:
-    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
     import tempfile
@@ -920,12 +927,13 @@ def create_installer(target, source, env):
         os.environ['NSISCONFDIR'] = NSIS_PATH
         mtoaVersionString = MTOA_VERSION
         mtoaVersionString = mtoaVersionString.replace('.dev', ' Dev')
+        mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
         mayaVersionString = maya_base_version
         mayaVersionString = mayaVersionString.replace('20135', '2013.5')
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
-        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), '%s.exe' % (installer_name))
     else:
         shutil.copyfile(os.path.abspath(local_package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
@@ -934,7 +942,7 @@ def create_installer(target, source, env):
         commandFile.write('python ./unix_installer.py %s' % maya_base_version)
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
-        installerPath = os.path.abspath('./%s' % installer_name)
+        installerPath = os.path.abspath('./%s.run' % (installer_name))
         subprocess.call(['installer/makeself.sh', tempdir, installerPath,
                          'MtoA for Linux Installer', './unix_installer.sh'])
         subprocess.call(['chmod', '+x', installerPath])
@@ -951,6 +959,7 @@ DEPLOY = env.PackageDeploy('deploy', installer_name)
 if system.os() == 'windows':
     env.Depends(SOLUTION, MTOA_PRJ)
     env.Depends(SOLUTION, MTOA_API_PRJ)
+    env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
     env.Depends(SOLUTION, INSTALL_PRJ)
     env.AlwaysBuild(INSTALL_PRJ)
     top_level_alias(env, 'solution', SOLUTION)
@@ -976,9 +985,8 @@ top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
 
-env.Depends(INSTALLER, PACKAGE)
 env.Depends(DEPLOY, INSTALLER)
-
+env.Depends(INSTALLER, PACKAGE)
 
 env.AlwaysBuild(PACKAGE)
 

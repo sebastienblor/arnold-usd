@@ -76,7 +76,7 @@ def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not pm.about(b=1):
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
-        pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
+        pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                     c=lambda *args: createStandIn())
         pm.menuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,
@@ -85,7 +85,7 @@ def createArnoldMenu():
                     c=lambda *args: doExportStandin())
         pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     c=lambda *args: doExportOptionsStandin())
-        pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
+        pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
         pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
                     c=lambda *args: mutils.createLocator('aiAreaLight', asLight=True))
@@ -95,8 +95,19 @@ def createArnoldMenu():
                     c=lambda *args: doCreateMeshLight())
         pm.menuItem('PhotometricLights', parent='ArnoldLights', label="Photometric Light",
                     c=lambda *args: mutils.createLocator('aiPhotometricLight', asLight=True))
+
+        pm.menuItem(parent='ArnoldLights', divider=True)
+
+        pm.menuItem('MayaDirectionalLight', parent='ArnoldLights', label="Maya Directional Light",
+                    c=lambda *args: mutils.createLocator('directionalLight', asLight=True))
+        pm.menuItem('MayaPointLight', parent='ArnoldLights', label="Maya Point Light",
+                    c=lambda *args: mutils.createLocator('pointLight', asLight=True))
+        pm.menuItem('MayaSpotLight', parent='ArnoldLights', label="Maya Spot Light",
+                    c=lambda *args: mutils.createLocator('spotLight', asLight=True))
+        pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
+                    c=lambda *args: mutils.createLocator('areaLight', asLight=True))
                     
-        pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True)
+        pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",
                     c=lambda *args: cmds.arnoldFlushCache(textures=True))
         pm.menuItem('ArnoldFlushBackground', parent='ArnoldFlush', label="Skydome Lights",

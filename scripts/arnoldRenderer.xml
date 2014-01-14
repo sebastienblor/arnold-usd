@@ -70,13 +70,10 @@
     <!-- ______________________________________________________________ -->
     <sep desc="Samples options"/>
     <attr n="ai:as" s="defaultArnoldRenderOptions.AASamples" t="int" h="Set anti-aliasing samples"/>
-    <attr n="ai:hs" s="defaultArnoldRenderOptions.GIDiffuseSamples" t="int" h="Set diffuse samples"/>
-    <attr n="ai:gs" s="defaultArnoldRenderOptions.GIGlossySamples" t="int" h="Set glossy samples"/>
-    <attr n="ai:rs" s="defaultArnoldRenderOptions.GIRefractionSamples" t="int" h="Set glossy samples"/>
-    <sep/>
-    <!-- ______________________________________________________________ -->
-    <sep desc="Diffusion SSS"/>
-    <attr n="ai:bssrdfs" s="defaultArnoldRenderOptions.sssBssrdfSamples" t="int" h="Number of BSSRDF Samples."/>
+    <attr n="ai:hs" s="defaultArnoldRenderOptions.GIDiffuseSamples" t="int" h="Set indirect diffuse samples"/>
+    <attr n="ai:gs" s="defaultArnoldRenderOptions.GIGlossySamples" t="int" h="Set indirect specular samples"/>
+    <attr n="ai:rs" s="defaultArnoldRenderOptions.GIRefractionSamples" t="int" h="Set refraction samples"/>
+    <attr n="ai:bssrdfs" s="defaultArnoldRenderOptions.sssBssrdfSamples" t="int" h="Number of SSS Samples."/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Sample Clamping"/>
@@ -87,8 +84,8 @@
     <!-- ______________________________________________________________ -->
     <sep desc="Depth options"/>
     <attr n="ai:td" s="defaultArnoldRenderOptions.GITotalDepth" t="int" h="Set total depth."/>
-    <attr n="ai:dif" s="defaultArnoldRenderOptions.GIDiffuseDepth" t="int" h="Set diffuse depth."/>
-    <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set glossy depth."/>
+    <attr n="ai:dif" s="defaultArnoldRenderOptions.GIDiffuseDepth" t="int" h="Set indirect diffuse depth."/>
+    <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set indirect specular depth."/>
     <attr n="ai:rfl" s="defaultArnoldRenderOptions.GIReflectionDepth" t="int" h="Set reflection depth."/>
     <attr n="ai:rfr" s="defaultArnoldRenderOptions.GIRefractionDepth" t="int" h="Set refraction depth."/>
     <attr n="ai:atd" s="defaultArnoldRenderOptions.autoTransparencyDepth" t="int" h="Set auto-transparency depth."/>
@@ -96,17 +93,13 @@
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Motion blur"/>
-    <attr n="ai:reft" s="defaultArnoldRenderOptions.referenceTime" t="float" h="Reference time."/>
     <attr n="ai:mben" s="defaultArnoldRenderOptions.motion_blur_enable" t="boolean" h="Enable motion blur."/>
-    <attr n="ai:mblt" s="defaultArnoldRenderOptions.mb_lights_enable" t="boolean" h="Enable light motion blur."/>
-    <attr n="ai:mbcm" s="defaultArnoldRenderOptions.mb_camera_enable" t="boolean" h="Enable camera motion blur."/>
-    <attr n="ai:mbtr" s="defaultArnoldRenderOptions.mb_objects_enable" t="boolean" h="Enable object transformation motion blur."/>
     <attr n="ai:mbdf" s="defaultArnoldRenderOptions.mb_object_deform_enable" t="boolean" h="Enable object deformation motion blur."/>
-    <attr n="ai:mbsh" s="defaultArnoldRenderOptions.mb_shader_enable" t="boolean" h="Enable shader motion blur."/>
-    <attr n="ai:mbss" s="defaultArnoldRenderOptions.shutter_size" t="float" h="Shutter size."/>
-    <attr n="ai:mbsr" s="defaultArnoldRenderOptions.motion_frames" t="float" h="Frame sample range."/>
-    <attr n="ai:mbso" s="defaultArnoldRenderOptions.shutter_offset" t="float" h="Frame sample offset."/>
-    <attr n="ai:mbst" s="defaultArnoldRenderOptions.shutter_type" t="int" h="Shutter type. (0 - Box, 1 - Triangle)"/>
+    <attr n="ai:mbcen" s="defaultArnoldRenderOptions.mb_camera_enable" t="boolean" h="Enable camera motion blur."/>
+    <attr n="ai:mbrt" s="defaultArnoldRenderOptions.range_type" t="int" h="Position. (0 - Start On Frame, 1 - Center On Frame, 2 - End On Frame, 3 - Custom)"/>
+    <attr n="ai:mbfr" s="defaultArnoldRenderOptions.motion_frames" t="float" h="Shutter Length."/>
+    <attr n="ai:mbstart" s="defaultArnoldRenderOptions.motion_start" t="float" h="Motion Start."/>
+    <attr n="ai:mbend" s="defaultArnoldRenderOptions.motion_end" t="float" h="Motion End."/>
     <attr n="ai:mbms" s="defaultArnoldRenderOptions.motion_steps" t="int" h="Number of motion steps."/>
     <sep/>
     <!-- ______________________________________________________________ -->
@@ -159,7 +152,6 @@
     <attr n="ai:fosm" s="defaultArnoldRenderOptions.ignoreSmoothing" t="boolean" h="Ignore smoothing."/>
     <attr n="ai:fomb" s="defaultArnoldRenderOptions.ignoreMotionBlur" t="boolean" h="Ignore motion blur."/>
     <attr n="ai:fosss" s="defaultArnoldRenderOptions.ignoreSss" t="boolean" h="Ignore SSS."/>
-    <attr n="ai:fomis" s="defaultArnoldRenderOptions.ignoreMis" t="boolean" h="Ignore MIS."/>
     <attr n="ai:fodof" s="defaultArnoldRenderOptions.ignoreDof" t="boolean" h="Ignore DOF."/>
     <sep/>
     <!-- ______________________________________________________________ -->
@@ -172,8 +164,10 @@
     <!-- ______________________________________________________________ -->
     <sep desc="Log"/>
     <attrString n="ai:lfn" s="defaultArnoldRenderOptions.log_filename" t="string" h="Log filename."/>
+    <attr n="ai:ltc" s="defaultArnoldRenderOptions.log_to_console" t="boolean" h="Log to Console."/>    
+    <attr n="ai:ltf" s="defaultArnoldRenderOptions.log_to_file" t="boolean" h="Log to File."/>       
+    <attr n="ai:lve" s="defaultArnoldRenderOptions.log_verbosity" t="int" h="Verbosity level. (0 - Errors, 1 - Warnings + Info, 2 - Debug)"/>       
     <attr n="ai:lmw" s="defaultArnoldRenderOptions.log_max_warnings" t="int" h="Maximum number of warnings."/>
-    <attr n="ai:lcv" s="defaultArnoldRenderOptions.log_console_verbosity" t="int" h="Log console verbosity. (0 - 6)"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Mel callbacks"/>

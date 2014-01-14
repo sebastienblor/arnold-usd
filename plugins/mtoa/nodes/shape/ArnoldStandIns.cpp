@@ -3,6 +3,7 @@
 #include "translators/NodeTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
+#include "utils/MayaUtils.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>
@@ -109,7 +110,10 @@ void CArnoldStandInGeom::Draw(int DrawMode)
 {
    for (geometryListIterType it = m_geometryList.begin();
         it != m_geometryList.end(); ++it)
-      it->second->Draw(DrawMode);
+   {
+      if (it->second->Visible())
+         it->second->Draw(DrawMode);
+   }
 
    for (instanceListIterType it = m_instanceList.begin();
         it != m_instanceList.end(); ++it)
@@ -186,48 +190,55 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isSo = true;
       }
 
-      // If it is a .ass or a .ass.gz file.
-      if ((nchars > 4 && assfile.substring(nchars - 4, nchars).toLowerCase() == ".ass") ||
-          (nchars > 7 && assfile.substring(nchars - 7, nchars).toLowerCase() == ".ass.gz"))
-      {
-         if (AiASSLoad(assfile.asChar()) == 0)
-         {
-            processRead = true;
-         }
-      }
-      // If it is a .obj or a .ply file
-      else if (nchars > 4 && (assfile.substring(nchars - 4, nchars).toLowerCase() == ".obj" || 
-              assfile.substring(nchars - 4, nchars).toLowerCase() == ".ply"))
-      {
-         AtNode *options = AiUniverseGetOptions();
-         AiNodeSetBool(options, "preserve_scene_data", true);
-         // Do not wait if Arnold license is not present
-         AiNodeSetBool(options, "skip_license_check", true);
-         AtNode * procedural = AiNode("procedural");
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
-         AiNodeSetBool(procedural, "load_at_init", true);
-         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-         {
-            processRead = true;
-         }
-      }
+      AtNode *options = AiUniverseGetOptions();
+      AiNodeSetBool(options, "preserve_scene_data", true);
+      AiNodeSetBool(options, "skip_license_check", true);
+      AtNode * procedural = AiNode("procedural");
+      AiNodeSetStr(procedural, "dso", assfile.asChar());
+      AiNodeSetBool(procedural, "load_at_init", true);
+      AtMatrix mtx;
+      AiM4Identity(mtx);
+      AiNodeSetMatrix(procedural, "matrix", mtx);
+
       // If it is a lib file
-      else if (isSo)
+      if (isSo)
       {
-         AtNode *options = AiUniverseGetOptions();
-         AiNodeSetBool(options, "preserve_scene_data", true);
-         // Do not wait if Arnold license is not present
-         AiNodeSetBool(options, "skip_license_check", true);
-         AtNode * procedural = AiNode("procedural");
-         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
+            AiNodeSetBool(procedural, "used_for_maya_display", true);
          AiNodeSetStr(procedural, "data", dsoData.asChar());
          CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-         AiNodeSetBool(procedural, "load_at_init", true);
-         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+      }
+
+      // setup procedural search path
+      MString proceduralPath = "";
+      MSelectionList list;
+      MObject node;
+      list.add("defaultArnoldRenderOptions");
+      if (list.length() > 0)
+      {
+         list.getDependNode(0, node);
+         MFnDependencyNode fnArnoldRenderOptions(node, &status);
+         if (status)
          {
-            processRead = true;
+            MPlug plug = fnArnoldRenderOptions.findPlug("procedural_searchpath");            
+            if (!plug.isNull())
+               proceduralPath = plug.asString();
          }
       }
+      if (proceduralPath != "")
+      {
+#ifdef _WIN32   
+         const MString pathsep = ";";
+#else
+         const MString pathsep = ":";
+#endif
+         proceduralPath += pathsep;
+      }
+      proceduralPath += getProjectFolderPath();
+      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());
+
+      if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+         processRead = true;
       
       if (processRead)
       {
@@ -247,31 +258,26 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
-            {
+            {  
+               CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, "polymesh"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldPolymeshGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldPolymeshGeometry(node);
                else if (AiNodeIs(node, "points"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldPointsGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldPointsGeometry(node);
                else if(AiNodeIs(node, "procedural"))
-               {
-                  CArnoldStandInGeometry* g = new CArnoldProceduralGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());
-               }
+                  g = new CArnoldProceduralGeometry(node);
                else if(AiNodeIs(node, "box"))
+                  g = new CArnoldBoxGeometry(node);
+               else
+                  continue;
+               if (g->Invalid())
                {
-                  CArnoldBoxGeometry* g = new CArnoldBoxGeometry(node);
-                  geom->m_geometryList.insert(std::make_pair(node, g));
-                  geom->bbox.expand(g->GetBBox());  
+                  delete g;
+                  continue;
                }
+               if (g->Visible())
+                  geom->bbox.expand(g->GetBBox());  
+               geom->m_geometryList.insert(std::make_pair(node, g));
             }
          }
 
@@ -284,11 +290,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+               if (AiNodeGetByte(node, "visibility") == 0)
+                  continue;
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
                bool inherit_xform = true;
                while(AiNodeIs(node, "ginstance"))
-               {
+               {                  
                   AtMatrix current_matrix;
                   AiNodeGetMatrix(node, "matrix", current_matrix);
                   if (inherit_xform)
@@ -482,6 +490,16 @@ MStatus CArnoldStandInShape::SetPointPlugValue(MPlug plug, float3   value)
    return MS::kSuccess;
 }
 
+float convertToFloat(const char *number)
+{
+   if (!strcmp(number, "infinity"))
+      return AI_BIG;
+   else if (!strcmp(number, "-infinity"))
+      return -AI_BIG;
+   else
+      return static_cast<float>(atof(number));
+}
+
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
@@ -512,17 +530,23 @@ bool CArnoldStandInShape::LoadBoundingBox()
       strcpy(str, line.c_str());
 
       strtok(str, " ");
-      double xmin = atof(strtok(NULL, " "));
-      double ymin = atof(strtok(NULL, " "));
-      double zmin = atof(strtok(NULL, " "));
-      double xmax = atof(strtok(NULL, " "));
-      double ymax = atof(strtok(NULL, " "));
-      double zmax = atof(strtok(NULL, " "));
+      double xmin = convertToFloat(strtok(NULL, " "));
+      double ymin = convertToFloat(strtok(NULL, " "));
+      double zmin = convertToFloat(strtok(NULL, " "));
+      double xmax = convertToFloat(strtok(NULL, " "));
+      double ymax = convertToFloat(strtok(NULL, " "));
+      double zmax = convertToFloat(strtok(NULL, " "));
 
       file.close();
-      MPoint min(xmin, ymin, zmin);
-      MPoint max(xmax, ymax, zmax);
-      geom->bbox = MBoundingBox(min, max);
+      if (xmin <= xmax && ymin <= ymax && zmin <= zmax)
+      {
+         MPoint min(xmin, ymin, zmin);
+         MPoint max(xmax, ymax, zmax);
+         geom->bbox = MBoundingBox(min, max);
+      } 
+      else
+         geom->bbox = MBoundingBox();
+
       delete []str;
       return true;
    }
@@ -799,13 +823,12 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
       if(start >= 0)
       {
-         fGeometry.dso.substring(start,end).split('.',pattern);
          if(fGeometry.dso.substring(start-1,start-1) == "_")
             newDso = fGeometry.dso.substring(0,start-2) + ".#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
          else
             newDso = fGeometry.dso.substring(0,start-1) + "#" + fGeometry.dso.substring(end+1,fGeometry.dso.length());
-         fGeometry.dso = newDso;
 
+         fGeometry.dso.substring(start,end).split('.',pattern);
          if(pattern.length() > 0)
          {
             framePadding = pattern[0].length();
@@ -816,6 +839,10 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
             subFramePadding = pattern[1].length();
             b = pattern[1];
          }
+      }
+      else
+      {
+         newDso = fGeometry.dso;
       }
 
       if (subFrames || fGeometry.useSubFrame || (subFramePadding != 0))
@@ -834,26 +861,24 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       }
       frameNumber = frameExtWithDot;
 
-      resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+      resolved = MRenderUtil::exactFileTextureName(newDso, fGeometry.useFrameExtension,
             frameNumber, fGeometry.filename);
 
       if (!resolved)
       {
          frameNumber = frameExtWithHash;
-         resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+         resolved = MRenderUtil::exactFileTextureName(newDso, fGeometry.useFrameExtension,
             frameNumber, fGeometry.filename);
       }
 
       if (!resolved)
       {
-         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         // If file has something after frame number, MRenderUtil::exactFileTextureName has problems to
          //  find the file.
-         int len = fGeometry.dso.length();
-         if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
+         if (start >= 0)
          {
-            MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
-            resolved = MRenderUtil::exactFileTextureName(baseName, false,
-            frameNumber, fGeometry.filename);
+            MString baseName = fGeometry.dso.substring(0,start-1) + frameExt + fGeometry.dso.substring(end+1,fGeometry.dso.length());
+            resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, fGeometry.filename);
          }
       }
 

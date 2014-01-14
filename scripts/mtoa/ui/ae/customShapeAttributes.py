@@ -81,7 +81,6 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.endLayout()
         self.beginLayout('Volume Attributes', collapse=False)
         self.addControl('aiStepSize', label='Step Size')
-        self.addControl('aiVolumeContainerMode', label='Container Mode')
         self.endLayout()
         self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
@@ -364,6 +363,12 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiApertureBlades")
         self.addControl("aiApertureBladeCurvature")
         self.addControl("aiApertureRotation")
+        
+    def addShutterAttributes(self):
+        self.addSeparator()
+        self.addControl("motionBlurOverride", label="Camera Motion Blur")
+        self.addControl("aiShutterStart")
+        self.addControl("aiShutterEnd")
 
 class PerspCameraTemplate(CameraTemplate):
     def setup(self):
@@ -371,6 +376,7 @@ class PerspCameraTemplate(CameraTemplate):
         self.addDOFAttributes()
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -381,6 +387,7 @@ templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspect
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -394,6 +401,7 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiFov')
         self.addControl('aiAutocrop')
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -406,6 +414,7 @@ class CylCameraTemplate(CameraTemplate):
         self.addControl('aiHorizontalFov')
         self.addControl('aiVerticalFov')
         self.addControl('aiProjective')
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -415,6 +424,7 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 class SphericalCameraTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addShutterAttributes()
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
@@ -726,7 +736,7 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         cmds.setParent( '..' )
 
     def setup(self):
-        self.addControl('tiled', label='Tiled')
+        #self.addControl('tiled', label='Tiled')
         self.addControl('subpixelMerge', label='Subpixel Merge')
         self.addControl('useRGBOpacity', label='Use RGB Opacity')
         self.beginLayout("Tolerance Values", collapse=False)
