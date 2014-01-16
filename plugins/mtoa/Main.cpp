@@ -175,7 +175,7 @@ namespace // <anonymous>
                                    &ENVIRONMENT_WITH_SWATCH);
       CHECK_MSTATUS(status);
 
-      MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
+      MString arnoldStandardOverrideClassification = "shader/surface:drawdb/shader/surface/arnold/standard";
       MString shaderOverrideRegistrant = "mtoa";
 
       status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
