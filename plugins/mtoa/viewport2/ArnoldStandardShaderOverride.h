@@ -13,8 +13,17 @@ public:
    virtual MString fragmentName() const;
    virtual void getCustomMappings(MHWRender::MAttributeParameterMappingList& mappings);
 
-   virtual MString primaryColorParameter() const;
+   virtual void updateDG();
+   virtual void updateShader(MHWRender::MShaderInstance& shader,
+                              const MHWRender::MAttributeParameterMappingList& mappings);
 
+   virtual MString primaryColorParameter() const;
+   virtual MString bumpAttribute() const;
 private:
    ArnoldStandardShaderOverride(const MObject& obj);
+
+   MObject m_object;
+
+   MString m_resolvedColorName;
+   float m_color[3];
 };
