@@ -48,6 +48,8 @@
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
+#include "viewport2/ArnoldStandardShaderOverride.h"
+
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
@@ -61,6 +63,7 @@
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
+#include <maya/MDrawRegistry.h>
 
 #include <ai.h>
 
@@ -170,6 +173,16 @@ namespace // <anonymous>
                                    CArnoldSkyNode::initialize,
                                    MPxNode::kLocatorNode,
                                    &ENVIRONMENT_WITH_SWATCH);
+      CHECK_MSTATUS(status);
+
+      MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
+      MString shaderOverrideRegistrant = "mtoa";
+
+      status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+                  arnoldStandardOverrideClassification,
+                  shaderOverrideRegistrant,
+                  ArnoldStandardShaderOverride::creator);
+
       CHECK_MSTATUS(status);
 
       // Get a CExtension for the builtin nodes
