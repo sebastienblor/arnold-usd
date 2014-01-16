@@ -480,25 +480,25 @@ if system.os() == 'windows':
    
     maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
    
-    [MTOA_API, MTOA_API_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                                              variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
-                                              duplicate = 0,
-                                              exports   = 'maya_env')
+    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+                                            variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                                            duplicate = 0,
+                                            exports   = 'maya_env')
    
-    [MTOA, MTOA_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
-                                      duplicate   = 0,
-                                      exports     = 'maya_env')
+    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
+                                        variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
+                                        duplicate   = 0,
+                                        exports     = 'maya_env')
 
-    [MTOA_SHADERS, MTOA_SHADERS_PRJ] = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                                      variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
-                                                      duplicate   = 0,
-                                                      exports     = 'env')
+    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
+                                                variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                                duplicate   = 0,
+                                                exports     = 'env')
 
     MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
-                                              variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
-                                              duplicate   = 0,
-                                              exports     = 'env')
+                                                variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
+                                                duplicate   = 0,
+                                                exports     = 'env')
 
     INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
                                   srcs = [],
@@ -514,17 +514,6 @@ if system.os() == 'windows':
                                              'Opt_ICC|x64'],
                                   auto_build_solution = 0,
                                   nokeep = 1)
-   
-    SOLUTION = env.MSVSSolution(target = 'mtoa' + env['MSVS']['SOLUTIONSUFFIX'],
-                                projects = [os.path.join('plugins', 'mtoa', 'mtoa') + env['MSVS']['PROJECTSUFFIX'],
-                                            os.path.join('plugins', 'mtoa', 'mtoa_api') + env['MSVS']['PROJECTSUFFIX'],
-                                            os.path.join('shaders', 'src', 'mtoa_shaders') + env['MSVS']['PROJECTSUFFIX'],
-                                            'install' + env['MSVS']['PROJECTSUFFIX']],  ## TODO: Find a clean way of getting these project paths
-                                dependencies = [[], [], [], ['mtoa', 'mtoa_api', 'mtoa_shaders']],
-                                variant = ['Debug_MSVC|x64',
-                                           'Debug_ICC|x64',
-                                           'Opt_MSVC|x64',
-                                           'Opt_ICC|x64'])
 else:
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -955,14 +944,6 @@ DEPLOY = env.PackageDeploy('deploy', installer_name)
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
 ################################
-
-if system.os() == 'windows':
-    env.Depends(SOLUTION, MTOA_PRJ)
-    env.Depends(SOLUTION, MTOA_API_PRJ)
-    env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
-    env.Depends(SOLUTION, INSTALL_PRJ)
-    env.AlwaysBuild(INSTALL_PRJ)
-    top_level_alias(env, 'solution', SOLUTION)
 
 aliases = []
 aliases.append(env.Alias('install-module',  env['TARGET_MODULE_PATH']))
