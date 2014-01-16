@@ -15,9 +15,9 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
 include_files = []
 for subdir in ['commands', 'nodes', 'translators'] :
-   dir = os.path.join(src_base_dir, subdir)
-   source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
-   include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
+    dir = os.path.join(src_base_dir, subdir)
+    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
+    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
 
 #Remove files to be exported by the API from 'nodes' and 'translators' folder
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
@@ -29,22 +29,22 @@ source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp')]
 include_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
-                     os.path.join('translators', 'camera', 'AutoCameraTranslator.h'),
-                     os.path.join('translators', 'camera', 'CameraTranslator.h'),
-                     os.path.join('translators', 'light', 'LightTranslator.h'),
-                     os.path.join('translators', 'options', 'OptionsTranslator.h'),
-                     os.path.join('translators', 'shader', 'ShaderTranslator.h'),
-                     os.path.join('translators', 'shape', 'ShapeTranslator.h'),
-                     os.path.join('translators', 'NodeTranslator.h')]
+                        os.path.join('translators', 'camera', 'AutoCameraTranslator.h'),
+                        os.path.join('translators', 'camera', 'CameraTranslator.h'),
+                        os.path.join('translators', 'light', 'LightTranslator.h'),
+                        os.path.join('translators', 'options', 'OptionsTranslator.h'),
+                        os.path.join('translators', 'shader', 'ShaderTranslator.h'),
+                        os.path.join('translators', 'shape', 'ShapeTranslator.h'),
+                        os.path.join('translators', 'NodeTranslator.h')]
 
 source_files_add = [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'MayaUtils.cpp')]
 
 include_files_add = []
                      
 for file_rem in source_files_rem:
-   source_files.remove(file_rem)
+    source_files.remove(file_rem)
 for file_rem in include_files_rem:
-   include_files.remove(file_rem)
+    include_files.remove(file_rem)
 
 source_files += source_files_add
 include_files += include_files_add
@@ -58,40 +58,18 @@ if system.os() == 'darwin':
 
 # LoadableModule doesn't work on windows for now.
 if system.os() == 'windows':
-   local_env.Append(LIBS=Split('ws2_32.lib'))
-   MTOA = local_env.SharedLibrary('mtoa', source_files, LIBPREFIX='')
+    local_env.Append(LIBS=Split('ws2_32.lib'))
+    MTOA = local_env.SharedLibrary('mtoa', source_files, LIBPREFIX='')
 else:
-   MTOA = local_env.LoadableModule('mtoa', source_files, LIBPREFIX='')
+    MTOA = local_env.LoadableModule('mtoa', source_files, LIBPREFIX='')
 
 local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
 local_env.Append(LIBS = ['mtoa_api'])
 
-if system.os() == 'windows':
-   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')
-   MTOA_PRJ = local_env.MSVSProject(target = 'mtoa' + local_env['MSVS']['PROJECTSUFFIX'],
-                                    srcs = source_files + include_files,
-                                    incs = [],
-                                    buildtarget = 'mtoa',
-                                    cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86_64',
-                                               '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
-                                               '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
-                                               '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
-                                    variant = ['Debug_MSVC|x64',
-                                               'Debug_ICC|x64',
-                                               'Opt_MSVC|x64',
-                                               'Opt_ICC|x64'],
-                                    auto_build_solution = 0,
-                                    nokeep = 1)
+if system.os() == 'darwin':
+    local_env.Append(CPPDEFINES = Split('DARWIN'))
+    local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
+    local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
+    local_env.Append(CPPPATH = '/System/Library/Frameworks/GLUT.framework/Headers')
 
-   local_env.AlwaysBuild(MTOA_PRJ)
-   
-   Return('MTOA MTOA_PRJ')
-      
-else:
-   if system.os() == 'darwin':
-      local_env.Append(CPPDEFINES = Split('DARWIN'))
-      local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
-      local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
-      local_env.Append(CPPPATH = '/System/Library/Frameworks/GLUT.framework/Headers')
-
-   Return('MTOA')
+Return('MTOA')

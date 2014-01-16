@@ -25,6 +25,8 @@ Debug
 docs
 plugins/mtoa/utils/MercurialID.h
 
+*.vcxproj
+*.filters
 syntax: regexp
 \.launch$
 syntax: regexp
