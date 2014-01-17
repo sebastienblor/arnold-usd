@@ -124,7 +124,7 @@ vars.AddVariables(
                  os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate),
     PathVariable('TARGET_DOC_PATH', 
                  'Path for documentation', 
-                 os.path.join('$TARGET_MODULE_PATH', 'docs'), PathVariable.PathIsDirCreate),                  
+                 os.path.join('$TARGET_MODULE_PATH', 'docs','api'), PathVariable.PathIsDirCreate),                  
     PathVariable('TARGET_BINARIES', 
                  'Path for libraries', 
                  os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
@@ -680,8 +680,13 @@ env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
 # install icons
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
+# install docs
+env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
+env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
+
 # install renderer description
 env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
+env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
 
 env.MakeModule(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
@@ -840,9 +845,9 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
-[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
+[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
-[os.path.join('docs', 'HOW_TO_INSTALL.txt'), 'doc'],
+[os.path.join('docs', 'readme.txt'), '.'],
 ]
 
 for p in MTOA_PROCS:
