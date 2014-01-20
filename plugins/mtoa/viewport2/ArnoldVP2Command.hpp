@@ -35,7 +35,7 @@ MStatus CArnoldVP2Command::doIt(const MArgList& args)
     for (unsigned int i = 0; i < sArray.length(); ++i)
     {
         std::string fragmentName = sArray[i].asChar();
-        std::fstream fs((std::string("/work/mayaFragments") + fragmentName).c_str(), std::ios::out);
+        std::fstream fs((std::string("/work/mayaFragments/") + fragmentName).c_str(), std::ios::out);
         MString fragmentString;
         fmg->getFragmentXML(fragmentName.c_str(), fragmentString);
         fs << fragmentString.asChar();
