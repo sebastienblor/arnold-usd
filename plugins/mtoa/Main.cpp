@@ -49,6 +49,7 @@
 #include "translators/ObjectSetTranslator.h"
 
 #include "viewport2/ArnoldStandardShaderOverride.h"
+#include "viewport2/ArnoldVP2Command.hpp"
 
 #include "render/RenderSwatch.h"
 
@@ -762,6 +763,21 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       MGlobal::displayError("Failed to register 'arnoldFlushCache' command");
       ArnoldUniverseEnd();
       return MStatus::kFailure;
+   }   
+
+   status = plugin.registerCommand("arnoldVP2", CArnoldVP2Command::creator);
+   CHECK_MSTATUS(status);
+
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgDebug("Successfully registered 'arnoldVP2' command");
+   }
+   else
+   {
+      AiMsgError("Failed to register 'arnoldVP2' command");
+      MGlobal::displayError("Failed to register 'arnoldVP2' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
 
    status = RegisterArnoldNodes(object);
@@ -964,6 +980,19 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       AiMsgError("Failed to deregister 'arnoldRender' command");
       MGlobal::displayError("Failed to deregister 'arnoldRender' command");
    }
+
+   status = plugin.deregisterCommand("arnoldVP2");
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldVP2' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldVP2' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldVP2' command");
+      MGlobal::displayError("Failed to deregister 'arnoldVP2' command");
+   }
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
    CHECK_MSTATUS(status);
@@ -1027,8 +1056,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
     MString shaderOverrideRegistrant = "mtoa";
 
     status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-                arnoldStandardOverrideClassification,
-                shaderOverrideRegistrant);
+               arnoldStandardOverrideClassification,
+               shaderOverrideRegistrant);
 
    MMessage::removeCallback(connectionCallback);
    
