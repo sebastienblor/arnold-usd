@@ -128,6 +128,9 @@ vars.AddVariables(
     PathVariable('TARGET_BINARIES', 
                  'Path for libraries', 
                  os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_VP2_PATH',
+                    'Path for VP2 shader files.',
+                    os.path.join('$TARGET_MODULE_PATH', 'vp2'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
                  '.', PathVariable.PathIsDir),
@@ -204,6 +207,7 @@ TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH'])
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
+TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 env['ENABLE_XGEN'] = 0
@@ -648,6 +652,11 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base, x) fo
 arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
+
+vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml'])
+env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
+                [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
+
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
 apiheaders = [os.path.join('platform', 'Platform.h'),
