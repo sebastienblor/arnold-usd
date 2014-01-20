@@ -1023,6 +1023,13 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister Arnold ass file importer");
    }
 
+    MString arnoldStandardOverrideClassification = "shader/surface:drawdb/shader/surface/arnold/standard";
+    MString shaderOverrideRegistrant = "mtoa";
+
+    status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+                arnoldStandardOverrideClassification,
+                shaderOverrideRegistrant);
+
    MMessage::removeCallback(connectionCallback);
    
    ArnoldUniverseEnd();
