@@ -117,6 +117,10 @@ namespace // <anonymous>
          CArnoldAOVNode::creator, CArnoldAOVNode::initialize,
          MPxNode::kDependNode, 0
       } , {
+         "aiAOVDriver", CArnoldDriverNode::id,
+         CArnoldDriverNode::creator, CArnoldDriverNode::initialize,
+         MPxNode::kDependNode, 0
+      } , {
          "aiAOVFilter", CArnoldFilterNode::id,
          CArnoldFilterNode::creator, CArnoldFilterNode::initialize,
          MPxNode::kDependNode, 0
