@@ -89,7 +89,6 @@ namespace // <anonymous>
       const char* name;
       void* (*creator)();
       MSyntax (*syntax)();
-
    } mayaCmdList [] = {
       {"arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax},
       {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
