@@ -55,12 +55,16 @@
 
 #include "scene/MayaScene.h"
 
+#include "viewport2/ArnoldStandardShaderOverride.h"
+#include "viewport2/ArnoldVP2Command.hpp"
+
 #include <ai_msg.h>
 #include <ai_render.h>
 
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
+#include <maya/MDragRegistry.h>
 
 #include <ai.h>
 
@@ -93,7 +97,8 @@ namespace // <anonymous>
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
-      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
+      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
+      {"arnoldVP2", CArnoldVP2Command::creator, 0}
    };
 
    struct mayaNode {
@@ -642,7 +647,15 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
-   
+
+   MString arnoldStandardOverrideClassification = "shader/surface:drawdb/shader/surface/arnold/standard";
+   MString shaderOverrideRegistrant = "mtoa";
+
+   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+               arnoldStandardOverrideClassification,
+               shaderOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
 
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
@@ -792,6 +805,16 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                      MString(cmd.name) + MString("'' command."));
       }
    }
+
+   MString arnoldStandardOverrideClassification = "shader/surface:drawdb/shader/surface/arnold/standard";
+   MString shaderOverrideRegistrant = "mtoa";
+
+   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+                  arnoldStandardOverrideClassification,
+                  shaderOverrideRegistrant,
+                  ArnoldStandardShaderOverride::creator);
+
+   CHECK_MSTATUS(status);
    
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
