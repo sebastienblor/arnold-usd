@@ -566,7 +566,7 @@ namespace // <anonymous>
       MSyntax (*syntax)();
 
    } mayaCmdList [] = {
-      {"arnoldRender", CArnoldRenderCmd::creator, 0},
+      {"arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax},
       {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
       {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
@@ -574,6 +574,12 @@ namespace // <anonymous>
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
    };
+
+   struct mayaNode {
+
+   };/* mayaNodeList [] = {
+
+   };*/
 
    template < typename T, size_t N >
    size_t sizeOfArray(T const (&array)[ N ])
