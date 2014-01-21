@@ -80,6 +80,75 @@ namespace // <anonymous>
       setenv(env.asChar(), val.asChar(), true);
 #endif      
    }
+
+   struct mayaCmd {
+      const char* name;
+      void* (*creator)();
+      MSyntax (*syntax)();
+
+   } mayaCmdList [] = {
+      {"arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax},
+      {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
+      {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
+      {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
+      {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
+      {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
+      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
+   };
+
+   struct mayaNode {
+      const char* name;
+      MTypeId id;
+      void* (*creator)();
+      MStatus (*initialize)();
+      MPxNode::Type type;
+      const MString* classification;
+   } mayaNodeList [] = {
+      {
+         "SphereLocator", CSphereLocator::id, 
+         CSphereLocator::creator, CSphereLocator::initialize,
+         MPxNode::kLocatorNode, 0
+      } , {
+         "aiOptions", CArnoldOptionsNode::id,
+         CArnoldOptionsNode::creator, CArnoldOptionsNode::initialize,
+         MPxNode::kDependNode, 0
+      } , {
+         "aiAOV", CArnoldAOVNode::id,
+         CArnoldAOVNode::creator, CArnoldAOVNode::initialize,
+         MPxNode::kDependNode, 0
+      } , {
+         "aiAOVFilter", CArnoldFilterNode::id,
+         CArnoldFilterNode::creator, CArnoldFilterNode::initialize,
+         MPxNode::kDependNode, 0
+      } , {
+         "aiSkyDomeLight", CArnoldSkyDomeLightNode::id,
+         CArnoldSkyDomeLightNode::creator, CArnoldSkyDomeLightNode::initialize,
+         MPxNode::kLocatorNode, &LIGHT_WITH_SWATCH
+      } , {
+         "aiAreaLight", CArnoldAreaLightNode::id,
+         CArnoldAreaLightNode::creator, CArnoldAreaLightNode::initialize,
+         MPxNode::kLocatorNode, &LIGHT_WITH_SWATCH
+      } , {
+         "aiPhotometricLight", CArnoldPhotometricLightNode::id,
+         CArnoldPhotometricLightNode::creator, CArnoldPhotometricLightNode::initialize,
+         MPxNode::kLocatorNode, &LIGHT_WITH_SWATCH
+      } , {
+         "aiLightBlocker", CArnoldLightBlockerNode::id,
+         CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
+         MPxNode::kLocatorNode, &LIGHT_FILTER_WITH_SWATCH
+      } , {
+         "aiSky", CArnoldSkyNode::id,
+         CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
+         MPxNode::kLocatorNode, &ENVIRONMENT_WITH_SWATCH
+      }
+   };
+
+   template < typename T, size_t N >
+   size_t sizeOfArray(T const (&array)[ N ])
+   {
+      return N;
+   }
+
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
@@ -93,84 +162,12 @@ namespace // <anonymous>
                                     CArnoldStandInShapeUI::creator);
       CHECK_MSTATUS(status);
 
-      // Abstract Classes
-      status = plugin.registerNode("SphereLocator",
-                                    CSphereLocator::id,
-                                    CSphereLocator::creator,
-                                    CSphereLocator::initialize,
-                                    MPxNode::kLocatorNode);
-      CHECK_MSTATUS(status);
-
-      // Render Options
-      status = plugin.registerNode("aiOptions",
-                                    CArnoldOptionsNode::id,
-                                    CArnoldOptionsNode::creator,
-                                    CArnoldOptionsNode::initialize);
-      CHECK_MSTATUS(status);
-
-      // AOV
-      status = plugin.registerNode("aiAOV",
-                                   CArnoldAOVNode::id,
-                                   CArnoldAOVNode::creator,
-                                   CArnoldAOVNode::initialize);
-      CHECK_MSTATUS(status);
-
-      status = plugin.registerNode("aiAOVDriver",
-                                   CArnoldDriverNode::id,
-                                   CArnoldDriverNode::creator,
-                                   CArnoldDriverNode::initialize);
-      CHECK_MSTATUS(status);
-
-      status = plugin.registerNode("aiAOVFilter",
-                                   CArnoldFilterNode::id,
-                                   CArnoldFilterNode::creator,
-                                   CArnoldFilterNode::initialize);
-      CHECK_MSTATUS(status);
-
-
-      // Light Shaders
-      status = plugin.registerNode("aiSkyDomeLight",
-                                   CArnoldSkyDomeLightNode::id,
-                                   CArnoldSkyDomeLightNode::creator,
-                                   CArnoldSkyDomeLightNode::initialize,
-                                   MPxNode::kLocatorNode,
-                                   &LIGHT_WITH_SWATCH);
-                                   // &lightNoSwatch);
-      CHECK_MSTATUS(status);
-
-      status = plugin.registerNode("aiAreaLight",
-                                   CArnoldAreaLightNode::id,
-                                   CArnoldAreaLightNode::creator,
-                                   CArnoldAreaLightNode::initialize,
-                                   MPxNode::kLocatorNode,
-                                   &LIGHT_WITH_SWATCH);
-      CHECK_MSTATUS(status);
-      
-      status = plugin.registerNode("aiPhotometricLight",
-                                   CArnoldPhotometricLightNode::id,
-                                   CArnoldPhotometricLightNode::creator,
-                                   CArnoldPhotometricLightNode::initialize,
-                                   MPxNode::kLocatorNode,
-                                   &LIGHT_WITH_SWATCH);
-      CHECK_MSTATUS(status);
-      
-      status = plugin.registerNode("aiLightBlocker",
-                                   CArnoldLightBlockerNode::id,
-                                   CArnoldLightBlockerNode::creator,
-                                   CArnoldLightBlockerNode::initialize,
-                                   MPxNode::kLocatorNode,
-                                   &LIGHT_FILTER_WITH_SWATCH);
-      
-      CHECK_MSTATUS(status);
-
-      // Special shaders (not visible from Maya shaders menu)
-      status = plugin.registerNode("aiSky",
-                                   CArnoldSkyNode::id,
-                                   CArnoldSkyNode::creator,
-                                   CArnoldSkyNode::initialize,
-                                   MPxNode::kLocatorNode,
-                                   &ENVIRONMENT_WITH_SWATCH);
-      CHECK_MSTATUS(status);
+      for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
+      {
+         const mayaNode& node = mayaNodeList[i];
+         status = plugin.registerNode(node.name, node.id, node.creator,
+                     node.initialize, node.type, node.classification);
+      }
 
       // Get a CExtension for the builtin nodes
       CExtensionsManager::SetMayaPlugin(object);
@@ -495,34 +492,20 @@ namespace // <anonymous>
       status = CExtensionsManager::UnloadExtensions();
       CHECK_MSTATUS(status);
 
-      // Render Options
+      // Nodes
+      for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
+      {
+         const mayaNode& node = mayaNodeList[i];
+         status = plugin.deregisterNode(node.id);
+         CHECK_MSTATUS(status);
+      }
       // Remove creation callback
       if (CArnoldOptionsNode::sId != 0)
       {
          MDGMessage::removeCallback(CArnoldOptionsNode::sId);
          CArnoldOptionsNode::sId = 0;
       }
-      CRenderSession::ClearIdleRenderViewCallback();
-      // Deregister node
-      status = plugin.deregisterNode(CArnoldOptionsNode::id);
-      CHECK_MSTATUS(status);
-
-      // AOV
-      status = plugin.deregisterNode(CArnoldAOVNode::id);
-      CHECK_MSTATUS(status);
-
-      // Sky dome light
-      status = plugin.deregisterNode(CArnoldSkyDomeLightNode::id);
-      CHECK_MSTATUS(status);
-      
-      
-      status = plugin.deregisterNode(CArnoldPhotometricLightNode::id);
-      CHECK_MSTATUS(status);
-
-      // Environment or Volume shaders
-      status = plugin.deregisterNode(CArnoldSkyNode::id);
-      CHECK_MSTATUS(status);
-
+      CRenderSession::ClearIdleRenderViewCallback();      
       return status;
    }
 
@@ -558,33 +541,6 @@ namespace // <anonymous>
          else if(destName == "defaultArnoldRenderOptions.atmosphere")
             MGlobal::executeCommandOnIdle("updateAtmosphereSettings()");
       }
-   }
-
-   struct mayaCmd {
-      const char* name;
-      void* (*creator)();
-      MSyntax (*syntax)();
-
-   } mayaCmdList [] = {
-      {"arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax},
-      {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
-      {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
-      {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
-      {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
-      {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
-      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
-   };
-
-   struct mayaNode {
-
-   };/* mayaNodeList [] = {
-
-   };*/
-
-   template < typename T, size_t N >
-   size_t sizeOfArray(T const (&array)[ N ])
-   {
-      return N;
    }
 } // namespace
 
@@ -681,8 +637,9 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
-   // Commands
+   
 
+   // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
    {
       const mayaCmd& cmd = mayaCmdList[i];
@@ -701,6 +658,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
 
    status = RegisterArnoldNodes(object);
+   // Nodes
    if (MStatus::kSuccess == status)
    {
       AiMsgDebug("Successfully registered Arnold nodes");
