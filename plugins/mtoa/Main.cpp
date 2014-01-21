@@ -566,7 +566,7 @@ namespace // <anonymous>
       MSyntax (*syntax)();
 
    } mayaCmdList [] = {
-      {"arnoldrender", CArnoldRenderCmd::creator, 0},
+      {"arnoldRender", CArnoldRenderCmd::creator, 0},
       {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
       {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
