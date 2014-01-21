@@ -17,7 +17,6 @@ public:
    virtual void updateShader(MHWRender::MShaderInstance& shader,
                               const MHWRender::MAttributeParameterMappingList& mappings);
 
-   virtual MString primaryColorParameter() const;
    virtual MString bumpAttribute() const;
 private:
    ArnoldStandardShaderOverride(const MObject& obj);
