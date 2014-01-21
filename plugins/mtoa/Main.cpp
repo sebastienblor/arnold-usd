@@ -98,7 +98,7 @@ namespace // <anonymous>
 
    struct mayaNode {
       const char* name;
-      MTypeId id;
+      const MTypeId& id;
       void* (*creator)();
       MStatus (*initialize)();
       MPxNode::Type type;
@@ -171,6 +171,7 @@ namespace // <anonymous>
          const mayaNode& node = mayaNodeList[i];
          status = plugin.registerNode(node.name, node.id, node.creator,
                      node.initialize, node.type, node.classification);
+         CHECK_MSTATUS(status);
       }
 
       // Get a CExtension for the builtin nodes
