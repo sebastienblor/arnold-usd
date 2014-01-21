@@ -64,7 +64,7 @@
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
-#include <maya/MDragRegistry.h>
+#include <maya/MDrawRegistry.h>
 
 #include <ai.h>
 
