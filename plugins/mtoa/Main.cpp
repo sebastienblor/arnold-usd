@@ -647,7 +647,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
-   MString arnoldStandardOverrideClassification = "shader/surface:drawdb/shader/surface/arnold/standard";
+   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
    MString shaderOverrideRegistrant = "mtoa";
 
    status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
@@ -805,13 +805,13 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       }
    }
 
-   /*MString arnoldStandardOverrideClassification = "shader/surface:drawdb/shader/surface/arnold/standard";
+   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
    MString shaderOverrideRegistrant = "mtoa";
 
    status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
                   arnoldStandardOverrideClassification,
                   shaderOverrideRegistrant,
-                  ArnoldStandardShaderOverride::creator);*/
+                  ArnoldStandardShaderOverride::creator);
 
    CHECK_MSTATUS(status);
    
