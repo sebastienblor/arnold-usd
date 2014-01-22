@@ -1,4 +1,4 @@
-<fragment uiName="standarShaderCombiner" name="standardShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0">
+<fragment uiName="standardShaderCombiner" name="standardShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Combines inputs from standard shader fragments.]]></description>
     <properties>
         <float3 name="diffuseInput" />

@@ -4,7 +4,7 @@
         <fragment_ref name="standardShaderCombiner" ref="standardShaderCombiner" />
     </fragments>
     <connections>
-        <!--<connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />-->
+        <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
     </connections>
     <properties>
     </properties>

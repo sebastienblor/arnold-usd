@@ -7,7 +7,6 @@
 
 MHWRender::MPxSurfaceShadingNodeOverride* ArnoldStandardShaderOverride::creator(const MObject& obj)
 {
-   std::cerr << "5\n";
    return new ArnoldStandardShaderOverride(obj);
 }
 
@@ -18,8 +17,6 @@ ArnoldStandardShaderOverride::ArnoldStandardShaderOverride(const MObject& obj)
    m_color[0] = 0.8f;
    m_color[1] = 0.8f;
    m_color[2] = 0.8f;
-
-   std::cerr << "1\n";
 
    static bool loaded = false;
 
@@ -32,9 +29,9 @@ ArnoldStandardShaderOverride::ArnoldStandardShaderOverride(const MObject& obj)
          if (fragmentMgr)
          {
             loaded = true;
-            fragmentMgr->addShadeFragmentFromFile("/work/deploy/2015/vp2/standardShaderCombiner.xml", false);
-            fragmentMgr->addFragmentGraphFromFile("/work/deploy/2015/vp2/standardShader.xml");
-            std::cerr << "2\n";
+            fragmentMgr->addFragmentPath("/work/deploy/2015/vp2");
+            fragmentMgr->addShadeFragmentFromFile("standardShaderCombiner.xml", false);
+            fragmentMgr->addFragmentGraphFromFile("standardShader.xml");
          }
       }
    }  
@@ -52,7 +49,6 @@ MHWRender::DrawAPI ArnoldStandardShaderOverride::supportedDrawAPIs() const
 
 MString ArnoldStandardShaderOverride::fragmentName() const
 {
-   std::cerr << "3\n";
    return "standardShader"; // TODO : replace this later with our own shader
 }
 
@@ -63,7 +59,6 @@ void ArnoldStandardShaderOverride::getCustomMappings(
 
 void ArnoldStandardShaderOverride::updateDG()
 {
-   std::cerr << "4\n";
    MStatus status;
    MFnDependencyNode dnode(m_object, &status);
    if (status)
