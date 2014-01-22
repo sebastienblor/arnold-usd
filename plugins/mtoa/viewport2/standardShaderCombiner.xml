@@ -1,0 +1,65 @@
+<fragment uiName="standarShaderCombiner" name="standardShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0">
+    <description><![CDATA[Combines inputs from standard shader fragments.]]></description>
+    <properties>
+        <float3 name="diffuseInput" />
+    </properties>
+    <values>
+        <float3 name="diffuseInput" value="0.8 0.8 0.8" />
+    </values>
+    <outputs>
+        <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.100000">
+            <function_name val="standardShaderCombiner" />
+            <source>
+                <![CDATA[
+mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 diffuseInput)
+{
+    mayaSurfaceShaderOutput result;
+    result.outColor = diffuseInput;
+    result.outTransparency = float3(0.0f, 0.0f, 0.0f);
+    result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
+    result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.000000">
+            <function_name val="standardShaderCombiner" />
+            <source>
+                <![CDATA[
+mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 diffuseInput)
+{
+    mayaSurfaceShaderOutput result;
+    result.outColor = diffuseInput;
+    result.outTransparency = float3(0.0f, 0.0f, 0.0f);
+    result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
+    result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.000000">
+            <function_name val="standardShaderCombiner" />
+            <source>
+                <![CDATA[
+mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 diffuseInput)
+{
+    mayaSurfaceShaderOutput result;
+    result.outColor = diffuseInput;
+    result.outTransparency = float3(0.0f, 0.0f, 0.0f);
+    result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
+    result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

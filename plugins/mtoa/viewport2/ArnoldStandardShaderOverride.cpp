@@ -32,7 +32,8 @@ ArnoldStandardShaderOverride::ArnoldStandardShaderOverride(const MObject& obj)
          if (fragmentMgr)
          {
             loaded = true;
-            fragmentMgr->addFragmentGraphFromFile("/work/deploy/2014/vp2/standardShader.xml");
+            fragmentMgr->addShadeFragmentFromFile("/work/deploy/2015/vp2/standardShaderCombiner.xml", false);
+            fragmentMgr->addFragmentGraphFromFile("/work/deploy/2015/vp2/standardShader.xml");
             std::cerr << "2\n";
          }
       }
@@ -52,7 +53,7 @@ MHWRender::DrawAPI ArnoldStandardShaderOverride::supportedDrawAPIs() const
 MString ArnoldStandardShaderOverride::fragmentName() const
 {
    std::cerr << "3\n";
-   return "standardShaderFragment"; // TODO : replace this later with our own shader
+   return "standardShader"; // TODO : replace this later with our own shader
 }
 
 void ArnoldStandardShaderOverride::getCustomMappings(
@@ -80,7 +81,7 @@ void ArnoldStandardShaderOverride::updateDG()
 void ArnoldStandardShaderOverride::updateShader(MHWRender::MShaderInstance& shader,
                                                 const MHWRender::MAttributeParameterMappingList& mappings)
 {
-   shader.setParameter("kd", m_color);
+   //shader.setParameter("kd", m_color);
 }
 
 MString ArnoldStandardShaderOverride::bumpAttribute() const

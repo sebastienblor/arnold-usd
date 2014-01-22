@@ -1,24 +1,16 @@
-<fragment uiName="standardShaderFragment" name="standardShaderFragment" type="plumbing" class="ShadeFragment" version="1.0">
-    <description><![CDATA[Fragment for the arnold standard shader.]]></description>
+<fragment_graph name="standardShader" ref="standardShader" class="FragmentGraph" version="1.0" feature_level="0">
+    <fragments>
+        <fragment_ref name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput" />
+        <fragment_ref name="standardShaderCombiner" ref="standardShaderCombiner" />
+    </fragments>
+    <connections>
+        <!--<connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />-->
+    </connections>
     <properties>
-        <float3 name="kd"/>
     </properties>
     <values>
-        <float3 name="kd" value="0.8 0.8 0.8"/>
     </values>
     <outputs>
-        <float3 name="outColor"/>
+        <struct name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
     </outputs>
-    <implementation>
-        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
-            <function_name val="standardShaderFragment"/>
-            <source><![CDATA[
-float3 standardShaderFragment(float3 kd)
-{
-    return kd;
-}
-                ]]>
-            </source>
-        </implementation>
-    </implementation>
-</fragment>
+</fragment_graph>

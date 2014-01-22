@@ -177,9 +177,9 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             initialize = CArnoldStandardNode::initialize;
             abstract   = &CArnoldStandardNode::s_abstract;
             classification = "shader/surface";
-            classification += MString(":") + ARNOLD_CLASSIFY(classification);
-            classification += MString(":swatch/") + ARNOLD_SWATCH;
-            classification += MString(":drawdb/shader/surface/arnoldStandard");
+            //classification += MString(":") + ARNOLD_CLASSIFY(classification);
+            //classification += MString(":swatch/") + ARNOLD_SWATCH;
+            classification += MString(":drawdb/shader/surface/arnold/standard");
          }
          else if (id == ARNOLD_NODEID_SKIN)
          {

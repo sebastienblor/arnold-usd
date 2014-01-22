@@ -647,15 +647,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
-   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnoldStandard";
-   MString shaderOverrideRegistrant = "mtoa";
-
-   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-               arnoldStandardOverrideClassification,
-               shaderOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
-
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
    {
@@ -734,6 +725,16 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+
+   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
+   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
+
+   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+               arnoldStandardOverrideClassification,
+               shaderOverrideRegistrant,
+               ArnoldStandardShaderOverride::creator);
+
+   CHECK_MSTATUS(status);
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
@@ -805,15 +806,15 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       }
    }
 
-   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnoldStandard";
-   MString shaderOverrideRegistrant = "mtoa";
+   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
+   MString shaderOverrideRegistrant = "arnoldStandarShaderOverride";
 
-   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
                   arnoldStandardOverrideClassification,
-                  shaderOverrideRegistrant,
-                  ArnoldStandardShaderOverride::creator);
+                  shaderOverrideRegistrant);
 
    CHECK_MSTATUS(status);
+
    
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
