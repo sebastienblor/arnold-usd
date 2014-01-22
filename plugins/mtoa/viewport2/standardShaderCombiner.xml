@@ -10,7 +10,7 @@
         <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
     </outputs>
     <implementation>
-        <implementation render="OGSRenderer" language="Cg" lang_version="2.100000">
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
             <function_name val="standardShaderCombiner" />
             <source>
                 <![CDATA[
@@ -22,12 +22,13 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
     return result;
 }
                 ]]>
             </source>
         </implementation>
-        <implementation render="OGSRenderer" language="HLSL" lang_version="11.000000">
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
             <function_name val="standardShaderCombiner" />
             <source>
                 <![CDATA[
@@ -39,12 +40,13 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
     return result;
 }
                 ]]>
             </source>
         </implementation>
-        <implementation render="OGSRenderer" language="HLSL" lang_version="10.000000">
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
             <function_name val="standardShaderCombiner" />
             <source>
                 <![CDATA[
@@ -56,6 +58,7 @@ mayaSurfaceShaderOutput standardShaderCombiner(
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
     return result;
 }
                 ]]>

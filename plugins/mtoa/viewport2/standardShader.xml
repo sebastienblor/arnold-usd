@@ -7,8 +7,10 @@
         <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
     </connections>
     <properties>
+        <float3 name="kd" ref="standardShaderCombiner.diffuseInput" />
     </properties>
     <values>
+        <float3 name="kd" value="0.8 0.8 0.8" />
     </values>
     <outputs>
         <struct name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />

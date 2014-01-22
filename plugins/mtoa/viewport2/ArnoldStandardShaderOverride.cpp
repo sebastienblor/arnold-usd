@@ -76,7 +76,7 @@ void ArnoldStandardShaderOverride::updateDG()
 void ArnoldStandardShaderOverride::updateShader(MHWRender::MShaderInstance& shader,
                                                 const MHWRender::MAttributeParameterMappingList& mappings)
 {
-   //shader.setParameter("kd", m_color);
+   shader.setParameter("kd", m_color);
 }
 
 MString ArnoldStandardShaderOverride::bumpAttribute() const
