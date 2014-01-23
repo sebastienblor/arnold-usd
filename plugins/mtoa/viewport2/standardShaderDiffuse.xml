@@ -4,6 +4,7 @@
         <float3 name="N" />
         <float3 name="L" />
         <float3 name="diffuseI" />
+        <float name="diffuse" />
     </properties>
     <values>
         
@@ -18,11 +19,12 @@
 float3 standardShaderDiffuse(
         float3 N,
         float3 L,
-        float3 diffuseI)
+        float3 diffuseI,
+        float diffuse)
 {
     float NDL = saturate(dot(N, L));
     if (NDL > 0.0f)
-        return diffuseI * NDL;
+        return diffuseI * diffuse * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }

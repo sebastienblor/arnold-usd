@@ -12,7 +12,7 @@
     </connections>
     <properties>
         <float3 name="color" ref="standardShaderCombiner.color" />
-        <float name="Kd" ref="standardShaderCombiner.Kd" />
+        <float name="Kd" ref="standardShaderDiffuse.diffuse" />
         <float3 name="Nw" ref="standardShaderDiffuse.N" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderDiffuse.L" flags="varyingInputParam" />
         <float3 name="diffuseI" ref="standardShaderDiffuse.diffuseI" />
