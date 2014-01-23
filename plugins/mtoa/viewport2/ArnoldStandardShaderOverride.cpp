@@ -17,9 +17,12 @@ ArnoldStandardShaderOverride::ArnoldStandardShaderOverride(const MObject& obj)
 : MPxSurfaceShadingNodeOverride(obj), m_object(obj), m_fragmentName("")
 {
    MStringArray reqs;
+   reqs.append("standardShaderLightingData");
    reqs.append("standardShaderCombiner");
    reqs.append("standardShaderDiffuse");
    reqs.append("standardShaderEmission");
+   //reqs.append("standardShaderSpecular");   
+   reqs.append("standardShaderLightingCombiner");
    if (LoadFragmentGraph("standardShader", reqs))
       m_fragmentName = "standardShader";
 }

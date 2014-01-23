@@ -1,30 +1,37 @@
 <fragment_graph name="standardShader" ref="standardShader" class="FragmentGraph" version="1.0" feature_level="0">
     <fragments>
+        <!--<fragment_ref name="standardShaderLightingData" ref="standardShaderLightingData" />-->
         <fragment_ref name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput" />
         <fragment_ref name="standardShaderCombiner" ref="standardShaderCombiner" />
         <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
         <fragment_ref name="standardShaderDiffuse" ref="standardShaderDiffuse" />
-        <fragment_ref name="standardShaderEmission" ref="standardShaderEmission" />
+        <fragment_ref name="standardShaderEmission" ref="standardShaderEmission" />        
+        <!--<fragment_ref name="standardShaderLightingCombiner" ref="standardShaderLightingCombiner" />-->
     </fragments>
     <connections>
         <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
         <connect from="maya16LightAccum.scaledDiffuse" to="standardShaderCombiner.diffuseInput" />
         <connect from="standardShaderDiffuse.outColor" to="maya16LightAccum.scaledDiffuse" />
         <connect from="standardShaderEmission.outColor" to="standardShaderCombiner.emissionInput" />
+        <!--<connect from="standardShaderLightingCombiner.output" to="standardShaderDiffuse.lightingData" />-->
     </connections>
     <properties>
         <float3 name="color" ref="standardShaderCombiner.color" />
-        <float name="Kd" ref="standardShaderDiffuse.diffuse" />
+        <float name="Kd" ref="standardShaderDiffuse.Kd" />
         <float3 name="emissionColor" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />
         <float3 name="Nw" ref="standardShaderDiffuse.N" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderDiffuse.L" flags="varyingInputParam" />
-        <float3 name="diffuseI" ref="standardShaderDiffuse.diffuseI" />
+        <float3 name="diffuseI" ref="standardShaderDiffuse.diffuse" />
+        <!--<float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
+        <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
+        <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />
+        <float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
+        <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
+        <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />-->
         <string name="selector" ref="maya16LightAccum.selector" />
     </properties>
     <values>
-        <float3 name="color" value="1.0 1.0 1.0" />
-        <float name="Kd" value="0.7" />
     </values>
     <outputs>
         <struct name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />

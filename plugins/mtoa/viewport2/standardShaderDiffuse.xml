@@ -1,10 +1,11 @@
 <fragment uiName="standardShaderDiffuse" name="standardShaderDiffuse" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
-        <float3 name="N" />
+        <!--<struct name="lightingData" struct_name="standardShaderLightingData" />-->
         <float3 name="L" />
-        <float3 name="diffuseI" />
-        <float name="diffuse" />
+        <float3 name="N" />
+        <float3 name="diffuse" />
+        <float name="Kd" />
     </properties>
     <values>
         
@@ -17,14 +18,14 @@
             <function_name val="standardShaderDiffuse" />
             <source><![CDATA[
 float3 standardShaderDiffuse(
-        float3 N,
         float3 L,
-        float3 diffuseI,
-        float diffuse)
+        float3 N,
+        float3 diffuse,
+        float Kd)
 {
     float NDL = saturate(dot(N, L));
     if (NDL > 0.0f)
-        return diffuseI * diffuse * NDL;
+        return diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
