@@ -866,6 +866,9 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+if env['ENABLE_VP2'] == 1:
+    PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
+
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
