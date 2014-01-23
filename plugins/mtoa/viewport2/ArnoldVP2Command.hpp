@@ -25,7 +25,7 @@ void* CArnoldVP2Command::creator()
 MStatus CArnoldVP2Command::doIt(const MArgList& args)
 {
     MStringArray sArray;
-    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+    /*MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
     if (theRenderer == 0)
         return MS::kFailure;
     MHWRender::MFragmentManager* fmg = theRenderer->getFragmentManager();
@@ -39,6 +39,6 @@ MStatus CArnoldVP2Command::doIt(const MArgList& args)
         MString fragmentString;
         fmg->getFragmentXML(fragmentName.c_str(), fragmentString);
         fs << fragmentString.asChar();
-    }
+    }*/
     return MS::kSuccess;
 }

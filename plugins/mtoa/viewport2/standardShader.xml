@@ -2,15 +2,25 @@
     <fragments>
         <fragment_ref name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput" />
         <fragment_ref name="standardShaderCombiner" ref="standardShaderCombiner" />
+        <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
+        <fragment_ref name="standardShaderDiffuse" ref="standardShaderDiffuse" />
     </fragments>
     <connections>
         <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
+        <connect from="maya16LightAccum.scaledDiffuse" to="standardShaderCombiner.diffuseInput" />
+        <connect from="standardShaderDiffuse.outColor" to="maya16LightAccum.scaledDiffuse" />
     </connections>
     <properties>
-        <float3 name="kd" ref="standardShaderCombiner.diffuseInput" />
+        <float3 name="color" ref="standardShaderCombiner.color" />
+        <float name="Kd" ref="standardShaderCombiner.Kd" />
+        <float3 name="Nw" ref="standardShaderDiffuse.N" flags="varyingInputParam" />
+        <float3 name="Lw" ref="standardShaderDiffuse.L" flags="varyingInputParam" />
+        <float3 name="diffuseI" ref="standardShaderDiffuse.diffuseI" />
+        <string name="selector" ref="maya16LightAccum.selector" />
     </properties>
     <values>
-        <float3 name="kd" value="0.8 0.8 0.8" />
+        <float3 name="color" value="1.0 1.0 1.0" />
+        <float name="Kd" value="0.7" />
     </values>
     <outputs>
         <struct name="mayaSurfaceShaderOutput" ref="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />

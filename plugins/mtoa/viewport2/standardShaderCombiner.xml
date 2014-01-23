@@ -1,10 +1,14 @@
 <fragment uiName="standardShaderCombiner" name="standardShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Combines inputs from standard shader fragments.]]></description>
     <properties>
+        <float3 name="color" />
+        <float name="Kd" />
         <float3 name="diffuseInput" />
     </properties>
     <values>
-        <float3 name="diffuseInput" value="0.8 0.8 0.8" />
+        <float3 name="color" value="1.0 1.0 1.0" />
+        <float name="Kd" value="0.7" />
+        <float3 name="diffuseInput" value="1.0 1.0 1.0" />
     </values>
     <outputs>
         <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
@@ -15,10 +19,12 @@
             <source>
                 <![CDATA[
 mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 color,
+                float Kd,
                 float3 diffuseInput)
 {
     mayaSurfaceShaderOutput result;
-    result.outColor = diffuseInput;
+    result.outColor = color * Kd * diffuseInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);

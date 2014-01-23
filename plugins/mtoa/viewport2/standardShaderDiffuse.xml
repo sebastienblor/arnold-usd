@@ -1,10 +1,12 @@
 <fragment uiName="standardShaderDiffuse" name="standardShaderDiffuse" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
-        <float3 name="kd" />
+        <float3 name="N" />
+        <float3 name="L" />
+        <float3 name="diffuseI" />
     </properties>
     <values>
-        <float3 name="kd" value="0.8 0.8 0.8" />
+        
     </values>
     <outputs>
         <float3 name="outColor" />
@@ -13,9 +15,16 @@
         <implementation render="OGSRenderer" language="Cg" lang_version="2.100000">
             <function_name val="standardShaderDiffuse" />
             <source><![CDATA[
-float3 standardShaderDiffuse(float3 kd)
+float3 standardShaderDiffuse(
+        float3 N,
+        float3 L,
+        float3 diffuseI)
 {
-    return kd;
+    float NDL = saturate(dot(N, L));
+    if (NDL > 0.0f)
+        return diffuseI * NDL;
+    else
+        return float3(0.0f, 0.0f, 0.0f);
 }
                 ]]>
             </source>
