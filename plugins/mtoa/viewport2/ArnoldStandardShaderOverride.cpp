@@ -19,6 +19,7 @@ ArnoldStandardShaderOverride::ArnoldStandardShaderOverride(const MObject& obj)
    MStringArray reqs;
    reqs.append("standardShaderCombiner");
    reqs.append("standardShaderDiffuse");
+   reqs.append("standardShaderEmission");
    if (LoadFragmentGraph("standardShader", reqs))
       m_fragmentName = "standardShader";
 }
