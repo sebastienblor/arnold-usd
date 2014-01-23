@@ -55,8 +55,11 @@
 
 #include "scene/MayaScene.h"
 
+#ifdef ENABLE_VP2
 #include "viewport2/ArnoldStandardShaderOverride.h"
-#include "viewport2/ArnoldVP2Command.hpp"
+#include "viewport2/ViewportUtils.h"
+#include <maya/MDrawRegistry.h>
+#endif
 
 #include <ai_msg.h>
 #include <ai_render.h>
@@ -64,7 +67,6 @@
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
-#include <maya/MDrawRegistry.h>
 
 #include <ai.h>
 
@@ -96,8 +98,7 @@ namespace // <anonymous>
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
-      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
-      {"arnoldVP2", CArnoldVP2Command::creator, 0}
+      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
    };
 
    struct mayaNode {
@@ -353,7 +354,10 @@ namespace // <anonymous>
       if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
-         SetEnv("MTOA_PATH",pluginPath);
+         SetEnv("MTOA_PATH", pluginPath);
+#ifdef ENABLE_VP2
+         SetFragmentSearchPath(pluginPath + MString("vp2"));
+#endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
@@ -726,6 +730,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
 
+#ifdef ENABLE_VP2
    MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
    MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
 
@@ -735,6 +740,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                ArnoldStandardShaderOverride::creator);
 
    CHECK_MSTATUS(status);
+#endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
@@ -805,7 +811,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                      MString(cmd.name) + MString("'' command."));
       }
    }
-
+#ifdef ENABLE_VP2
    MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
    MString shaderOverrideRegistrant = "arnoldStandarShaderOverride";
 
@@ -814,7 +820,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                   shaderOverrideRegistrant);
 
    CHECK_MSTATUS(status);
-
+#endif
    
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);

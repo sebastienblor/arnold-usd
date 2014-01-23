@@ -1,9 +1,12 @@
 #include "ArnoldStandardShaderOverride.h"
+#include "ViewportUtils.h"
 
 #include <maya/MShaderManager.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlug.h>
 #include <maya/MFragmentManager.h>
+#include <maya/MString.h>
+#include <maya/MStringArray.h>
 
 MHWRender::MPxSurfaceShadingNodeOverride* ArnoldStandardShaderOverride::creator(const MObject& obj)
 {
@@ -11,31 +14,13 @@ MHWRender::MPxSurfaceShadingNodeOverride* ArnoldStandardShaderOverride::creator(
 }
 
 ArnoldStandardShaderOverride::ArnoldStandardShaderOverride(const MObject& obj)
-: MPxSurfaceShadingNodeOverride(obj), m_object(obj),
-  m_resolvedColorName("")
+: MPxSurfaceShadingNodeOverride(obj), m_object(obj), m_fragmentName("")
 {
-   m_color[0] = 0.8f;
-   m_color[1] = 0.8f;
-   m_color[2] = 0.8f;
-
-   static bool loaded = false;
-
-   if (!loaded)
-   {      
-      MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
-      if (theRenderer)
-      {
-         MHWRender::MFragmentManager* fragmentMgr = theRenderer->getFragmentManager();
-         if (fragmentMgr)
-         {
-            loaded = true;
-            fragmentMgr->addFragmentPath("/work/deploy/2015/vp2");
-            fragmentMgr->addShadeFragmentFromFile("standardShaderCombiner.xml", false);
-            fragmentMgr->addShadeFragmentFromFile("standardShaderDiffuse.xml", false);
-            fragmentMgr->addFragmentGraphFromFile("standardShader.xml");
-         }
-      }
-   }  
+   MStringArray reqs;
+   reqs.append("standardShaderCombiner");
+   reqs.append("standardShaderDiffuse");
+   if (LoadFragmentGraph("standardShader", reqs))
+      m_fragmentName = "standardShader";
 }
 
 ArnoldStandardShaderOverride::~ArnoldStandardShaderOverride()
@@ -50,7 +35,7 @@ MHWRender::DrawAPI ArnoldStandardShaderOverride::supportedDrawAPIs() const
 
 MString ArnoldStandardShaderOverride::fragmentName() const
 {
-   return "standardShader"; // TODO : replace this later with our own shader
+   return m_fragmentName;
 }
 
 void ArnoldStandardShaderOverride::getCustomMappings(

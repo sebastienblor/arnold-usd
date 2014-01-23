@@ -211,6 +211,7 @@ TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 env['ENABLE_XGEN'] = 0
+env['ENABLE_VP2'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -218,6 +219,8 @@ maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MT
 maya_version_base = maya_version[0:4]
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
+if int(maya_version_base) >= 2014:
+    env['ENABLE_VP2'] = 1
 
 mercurial_id = ""
 try:
@@ -442,6 +445,9 @@ if env['MODE'] == 'debug':
 if env['ENABLE_XGEN'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_XGEN'))
 
+if env['ENABLE_VP2'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_VP2'))
+
 ## platform related defines
 if system.os() == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
@@ -653,9 +659,10 @@ arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
-vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml'])
-env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
-                [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
+if env['ENABLE_VP2']:
+    vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml'])
+    env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
+                    [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
 
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')

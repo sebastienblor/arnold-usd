@@ -22,7 +22,5 @@ private:
    ArnoldStandardShaderOverride(const MObject& obj);
 
    MObject m_object;
-
-   MString m_resolvedColorName;
-   float m_color[3];
+   MString m_fragmentName;
 };

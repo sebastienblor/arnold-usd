@@ -20,8 +20,11 @@ namespace{
 
 void SetFragmentSearchPath(const MString& path)
 {
-    searchPath = path;
-    searchPathInitialized = false;
+    if (searchPath != path)
+    {
+        searchPath = path;
+        searchPathInitialized = false;
+    }
 }
 
 bool LoadFragmentGraph(const MString& fragmentGraph, const MStringArray& requirements)
@@ -41,7 +44,7 @@ bool LoadFragmentGraph(const MString& fragmentGraph, const MStringArray& require
                 if (!fragmentMgr->hasFragment(req))
                     loadedSuccessfully &= (req == fragmentMgr->addShadeFragmentFromFile(req + MString(".xml"), false));
             }
-            if (loadedSuccessfully)
+            if (loadedSuccessfully && !fragmentMgr->hasFragment(fragmentGraph))
                 loadedSuccessfully &= (fragmentGraph == fragmentMgr->addFragmentGraphFromFile(fragmentGraph + MString(".xml")));
             return loadedSuccessfully;
         }
