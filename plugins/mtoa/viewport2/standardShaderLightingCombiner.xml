@@ -38,5 +38,53 @@ standardShaderLightingData standardShaderCombiner(
                 ]]>
             </source>
         </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="standardShaderLightingCombiner" />
+            <source>
+                <![CDATA[
+standardShaderLightingData standardShaderCombiner(
+                float3 N,
+                float3 V,
+                float3 L,
+                float3 SL,
+                float3 diffuse,
+                float3 specular)
+{
+    standardShaderLightingData result;
+    result.N = N;
+    result.V = V;
+    result.L = L;
+    result.SL = SL;
+    result.diffuse = diffuse;
+    result.specular = specular;
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="standardShaderLightingCombiner" />
+            <source>
+                <![CDATA[
+standardShaderLightingData standardShaderCombiner(
+                float3 N,
+                float3 V,
+                float3 L,
+                float3 SL,
+                float3 diffuse,
+                float3 specular)
+{
+    standardShaderLightingData result;
+    result.N = N;
+    result.V = V;
+    result.L = L;
+    result.SL = SL;
+    result.diffuse = diffuse;
+    result.specular = specular;
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
     </implementation>
 </fragment>
