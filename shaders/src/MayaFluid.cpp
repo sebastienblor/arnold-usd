@@ -92,6 +92,7 @@ node_parameters
    AiParameterNode("volume_texture", 0);
    
    AiParameterFlt("shadow_opacity", 0.5f);
+   AiParameterBool("enable_deformation_blur", false);
 
    InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params);
@@ -154,8 +155,9 @@ enum MayaFluidParams{
    p_volume_noise,
    
    p_shadow_opacity,
+   p_enable_deformation_blur,
 
-   p_edge_dropoff
+   p_edge_dropoff  
 };
 
 
@@ -177,6 +179,7 @@ struct MayaFluidData{
    float colorTexGain;
    float incandTexGain;
    float opacityTexGain;
+   float fpsDivider;
    
    int filterType;   
    int textureType;
@@ -196,6 +199,7 @@ struct MayaFluidData{
    bool textureDisabledInShadows;   
    bool inflection;
    bool invertTexture;
+   bool enableDeformationBlur;
 
    MayaFluidData() : fluidData(0)
    { }
@@ -299,6 +303,16 @@ node_update
    }
    
    data->coordinateMethod = AiNodeGetInt(node, "coordinate_method");
+   data->enableDeformationBlur = AiNodeGetBool(node, "enable_deformation_blur");
+   data->fpsDivider = AI_BIG;
+
+   AtNode* options = AiUniverseGetOptions();
+   if (AiNodeLookUpUserParameter(options, "fps"))
+   {
+      data->fpsDivider = 1.0f / AiNodeGetFlt(options, "fps");
+      if (!AiIsFinite(data->fpsDivider) || (data->fpsDivider < AI_EPSILON))
+         data->fpsDivider = AI_BIG;
+   }
 }
 
 node_finish
@@ -331,7 +345,13 @@ shader_evaluate
       data->fluidDataCache[sg->tid].second = fluidData;
    }
    
-   const AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
+   AtVector lPt = fluidData->ConvertToLocalSpace(sg->Po);
+   if (data->enableDeformationBlur)
+   {
+      const AtVector velocity = fluidData->readVelocity(lPt, data->filterType);
+      lPt = lPt - sg->time * velocity * data->velocityScale * data->fpsDivider;
+   }
+   
 
    AtVector scaledDir;
    AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
