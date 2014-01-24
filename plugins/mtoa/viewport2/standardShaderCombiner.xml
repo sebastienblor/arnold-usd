@@ -39,10 +39,12 @@ mayaSurfaceShaderOutput standardShaderCombiner(
             <source>
                 <![CDATA[
 mayaSurfaceShaderOutput standardShaderCombiner(
-                float3 diffuseInput)
+                float3 color,
+                float3 diffuseInput,
+                float3 emissionInput)
 {
     mayaSurfaceShaderOutput result;
-    result.outColor = diffuseInput;
+    result.outColor = color * diffuseInput + emissionInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
@@ -57,10 +59,12 @@ mayaSurfaceShaderOutput standardShaderCombiner(
             <source>
                 <![CDATA[
 mayaSurfaceShaderOutput standardShaderCombiner(
-                float3 diffuseInput)
+                float3 color,
+                float3 diffuseInput,
+                float3 emissionInput)
 {
     mayaSurfaceShaderOutput result;
-    result.outColor = diffuseInput;
+    result.outColor = color * diffuseInput + emissionInput;
     result.outTransparency = float3(0.0f, 0.0f, 0.0f);
     result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
     result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);

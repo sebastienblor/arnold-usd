@@ -32,5 +32,43 @@ float3 standardShaderDiffuse(
                 ]]>
             </source>
         </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="standardShaderDiffuse" />
+            <source>
+                <![CDATA[
+float3 standardShaderDiffuse(
+        float3 L,
+        float3 N,
+        float3 diffuse,
+        float Kd)
+{
+    float NDL = saturate(dot(N, L));
+    if (NDL > 0.0f)
+        return diffuse * Kd * NDL;
+    else
+        return float3(0.0f, 0.0f, 0.0f);
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
+            <function_name val="standardShaderDiffuse" />
+            <source>
+                <![CDATA[
+float3 standardShaderDiffuse(
+        float3 L,
+        float3 N,
+        float3 diffuse,
+        float Kd)
+{
+    float NDL = saturate(dot(N, L));
+    if (NDL > 0.0f)
+        return diffuse * Kd * NDL;
+    else
+        return float3(0.0f, 0.0f, 0.0f);
+}
+                ]]>
+            </source>
+        </implementation>
     </implementation>
 </fragment>

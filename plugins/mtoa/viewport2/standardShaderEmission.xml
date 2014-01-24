@@ -13,7 +13,34 @@
     <implementation>
         <implementation render="OGSRenderer" language="Cg" lang_version="2.100000">
             <function_name val="standardShaderEmission" />
-            <source><![CDATA[
+            <source>
+                <![CDATA[
+float3 standardShaderEmission(
+        float3 emissionColor,
+        float emission)
+{
+    return emissionColor * emission;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="standardShaderEmission" />
+            <source>
+                <![CDATA[
+float3 standardShaderEmission(
+        float3 emissionColor,
+        float emission)
+{
+    return emissionColor * emission;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
+            <function_name val="standardShaderEmission" />
+            <source>
+                <![CDATA[
 float3 standardShaderEmission(
         float3 emissionColor,
         float emission)
