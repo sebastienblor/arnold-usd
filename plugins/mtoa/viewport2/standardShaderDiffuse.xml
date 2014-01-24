@@ -1,7 +1,7 @@
 <fragment uiName="standardShaderDiffuse" name="standardShaderDiffuse" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
-        <!--<struct name="lightingData" struct_name="standardShaderLightingData" />-->
+        <struct name="lightingData" struct_name="standardShaderLightingData" />
         <float3 name="L" />
         <float3 name="N" />
         <float3 name="diffuse" />
@@ -16,8 +16,10 @@
     <implementation>
         <implementation render="OGSRenderer" language="Cg" lang_version="2.100000">
             <function_name val="standardShaderDiffuse" />
-            <source><![CDATA[
+            <source>
+                <![CDATA[
 float3 standardShaderDiffuse(
+        standardShaderLightingData lightingData,
         float3 L,
         float3 N,
         float3 diffuse,
@@ -37,6 +39,7 @@ float3 standardShaderDiffuse(
             <source>
                 <![CDATA[
 float3 standardShaderDiffuse(
+        standardShaderLightingData lightingData,
         float3 L,
         float3 N,
         float3 diffuse,
@@ -56,6 +59,7 @@ float3 standardShaderDiffuse(
             <source>
                 <![CDATA[
 float3 standardShaderDiffuse(
+        standardShaderLightingData lightingData,
         float3 L,
         float3 N,
         float3 diffuse,

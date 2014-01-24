@@ -1,12 +1,12 @@
 <fragment uiName="standardShaderLightingData" name="standardShaderLightingData" type="structure" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Struct for lighting information.]]></description>
     <properties>
-        <struct name="standardShaderLigtingData" struct_name="standardShaderLigtingData" />
+        <struct name="standardShaderLightingData" struct_name="standardShaderLightingData" />
     </properties>
     <values>
     </values>
     <outputs>
-        <alias name="standardShaderLigtingData" struct_name="standardShaderLightingData" />
+        <alias name="standardShaderLightingData" struct_name="standardShaderLightingData" />
         <float3 name="N" />
         <float3 name="V" />
         <float3 name="L" />
@@ -17,7 +17,7 @@
     <implementation>
         <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
             <function_name val="" />
-            <declaration name="standardShaderLigtingData">
+            <declaration name="standardShaderLightingData">
                 <![CDATA[
 struct standardShaderLightingData{
     float3 N;

@@ -6,7 +6,7 @@
         <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
         <fragment_ref name="standardShaderDiffuse" ref="standardShaderDiffuse" />
         <fragment_ref name="standardShaderEmission" ref="standardShaderEmission" />        
-        <!--<fragment_ref name="standardShaderLightingCombiner" ref="standardShaderLightingCombiner" />-->
+        <fragment_ref name="standardShaderLightingCombiner" ref="standardShaderLightingCombiner" />
     </fragments>
     <connections>
         <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
@@ -24,11 +24,11 @@
         <float3 name="Lw" ref="standardShaderDiffuse.L" flags="varyingInputParam" />
         <float3 name="diffuseI" ref="standardShaderDiffuse.diffuse" />
         <!--<float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
-        <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
+        <!--<float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />
-        <float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
+        <!--<float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
         <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
-        <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />-->
+        <!--<float3 name="specularI" ref="standardShaderLightingCombiner.specular" />-->
         <string name="selector" ref="maya16LightAccum.selector" />
     </properties>
     <values>
