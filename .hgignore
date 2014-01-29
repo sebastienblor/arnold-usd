@@ -24,6 +24,11 @@ Debug
 *.bat
 docs
 plugins/mtoa/utils/MercurialID.h
+*.zip
+*.run
+*.sh
+*.obj
+*.patch
 
 *.vcxproj
 *.filters

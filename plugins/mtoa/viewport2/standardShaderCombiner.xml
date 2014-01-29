@@ -1,0 +1,88 @@
+<fragment uiName="standardShaderCombiner" name="standardShaderCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
+    <description><![CDATA[Combines inputs from standard shader fragments.]]></description>
+    <properties>
+        <float3 name="color" />
+        <float3 name="specularColor" />
+        <float3 name="diffuseInput" />
+        <float3 name="specularInput" />
+        <float3 name="emissionInput" />
+    </properties>
+    <values>
+        <float3 name="color" value="1.0 1.0 1.0" />
+        <float3 name="specularColor" value="0.0 0.0 0.0" />
+        <float3 name="diffuseInput" value="1.0 1.0 1.0" />
+        <float3 name="specularInput" value="0.0 0.0 0.0" />
+        <float3 name="emissionInput" value="0.0 0.0 0.0" />
+    </values>
+    <outputs>
+        <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
+    </outputs>
+    <implementation>
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
+            <function_name val="standardShaderCombiner" />
+            <source>
+                <![CDATA[
+mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 color,
+                float3 specularColor,
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput)
+{
+    mayaSurfaceShaderOutput result;
+    result.outColor = color * diffuseInput + specularColor * specularInput + emissionInput;
+    result.outTransparency = float3(0.0f, 0.0f, 0.0f);
+    result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
+    result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="11.0">
+            <function_name val="standardShaderCombiner" />
+            <source>
+                <![CDATA[
+mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 color,
+                float3 specularColor,
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput)
+{
+    mayaSurfaceShaderOutput result;
+    result.outColor = color * diffuseInput + specularColor * specularInput + emissionInput;
+    result.outTransparency = float3(0.0f, 0.0f, 0.0f);
+    result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
+    result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
+            <function_name val="standardShaderCombiner" />
+            <source>
+                <![CDATA[
+mayaSurfaceShaderOutput standardShaderCombiner(
+                float3 color,
+                float3 specularColor,
+                float3 diffuseInput,
+                float3 specularInput,
+                float3 emissionInput)
+{
+    mayaSurfaceShaderOutput result;
+    result.outColor = color * diffuseInput + specularColor * specularInput + emissionInput;
+    result.outTransparency = float3(0.0f, 0.0f, 0.0f);
+    result.outGlowColor = float3(0.0f, 0.0f, 0.0f);
+    result.outMatteOpacity = float3(-1.0e+06f, -1.0e+06f, -1.0e+06f);
+    result.outSurfaceFinal = float4(result.outColor, 1.0f);
+    return result;
+}
+                ]]>
+            </source>
+        </implementation>
+    </implementation>
+</fragment>

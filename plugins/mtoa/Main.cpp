@@ -55,6 +55,12 @@
 
 #include "scene/MayaScene.h"
 
+#ifdef ENABLE_VP2
+#include "viewport2/ArnoldStandardShaderOverride.h"
+#include "viewport2/ViewportUtils.h"
+#include <maya/MDrawRegistry.h>
+#endif
+
 #include <ai_msg.h>
 #include <ai_render.h>
 
@@ -85,7 +91,6 @@ namespace // <anonymous>
       const char* name;
       void* (*creator)();
       MSyntax (*syntax)();
-
    } mayaCmdList [] = {
       {"arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax},
       {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
@@ -349,7 +354,10 @@ namespace // <anonymous>
       if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
-         SetEnv("MTOA_PATH",pluginPath);
+         SetEnv("MTOA_PATH", pluginPath);
+#ifdef ENABLE_VP2
+         SetFragmentSearchPath(pluginPath + MString("vp2"));
+#endif
          MString modulePluginPath = pluginPath + MString("shaders");
          MString moduleExtensionPath = pluginPath + MString("extensions");         
          const char* envVar = getenv("ARNOLD_PLUGIN_PATH");
@@ -642,7 +650,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
-   
 
    // Commands
    for (size_t i = 0; i < sizeOfArray(mayaCmdList); ++i)
@@ -722,6 +729,18 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+
+#ifdef ENABLE_VP2
+   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
+   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
+
+   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+               arnoldStandardOverrideClassification,
+               shaderOverrideRegistrant,
+               ArnoldStandardShaderOverride::creator);
+
+   CHECK_MSTATUS(status);
+#endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
 
@@ -792,6 +811,16 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                      MString(cmd.name) + MString("'' command."));
       }
    }
+#ifdef ENABLE_VP2
+   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
+   MString shaderOverrideRegistrant = "arnoldStandarShaderOverride";
+
+   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+                  arnoldStandardOverrideClassification,
+                  shaderOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
+#endif
    
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
