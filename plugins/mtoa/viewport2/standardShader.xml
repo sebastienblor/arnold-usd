@@ -21,10 +21,10 @@
         <float name="Kd" ref="standardShaderDiffuse.Kd" />
         <float3 name="emissionColor" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />
-        <float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
-        <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
-        <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />
-        <float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
+        <float3 name="Nw" ref="standardShaderLightingCombiner.N" semantic="Nw" flags="varyingInputParam" />-
+        <float3 name="Vw" ref="standardShaderLightingCombiner.V" semantic="V" flags="varyingInputParam" />
+        <float3 name="Lw" ref="standardShaderLightingCombiner.L" semantic="L" flags="varyingInputParam" />
+        <float3 name="SLw" ref="standardShaderLightingCombiner.SL" semantic="SL" flags="varyingInputParam" />
         <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
         <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />
         <string name="selector" ref="maya16LightAccum.selector" />
