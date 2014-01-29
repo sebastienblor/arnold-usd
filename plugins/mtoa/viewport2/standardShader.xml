@@ -13,22 +13,20 @@
         <connect from="maya16LightAccum.scaledDiffuse" to="standardShaderCombiner.diffuseInput" />
         <connect from="standardShaderDiffuse.outColor" to="maya16LightAccum.scaledDiffuse" />
         <connect from="standardShaderEmission.outColor" to="standardShaderCombiner.emissionInput" />
-        <!--<connect from="standardShaderLightingCombiner.output" to="standardShaderDiffuse.lightingData" />-->
+        <connect from="standardShaderLightingData.standardShaderLightingData" to="standardShaderDiffuse.lightingData" />
+        <connect from="standardShaderLightingCombiner.lightingData" to="standardShaderLightingData.standardShaderLightingData" />
     </connections>
     <properties>
         <float3 name="color" ref="standardShaderCombiner.color" />
         <float name="Kd" ref="standardShaderDiffuse.Kd" />
         <float3 name="emissionColor" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />
-        <float3 name="Nw" ref="standardShaderDiffuse.N" flags="varyingInputParam" />
-        <float3 name="Lw" ref="standardShaderDiffuse.L" flags="varyingInputParam" />
-        <float3 name="diffuseI" ref="standardShaderDiffuse.diffuse" />
-        <!--<float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
-        <!--<float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
+        <float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
+        <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />
-        <!--<float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
+        <float3 name="SLw" ref="standardShaderLightingCombiner.SL" flags="varyingInputParam" />
         <float3 name="diffuseI" ref="standardShaderLightingCombiner.diffuse" />
-        <!--<float3 name="specularI" ref="standardShaderLightingCombiner.specular" />-->
+        <float3 name="specularI" ref="standardShaderLightingCombiner.specular" />
         <string name="selector" ref="maya16LightAccum.selector" />
     </properties>
     <values>

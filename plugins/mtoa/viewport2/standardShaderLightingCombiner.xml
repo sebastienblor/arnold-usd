@@ -1,17 +1,17 @@
 <fragment uiName="standardShaderLightingCombiner" name="standardShaderLightingCombiner" type="plumbing" class="ShadeFragment" version="1.0" feature_level="0">
     <description><![CDATA[Combines lighting inputs from standard shader fragments.]]></description>
     <properties>
-        <float3 name="N" />
-        <float3 name="V" />
-        <float3 name="L" />
-        <float3 name="SL" />
+        <float3 name="N" flags="varyingInputParam" />
+        <float3 name="V" flags="varyingInputParam" />
+        <float3 name="L" flags="varyingInputParam" />
+        <float3 name="SL" flags="varyingInputParam" />
         <float3 name="diffuse" />
         <float3 name="specular" />
     </properties>
     <values>
     </values>
     <outputs>
-        <struct name="output" struct_name="standardShaderLightingData" />
+        <struct name="lightingData" struct_name="standardShaderLightingData" />
     </outputs>
     <implementation>
         <implementation render="OGSRenderer" language="Cg" lang_version="2.1">

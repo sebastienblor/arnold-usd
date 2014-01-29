@@ -2,9 +2,6 @@
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
         <struct name="lightingData" struct_name="standardShaderLightingData" />
-        <float3 name="L" />
-        <float3 name="N" />
-        <float3 name="diffuse" />
         <float name="Kd" />
     </properties>
     <values>
@@ -14,20 +11,17 @@
         <float3 name="outColor" />
     </outputs>
     <implementation>
-        <implementation render="OGSRenderer" language="Cg" lang_version="2.100000">
+        <implementation render="OGSRenderer" language="Cg" lang_version="2.1">
             <function_name val="standardShaderDiffuse" />
             <source>
                 <![CDATA[
 float3 standardShaderDiffuse(
         standardShaderLightingData lightingData,
-        float3 L,
-        float3 N,
-        float3 diffuse,
         float Kd)
 {
-    float NDL = saturate(dot(N, L));
+    float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return diffuse * Kd * NDL;
+        return lightingData.diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
@@ -40,14 +34,11 @@ float3 standardShaderDiffuse(
                 <![CDATA[
 float3 standardShaderDiffuse(
         standardShaderLightingData lightingData,
-        float3 L,
-        float3 N,
-        float3 diffuse,
         float Kd)
 {
-    float NDL = saturate(dot(N, L));
+    float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return diffuse * Kd * NDL;
+        return lightingData.diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
@@ -60,14 +51,11 @@ float3 standardShaderDiffuse(
                 <![CDATA[
 float3 standardShaderDiffuse(
         standardShaderLightingData lightingData,
-        float3 L,
-        float3 N,
-        float3 diffuse,
         float Kd)
 {
-    float NDL = saturate(dot(N, L));
+    float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return diffuse * Kd * NDL;
+        return lightingData.diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
