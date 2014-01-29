@@ -7,17 +7,22 @@
 
 struct CCurveLine
 {
+   CCurveLine() : widthConnected(false)
+   {
+
+   }
    void clear()
    {
       points.clear();
       referencePoints.clear();
       widths.clear();
-      colors.clear();
+      widthConnected = false;
    }
    std::vector<AtVector> points;
    std::vector<AtVector> referencePoints;
    std::vector<float> widths;
-   std::vector<AtRGB> colors;
+   AtRGB color;
+   bool widthConnected;
 };
 
 class CCurveTranslator
@@ -50,7 +55,7 @@ private:
                          AtArray* referenceCurvePoints,
                          AtArray* curveWidths,
                          AtArray* curveColors);
-   MStatus GetCurveLines(MObject& curve);
+   MStatus GetCurveLines(MObject& curve, unsigned int step);
 
 
 private:

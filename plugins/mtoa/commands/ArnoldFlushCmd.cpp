@@ -30,7 +30,14 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
    
    if (args.isFlagSet("textures"))
    {
-      AiUniverseCacheFlush(AI_CACHE_TEXTURE);
+      if (!AiUniverseIsActive())
+      {
+         AiBegin();
+         AiUniverseCacheFlush(AI_CACHE_TEXTURE);
+         AiEnd();
+      }
+      else
+         AiUniverseCacheFlush(AI_CACHE_TEXTURE);
    }
    
    if (args.isFlagSet("skydome"))
@@ -45,7 +52,14 @@ MStatus CArnoldFlushCmd::doIt(const MArgList& argList)
    
    if (args.isFlagSet("flushall"))
    {
-      AiUniverseCacheFlush(AI_CACHE_ALL);
+      if (!AiUniverseIsActive())
+      {
+         AiBegin();
+         AiUniverseCacheFlush(AI_CACHE_ALL);
+         AiEnd();
+      }
+      else
+         AiUniverseCacheFlush(AI_CACHE_ALL);
    }
    
    return MS::kSuccess;

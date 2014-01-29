@@ -102,7 +102,26 @@ void CHairTranslator::Update( AtNode *curve )
    
    //ProcessRenderFlags(curve);
    ExportTraceSets(curve, fnDepNodeHair.findPlug("aiTraceSets"));
-   AtByte visibility = ComputeVisibility(m_dagPath);
+
+   AtByte visibility = AI_RAY_ALL;
+   plug = fnDepNodeHair.findPlug("castShadows");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_SHADOW;
+   plug = fnDepNodeHair.findPlug("primaryVisibility");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_CAMERA;
+   plug = fnDepNodeHair.findPlug("visibleInReflections");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_REFLECTED;
+   plug = fnDepNodeHair.findPlug("visibleInRefractions");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_REFRACTED;
+   plug = fnDepNodeHair.findPlug("aiVisibleInDiffuse");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_DIFFUSE;
+   plug = fnDepNodeHair.findPlug("aiVisibleInGlossy");
+   if (!plug.isNull() && !plug.asBool())
+      visibility &= ~AI_RAY_GLOSSY;   
    
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
        CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())

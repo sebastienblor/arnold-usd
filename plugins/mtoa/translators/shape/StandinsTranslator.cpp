@@ -261,6 +261,12 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
                fnDGNode.name().asChar());*/
          AiNodeSetPtr(procedural, "shader", NULL);
       }
+      if (meshShaders.size() > 0)
+      {
+         AiNodeDeclare(procedural, "mtoa_shading_groups", "constant ARRAY NODE");
+         AiNodeSetArray(procedural, "mtoa_shading_groups",
+                        AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
+      }
    }
 }
 
@@ -331,13 +337,12 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 
       if(start >= 0)
       {
-         dso.substring(start,end).split('.',pattern);
          if(dso.substring(start-1,start-1) == "_")
             newDso = dso.substring(0,start-2) + ".#" + dso.substring(end+1,dso.length());
          else
             newDso = dso.substring(0,start-1) + "#" + dso.substring(end+1,dso.length());
-         dso = newDso;
          
+         dso.substring(start,end).split('.',pattern);
          if(pattern.length() > 0)
          {
             framePadding = pattern[0].length();
@@ -348,6 +353,10 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
             subFramePadding = pattern[1].length();
             b = pattern[1];
          }
+      }
+      else
+      {
+         newDso = dso;
       }
 
       if (subFrames || useSubFrame || (subFramePadding != 0))
@@ -366,22 +375,21 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       }
       frameNumber = frameExtWithDot;
 
-      resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+      resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, filename);
    
       if (!resolved)
       {
          frameNumber = frameExtWithHash;
-         resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+         resolved = MRenderUtil::exactFileTextureName(newDso, useFrameExtension, frameNumber, filename);
       }
    
       if (!resolved)
       {
-         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         // If file has something after frame number, MRenderUtil::exactFileTextureName has problems to
          //  find the file.
-         int len = dso.length();
-         if (len > 8 && dso.substring(len - 7, len - 1) == ".ass.gz")
+         if (start >= 0)
          {
-            MString baseName = dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            MString baseName = dso.substring(0,start-1) + frameExt + dso.substring(end+1,dso.length());
             resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, filename);
          }
       }

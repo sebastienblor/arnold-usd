@@ -363,7 +363,7 @@ createNode place2dTexture -n "place2dTexture2";
 	setAttr ".re" -type "float2" 4 4 ;
 createNode file -n "file1";
 	setAttr ".ail" yes;
-	setAttr ".ftn" -type "string" "normalmap.jpg";
+	setAttr ".ftn" -type "string" "normalmap.tif";
 createNode place2dTexture -n "place2dTexture3";
 select -ne :time1;
 	setAttr -av -k on ".cch";

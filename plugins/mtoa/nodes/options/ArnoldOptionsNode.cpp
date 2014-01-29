@@ -86,6 +86,7 @@ MObject CArnoldOptionsNode::s_kick_render_flags;
 MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
+MObject CArnoldOptionsNode::s_version;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -421,7 +422,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
-   s_attributes.MakeInput("shader_timing_stats");
    
    s_attributes.MakeInput("volume_indirect_samples");
 
@@ -552,6 +552,10 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setDefault(false);
    addAttribute(s_force_translate_shading_engines);
+   
+   s_version = tAttr.create("version", "version", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_version);
 
    return MS::kSuccess;
 }

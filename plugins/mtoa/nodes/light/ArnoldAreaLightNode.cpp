@@ -13,6 +13,8 @@
 #include <maya/MHardwareRenderer.h>
 #include <maya/MFnMesh.h>
 #include <maya/MGlobal.h>
+#include <maya/MMatrix.h>
+#include <maya/MTransformationMatrix.h>
 
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR          15 // white
@@ -142,10 +144,22 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    }
    // Disk
    else if (areaType == "disk")
-   {
+   {      
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();
+      MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
+      double scale[3];
+      transformMatrix.getScale(scale, MSpace::kWorld);
+      if (scale[0] != scale[1]) // non uniform scaling across x and y
+      {     
+         if (scale[0] != 0.0)
+            glScaled(1.0 / scale[0], 1.0, 1.0);
+         if (scale[1] != 0)
+            glScaled(1.0, 1.0 / scale[1], 0.0);
+         const double avs = (scale[0] + scale[1]) * 0.5;
+         glScaled(avs, avs, 1.0);
+      }
       gluDisk(qobj, 0.0f, 1.0f, 20, 1);
       glPopMatrix();
       glBegin(GL_LINES);
@@ -159,7 +173,19 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
-      glPushMatrix();
+      glPushMatrix();      
+      MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
+      double scale[3];
+      transformMatrix.getScale(scale, MSpace::kWorld);
+      if (scale[0] != scale[2]) // non uniform scaling across x and y
+      {     
+         if (scale[0] != 0.0)
+            glScaled(1.0 / scale[0], 1.0, 1.0);
+         if (scale[2] != 0)
+            glScaled(1.0, 1.0, 1.0 / scale[2]);
+         const double avs = (scale[0] + scale[2]) * 0.5;
+         glScaled(avs, 1.0, avs);
+      }
       glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
       glTranslatef(0.0f, 0.0f, -1.0f);
       gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);

@@ -16,7 +16,6 @@ BUILTIN_AOVS = (
                 ('cputime',      'float'),
                 ('beauty',       'rgba'),
                 ('ID',           'int'),
-                ('texturetime',  'float'),
 #                ('A',       'float'),
 #                ('OBJECT',  'node'),
 #                ('SHADER',  'node'),
@@ -115,15 +114,35 @@ class SceneAOV(object):
 
     def __lt__(self, other):
         if isinstance(other, basestring):
-            return self.name < other
+            if other == "beauty":
+                return False
+            if self.name == "beauty":
+                return True
+            else:
+                return self.name < other
         else:
-            return self.name < other.name
+            if other.name == "beauty":
+                return False
+            if self.name == "beauty":
+                return True
+            else:
+                return self.name < other.name
 
     def __gt__(self, other):
         if isinstance(other, basestring):
-            return self.name > other
+            if self.name == "beauty":
+                return False
+            if other == "beauty":
+                return True
+            else:
+                return self.name > other
         else:
-            return self.name > other.name
+            if self.name == "beauty":
+                return False
+            if other.name == "beauty":
+                return True
+            else:
+                return self.name > other.name
 
     @property
     def index(self):

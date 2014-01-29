@@ -443,7 +443,6 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	setAttr ".lgamma" 1;
 	setAttr ".sgamma" 1;
 	setAttr ".tgamma" 1;
-	setAttr ".shuto" -10.574000358581543;
 	setAttr ".mots" 23;
 	setAttr ".motf" 30.566999435424805;
 	setAttr -k on ".driver_tiled" no;

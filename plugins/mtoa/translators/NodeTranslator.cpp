@@ -1212,7 +1212,7 @@ void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, E
    }
 }
 
-void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
+void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator)
 {
    MFnDependencyNode fnDepNode(object);
 
@@ -1256,7 +1256,11 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
       else
          AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_!");
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
-         continue;      
+         continue;
+
+      if (translator)
+         pAttr = translator->GetOverridePlug(pAttr);
+
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {
          MFnNumericAttribute nAttr(oAttr);
@@ -1345,7 +1349,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object)
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
    // TODO: allow overrides here too ?
-   ExportUserAttributes(anode, GetMayaObject());
+   ExportUserAttributes(anode, GetMayaObject(), this);
    
    // Exporting the UnexposedOptions parameter
    MPlug plug = FindMayaPlug("aiUserOptions");

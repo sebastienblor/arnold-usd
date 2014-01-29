@@ -22,120 +22,116 @@ color_bred    = ''
 color_reset   = ''
 color_cyan    = ''
 if env['COLOR_CMDS']:
-   color_green   = Fore.GREEN
-   color_red     = Fore.RED
-   color_bright  = Style.BRIGHT
-   color_bgreen  = color_green + color_bright
-   color_bred    = color_red   + color_bright
-   color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
-   color_cyan    = Fore.CYAN
+    color_green   = Fore.GREEN
+    color_red     = Fore.RED
+    color_bright  = Style.BRIGHT
+    color_bgreen  = color_green + color_bright
+    color_bred    = color_red   + color_bright
+    color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
+    color_cyan    = Fore.CYAN
 
 ## Finds a test group and returns a list of all tests included
 def find_test_group(group):
-
-   def find_test_group_in_file(group, file):
-      TEST_GROUP = []
+    def find_test_group_in_file(group, file):
+        TEST_GROUP = []
    
-      f = open(file, 'r')
-      for line in f.readlines():
-         line = line.lstrip(' \t')
-         if line.startswith('#'):
-            # Skip comment lines
-            continue
-         (l, s, r) = strpartition(line, ':')
-         if s == ':':
-            if group == l.rstrip():
-               # We found the test group
-               TEST_GROUP += Split(r)
-               index = 0
-               while True:
-                  if index == len(TEST_GROUP):
-                     break
-                  test = TEST_GROUP[index]
-                  if not test.startswith('test_'):
-                     # We found a nested group, expand it into single tests
-                     TEST_GROUP += find_test_group(test)
-                     del TEST_GROUP[0]
-                  else:
-                     index += 1
-               break
-      f.close()
-      return TEST_GROUP
+        f = open(file, 'r')
+        for line in f.readlines():
+            line = line.lstrip(' \t')
+            if line.startswith('#'):
+                # Skip comment lines
+                continue
+            (l, s, r) = strpartition(line, ':')
+            if s == ':':
+                if group == l.rstrip():
+                    # We found the test group
+                    TEST_GROUP += Split(r)
+                    index = 0
+                    while True:
+                        if index == len(TEST_GROUP):
+                            break
+                        test = TEST_GROUP[index]
+                        if not test.startswith('test_'):
+                            # We found a nested group, expand it into single tests
+                            TEST_GROUP += find_test_group(test)
+                            del TEST_GROUP[0]
+                        else:
+                            index += 1
+                    break
+        f.close()
+        return TEST_GROUP
 
-   TEST_GROUP = []
+    TEST_GROUP = []
    
-   # First search the user local file for this group (only if the local file exists)
-   if os.path.exists(os.path.join('testsuite', 'groups.local')):
-      TEST_GROUP = find_test_group_in_file(group, os.path.join('testsuite', 'groups.local'))
+    # First search the user local file for this group (only if the local file exists)
+    if os.path.exists(os.path.join('testsuite', 'groups.local')):
+        TEST_GROUP = find_test_group_in_file(group, os.path.join('testsuite', 'groups.local'))
       
-   # If not found, then search the global test groups mapping file
-   if len(TEST_GROUP) == 0:
-      TEST_GROUP = find_test_group_in_file(group, os.path.join('testsuite', 'groups'))
+    # If not found, then search the global test groups mapping file
+    if len(TEST_GROUP) == 0:
+        TEST_GROUP = find_test_group_in_file(group, os.path.join('testsuite', 'groups'))
    
-   return TEST_GROUP
+    return TEST_GROUP
 
 ## Gets the next test name from the list of existing tests (assuming a 'test_0000' format)
 def get_next_test_name():
-   l = glob.glob(os.path.join("testsuite", 'test_[0-9][0-9][0-9][0-9]'))
-   l.sort()
-   result = int(os.path.basename(l[len(l) - 1])[5:]) + 1
-   return "%04d" % result
+    l = glob.glob(os.path.join("testsuite", 'test_[0-9][0-9][0-9][0-9]'))
+    l.sort()
+    result = int(os.path.basename(l[len(l) - 1])[5:]) + 1
+    return "%04d" % result
 
 def list_tests(target, source, env):
-   for file in source:
-      name = os.path.basename(os.path.dirname(str(file)))
-      f = open(os.path.join(str(file)), 'r')
-      summary = f.readline().strip('\n')
-      f.close
-      print '%s: %s' % (name, summary)
-   return None
+    for file in source:
+        name = os.path.basename(os.path.dirname(str(file)))
+        f = open(os.path.join(str(file)), 'r')
+        summary = f.readline().strip('\n')
+        f.close
+        print '%s: %s' % (name, summary)
+    return None
 
 def list_test_errors(target, source, env):
-   for file in source:
-      dirname = os.path.dirname(str(file))
-      name = os.path.basename(dirname)
-      f = open(str(file), 'r')
-      value = f.readline().strip('\n')
-      if value != 'OK':
-         print '%s: %s' % (name, value)
-         l = open(os.path.join(dirname, name + '.log'), 'r')
-         while True:
-            line = l.readline().strip('\n')
-            if line == "":
-               # We have reached the end of file.
-               break
-            if (line.lower().find('error') != -1) or (line.lower().find('warning') != -1):
-               print line
-         l.close()
-      f.close
-   return None
+    for file in source:
+        dirname = os.path.dirname(str(file))
+        name = os.path.basename(dirname)
+        f = open(str(file), 'r')
+        value = f.readline().strip('\n')
+        if value != 'OK':
+            print '%s: %s' % (name, value)
+            l = open(os.path.join(dirname, name + '.log'), 'r')
+            while True:
+                line = l.readline().strip('\n')
+                if line == "":
+                    # We have reached the end of file.
+                    break
+                if (line.lower().find('error') != -1) or (line.lower().find('warning') != -1):
+                    print line
+            l.close()
+        f.close
+    return None
 
 ## Creates a new test in the testsuite directory
 def make_test(target, source, env):
-   testpath = str(target[0])
-   testname = os.path.basename(testpath)
-   os.mkdir(testpath)
-   os.mkdir(os.path.join(testpath, 'data'))
-   os.mkdir(os.path.join(testpath, 'ref'))
-   
-   # Write README file
-   f = open(os.path.join(testpath, 'README'), 'w')
-   f.write('''****TODO**** write a one-line description for test case %s
+    testpath = str(target[0])
+    testname = os.path.basename(testpath)
+    os.mkdir(testpath)
+    os.mkdir(os.path.join(testpath, 'data'))
+    os.mkdir(os.path.join(testpath, 'ref'))
+
+    # Write README file
+    f = open(os.path.join(testpath, 'README'), 'w')
+    f.write('''****TODO**** write a one-line description for test case %s
 
 author: --''' % testname)
-   f.close()
-   
-   return None ## always succeeds
+    f.close()
 
-
-
+    return None ## always succeeds
 
 class MayaTestRunner(object):
-   """
-   Test a maya batch render.
-   Assumes you are rendering tif files.
-   """
-   def __init__(self,
+    """
+    Test a maya batch render.
+    Assumes you are rendering tif files.
+    """
+    def __init__(self,
                 script = 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',
                 plugin_sources      = '*.c*',
                 program_sources     = '',
@@ -146,99 +142,99 @@ class MayaTestRunner(object):
                 force_result        = 'OK',
                 multiprocess        = True):
       ## save the params
-      if system.os() == 'windows':
-         self.script = os.path.normpath(script)
-      else:
-         self.script = script
-      self.plugin_sources = plugin_sources
-      self.program_sources = program_sources
-      self.program_name = program_name
-      self.plugin_dependencies = plugin_dependencies
-      self.output_image = output_basename
-      self.reference_image = reference_basename
-      self.force_result = force_result
-      self.multiprocess = multiprocess
-      self.tests = []
-      self.test_results = []
-      self.total_running_time = 0
-      self.black_list = []
-      self.install_files = []
-      # test source directory, before it has been copied to build dir
-      self.source_dir  = os.path.abspath(os.path.join('testsuite')) 
-      self.build_dir = None
+        if system.os() == 'windows':
+            self.script = os.path.normpath(script)
+        else:
+            self.script = script
+        self.plugin_sources = plugin_sources
+        self.program_sources = program_sources
+        self.program_name = program_name
+        self.plugin_dependencies = plugin_dependencies
+        self.output_image = output_basename
+        self.reference_image = reference_basename
+        self.force_result = force_result
+        self.multiprocess = multiprocess
+        self.tests = []
+        self.test_results = []
+        self.total_running_time = 0
+        self.black_list = []
+        self.install_files = []
+        # test source directory, before it has been copied to build dir
+        self.source_dir  = os.path.abspath(os.path.join('testsuite')) 
+        self.build_dir = None
 
-      self.fill_blacklist()
+        self.fill_blacklist()
 
-   def fill_blacklist(self):
-      # blacklist
-      self.black_list = find_test_group('ignore')
-      # Add tests intended for other platforms to the black list
-      for o in system.get_valid_oses():
-         if o != system.os():
-            self.black_list.extend(find_test_group(o))
+    def fill_blacklist(self):
+        # blacklist
+        self.black_list = find_test_group('ignore')
+        # Add tests intended for other platforms to the black list
+        for o in system.get_valid_oses():
+            if o != system.os():
+                self.black_list.extend(find_test_group(o))
 
-   def add_test(self, test_dir):
-      test_name = os.path.basename(test_dir)
-      if self.prepare_test(test_name):
-         self.tests.append(test_name)
+    def add_test(self, test_dir):
+        test_name = os.path.basename(test_dir)
+        if self.prepare_test(test_name):
+            self.tests.append(test_name)
 
-   def prepare_test(self, test_name):
+    def prepare_test(self, test_name):
 
-      # Avoid having duplicate test cases
-      if test_name in self.tests:
-         return False
+        # Avoid having duplicate test cases
+        if test_name in self.tests:
+            return False
 
-      test_dir       = os.path.join(self.source_dir, test_name)
-      test_data_dir  = os.path.join(test_dir, 'data')
-      test_build_dir = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', test_name))
+        test_dir       = os.path.join(self.source_dir, test_name)
+        test_data_dir  = os.path.join(test_dir, 'data')
+        test_build_dir = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', test_name))
 
-      test_env.VariantDir(test_build_dir, test_data_dir)
-      if test_name in self.black_list:
-         print 'skipping test %s -- found in black list' % (test_name)
-         return False
-      if not (os.path.exists(os.path.join(test_dir, 'README'))):
-         print 'skipping test %s -- missing README' % (test_name)
-         return False
+        test_env.VariantDir(test_build_dir, test_data_dir)
+        if test_name in self.black_list:
+            print 'skipping test %s -- found in black list' % (test_name)
+            return False
+        if not (os.path.exists(os.path.join(test_dir, 'README'))):
+            print 'skipping test %s -- missing README' % (test_name)
+            return False
         
-      # print 'test %s in %s will be built in %s' % (test_name, test_dir, test_build_dir)
-      ## process the current test directory
-      ## Step 1: build any shaders/procedurals that might exist
-      SHADERS = []
-      if self.plugin_sources.find('*') == -1:
-         ## just a list of regular file names
-         shader_files = Split(self.plugin_sources)
-      else:
-         ## use recursive glob pattern
-         shader_files = []
-         for root, dirs, files in os.walk(test_data_dir):
-            if '.svn' in dirs:
-               dirs.remove('.svn')
-            shader_files += glob.glob(os.path.join(root, self.plugin_sources))
-      for c_file in shader_files:
-         BUILD_C_FILE = c_file.replace(test_data_dir, test_build_dir)
-         SHADERS += test_env.SharedLibrary(os.path.splitext(BUILD_C_FILE)[0], BUILD_C_FILE)
-      if not self.program_sources == '':
-         ## we need to build a program
-         SHADERS += test_env.Program(os.path.join(test_build_dir, self.program_name), [os.path.join(test_build_dir, f) for f in Split(self.program_sources)], LIBS=Split('ai'))
+        # print 'test %s in %s will be built in %s' % (test_name, test_dir, test_build_dir)
+        ## process the current test directory
+        ## Step 1: build any shaders/procedurals that might exist
+        SHADERS = []
+        if self.plugin_sources.find('*') == -1:
+            ## just a list of regular file names
+            shader_files = Split(self.plugin_sources)
+        else:
+            ## use recursive glob pattern
+            shader_files = []
+            for root, dirs, files in os.walk(test_data_dir):
+                if '.svn' in dirs:
+                    dirs.remove('.svn')
+                shader_files += glob.glob(os.path.join(root, self.plugin_sources))
+        for c_file in shader_files:
+            BUILD_C_FILE = c_file.replace(test_data_dir, test_build_dir)
+            SHADERS += test_env.SharedLibrary(os.path.splitext(BUILD_C_FILE)[0], BUILD_C_FILE)
+        if not self.program_sources == '':
+            ## we need to build a program
+            SHADERS += test_env.Program(os.path.join(test_build_dir, self.program_name), [os.path.join(test_build_dir, f) for f in Split(self.program_sources)], LIBS=Split('ai'))
 
-      self.install_files += test_env.Install(test_build_dir, os.path.join(test_dir, 'README'))
-      refimg = os.path.join(test_dir, self.reference_image)
-      if os.path.exists(refimg):
-          self.install_files += test_env.Install(test_build_dir, os.path.join(test_dir, refimg))
+        self.install_files += test_env.Install(test_build_dir, os.path.join(test_dir, 'README'))
+        refimg = os.path.join(test_dir, self.reference_image)
+        if os.path.exists(refimg):
+            self.install_files += test_env.Install(test_build_dir, os.path.join(test_dir, refimg))
    
-      for root, dirs, files in os.walk(test_data_dir):
-         if '.svn' in dirs:
-            dirs.remove('.svn')
-         for f in files:
-            if os.path.basename(f) == 'Makefile':
-               continue
-            if os.path.splitext(f)[1] == 'c':
-               continue
-            if os.path.splitext(f)[1] == 'cpp':
-               continue
-            d = root
-            d = d.replace(test_data_dir, test_build_dir)
-            self.install_files += test_env.Install(d, os.path.join(root, f))  
+        for root, dirs, files in os.walk(test_data_dir):
+            if '.svn' in dirs:
+                dirs.remove('.svn')
+            for f in files:
+                if os.path.basename(f) == 'Makefile':
+                    continue
+                if os.path.splitext(f)[1] == 'c':
+                    continue
+                if os.path.splitext(f)[1] == 'cpp':
+                    continue
+                d = root
+                d = d.replace(test_data_dir, test_build_dir)
+                self.install_files += test_env.Install(d, os.path.join(root, f))  
             
 #      ## generate the build action that will run the test and produce the html output
 #      test_output = test_env.RunTest(os.path.join(test_build_dir, test_name + '.html'),
@@ -263,183 +259,206 @@ class MayaTestRunner(object):
 #         for p in Split(self.plugin_dependencies):
 #            test_env.Depends(test_output, os.path.join(SPI_PLUGIN_PATH, p + env['SHLIBSUFFIX']))
 
-      return True  # The test has been prepared and can be run
+        return True  # The test has been prepared and can be run
 
-   def create_job(self):
-       job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'index.html')),
-                                      MTOA + MTOA_SHADERS + DIFFTIFF + TIFF2JPEG + self.install_files, # + SHADERS,
-                                      PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
-                                      chdir = 1
-                                      )
-       test_env.AlwaysBuild(job)
+    def create_job(self):
+        job = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'index.html')),
+                                MTOA + MTOA_SHADERS + DIFFTIFF + TIFF2JPEG + self.install_files, # + SHADERS,
+                                PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
+                                chdir = 1
+                                )
+        test_env.AlwaysBuild(job)
         
-       test_env.Depends(job, MTOA)
-       test_env.Depends(job, MTOA_SHADERS)
-       return job
+        test_env.Depends(job, MTOA)
+        test_env.Depends(job, MTOA_SHADERS)
+        return job
 
-   def _setup_sig_handler(self):
-       # the only way to completely abort is to override SCons' interrupt signal handler
-       def handler(signum, stack, self=self, parentpid=os.getpid()):
-           self.old_sigint(signum, stack)
-           self.pool.terminate()
+    def _setup_sig_handler(self):
+        # the only way to completely abort is to override SCons' interrupt signal handler
+        def handler(signum, stack, self=self, parentpid=os.getpid()):
+            self.old_sigint(signum, stack)
+            self.pool.terminate()
 
-       self.old_sigint  = signal.signal(signal.SIGINT, handler)
+        self.old_sigint  = signal.signal(signal.SIGINT, handler)
 
-   def _reset_sig_handler(self): 
-       """Restore the signal handlers to their previous state (before the 
+    def _reset_sig_handler(self): 
+        """Restore the signal handlers to their previous state (before the 
         call to _setup_sig_handler().""" 
 
-       signal.signal(signal.SIGINT, self.old_sigint) 
-       #signal.signal(signal.SIGTERM, self.old_sigterm) 
+        signal.signal(signal.SIGINT, self.old_sigint) 
+        #signal.signal(signal.SIGTERM, self.old_sigterm) 
 
-   def run(self, target, source, env):
-       self.results_dir = os.getcwd()
-       self.build_dir = os.path.dirname(self.results_dir)
+    def run(self, target, source, env):
+        self.results_dir = os.getcwd()
+        self.build_dir = os.path.dirname(self.results_dir)
 
-       test_env = env.Clone()
+        test_env = env.Clone()
     
-       # add libai to library search path, and Arnold bin dir to path
-       if system.os() == 'darwin':
-          #test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
-          test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
-          test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
-          previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
-          os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
-       elif system.os() == 'linux':
-          #test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
-          test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
-          test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
-          previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
-          os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
-       else :
-          previous_lib_path = None
+        # add libai to library search path, and Arnold bin dir to path
+        if system.os() == 'darwin':
+            #test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+            test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
+            test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
+            previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
+            os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
+        elif system.os() == 'linux':
+            #test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+            test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
+            test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
+            previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
+            os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
+        else:
+            previous_lib_path = None
            
-       ## setup program path   
-       previous_path = os.environ.get('PATH')
-       os.environ['PATH'] = test_env['ENV']['PATH']
+        ## setup program path   
+        previous_path = os.environ.get('PATH')
+        os.environ['PATH'] = test_env['ENV']['PATH']
        
-       ## why this being in Maya.env doesn't work?
-       previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
-       os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
+        ## why this being in Maya.env doesn't work?
+        previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
+        os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
     
-       show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
+        show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
-       self.tests.sort()
-       if not self.multiprocess:
-           # disable multi-threading for windows
-           lock = DummyLock()
-           for test_name in self.tests:
-               test_dir       = os.path.join(self.build_dir, test_name)
-               t, files = run_test(test_name,
-                           lock,
-                           test_dir,
-                           self.script,
-                           self.output_image,
-                           os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
-                           self.force_result,
-                           test_env['UPDATE_REFERENCE'],
-                           show_test_output,
-                           test_env['COLOR_CMDS'])
-               self.total_running_time += t
-               self.test_results.append(files)
-       else:
-           manager = multiprocessing.Manager()
-           self.pool = multiprocessing.Pool(int(test_env['TEST_THREADS']))
-           try:
-               self._setup_sig_handler()
-           except ValueError:
-               print "Sorry, you can't use --jobs or -j with testsuite"
-               return
-           lock = manager.Lock()
-           args = []
-           for test_name in self.tests:
-               test_dir       = os.path.join(self.build_dir, test_name)
-               args.append( (test_name,
-                           lock,
-                           test_dir,
-                           self.script,
-                           self.output_image,
-                           os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
-                           self.force_result,
-                           test_env['UPDATE_REFERENCE'],
-                           show_test_output,
-                           test_env['COLOR_CMDS']) )
+        self.tests.sort()
+        if not self.multiprocess:
+            # disable multi-threading for windows
+            lock = DummyLock()
+            for test_name in self.tests:
+                test_dir       = os.path.join(self.build_dir, test_name)
+                t, files = run_test(test_name,
+                                    lock,
+                                    test_dir,
+                                    self.script,
+                                    self.output_image,
+                                    os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
+                                    self.force_result,
+                                    test_env['UPDATE_REFERENCE'],
+                                    show_test_output,
+                                test_env['COLOR_CMDS'])
+                self.total_running_time += t
+                self.test_results.append(files)
+        else:
+            manager = multiprocessing.Manager()
+            self.pool = multiprocessing.Pool(int(test_env['TEST_THREADS']))
+            try:
+                self._setup_sig_handler()
+            except ValueError:
+                print "Sorry, you can't use --jobs or -j with testsuite"
+                return
+            lock = manager.Lock()
+            args = []
+            for test_name in self.tests:
+                test_dir       = os.path.join(self.build_dir, test_name)
+                args.append((test_name,
+                            lock,
+                            test_dir,
+                            self.script,
+                            self.output_image,
+                            os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
+                            self.force_result,
+                            test_env['UPDATE_REFERENCE'],
+                            show_test_output,
+                            test_env['COLOR_CMDS']) )
     
-           # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
-           # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
+            # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
+            # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
     
 #            # no KeyboardInterrupts are detected at any level:
 #           results = self.pool.map(do_run_test, args)
 #           self.total_running_time = sum(results)
     
-           # This succeeds in allowing scons to detect the KeyboardInterrupt, but not us.
-           # Scons hangs bc we cannot terminate the pool.
-           results = self.pool.imap(do_run_test, args)
-           try:
-              while 1:
-                  # timeout seconds per job
-                  t, files = results.next(timeout=600)
-                  self.total_running_time += t
-                  self.test_results.append(files)
-           except StopIteration:
-               self.pool.close()
-               self.pool.join()
-           except KeyboardInterrupt:
-               # this never gets called
-               print "terminating"
-               self.pool.terminate()
+            # This succeeds in allowing scons to detect the KeyboardInterrupt, but not us.
+            # Scons hangs bc we cannot terminate the pool.
+            results = self.pool.imap(do_run_test, args)
+            try:
+                while 1:
+                    # timeout seconds per job
+                    t, files = results.next(timeout=600)
+                    self.total_running_time += t
+                    self.test_results.append(files)
+            except StopIteration:
+                self.pool.close()
+                self.pool.join()
+            except KeyboardInterrupt:
+                # this never gets called
+                print "terminating"
+                self.pool.terminate()
     
-           self._reset_sig_handler()
+            self._reset_sig_handler()
 
        ## restore environment
-       if previous_path :
-           os.environ['PATH'] = previous_path
-       if previous_lib_path :
-           if system.os() == 'darwin':
-              os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
-           elif system.os() == 'linux':
-              os.environ['LD_LIBRARY_PATH'] = previous_lib_path
-       if previous_render_desc :
-          os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
+        if previous_path :
+            os.environ['PATH'] = previous_path
+        if previous_lib_path :
+            if system.os() == 'darwin':
+                os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
+            elif system.os() == 'linux':
+                os.environ['LD_LIBRARY_PATH'] = previous_lib_path
+        if previous_render_desc :
+            os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
 
-       arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
+        arnold_version = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
    
-       #os.chdir(self.results_dir)
-       passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
-       return bool(failed)
+        #os.chdir(self.results_dir)
+        passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
+        return bool(failed)
 
 
-   def process_results(self, html_index, arnold_version):
-       if not os.path.exists(self.results_dir):
-          os.mkdir(self.results_dir)
+    def process_results(self, html_index, arnold_version):
+        if not os.path.exists(self.results_dir):
+            os.mkdir(self.results_dir)
 
-       ## get number of failed tests
-       passed = 0
-       failed = 0
-       for test_dir in self.tests:
-          f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
-          status = f.readline() ## just one line
-          f.close()
-          if status == 'OK':
-             passed += 1
-          else:
-             failed += 1
+        ## get number of failed tests
+        passed = 0
+        failed = 0
+        test_statuses = {}
+        for test_dir in self.tests:
+            f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
+            status = f.readline() ## just one line
+            f.close()
+            if status == 'OK':
+                test_statuses[test_dir] = True
+                passed += 1
+            else:
+                test_statuses[test_dir] = False
+                failed += 1
 
-       if failed == 0:
-          print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_green + 'ALL TESTS OK' 
-       else:
-          print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_red + ('%d failed!' % failed)
-    
-       if len(self.tests) <= 1:
-           return passed, failed
+        if failed == 0:
+            print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_green + 'ALL TESTS OK' 
+        else:
+            print color_cyan + ('\nRan %d regression tests - ' % len(self.tests)) + color_red + ('%d failed!' % failed)
 
-       MTOA_VERSION    = '<not available>'
-       ARNOLD_VERSION  = arnold_version
-       (REVISION, URL) = get_latest_revision()
+        import xml.etree.ElementTree as ET
+        root = ET.Element('testsuite')
+        root.attrib['test'] = str(len(self.tests))
+        tree = ET.ElementTree(root)
+
+        for key, value in test_statuses.items():
+            test = ET.Element('testcase')
+            test.attrib['name'] = key.replace('test_', '')
+            test.attrib['classname'] = 'maya_batch'
+            if not value:
+                failure = ET.Element('failure')
+                failure.text = 'Render Failed.'
+                test.append(failure)
+            root.append(test)
+
+        junit_file = html_index.replace('index.html', 'junit.xml')
+        tree.write(junit_file)
+
+        print 'Junit results xml at: file://%s' % (os.path.abspath(junit_file))
+
+        if len(self.tests) <= 1:
+            return passed, failed
+
+        MTOA_VERSION    = '<not available>'
+        ARNOLD_VERSION  = arnold_version
+        (REVISION, URL) = get_latest_revision()
              
-       ## create testsuite html
-       outfile = open(html_index, 'w')
-       outfile.write('''
+        ## create testsuite html
+        outfile = open(html_index, 'w')
+        outfile.write('''
     <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <head>
@@ -449,7 +468,7 @@ class MayaTestRunner(object):
     </head>
     <body>
     ''')
-       outfile.write('''
+        outfile.write('''
     <table border="0" cellpadding="15" cellspacing="2">
     <tr>
     <td>
@@ -472,12 +491,12 @@ class MayaTestRunner(object):
     </table>
     <br>
     ''' % (MTOA_VERSION, REVISION, URL, str(PATTERNS + TAGS),
-           len(self.tests),
-           passed,
-           (100.0 * passed) / (passed + failed),
-           failed, (100.0 * failed) / (passed + failed),
-           self.total_running_time))
-       outfile.write('''
+            len(self.tests),
+            passed,
+            (100.0 * passed) / (passed + failed),
+            failed, (100.0 * failed) / (passed + failed),
+            self.total_running_time))
+        outfile.write('''
     <table border="0" cellpadding="0">
     <tr>
     <th><font face="Arial">test</font></th>
@@ -486,40 +505,40 @@ class MayaTestRunner(object):
     <th><font face="Arial">ref</font></th>
     </tr>
     ''')
-       for test_name, test_files in zip(self.tests, self.test_results):
-          test_dir = test_name
-          test_results_dir = os.path.join(self.results_dir, test_dir)
-          test_link = os.path.join(test_dir, test_dir + '.html')
+        for test_name, test_files in zip(self.tests, self.test_results):
+            test_dir = test_name
+            test_results_dir = os.path.join(self.results_dir, test_dir)
+            test_link = os.path.join(test_dir, test_dir + '.html')
           
-          def copy_to_results(file):
-              file = os.path.join('..', file)
-              if os.path.exists(file):
-                  dest = os.path.join(test_results_dir, os.path.basename(file))
-                  shutil.copy(file, dest)
-                  return dest
-              #else:  print "does not exist", file
+            def copy_to_results(file):
+                file = os.path.join('..', file)
+                if os.path.exists(file):
+                    dest = os.path.join(test_results_dir, os.path.basename(file))
+                    shutil.copy(file, dest)
+                    return dest
+                #else:  print "does not exist", file
     
-          f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
-          description = f.readline() ## just one line
-          f.close()
+            f = open(os.path.join(self.build_dir, test_dir, 'README'), 'r')
+            description = f.readline() ## just one line
+            f.close()
           
-          if not os.path.exists(test_results_dir):
-              os.mkdir(test_results_dir)
+            if not os.path.exists(test_results_dir):
+                os.mkdir(test_results_dir)
     
-          copy_to_results(test_link)
+            copy_to_results(test_link)
     
-          for new, ref, dif in test_files:
-              # copy images to results directory
-              new_img_dest = copy_to_results(os.path.join(test_dir, new))
-              ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
-              copy_to_results(os.path.join(test_dir, dif))
+            for new, ref, dif in test_files:
+                # copy images to results directory
+                new_img_dest = copy_to_results(os.path.join(test_dir, new))
+                ref_img_dest = copy_to_results(os.path.join(test_dir, ref))
+                copy_to_results(os.path.join(test_dir, dif))
               
-              f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
-              status = f.readline() ## just one line
-              f.close()
-              bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
+                f = open(os.path.join(self.build_dir, test_dir, 'STATUS_'+dif+'.txt'), 'r')
+                status = f.readline() ## just one line
+                f.close()
+                bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
     
-              outfile.write('''
+                outfile.write('''
         <tr>
           <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
           <td bgcolor="%s"><font face="Arial">&nbsp;%s&nbsp;</font></td>
@@ -527,28 +546,28 @@ class MayaTestRunner(object):
           <td><a href="%s">%s</a></td>
         </tr>
               ''' % (bgcolor,
-                     test_link,
-                     test_name,
-                     bgcolor,
-                     len(test_files) < 2 and
-                        description
-                        or description+': <small>'+ref+'</small>',
-                     test_link,
-                     new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
-                                              or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
-                     test_link,
-                     ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
-                                              or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
-                     ))
+                    test_link,
+                    test_name,
+                    bgcolor,
+                    len(test_files) < 2 and
+                       description
+                       or description+': <small>'+ref+'</small>',
+                    test_link,
+                    new_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name, os.path.split(new_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
+                    test_link,
+                    ref_img_dest and '''<img src="%s/%s" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name, os.path.split(ref_img_dest)[1])
+                                            or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
+                    ))
 
-       outfile.write('''
+        outfile.write('''
     </table>
     </body>
     </html>
        ''')
-       outfile.close()
-       print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
-       return passed, failed
+        outfile.close()
+        print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
+        return passed, failed
 
 
 if __name__ == 'SCons.Script':
@@ -612,85 +631,84 @@ if __name__ == 'SCons.Script':
     ## First stage. Process build targets, expanding the groups and patterns into single tests
     for target in BUILD_TARGETS:
        
-       (l, s, r) = strpartition(target, ':')
+        (l, s, r) = strpartition(target, ':')
     
-       # Target "maketest[:testname]", creates a new test in the testsuite (defaults to the next available name in ascending order)
-       if l == 'maketest':
-          if r == '':
-             r = get_next_test_name()
-          if r != '':
-             testpath = os.path.abspath(os.path.join('testsuite', 'test_' + r))
-             if os.path.exists(testpath):
-                print "ERROR: Test %s already exists!" % r
-             else:
-                MAKETEST = test_env.MakeTest(testpath, None)
-                test_env.Alias(target, MAKETEST)
-                test_env.AlwaysBuild(MAKETEST)
-    
-       elif l == 'testlist':
-          if r == '':
-             testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
-             SRC = []
-             for name in testlist:
-                SRC += [os.path.join(os.path.basename(name), 'README')]
-          else:
-             tags = r.split(',')
-             SRC = []
-             for tag in tags:
-                TEST_GROUP = find_test_group(tag)
-                if len(TEST_GROUP) == 0:
-                   print "WARNING: No tests related to tag \"%s\"" % tag
+        # Target "maketest[:testname]", creates a new test in the testsuite (defaults to the next available name in ascending order)
+        if l == 'maketest':
+            if r == '':
+                r = get_next_test_name()
+            if r != '':
+                testpath = os.path.abspath(os.path.join('testsuite', 'test_' + r))
+                if os.path.exists(testpath):
+                    print "ERROR: Test %s already exists!" % r
                 else:
-                   for test in TEST_GROUP:
-                      SRC += [os.path.join(test, 'README')]
-          SRC.sort()
-          TESTLIST = test_env.ListTests(target, SRC)
-          test_env.Alias(target, TESTLIST)
-          test_env.AlwaysBuild(TESTLIST)
+                    MAKETEST = test_env.MakeTest(testpath, None)
+                    test_env.Alias(target, MAKETEST)
+                    test_env.AlwaysBuild(MAKETEST)
     
-       elif l == 'testerrors':
-          testlist = glob.glob(os.path.join(BUILD_BASE_DIR, 'testsuite', 'test_*'))
-          SRC = []
-          for name in testlist:
-             SRC += [os.path.join(os.path.basename(name), 'STATUS')]
-          SRC.sort()
-          TESTLIST = test_env.ListTestErrors(target, SRC)
-          test_env.Alias(target, TESTLIST)
-          test_env.AlwaysBuild(TESTLIST)
+        elif l == 'testlist':
+            if r == '':
+                testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
+                SRC = []
+                for name in testlist:
+                    SRC += [os.path.join(os.path.basename(name), 'README')]
+            else:
+                tags = r.split(',')
+                SRC = []
+                for tag in tags:
+                    TEST_GROUP = find_test_group(tag)
+                    if len(TEST_GROUP) == 0:
+                        print "WARNING: No tests related to tag \"%s\"" % tag
+                    else:
+                        for test in TEST_GROUP:
+                            SRC += [os.path.join(test, 'README')]
+            SRC.sort()
+            TESTLIST = test_env.ListTests(target, SRC)
+            test_env.Alias(target, TESTLIST)
+            test_env.AlwaysBuild(TESTLIST)
     
-       elif l == 'testsuite':
-          if r == '':
-             # Special 'testsuite' target is expanded to the whole testsuite, filtered by the value of TEST_PATTERN
-             PATTERNS += [env['TEST_PATTERN']]
-             testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
-             for name in testlist:
-                name = os.path.basename(name)
-                testRunner.add_test(name)
-          else:
-             # Target "testsuite:tag[,tag...]", runs all tests related to the given tag(s)
-             tags = r.split(',')
-             for tag in tags:
-                TEST_GROUP = find_test_group(tag)
-                if len(TEST_GROUP) == 0:
-                   print "WARNING: No tests related to tag \"%s\"" % tag
+        elif l == 'testerrors':
+            testlist = glob.glob(os.path.join(BUILD_BASE_DIR, 'testsuite', 'test_*'))
+            SRC = []
+            for name in testlist:
+                SRC += [os.path.join(os.path.basename(name), 'STATUS')]
+            SRC.sort()
+            TESTLIST = test_env.ListTestErrors(target, SRC)
+            test_env.Alias(target, TESTLIST)
+            test_env.AlwaysBuild(TESTLIST)
+    
+        elif l == 'testsuite':
+            if r == '':
+                # Special 'testsuite' target is expanded to the whole testsuite, filtered by the value of TEST_PATTERN
+                PATTERNS += [env['TEST_PATTERN']]
+                testlist = glob.glob(os.path.join('testsuite', env['TEST_PATTERN']))
+                for name in testlist:
+                    name = os.path.basename(name)
+                    testRunner.add_test(name)
+            else:
+                # Target "testsuite:tag[,tag...]", runs all tests related to the given tag(s)
+                tags = r.split(',')
+                for tag in tags:
+                    TEST_GROUP = find_test_group(tag)
+                    if len(TEST_GROUP) == 0:
+                        print "WARNING: No tests related to tag \"%s\"" % tag
+                    else:
+                        TAGS += [tag]
+                        for name in TEST_GROUP:
+                            testRunner.add_test(name)    
+        else:
+            if s != ':' and target.startswith('test_'):
+                # Expand test patterns
+                l = glob.glob(os.path.join('testsuite', target))
+                if len(l) == 1 and os.path.basename(l[0]) == target:
+                    testRunner.add_test(l[0])
+                elif len(l) == 0:
+                    print "WARNING: No tests matching expression \"%s\"" % target
                 else:
-                   TAGS += [tag]
-                   for name in TEST_GROUP:
-                       testRunner.add_test(name)
-    
-       else:
-          if s != ':' and target.startswith('test_'):
-             # Expand test patterns
-             l = glob.glob(os.path.join('testsuite', target))
-             if len(l) == 1 and os.path.basename(l[0]) == target:
-                testRunner.add_test(l[0])
-             elif len(l) == 0:
-                print "WARNING: No tests matching expression \"%s\"" % target
-             else:
-                PATTERNS += [target]
-                for name in l:
-                   name = os.path.basename(name)
-                   testRunner.add_test(name)
+                    PATTERNS += [target]
+                    for name in l:
+                        name = os.path.basename(name)
+                        testRunner.add_test(name)
     
     for test in testRunner.tests:
         try:

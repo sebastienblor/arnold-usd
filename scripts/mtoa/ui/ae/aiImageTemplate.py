@@ -12,18 +12,20 @@ class AEaiImageTemplate(ShaderAETemplate):
 
     def LoadFilenameButtonPush(self, *args):
         basicFilter = 'All Files (*.*)'
-        ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load Image File',okc='Load',fm=4)
+        ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load Image File',okc='Load',fm=4)
         if ret is not None and len(ret):
             self.filenameEdit(ret[0])
-            cmds.textFieldButtonGrp("filenameGrp", edit=True, text=ret[0])
+            cmds.textFieldGrp("filenameGrp", edit=True, text=ret[0])
 
     def filenameNew(self, nodeName):
-        path = cmds.textFieldButtonGrp("filenameGrp", label="Image Name", changeCommand=self.filenameEdit, width=300)
-        cmds.textFieldButtonGrp(path, edit=True, text=cmds.getAttr(nodeName))
-        cmds.textFieldButtonGrp(path, edit=True, buttonLabel="...", buttonCommand=self.LoadFilenameButtonPush)
+        #cmds.rowLayout(nc=3)
+        cmds.rowLayout(nc=2, cw2=(360,30), cl2=('left', 'left'), adjustableColumn=1, columnAttach=[(1, 'left', -4), (2, 'left', 0)])
+        path = cmds.textFieldGrp("filenameGrp", label="Image Name", changeCommand=self.filenameEdit)
+        cmds.textFieldGrp(path, edit=True, text=cmds.getAttr(nodeName))
+        cmds.symbolButton( image='navButtonBrowse.png', command=self.LoadFilenameButtonPush)
 
     def filenameReplace(self, nodeName):
-        cmds.textFieldButtonGrp( "filenameGrp", edit=True, text=cmds.getAttr(nodeName) )
+        cmds.textFieldGrp( "filenameGrp", edit=True, text=cmds.getAttr(nodeName) )
 
     @staticmethod
     def editUVSet(newValue):

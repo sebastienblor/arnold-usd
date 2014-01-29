@@ -396,6 +396,8 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
       MString nodeName = AiNodeEntryGetName(nentry);
+      /*if (nodeName == "driver_deepexr")
+         continue;*/
       MString nodeFile;
       const char* nodeFileChar = AiNodeEntryGetFilename(nentry);
       if (nodeFileChar != 0)

@@ -225,6 +225,7 @@ def createOptions():
         # newly created options
         hooks.setupDefaultAOVs(aovs.AOVInterface(options))
         hooks.setupOptions(options)
+        pm.setAttr('defaultArnoldRenderOptions.version', str(cmds.pluginInfo( 'mtoa', query=True, version=True)))
     else:
         options = pm.PyNode('defaultArnoldRenderOptions')
         if displayDriverNode:

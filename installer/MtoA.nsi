@@ -1,4 +1,5 @@
 !include "MUI2.nsh"
+!include "LogicLib.nsh"
 
 Name "MtoA $%MTOA_VERSION_NAME% Maya $%MAYA_VERSION%"
 OutFile "MtoA.exe"
@@ -10,7 +11,7 @@ InstallDir "C:\solidangle\mtoadeploy\$%MAYA_VERSION%"
 InstallDirRegKey HKCU "Software\MtoA$%MAYA_VERSION%" ""
 
 ;Request application privileges for Windows Vista
-RequestExecutionLevel user
+RequestExecutionLevel admin
 
 Var StartMenuFolder
 
@@ -57,13 +58,14 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
 
   NotInstalled:
   SetOutPath "$INSTDIR"
-  File /r /x *.nsi *.*
+  File /r /x *.nsi /x mtoa.mod *.*
 
-  ;Add a mtoa.mod file in the Maya modules folder
-  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
-  CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
-  FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
-  FileWrite $0 "+ mtoa any $INSTDIR"
+  ;Add a mtoa.mod file in the installer folder
+  FileOpen $0 "$INSTDIR\mtoa.mod" w
+  FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
+  ${If} "$%MAYA_VERSION%" != "2012"
+  FileWrite $0 "PATH +:= bin$\r$\n"
+  ${EndIf}
   FileClose $0
   
   ;Store installation folder
@@ -83,13 +85,19 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   
   SetRegView 64
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
-                 "DisplayName" "MtoA 0.25.0 Dev Maya $%MAYA_VERSION%"
+                 "DisplayName" "MtoA for Maya $%MAYA_VERSION%"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
                  "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
+                 "DisplayVersion" "$%MTOA_VERSION_NAME%"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
+                 "DisplayIcon" "$INSTDIR\uninstall.exe"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" \
+                 "Publisher" "Solid Angle"
 
 SectionEnd
 
-Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVariables
+Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariables
 
   SetOutPath "$INSTDIR"
   
@@ -97,7 +105,7 @@ Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVari
     SetRegView 64
     ReadRegStr $R0 HKCU "Software\MtoA$%MAYA_VERSION%" ""
     
-    
+    ${If} "$%MAYA_VERSION%" == "2012"
     ;Create a backup of Maya.env
     CreateDirectory "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup"
     CopyFiles "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env" "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env"
@@ -111,9 +119,24 @@ Section "MtoA for Maya $%MAYA_VERSION% Env Variables" MtoA$%MAYA_VERSION%EnvVari
     FileClose $0
     
     ;Add new enviroment variables to Maya.env
-    FileWrite $1 "$\r$\nMAYA_RENDER_DESC_PATH = $R0"
     FileWrite $1 "$\r$\nPATH = %PATH%;$R0\bin;$\r$\n"
     FileClose $1
+    
+    ${EndIf}
+    
+    ;Add a mtoa.mod file in the Maya modules folder
+    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+    CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
+    FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
+    FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
+    ${If} "$%MAYA_VERSION%" != "2012"
+    FileWrite $0 "PATH +:= bin$\r$\n"
+    ${EndIf}
+    FileClose $0
+    
+    ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
+    StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
+    CopyFiles "$INSTDIR\arnoldRenderer.xml" "$R1$R2"
 
 SectionEnd
 
@@ -121,8 +144,8 @@ SectionEnd
 ;Descriptions
 
   ;Language strings
-  LangString DESC_MtoA$%MAYA_VERSION% ${LANG_ENGLISH} "Install all MtoA for Maya $%MAYA_VERSION% files."
-  LangString DESC_MtoA$%MAYA_VERSION%EnvVariables ${LANG_ENGLISH} "Configure MtoA for Maya $%MAYA_VERSION% Maya Environment variables."
+  LangString DESC_MtoA$%MAYA_VERSION% ${LANG_ENGLISH} "Install MtoA for Maya $%MAYA_VERSION% files."
+  LangString DESC_MtoA$%MAYA_VERSION%EnvVariables ${LANG_ENGLISH} "Setup MtoA module configuration files for Maya $%MAYA_VERSION%."
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
@@ -145,6 +168,10 @@ Section "Uninstall"
   ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
   Delete "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod"
   
+  ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
+  StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
+  Delete "$R1$R2"
+  
   IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
   deleteMayaEnv:
   Delete "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env"
@@ -159,6 +186,9 @@ Section "Uninstall"
   SetRegView 64
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayName"
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayVersion"
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "DisplayIcon"
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "Publisher"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%"
 
 SectionEnd

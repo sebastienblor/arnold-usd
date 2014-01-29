@@ -9,7 +9,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 def LoadStandInButtonPush(nodeName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll *.dylib)'
     projectDir = cmds.workspace(query=True, directory=True)     
-    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=1, startingDirectory=projectDir)
+    ret = cmds.fileDialog2(fileFilter=basicFilter, cap='Load StandIn',okc='Load',fm=1, startingDirectory=projectDir)
     if ret is not None and len(ret):
         ArnoldStandInDsoEdit(nodeName, ret[0], True)
 
@@ -69,14 +69,14 @@ def ArnoldStandInDataEdit(mData) :
     cmds.setAttr(nodeName+'.data',mData,type='string')
 
 def ArnoldStandInTemplateDsoNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'right', 0)], columnWidth=[(1,145),(3,30)] )
+    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, 'right'),(2, 'right'),(3, 'left')], columnAttach=[(1, 'right', 0), (2, 'both', 0), (3, 'left', 5)], columnWidth=[(1,145),(2,220),(3,30)] )
     cmds.text(label='Path ')
     path = cmds.textField('standInDsoPath',changeCommand=lambda *args: ArnoldStandInDsoEdit(nodeName, *args))
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
-    cmds.button('standInDsoPathButton', label='...', command=lambda *args: LoadStandInButtonPush(nodeName))
+    cmds.symbolButton('standInDsoPathButton', image='navButtonBrowse.png', command=lambda *args: LoadStandInButtonPush(nodeName))
     
 def ArnoldStandInTemplateDataNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'right', 0)], columnWidth=(1,145) )
+    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0), (2, 'both', 0)], columnWidth=[(1,145),(2,220)] )
     cmds.text('standInDataLabel', label='Data ')
     path = cmds.textField('standInData',changeCommand=ArnoldStandInDataEdit)
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName))
@@ -92,7 +92,7 @@ def ArnoldStandInTemplateDataNew(nodeName) :
 def ArnoldStandInTemplateDsoReplace(plugName) :
     cmds.textField( 'standInDsoPath', edit=True, changeCommand=lambda *args: ArnoldStandInDsoEdit(plugName, *args))
     cmds.textField( 'standInDsoPath', edit=True, text=cmds.getAttr(plugName) )
-    cmds.button('standInDsoPathButton', edit=True, label='...', command=lambda *args: LoadStandInButtonPush(plugName))
+    cmds.symbolButton('standInDsoPathButton', edit=True, image='navButtonBrowse.png' , command=lambda *args: LoadStandInButtonPush(plugName))
 
 def ArnoldStandInTemplateDataReplace(plugName) :
     cmds.textField( 'standInData', edit=True, text=cmds.getAttr(plugName) )
