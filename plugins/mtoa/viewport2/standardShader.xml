@@ -5,20 +5,27 @@
         <fragment_ref name="standardShaderCombiner" ref="standardShaderCombiner" />
         <fragment_ref name="maya16LightAccum" ref="maya16LightAccum" />
         <fragment_ref name="standardShaderDiffuse" ref="standardShaderDiffuse" />
+        <fragment_ref name="standardShaderSpecular" ref="standardShaderSpecular" />
         <fragment_ref name="standardShaderEmission" ref="standardShaderEmission" />        
         <fragment_ref name="standardShaderLightingCombiner" ref="standardShaderLightingCombiner" />
     </fragments>
     <connections>
         <connect from="standardShaderCombiner.standardShaderCombiner" to="mayaSurfaceShaderOutput.mayaSurfaceShaderOutput" />
         <connect from="maya16LightAccum.scaledDiffuse" to="standardShaderCombiner.diffuseInput" />
+        <connect from="maya16LightAccum.scaledSpecular" to="standardShaderCombiner.specularInput" />
         <connect from="standardShaderDiffuse.outColor" to="maya16LightAccum.scaledDiffuse" />
+        <connect from="standardShaderSpecular.outColor" to="maya16LightAccum.scaledSpecular" />
         <connect from="standardShaderEmission.outColor" to="standardShaderCombiner.emissionInput" />
         <connect from="standardShaderLightingData.standardShaderLightingData" to="standardShaderDiffuse.lightingData" />
+        <connect from="standardShaderLightingData.standardShaderLightingData" to="standardShaderSpecular.lightingData" />
         <connect from="standardShaderLightingCombiner.lightingData" to="standardShaderLightingData.standardShaderLightingData" />
     </connections>
     <properties>
         <float3 name="color" ref="standardShaderCombiner.color" />
+        <float3 name="KsColor" ref="standardShaderCombiner.specularColor" />
         <float name="Kd" ref="standardShaderDiffuse.Kd" />
+        <float name="Ks" ref="standardShaderSpecular.Ks" />
+        <float name="specularRoughness" ref="standardShaderSpecular.roughness" />
         <float3 name="emissionColor" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />
         <float3 name="Nw" ref="standardShaderLightingCombiner.N" semantic="Nw" flags="varyingInputParam" />-
