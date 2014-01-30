@@ -2,7 +2,6 @@
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
         <struct name="lightingData" struct_name="standardShaderLightingData" />
-        <float name="Ks" />
         <float name="roughness" />
     </properties>
     <values>
@@ -23,7 +22,6 @@ float SQR(float a)
 
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float Ks,
         float roughness)
 {
     
@@ -66,7 +64,7 @@ float3 standardShaderSpecular(
 
     float D = (rx2 > 0.0f) ? exp(-tan2ThetaM / rx2) / (3.14159f * rx2 * MdotN4) : 0.0f;
 
-    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * Ks * lightingData.specular);
+    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * lightingData.specular);
 }
                 ]]>
             </source>
@@ -82,7 +80,6 @@ float SQR(float a)
 
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float Ks,
         float roughness)
 {
     
@@ -125,7 +122,7 @@ float3 standardShaderSpecular(
 
     float D = (rx2 > 0.0f) ? exp(-tan2ThetaM / rx2) / (3.14159f * rx2 * MdotN4) : 0.0f;
 
-    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * Ks * lightingData.specular);
+    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * lightingData.specular);
 }
                 ]]>
             </source>
@@ -141,7 +138,6 @@ float SQR(float a)
 
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float Ks,
         float roughness)
 {
     
@@ -184,7 +180,7 @@ float3 standardShaderSpecular(
 
     float D = (rx2 > 0.0f) ? exp(-tan2ThetaM / rx2) / (3.14159f * rx2 * MdotN4) : 0.0f;
 
-    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * Ks * lightingData.specular);
+    return max(float3(0.0f, 0.0f, 0.0f), ((G * D) / (4.f * LdotN * VdotN)) * lightingData.specular);
 }
                 ]]>
             </source>
