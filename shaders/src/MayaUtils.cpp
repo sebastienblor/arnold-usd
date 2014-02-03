@@ -1167,7 +1167,7 @@ bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts)
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs)
 {
    AtVector Nref;
-   bool useNref = AiUDataGetPnt("Nref",&Nref);
+   bool useNref = AiUDataGetVec("Nref",&Nref);
    if (useNref)
    {
       tmpNmrs = sg->N;
