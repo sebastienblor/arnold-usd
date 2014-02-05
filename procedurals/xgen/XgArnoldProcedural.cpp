@@ -1138,15 +1138,21 @@ struct CustomParamTypeEntry
    size_t m_sizeOf;
    size_t m_components;
    AtByte m_type;
+   bool   m_constant;
 };
 
 const static CustomParamTypeEntry g_mapCustomParamTypes[]=
 {
-   { "uniform float ",    "uniform FLOAT",    sizeof(float),    1, AI_TYPE_FLOAT },
-   { "uniform color ",    "uniform RGB",       sizeof(AtRGB),       3, AI_TYPE_RGB },
-   { "uniform vector ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
-   { "uniform normal ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
-   { "uniform point ",    "uniform POINT",    sizeof(AtPoint),    3, AI_TYPE_POINT },
+   { "uniform float ",    "uniform FLOAT",     sizeof(float),       1, AI_TYPE_FLOAT,  false},
+   { "constant float ",   "constant FLOAT",    sizeof(float),       1, AI_TYPE_FLOAT,  true },
+   { "uniform color ",    "uniform RGB",       sizeof(AtRGB),       3, AI_TYPE_RGB,    false },
+   { "constant color ",   "constant RGB",      sizeof(AtRGB),       3, AI_TYPE_RGB,    true },
+   { "uniform vector ",   "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR, false },
+   { "constant vector ",  "constant VECTOR",   sizeof(AtVector),    3, AI_TYPE_VECTOR, true },
+   { "uniform normal ",   "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR, false },
+   { "constant normal ",  "constant VECTOR",   sizeof(AtVector),    3, AI_TYPE_VECTOR, true },
+   { "uniform point ",    "uniform POINT",     sizeof(AtPoint),     3, AI_TYPE_POINT,  false },
+   { "constant point ",   "constant POINT",    sizeof(AtPoint),     3, AI_TYPE_POINT,  true },
 };
 const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / sizeof(CustomParamTypeEntry);
 
@@ -1156,7 +1162,7 @@ const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / 
  *
  * @param i index into param array
  */
-void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc )
+void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigned int cacheCount)
 {
    unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
    // Push any user-defined custom attributes.
@@ -1178,9 +1184,31 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc )
             unsigned int fixAttrCount = (unsigned int)(attrCount/e.m_components);
 
             AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
-            AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
-            memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
-            AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+            if(e.m_constant) //constant attribute
+            {
+               unsigned int offset = (unsigned int)cacheCount*e.m_components;
+               switch(e.m_type)
+               {
+                  case AI_TYPE_FLOAT:
+                     AiNodeSetFlt( in_node, fixedAttrName.c_str(), attrValue[offset]);
+                     break;
+                  case AI_TYPE_RGB:
+                     AiNodeSetRGB( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                     break;
+                  case AI_TYPE_VECTOR:
+                     AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                     break;
+                  case AI_TYPE_POINT:
+                     AiNodeSetPnt( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                     break;
+               }
+            }
+            else // uniform attribute
+            {
+               AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
+               memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
+               AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+            }
             break;
          }
       }
@@ -1486,7 +1514,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             
 
             // Add custom renderer parameters.
-            //pushCustomParams( archive_procedural, pc );
+            pushCustomParams( archive_procedural, pc ,j);
 
             m_nodes.push_back( archive_procedural );
          }

@@ -72,7 +72,7 @@ namespace XGenArnold
       bool getFloatArray( AtNode* in_node, const char* in_name, const float*& out_value, bool in_user=false  ) const;
       bool getMatrixArray( AtNode* in_node, const char* in_name, const AtMatrix*& out_value, bool in_user=false  ) const;
 
-      static void pushCustomParams( AtNode* in_node, PrimitiveCache* pc );
+      static void pushCustomParams( AtNode* in_node, PrimitiveCache* pc, unsigned int cacheCount = 0 );
 
       static void convertMatrix( const AtMatrix in_mat, mat44& out_mat );
 
