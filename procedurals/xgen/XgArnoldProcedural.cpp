@@ -1186,7 +1186,7 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
             AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
             if(e.m_constant) //constant attribute
             {
-               unsigned int offset = (unsigned int)cacheCount*e.m_components;
+               unsigned int offset = (unsigned int)(cacheCount*e.m_components);
                switch(e.m_type)
                {
                   case AI_TYPE_FLOAT:
