@@ -733,11 +733,7 @@ def deploy(target, source, env):
         print "\b#",
 
     local_package_name = str(source[0])
-    if system.os() == "windows":
-        local_package_name = '%s.exe' % local_package_name
-    else:
-        local_package_name = '%s.run' % local_package_name
-
+    
     server = env['FTP']
 
     ftp = ftplib.FTP(server)
