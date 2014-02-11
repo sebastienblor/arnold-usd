@@ -734,9 +734,9 @@ def deploy(target, source, env):
 
     local_package_name = str(source[0])
     if system.os() == "windows":
-        local_package_name += '.exe'
+        local_package_name = '%s.exe' % local_package_name
     else:
-        local_package_name += '.run'
+        local_package_name = '%s.run' % local_package_name
 
     server = env['FTP']
 
@@ -917,14 +917,13 @@ env['PACKAGE_FILES'] = PACKAGE_FILES
 
 installer_name = ''
 if system.os() == "windows":
-    installer_name = 'MtoA-%s-%s%s' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
 else:
-    installer_name = 'MtoA-%s-%s-%s%s' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
     import tempfile
     import shutil
-    local_package_name = package_name + '.zip'
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
     if system.os() == "windows":
@@ -934,7 +933,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
-        zipfile.ZipFile(os.path.abspath(local_package_name), 'r').extractall(tempdir)
+        zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)
         NSIS_PATH = env.subst(env['NSIS_PATH'])
         os.environ['NSISDIR'] = NSIS_PATH
         os.environ['NSISCONFDIR'] = NSIS_PATH
@@ -946,16 +945,16 @@ def create_installer(target, source, env):
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
-        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), '%s.exe' % (installer_name))
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
     else:
-        shutil.copyfile(os.path.abspath(local_package_name), os.path.join(tempdir, "package.zip"))
+        shutil.copyfile(os.path.abspath('%s.zip' % package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
         commandFile.write('python ./unix_installer.py %s' % maya_base_version)
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
-        installerPath = os.path.abspath('./%s.run' % (installer_name))
+        installerPath = os.path.abspath('./%s' % (installer_name))
         subprocess.call(['installer/makeself.sh', tempdir, installerPath,
                          'MtoA for Linux Installer', './unix_installer.sh'])
         subprocess.call(['chmod', '+x', installerPath])
@@ -990,8 +989,8 @@ top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
 
-env.Depends(DEPLOY, INSTALLER)
 env.Depends(INSTALLER, PACKAGE)
+env.Depends(DEPLOY, INSTALLER)
 
 env.AlwaysBuild(PACKAGE)
 
