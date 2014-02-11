@@ -77,49 +77,25 @@ int CArnoldExportAssCmd::GetRenderCameras(MDagPathArray &cameras)
 
 void CArnoldExportAssCmd::UpdateStandinsBoundingBoxes()
 {
-    MItDag it(MItDag::kDepthFirst, MFn::kPluginShape);
+   MItDag it(MItDag::kDepthFirst, MFn::kPluginShape);
 
-    while (!it.isDone())
-    {
-        MDagPath dgShape;
-        it.getPath(dgShape);
+   while (!it.isDone())
+   {
+      MDagPath dgShape;
+      it.getPath(dgShape);
 
-        MFnDependencyNode dpNode(dgShape.node());
-        MString nodeType = dpNode.typeName();
-        if (nodeType == "aiStandIn")
-        {
-            MFnDagNode dagShape(dgShape);
-            MBoundingBox boundingBox = dagShape.boundingBox();
-            MPoint bbMin = boundingBox.min();
-            MPoint bbMax = boundingBox.max();
-        }
-        it.next();
-    }
+      MFnDependencyNode dpNode(dgShape.node());
+      MString nodeType = dpNode.typeName();
+      if (nodeType == "aiStandIn")
+      {
+         MFnDagNode dagShape(dgShape);
+         MBoundingBox boundingBox = dagShape.boundingBox();
+         MPoint bbMin = boundingBox.min();
+         MPoint bbMax = boundingBox.max();
+      }
+      it.next();
+   }
 }
-
-
-void CArnoldExportAssCmd::UpdateStandinsBoundingBoxes()
-{
-    MItDag it(MItDag::kDepthFirst, MFn::kPluginShape);
-
-    while (!it.isDone())
-    {
-        MDagPath dgShape;
-        it.getPath(dgShape);
-
-        MFnDependencyNode dpNode(dgShape.node());
-        MString nodeType = dpNode.typeName();
-        if (nodeType == "aiStandIn")
-        {
-            MFnDagNode dagShape(dgShape);
-            MBoundingBox boundingBox = dagShape.boundingBox();
-            MPoint bbMin = boundingBox.min();
-            MPoint bbMax = boundingBox.max();
-        }
-        it.next();
-    }
-}
-
 
 // FIXME: that should be a method on CMayaScene so we can share it between commands
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
