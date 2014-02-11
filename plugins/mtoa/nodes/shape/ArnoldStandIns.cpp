@@ -258,7 +258,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
-            {  
+            {
+               if (node == procedural)
+                   continue; // Ignore own procedural node, we don't need to handle it, and it will introduce incorrect data, like a 0,0,0 -> 0,0,0 bounding box
+
                CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, "polymesh"))
                   g = new CArnoldPolymeshGeometry(node);
@@ -290,6 +293,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+                if (node == procedural)
+                    continue; // Ignore own procedural node, we don't need to handle it
                if (AiNodeGetByte(node, "visibility") == 0)
                   continue;
                AtMatrix total_matrix;
