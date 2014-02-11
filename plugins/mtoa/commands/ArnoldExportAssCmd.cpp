@@ -18,6 +18,7 @@
 #include <maya/MFileObject.h>
 #include <maya/MFnRenderLayer.h>
 #include <maya/MAnimControl.h>
+#include <maya/MBoundingBox.h>
 
 #include <math.h>
 
@@ -73,6 +74,52 @@ int CArnoldExportAssCmd::GetRenderCameras(MDagPathArray &cameras)
       MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
    return size;
 }
+
+void CArnoldExportAssCmd::UpdateStandinsBoundingBoxes()
+{
+    MItDag it(MItDag::kDepthFirst, MFn::kPluginShape);
+
+    while (!it.isDone())
+    {
+        MDagPath dgShape;
+        it.getPath(dgShape);
+
+        MFnDependencyNode dpNode(dgShape.node());
+        MString nodeType = dpNode.typeName();
+        if (nodeType == "aiStandIn")
+        {
+            MFnDagNode dagShape(dgShape);
+            MBoundingBox boundingBox = dagShape.boundingBox();
+            MPoint bbMin = boundingBox.min();
+            MPoint bbMax = boundingBox.max();
+        }
+        it.next();
+    }
+}
+
+
+void CArnoldExportAssCmd::UpdateStandinsBoundingBoxes()
+{
+    MItDag it(MItDag::kDepthFirst, MFn::kPluginShape);
+
+    while (!it.isDone())
+    {
+        MDagPath dgShape;
+        it.getPath(dgShape);
+
+        MFnDependencyNode dpNode(dgShape.node());
+        MString nodeType = dpNode.typeName();
+        if (nodeType == "aiStandIn")
+        {
+            MFnDagNode dagShape(dgShape);
+            MBoundingBox boundingBox = dagShape.boundingBox();
+            MPoint bbMin = boundingBox.min();
+            MPoint bbMax = boundingBox.max();
+        }
+        it.next();
+    }
+}
+
 
 // FIXME: that should be a method on CMayaScene so we can share it between commands
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
@@ -290,6 +337,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       if (computation.isInterruptRequested())
          break;
       MGlobal::viewFrame(curframe);
+      UpdateStandinsBoundingBoxes(); // Need to update the bounding box attribute of standins, because in batch export it cannot be recomputed and it's needed for correct and optimal rendering
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
       // Setup CMayaScene for MTOA_SESSION_ASS mode
