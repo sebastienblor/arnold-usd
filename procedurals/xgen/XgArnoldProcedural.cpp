@@ -1063,7 +1063,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
        AiNodeSetInt( nodeInstance, "visibility", 65535 );
 
        // Add custom renderer parameters.
-       pushCustomParams( nodeInstance, pc );
+       pushCustomParams( nodeInstance, pc, j);
 
        // Keep our new nodes.
        m_nodes.push_back( nodeInstance );
