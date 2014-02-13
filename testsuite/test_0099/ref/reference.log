@@ -1,56 +1,31 @@
 
-Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
+Starting "/usr/autodesk/maya2012-x64/bin/maya"
 
-mental ray for Maya 2013 
-mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
-pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
+00:00:00   170MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
+00:00:00   172MB WARNING | [mtoa] Extension shave(/work/deploy/2012/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
+00:00:00   172MB WARNING | [mtoa] Extension FumeExtension(/work/deploy/2012/extensions/FumeExtension.so) requires Maya plugin FumeFX, registering will be deferred until plugin is loaded.
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
 libai.so already loaded
 
-Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0099/test.ma line 291: The aiOptions 'defaultArnoldRenderOptions' has no '.enablRaytSSS' attribute.
-Error: file: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0099/test.ma line 291: setAttr: No object matches name: .enablRaytSSS
+Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
+Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
 File read in 0 seconds.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Error: line 1: Error reading file.
-Error: line 1: Error reading file.
-Warning: file: /usr/tmp/ASTMPeUvQH8.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPeUvQH8.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   291MB         | log started Mon Oct 14 22:02:17 2013
-00:00:00   291MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/14 12:33:38
-00:00:00   291MB         | running on localhost.localdomain
-00:00:00   291MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   291MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   291MB         |  
-00:00:00   291MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   291MB         | loaded 84 plugins from 1 lib(s) in 0:00.11
-00:00:00   291MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   292MB         |  
-00:00:00   292MB         | there are 1 light and 1 object:
-00:00:00   292MB         |  1 polymesh
-00:00:00   292MB         |  
-00:00:00   292MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:00   292MB         |  initializing 20 nodes ...
-00:00:00   293MB         |  node initialization done in 0:00.00
-00:00:00   294MB         |  creating root object list ...
-00:00:00   294MB         |   scene bounds: (-0.5 -1.11022302e-16 0) -> (0.5 0.561484516 0.5)
-00:00:00   294MB         |  updating 21 nodes ...
-00:00:00   294MB         |  node update done in 0:00.00
-00:00:00   295MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   295MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   295MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   295MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:01   300MB         |    10% done - 162 rays/pixel
-00:00:01   300MB         |    20% done - 215 rays/pixel
-00:00:01   300MB         |    40% done - 191 rays/pixel
-00:00:01   300MB         |    60% done - 193 rays/pixel
-00:00:01   300MB         |    75% done - 204 rays/pixel
-00:00:02   301MB         |   100% done - 221 rays/pixel
-00:00:02   300MB         |  bucket workers done in 0:02.05
-00:00:02   300MB         | render done
-00:00:02   300MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0099/testrender.tif'
-00:00:02   300MB         |  
-00:00:02   300MB         | releasing resources
-00:00:02   296MB         | Arnold shutdown
-Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0099/test.ma completed.
+Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0099/test.ma
+Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0099/test.ma completed.
