@@ -374,7 +374,7 @@ class MayaTestRunner(object):
             try:
                 while 1:
                     # timeout seconds per job
-                    t, files = results.next(timeout=180)
+                    t, files = results.next(timeout=900)
                     self.total_running_time += t
                     self.test_results.append(files)
             except StopIteration:
