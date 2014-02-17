@@ -350,9 +350,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
       
       MFnDependencyNode fnCam;
-      MString mayaVersion = MGlobal::mayaVersion();     
-      MString appString = MString("MtoA ") + MTOA_VERSION + " Maya " + mayaVersion;
-      AiSetAppString(appString.asChar());
 
       // Export the scene or the selection
       if (exportSelected)
