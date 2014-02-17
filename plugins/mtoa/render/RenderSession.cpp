@@ -604,6 +604,8 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    COptionsTranslator::AddProjectFoldersToSearchPaths(options);
    AiNodeDeclare(options, "is_swatch", "constant BOOL");
    AiNodeSetBool(options, "is_swatch", true);
+   AiNodeSetStr(options, "pin_threads", "off");
+   AiNodeSetInt(options, "threads", 4);
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
