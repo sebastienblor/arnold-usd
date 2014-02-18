@@ -119,12 +119,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -asciiAss";
       }
       if (renderType == MTOA_RENDER_EXPORTASS)
-      {
-         if (expandProcedurals)
-            cmdStr += " -ep";
+      {         
          if (outputAssBoundingBox)
             cmdStr += " -bb";
       }
+      if (expandProcedurals)
+         cmdStr += " -ep";
       if (forceTranslateShadingEngines)
       {
          cmdStr += " -forceTranslateShadingEngines";
