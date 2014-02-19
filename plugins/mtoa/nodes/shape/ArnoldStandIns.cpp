@@ -1086,7 +1086,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    view.beginGL();
    glPushAttrib(GL_ALL_ATTRIB_BITS);
    glEnable(GL_DEPTH_TEST);
-   glDepthFunc(GL_LESS);
+   glDepthFunc(GL_LEQUAL);
 
    if (geom->updateView || geom->updateBBox)
    {
