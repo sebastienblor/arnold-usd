@@ -1,73 +1,140 @@
 
-Starting "/usr/autodesk/maya2012-x64/bin/maya"
+Starting "/usr/autodesk/maya2014-x64/bin/maya"
 
-00:00:00   170MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
-00:00:00   172MB WARNING | [mtoa] Extension shave(/work/deploy/2012/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-00:00:00   172MB WARNING | [mtoa] Extension FumeExtension(/work/deploy/2012/extensions/FumeExtension.so) requires Maya plugin FumeFX, registering will be deferred until plugin is loaded.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
+00:00:00   225MB         | log started Wed Feb 19 17:13:50 2014
+00:00:00   225MB         | Arnold 4.1.3.3 linux icc130 glibc25 libstdc++348 oiio10202 rlm1012 2014/01/13 16:38:26
+00:00:00   225MB         | running on localhost.localdomain
+00:00:00   225MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   225MB         |  CentOS 6.5 (Final), Linux kernel 2.6.32-431.3.1.el6.centos.plus.x86_64
+00:00:00   225MB         |  
+00:00:00   225MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
+00:00:00   225MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
+00:00:00   225MB         | loading plugin: /work/deploy/2014/shaders/mtoa_shaders.so ...
+00:00:00   226MB         | loaded 84 plugins from 1 lib(s) in 0:00.00
+00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
+00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 39 translators for 39 Maya nodes (12 new and 27 existing) for Arnold plugin /work/deploy/2014/shaders/mtoa_shaders.so.
+00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
+00:00:00   226MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
+00:00:00   226MB         | [mtoa] Registered extension xgen provided by xgen.
+00:00:00   226MB         | [mtoa] Loading extension shave(/work/deploy/2014/extensions/shave.so).
+00:00:00   227MB         | loading plugin: /work/deploy/2014/shaders/shave_shaders.so ...
+00:00:00   227MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   227MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
+00:00:00   227MB         | [mtoa] [shave] Generated 1 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
+00:00:00   227MB         | [mtoa] [shave] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/2014/shaders/shave_shaders.so.
+00:00:00   227MB         | [mtoa] [shave] Declares a total of 1 new Maya nodes.
+00:00:00   227MB         | [mtoa] [shave] Declares a total of 1 translators for 1 Maya nodes (1 new and 0 existing).
+00:00:00   227MB         | [mtoa] Successfully loaded extension library shave(/work/deploy/2014/extensions/shave.so).
+00:00:00   227MB         | [mtoa] Loading extension FumeExtension(/work/deploy/2014/extensions/FumeExtension.so).
+00:00:00   227MB         | loading plugin: /work/deploy/2014/shaders/fume_arnold.so ...
+00:00:00   228MB         | loaded 1 plugins from 1 lib(s) in 0:00.03
+00:00:00   228MB         | [mtoa] [FumeExtension] Generated 0 new Maya nodes for Arnold plugin /work/deploy/2014/shaders/fume_arnold.so.
+00:00:00   228MB         | [mtoa] [FumeExtension] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/2014/shaders/fume_arnold.so.
+00:00:00   228MB         | [mtoa] [FumeExtension] Declares a total of 0 new Maya nodes.
+00:00:00   228MB         | [mtoa] [FumeExtension] Declares a total of 1 translators for 1 Maya nodes (0 new and 1 existing).
+00:00:00   228MB         | [mtoa] Successfully loaded extension library FumeExtension(/work/deploy/2014/extensions/FumeExtension.so).
+00:00:00   228MB         | loading plugin: /work/deploy/shaders/TestShaders.so ...
+00:00:00   228MB WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+00:00:00   228MB         | no plugins loaded
+00:00:00   228MB         | [mtoa] [TestShaders] Generated 0 new Maya nodes for Arnold plugin /work/deploy/shaders/TestShaders.so.
+00:00:00   228MB         | [mtoa] [TestShaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/shaders/TestShaders.so.
+00:00:00   228MB         | [mtoa] Registering 6 loaded extensions:
+00:00:00   229MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
+00:00:00   229MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2014/shaders/mtoa_shaders.so.
+00:00:00   229MB WARNING | [mtoa] Extension shave(/work/deploy/2014/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
+00:00:00   229MB WARNING | [mtoa] Extension FumeExtension(/work/deploy/2014/extensions/FumeExtension.so) requires Maya plugin FumeFX, registering will be deferred until plugin is loaded.
+00:00:00   229MB         | [mtoa] Registered extension TestShaders provided by /work/deploy/shaders/TestShaders.so.
 libai.so already loaded
 
-Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-mental ray for Maya 2012 
-// Mental ray for Maya: using startup file /usr/autodesk/maya2012-x64/mentalray/maya.rayrc.
+00:00:00   230MB         | Successfully imported python module 'arnold'
+00:00:00   230MB         | Successfully imported python module 'mtoa'
+pymel.internal.factories : INFO : MFnDagNode.model is deprecated
+pymel.core : INFO : Updating pymel with pre-loaded plugins: modelingToolkit, xgenToolkit, mtoa
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmGuideManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type xgmPointsManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
+pymel.internal.factories : WARNING : could not create a PyNode for manipulator type igBrushManip
+Maya 2014 importing module pymel 1.0.5 (/usr/autodesk/maya2014-x64/lib/python2.7/site-packages/pymel/__init__.py)
+Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
+Maya 2014 sourcing MEL override /work/deploy/2014/scripts/mtoa/2014/mel/initDefaultFilters.mel
+00:00:01   317MB         |  
+00:00:01   317MB         | releasing resources
+00:00:01   316MB         | Arnold shutdown
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+mental ray for Maya 2014 
+// Mental ray for Maya: using startup file /usr/autodesk/mentalrayForMaya2014//maya.rayrc.
 mental ray for Maya: setup
 mental ray for Maya: initialize
-mental ray: version 3.9.1.48, Dec  8 2011, revision 162457
-mental ray for Maya: using 1 license
+mental ray: version 3.11.1.12, Aug  6 2013, revision 202006
 mental ray for Maya: register extensions
 // mental ray Node Factory: loaded
 mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: /usr/autodesk/maya2012-x64/mentalray/maya.rayrc
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/AdskShaderSDKWrappers.mi
+mental ray for Maya: loading startup file: /usr/autodesk/mentalrayForMaya2014//maya.rayrc
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/AdskShaderSDKWrappers.mi
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/architectural.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/architectural.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/abcimport.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/abcimport.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/base.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/base.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/architectural.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/architectural.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/contour.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/contour.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/base.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/base.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/paint.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/paint.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/basehair.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/basehair.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/physics.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/physics.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/builtin_bsdf.mi
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/production.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/production.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/contour.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/contour.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/shaveMRShader.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/shaveMRShader.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/paint.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/paint.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/subsurface.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/subsurface.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/physics.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/physics.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/surfaceSampler.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/surfaceSampler.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/production.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/production.so
 // generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/userdata.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/userdata.so
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/ptex.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/ptex.so
 // generating Maya nodes...
-File read in 0 seconds.
-Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0047/test.ma
-Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0047/test.ma completed.
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/realflowShaders.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/realflowShaders.so
+// generating Maya nodes...
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/shaveMRShader.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/shaveMRShader.so
+// generating Maya nodes...
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/subsurface.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/subsurface.so
+// generating Maya nodes...
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/surfaceSampler.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/surfaceSampler.so
+// generating Maya nodes...
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/userdata.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/userdata.so
+// generating Maya nodes...
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/useribl.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/useribl.so
+// generating Maya nodes...
+// parsing /usr/autodesk/mentalrayForMaya2014/shaders/include/xgenMR.mi
+// loading /usr/autodesk/mentalrayForMaya2014/shaders/xgenMR.so
+// generating Maya nodes...
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+Warning: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0047/test.ma line 971: 'miDefaultOptions.message' is already connected to 'mentalrayItemsList.options'.
+Warning: file: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0047/test.ma line 972: 'miDefaultFramebuffer.message' is already connected to 'mentalrayItemsList.framebuffers'.
+File read in 1 seconds.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Result: /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0047/test.ma
+00:00:00 WARNING |  TestShaders.so was compiled against non-compatible Arnold 4.1.4.0.dev
+Warning: file: /tmp/ASTMPoN29an.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /tmp/ASTMPoN29an.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Scene /work/mtoa/build/linux_x86_64/201450/gcc_opt/testsuite/test_0047/test.ma completed.
