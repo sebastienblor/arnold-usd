@@ -411,6 +411,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
       AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
+      AiNodeSetFlt(camera, "aperture_aspect_ratio",   FindMayaPlug("aiApertureAspectRatio").asFloat());
    }
    else
    {
@@ -419,6 +420,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
       AiNodeSetInt(camera, "aperture_blades", 0);
       AiNodeSetFlt(camera, "aperture_rotation", 0.f);
       AiNodeSetFlt(camera, "aperture_blade_curvature", 0.f);
+      AiNodeSetFlt(camera, "aperture_aspect_ratio", 1.0f);
    }
 }
 
@@ -631,6 +633,7 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("aperture_blades");
    helper.MakeInput("aperture_blade_curvature");
    helper.MakeInput("aperture_rotation");
+   helper.MakeInput("aperture_aspect_ratio");
    helper.MakeInput("filtermap");
 
    CAttrData data;

@@ -846,6 +846,10 @@
         max                 FLOAT   360.0
         softmin             FLOAT   0.0
         softmax             FLOAT   50.0
+    [attr aperture_aspect_ratio]
+        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr exposure]
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
@@ -915,6 +919,10 @@
         max                 FLOAT   360.0
         softmin             FLOAT   0.0
         softmax             FLOAT   50.0
+    [attr aperture_aspect_ratio]
+        min                 FLOAT   0.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr exposure]
         min                 FLOAT   -100.0
         max                 FLOAT   100.0
