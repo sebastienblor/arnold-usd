@@ -77,6 +77,59 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    return MS::kSuccess;
 }
 
+class CTrianglePrimitiveData{
+public:
+   std::vector<float> vertices;
+   std::vector<unsigned int> indices;
+   GLenum elementType;
+
+   void draw() // add VBO later
+   {
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glVertexPointer(3, GL_FLOAT, 0, vertices.data());
+      glDrawElements(elementType, indices.size(), GL_UNSIGNED_INT, indices.data());
+      glDisableClientState(GL_VERTEX_ARRAY);
+   }
+};
+
+// use for static initialization
+class CDiskPrimitive : public CTrianglePrimitiveData{
+public:
+   CDiskPrimitive(GLsizei resolution = 20)
+   {
+      elementType = GL_LINES;
+      vertices.resize((resolution + 1) * 3);
+      vertices[0] = 0.0f;
+      vertices[1] = 0.0f;
+      vertices[2] = 0.0f;
+      for (GLsizei i = 0; i < resolution; ++i)
+      {
+         const float d = AI_PITIMES2 * (float(i) / float(resolution));
+         float* v = &vertices[(i + 1) * 3];
+         v[0] = cosf(d);
+         v[1] = sinf(d);
+         v[2] = 0.0f;
+      }
+      indices.resize(resolution * 6);
+      for (GLsizei i = 0; i < resolution; ++i)
+      {
+         const GLsizei i6 = i * 6;
+         const GLsizei i1 = i + 1;
+         GLsizei i2 = (i + 2);
+         if (i2 == (resolution + 1))
+            i2 = 1;
+         indices[i6] = 0;
+         indices[i6 + 1] =  i1;
+
+         indices[i6 + 2] =  i1;
+         indices[i6 + 3] =  i2;
+
+         indices[i6 + 4] =  i2;
+         indices[i6 + 5] =  0;
+      }
+   }
+};
+
 void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
 {
    if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;
@@ -145,8 +198,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Disk
    else if (areaType == "disk")
    {      
-      gluQuadricDrawStyle(qobj, GLU_LINE);
-      gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
@@ -160,7 +211,9 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          const double avs = (scale[0] + scale[1]) * 0.5;
          glScaled(avs, avs, 1.0);
       }
-      gluDisk(qobj, 0.0f, 1.0f, 20, 1);
+      static CDiskPrimitive primitive;
+      primitive.draw();
+      
       glPopMatrix();
       glBegin(GL_LINES);
       // Done Drawing The direction
