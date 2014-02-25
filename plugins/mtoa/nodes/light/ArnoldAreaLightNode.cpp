@@ -97,7 +97,7 @@ class CDiskPrimitive : public CTrianglePrimitiveData{
 public:
    CDiskPrimitive(GLsizei resolution = 20)
    {
-      elementType = GL_LINES;
+      elementType = GL_LINE_STRIP;
       vertices.resize((resolution + 1) * 3);
       vertices[0] = 0.0f;
       vertices[1] = 0.0f;
@@ -110,22 +110,19 @@ public:
          v[1] = sinf(d);
          v[2] = 0.0f;
       }
-      indices.resize(resolution * 6);
+      indices.resize(resolution * 3 + 1);
+      indices[0] = 0;
       for (GLsizei i = 0; i < resolution; ++i)
       {
-         const GLsizei i6 = i * 6;
+         const GLsizei i3 = i * 3;
          const GLsizei i1 = i + 1;
          GLsizei i2 = (i + 2);
          if (i2 == (resolution + 1))
             i2 = 1;
-         indices[i6] = 0;
-         indices[i6 + 1] =  i1;
+         indices[i3] = i1;
+         indices[i3 + 1] =  i2;
 
-         indices[i6 + 2] =  i1;
-         indices[i6 + 3] =  i2;
-
-         indices[i6 + 4] =  i2;
-         indices[i6 + 5] =  0;
+         indices[i3 + 2] =  0;
       }
    }
 };
@@ -213,7 +210,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       }
       static CDiskPrimitive primitive;
       primitive.draw();
-      
+
       glPopMatrix();
       glBegin(GL_LINES);
       // Done Drawing The direction
