@@ -1084,6 +1084,14 @@
     maya.id                 INT     0x00115D03
     maya.classification     STRING  "shader/surface"
 
+    [attr opacity]
+        min                 FLOAT 0.0
+        max                 FLOAT 1.0
+    [attr ao_distance]
+        min                 FLOAT 0.0
+        softmax             FLOAT 200.0
+
+
 [node ray_switch]
     desc                    STRING  "Switch input depending on ray type."
     maya.name               STRING  "aiRaySwitch"

@@ -33,6 +33,7 @@ class AEaiUtilityTemplate(ShaderAETemplate):
             self.addControl('overlay_mode', label='Overlay Mode')
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
+        self.addControl('ao_distance', label='AO Distance')
         self.endLayout()
 
         # include/call base class/node attributes
