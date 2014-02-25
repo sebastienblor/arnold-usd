@@ -509,21 +509,6 @@ if system.os() == 'windows':
                                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                                 duplicate   = 0,
                                                 exports     = 'env')
-
-    INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
-                                  srcs = [],
-                                  incs = [],
-                                  buildtarget = 'install',
-                                  cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86_64',
-                                             '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
-                                             '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
-                                             '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
-                                  variant = ['Debug_MSVC|x64',
-                                             'Debug_ICC|x64',
-                                             'Opt_MSVC|x64',
-                                             'Opt_ICC|x64'],
-                                  auto_build_solution = 0,
-                                  nokeep = 1)
 else:
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
