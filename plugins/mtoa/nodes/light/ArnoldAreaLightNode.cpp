@@ -77,23 +77,26 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    return MS::kSuccess;
 }
 
-class CTrianglePrimitiveData{
+class CLinePrimitiveData{
 public:
    std::vector<float> vertices;
    std::vector<unsigned int> indices;
    GLenum elementType;
 
-   void draw() // add VBO later
+   void draw() // TODO : use VBOs
    {
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, 0, vertices.data());
-      glDrawElements(elementType, indices.size(), GL_UNSIGNED_INT, indices.data());
+      glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, indices.data());
       glDisableClientState(GL_VERTEX_ARRAY);
    }
 };
 
 // use for static initialization
-class CDiskPrimitive : public CTrianglePrimitiveData{
+// These two classes could use fewer indices if we used
+// glPrimitiveRestartIndex, but that's only available
+// since OpenGL 3.1, and it doesn't worth the code duplication
+class CDiskPrimitive : public CLinePrimitiveData{
 public:
    CDiskPrimitive(GLsizei resolution = 20)
    {
@@ -110,19 +113,50 @@ public:
          v[1] = sinf(d);
          v[2] = 0.0f;
       }
-      indices.resize(resolution * 3 + 1);
-      indices[0] = 0;
+      indices.resize(resolution * 4);
+      const GLsizei res2 = resolution * 2;
       for (GLsizei i = 0; i < resolution; ++i)
       {
-         const GLsizei i3 = i * 3;
-         const GLsizei i1 = i + 1;
-         GLsizei i2 = (i + 2);
-         if (i2 == (resolution + 1))
-            i2 = 1;
-         indices[i3] = i1;
-         indices[i3 + 1] =  i2;
+         const GLsizei i2 = i * 2;
+         indices[i2] = 0;
+         indices[i2 + 1] = i + 1;
+         indices[i2 + res2] = i + 1;
+         indices[i2 + res2 + 1] = (i + 1) % resolution + 1;
+      }
+   }
+};
 
-         indices[i3 + 2] =  0;
+class CCylinderPrimitive : public CLinePrimitiveData{
+public:
+   CCylinderPrimitive(GLsizei resolution = 20)
+   {
+      vertices.resize(resolution * 6);
+      const GLsizei indexDiff = resolution * 3;
+      for (GLsizei i = 0; i < resolution; ++i)
+      {
+         const float d = AI_PITIMES2 * (float(i) / float(resolution));
+         float* v = &vertices[i * 3];
+         v[0] = cosf(d);
+         v[1] = 1.0f;
+         v[2] =  sinf(d);
+         v = &vertices[i * 3 + indexDiff];
+         v[0] = cosf(d);
+         v[1] = -1.0f;
+         v[2] = sinf(d);
+      }
+      indices.resize(resolution * 6);
+      const GLsizei res2 = resolution * 2;
+      for (GLsizei i = 0; i < resolution; ++i)
+      {
+         const GLsizei i2 = i * 2;
+         const GLsizei i1 = (i + 1) % resolution;
+         indices[i2] = i;
+         indices[i2 + 1] = i1;
+         indices[i2 + res2] = i + resolution;
+         indices[i2 + res2 + 1] = i1 + resolution;
+         const GLsizei i2o = i2 + resolution * 4;
+         indices[i2o] = i;
+         indices[i2o + 1] = i + resolution;
       }
    }
 };
@@ -168,8 +202,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       glColor4f(0.75, 0, 0, 0.2f);
       break;
    }
-   GLUquadricObj *qobj;
-   qobj = gluNewQuadric();
    bool setBoundingBox = true;
    // Quad
    if (areaType == "quad")
@@ -221,8 +253,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Cylinder
    else if (areaType == "cylinder")
    {
-      gluQuadricDrawStyle(qobj, GLU_LINE);
-      gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();      
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
@@ -236,9 +266,8 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          const double avs = (scale[0] + scale[2]) * 0.5;
          glScaled(avs, 1.0, avs);
       }
-      glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-      glTranslatef(0.0f, 0.0f, -1.0f);
-      gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
+      CCylinderPrimitive primitive;
+      primitive.draw();
       glPopMatrix();
    }
    
