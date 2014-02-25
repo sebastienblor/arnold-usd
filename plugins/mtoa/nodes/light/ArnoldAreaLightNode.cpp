@@ -83,7 +83,7 @@ public:
    std::vector<unsigned int> indices;
    GLenum elementType;
 
-   void draw() // TODO : use VBOs
+   void draw() // TODO : use VBOs, but use glew to determine if vbos are working (virtual machines)
    {
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, 0, vertices.data());
