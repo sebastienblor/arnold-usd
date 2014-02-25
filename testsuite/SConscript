@@ -374,7 +374,7 @@ class MayaTestRunner(object):
             try:
                 while 1:
                     # timeout seconds per job
-                    t, files = results.next(timeout=600)
+                    t, files = results.next(timeout=900)
                     self.total_running_time += t
                     self.test_results.append(files)
             except StopIteration:
@@ -402,7 +402,7 @@ class MayaTestRunner(object):
    
         #os.chdir(self.results_dir)
         passed, failed = self.process_results(os.path.join(self.results_dir, 'index.html'), arnold_version)
-        return bool(failed)
+        return None # always succeds, jenkins will keep track of the test results not us
 
 
     def process_results(self, html_index, arnold_version):

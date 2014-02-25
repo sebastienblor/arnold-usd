@@ -363,6 +363,7 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("aiApertureBlades")
         self.addControl("aiApertureBladeCurvature")
         self.addControl("aiApertureRotation")
+        self.addControl("aiApertureAspectRatio")
         
     def addShutterAttributes(self):
         self.addSeparator()

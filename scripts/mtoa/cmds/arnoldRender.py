@@ -1,13 +1,28 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.core as core
+import platform, os
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
     core.createOptions()
     cmds.arnoldRender(cam=camera, w=width, h=height) 
     
-def arnoldBatchRenderOptionsString():
+def arnoldBatchRenderOptionsString():    
+    if not cmds.about(batch=True):
+        silentMode = 0
+        try:
+            silentMode = int(os.environ['MTOA_SILENT_MODE'])
+        except:
+            pass
+        if silentMode != 1:
+            dialogMessage = 'Are you sure you want to start a potentially long task?'
+            if platform.system().lower() == 'linux':
+                dialogMessage += ' (batch render on linux cannot be stopped)'
+            ret = cmds.confirmDialog(title='Confirm', message=dialogMessage,
+                                        button=['Yes', 'No'], defaultButton='Yes', cancelButton='No', dismissString='No')
+            if ret != 'Yes':
+                raise Exception('Stopping batch render.')
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']
         return ' -r arnold -ai:port %i ' % port

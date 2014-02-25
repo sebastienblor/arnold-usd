@@ -128,6 +128,9 @@ vars.AddVariables(
     PathVariable('TARGET_BINARIES', 
                  'Path for libraries', 
                  os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_VP2_PATH',
+                    'Path for VP2 shader files.',
+                    os.path.join('$TARGET_MODULE_PATH', 'vp2'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
                  '.', PathVariable.PathIsDir),
@@ -204,9 +207,11 @@ TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH'])
 TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
+TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 env['ENABLE_XGEN'] = 0
+env['ENABLE_VP2'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -214,6 +219,8 @@ maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MT
 maya_version_base = maya_version[0:4]
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
+if int(maya_version_base) >= 2014:
+    env['ENABLE_VP2'] = 1
 
 mercurial_id = ""
 try:
@@ -438,6 +445,9 @@ if env['MODE'] == 'debug':
 if env['ENABLE_XGEN'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_XGEN'))
 
+if env['ENABLE_VP2'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_VP2'))
+
 ## platform related defines
 if system.os() == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
@@ -648,6 +658,12 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base, x) fo
 arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
+
+if env['ENABLE_VP2']:
+    vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml'])
+    env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
+                    [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
+
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
 apiheaders = [os.path.join('platform', 'Platform.h'),
@@ -717,11 +733,7 @@ def deploy(target, source, env):
         print "\b#",
 
     local_package_name = str(source[0])
-    if system.os() == "windows":
-        local_package_name += '.exe'
-    else:
-        local_package_name += '.run'
-
+    
     server = env['FTP']
 
     ftp = ftplib.FTP(server)
@@ -850,6 +862,9 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+if env['ENABLE_VP2'] == 1:
+    PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
+
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
 
@@ -898,14 +913,13 @@ env['PACKAGE_FILES'] = PACKAGE_FILES
 
 installer_name = ''
 if system.os() == "windows":
-    installer_name = 'MtoA-%s-%s%s' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
 else:
-    installer_name = 'MtoA-%s-%s-%s%s' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
+    installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
     import tempfile
     import shutil
-    local_package_name = package_name + '.zip'
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
     if system.os() == "windows":
@@ -915,7 +929,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/top.bmp'), os.path.join(tempdir, 'top.bmp'))
         shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
         shutil.copyfile(os.path.abspath('installer/MtoA.nsi'), os.path.join(tempdir, 'MtoA.nsi'))
-        zipfile.ZipFile(os.path.abspath(local_package_name), 'r').extractall(tempdir)
+        zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(tempdir)
         NSIS_PATH = env.subst(env['NSIS_PATH'])
         os.environ['NSISDIR'] = NSIS_PATH
         os.environ['NSISCONFDIR'] = NSIS_PATH
@@ -927,16 +941,16 @@ def create_installer(target, source, env):
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
-        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), '%s.exe' % (installer_name))
+        shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
     else:
-        shutil.copyfile(os.path.abspath(local_package_name), os.path.join(tempdir, "package.zip"))
+        shutil.copyfile(os.path.abspath('%s.zip' % package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
         commandFile.write('python ./unix_installer.py %s' % maya_base_version)
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
-        installerPath = os.path.abspath('./%s.run' % (installer_name))
+        installerPath = os.path.abspath('./%s' % (installer_name))
         subprocess.call(['installer/makeself.sh', tempdir, installerPath,
                          'MtoA for Linux Installer', './unix_installer.sh'])
         subprocess.call(['chmod', '+x', installerPath])
@@ -971,8 +985,8 @@ top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
 
-env.Depends(DEPLOY, INSTALLER)
 env.Depends(INSTALLER, PACKAGE)
+env.Depends(DEPLOY, INSTALLER)
 
 env.AlwaysBuild(PACKAGE)
 
