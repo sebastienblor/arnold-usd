@@ -124,3 +124,35 @@ CSpherePrimitive::CSpherePrimitive(float radius, GLsizei resolution)
       indices[id++] = 1;
    }
 }
+
+CBoxPrimitive::CBoxPrimitive(float size)
+{
+   GLsizei id = 0;
+   vertices.resize(8 * 3);   
+   vertices[id++] = -size; vertices[id++] = -size; vertices[id++] = -size;
+   vertices[id++] = -size; vertices[id++] = -size; vertices[id++] = size;
+   vertices[id++] = size; vertices[id++] = -size; vertices[id++] = size;
+   vertices[id++] = size; vertices[id++] = -size; vertices[id++] = -size;
+
+   vertices[id++] = -size; vertices[id++] = size; vertices[id++] = -size;
+   vertices[id++] = -size; vertices[id++] = size; vertices[id++] = size;
+   vertices[id++] = size; vertices[id++] = size; vertices[id++] = size;
+   vertices[id++] = size; vertices[id++] = size; vertices[id++] = -size;
+
+   id = 0;
+   indices.resize(12 * 2);   
+   indices[id++] = 0; indices[id++] = 1;
+   indices[id++] = 1; indices[id++] = 2;
+   indices[id++] = 2; indices[id++] = 3;
+   indices[id++] = 3; indices[id++] = 0;
+
+   indices[id++] = 4; indices[id++] = 5;
+   indices[id++] = 5; indices[id++] = 6;
+   indices[id++] = 6; indices[id++] = 7;
+   indices[id++] = 7; indices[id++] = 4;
+
+   indices[id++] = 0; indices[id++] = 4;
+   indices[id++] = 1; indices[id++] = 5;
+   indices[id++] = 2; indices[id++] = 6;
+   indices[id++] = 3; indices[id++] = 7;
+}

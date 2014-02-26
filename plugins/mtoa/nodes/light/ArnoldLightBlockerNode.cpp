@@ -149,39 +149,10 @@ void CArnoldLightBlockerNode::draw(M3dView& view, const MDagPath& path, M3dView:
    switch (geometryType)
    {
    case 0: // box
-      glBegin(GL_QUADS);
-      
-      glVertex3f(-0.5f, -0.5f, -0.5f);
-      glVertex3f(0.5f, -0.5f, -0.5f);
-      glVertex3f(0.5f, -0.5f, 0.5f);
-      glVertex3f(-0.5f, -0.5f, 0.5f);
-      
-      glVertex3f(-0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(-0.5f, 0.5f, 0.5f);
-      
-      glVertex3f(-0.5f, -0.5f, -0.5f);
-      glVertex3f(-0.5f, 0.5f, -0.5f);
-      glVertex3f(-0.5f, 0.5f, 0.5f);
-      glVertex3f(-0.5f, -0.5f, 0.5f);
-      
-      glVertex3f(0.5f, -0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(0.5f, -0.5f, 0.5f);
-      
-      glVertex3f(-0.5f, -0.5f, -0.5f);
-      glVertex3f(-0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, -0.5f, -0.5f);
-      
-      glVertex3f(-0.5f, -0.5f, 0.5f);
-      glVertex3f(-0.5f, 0.5f, 0.5f);
-      glVertex3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(0.5f, -0.5f, 0.5f);
-      
-      glEnd();
+      {
+         static CBoxPrimitive primitive(0.5f);
+         primitive.draw();
+      }
       break;
    case 1: // sphere
       {

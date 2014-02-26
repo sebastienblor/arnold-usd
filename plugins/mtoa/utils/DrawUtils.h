@@ -33,3 +33,8 @@ class CSpherePrimitive : public CLinePrimitiveData{
 public:
    CSpherePrimitive(float radius = 1.0f, GLsizei resolution = 16);
 };
+
+class CBoxPrimitive : public CLinePrimitiveData{
+public:
+   CBoxPrimitive(float size = 1.0f);
+};
