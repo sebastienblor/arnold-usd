@@ -1,10 +1,14 @@
-#include <vector>
+#pragma once
+
+#include <maya/M3dView.h>
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
 #else 
    #include <GL/gl.h>
 #endif   
+
+#include <vector>
 
 class CLinePrimitiveData{
 public:

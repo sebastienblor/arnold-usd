@@ -1,12 +1,12 @@
-#include "DrawUtils.h"
-
 #include <ai.h>
+
+#include "DrawUtils.h"
 
 void CLinePrimitiveData::draw() // TODO : use VBOs, but use glew to determine if vbos are working (virtual machines)
 {
    glEnableClientState(GL_VERTEX_ARRAY);
    glVertexPointer(3, GL_FLOAT, 0, vertices.data());
-   glDrawElements(GL_LINES, indices.size(), GL_UNSIGNED_INT, indices.data());
+   glDrawElements(GL_LINES, (GLsizei)indices.size(), GL_UNSIGNED_INT, indices.data());
    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
