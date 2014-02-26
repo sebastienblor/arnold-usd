@@ -138,7 +138,8 @@ vars.AddVariables(
                  'Where to find external tools required for sh',
                  '.', PathVariable.PathIsDir),
     PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
-                 '.', PathVariable.PathIsDir)
+                 '.', PathVariable.PathIsDir),
+    PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None)
 )
 
 if system.os() == 'windows':
@@ -942,6 +943,13 @@ def create_installer(target, source, env):
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 
+def check_compliance(target, source, env):
+    print source[0]
+    pass
+
+env['BUILDERS']['ComplianceChecker'] = Builder(action = Action(check_compliance, "Checking compliance for package: '$SOURCE'"))
+
+COMPLIANCECHECKER = env.ComplianceChecker('check_compliance', MTOA_API[0])
 INSTALLER = env.PackageInstaller('create_installer', package_name)
 DEPLOY = env.PackageDeploy('deploy', installer_name)
 
@@ -969,6 +977,7 @@ top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
+top_level_alias(env, 'check_compliance', COMPLIANCECHECKER)
 
 env.Depends(INSTALLER, PACKAGE)
 env.Depends(DEPLOY, INSTALLER)
