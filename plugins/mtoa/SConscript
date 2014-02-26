@@ -40,7 +40,7 @@ include_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                         os.path.join('translators', 'shape', 'ShapeTranslator.h'),
                         os.path.join('translators', 'NodeTranslator.h')]
 
-source_files_add = [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'MayaUtils.cpp')]
+source_files_add = [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'MayaUtils.cpp'), os.path.join('utils', 'DrawUtils.cpp')]
 
 include_files_add = []
                      
