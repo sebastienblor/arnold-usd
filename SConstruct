@@ -139,7 +139,8 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
                  '.', PathVariable.PathIsDir),
-    PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None)
+    PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
+    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', '')
 )
 
 if system.os() == 'windows':
@@ -943,13 +944,20 @@ def create_installer(target, source, env):
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
 
-def check_compliance(target, source, env):
-    print source[0]
-    pass
+if system.os() == 'linux':
+    def check_compliance(target, source, env):
+        REFERENCE_API_LIB = env['REFERENCE_API_LIB']
+        REFERENCE_API_VERSION = env['REFERENCE_API_VERSION']
+        CURRENT_API_LIB = os.path.abspath(str(source[0]))
+        print REFERENCE_API_LIB
+        subprocess.call(['abi-dumper', REFERENCE_API_LIB, '-lver', REFERENCE_API_VERSION, '-o', 'old.dump'])
+        subprocess.call(['abi-dumper', CURRENT_API_LIB, '-lver', MTOA_VERSION, '-o', 'new.dump'])
+        subprocess.call(['abi-compliance-checker', '-l', 'libmtoa_api', '-old', 'old.dump', '-new', 'new.dump'])
 
-env['BUILDERS']['ComplianceChecker'] = Builder(action = Action(check_compliance, "Checking compliance for package: '$SOURCE'"))
+    env['BUILDERS']['ComplianceChecker'] = Builder(action = Action(check_compliance, "Checking compliance for file: '$SOURCE'"))
+    COMPLIANCECHECKER = env.ComplianceChecker('check_compliance', MTOA_API[0])
+    top_level_alias(env, 'check_compliance', COMPLIANCECHECKER)
 
-COMPLIANCECHECKER = env.ComplianceChecker('check_compliance', MTOA_API[0])
 INSTALLER = env.PackageInstaller('create_installer', package_name)
 DEPLOY = env.PackageDeploy('deploy', installer_name)
 
@@ -977,7 +985,6 @@ top_level_alias(env, 'install', aliases)
 top_level_alias(env, 'pack', PACKAGE)
 top_level_alias(env, 'deploy', DEPLOY)
 top_level_alias(env, 'installer', INSTALLER)
-top_level_alias(env, 'check_compliance', COMPLIANCECHECKER)
 
 env.Depends(INSTALLER, PACKAGE)
 env.Depends(DEPLOY, INSTALLER)
