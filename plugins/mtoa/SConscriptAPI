@@ -67,6 +67,5 @@ if system.os() == 'darwin':
     local_env.Append(CPPDEFINES = Split('DARWIN'))
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
-    local_env.Append(CPPPATH = '/System/Library/Frameworks/GLUT.framework/Headers')
 
 Return('MTOA_API')
