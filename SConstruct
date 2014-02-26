@@ -488,7 +488,7 @@ if system.os() == 'windows':
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
    
-    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
    
     MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -516,7 +516,7 @@ else:
 
     if system.os() == 'linux':
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
-        maya_env.Append(LIBS=Split('GL GLU'))
+        maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
     elif system.os() == 'darwin':

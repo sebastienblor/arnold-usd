@@ -2,6 +2,7 @@
 
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
+#include "utils/DrawUtils.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -118,8 +119,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       glColor4f(0.75, 0, 0, 0.2f);
       break;
    }
-   GLUquadricObj *qobj;
-   qobj = gluNewQuadric();
    bool setBoundingBox = true;
    // Quad
    if (areaType == "quad")
@@ -145,8 +144,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Disk
    else if (areaType == "disk")
    {      
-      gluQuadricDrawStyle(qobj, GLU_LINE);
-      gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
@@ -160,7 +157,9 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          const double avs = (scale[0] + scale[1]) * 0.5;
          glScaled(avs, avs, 1.0);
       }
-      gluDisk(qobj, 0.0f, 1.0f, 20, 1);
+      static CDiskPrimitive primitive;
+      primitive.draw();
+
       glPopMatrix();
       glBegin(GL_LINES);
       // Done Drawing The direction
@@ -171,8 +170,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Cylinder
    else if (areaType == "cylinder")
    {
-      gluQuadricDrawStyle(qobj, GLU_LINE);
-      gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();      
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
@@ -186,9 +183,8 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
          const double avs = (scale[0] + scale[2]) * 0.5;
          glScaled(avs, 1.0, avs);
       }
-      glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-      glTranslatef(0.0f, 0.0f, -1.0f);
-      gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
+      CCylinderPrimitive primitive;
+      primitive.draw();
       glPopMatrix();
    }
    
