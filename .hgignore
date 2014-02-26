@@ -29,7 +29,8 @@ plugins/mtoa/utils/MercurialID.h
 *.sh
 *.obj
 *.patch
-
+*.dump
+compat_reports/*
 *.vcxproj
 *.filters
 syntax: regexp
