@@ -40,7 +40,7 @@ include_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                         os.path.join('translators', 'shape', 'ShapeTranslator.h'),
                         os.path.join('translators', 'NodeTranslator.h')]
 
-source_files_add = [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'MayaUtils.cpp')]
+source_files_add = [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'MayaUtils.cpp'), os.path.join('utils', 'DrawUtils.cpp')]
 
 include_files_add = []
                      
@@ -73,6 +73,5 @@ if system.os() == 'darwin':
     local_env.Append(CPPDEFINES = Split('DARWIN'))
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
-    local_env.Append(CPPPATH = '/System/Library/Frameworks/GLUT.framework/Headers')
 
 Return('MTOA')

@@ -138,7 +138,9 @@ vars.AddVariables(
                  'Where to find external tools required for sh',
                  '.', PathVariable.PathIsDir),
     PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
-                 '.', PathVariable.PathIsDir)
+                 '.', PathVariable.PathIsDir),
+    PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
+    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', '')
 )
 
 if system.os() == 'windows':
@@ -488,7 +490,7 @@ if system.os() == 'windows':
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
    
-    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
    
     MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -509,21 +511,6 @@ if system.os() == 'windows':
                                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
                                                 duplicate   = 0,
                                                 exports     = 'env')
-
-    INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
-                                  srcs = [],
-                                  incs = [],
-                                  buildtarget = 'install',
-                                  cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86_64',
-                                             '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86_64',
-                                             '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86_64',
-                                             '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86_64'],
-                                  variant = ['Debug_MSVC|x64',
-                                             'Debug_ICC|x64',
-                                             'Opt_MSVC|x64',
-                                             'Opt_ICC|x64'],
-                                  auto_build_solution = 0,
-                                  nokeep = 1)
 else:
     maya_env = env.Clone()
     maya_env.Append(CPPPATH = ['.'])
@@ -531,7 +518,7 @@ else:
 
     if system.os() == 'linux':
         maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
-        maya_env.Append(LIBS=Split('GL GLU'))
+        maya_env.Append(LIBS=Split('GL'))
         maya_env.Append(CPPDEFINES = Split('LINUX'))
         maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
     elif system.os() == 'darwin':
@@ -956,6 +943,20 @@ def create_installer(target, source, env):
         subprocess.call(['chmod', '+x', installerPath])
 
 env['BUILDERS']['PackageInstaller'] = Builder(action = Action(create_installer,  "Creating installer for package: '$SOURCE'"))
+
+if system.os() == 'linux':
+    def check_compliance(target, source, env):
+        REFERENCE_API_LIB = env['REFERENCE_API_LIB']
+        REFERENCE_API_VERSION = env['REFERENCE_API_VERSION']
+        CURRENT_API_LIB = os.path.abspath(str(source[0]))
+        print REFERENCE_API_LIB
+        subprocess.call(['abi-dumper', REFERENCE_API_LIB, '-lver', REFERENCE_API_VERSION, '-o', 'old.dump'])
+        subprocess.call(['abi-dumper', CURRENT_API_LIB, '-lver', MTOA_VERSION, '-o', 'new.dump'])
+        subprocess.call(['abi-compliance-checker', '-l', 'libmtoa_api', '-old', 'old.dump', '-new', 'new.dump'])
+
+    env['BUILDERS']['ComplianceChecker'] = Builder(action = Action(check_compliance, "Checking compliance for file: '$SOURCE'"))
+    COMPLIANCECHECKER = env.ComplianceChecker('check_compliance', MTOA_API[0])
+    top_level_alias(env, 'check_compliance', COMPLIANCECHECKER)
 
 INSTALLER = env.PackageInstaller('create_installer', package_name)
 DEPLOY = env.PackageDeploy('deploy', installer_name)
