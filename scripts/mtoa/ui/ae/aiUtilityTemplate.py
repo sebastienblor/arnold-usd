@@ -19,6 +19,13 @@ def aiUtilitySetColorMode(attr):
     cmds.attrEnumOptionMenuGrp('AIUtilityColorMode', edit=True, attribute=attr)
 
 class AEaiUtilityTemplate(ShaderAETemplate):
+    def checkShadeMode(self, nodeName):
+        fullAttr = '%s.%s' % (nodeName, 'shade_mode')
+        shadeModeValue = pm.getAttr(fullAttr)
+        if shadeModeValue == 3:
+            pm.editorTemplate(dimControl=(nodeName, 'aoDistance', False))
+        else:
+            pm.editorTemplate(dimControl=(nodeName, 'aoDistance', True))
 
     def setup(self):
         self.addSwatch()
@@ -27,7 +34,7 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout('Utility Attributes', collapse=False)
-        self.addControl('shade_mode', label='Shade Mode')
+        self.addControl('shade_mode', changeCommand=self.checkShadeMode, label='Shade Mode')
         self.addCustom('color_mode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
         if int(ai.AiGetVersion()[2]) > 2:
             self.addControl('overlay_mode', label='Overlay Mode')
