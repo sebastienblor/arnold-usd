@@ -34,7 +34,8 @@ enum MayaProjectionParams
    p_linked_camera,
    p_camera_near,
    p_camera_hfov,
-   p_camera_aspect
+   p_camera_aspect,
+   p_use_reference_object
 };
 
 enum ProjectionType
@@ -359,6 +360,8 @@ node_parameters
    AiParameterFLT("cameraAspectRatio", 1.0f);
    AiMetaDataSetBool(mds, "cameraAspectRatio", "maya.hide", true);
 
+   AiParameterBOOL("useReferenceObject", true);
+
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
@@ -455,8 +458,10 @@ shader_evaluate
    bool mapped = false;
    AtVector P;
 
+   const bool useReferenceObject = AiShaderEvalParamBool(p_use_reference_object);
+
    AtPoint tmpPts;
-   bool usePref = SetRefererencePoints(sg, tmpPts);
+   bool usePref = useReferenceObject ? SetRefererencePoints(sg, tmpPts) : false;
 
    P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
 
@@ -520,7 +525,7 @@ shader_evaluate
       if (wrap || IsInsideBox(P))
       {
          AtVector tmpNrm;
-         bool useNref = SetRefererenceNormals(sg, tmpNrm);
+         bool useNref = useReferenceObject ? SetRefererenceNormals(sg, tmpNrm) : false;
          // In local use camera space
          AtVector N = sg->N;
          AtMatrix camm, *pcamm = 0;
