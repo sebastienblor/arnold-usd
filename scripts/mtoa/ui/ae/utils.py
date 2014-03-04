@@ -56,17 +56,22 @@ def loadAETemplates():
         # module name must end in "Template"
         if modname.endswith('Template') and modname not in templates:
             # TODO: use importer?
-            mod = __import__(modname, globals(), locals(), [], -1)
+            try:
+                mod = __import__(modname, globals(), locals(), [], -1)
             
-            procName = 'AE%s' % modname
-            if hasattr(mod, modname):
-                # a function named after the module
-                templates.append(modname)
-                _makeAEProc(modname, modname, procName)
-            elif hasattr(mod, procName):
-                # a class named AEmodname
-                templates.append(modname)
-                _makeAEProc(modname, procName, procName)
+                procName = 'AE%s' % modname
+                if hasattr(mod, modname):
+                    # a function named after the module
+                    templates.append(modname)
+                    _makeAEProc(modname, modname, procName)
+                elif hasattr(mod, procName):
+                    # a class named AEmodname
+                    templates.append(modname)
+                    _makeAEProc(modname, procName, procName)
+            except:
+                print '[MtoA] Error parsing AETemplate file %s' % str(modname)
+                import traceback
+                print traceback.format_exc()
 
 def aeCallback(func):
     return utils.pyToMelProc(func, [('string', 'nodeName')], procPrefix='AEArnoldCallback')
