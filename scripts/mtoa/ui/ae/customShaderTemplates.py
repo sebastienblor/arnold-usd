@@ -33,7 +33,7 @@ templates.registerAETemplate(Bump2dTemplate, 'bump2d')
 
 class ProjectionTemplate(templates.AttributeTemplate):
     def setup(self):
-        self.addControl('aiUseReferenceObject', label='Use Reference Object')
+        self.addControl('aiUseReferenceObject', label='Use Texture Reference Object')
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 
