@@ -1756,6 +1756,9 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
          ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
       }
       break;
+   case AI_TYPE_BYTE:
+      AiNodeSetByte(arnoldNode, arnoldParamName, (unsigned char)plug.asChar());
+      break;
    }
    return NULL;
 }
