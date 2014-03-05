@@ -1,6 +1,5 @@
 #include "LightTranslators.h"
 
-#include <maya/MFnAmbientLight.h>
 #include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
