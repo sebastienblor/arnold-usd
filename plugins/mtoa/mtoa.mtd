@@ -774,7 +774,7 @@
     maya.name               STRING  "aiLightBlocker"
     maya.id                 INT     0x00115C82
     maya.classification     STRING  "light/filter"
-    maya.lights             STRING  "ambientLight directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
+    maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
     maya.output             INT     0x05
     [attr density]
         min                 FLOAT   0.0

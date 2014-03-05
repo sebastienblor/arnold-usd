@@ -213,20 +213,6 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 
-class AmbientLightTemplate(lightTemplate.LightTemplate):
-    def setup(self):
-        self.setupColorTemperature("Ambient")
-        self.addControl("aiNormalize")  
-
-        self.addSeparator()
-        
-        self.addControl("aiCastShadows")
-        self.addControl("aiShadowDensity")
-
-        self.addSeparator()
-        self.commonLightAttributes()
-templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
-
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.setupColorTemperature("Directional")

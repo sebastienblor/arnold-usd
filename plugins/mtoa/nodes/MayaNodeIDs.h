@@ -19,7 +19,6 @@
 
 #define MAYA_NODEID_DIRECTIONAL_LIGHT           0x4449524c
 #define MAYA_NODEID_SPOT_LIGHT                  0x5350544c
-#define MAYA_NODEID_AMBIENT_LIGHT               0x414d424c
 #define MAYA_NODEID_AREA_LIGHT                  0x41524c54
 #define MAYA_NODEID_POINT_LIGHT                 0x504f4954
 
