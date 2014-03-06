@@ -74,4 +74,7 @@ if system.os() == 'darwin':
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
 
+if system.os() == 'linux' and local_env['ENABLE_VP2']:
+    local_env.Append(LIBS = [File('/usr/lib64/libGLEW.a')])
+
 Return('MTOA')

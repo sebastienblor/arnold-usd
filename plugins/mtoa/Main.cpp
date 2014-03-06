@@ -1,3 +1,11 @@
+#ifdef ENABLE_VP2
+#include <GL/glew.h>
+#include "viewport2/ArnoldStandardShaderOverride.h"
+#include "viewport2/ArnoldAreaLightDrawOverride.h"
+#include "viewport2/ViewportUtils.h"
+#include <maya/MDrawRegistry.h>
+#endif
+
 #include "utils/Version.h"
 #include "platform/Platform.h"
 #include "utils/Universe.h"
@@ -54,13 +62,6 @@
 #include "extension/Extension.h"
 
 #include "scene/MayaScene.h"
-
-#ifdef ENABLE_VP2
-#include "viewport2/ArnoldStandardShaderOverride.h"
-#include "viewport2/ArnoldAreaLightDrawOverride.h"
-#include "viewport2/ViewportUtils.h"
-#include <maya/MDrawRegistry.h>
-#endif
 
 #include <ai_msg.h>
 #include <ai_render.h>
@@ -570,6 +571,16 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MStatus status, returnStatus;
    returnStatus = MStatus::kSuccess;
+
+#ifdef ENABLE_VP2
+   GLenum err = glewInit();
+   if (GLEW_OK != err)
+   {
+      returnStatus = MStatus::kFailure;
+      returnStatus.perror("Erorr initializing GLEW!");
+      return returnStatus;
+   }
+#endif  
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
