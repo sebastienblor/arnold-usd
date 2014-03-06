@@ -57,6 +57,7 @@
 
 #ifdef ENABLE_VP2
 #include "viewport2/ArnoldStandardShaderOverride.h"
+#include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include <maya/MDrawRegistry.h>
 #endif
@@ -101,6 +102,9 @@ namespace // <anonymous>
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
    };
 
+   const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/areaLight";
+   const MString AI_AREA_LIGHT_WITCH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
+
    struct mayaNode {
       const char* name;
       const MTypeId& id;
@@ -136,7 +140,7 @@ namespace // <anonymous>
       } , {
          "aiAreaLight", CArnoldAreaLightNode::id,
          CArnoldAreaLightNode::creator, CArnoldAreaLightNode::initialize,
-         MPxNode::kLocatorNode, &LIGHT_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_AREA_LIGHT_WITCH_SWATCH
       } , {
          "aiPhotometricLight", CArnoldPhotometricLightNode::id,
          CArnoldPhotometricLightNode::creator, CArnoldPhotometricLightNode::initialize,
@@ -186,55 +190,55 @@ namespace // <anonymous>
       builtin = CExtensionsManager::GetBuiltin();
       // Override for builtins for specific cases
       builtin->RegisterTranslator("aiOptions",
-                                  "",
-                                  COptionsTranslator::creator);
+                                    "",
+                                    COptionsTranslator::creator);
       // A Dag node in Maya but a depend node in Arnold
       builtin->RegisterTranslator("aiSky",
-                                  "",
-                                  CSkyShaderTranslator::creator);
+                                    "",
+                                    CSkyShaderTranslator::creator);
       builtin->RegisterTranslator("aiPhysicalSky",
-                                  "",
-                                  CPhysicalSkyTranslator::creator);
+                                 "",
+                                 CPhysicalSkyTranslator::creator);
       builtin->RegisterTranslator("aiHair",
-                                  "",
-                                  CAiHairTranslator::creator,
-                                  CAiHairTranslator::NodeInitializer);
+                                    "",
+                                    CAiHairTranslator::creator,
+                                    CAiHairTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiImage",
-                                  "",
-                                  CAiImageTranslator::creator);
+                                    "",
+                                    CAiImageTranslator::creator);
       // Lights
       builtin->RegisterTranslator("directionalLight",
-                                  "",
-                                  CDirectionalLightTranslator::creator,
-                                  CDirectionalLightTranslator::NodeInitializer);
+                                    "",
+                                    CDirectionalLightTranslator::creator,
+                                    CDirectionalLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("spotLight",
-                                  "",
-                                  CSpotLightTranslator::creator,
-                                  CSpotLightTranslator::NodeInitializer);
+                                    "",
+                                    CSpotLightTranslator::creator,
+                                    CSpotLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("areaLight",
-                                  "",
-                                  CQuadLightTranslator::creator,
-                                  CQuadLightTranslator::NodeInitializer);
+                                    "",
+                                    CQuadLightTranslator::creator,
+                                    CQuadLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("pointLight",
-                                  "",
-                                  CPointLightTranslator::creator,
-                                  CPointLightTranslator::NodeInitializer);
+                                    "",
+                                    CPointLightTranslator::creator,
+                                    CPointLightTranslator::NodeInitializer);
       // Multiple light translators for single Arnold areaLight node
       builtin->RegisterTranslator("aiAreaLight",
-                                  "quad",
-                                  CQuadLightTranslator::creator,
-                                  CQuadLightTranslator::NodeInitializer);
+                                    "quad",
+                                    CQuadLightTranslator::creator,
+                                    CQuadLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiAreaLight",
-                                  "cylinder",
-                                  CCylinderLightTranslator::creator,
-                                  CCylinderLightTranslator::NodeInitializer);
+                                    "cylinder",
+                                    CCylinderLightTranslator::creator,
+                                    CCylinderLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiAreaLight",
-                                  "disk",
-                                  CDiskLightTranslator::creator,
-                                  CDiskLightTranslator::NodeInitializer);
+                                    "disk",
+                                    CDiskLightTranslator::creator,
+                                    CDiskLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiLightBlocker",
-                                  "",
-                                  CLightBlockerTranslator::creator);
+                                    "",
+                                    CLightBlockerTranslator::creator);
       // Arnold skyDomeLight node
       builtin->RegisterTranslator("aiSkyDomeLight",
                                   "",
@@ -242,56 +246,56 @@ namespace // <anonymous>
                                   CSkyDomeLightTranslator::NodeInitializer);
                                    
       builtin->RegisterTranslator("aiPhotometricLight",
-                                  "",
-                                  CPhotometricLightTranslator::creator,
-                                  CPhotometricLightTranslator::NodeInitializer);
+                                    "",
+                                    CPhotometricLightTranslator::creator,
+                                    CPhotometricLightTranslator::NodeInitializer);
 
       builtin->RegisterTranslator("lightLinker",
-                                  "",
-                                  CLightLinkerTranslator::creator);
+                                    "",
+                                    CLightLinkerTranslator::creator);
 
       // Geometry
       builtin->RegisterTranslator("mesh",
-                                  "polymesh",
-                                  CMeshTranslator::creator,
-                                  CMeshTranslator::NodeInitializer);
+                                    "polymesh",
+                                    CMeshTranslator::creator,
+                                    CMeshTranslator::NodeInitializer);
       builtin->RegisterTranslator("mesh",
-                                  "mesh_light",
-                                  CMeshLightTranslator::creator,
-                                  CMeshLightTranslator::NodeInitializer);
+                                    "mesh_light",
+                                    CMeshLightTranslator::creator,
+                                    CMeshLightTranslator::NodeInitializer);
       builtin->RegisterTranslator("nurbsSurface",
-                                  "",
-                                  CNurbsSurfaceTranslator::creator,
-                                  CNurbsSurfaceTranslator::NodeInitializer);
+                                    "",
+                                    CNurbsSurfaceTranslator::creator,
+                                    CNurbsSurfaceTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiStandIn",
-                                  "",
-                                  CArnoldStandInsTranslator::creator,
-                                  CArnoldStandInsTranslator::NodeInitializer);
+                                    "",
+                                    CArnoldStandInsTranslator::creator,
+                                    CArnoldStandInsTranslator::NodeInitializer);
       builtin->RegisterTranslator("fluidShape",
-                                  "",
-                                  CFluidTranslator::creator,
-                                  CFluidTranslator::NodeInitializer);
+                                    "",
+                                    CFluidTranslator::creator,
+                                    CFluidTranslator::NodeInitializer);
       // Multiple camera translators for single Maya camera node
       builtin->RegisterTranslator("camera",
-                                  "perspective",
-                                  CStandardCameraTranslator::creator,
-                                  CStandardCameraTranslator::NodeInitializer);
+                                    "perspective",
+                                    CStandardCameraTranslator::creator,
+                                    CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("camera",
-                                  "orthographic",
-                                  CStandardCameraTranslator::creator,
-                                  CStandardCameraTranslator::NodeInitializer);
+                                    "orthographic",
+                                    CStandardCameraTranslator::creator,
+                                    CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("camera",
-                                  "fisheye",
-                                  CFishEyeCameraTranslator::creator,
-                                  CFishEyeCameraTranslator::NodeInitializer);
+                                    "fisheye",
+                                    CFishEyeCameraTranslator::creator,
+                                    CFishEyeCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("camera",
-                                  "cylindrical",
-                                  CCylCameraTranslator::creator,
-                                  CCylCameraTranslator::NodeInitializer);
+                                    "cylindrical",
+                                    CCylCameraTranslator::creator,
+                                    CCylCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("camera",
-                                  "spherical",
-                                  CSphericalCameraTranslator::creator,
-                                  CSphericalCameraTranslator::NodeInitializer);
+                                    "spherical",
+                                    CSphericalCameraTranslator::creator,
+                                    CSphericalCameraTranslator::NodeInitializer);
 
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
@@ -740,6 +744,14 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                ArnoldStandardShaderOverride::creator);
 
    CHECK_MSTATUS(status);
+
+   MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
+
+   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+               AI_AREA_LIGHT_CLASSIFICATION,
+               areaLightOverrideRegistrant,
+               CArnoldAreaLightDrawOverride::creator);
+   
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -818,6 +830,15 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
                   arnoldStandardOverrideClassification,
                   shaderOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
+
+
+   MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
+
+   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+                  AI_AREA_LIGHT_CLASSIFICATION,
+                  areaLightOverrideRegistrant);
 
    CHECK_MSTATUS(status);
 #endif

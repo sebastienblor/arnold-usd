@@ -35,7 +35,7 @@ const MString LIGHT_NO_SWATCH = CLASSIFY_ARNOLD_LIGHT
                               + ":" + CLASSIFY_SHADER_LIGHT;
 const MString LIGHT_WITH_SWATCH = LIGHT_NO_SWATCH
                               + ":swatch/" + ARNOLD_SWATCH;
-
+                              
 const MString LIGHT_FILTER_NO_SWATCH = CLASSIFY_ARNOLD_LIGHT_FILTER
                               + ":" + CLASSIFY_SHADER_LIGHT_FILTER;
 
