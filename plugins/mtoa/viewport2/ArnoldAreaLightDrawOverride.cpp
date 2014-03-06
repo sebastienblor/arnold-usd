@@ -71,13 +71,21 @@ struct CArnoldAreaLightUserData : public MUserData{
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 8 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_color[0] = color.r;
         m_color[1] = color.g;
         m_color[2] = color.b;
         m_color[3] = color.a;
+
+        glGenVertexArrays(1, &m_VAO);
+        glBindVertexArray(m_VAO);
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+        glBindVertexArray(0);
     }
 
     ~CArnoldAreaLightUserData()
@@ -222,13 +230,8 @@ void CArnoldAreaLightDrawOverride::draw(
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
     glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
     glUniform4f(4, userData->m_color[0], userData->m_color[1], userData->m_color[2], userData->m_color[3]);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glBindBuffer(GL_ARRAY_BUFFER, userData->m_VBO);
-    glVertexPointer(3, GL_FLOAT, 0, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, userData->m_IBO);
+    glBindVertexArray(userData->m_VAO);
     glDrawElements(GL_LINES, 8 * 2, GL_UNSIGNED_INT, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    glBindVertexArray(0);
     glUseProgram(0);
 }
