@@ -33,49 +33,12 @@ bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
 // much performance problems, but cleaner,
 // the better
 struct CArnoldAreaLightUserData : public MUserData{
-    union{
-        struct{
-            GLuint m_VBO;
-            GLuint m_IBO;
-        };
-        GLuint m_GLBuffers[2];
-    };
-    GLuint m_VAO;
+    CGLPrimitive* primitive;
     float m_color[4];
     float m_wireframeColor[4];
-    CArnoldAreaLightUserData(const MDagPath& objPath) : MUserData(true), m_VBO(0), m_IBO(0), m_VAO(0)
+    CArnoldAreaLightUserData(const MDagPath& objPath) : MUserData(true)
     { // first draw the quad light
-        glGenBuffers(2, m_GLBuffers);
-
-        const float vertices [] = {
-            -1.0f, -1.0f, 0.0f,
-            1.0f, -1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, -1.0f
-        };
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, 6 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        const unsigned int indices[] = {
-            0, 1,
-            1, 2,
-            2, 3,
-            3, 0,
-            0, 2,
-            3, 1,
-            4, 5,
-            0, 1, 2,
-            0, 2, 3
-        };
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (7 * 2 + 6) * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+        
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
         m_wireframeColor[1] = color.g;
@@ -87,19 +50,12 @@ struct CArnoldAreaLightUserData : public MUserData{
         m_color[2] = 1.0f;
         m_color[3] = 1.0f;
 
-        glGenVertexArrays(1, &m_VAO);
-        glBindVertexArray(m_VAO);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-        glBindVertexArray(0);
+        primitive = new CGLQuadLightPrimitive();
     }
 
     ~CArnoldAreaLightUserData()
     {
-        glDeleteBuffers(2, m_GLBuffers);
-        glDeleteVertexArrays(1, &m_VAO);
+        delete primitive;
     }
 };
 
@@ -238,24 +194,28 @@ void CArnoldAreaLightDrawOverride::draw(
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
     glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
     
-    glBindVertexArray(userData->m_VAO);
     if (context.getDisplayStyle() & MHWRender::MDrawContext::kGouraudShaded)
     {
-        glPushAttrib(GL_POLYGON_BIT);
+        /*glPushAttrib(GL_POLYGON_BIT);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CW);
         glCullFace(GL_BACK);
+        
+        glDrawElements(GL_TRIANGLES, 3 * 2, GL_UNSIGNED_INT, (unsigned int *)0 + 7 * 2);
+        glPopAttrib();*/
         glUniform4f(4, userData->m_color[0], userData->m_color[1],
             userData->m_color[2], userData->m_color[3]);
-        glDrawElements(GL_TRIANGLES, 3 * 2, GL_UNSIGNED_INT, (unsigned int *)0 + 7 * 2);
-        glPopAttrib();
+        userData->primitive->draw(false);
     }
     else
     {
         glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
             userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-        glDrawElements(GL_LINES, 7 * 2, GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_LINES, 7 * 2, GL_UNSIGNED_INT, 0);
+        userData->primitive->draw(true);
     }
-    glBindVertexArray(0);
+    /*glBindVertexArray(userData->m_VAO);
+    
+    glBindVertexArray(0);*/
     glUseProgram(0);
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "utils/DrawUtils.h"
 
 #include <maya/MPxDrawOverride.h>
 #include <maya/MUserData.h>

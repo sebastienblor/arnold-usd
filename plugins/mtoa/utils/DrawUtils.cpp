@@ -156,3 +156,99 @@ CBoxPrimitive::CBoxPrimitive(float size)
    indices[id++] = 2; indices[id++] = 6;
    indices[id++] = 3; indices[id++] = 7;
 }
+
+#ifdef ENABLE_VP2
+
+CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
+   m_triangleOffset(0), m_numLineIndices(0), m_numTriangleIndices(0)
+{
+
+}
+
+CGLPrimitive::~CGLPrimitive()
+{
+   glDeleteBuffers(2, m_GLBuffers);
+   glDeleteVertexArrays(1, &m_VAO);
+}
+
+void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices, unsigned int triangleOffset)
+{
+   glGenBuffers(2, m_GLBuffers);
+
+   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+   glBufferData(GL_ARRAY_BUFFER, numVertices * sizeof(float), vertices, GL_STATIC_DRAW);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+   glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+   glGenVertexArrays(1, &m_VAO);
+   glBindVertexArray(m_VAO);
+   glEnableVertexAttribArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+   glBindVertexArray(0);
+   m_triangleOffset = triangleOffset;
+   m_numLineIndices = triangleOffset;
+   m_numTriangleIndices = numIndices - triangleOffset;
+}
+
+void CGLPrimitive::draw(bool doWireframe) const
+{
+   glBindVertexArray(m_VAO);
+
+   if (doWireframe)
+      glDrawElements(GL_LINES, m_numLineIndices, GL_UNSIGNED_INT, 0);
+   else
+      glDrawElements(GL_TRIANGLES, m_numTriangleIndices, GL_UNSIGNED_INT, (unsigned int *)0 + m_triangleOffset);
+      
+
+   glBindVertexArray(0);
+}
+
+CGLQuadLightPrimitive::CGLQuadLightPrimitive()
+{
+   const float vertices [] = {
+      -1.0f, -1.0f, 0.0f,
+      1.0f, -1.0f, 0.0f,
+      1.0f, 1.0f, 0.0f,
+      -1.0f, 1.0f, 0.0f,
+      0.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, -1.0f
+   };
+
+   const unsigned int indices[] = {
+      0, 1,
+      1, 2,
+      2, 3,
+      3, 0,
+      0, 2,
+      3, 1,
+      4, 5,
+      0, 1, 2,
+      0, 2, 3
+   };
+
+   setPrimitiveData(vertices, 6 * 2, indices, 7 * 2 + 3 * 2, 7 * 2);
+}
+
+void CGLQuadLightPrimitive::draw(bool doWireframe) const
+{
+   if (doWireframe)
+      CGLPrimitive::draw(true);
+   else
+   {
+      glPushAttrib(GL_POLYGON_BIT);
+      glEnable(GL_CULL_FACE);
+      glFrontFace(GL_CW);
+      glCullFace(GL_BACK);
+        
+      CGLPrimitive::draw(false);
+      
+      glPopAttrib();
+   }
+}
+
+#endif

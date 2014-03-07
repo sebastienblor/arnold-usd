@@ -1,12 +1,16 @@
 #pragma once
 
-#include <maya/M3dView.h>
+#ifdef ENABLE_VP2
 
+#include <GL/glew.h>
+#else
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
 #else 
    #include <GL/gl.h>
 #endif   
+
+#endif
 
 #include <vector>
 
@@ -42,3 +46,37 @@ class CBoxPrimitive : public CLinePrimitiveData{
 public:
    CBoxPrimitive(float size = 1.0f);
 };
+
+#ifdef ENABLE_VP2
+
+// TODO unify these two classes later, that can deal both
+// with vbo and the old pipeline and static / dynamic initialization
+// IBO has to contain both wireframe and triangle indices
+class CGLPrimitive {
+protected:
+   union{
+      struct{
+         GLuint m_VBO;
+         GLuint m_IBO;
+      };
+      GLuint m_GLBuffers[2];
+   };
+   GLuint m_VAO;
+   unsigned int m_triangleOffset;
+   unsigned int m_numLineIndices;
+   unsigned int m_numTriangleIndices;
+   CGLPrimitive();
+   void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices, unsigned int triangleOffset);
+public:
+   virtual ~CGLPrimitive();
+   virtual void draw(bool doWireframe) const;
+};
+
+class CGLQuadLightPrimitive : public CGLPrimitive{
+public:
+   CGLQuadLightPrimitive();
+
+   virtual void draw(bool doWireFrame) const;
+};
+
+#endif

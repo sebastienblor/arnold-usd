@@ -2,7 +2,6 @@
 
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "utils/DrawUtils.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>

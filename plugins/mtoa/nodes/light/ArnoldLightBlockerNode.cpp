@@ -1,5 +1,4 @@
 #include "ArnoldLightBlockerNode.h"
-#include "utils/DrawUtils.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnEnumAttribute.h>
