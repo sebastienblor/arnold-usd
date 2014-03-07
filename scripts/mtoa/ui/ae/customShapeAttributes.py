@@ -334,7 +334,163 @@ callbacks.addAttributeChangedCallback(lightDecayChanged, 'aiAreaLight', 'decayRa
 templates.registerAETemplate(templates.TranslatorControl, "camera", label="Camera Type")
 
 class CameraTemplate(templates.AttributeTemplate):
+    def syncAttribute(self, attr, control, valueField, positionField):
+        attr = self.nodeAttr('aiShutterCurve')
+        values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
+        valuesSplit = values.split(',')
 
+        points = []
+
+        for i in range(0,len(valuesSplit)/3):
+            points.append([valuesSplit[i*3+1],valuesSplit[i*3],0])
+            
+        current = cmds.gradientControlNoAttr( control, query=True, currentKey=True) 
+        cmds.floatField(valueField, edit=True, value=float(points[current][1]))
+        cmds.floatField(positionField, edit=True, value=float(points[current][0]))
+        points[current][2] = 1
+        points.sort()
+        
+        size = cmds.getAttr(attr, size=True)
+        for i in range(0,size):
+            cmds.removeMultiInstance(attr+'['+str(i)+']')
+        
+        curveString = ""
+        for i in range(0,len(points)):
+            cmds.setAttr(attr+'['+str(i)+'].aiShutterCurveX',float(points[i][0]))
+            cmds.setAttr(attr+'['+str(i)+'].aiShutterCurveY',float(points[i][1]))
+            if i is 0:
+                curveString += points[i][1] +"," + points[i][0] +",1"
+            else:
+                curveString += ","+points[i][1] +"," + points[i][0] +",1"
+            
+        # We save the curve points sorted in the attribute, so we will also resort the points in
+        #  the gradient control
+        current = [x[2] for x in points].index(1)
+        cmds.gradientControlNoAttr( control, edit=True, currentKey=current, asString=curveString) 
+            
+    def updateValue(self, attr, control, valueField, positionField):
+        value = pm.floatField(valueField, query=True, value=True)
+        
+        values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
+        valuesSplit = values.split(',')
+            
+        current = cmds.gradientControlNoAttr( control, query=True, currentKey=True) 
+        
+        valuesSplit[current*3] = str(value)
+        values = ",".join(valuesSplit)
+        
+        pm.gradientControlNoAttr( control, edit=True, asString=values)
+        self.syncAttribute(attr, control, valueField, positionField)
+        
+    def updatePosition(self, attr, control, valueField, positionField):
+        value = pm.floatField(positionField, query=True, value=True)
+        
+        values = cmds.gradientControlNoAttr( control, query=True, asString=True) 
+        valuesSplit = values.split(',')
+            
+        current = cmds.gradientControlNoAttr( control, query=True, currentKey=True) 
+        
+        valuesSplit[current*3+1] = str(value)
+        values = ",".join(valuesSplit)
+        
+        pm.gradientControlNoAttr( control, edit=True, asString=values)
+        self.syncAttribute(attr, control, valueField, positionField)
+        
+    def createRamp( self, attr ):
+        #Create the control fields
+        pm.columnLayout( )
+        
+        cmds.rowLayout(nc=2, cw2=(142,220))
+        pm.text("Shutter Curve");
+        pm.text(" ");
+        pm.cmds.setParent('..')
+        
+        cmds.rowLayout("ShutterCurveRowLayout",nc=2, cw2=(142,220))
+        
+        pm.columnLayout("ShutterCurveColumLayout")
+        cmds.rowLayout("ShutterCurveValueLayout", nc=2, cw2=(60,45))
+        pm.text("Value");
+        valueField = pm.floatField("ShutterCurveValueField");
+        pm.cmds.setParent('..')
+        
+        pm.rowLayout("ShutterCurvePositionLayout", nc=2, cw2=(60,45))
+        pm.text("Position");
+        
+        positionField = cmds.floatField("ShutterCurvePositionField");
+        pm.cmds.setParent('..')
+        
+        '''pm.rowLayout(nc=2, cw2=(60,65))
+        pm.text("Interpol.");
+        pm.optionMenu(changeCommand=self.updateRamp )
+        pm.menuItem( label='None' )
+        pm.menuItem( label='Linear' )
+        pm.menuItem( label='Smooth' )
+        pm.menuItem( label='Spline' )
+        pm.cmds.setParent('..')'''
+        pm.cmds.setParent('..')
+        
+        gradient = pm.gradientControlNoAttr("ShutterCurveGradientControl", w=200, h=100 )
+        pm.gradientControlNoAttr( gradient, edit=True, changeCommand=pm.Callback(self.syncAttribute,attr,gradient, valueField, positionField) )
+        
+        #Initialize the curve with the values in the attribute
+        curveString = ""
+        attr = self.nodeAttr('aiShutterCurve')
+        size = cmds.getAttr(attr, size=True)
+        startX = 0
+        startY = 1
+        if size > 0:
+            x = cmds.getAttr(attr+'[0].aiShutterCurveX')
+            y = cmds.getAttr(attr+'[0].aiShutterCurveY')
+            startX = x
+            startY = y
+            curveString += str(y) +"," + str(x) +",1"
+        else:
+            curveString += "1,0,1"
+        for i in range(1,size):
+            x = cmds.getAttr(attr+'['+str(i)+'].aiShutterCurveX')
+            y = cmds.getAttr(attr+'['+str(i)+'].aiShutterCurveY')
+            curveString += ","+str(y) +"," + str(x) +",1"
+            
+        cmds.gradientControlNoAttr( gradient, edit=True, asString=curveString) 
+        
+        pm.floatField(valueField, edit=True, value=startY, changeCommand=pm.Callback(self.updateValue, attr, gradient, valueField, positionField))
+        pm.floatField(positionField, edit=True, value=startX, changeCommand=pm.Callback(self.updatePosition, attr, gradient, valueField, positionField))
+        
+    def updateRamp( self, attr ):
+        name = self.nodeName
+        translator = cmds.getAttr(self.nodeAttr('aiTranslator'))
+
+        uiParent = pm.setParent( q = True )
+        controls = pm.columnLayout( uiParent, q=True, ca=True )
+        
+        curveString = ""
+        attr = self.nodeAttr('aiShutterCurve')
+        size = cmds.getAttr(attr, size=True)
+        if size > 0:
+            x = cmds.getAttr(attr+'[0].aiShutterCurveX')
+            y = cmds.getAttr(attr+'[0].aiShutterCurveY')
+            curveString += str(y) +"," + str(x) +",1"
+        else:
+            curveString += "1,0,1"
+        for i in range(1,size):
+            x = cmds.getAttr(attr+'['+str(i)+'].aiShutterCurveX')
+            y = cmds.getAttr(attr+'['+str(i)+'].aiShutterCurveY')
+            curveString += ","+str(y) +"," + str(x) +",1"
+            
+        valuesSplit = curveString.split(",")
+        
+        if controls:
+            for c in controls:
+                control = c +"|ShutterCurveRowLayout|ShutterCurveGradientControl"
+                valueField = c +"|ShutterCurveRowLayout|ShutterCurveColumLayout|ShutterCurveValueLayout|ShutterCurveValueField"
+                positionField = c +"|ShutterCurveRowLayout|ShutterCurveColumLayout|ShutterCurvePositionLayout|ShutterCurvePositionField"
+                cmds.gradientControlNoAttr( control, edit=True, asString=curveString)
+                current = cmds.gradientControlNoAttr( control, query=True, currentKey=True) 
+                
+                pm.floatField(valueField, edit=True, value=float(valuesSplit[current*3]))
+                pm.floatField(positionField, edit=True, value=float(valuesSplit[current*3+1]))
+
+    
     def addCommonAttributes(self):
         self.addControl("aiExposure")
         self.addControl("aiFiltermap")
@@ -356,6 +512,9 @@ class CameraTemplate(templates.AttributeTemplate):
         self.addControl("motionBlurOverride", label="Camera Motion Blur")
         self.addControl("aiShutterStart")
         self.addControl("aiShutterEnd")
+        self.addControl("aiShutterType")
+        self.addCustom( "aiShutterCurve", self.createRamp, self.updateRamp )
+        
 
 class PerspCameraTemplate(CameraTemplate):
     def setup(self):
