@@ -231,7 +231,7 @@ CGLQuadLightPrimitive::CGLQuadLightPrimitive()
       0, 2, 3
    };
 
-   setPrimitiveData(vertices, 6 * 2, indices, 7 * 2 + 3 * 2, 7 * 2);
+   setPrimitiveData(vertices, 6 * 3, indices, 7 * 2 + 3 * 2, 7 * 2);
 }
 
 void CGLQuadLightPrimitive::draw(bool doWireframe) const
