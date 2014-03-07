@@ -42,6 +42,7 @@ struct CArnoldAreaLightUserData : public MUserData{
     };
     GLuint m_VAO;
     float m_color[4];
+    float m_wireframeColor[4];
     CArnoldAreaLightUserData(const MDagPath& objPath) : MUserData(true), m_VBO(0), m_IBO(0), m_VAO(0)
     { // first draw the quad light
         glGenBuffers(2, m_GLBuffers);
@@ -66,18 +67,25 @@ struct CArnoldAreaLightUserData : public MUserData{
             3, 0,
             0, 2,
             3, 1,
-            4, 5
+            4, 5,
+            0, 1, 2,
+            0, 2, 3
         };
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 8 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, (7 * 2 + 6) * sizeof(unsigned int), indices, GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
-        m_color[0] = color.r;
-        m_color[1] = color.g;
-        m_color[2] = color.b;
-        m_color[3] = color.a;
+        m_wireframeColor[0] = color.r;
+        m_wireframeColor[1] = color.g;
+        m_wireframeColor[2] = color.b;
+        m_wireframeColor[3] = color.a;
+
+        m_color[0] = 1.0f;
+        m_color[1] = 1.0f;
+        m_color[2] = 1.0f;
+        m_color[3] = 1.0f;
 
         glGenVertexArrays(1, &m_VAO);
         glBindVertexArray(m_VAO);
@@ -229,9 +237,25 @@ void CArnoldAreaLightDrawOverride::draw(
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
     glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(4, userData->m_color[0], userData->m_color[1], userData->m_color[2], userData->m_color[3]);
+    
     glBindVertexArray(userData->m_VAO);
-    glDrawElements(GL_LINES, 8 * 2, GL_UNSIGNED_INT, 0);
+    if (context.getDisplayStyle() & MHWRender::MDrawContext::kGouraudShaded)
+    {
+        glPushAttrib(GL_POLYGON_BIT);
+        glEnable(GL_CULL_FACE);
+        glFrontFace(GL_CW);
+        glCullFace(GL_BACK);
+        glUniform4f(4, userData->m_color[0], userData->m_color[1],
+            userData->m_color[2], userData->m_color[3]);
+        glDrawElements(GL_TRIANGLES, 3 * 2, GL_UNSIGNED_INT, (unsigned int *)0 + 7 * 2);
+        glPopAttrib();
+    }
+    else
+    {
+        glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+            userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
+        glDrawElements(GL_LINES, 7 * 2, GL_UNSIGNED_INT, 0);
+    }
     glBindVertexArray(0);
     glUseProgram(0);
 }
