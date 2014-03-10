@@ -45,11 +45,6 @@ struct CArnoldAreaLightUserData : public MUserData{
         m_wireframeColor[2] = color.b;
         m_wireframeColor[3] = color.a;
 
-        m_color[0] = 1.0f;
-        m_color[1] = 1.0f;
-        m_color[2] = 1.0f;
-        m_color[3] = 1.0f;
-
         primitive = new CGLQuadLightPrimitive();
     }
 
@@ -193,29 +188,10 @@ void CArnoldAreaLightDrawOverride::draw(
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
     glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
+    glUniform4f(0, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+        userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
     
-    if (context.getDisplayStyle() & MHWRender::MDrawContext::kGouraudShaded)
-    {
-        /*glPushAttrib(GL_POLYGON_BIT);
-        glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CW);
-        glCullFace(GL_BACK);
-        
-        glDrawElements(GL_TRIANGLES, 3 * 2, GL_UNSIGNED_INT, (unsigned int *)0 + 7 * 2);
-        glPopAttrib();*/
-        glUniform4f(4, userData->m_color[0], userData->m_color[1],
-            userData->m_color[2], userData->m_color[3]);
-        userData->primitive->draw(false);
-    }
-    else
-    {
-        glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
-            userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-        //glDrawElements(GL_LINES, 7 * 2, GL_UNSIGNED_INT, 0);
-        userData->primitive->draw(true);
-    }
-    /*glBindVertexArray(userData->m_VAO);
+    userData->primitive->draw();
     
-    glBindVertexArray(0);*/
     glUseProgram(0);
 }

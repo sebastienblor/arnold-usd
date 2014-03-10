@@ -160,7 +160,7 @@ CBoxPrimitive::CBoxPrimitive(float size)
 #ifdef ENABLE_VP2
 
 CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
-   m_triangleOffset(0), m_numLineIndices(0), m_numTriangleIndices(0)
+   m_numLineIndices(0)
 {
 
 }
@@ -171,7 +171,7 @@ CGLPrimitive::~CGLPrimitive()
    glDeleteVertexArrays(1, &m_VAO);
 }
 
-void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices, unsigned int triangleOffset)
+void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices)
 {
    glGenBuffers(2, m_GLBuffers);
 
@@ -190,20 +190,14 @@ void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVerti
    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
    glBindVertexArray(0);
-   m_triangleOffset = triangleOffset;
-   m_numLineIndices = triangleOffset;
-   m_numTriangleIndices = numIndices - triangleOffset;
+   m_numLineIndices = numIndices;
 }
 
-void CGLPrimitive::draw(bool doWireframe) const
+void CGLPrimitive::draw() const
 {
    glBindVertexArray(m_VAO);
 
-   if (doWireframe)
-      glDrawElements(GL_LINES, m_numLineIndices, GL_UNSIGNED_INT, 0);
-   else
-      glDrawElements(GL_TRIANGLES, m_numTriangleIndices, GL_UNSIGNED_INT, (unsigned int *)0 + m_triangleOffset);
-      
+   glDrawElements(GL_LINES, m_numLineIndices, GL_UNSIGNED_INT, 0);
 
    glBindVertexArray(0);
 }
@@ -226,29 +220,10 @@ CGLQuadLightPrimitive::CGLQuadLightPrimitive()
       3, 0,
       0, 2,
       3, 1,
-      4, 5,
-      0, 1, 2,
-      0, 2, 3
+      4, 5
    };
 
-   setPrimitiveData(vertices, 6 * 3, indices, 7 * 2 + 3 * 2, 7 * 2);
-}
-
-void CGLQuadLightPrimitive::draw(bool doWireframe) const
-{
-   if (doWireframe)
-      CGLPrimitive::draw(true);
-   else
-   {
-      glPushAttrib(GL_POLYGON_BIT);
-      glEnable(GL_CULL_FACE);
-      glFrontFace(GL_CW);
-      glCullFace(GL_BACK);
-        
-      CGLPrimitive::draw(false);
-      
-      glPopAttrib();
-   }
+   setPrimitiveData(vertices, 6 * 3, indices, 7 * 2);
 }
 
 #endif

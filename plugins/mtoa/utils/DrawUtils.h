@@ -62,21 +62,22 @@ protected:
       GLuint m_GLBuffers[2];
    };
    GLuint m_VAO;
-   unsigned int m_triangleOffset;
    unsigned int m_numLineIndices;
-   unsigned int m_numTriangleIndices;
    CGLPrimitive();
-   void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices, unsigned int triangleOffset);
+   void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
 public:
    virtual ~CGLPrimitive();
-   virtual void draw(bool doWireframe) const;
+   virtual void draw() const;
 };
 
 class CGLQuadLightPrimitive : public CGLPrimitive{
 public:
    CGLQuadLightPrimitive();
+};
 
-   virtual void draw(bool doWireFrame) const;
+class CGLDiskPrimitive : public CGLPrimitive{
+public:
+   CGLDiskPrimitive();
 };
 
 #endif
