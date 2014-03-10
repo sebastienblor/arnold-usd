@@ -258,7 +258,38 @@ CGLDiskLightPrimitive::CGLDiskLightPrimitive()
 
 CGLCylinderPrimitive::CGLCylinderPrimitive()
 {
+   float vertices[20 * 6];
+   const GLsizei indexDiff = 20 * 3;
+   for (GLsizei i = 0; i < 20; ++i)
+   {
+      const float d = AI_PITIMES2 * (float(i) / 20.0f);
+      float* v = &vertices[i * 3];
+      const float x = cosf(d);
+      const float z = sinf(d);
+      v[0] = x;
+      v[1] = 1.0f;
+      v[2] = z;
+      v = &vertices[i * 3 + indexDiff];
+      v[0] = x;
+      v[1] = -1.0f;
+      v[2] = z;
+   }
+   unsigned int indices[20 * 6];
+   const GLsizei res2 = 20 * 2;
+   for (GLsizei i = 0; i < 20; ++i)
+   {
+      const GLsizei i2 = i * 2;
+      const GLsizei i1 = (i + 1) % 20;
+      indices[i2] = i;
+      indices[i2 + 1] = i1;
+      indices[i2 + res2] = i + 20;
+      indices[i2 + res2 + 1] = i1 + 20;
+      const GLsizei i2o = i2 + 20 * 4;
+      indices[i2o] = i;
+      indices[i2o + 1] = i + 20;
+   }
 
-};
+   setPrimitiveData(vertices, 20 * 6, indices, 20 * 6);
+}
 
 #endif

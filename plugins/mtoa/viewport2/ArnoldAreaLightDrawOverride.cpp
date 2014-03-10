@@ -7,14 +7,15 @@
 #include <maya/MFnDependencyNode.h>
 
 const char* shaderUniforms = "#version 430\n"
-"layout (location = 0) uniform mat4 modelViewProj;\n"
-"layout (location = 4) uniform vec4 shadeColor;\n";
+"layout (location = 0) uniform mat4 model;\n"
+"layout (location = 4) uniform mat4 viewProj;\n"
+"layout (location = 8) uniform vec4 shadeColor;\n";
 
 const char* vertexShader = 
 "layout (location = 0) in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = modelViewProj * vec4(position, 1.0f);\n"
+"gl_Position = viewProj * (model * vec4(position, 1.0f));\n"
 "}\n";
 
 const char* fragmentShader =
@@ -34,12 +35,13 @@ bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
 // much performance problems, but cleaner,
 // the better
 struct CArnoldAreaLightUserData : public MUserData{
-    CGLPrimitive* primitive;
+    static CGLPrimitive* s_primitives[3];
+    CGLPrimitive* p_primitive;
+    float m_modelMatrix[4][4];
     float m_color[4];
     float m_wireframeColor[4];
     CArnoldAreaLightUserData(const MDagPath& objPath) : MUserData(true)
-    { // first draw the quad light
-        
+    {
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
         m_wireframeColor[1] = color.g;
@@ -50,23 +52,59 @@ struct CArnoldAreaLightUserData : public MUserData{
 
         MStatus status;
         MPlug plug = depNode.findPlug("aiTranslator", &status);
+        MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());
         if (status && !plug.isNull())
         {
             if (plug.asString() == "disk")
-                primitive = new CGLDiskLightPrimitive();
+            {
+                p_primitive = s_primitives[1];
+                double scale[3];
+                modelMatrix.getScale(scale, MSpace::kWorld);
+                if (scale[0] != scale[1]) // non uniform scaling across x and y
+                {
+                    double scale2[3] = {1.0, 1.0, 1.0};
+                    if (scale[0] != 0.0)
+                        scale2[0] /= scale[0];
+                    if (scale[1] != 0)
+                        scale2[1] /= scale[1];
+                    const double avs = (scale[0] + scale[1]) * 0.5;
+                    scale2[0] *= avs;
+                    scale2[1] *= avs;
+                    modelMatrix.addScale(scale2, MSpace::kWorld);
+                }
+            }
             else if (plug.asString() == "cylinder")
-                primitive = new CGLCylinderPrimitive();
+            {
+                p_primitive = s_primitives[2];
+                double scale[3];
+                modelMatrix.getScale(scale, MSpace::kWorld);
+                if (scale[0] != scale[2]) // non uniform scaling across x and y
+                {
+                    double scale2[3] = {1.0, 1.0, 1.0};
+                    if (scale[0] != 0.0)
+                        scale2[0] /= scale[0];
+                    if (scale[2] != 0)
+                        scale2[2] /= scale[2];
+                    const double avs = (scale[0] + scale[2]) * 0.5;
+                    scale2[0] *= avs;
+                    scale2[2] *= avs;
+                    modelMatrix.addScale(scale2, MSpace::kWorld);
+                }
+            }
             else
-                primitive = new CGLQuadLightPrimitive();
+                p_primitive = s_primitives[0];
         }
-        else primitive = new CGLQuadLightPrimitive();
+        else p_primitive = s_primitives[0];
+        
+        modelMatrix.asMatrix().get(m_modelMatrix);
     }
 
     ~CArnoldAreaLightUserData()
     {
-        delete primitive;
     }
 };
+
+CGLPrimitive* CArnoldAreaLightUserData::s_primitives[3] = {0, 0, 0};
 
 MHWRender::MPxDrawOverride* CArnoldAreaLightDrawOverride::creator(const MObject& obj)
 {
@@ -112,6 +150,7 @@ MUserData* CArnoldAreaLightDrawOverride::prepareForDraw(
                                                     const MHWRender::MFrameContext& frameContext,
                                                     MUserData* oldData)
 {
+    initializeGPUResources();
     return new CArnoldAreaLightUserData(objPath);
 }
 
@@ -162,6 +201,11 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
     {
         s_isInitialized = true;
         s_isValid = false;
+
+        CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
+        CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
+        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
+
         s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
         const char* stringPointers[2] = {shaderUniforms, vertexShader};
         glShaderSource(s_vertexShader, 2, stringPointers, 0);
@@ -194,18 +238,19 @@ void CArnoldAreaLightDrawOverride::draw(
                                     const MHWRender::MDrawContext& context,
                                     const MUserData* data)
 {
-    const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);
-    initializeGPUResources();
+    const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);    
     if (s_isValid == false)
         return;
     glUseProgram(s_program);
+
+    glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
     float mat[4][4];
-    context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
-    glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+    context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
+    glUniformMatrix4fv(4, 1, GL_FALSE, &mat[0][0]);
+    glUniform4f(8, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
         userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
     
-    userData->primitive->draw();
+    userData->p_primitive->draw();
     
     glUseProgram(0);
 }
