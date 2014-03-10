@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <maya/MHWGeometryUtilities.h>
+#include <maya/MFnDependencyNode.h>
 
 const char* shaderUniforms = "#version 430\n"
 "layout (location = 0) uniform mat4 modelViewProj;\n"
@@ -45,7 +46,20 @@ struct CArnoldAreaLightUserData : public MUserData{
         m_wireframeColor[2] = color.b;
         m_wireframeColor[3] = color.a;
 
-        primitive = new CGLQuadLightPrimitive();
+        MFnDependencyNode depNode(objPath.node());
+
+        MStatus status;
+        MPlug plug = depNode.findPlug("aiTranslator", &status);
+        if (status && !plug.isNull())
+        {
+            if (plug.asString() == "disk")
+                primitive = new CGLDiskLightPrimitive();
+            else if (plug.asString() == "cylinder")
+                primitive = new CGLCylinderPrimitive();
+            else
+                primitive = new CGLQuadLightPrimitive();
+        }
+        else primitive = new CGLQuadLightPrimitive();
     }
 
     ~CArnoldAreaLightUserData()
@@ -188,7 +202,7 @@ void CArnoldAreaLightDrawOverride::draw(
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
     glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(0, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+    glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
         userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
     
     userData->primitive->draw();

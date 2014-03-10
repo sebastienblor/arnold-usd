@@ -75,9 +75,14 @@ public:
    CGLQuadLightPrimitive();
 };
 
-class CGLDiskPrimitive : public CGLPrimitive{
+class CGLDiskLightPrimitive : public CGLPrimitive{
 public:
-   CGLDiskPrimitive();
+   CGLDiskLightPrimitive();
+};
+
+class CGLCylinderPrimitive : public CGLPrimitive{
+public:
+   CGLCylinderPrimitive();
 };
 
 #endif

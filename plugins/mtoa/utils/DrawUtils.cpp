@@ -226,4 +226,39 @@ CGLQuadLightPrimitive::CGLQuadLightPrimitive()
    setPrimitiveData(vertices, 6 * 3, indices, 7 * 2);
 }
 
+CGLDiskLightPrimitive::CGLDiskLightPrimitive()
+{
+   float vertices[22 * 3];
+   vertices[0] = 0.0f; vertices[1] = 0.0f; vertices[2] = 0.0f;
+   vertices[3] = 0.0f; vertices[4] = 0.0f; vertices[5] = -1.0f;
+
+   for (GLsizei i = 0; i < 20; ++i)
+   {
+      const float d = AI_PITIMES2 * (float(i) / 20.0f);
+      float* v = &vertices[(i + 2) * 3];
+      v[0] = cosf(d);
+      v[1] = sinf(d);
+      v[2] = 0.0f;
+   }
+
+   unsigned int indices[20 * 4 + 2];
+   GLsizei id = 0;
+   indices[id++] = 0;
+   indices[id++] = 1;
+   for (GLsizei i = 0; i < 20; ++i)
+   {
+      indices[id++] = i + 2;
+      indices[id++] = (i + 1) % 20 + 2;
+      indices[id++] = 0;
+      indices[id++] = i + 2;
+   }
+
+   setPrimitiveData(vertices, 22 * 3, indices, 20 * 4 + 2);
+}
+
+CGLCylinderPrimitive::CGLCylinderPrimitive()
+{
+
+};
+
 #endif
