@@ -151,7 +151,9 @@ MUserData* CArnoldAreaLightDrawOverride::prepareForDraw(
                                                     MUserData* oldData)
 {
     initializeGPUResources();
-    return new CArnoldAreaLightUserData(objPath);
+    if (s_isValid)
+        return new CArnoldAreaLightUserData(objPath);
+    else return 0;
 }
 
 MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
@@ -202,6 +204,9 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
+        if (!GLEW_VERSION_4_3)
+            return; // right now, only opengl 4.3, we can lower this later
+
         CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
         CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
         CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
@@ -238,9 +243,9 @@ void CArnoldAreaLightDrawOverride::draw(
                                     const MHWRender::MDrawContext& context,
                                     const MUserData* data)
 {
-    const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);    
     if (s_isValid == false)
         return;
+    const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);        
     glUseProgram(s_program);
 
     glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
