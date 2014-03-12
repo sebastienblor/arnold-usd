@@ -36,12 +36,15 @@ bool CArnoldSkyDomeLightDrawOverride::disableInternalBoundingBoxDraw() const
     return true;
 }
 
+#include <iostream>
+
 MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
         const MDagPath& objPath,
         const MDagPath& cameraPath,
         const MHWRender::MFrameContext& frameContext,
         MUserData* oldData)
 {
+    std::cerr << "Holy shit" << std::endl;
     return 0;
 }
 

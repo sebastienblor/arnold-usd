@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
+#include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include <maya/MDrawRegistry.h>
 #endif
@@ -104,7 +105,9 @@ namespace // <anonymous>
    };
 
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/areaLight";
-   const MString AI_AREA_LIGHT_WITCH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
+   const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
+   const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
+   const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
 
    struct mayaNode {
       const char* name;
@@ -137,11 +140,11 @@ namespace // <anonymous>
       } , {
          "aiSkyDomeLight", CArnoldSkyDomeLightNode::id,
          CArnoldSkyDomeLightNode::creator, CArnoldSkyDomeLightNode::initialize,
-         MPxNode::kLocatorNode, &LIGHT_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_SKYDOME_LIGHT_WITH_SWATCH
       } , {
          "aiAreaLight", CArnoldAreaLightNode::id,
          CArnoldAreaLightNode::creator, CArnoldAreaLightNode::initialize,
-         MPxNode::kLocatorNode, &AI_AREA_LIGHT_WITCH_SWATCH
+         MPxNode::kLocatorNode, &AI_AREA_LIGHT_WITH_SWATCH
       } , {
          "aiPhotometricLight", CArnoldPhotometricLightNode::id,
          CArnoldPhotometricLightNode::creator, CArnoldPhotometricLightNode::initialize,
@@ -762,6 +765,17 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                AI_AREA_LIGHT_CLASSIFICATION,
                areaLightOverrideRegistrant,
                CArnoldAreaLightDrawOverride::creator);
+
+   CHECK_MSTATUS(status);
+
+   MString skyDomeLightOverrideRegistrant = "arnoldSkyDomeLightNodeOverride";
+
+   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+               AI_SKYDOME_LIGHT_CLASSIFICATION,
+               skyDomeLightOverrideRegistrant,
+               CArnoldSkyDomeLightDrawOverride::creator);
+
+   CHECK_MSTATUS(status);
    
 #endif
    
@@ -850,6 +864,14 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
                   AI_AREA_LIGHT_CLASSIFICATION,
                   areaLightOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
+
+   MString skyDomeLightOverrideRegistrant = "arnoldSkyDomeLightNodeOverride";
+
+   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+                  AI_SKYDOME_LIGHT_CLASSIFICATION,
+                  skyDomeLightOverrideRegistrant);
 
    CHECK_MSTATUS(status);
 #endif
