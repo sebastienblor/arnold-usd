@@ -159,6 +159,8 @@ CBoxPrimitive::CBoxPrimitive(float size)
 
 #ifdef ENABLE_VP2
 
+#include <iostream>
+
 CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
    m_numLineIndices(0)
 {
@@ -290,6 +292,42 @@ CGLCylinderPrimitive::CGLCylinderPrimitive()
    }
 
    setPrimitiveData(vertices, 20 * 6, indices, 20 * 6);
+}
+
+bool checkShaderError(GLuint shader)
+{
+   GLint success = 0;
+   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+   if (success == GL_FALSE)
+   {
+      GLint maxLength = 0;
+      glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+      std::vector<char> errorLog(maxLength);
+      glGetShaderInfoLog(shader, maxLength, &maxLength, errorLog.data());
+
+      std::cerr << "[MtoA] Error compiling vertex shader : " << errorLog.data() << std::endl;
+      return true;
+   }
+   return false;
+}
+
+bool checkProgramError(GLuint program)
+{
+   GLint success = 0;
+   glGetProgramiv(program, GL_LINK_STATUS, &success);
+   if (success == GL_FALSE)
+   {
+      GLint maxLength = 0;
+      glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+      std::vector<char> errorLog(maxLength);
+      glGetProgramInfoLog(program, maxLength, &maxLength, errorLog.data());
+
+      std::cerr << "[MtoA] Error linking shader program : " << errorLog.data() << std::endl;
+      return true;
+   }
+   return false;
 }
 
 #endif

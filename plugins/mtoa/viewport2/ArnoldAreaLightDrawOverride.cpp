@@ -161,42 +161,6 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
     return (MHWRender::kOpenGL); // | MHWRender::kDirectX11); TODO support dx11 later
 }
 
-bool checkShaderError(GLuint shader)
-{
-    GLint success = 0;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (success == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-
-        std::vector<char> errorLog(maxLength);
-        glGetShaderInfoLog(shader, maxLength, &maxLength, errorLog.data());
-
-        std::cerr << "[MtoA] Error compiling vertex shader : " << errorLog.data() << std::endl;
-        return true;
-    }
-    return false;
-}
-
-bool checkProgramError(GLuint program)
-{
-    GLint success = 0;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (success == GL_FALSE)
-    {
-        GLint maxLength = 0;
-        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-
-        std::vector<char> errorLog(maxLength);
-        glGetProgramInfoLog(program, maxLength, &maxLength, errorLog.data());
-
-        std::cerr << "[MtoA] Error linking shader program : " << errorLog.data() << std::endl;
-        return true;
-    }
-    return false;
-}
-
 void CArnoldAreaLightDrawOverride::initializeGPUResources()
 {
     if (s_isInitialized == false)

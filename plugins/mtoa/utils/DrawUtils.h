@@ -85,4 +85,7 @@ public:
    CGLCylinderPrimitive();
 };
 
+bool checkShaderError(GLuint shader);
+bool checkProgramError(GLuint shader);
+
 #endif

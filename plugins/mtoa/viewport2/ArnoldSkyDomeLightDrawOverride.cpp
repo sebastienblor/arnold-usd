@@ -1,5 +1,7 @@
 #include "ArnoldSkydomeLightDrawOverride.h"
 
+#include <iostream>
+
 MHWRender::MPxDrawOverride* CArnoldSkyDomeLightDrawOverride::creator(const MObject& obj)
 {
     return new CArnoldSkyDomeLightDrawOverride(obj);
@@ -36,15 +38,12 @@ bool CArnoldSkyDomeLightDrawOverride::disableInternalBoundingBoxDraw() const
     return true;
 }
 
-#include <iostream>
-
 MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
         const MDagPath& objPath,
         const MDagPath& cameraPath,
         const MHWRender::MFrameContext& frameContext,
         MUserData* oldData)
-{
-    
+{    
     return 0;
 }
 
