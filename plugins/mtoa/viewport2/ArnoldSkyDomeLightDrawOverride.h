@@ -30,4 +30,17 @@ public:
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
 private:
     CArnoldSkyDomeLightDrawOverride(const MObject& obj);
+
+    static void initializeGPUResources();
+
+    static GLuint s_vertexShaderWireframe;
+    static GLuint s_fragmentShaderWireframe;
+    static GLuint s_programWireframe;
+
+    static GLuint s_vertexShaderTextured;
+    static GLuint s_fragmentShaderTextured;
+    static GLuint s_programTextured;
+
+    static bool s_isValid;
+    static bool s_isInitialized;
 };
