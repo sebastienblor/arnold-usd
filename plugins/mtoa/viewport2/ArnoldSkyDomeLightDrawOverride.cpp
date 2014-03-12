@@ -44,7 +44,7 @@ MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
         const MHWRender::MFrameContext& frameContext,
         MUserData* oldData)
 {
-    std::cerr << "Holy shit" << std::endl;
+    
     return 0;
 }
 
