@@ -172,11 +172,12 @@ namespace // <anonymous>
       MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
       // STANDINS
-      status = plugin.registerShape("aiStandIn",
-                                    CArnoldStandInShape::id,
-                                    CArnoldStandInShape::creator,
-                                    CArnoldStandInShape::initialize,
-                                    CArnoldStandInShapeUI::creator);
+      status = plugin.registerShape(
+                           "aiStandIn",
+                           CArnoldStandInShape::id,
+                           CArnoldStandInShape::creator,
+                           CArnoldStandInShape::initialize,
+                           CArnoldStandInShapeUI::creator);
       CHECK_MSTATUS(status);
 
       for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
@@ -303,57 +304,57 @@ namespace // <anonymous>
 
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
-                                  "perspective",
-                                  CStandardCameraTranslator::creator,
-                                  CStandardCameraTranslator::NodeInitializer);
+                                    "perspective",
+                                    CStandardCameraTranslator::creator,
+                                    CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
-                                  "orthographic",
-                                  CStandardCameraTranslator::creator,
-                                  CStandardCameraTranslator::NodeInitializer);
+                                    "orthographic",
+                                    CStandardCameraTranslator::creator,
+                                    CStandardCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
-                                  "fisheye",
-                                  CFishEyeCameraTranslator::creator,
-                                  CFishEyeCameraTranslator::NodeInitializer);
+                                    "fisheye",
+                                    CFishEyeCameraTranslator::creator,
+                                    CFishEyeCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
-                                  "cylindrical",
-                                  CCylCameraTranslator::creator,
-                                  CCylCameraTranslator::NodeInitializer);
+                                    "cylindrical",
+                                    CCylCameraTranslator::creator,
+                                    CCylCameraTranslator::NodeInitializer);
       builtin->RegisterTranslator("stereoRigCamera",
-                                  "spherical",
-                                  CSphericalCameraTranslator::creator,
-                                  CSphericalCameraTranslator::NodeInitializer);
+                                    "spherical",
+                                    CSphericalCameraTranslator::creator,
+                                    CSphericalCameraTranslator::NodeInitializer);
                                  
        // Hair
       builtin->RegisterTranslator("pfxHair",
-                                  "",
-                                  CHairTranslator::creator,
-                                  CHairTranslator::NodeInitializer);
+                                    "",
+                                    CHairTranslator::creator,
+                                    CHairTranslator::NodeInitializer);
       // Curves
       builtin->RegisterTranslator("nurbsCurve",
-                                  "",
-                                  CCurveTranslator::creator,
-                                  CCurveTranslator::NodeInitializer);
+                                    "",
+                                    CCurveTranslator::creator,
+                                    CCurveTranslator::NodeInitializer);
 
       // Particles
       builtin->RegisterTranslator("particle",
-                                  "",
-                                  CParticleTranslator::creator,
-                                  CParticleTranslator::NodeInitializer);
+                                    "",
+                                    CParticleTranslator::creator,
+                                    CParticleTranslator::NodeInitializer);
 
       builtin->RegisterTranslator("nParticle",
-                                  "",
-                                  CNParticleTranslator::creator,
-                                  CNParticleTranslator::NodeInitializer);
+                                    "",
+                                    CNParticleTranslator::creator,
+                                    CNParticleTranslator::NodeInitializer);
 
       builtin->RegisterTranslator("instancer",
-                                  "",
-                                  CInstancerTranslator::creator,
-                                  CInstancerTranslator::NodeInitializer);
+                                    "",
+                                    CInstancerTranslator::creator,
+                                    CInstancerTranslator::NodeInitializer);
 
       builtin->RegisterTranslator("objectSet",
-                                  "",
-                                  CObjectSetTranslator::creator,
-                                  CObjectSetTranslator::NodeInitializer);
+                                    "",
+                                    CObjectSetTranslator::creator,
+                                    CObjectSetTranslator::NodeInitializer);
 
       // Load all plugins path or only shaders?
       CExtension* shaders;
@@ -390,92 +391,91 @@ namespace // <anonymous>
          shaders->RegisterPluginNodesAndTranslators("mtoa");
 
          shaders->RegisterTranslator("lambert",
-                                     "",
-                                     CLambertTranslator::creator);
+                                       "",
+                                       CLambertTranslator::creator);
          shaders->RegisterTranslator("layeredShader",
-                                     "",
-                                     CLayeredShaderTranslator::creator);
+                                       "",
+                                       CLayeredShaderTranslator::creator);
          shaders->RegisterTranslator("layeredTexture",
-                                     "",
-                                     CLayeredTextureTranslator::creator);
+                                       "",
+                                       CLayeredTextureTranslator::creator);
          shaders->RegisterTranslator("file",
-                                     "",
-                                     CFileTranslator::creator,
-                                     CFileTranslator::NodeInitializer);
+                                       "",
+                                       CFileTranslator::creator,
+                                       CFileTranslator::NodeInitializer);
          shaders->RegisterTranslator("place2dTexture",
-                                     "",
-                                     CPlace2DTextureTranslator::creator);
+                                       "",
+                                       CPlace2DTextureTranslator::creator);
          shaders->RegisterTranslator("bump2d",
-                                     "",
-                                     CBump2DTranslator::creator,
-                                     CBump2DTranslator::NodeInitializer);
+                                       "",
+                                       CBump2DTranslator::creator,
+                                       CBump2DTranslator::NodeInitializer);
          shaders->RegisterTranslator("bump3d",
-                                     "",
-                                     CBump3DTranslator::creator);
+                                       "",
+                                       CBump3DTranslator::creator);
          shaders->RegisterTranslator("samplerInfo",
-                                     "facingRatio",
-                                     CSamplerInfoTranslator::creator);
+                                       "facingRatio",
+                                       CSamplerInfoTranslator::creator);
          shaders->RegisterTranslator("plusMinusAverage",
-                                     "",
-                                     CPlusMinusAverageTranslator::creator);
+                                       "",
+                                       CPlusMinusAverageTranslator::creator);
          shaders->RegisterTranslator("particleSamplerInfo",
-                                     "",
-                                     CParticleSamplerInfoTranslator::creator);
+                                       "",
+                                       CParticleSamplerInfoTranslator::creator);
          shaders->RegisterTranslator("remapValue",
-                                     "",
-                                     CRemapValueTranslator::creator);
+                                       "",
+                                       CRemapValueTranslator::creator);
          shaders->RegisterTranslator("remapColor",
-                                     "",
-                                     CRemapColorTranslator::creator);
+                                       "",
+                                       CRemapColorTranslator::creator);
          shaders->RegisterTranslator("remapHsv",
-                                     "",
-                                     CRemapHsvTranslator::creator);
+                                       "",
+                                       CRemapHsvTranslator::creator);
          shaders->RegisterTranslator("projection",
-                                     "",
-                                     CProjectionTranslator::creator,
-                                     ProjectionTranslatorNodeInitializer);
+                                       "",
+                                       CProjectionTranslator::creator,
+                                       ProjectionTranslatorNodeInitializer);
          shaders->RegisterTranslator("ramp",
-                                     "",
-                                     CRampTranslator::creator);
+                                       "",
+                                       CRampTranslator::creator);
          shaders->RegisterTranslator("animCurveTA",
-                                     "",
-                                     CAnimCurveTranslator::creator);
+                                       "",
+                                       CAnimCurveTranslator::creator);
          shaders->RegisterTranslator("animCurveTL",
-                                     "",
-                                     CAnimCurveTranslator::creator);
+                                       "",
+                                       CAnimCurveTranslator::creator);
          shaders->RegisterTranslator("animCurveTU",
-                                     "",
-                                     CAnimCurveTranslator::creator);
-
+                                       "",
+                                       CAnimCurveTranslator::creator);
          shaders->RegisterTranslator("shadingEngine",
-                                     "",
-                                     CShadingEngineTranslator::creator,
-                                     CShadingEngineTranslator::NodeInitializer);
+                                       "",
+                                       CShadingEngineTranslator::creator,
+                                       CShadingEngineTranslator::NodeInitializer);
          shaders->RegisterTranslator("displacementShader",
-                                     "",
-                                     CDisplacementTranslator::creator,
-                                     DisplacementTranslatorNodeInitializer);         
+                                       "",
+                                       CDisplacementTranslator::creator,
+                                       DisplacementTranslatorNodeInitializer);         
          shaders->RegisterTranslator("blinn",
-                                     "",
-                                     CMayaBlinnTranslator::creator);
+                                       "",
+                                       CMayaBlinnTranslator::creator);
          shaders->RegisterTranslator("phong",
-                                     "",
-                                     CMayaPhongTranslator::creator);
+                                       "",
+                                       CMayaPhongTranslator::creator);
          shaders->RegisterTranslator("singleShadingSwitch",
-                                     "",
-                                     CreateSingleShadingSwitchTranslator);
+                                       "",
+                                       CreateSingleShadingSwitchTranslator);
          shaders->RegisterTranslator("doubleShadingSwitch",
-                                     "",
-                                     CreateDoubleShadingSwitchTranslator);
+                                       "",
+                                       CreateDoubleShadingSwitchTranslator);
          shaders->RegisterTranslator("tripleShadingSwitch",
-                                     "",
-                                     CreateTripleShadingSwitchTranslator);
+                                       "",
+                                       CreateTripleShadingSwitchTranslator);
          shaders->RegisterTranslator("quadShadingSwitch",
-                                     "",
-                                     CreateQuadShadingSwitchTranslator);
+                                       "",
+                                       CreateQuadShadingSwitchTranslator);
          shaders->RegisterTranslator("fluidTexture2D",
-                                     "",
-                                     CFluidTexture2DTranslator::creator);
+                                       "",
+                                       CFluidTexture2DTranslator::creator);
       }
       
 #ifdef ENABLE_XGEN
@@ -483,8 +483,8 @@ namespace // <anonymous>
       CExtension* xgen = CExtensionsManager::NewExtension("xgen");
       xgen->Requires("xgenToolkit");
       xgen->RegisterTranslator("xgmDescription",
-                               "",
-                               CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
+                                 "",
+                                 CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
 
       CExtensionsManager::RegisterExtension(xgen);
 #endif
@@ -638,8 +638,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    extensions.append("tex");
    extensions.append("tx");
    plugin.registerImageFile(CTxTextureFile::fileName,
-                            CTxTextureFile::creator, 
-                            extensions);
+                              CTxTextureFile::creator, 
+                              extensions);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
