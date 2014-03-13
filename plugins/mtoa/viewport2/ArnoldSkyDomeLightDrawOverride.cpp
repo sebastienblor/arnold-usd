@@ -1,5 +1,6 @@
 #include "ArnoldSkyDomeLightDrawOverride.h"
 
+#include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
 
 #include <iostream>
@@ -9,14 +10,15 @@
 namespace{
     const char* shaderUniforms = "#version 430\n"
 "layout (location = 0) uniform mat4 viewProj;\n"
-"layout (location = 5) uniform float scale;\n"
-"layout (location = 6) uniform vec4 shadeColor;\n";
+"layout (location = 4) uniform float scale;\n"
+"layout (location = 5) uniform vec4 shadeColor;\n";
 
     const char* vertexShaderWireframe = 
 "layout (location = 0) in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = viewProj * (scale * vec4(position, 1.0f));\n"
+//"gl_Position = viewProj * vec4(scale * position, 1.0f);\n"
+"gl_Position = viewProj * vec4(position, 1.0f);\n"
 "}\n";
 
     const char* vertexShaderTextured = 
@@ -100,6 +102,7 @@ bool CArnoldSkyDomeLightDrawOverride::disableInternalBoundingBoxDraw() const
 }
 
 struct SArnoldSkyDomeLightUserData : public MUserData{
+    float m_wireframeColor[4];
     float m_radius;
     int m_format;    
     // 0 - MirroredBall
@@ -108,6 +111,12 @@ struct SArnoldSkyDomeLightUserData : public MUserData{
     // 3 - Cubic
     SArnoldSkyDomeLightUserData(const MDagPath& objPath) : MUserData(true)
     {
+        MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
+        m_wireframeColor[0] = color.r;
+        m_wireframeColor[1] = color.g;
+        m_wireframeColor[2] = color.b;
+        m_wireframeColor[3] = color.a;
+
         MFnDependencyNode depNode(objPath.node());
 
         MStatus status;
@@ -146,7 +155,21 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
 {
     if (!s_isValid)
         return;
-    //const SArnoldSkyDomeLightUserData* userData = reinterpret_cast<const SArnoldSkyDomeLightUserData*>(data);
+    const SArnoldSkyDomeLightUserData* userData = reinterpret_cast<const SArnoldSkyDomeLightUserData*>(data);
+
+    glUseProgram(s_programWireframe);
+
+    //glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
+    float mat[4][4];
+    context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
+    glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
+    glUniform1f(4, userData->m_radius);
+    glUniform4f(5, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+        userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
+    glBindVertexArray(s_VAOWireframe);
+    glDrawElements(GL_LINES, s_numWireframeIndices, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
@@ -257,9 +280,9 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
             for (int xx = 0; xx < resolution; ++xx)
             {
                 const float dx = AI_PITIMES2 * float(xx) / float(resolution);
-                dir.x = vertices[++id] = cosf(dx) * pr;
-                dir.y = vertices[++id] = y;
-                dir.z = vertices[++id] = sinf(dx) * pr;
+                dir.x = vertices[id++] = cosf(dx) * pr;
+                dir.y = vertices[id++] = y;
+                dir.z = vertices[id++] = sinf(dx) * pr;
                 AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
                 id += 2;
                 AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
@@ -317,7 +340,7 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         glBindVertexArray(s_VAOWireframe);
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBOWireframe);
         glBindVertexArray(0);
     }
