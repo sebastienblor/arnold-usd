@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <ai.h>
+
 namespace{
     const char* shaderUniforms = "#version 430\n"
 "layout (location = 0) uniform mat4 viewProj;\n"
@@ -45,6 +47,19 @@ GLuint CArnoldSkyDomeLightDrawOverride::s_programTextured = 0;
 
 bool CArnoldSkyDomeLightDrawOverride::s_isValid = false;
 bool CArnoldSkyDomeLightDrawOverride::s_isInitialized = false;
+
+GLuint CArnoldSkyDomeLightDrawOverride::s_VBO = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_IBOWireframe = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_IBOTextured = 0;
+
+GLuint CArnoldSkyDomeLightDrawOverride::s_VAOWireframe = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedBall = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedAngular = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedLatLong = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedCubic = 0;
+
+GLuint CArnoldSkyDomeLightDrawOverride::s_numWireframeIndices = 0;
+GLuint CArnoldSkyDomeLightDrawOverride::s_numTexturedIndices = 0;
 
 MHWRender::MPxDrawOverride* CArnoldSkyDomeLightDrawOverride::creator(const MObject& obj)
 {
@@ -164,5 +179,113 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
             return;
 
         s_isValid = true;
+
+        const int resolution = 20; // 20 by 20 sphere should be enough
+        // creating Vertex, Index buffers and Vertex Arrays
+        const int stride = 3 + 4 * 2; // first 3 for positions, the next 4 for the different UV coordinates
+
+        // first vertex for the bottom pole, second for the top, and the rest
+        // for the rings along the sphere from the bottom
+        // to the top
+
+        float vertices[stride * (2 + resolution * resolution)];
+        int id = 0;
+        vertices[id++] = 0.0f;
+        vertices[id++] = -1.0f;
+        vertices[id++] = 0.0f;
+        AtVector dir = {0.0f, -1.0f, 0.0f}; // if I convert vertices
+        // into AtVector*, it will generate a gcc warning
+        // dereferencing type-punned pointer will break strict-aliasing rules
+        AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        AiMappingCubicMap(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        dir.y = 1.0f;
+        vertices[id++] = 0.0f;
+        vertices[id++] = 1.0f;
+        vertices[id++] = 0.0f;
+        AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        AiMappingCubicMap(&dir, vertices + id, vertices + id + 1);
+        id += 2;
+        for (int yy = 0; yy < resolution; ++yy)
+        {
+            const float dy = AI_PI * float(yy) / float(resolution) - AI_PIOVER2;
+            const float y = sinf(dy);
+            const float pr = cosf(dy);
+            for (int xx = 0; xx < resolution; ++xx)
+            {
+                const float dx = AI_PITIMES2 * float(xx) / float(resolution);
+                dir.x = vertices[++id] = cosf(dx) * pr;
+                dir.y = vertices[++id] = y;
+                dir.z = vertices[++id] = sinf(dx) * pr;
+                AiMappingMirroredBall(&dir, vertices + id, vertices + id + 1);
+                id += 2;
+                AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
+                id += 2;
+                AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
+                id += 2;
+                AiMappingCubicMap(&dir, vertices + id, vertices + id + 1);
+                id += 2;
+            }
+        }
+
+        glGenBuffers(1, &s_VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+        glBufferData(GL_ARRAY_BUFFER, stride * (2 + resolution * resolution) * sizeof(float),
+            vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        s_numWireframeIndices = resolution * resolution * 2 + // for horizontal lines
+                                (resolution + 1) * resolution * 2;
+        unsigned int indicesWireframe[s_numWireframeIndices]; // for vertical lines
+        // fill horizontal lines
+        id = 0;
+        for (int yy = 0; yy < resolution; ++yy)
+        {
+            const int wy = 2 + yy * resolution;
+            for (int xx = 0; xx < resolution; ++xx)
+            {
+                indicesWireframe[id++] = wy + xx;
+                indicesWireframe[id++] = wy + (xx + 1) % resolution;
+            }
+        }
+
+        // fill vertical lines
+        for (int xx = 0; xx < resolution; ++xx)
+        {
+            const int xx2 = 2 + xx;
+            indicesWireframe[id++] = 0;         
+            indicesWireframe[id++] = xx2;
+            for (int yy = 0; yy < (resolution - 1); ++yy)
+            {
+                indicesWireframe[id++] = xx2 + yy * resolution;
+                indicesWireframe[id++] = xx2 + (yy + 1) * resolution;
+            }
+            indicesWireframe[id++] = xx2 + (resolution - 1) * resolution;
+            indicesWireframe[id++] = 1;
+        }
+
+        glGenBuffers(1, &s_IBOWireframe);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBOWireframe);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, s_numWireframeIndices * sizeof(unsigned int),
+                        indicesWireframe, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+        glGenVertexArrays(1, &s_VAOWireframe);
+        glBindVertexArray(s_VAOWireframe);
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBOWireframe);
+        glBindVertexArray(0);
     }
 }
