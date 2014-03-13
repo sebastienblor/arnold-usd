@@ -1,5 +1,7 @@
 #include "ArnoldSkyDomeLightDrawOverride.h"
 
+#include <maya/MFnDependencyNode.h>
+
 #include <iostream>
 
 #include <ai.h>
@@ -10,16 +12,6 @@ namespace{
 "layout (location = 5) uniform float scale;\n"
 "layout (location = 6) uniform vec4 shadeColor;\n";
 
-    const char* vertexShaderTextured = 
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec2 texcoord;\n"
-"out vec2 txc;"
-"void main()\n"
-"{\n"
-"gl_Position = viewProj * (scale * vec4(position, 1.0f));\n"
-"txc = texcoord;"
-"}\n";
-
     const char* vertexShaderWireframe = 
 "layout (location = 0) in vec3 position;\n"
 "void main()\n"
@@ -27,14 +19,24 @@ namespace{
 "gl_Position = viewProj * (scale * vec4(position, 1.0f));\n"
 "}\n";
 
-    const char* fragmentShaderTextured =
-"int vec2 txc;\n"
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";
+    const char* vertexShaderTextured = 
+"layout (location = 0) in vec3 position;\n"
+"layout (location = 1) in vec2 texcoord;\n"
+"out vec2 tx;\n"
+"void main()\n"
+"{\n"
+"gl_Position = viewProj * (scale * vec4(position, 1.0f));\n"
+"tx = texcoord;\n"
+"}\n";    
 
     const char* fragmentShaderWireframe =
 "out vec4 frag_color;\n"
 "void main() { frag_color = shadeColor;}\n";
+
+    const char* fragmentShaderTextured =
+"in vec2 tx;\n"
+"out vec4 frag_color;\n"
+"void main() { frag_color = shadeColor;}\n";    
 }
 
 GLuint CArnoldSkyDomeLightDrawOverride::s_vertexShaderWireframe = 0;
@@ -97,13 +99,42 @@ bool CArnoldSkyDomeLightDrawOverride::disableInternalBoundingBoxDraw() const
     return true;
 }
 
+struct SArnoldSkyDomeLightUserData : public MUserData{
+    float m_radius;
+    int m_format;    
+    // 0 - MirroredBall
+    // 1 - Angular
+    // 2 - LatLong
+    // 3 - Cubic
+    SArnoldSkyDomeLightUserData(const MDagPath& objPath) : MUserData(true)
+    {
+        MFnDependencyNode depNode(objPath.node());
+
+        MStatus status;
+        MPlug plug = depNode.findPlug("skyRadius", &status);
+        if (status && !plug.isNull())
+            m_radius = plug.asFloat();
+
+        plug = depNode.findPlug("format", &status);
+        if (status && !plug.isNull())
+            m_format = plug.asInt();
+    }
+
+    ~SArnoldSkyDomeLightUserData()
+    {
+
+    }
+};
+
+
 MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
         const MDagPath& objPath,
         const MDagPath& cameraPath,
         const MHWRender::MFrameContext& frameContext,
         MUserData* oldData)
-{    
-    return 0;
+{
+    initializeGPUResources();
+    return new SArnoldSkyDomeLightUserData(objPath);
 }
 
 MHWRender::DrawAPI CArnoldSkyDomeLightDrawOverride::supportedDrawAPIs() const
@@ -113,7 +144,9 @@ MHWRender::DrawAPI CArnoldSkyDomeLightDrawOverride::supportedDrawAPIs() const
 
 void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)
 {
-
+    if (!s_isValid)
+        return;
+    //const SArnoldSkyDomeLightUserData* userData = reinterpret_cast<const SArnoldSkyDomeLightUserData*>(data);
 }
 
 void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()

@@ -306,7 +306,7 @@ bool checkShaderError(GLuint shader)
       std::vector<char> errorLog(maxLength);
       glGetShaderInfoLog(shader, maxLength, &maxLength, errorLog.data());
 
-      std::cerr << "[MtoA] Error compiling vertex shader : " << errorLog.data() << std::endl;
+      std::cerr << "[MtoA] Error compiling shader : " << errorLog.data() << std::endl;
       return true;
    }
    return false;
