@@ -1,15 +1,13 @@
 #pragma once
 
 #ifdef ENABLE_VP2
-
 #include <GL/glew.h>
 #else
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
 #else 
    #include <GL/gl.h>
-#endif   
-
+#endif
 #endif
 
 #include <vector>

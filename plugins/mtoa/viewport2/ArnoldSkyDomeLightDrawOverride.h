@@ -3,6 +3,7 @@
 #include <maya/MPxDrawOverride.h>
 #include <maya/MUserData.h>
 #include <maya/MDrawContext.h>
+#include <maya/MObject.h>
 
 class CArnoldSkyDomeLightDrawOverride : public MHWRender::MPxDrawOverride{
 public:
