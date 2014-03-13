@@ -2,6 +2,7 @@
 
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/MTransformationMatrix.h>
 
 #include <iostream>
 
@@ -9,16 +10,16 @@
 
 namespace{
     const char* shaderUniforms = "#version 430\n"
-"layout (location = 0) uniform mat4 viewProj;\n"
-"layout (location = 4) uniform float scale;\n"
-"layout (location = 5) uniform vec4 shadeColor;\n";
+"layout (location = 0) uniform mat4 model;\n"
+"layout (location = 4) uniform mat4 viewProj;\n"
+"layout (location = 8) uniform float scale;\n"
+"layout (location = 9) uniform vec4 shadeColor;\n";
 
     const char* vertexShaderWireframe = 
 "layout (location = 0) in vec3 position;\n"
 "void main()\n"
 "{\n"
-//"gl_Position = viewProj * vec4(scale * position, 1.0f);\n"
-"gl_Position = viewProj * vec4(position, 1.0f);\n"
+"gl_Position = viewProj * (model * vec4(scale * position, 1.0f));\n"
 "}\n";
 
     const char* vertexShaderTextured = 
@@ -85,7 +86,7 @@ bool CArnoldSkyDomeLightDrawOverride::isBounded(
         const MDagPath& objPath,
         const MDagPath& cameraPath) const
 {
-    return false;
+    return true;
 }
 
 MBoundingBox CArnoldSkyDomeLightDrawOverride::boundingBox(
@@ -93,6 +94,18 @@ MBoundingBox CArnoldSkyDomeLightDrawOverride::boundingBox(
         const MDagPath& cameraPath) const
 {
     MBoundingBox bbox;
+    MFnDependencyNode depNode(objPath.node());
+
+    MStatus status;
+    double radius = 1.0f;
+    MPlug plug = depNode.findPlug("skyRadius", &status);
+    if (status && !plug.isNull())
+        radius = (double)plug.asFloat();
+    bbox.expand(MPoint(radius, radius, radius));
+    bbox.expand(MPoint(-radius, -radius, -radius));
+    // we cannot compensate for translation
+    // because this function is not called for every
+    // translation
     return bbox;
 }
 
@@ -102,6 +115,7 @@ bool CArnoldSkyDomeLightDrawOverride::disableInternalBoundingBoxDraw() const
 }
 
 struct SArnoldSkyDomeLightUserData : public MUserData{
+    float m_modelMatrix[4][4]; // cut out translation, that doesn't matter
     float m_wireframeColor[4];
     float m_radius;
     int m_format;    
@@ -127,6 +141,12 @@ struct SArnoldSkyDomeLightUserData : public MUserData{
         plug = depNode.findPlug("format", &status);
         if (status && !plug.isNull())
             m_format = plug.asInt();
+
+        // zeroing the translation component out
+        objPath.inclusiveMatrix().get(m_modelMatrix);
+        m_modelMatrix[3][0] = 0.0f;
+        m_modelMatrix[3][1] = 0.0f;
+        m_modelMatrix[3][2] = 0.0f;
     }
 
     ~SArnoldSkyDomeLightUserData()
@@ -157,17 +177,27 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
         return;
     const SArnoldSkyDomeLightUserData* userData = reinterpret_cast<const SArnoldSkyDomeLightUserData*>(data);
 
-    glUseProgram(s_programWireframe);
-
-    //glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
-    glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
-    glUniform1f(4, userData->m_radius);
-    glUniform4f(5, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
-        userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-    glBindVertexArray(s_VAOWireframe);
-    glDrawElements(GL_LINES, s_numWireframeIndices, GL_UNSIGNED_INT, 0);
+
+    if (context.getDisplayStyle() & MHWRender::MDrawContext::kGouraudShaded)
+    {
+
+    }
+    else
+    {
+        glUseProgram(s_programWireframe);
+
+        glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);    
+        glUniformMatrix4fv(4, 1, GL_FALSE, &mat[0][0]);
+        glUniform1f(8, userData->m_radius);
+        glUniform4f(9, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+            userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
+
+        glBindVertexArray(s_VAOWireframe);
+        glDrawElements(GL_LINES, s_numWireframeIndices, GL_UNSIGNED_INT, 0);
+    }
+    
     glBindVertexArray(0);
     glUseProgram(0);
 }
