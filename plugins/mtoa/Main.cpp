@@ -3,6 +3,7 @@
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
+#include "viewport2/ArnoldStandInDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include <maya/MDrawRegistry.h>
 #endif
@@ -108,6 +109,7 @@ namespace // <anonymous>
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
+   const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
 
    struct mayaNode {
       const char* name;
@@ -177,7 +179,8 @@ namespace // <anonymous>
                            CArnoldStandInShape::id,
                            CArnoldStandInShape::creator,
                            CArnoldStandInShape::initialize,
-                           CArnoldStandInShapeUI::creator);
+                           CArnoldStandInShapeUI::creator,
+                           &AI_STANDIN_CLASSIFICATION);
       CHECK_MSTATUS(status);
 
       for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
@@ -776,7 +779,15 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                CArnoldSkyDomeLightDrawOverride::creator);
 
    CHECK_MSTATUS(status);
-   
+
+   MString standinOverrideRegistrant = "arnoldStandInNodeOverride";
+
+   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+               AI_STANDIN_CLASSIFICATION,
+               standinOverrideRegistrant,
+               CArnoldStandInDrawOverride::creator);
+
+   CHECK_MSTATUS(status);   
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -872,6 +883,14 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
                   AI_SKYDOME_LIGHT_CLASSIFICATION,
                   skyDomeLightOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
+
+   MString standinOverrideRegistrant = "arnoldStandInNodeOverride";
+
+   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+                  AI_STANDIN_CLASSIFICATION,
+                  standinOverrideRegistrant);
 
    CHECK_MSTATUS(status);
 #endif
