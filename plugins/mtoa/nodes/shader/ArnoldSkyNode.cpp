@@ -67,3 +67,9 @@ MStatus CArnoldSkyNode::initialize()
    return MS::kSuccess;
 }
 
+void CArnoldSkyNode::draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status)
+{
+   if ((view.objectDisplay() & M3dView::kDisplayLocators) == 0) return;
+   CSphereLocator::draw(view, DGpath, style, status);
+}
+

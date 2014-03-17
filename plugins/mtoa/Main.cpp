@@ -424,11 +424,11 @@ namespace // <anonymous>
                                      CRemapHsvTranslator::creator);
          shaders->RegisterTranslator("projection",
                                      "",
-                                     CProjectionTranslator::creator);
+                                     CProjectionTranslator::creator,
+                                     ProjectionTranslatorNodeInitializer);
          shaders->RegisterTranslator("ramp",
                                      "",
                                      CRampTranslator::creator);
-
          shaders->RegisterTranslator("animCurveTA",
                                      "",
                                      CAnimCurveTranslator::creator);
