@@ -1406,6 +1406,9 @@
         maya.name           STRING  "aiGlossyVisibility"
         label               STRING  "Visible In Glossy"
 
+[node density]
+    maya.hide               BOOL    true
+
 # drivers
 
 [node driver_display]
