@@ -12,7 +12,6 @@ void CLinePrimitiveData::draw() // TODO : use VBOs, but use glew to determine if
 
 CDiskPrimitive::CDiskPrimitive(GLsizei resolution)
 {
-   elementType = GL_LINE_STRIP;
    vertices.resize((resolution + 1) * 3);
    vertices[0] = 0.0f;
    vertices[1] = 0.0f;
@@ -155,6 +154,113 @@ CBoxPrimitive::CBoxPrimitive(float size)
    indices[id++] = 1; indices[id++] = 5;
    indices[id++] = 2; indices[id++] = 6;
    indices[id++] = 3; indices[id++] = 7;
+}
+
+CPhotometricLightPrimitive::CPhotometricLightPrimitive()
+{
+   GLsizei id = 0;
+
+   vertices.resize(3 * 3 * 360 + // vertices for the three circles
+      3 * 3 * 8 + // vertices for the "spikes"
+      3 * 4 + // for the direction
+      3 * 4 // for the rotational direction
+      );
+
+   for (GLsizei i = 0; i < 360; ++i)
+   {
+      const float d = float(i) * 2.0f * M_PI / 360.0f;
+      const GLsizei i3 = i * 3;
+      const GLsizei i31 = i3 + 1;
+      const GLsizei i32 = i3 + 2;
+      const float cd = cosf(d) * 0.5f;
+      const float sd = sinf(d) * 0.5f;
+
+      vertices[i3] = cd;
+      vertices[i31] = sd;
+      vertices[i32] = 0.0f;
+
+      vertices[i3 + 360 * 3] = 0.0f;
+      vertices[i31 + 360 * 3] = cd;
+      vertices[i32 + 360 * 3] = sd;
+
+      vertices[i3 + 360 * 3 * 2] = cd;
+      vertices[i31 + 360 * 3 * 2] = 0.0f;
+      vertices[i32 + 360 * 3 * 2] = sd;
+   }
+
+   id = 360 * 3 * 3;
+
+   for (GLsizei i = 0; i < 8; ++i)
+   {
+      const float d = float(i * 45) * 2.0f * M_PI / 360.0f;
+      const GLsizei i3 = i * 3 + id;
+      const GLsizei i31 = i3 + 1;
+      const GLsizei i32 = i3 + 2;
+      const float cd = cosf(d) * 0.7f;
+      const float sd = sinf(d) * 0.7f;
+
+      vertices[i3] = cd;
+      vertices[i31] = sd;
+      vertices[i32] = 0.0f;
+
+      vertices[i3 + 8 * 3] = 0.0f;
+      vertices[i31 + 8 * 3] = cd;
+      vertices[i32 + 8 * 3] = sd;
+
+      vertices[i3 + 8 * 3 * 2] = cd;
+      vertices[i31 + 8 * 3 * 2] = 0.0f;
+      vertices[i32 + 8 * 3 * 2] = sd;
+   }
+
+   id += 8 * 3 * 3;
+
+   vertices[id++] = 0.0f; vertices[id++] = -0.5f; vertices[id++] = 0.0f;
+   vertices[id++] = 0.0f; vertices[id++] = -2.0f; vertices[id++] = 0.0f;
+   vertices[id++] = 0.3f; vertices[id++] = -1.5f; vertices[id++] = 0.0f;
+   vertices[id++] = -0.3f; vertices[id++] = -1.5f; vertices[id++] = 0.0f;
+
+   vertices[id++] = 0.5f; vertices[id++] = 0.0f; vertices[id++] = 0.0f;
+   vertices[id++] = 1.0f; vertices[id++] = 0.0f; vertices[id++] = 0.0f;
+   vertices[id++] = 1.0f; vertices[id++] = -0.3f; vertices[id++] = 0.0f;
+   vertices[id++] = 1.0f; vertices[id++] = 0.3f; vertices[id++] = 0.0f;
+
+   id = 0;
+   indices.resize(360 * 2 * 3 + // for the 3 circles
+      8 * 2 * 3 + // for the "spikes"
+      3 * 2 + // for the direction
+      2 * 2 // for the rotational direction
+      );
+
+   for (GLsizei i = 0; i < 360; ++i)
+   {
+      const GLsizei i360 = (i + 1) % 360;
+      indices[id++] = i;
+      indices[id++] = i360;
+      indices[id++] = i + 360;
+      indices[id++] = i360 + 360;
+      indices[id++] = i + 360 * 2;
+      indices[id++] = i360 + 360 * 2;      
+   }
+
+   for (GLsizei i = 0; i < 8; ++i)
+   {
+      GLsizei idb = 360 * 3;
+      indices[id++] = i * 45;
+      indices[id++] = idb + i;
+      indices[id++] = i * 45 + 360;
+      indices[id++] = idb + i + 8;
+      indices[id++] = i * 45 + 360 * 2;
+      indices[id++] = idb + i + 8 * 2;
+   }
+
+   GLsizei idb = 360 * 3 + 8 * 3;
+
+   indices[id++] = idb; indices[id++] = idb + 1;
+   indices[id++] = idb + 2; indices[id++] = idb + 1;
+   indices[id++] = idb + 3; indices[id++] = idb + 1;
+
+   indices[id++] = idb + 4; indices[id++] = idb + 5;
+   indices[id++] = idb + 6; indices[id++] = idb + 7;
 }
 
 #ifdef ENABLE_VP2

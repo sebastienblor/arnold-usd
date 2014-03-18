@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/DrawUtils.h"
+
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
 

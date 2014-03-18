@@ -16,7 +16,6 @@ class CLinePrimitiveData{
 public:
    std::vector<float> vertices;
    std::vector<unsigned int> indices;
-   GLenum elementType;
 
    void draw();
 };
@@ -43,6 +42,11 @@ public:
 class CBoxPrimitive : public CLinePrimitiveData{
 public:
    CBoxPrimitive(float size = 1.0f);
+};
+
+class CPhotometricLightPrimitive : public CLinePrimitiveData{
+public:
+   CPhotometricLightPrimitive();
 };
 
 #ifdef ENABLE_VP2

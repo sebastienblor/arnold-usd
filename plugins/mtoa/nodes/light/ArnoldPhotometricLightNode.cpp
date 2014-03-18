@@ -270,75 +270,8 @@ void CArnoldPhotometricLightNode::draw( M3dView & view, const MDagPath & dagPath
       break;
    }
 
-   
-   {
-      
-      
-      glBegin(GL_LINE_LOOP);
-      for (int i=0; i < 360; i+=10)
-      {
-         float degInRad = float(i*2*M_PI/360);
-         glVertex3f(cos(degInRad)*0.5f,sin(degInRad)*0.5f,0.0f);
-      }
-      glEnd();
-      glBegin(GL_LINES);
-      for (int i=0; i < 360; i+=45)
-      {
-         float degInRad = float(i*2*M_PI/360);
-         glVertex3f(cos(degInRad)*0.5f,sin(degInRad)*0.5f,0.0f);
-         glVertex3f(cos(degInRad)*0.7f,sin(degInRad)*0.7f,0.0f);
-      }
-      glEnd();
-      
-      glBegin(GL_LINE_LOOP);
-      for (int i=0; i < 360; i++)
-      {
-         float degInRad = float(i*2*M_PI/360);
-         glVertex3f(0.0f,cos(degInRad)*0.5f,sin(degInRad)*0.5f);
-      }
-      glEnd();
-      glBegin(GL_LINES);
-      for (int i=0; i < 360; i+=45)
-      {
-         float degInRad = float(i*2*M_PI/360);
-         glVertex3f(0.0f,cos(degInRad)*0.5f,sin(degInRad)*0.5f);
-         glVertex3f(0.0f,cos(degInRad)*0.7f,sin(degInRad)*0.7f);
-      }
-      glEnd();
-      
-      glBegin(GL_LINE_LOOP);
-      for (int i=0; i < 360; i++)
-      {
-         float degInRad = float(i*2*M_PI/360);
-         glVertex3f(cos(degInRad)*0.5f,0.0f,sin(degInRad)*0.5f);
-      }
-      glEnd();
-      glBegin(GL_LINES);
-      for (int i=0; i < 360; i+=45)
-      {
-         float degInRad = float(i*2*M_PI/360);
-         glVertex3f(cos(degInRad)*0.5f,0.0f,sin(degInRad)*0.5f);
-         glVertex3f(cos(degInRad)*0.7f,0.0f,sin(degInRad)*0.7f);
-      }
-      glEnd();
-      
-      
-      glBegin(GL_LINES);
-      // Done Drawing The direction
-      glVertex3f( 0.0f,-0.5f, 0.0f);
-      glVertex3f( 0.0f,-2.0f, 0.0f);
-      glVertex3f( 0.3f,-1.5f, 0.0f);
-      glVertex3f( 0.0f,-2.0f, 0.0f);
-      glVertex3f(-0.3f,-1.5f, 0.0f);
-      glVertex3f( 0.0f,-2.0f, 0.0f);
-      
-      glVertex3f( 0.5f, 0.0f, 0.0f);
-      glVertex3f( 1.0f, 0.0f, 0.0f);
-      glVertex3f( 1.0f,-0.3f, 0.0f);
-      glVertex3f( 1.0f, 0.3f, 0.0f);
-      
-      glEnd();
-   }
+   static CPhotometricLightPrimitive primitive;
+   primitive.draw();
    
    // Restore all GL bits
    glPopAttrib();
