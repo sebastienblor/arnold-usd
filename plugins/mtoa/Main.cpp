@@ -4,6 +4,7 @@
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
+#include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include <maya/MDrawRegistry.h>
 #endif
@@ -110,6 +111,8 @@ namespace // <anonymous>
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
+   const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/photometricLight";
+   const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
 
    struct mayaNode {
       const char* name;
@@ -150,7 +153,7 @@ namespace // <anonymous>
       } , {
          "aiPhotometricLight", CArnoldPhotometricLightNode::id,
          CArnoldPhotometricLightNode::creator, CArnoldPhotometricLightNode::initialize,
-         MPxNode::kLocatorNode, &LIGHT_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_PHOTOMETRIC_LIGHT_WITH_SWATCH
       } , {
          "aiLightBlocker", CArnoldLightBlockerNode::id,
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
@@ -787,7 +790,16 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                standinOverrideRegistrant,
                CArnoldStandInDrawOverride::creator);
 
-   CHECK_MSTATUS(status);   
+   CHECK_MSTATUS(status);
+
+   MString photometricLightOverrideRegistrant = "arnoldPhotometricLightNodeOverride";
+
+   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+               AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
+               photometricLightOverrideRegistrant,
+               CArnoldPhotometricLightDrawOverride::creator);
+
+   CHECK_MSTATUS(status);
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -891,6 +903,14 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
                   AI_STANDIN_CLASSIFICATION,
                   standinOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
+
+   MString photometricLightOverrideRegistrant = "arnoldPhotometricLightNodeOverride";
+
+   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+                  AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
+                  photometricLightOverrideRegistrant);
 
    CHECK_MSTATUS(status);
 #endif
