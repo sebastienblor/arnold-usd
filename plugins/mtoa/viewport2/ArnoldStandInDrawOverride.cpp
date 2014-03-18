@@ -59,7 +59,7 @@ bool CArnoldStandInDrawOverride::isBounded(
         const MDagPath& objPath,
         const MDagPath& cameraPath) const
 {
-    return false;
+    return true;
 }
 
 MBoundingBox CArnoldStandInDrawOverride::boundingBox(
@@ -69,6 +69,15 @@ MBoundingBox CArnoldStandInDrawOverride::boundingBox(
     MBoundingBox bbox;
     MFnDependencyNode depNode(objPath.node());
 
+    bbox.expand(MPoint(
+        depNode.findPlug("MinBoundingBox0").asFloat(),
+        depNode.findPlug("MinBoundingBox1").asFloat(),
+        depNode.findPlug("MinBoundingBox2").asFloat(), 1.0));
+
+    bbox.expand(MPoint(
+        depNode.findPlug("MaxBoundingBox0").asFloat(),
+        depNode.findPlug("MaxBoundingBox1").asFloat(),
+        depNode.findPlug("MaxBoundingBox2").asFloat(), 1.0));
     
     return bbox;
 }
