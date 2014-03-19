@@ -250,8 +250,8 @@ void CArnoldPhotometricLightNode::draw( M3dView & view, const MDagPath & dagPath
    MStatus status;
    
    view.beginGL();
-   // Get all GL bits
-   glPushAttrib(GL_ALL_ATTRIB_BITS);
+   // only push the bits that are actually changed
+   glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT);
    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    // Display color
    switch (displayStatus)
