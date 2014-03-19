@@ -330,9 +330,10 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
             vertices, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        s_numWireframeIndices = resolution * resolution * 2 + // for horizontal lines
+        const unsigned int numWireframeIndices = resolution * resolution * 2 + // for horizontal lines
                                 (resolution + 1) * resolution * 2;
-        unsigned int indicesWireframe[s_numWireframeIndices]; // for vertical lines
+        s_numWireframeIndices = numWireframeIndices; // array init requires a constant expression
+        unsigned int indicesWireframe[numWireframeIndices]; // for vertical lines
         // fill horizontal lines
         id = 0;
         for (int yy = 0; yy < resolution; ++yy)
