@@ -87,6 +87,11 @@ public:
    CGLCylinderPrimitive();
 };
 
+class CGLPhotometricLightPrimitive : public CGLPrimitive{
+public:
+   CGLPhotometricLightPrimitive();
+};
+
 bool checkShaderError(GLuint shader);
 bool checkProgramError(GLuint shader);
 

@@ -44,6 +44,8 @@ private:
     static GLuint s_IBO;
     static GLuint s_VAO;
 
+    static CGLPrimitive* sp_primitive;
+
     static bool s_isValid;
     static bool s_isInitialized;
 };

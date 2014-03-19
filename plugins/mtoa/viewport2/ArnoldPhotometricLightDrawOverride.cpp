@@ -33,6 +33,8 @@ GLuint CArnoldPhotometricLightDrawOverride::s_VBO = 0;
 GLuint CArnoldPhotometricLightDrawOverride::s_IBO = 0;
 GLuint CArnoldPhotometricLightDrawOverride::s_VAO = 0;
 
+CGLPrimitive* CArnoldPhotometricLightDrawOverride::sp_primitive = 0;
+
 bool CArnoldPhotometricLightDrawOverride::s_isValid = false;
 bool CArnoldPhotometricLightDrawOverride::s_isInitialized = false;
 
@@ -86,8 +88,6 @@ struct SArnoldPhotometricLightUserData : public MUserData{
         m_wireframeColor[1] = color.g;
         m_wireframeColor[2] = color.b;
         m_wireframeColor[3] = color.a;
-
-        //MFnDependencyNode depNode(objPath.node());
     }
 
     ~SArnoldPhotometricLightUserData()
@@ -124,11 +124,9 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
     glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
     glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
             userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-    glBindVertexArray(s_VAO);
+    
+    sp_primitive->draw();
 
-    //glDrawElements(GL_LINES, 3 * 4 * 2, GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
     glUseProgram(0);
 }
 
@@ -204,6 +202,8 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
         glBindVertexArray(0);
+
+        sp_primitive = new CGLPhotometricLightPrimitive();
 
     }
 }
