@@ -92,7 +92,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    
    view.beginGL();
    // Get all GL bits
-   glPushAttrib(GL_ALL_ATTRIB_BITS);
+   glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT);
    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    // Display color
    switch (displayStatus)
