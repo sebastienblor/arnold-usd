@@ -137,7 +137,9 @@ MUserData* CArnoldStandInDrawOverride::prepareForDraw(
         MUserData* oldData)
 {
     initializeGPUResources();
-    return new SArnoldStandInUserData(objPath);
+    if (s_isValid)
+        return new SArnoldStandInUserData(objPath);
+    else return 0;
 }
 
 MHWRender::DrawAPI CArnoldStandInDrawOverride::supportedDrawAPIs() const
@@ -242,4 +244,16 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
         glBindVertexArray(0);
 
     }
+}
+
+void CArnoldStandInDrawOverride::clearGPUResources()
+{
+    glDeleteBuffers(1, &s_VBO);
+    glDeleteBuffers(1, &s_IBO);
+    glDeleteVertexArrays(1, &s_VAO);
+    glDeleteShader(s_vertexShader);
+    glDeleteShader(s_fragmentShader);
+    glDeleteProgram(s_program);
+    s_isValid = false;
+    s_isInitialized = false;
 }

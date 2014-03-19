@@ -29,10 +29,6 @@ GLuint CArnoldPhotometricLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldPhotometricLightDrawOverride::s_fragmentShader = 0;
 GLuint CArnoldPhotometricLightDrawOverride::s_program = 0;
 
-GLuint CArnoldPhotometricLightDrawOverride::s_VBO = 0;
-GLuint CArnoldPhotometricLightDrawOverride::s_IBO = 0;
-GLuint CArnoldPhotometricLightDrawOverride::s_VAO = 0;
-
 CGLPrimitive* CArnoldPhotometricLightDrawOverride::sp_primitive = 0;
 
 bool CArnoldPhotometricLightDrawOverride::s_isValid = false;
@@ -103,7 +99,9 @@ MUserData* CArnoldPhotometricLightDrawOverride::prepareForDraw(
         MUserData* oldData)
 {
     initializeGPUResources();
-    return new SArnoldPhotometricLightUserData(objPath);
+    if (s_isValid)
+        return new SArnoldPhotometricLightUserData(objPath);
+    else return 0;
 }
 
 MHWRender::DrawAPI CArnoldPhotometricLightDrawOverride::supportedDrawAPIs() const
@@ -164,46 +162,21 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
         glLinkProgram(s_program);
 
         if (checkProgramError(s_program))
-            return;
-
-        s_isValid = true;
-
-        /*float vertices[8 * 3] = {
-            0.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f,
-            0.0f, 1.0f, 1.0f
-        };*/
-
-        glGenBuffers(1, &s_VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-        //glBufferData(GL_ARRAY_BUFFER, 8 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        /*unsigned int indices[3 * 4 * 2] = {
-            0, 1, 1, 2, 2, 3, 3, 0,
-            4, 5, 5, 6, 6, 7, 7, 4,
-            0, 4, 1, 5, 2, 6, 3, 7
-        };*/
-
-        glGenBuffers(1, &s_IBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-        glGenVertexArrays(1, &s_VAO);
-        glBindVertexArray(s_VAO);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-        glBindVertexArray(0);
+            return;       
 
         sp_primitive = new CGLPhotometricLightPrimitive();
 
+        s_isValid = true;
     }
+}
+
+void CArnoldPhotometricLightDrawOverride::clearGPUResources()
+{    
+    glDeleteShader(s_vertexShader);
+    glDeleteShader(s_fragmentShader);
+    glDeleteProgram(s_program);
+    if (s_isValid)
+        delete sp_primitive;
+    s_isValid = false;
+    s_isInitialized = false;
 }

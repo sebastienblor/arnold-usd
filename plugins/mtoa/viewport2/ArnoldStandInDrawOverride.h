@@ -29,6 +29,7 @@ public:
 
     virtual MHWRender::DrawAPI supportedDrawAPIs() const;
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
+    static void clearGPUResources();
 private:
     CArnoldStandInDrawOverride(const MObject& obj);
 

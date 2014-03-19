@@ -13,11 +13,14 @@
 #include <vector>
 
 class CLinePrimitiveData{
+protected:
+   CLinePrimitiveData() {}
 public:
+   virtual ~CLinePrimitiveData() {}
    std::vector<float> vertices;
    std::vector<unsigned int> indices;
 
-   void draw();
+   virtual void draw();
 };
 
 // use for static initialization

@@ -161,6 +161,21 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
     return (MHWRender::kOpenGL); // | MHWRender::kDirectX11); TODO support dx11 later
 }
 
+void CArnoldAreaLightDrawOverride::clearGPUResources()
+{
+    glDeleteShader(s_vertexShader);
+    glDeleteShader(s_fragmentShader);
+    glDeleteProgram(s_program);
+    if (s_isValid)
+    {
+        delete CArnoldAreaLightUserData::s_primitives[0];
+        delete CArnoldAreaLightUserData::s_primitives[1];
+        delete CArnoldAreaLightUserData::s_primitives[2];
+    }
+    s_isInitialized = false;
+    s_isValid = false;
+}
+
 void CArnoldAreaLightDrawOverride::initializeGPUResources()
 {
     if (s_isInitialized == false)
@@ -169,11 +184,7 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         s_isValid = false;
 
         if (!GLEW_VERSION_4_3)
-            return; // right now, only opengl 4.3, we can lower this later
-
-        CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
+            return; // right now, only opengl 4.3, we can lower this later       
 
         s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
         const char* stringPointers[2] = {shaderUniforms, vertexShader};
@@ -198,6 +209,10 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
 
         if (checkProgramError(s_program))
             return;
+
+        CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
+        CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
+        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
 
         s_isValid = true;
     }

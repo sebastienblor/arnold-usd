@@ -163,7 +163,10 @@ MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
         MUserData* oldData)
 {
     initializeGPUResources();
-    return new SArnoldSkyDomeLightUserData(objPath);
+    if (s_isValid)
+        return new SArnoldSkyDomeLightUserData(objPath);
+    else
+        return 0;
 }
 
 MHWRender::DrawAPI CArnoldSkyDomeLightDrawOverride::supportedDrawAPIs() const
@@ -200,6 +203,30 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
     
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+void CArnoldSkyDomeLightDrawOverride::clearGPUResources()
+{
+    glDeleteShader(s_vertexShaderWireframe);
+    glDeleteShader(s_fragmentShaderWireframe);
+    glDeleteProgram(s_programWireframe);
+
+    glDeleteShader(s_vertexShaderTextured);
+    glDeleteShader(s_fragmentShaderTextured);
+    glDeleteProgram(s_programTextured);
+
+    glDeleteBuffers(1, &s_VBO);
+    glDeleteBuffers(1, &s_IBOWireframe);
+    glDeleteBuffers(1, &s_IBOTextured);
+
+    glDeleteVertexArrays(1, &s_VAOWireframe);
+    glDeleteVertexArrays(1, &s_VAOTexturedBall);
+    glDeleteVertexArrays(1, &s_VAOTexturedAngular);
+    glDeleteVertexArrays(1, &s_VAOTexturedLatLong);
+    glDeleteVertexArrays(1, &s_VAOTexturedCubic);
+
+    s_isValid = false;
+    s_isInitialized = false;
 }
 
 void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()

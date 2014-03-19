@@ -31,6 +31,7 @@ public:
 
     virtual MHWRender::DrawAPI supportedDrawAPIs() const;
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
+    static void clearGPUResources();
 private:
     CArnoldPhotometricLightDrawOverride(const MObject& obj);
 
@@ -39,10 +40,6 @@ private:
     static GLuint s_vertexShader;
     static GLuint s_fragmentShader;
     static GLuint s_program;
-
-    static GLuint s_VBO;
-    static GLuint s_IBO;
-    static GLuint s_VAO;
 
     static CGLPrimitive* sp_primitive;
 

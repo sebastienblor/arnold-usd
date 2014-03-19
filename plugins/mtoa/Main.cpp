@@ -873,7 +873,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    }
 #ifdef ENABLE_VP2
    MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
-   MString shaderOverrideRegistrant = "arnoldStandarShaderOverride";
+   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
 
    status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
                   arnoldStandardOverrideClassification,
@@ -890,6 +890,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    CHECK_MSTATUS(status);
 
+   CArnoldAreaLightDrawOverride::clearGPUResources();
+
    MString skyDomeLightOverrideRegistrant = "arnoldSkyDomeLightNodeOverride";
 
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
@@ -897,6 +899,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                   skyDomeLightOverrideRegistrant);
 
    CHECK_MSTATUS(status);
+
+   CArnoldSkyDomeLightDrawOverride::clearGPUResources();
 
    MString standinOverrideRegistrant = "arnoldStandInNodeOverride";
 
@@ -906,6 +910,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    CHECK_MSTATUS(status);
 
+   CArnoldStandInDrawOverride::clearGPUResources();
+
    MString photometricLightOverrideRegistrant = "arnoldPhotometricLightNodeOverride";
 
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
@@ -913,6 +919,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                   photometricLightOverrideRegistrant);
 
    CHECK_MSTATUS(status);
+
+   CArnoldPhotometricLightDrawOverride::clearGPUResources();
 #endif
    
    // Swatch renderer
