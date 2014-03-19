@@ -413,7 +413,7 @@ CGLPhotometricLightPrimitive::CGLPhotometricLightPrimitive()
 
    for (GLsizei i = 0; i < 360; ++i)
    {
-      const float d = float(i) * 2.0f * M_PI / 360.0f;
+      const float d = float(i) * 2.0f * AI_PI / 360.0f;
       const GLsizei i3 = i * 3;
       const GLsizei i31 = i3 + 1;
       const GLsizei i32 = i3 + 2;
@@ -437,7 +437,7 @@ CGLPhotometricLightPrimitive::CGLPhotometricLightPrimitive()
 
    for (GLsizei i = 0; i < 8; ++i)
    {
-      const float d = float(i * 45) * 2.0f * M_PI / 360.0f;
+      const float d = float(i * 45) * 2.0f * AI_PI / 360.0f;
       const GLsizei i3 = i * 3 + id;
       const GLsizei i31 = i3 + 1;
       const GLsizei i32 = i3 + 2;
