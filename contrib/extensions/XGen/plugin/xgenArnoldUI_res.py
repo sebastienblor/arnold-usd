@@ -11,15 +11,15 @@ maya.stringTable['y_xgenArnoldUI.kRenderModeBatch'] = u'Batch Render'
 
 maya.stringTable['y_xgenArnoldUI.kArnoldEnableMotionBlur'] = u'Motion Blur'
 
-maya.stringTable['y_xgenArnoldUI.kMotionBlur'] = u'Keyframe Location'
+maya.stringTable['y_xgenArnoldUI.kMotionBlur'] = u'Position'
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationStart'] = u'Start on Frame'
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationMiddle'] = u'Center on Frame'
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationEnd'] = u'End on Frame'
 maya.stringTable['y_xgenArnoldUI.kArnoldMBUseRenderGlobals'] = u'Use RenderGlobals'
 
-maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurSteps'] = u'Motion Blur Keys'
-maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurFactor'] = u'Motion Blur Length'
-maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurMultiplier'] = u'Motion Blur Mult'
+maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurSteps'] = u'Keys'
+maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurFactor'] = u'Length'
+maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurMultiplier'] = u'Multiplier'
 
 maya.stringTable['y_xgenArnoldUI.kTools'] = u'Tools'
 maya.stringTable['y_xgenArnoldUI.kArnoldApplyHair'] = u'Apply Hair Shader'
@@ -27,7 +27,7 @@ maya.stringTable['y_xgenArnoldUI.kArnoldApplyHair'] = u'Apply Hair Shader'
 
 maya.stringTable['y_xgenArnoldUI.kArnoldCurveSettings'] = u'Arnold Curve Settings'
 maya.stringTable['y_xgenArnoldUI.kminPixelWidth'] = u'Min Pixel Width'
-maya.stringTable['y_xgenArnoldUI.kCurveMode'] = u'CurveMode'
+maya.stringTable['y_xgenArnoldUI.kCurveMode'] = u'Mode'
 maya.stringTable['y_xgenArnoldUI.kCurveModeRibbon'] = u'Ribbon'
 maya.stringTable['y_xgenArnoldUI.kCurveModeThick'] = u'Thick'
 maya.stringTable['y_xgenArnoldUI.kCurveModeOriented'] = u'Oriented'
@@ -35,7 +35,7 @@ maya.stringTable['y_xgenArnoldUI.kCurveModeOriented'] = u'Oriented'
 
 
 # annotations
-maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurSetttings'] = u'arnold Motion Blur Settings'
+maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurSetttings'] = u'Arnold Motion Blur Settings'
 maya.stringTable['y_xgenArnoldUI.kArnoldApplyHairAnn'] = u"Apply default arnold XGen Hair Shader to the current Description.\nThe shader reacts to 'root_color', 'tip_color' and 'back_color' XGen custom shader parameters."
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurMultiplierAnn'] = u'Motion Factor multiplies the computed motion vectors.\nUse it to attenuate or accentuate the motion blur effect.'
 maya.stringTable['y_xgenArnoldUI.kSplineDegreeAnn'] = u'Spline Primitives can be rendered as linear segments or as cubic bezier curves.\nSet to Cubic for Card Primiives.\nHas no effect on Archives and Sphere Primitves.'

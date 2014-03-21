@@ -440,21 +440,23 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
 // TODO XGEN:  LIVE mode seems to rely on this  attribute.. if it does not exist it tries to use whats cached in maya 
 //             we need to switch here for XGEN ui setting, existance of alembic file, and  maya UI vs batch render and always push this attribute for batch mode otherwise throw an error in batch mode and exit
- 		 AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
+ 		 
+         if (info.moblur && info.motionBlurSteps >1)
+         {
+            AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
 
-		AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
+            AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
 
-		 if (info.moblur && info.motionBlurSteps >1)
-		 {
-			for (uint c = 0; c < info.motionBlurSteps; c++)
-			{
-				float sample = steps[c];
-				AiArraySetFlt(samples, c, sample);
-			}
-		 }
+          
+            for (uint c = 0; c < info.motionBlurSteps; c++)
+            {
+               float sample = steps[c];
+               AiArraySetFlt(samples, c, sample);
+            }
 
-		 AiNodeSetArray(shape, "time_samples", samples);
+            AiNodeSetArray(shape, "time_samples", samples);
 
+         }
 
       }
    }
@@ -477,7 +479,7 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-    data.defaultValue.BOOL = true;
+    data.defaultValue.BOOL = false;
     data.name = "motionBlurOverride";
     data.shortName = "motion_blur_override";
     helper.MakeInputBoolean ( data );

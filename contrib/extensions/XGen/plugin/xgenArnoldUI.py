@@ -210,7 +210,7 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_rendermode', "0" )
     self.declareCustomAttr( 'arnold_curveMode', "0" )
     self.declareCustomAttr( 'arnold_minPixelWidth', "0.0" )
-    self.declareCustomAttr( 'arnold_motion_blur', "1" )
+    self.declareCustomAttr( 'arnold_motion_blur', "0" )
     self.declareCustomAttr( 'arnold_motion_blur_mode', "3" )
     self.declareCustomAttr( 'arnold_motion_blur_steps', "3" )
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
