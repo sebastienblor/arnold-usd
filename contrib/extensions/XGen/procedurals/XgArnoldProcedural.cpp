@@ -552,8 +552,8 @@ const float* Procedural::get( EFloatArrayAttribute in_attr) const
     }
     else if( in_attr==Shutter )
     {
-       uiArraySize = getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
-       if( getFloatArray( m_camera, "time_samples", resultPtr, false ) )
+       uiArraySize = getArraySize( m_node, "time_samples", AI_TYPE_FLOAT, false );
+       if( getFloatArray( m_node, "time_samples", resultPtr, false ) )
           return resultPtr;
     }
 
@@ -580,7 +580,7 @@ unsigned int Procedural::getSize( EFloatArrayAttribute in_attr )const
     }
     else if( in_attr==Shutter )
     {
-       return 0;//getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
+       return getArraySize( m_node, "time_samples", AI_TYPE_FLOAT, false );
     }
 
     return 0;

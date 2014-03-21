@@ -5,8 +5,13 @@
 
 #include "XGenTranslator.h"
 
+#include "session/SessionOptions.h"
+
+
 #include <string>
 #include <vector>
+
+//#define DEBUG_MTOA 1
 
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {
@@ -27,6 +32,11 @@ struct DescInfo
    std::string strDescription;
    std::vector<std::string> vecPatches;
    float fFrame;
+   bool  moblur;
+   uint  moblurmode;
+   uint  motionBlurSteps;
+   float moblurFactor;
+   float moblurMultiplier;
 
    bool  bCameraOrtho;
    float fCameraPos[3];
@@ -193,8 +203,21 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             strChild = strChild.substr( 1+ info.strPalette.size() + 1 + info.strDescription.size() + 1 );
 
             // Ignore the first child. It should be the description shape
-            if( i==0 )
-            {
+			if (nodeType == "xgmDescription") 
+			{
+			   MFnDagNode  xgenDesc;
+			   xgenDesc.setObject(childDagPath.node());
+			   // get the motion blur values from the description here
+			   info.moblur = xgenDesc.findPlug("motionBlurOverride").asBool();
+			   info.moblurmode = xgenDesc.findPlug("motionBlurMode").asInt();
+			   info.motionBlurSteps = 1;
+			   info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
+			   info.moblurMultiplier = xgenDesc.findPlug("motionBlurMult").asFloat();
+
+			   if (info.moblur)
+			   {
+				   info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
+			   }
 #ifdef DEBUG_MTOA
                printf("strChild=%s\n",strChild.c_str() );
 #endif
@@ -329,18 +352,53 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
       //AiNodeSetPtr( shape, "shader", rootShader );
 
+	  //  MOTION BLUR COMPUTATION STUFF 
+
+	  /// TODO XGEN: use Arnoldsession stuff to get motion blur steps instead of computing ourselves,
+	  ///            and switch for  XGEN arnold renderer setting of "use renderglobals"  to either use our own compute or the renderglobals settings 
+
+
+		float stepSize = info.moblurFactor/(info.motionBlurSteps-1);
+
+		MFloatArray steps;
+		for (uint stepCount = 0; stepCount < info.motionBlurSteps; stepCount++)
+		{
+			/// TODO XGEN: support all motion blur  directions 
+			// hardcoding  center motion blur right now 
+			steps.append(float((0.0 -(info.moblurFactor/2)) + (stepSize*stepCount)));
+		}
+
+	  std::string mbSamplesString;
+	  if (info.moblur && info.motionBlurSteps > 1) // TODO XGEN: or use renderglobals and  renderglobals value 
+	  {
+		for (uint sampCount = 0; sampCount < info.motionBlurSteps; sampCount ++)
+		{
+			sprintf(buf,"%f",steps[sampCount]*info.moblurMultiplier);
+			mbSamplesString += std::string(buf) + " ";
+		}
+	  }
+	  else
+	  {
+		mbSamplesString += std::string("0.0 ");
+	  }
+
+	  /// TODO XGEN:  make these args real  arnold arguments and make the procedural  build this string itself from the passed arguments 
+
       // Set the procedural arguments
       {
          // Build the data argument
          std::string strData;
          strData =  "-debug 1 -warning 1 -stats 1 ";
-         sprintf(buf,"%f",info.fFrame );
-         strData += " -frame "+ std::string(buf) +" -shutter 0.0";
-         strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
+         sprintf(buf,"%f ",GetExportFrame()); // really hacky right now 
+         strData += " -frame "+ std::string(buf);// +" -shutter 0.0"; // Pedro's suggestion was to remove the shutter value, it seemed not to make a diff
+		 strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
          strData += " -palette " + info.strPalette;
          strData += " -geom " + strGeomFile;
          strData += " -patch " + strPatch;
          strData += " -description " + info.strDescription;
+		 strData += " -fps 24.0 ";  // frickin a!  here's your frame rate.. wasn't in the translator.. DAMN YOU AUTODESK!! 
+		 strData += " -motionSamplesLookup "+ mbSamplesString;
+		 strData += " -motionSamplesPlacement "+ mbSamplesString;
 
          strData += strUnitConvMat;
 
@@ -374,6 +432,30 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
          sprintf(buf,"%f", info.fCamRatio );
          AiNodeSetStr( shape, "irRenderCamRatio", buf );
+
+		 AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
+		 sprintf(buf,"%i",3);
+		 AiNodeSetStr( shape, "xgen_renderMethod", buf );
+
+
+// TODO XGEN:  LIVE mode seems to rely on this  attribute.. if it does not exist it tries to use whats cached in maya 
+//             we need to switch here for XGEN ui setting, existance of alembic file, and  maya UI vs batch render and always push this attribute for batch mode otherwise throw an error in batch mode and exit
+ 		 AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
+
+		AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
+
+		 if (info.moblur && info.motionBlurSteps >1)
+		 {
+			for (uint c = 0; c < info.motionBlurSteps; c++)
+			{
+				float sample = steps[c];
+				AiArraySetFlt(samples, c, sample);
+			}
+		 }
+
+		 AiNodeSetArray(shape, "time_samples", samples);
+
+
       }
    }
 }
