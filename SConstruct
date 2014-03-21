@@ -5,7 +5,8 @@ import subprocess
 import sys, os
 sys.path = ["tools/python"] + sys.path
 
-import system, glob
+import system
+import glob
 from build_tools import *
 from solidangle_tools import *
 
@@ -775,8 +776,10 @@ for ext in os.listdir(ext_base_dir):
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                              duplicate   = 0,
                              exports     = ['ext_env', 'env'])
-        if len(EXT) == 2:
-            EXT_SHADERS = EXT[1]        
+        if len(EXT) >= 2:
+            EXT_SHADERS = EXT[1] 
+        if len(EXT) == 3:
+            EXT_PROCS = EXT[2]
         
         # EXT may contain a shader result
         ext_arnold = None
@@ -790,11 +793,15 @@ for ext in os.listdir(ext_base_dir):
         else:
             plugin = str(EXT[0])
         ext_files.append(plugin)
-        pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
-        pyfile = os.path.join(ext_dir, 'plugin', pyfile)
-        if os.path.exists(pyfile):
-            ext_files.append(pyfile)
-            env.Install(TARGET_EXTENSION_PATH, pyfile)
+        
+        pluginDir = os.path.join(ext_dir, 'plugin')
+        pyfiles = glob.glob(pluginDir+"/*.py")
+        
+        for pyfile  in pyfiles:
+            if os.path.exists(pyfile):
+                ext_files.append(pyfile)
+                env.Install(TARGET_EXTENSION_PATH, pyfile)
+
         if ext_arnold and (target_type == 'shader'):
             mtdfile = os.path.splitext(os.path.basename(ext_arnold))[0] + '.mtd'
             mtdfile = os.path.join(ext_dir, 'shaders', mtdfile)
@@ -811,6 +818,11 @@ for ext in os.listdir(ext_base_dir):
             else:
                 env.Install(TARGET_SHADER_PATH, ext_arnold)
             package_files += [[ext_arnold, target_path]]
+        if ext_arnold:
+            if len(EXT) == 3:
+                procedural = EXT[2]
+                ext_files.append(procedural)
+                env.Install(TARGET_PROCEDURAL_PATH, procedural)
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
