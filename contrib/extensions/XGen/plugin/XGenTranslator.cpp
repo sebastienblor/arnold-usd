@@ -186,6 +186,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             MDagPath::getAPathTo( descDagPath.child(i),childDagPath );
 
             std::string strChild = childDagPath.fullPathName().asChar();
+			char buf[512];
+			sprintf(buf,"nodeType %s;",strChild.c_str());
+			MString nodeType = MGlobal::executeCommandStringResult(buf);
+
             strChild = strChild.substr( 1+ info.strPalette.size() + 1 + info.strDescription.size() + 1 );
 
             // Ignore the first child. It should be the description shape
@@ -211,6 +215,54 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 #endif
                   info.vecPatches.push_back( strChild );
                }
+			   // TODO XGEN: in "LIVE" mode, this only works to update the geo position for guide style xgen, groom xgen needs an openGL preview before geo translation is taken into account
+               // we want to look for the  xgmSubdPatch node so we can get the BBox values and force an update on it
+			   if (nodeType == "transform")
+			   {
+				   uint shapeCount = childDagPath.childCount();
+					for (uint x = 0; x < shapeCount; ++x)
+					{
+						MDagPath xgenShape;
+						MDagPath::getAPathTo( childDagPath.child(x),xgenShape );
+						if (xgenShape.apiType() == MFn::kTransform) // we've found another transform
+						{
+							continue;
+						}
+						std::string strChild = xgenShape.fullPathName().asChar();
+						char buf[512];
+						sprintf(buf,"nodeType %s;",strChild.c_str());
+						MString nodeTyp = MGlobal::executeCommandStringResult(buf);
+						if (nodeTyp == "xgmSubdPatch")
+						{
+#ifdef DEBUG_MTOA
+							printf("found xgmSubdPatch!\n");
+#endif
+							MFnDagNode  xgenNode;
+							xgenNode.setObject(xgenShape.node());
+							float xmin,ymin,zmin;
+							float xmax,ymax,zmax;
+							float xlen,ylen,zlen;
+							xmin = xgenNode.findPlug ( "bboxCorner10" ).asFloat();
+							ymin = xgenNode.findPlug ( "bboxCorner11" ).asFloat();
+							zmin = xgenNode.findPlug ( "bboxCorner12" ).asFloat();
+							xmax = xgenNode.findPlug ( "bboxCorner20" ).asFloat();
+							ymax = xgenNode.findPlug ( "bboxCorner21" ).asFloat();
+							zmax = xgenNode.findPlug ( "bboxCorner22" ).asFloat();
+							xlen = xmax-xmin;
+							ylen = ymax-ymin;
+							zlen = zmax-zmin;
+							xmin -= xlen*5*fUnitConvFactor; /// really this is  xlen*.5*10*fUnitConvFactor 
+							ymin -= ylen*5*fUnitConvFactor;
+							zmin -= zlen*5*fUnitConvFactor;
+							xmax += xlen*5*fUnitConvFactor;
+							ymax += ylen*5*fUnitConvFactor;
+							zmax += zlen*5*fUnitConvFactor; 
+
+							info.setBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
+							break; // we only need to find one subd patch, and want to skip  any guides in here.. 
+						}
+					}
+			   } // end force update and bbox  subdiv patch
             }
          }
       }
@@ -219,8 +271,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       info.fFrame = (float)MAnimControl::currentTime().value();
 
       // Hardcoded values for now.
-      float s = 10000.f * fUnitConvFactor;
-      info.setBoundingBox( -s,-s,-s, s, s, s );
+      //float s = 100000.f * fUnitConvFactor;
+      //info.setBoundingBox( -s,-s,-s, s, s, s );
       info.bCameraOrtho = false;
       info.setCameraPos( -48.4233f, 29.8617f, -21.2033f );
       info.fCameraFOV = 54.432224f;
