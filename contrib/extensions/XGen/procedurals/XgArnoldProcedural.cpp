@@ -197,12 +197,12 @@ int Procedural::Init(AtNode* node)
          //if( isEmpty( b ) )
          //   continue;
 
-         string strFaceProcName = strParentName + string("_face");// + itoa( f );
+         //string strFaceProcName = strParentName + string("_face");// + itoa( f );
 
-         Procedural* pProc = new Procedural();
+         /*Procedural* pProc = new Procedural();
          pProc->m_node = m_node;
          pProc->m_sphere = m_sphere;
-         pProc->m_shaders = m_shaders;
+         pProc->m_shaders = m_shaders;*/
 
 
          while( nextFace( b, f ) )
@@ -219,12 +219,13 @@ int Procedural::Init(AtNode* node)
             total.ymax = total.ymax > b.ymax ? total.ymax : b.ymax;
             total.zmax = total.zmax > b.zmax ? total.zmax : b.zmax;
 
-            initFaceRenderer( pProc, f );
+            initFaceRenderer( this, f );
          }
 
+         m_node_face = m_node;
          // Clone ourself, this will help us keep all the user parameters.
          // We could also provide a back pointer to the original top level node.
-         AtNode* nodeFaceProc = AiNode( "procedural" );
+         /*AtNode* nodeFaceProc = AiNode( "procedural" );
          pProc->m_node_face = nodeFaceProc;
 
          // Change name, dso, userdata, and bounding box
@@ -235,11 +236,11 @@ int Procedural::Init(AtNode* node)
          AiNodeSetPnt( nodeFaceProc, "min", (float)total.xmin, (float)total.ymin, (float)total.zmin );
          AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
 
-         m_nodes.push_back( nodeFaceProc );
+         m_nodes.push_back( nodeFaceProc );*/
       }
 
       // Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
-      {
+      /*{
          AtNode* nodeCleanupProc = AiNode( "procedural" );
          string strCleanupProcName =  strParentName + "_cleanup";
 
@@ -256,11 +257,11 @@ int Procedural::Init(AtNode* node)
          AiNodeSetPnt( nodeCleanupProc, "max", maxParentBBox.x, maxParentBBox.y, maxParentBBox.z );
 
          m_nodes.push_back( nodeCleanupProc );
-      }
+      }*/
     }
 
    // Face Init
-    else if( m_faces.size()!=0 )
+    if( m_faces.size()!=0 )
     {
        render();
     }
