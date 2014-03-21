@@ -637,7 +637,7 @@ scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.me
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
-# install mtoa version specific scritps (myst be done after to allow overwriting)
+# install mtoa version specific scripts (must be done after to allow overwriting)
 versionfiles = find_files_recursive(os.path.join('scripts', maya_version_base), ['.py', '.mel'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base, x) for x in versionfiles],
               [os.path.join('scripts', maya_version_base, x) for x in versionfiles])
@@ -801,6 +801,15 @@ for ext in os.listdir(ext_base_dir):
             if os.path.exists(pyfile):
                 ext_files.append(pyfile)
                 env.Install(TARGET_EXTENSION_PATH, pyfile)
+
+#TODO XGEN: figure out the proper place these can go so that they always override the maya scripts
+
+        # install extension override scripts
+        scriptsDir = os.path.join(ext_dir, 'scripts')
+        extensionFiles = find_files_recursive(scriptsDir, ['.py', '.mel'])
+        for extFile  in extensionFiles:
+            overrideScriptsDir = os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base)
+            env.Install(overrideScriptsDir, os.path.join(ext_dir, 'scripts',extFile))
 
         if ext_arnold and (target_type == 'shader'):
             mtdfile = os.path.splitext(os.path.basename(ext_arnold))[0] + '.mtd'

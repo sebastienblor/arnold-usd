@@ -234,7 +234,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
    // The geom cache file should contain all the patches the palette uses.
    // Xgen gives an error if a patch used in the palette isn't found: Caf error. No geometry named 'pPlane1' found in caf file(frame):
-   std::string strGeomFile = info.strScene + "__" + info.strPalette + ".caf";
+   std::string strGeomFile = info.strScene + "__" + info.strPalette + ".abc";
+
 
    for( unsigned int i=0; i<info.vecPatches.size(); ++i )
    {
@@ -339,6 +340,55 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "procedural");
    CShapeTranslator::MakeCommonAttributes(helper);
    CShapeTranslator::MakeMayaVisibilityFlags(helper);
+
+   CAttrData data;
+
+    data.defaultValue.BOOL = true;
+    data.name = "motionBlurOverride";
+    data.shortName = "motion_blur_override";
+    helper.MakeInputBoolean ( data );
+
+	MStringArray  enumNames;
+    enumNames.append ( "Start On Frame" );
+    enumNames.append ( "Center On Frame" );
+    enumNames.append ( "End On Frame" );
+	enumNames.append ( "Use RenderGlobals" );
+    data.defaultValue.INT = 3;
+    data.name = "motionBlurMode";
+    data.shortName = "motion_blur_mode";
+    data.enums= enumNames;
+    helper.MakeInputEnum ( data );
+
+	data.defaultValue.INT = 3;
+    data.name = "motionBlurSteps";
+    data.shortName = "motion_blur_steps";
+    helper.MakeInputInt ( data );
+
+    data.defaultValue.FLT = 1.0;
+    data.name = "motionBlurFactor";
+    data.shortName = "motion_blur_factor";
+    helper.MakeInputFloat ( data );
+
+    data.defaultValue.FLT = 1.0;
+    data.name = "motionBlurMult";
+    data.shortName = "motion_blur_mult";
+    helper.MakeInputFloat ( data );
+
+	data.defaultValue.FLT = 0.0;
+	data.name = "aiMinPixelWidth";
+	data.shortName = "ai_min_pixel_width";
+	helper.MakeInputFloat ( data );
+
+	MStringArray  curveTypeEnum;
+    curveTypeEnum.append ( "Ribbon" );
+    curveTypeEnum.append ( "Thick" );
+    curveTypeEnum.append ( "Centered" );
+    data.defaultValue.INT = 0;
+    data.name = "aiMode";
+    data.shortName = "ai_mode";
+    data.enums= curveTypeEnum;
+    helper.MakeInputEnum ( data );
+
 }
 
 AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
