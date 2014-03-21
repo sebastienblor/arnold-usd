@@ -72,7 +72,7 @@ else:
    shader_env.Append(LIBS=Split('AdskXGen'))
    shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
-EXT_SHADERS = shader_env.SharedLibrary('xgen_shaders', source_files, LIBPREFIX='')
+#EXT_SHADERS = shader_env.SharedLibrary('xgen_shaders', source_files, LIBPREFIX='')
 
 ##########################################################
 ## XGEN  PROCEDURAL
@@ -107,5 +107,7 @@ else:
    proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 EXT_PROCS = proc_env.SharedLibrary('xgen_procedural', source_files, LIBPREFIX='')
+EXT_PROCS.target_type = 'procedural'
 
-Return('EXT EXT_SHADERS EXT_PROCS')
+#Return('EXT EXT_SHADERS EXT_PROCS')
+Return('EXT EXT_PROCS')
