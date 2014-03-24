@@ -56,6 +56,11 @@ private:
     static GLuint s_numWireframeIndices;
     static GLuint s_numTexturedIndices;
 
+    static GLint s_modelLocWireframe;
+    static GLint s_viewProjLocWireframe;
+    static GLint s_scaleLocWireframe;
+    static GLint s_shadeColorLocWireframe;
+
     static bool s_isValid;
     static bool s_isInitialized;
 };

@@ -9,22 +9,22 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 430\n"
-"layout (location = 0) uniform mat4 model;\n"
-"layout (location = 4) uniform mat4 viewProj;\n"
-"layout (location = 8) uniform float scale;\n"
-"layout (location = 9) uniform vec4 shadeColor;\n";
+    const char* shaderUniforms = "#version 150\n"
+"uniform mat4 model;\n"
+"uniform mat4 viewProj;\n"
+"uniform float scale;\n"
+"uniform vec4 shadeColor;\n";
 
     const char* vertexShaderWireframe = 
-"layout (location = 0) in vec3 position;\n"
+"in vec3 position;\n"
 "void main()\n"
 "{\n"
 "gl_Position = viewProj * (model * vec4(scale * position, 1.0f));\n"
 "}\n";
 
     const char* vertexShaderTextured = 
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec2 texcoord;\n"
+"in vec3 position;\n"
+"in vec2 texcoord;\n"
 "out vec2 tx;\n"
 "void main()\n"
 "{\n"
@@ -62,6 +62,11 @@ GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedBall = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedAngular = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedLatLong = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedCubic = 0;
+
+GLint CArnoldSkyDomeLightDrawOverride::s_modelLocWireframe = 0;
+GLint CArnoldSkyDomeLightDrawOverride::s_viewProjLocWireframe = 0;
+GLint CArnoldSkyDomeLightDrawOverride::s_scaleLocWireframe = 0;
+GLint CArnoldSkyDomeLightDrawOverride::s_shadeColorLocWireframe = 0;
 
 GLuint CArnoldSkyDomeLightDrawOverride::s_numWireframeIndices = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_numTexturedIndices = 0;
@@ -191,10 +196,10 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
     {
         glUseProgram(s_programWireframe);
 
-        glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);    
-        glUniformMatrix4fv(4, 1, GL_FALSE, &mat[0][0]);
-        glUniform1f(8, userData->m_radius);
-        glUniform4f(9, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+        glUniformMatrix4fv(s_modelLocWireframe, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);    
+        glUniformMatrix4fv(s_viewProjLocWireframe, 1, GL_FALSE, &mat[0][0]);
+        glUniform1f(s_scaleLocWireframe, userData->m_radius);
+        glUniform4f(s_shadeColorLocWireframe, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
             userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
 
         glBindVertexArray(s_VAOWireframe);
@@ -401,5 +406,10 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBOWireframe);
         glBindVertexArray(0);
+
+        s_modelLocWireframe = glGetUniformLocation(s_programWireframe, "model");
+        s_viewProjLocWireframe = glGetUniformLocation(s_programWireframe, "viewProj");
+        s_scaleLocWireframe = glGetUniformLocation(s_programWireframe, "scale");
+        s_shadeColorLocWireframe = glGetUniformLocation(s_programWireframe, "shadeColor");
     }
 }
