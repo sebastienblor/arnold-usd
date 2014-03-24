@@ -281,7 +281,9 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 							ymax += ylen*5*fUnitConvFactor;
 							zmax += zlen*5*fUnitConvFactor; 
 
-							info.setBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
+                     //printf("bbox: %f, %f, %f, %f, %f, %f\n",xmin,ymin,zmin,xmax,ymax,zmax);
+
+							//info.setBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
 							break; // we only need to find one subd patch, and want to skip  any guides in here.. 
 						}
 					}
@@ -406,7 +408,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          printf("strData=%s\n",strData.c_str() );
 #endif
          // Set other arguments
-         AiNodeSetBool( shape, "load_at_init", false );
+         AiNodeSetBool( shape, "load_at_init", true );
          AiNodeSetStr( shape, "dso", strDSO.c_str() );
          AiNodeSetStr( shape, "data", strData.c_str() );
          AiNodeSetPnt( shape, "min", info.fBoundingBox[0], info.fBoundingBox[1], info.fBoundingBox[2] );
