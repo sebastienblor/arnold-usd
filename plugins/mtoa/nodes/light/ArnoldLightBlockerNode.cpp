@@ -1,5 +1,4 @@
 #include "ArnoldLightBlockerNode.h"
-#include "utils/DrawUtils.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnEnumAttribute.h>
@@ -119,7 +118,7 @@ void CArnoldLightBlockerNode::draw(M3dView& view, const MDagPath& path, M3dView:
 {
    view.beginGL();
    
-   glPushAttrib(GL_ALL_ATTRIB_BITS);
+   glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT);
    
    MObject tmo = thisMObject();
    MStatus status;

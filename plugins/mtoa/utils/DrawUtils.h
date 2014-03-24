@@ -1,22 +1,26 @@
 #pragma once
 
-#include <maya/M3dView.h>
-
+#ifdef ENABLE_VP2
+#include <GL/glew.h>
+#else
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
 #else 
    #include <GL/gl.h>
-#endif   
+#endif
+#endif
 
 #include <vector>
 
 class CLinePrimitiveData{
+protected:
+   CLinePrimitiveData() {}
 public:
+   virtual ~CLinePrimitiveData() {}
    std::vector<float> vertices;
    std::vector<unsigned int> indices;
-   GLenum elementType;
 
-   void draw();
+   virtual void draw();
 };
 
 // use for static initialization
@@ -42,3 +46,56 @@ class CBoxPrimitive : public CLinePrimitiveData{
 public:
    CBoxPrimitive(float size = 1.0f);
 };
+
+class CPhotometricLightPrimitive : public CLinePrimitiveData{
+public:
+   CPhotometricLightPrimitive();
+};
+
+#ifdef ENABLE_VP2
+
+// TODO unify these two classes later, that can deal both
+// with vbo and the old pipeline and static / dynamic initialization
+// IBO has to contain both wireframe and triangle indices
+class CGLPrimitive {
+protected:
+   union{
+      struct{
+         GLuint m_VBO;
+         GLuint m_IBO;
+      };
+      GLuint m_GLBuffers[2];
+   };
+   GLuint m_VAO;
+   unsigned int m_numLineIndices;
+   CGLPrimitive();
+   void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
+public:
+   virtual ~CGLPrimitive();
+   virtual void draw() const;
+};
+
+class CGLQuadLightPrimitive : public CGLPrimitive{
+public:
+   CGLQuadLightPrimitive();
+};
+
+class CGLDiskLightPrimitive : public CGLPrimitive{
+public:
+   CGLDiskLightPrimitive();
+};
+
+class CGLCylinderPrimitive : public CGLPrimitive{
+public:
+   CGLCylinderPrimitive();
+};
+
+class CGLPhotometricLightPrimitive : public CGLPrimitive{
+public:
+   CGLPhotometricLightPrimitive();
+};
+
+bool checkShaderError(GLuint shader);
+bool checkProgramError(GLuint shader);
+
+#endif
