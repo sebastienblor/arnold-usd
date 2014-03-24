@@ -173,8 +173,6 @@ int Procedural::Init(AtNode* node)
       string strParentName = AiNodeGetName( m_node );
       string strParentDso = AiNodeGetStr( m_node, "dso" );
 
-      bool bLoadAtInit = AiNodeGetBool( m_node, "load_at_init" );
-
       // Create a sphere shape node
       {
          m_sphere = AiNode("sphere");
