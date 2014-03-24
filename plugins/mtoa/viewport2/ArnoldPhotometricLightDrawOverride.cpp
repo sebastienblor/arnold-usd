@@ -9,12 +9,12 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 430\n"
-"layout (location = 0) uniform mat4 modelViewProj;\n"
-"layout (location = 4) uniform vec4 shadeColor;\n";
+    const char* shaderUniforms = "#version 150\n"
+"uniform mat4 modelViewProj;\n"
+"uniform vec4 shadeColor;\n";
 
     const char* vertexShader = 
-"layout (location = 0) in vec3 position;\n"
+"in vec3 position;\n"
 "void main()\n"
 "{\n"
 "gl_Position = modelViewProj * vec4(position, 1.0f);\n"
@@ -28,6 +28,9 @@ namespace{
 GLuint CArnoldPhotometricLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldPhotometricLightDrawOverride::s_fragmentShader = 0;
 GLuint CArnoldPhotometricLightDrawOverride::s_program = 0;
+
+GLint CArnoldPhotometricLightDrawOverride::s_modelViewProjLoc = 0;
+GLint CArnoldPhotometricLightDrawOverride::s_shadeColorLoc = 0;
 
 CGLPrimitive* CArnoldPhotometricLightDrawOverride::sp_primitive = 0;
 
@@ -119,8 +122,8 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
 
     float mat[4][4]; // load everything in one go, using one continous glUniformfv call
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
-    glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(4, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+    glUniformMatrix4fv(s_modelViewProjLoc, 1, GL_FALSE, &mat[0][0]);
+    glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
             userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
     
     sp_primitive->draw();
@@ -135,8 +138,8 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_4_3)
-            return; // right now, only opengl 4.3, we can lower this later
+        if (!GLEW_VERSION_3_2)
+            return;
 
         // program for wireframe display
 
@@ -165,6 +168,9 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
             return;       
 
         sp_primitive = new CGLPhotometricLightPrimitive();
+
+        s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
+        s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
 
         s_isValid = true;
     }

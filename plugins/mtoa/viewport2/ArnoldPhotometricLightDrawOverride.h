@@ -41,6 +41,9 @@ private:
     static GLuint s_fragmentShader;
     static GLuint s_program;
 
+    static GLint s_modelViewProjLoc;
+    static GLint s_shadeColorLoc;
+
     static CGLPrimitive* sp_primitive;
 
     static bool s_isValid;
