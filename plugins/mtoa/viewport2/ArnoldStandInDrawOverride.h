@@ -39,6 +39,11 @@ private:
     static GLuint s_fragmentShader;
     static GLuint s_program;
 
+    static GLint s_modelViewProjLoc;
+    static GLint s_scaleLoc;
+    static GLint s_offsetLoc;
+    static GLint s_shadeColorLoc;
+
     static GLuint s_VBO;
     static GLuint s_IBO;
     static GLuint s_VAO;

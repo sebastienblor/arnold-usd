@@ -9,14 +9,14 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 430\n"
-"layout (location = 0) uniform mat4 modelViewProj;\n"
-"layout (location = 4) uniform vec4 scale;"
-"layout (location = 5) uniform vec4 offset;"
-"layout (location = 6) uniform vec4 shadeColor;\n";
+    const char* shaderUniforms = "#version 150\n"
+"uniform mat4 modelViewProj;\n"
+"uniform vec4 scale;"
+"uniform vec4 offset;"
+"uniform vec4 shadeColor;\n";
 
     const char* vertexShader = 
-"layout (location = 0) in vec3 position;\n"
+"in vec3 position;\n"
 "void main()\n"
 "{\n"
 "gl_Position = modelViewProj * vec4(position * scale.xyz + offset.xyz, 1.0f);\n"
@@ -30,6 +30,11 @@ namespace{
 GLuint CArnoldStandInDrawOverride::s_vertexShader = 0;
 GLuint CArnoldStandInDrawOverride::s_fragmentShader = 0;
 GLuint CArnoldStandInDrawOverride::s_program = 0;
+
+GLint CArnoldStandInDrawOverride::s_modelViewProjLoc = 0;
+GLint CArnoldStandInDrawOverride::s_scaleLoc = 0;
+GLint CArnoldStandInDrawOverride::s_offsetLoc = 0;
+GLint CArnoldStandInDrawOverride::s_shadeColorLoc = 0;
 
 GLuint CArnoldStandInDrawOverride::s_VBO = 0;
 GLuint CArnoldStandInDrawOverride::s_IBO = 0;
@@ -157,10 +162,10 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
 
     float mat[4][4]; // load everything in one go, using one continous glUniformfv call
     context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
-    glUniformMatrix4fv(0, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(4, userData->m_scale[0], userData->m_scale[1], userData->m_scale[2], userData->m_scale[3]);
-    glUniform4f(5, userData->m_offset[0], userData->m_offset[1], userData->m_offset[2], userData->m_offset[3]);
-    glUniform4f(6, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+    glUniformMatrix4fv(s_modelViewProjLoc, 1, GL_FALSE, &mat[0][0]);
+    glUniform4f(s_scaleLoc, userData->m_scale[0], userData->m_scale[1], userData->m_scale[2], userData->m_scale[3]);
+    glUniform4f(s_offsetLoc, userData->m_offset[0], userData->m_offset[1], userData->m_offset[2], userData->m_offset[3]);
+    glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
             userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
     glBindVertexArray(s_VAO);
 
@@ -243,6 +248,10 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
         glBindVertexArray(0);
 
+        s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
+        s_scaleLoc = glGetUniformLocation(s_program, "scale");
+        s_offsetLoc = glGetUniformLocation(s_program, "offset");
+        s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
     }
 }
 
