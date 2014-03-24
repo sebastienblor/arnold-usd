@@ -40,6 +40,10 @@ private:
     static GLuint s_fragmentShader;
     static GLuint s_program;
 
+    static GLint s_modelLoc;
+    static GLint s_viewProjLoc;
+    static GLint s_shadeColorLoc;
+
     static bool s_isValid;
     static bool s_isInitialized;
 };

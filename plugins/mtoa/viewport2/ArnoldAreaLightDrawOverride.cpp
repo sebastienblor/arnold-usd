@@ -6,13 +6,13 @@
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
 
-const char* shaderUniforms = "#version 430\n"
-"layout (location = 0) uniform mat4 model;\n"
-"layout (location = 4) uniform mat4 viewProj;\n"
-"layout (location = 8) uniform vec4 shadeColor;\n";
+const char* shaderUniforms = "#version 150\n"
+"uniform mat4 model;\n"
+"uniform mat4 viewProj;\n"
+"uniform vec4 shadeColor;\n";
 
 const char* vertexShader = 
-"layout (location = 0) in vec3 position;\n"
+"in vec3 position;\n"
 "void main()\n"
 "{\n"
 "gl_Position = viewProj * (model * vec4(position, 1.0f));\n"
@@ -25,6 +25,10 @@ const char* fragmentShader =
 GLuint CArnoldAreaLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_fragmentShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_program = 0;
+
+GLint CArnoldAreaLightDrawOverride::s_modelLoc = 0;
+GLint CArnoldAreaLightDrawOverride::s_viewProjLoc = 0;
+GLint CArnoldAreaLightDrawOverride::s_shadeColorLoc = 0;
 
 bool CArnoldAreaLightDrawOverride::s_isValid = false;
 bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
@@ -214,6 +218,10 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
         CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
 
+        s_modelLoc = glGetUniformLocation(s_program, "model");
+        s_viewProjLoc = glGetUniformLocation(s_program, "viewProj");
+        s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
+
         s_isValid = true;
     }
 }
@@ -227,11 +235,11 @@ void CArnoldAreaLightDrawOverride::draw(
     const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);        
     glUseProgram(s_program);
 
-    glUniformMatrix4fv(0, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
+    glUniformMatrix4fv(s_modelLoc, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
-    glUniformMatrix4fv(4, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(8, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+    glUniformMatrix4fv(s_viewProjLoc, 1, GL_FALSE, &mat[0][0]);
+    glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
         userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
     
     userData->p_primitive->draw();
