@@ -582,12 +582,15 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
 
 #ifdef ENABLE_VP2
-   GLenum err = glewInit();
-   if (GLEW_OK != err)
+   if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
-      returnStatus = MStatus::kFailure;
-      returnStatus.perror("Erorr initializing GLEW!");
-      return returnStatus;
+      GLenum err = glewInit();
+      if (GLEW_OK != err)
+      {
+         returnStatus = MStatus::kFailure;
+         returnStatus.perror("Erorr initializing GLEW!");
+         return returnStatus;
+      }
    }
 #endif  
 
