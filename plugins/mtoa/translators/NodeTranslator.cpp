@@ -876,6 +876,8 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" ||
          (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/)
          translator->m_updateMode = AI_RECREATE_NODE;
+      else if ((node.apiType() == MFn::kNurbsCurve) && (plugName == ".create"))
+         translator->m_updateMode = AI_RECREATE_NODE;
       else
          translator->m_updateMode = AI_UPDATE_ONLY;
          
