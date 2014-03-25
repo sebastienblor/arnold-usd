@@ -527,6 +527,9 @@ namespace // <anonymous>
          CHECK_MSTATUS(status);
       }
 
+      status = plugin.deregisterNode(CArnoldStandInShape::id);
+      CHECK_MSTATUS(status);
+
       // Remove creation callback
       if (CArnoldOptionsNode::sId != 0)
       {
@@ -884,7 +887,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                   shaderOverrideRegistrant);
 
    CHECK_MSTATUS(status);
-
+   
    MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
 
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
