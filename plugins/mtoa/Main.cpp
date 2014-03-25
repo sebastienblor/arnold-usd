@@ -526,6 +526,7 @@ namespace // <anonymous>
          status = plugin.deregisterNode(node.id);
          CHECK_MSTATUS(status);
       }
+
       // Remove creation callback
       if (CArnoldOptionsNode::sId != 0)
       {
@@ -884,16 +885,13 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    CHECK_MSTATUS(status);
 
-
    MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
 
    status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
                   AI_AREA_LIGHT_CLASSIFICATION,
                   areaLightOverrideRegistrant);
 
-   CHECK_MSTATUS(status);
-
-   CArnoldAreaLightDrawOverride::clearGPUResources();
+   CHECK_MSTATUS(status);      
 
    MString skyDomeLightOverrideRegistrant = "arnoldSkyDomeLightNodeOverride";
 
@@ -903,7 +901,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    CHECK_MSTATUS(status);
 
-   CArnoldSkyDomeLightDrawOverride::clearGPUResources();
+   if (MGlobal::mayaState() == MGlobal::kInteractive)
+      CArnoldSkyDomeLightDrawOverride::clearGPUResources();
 
    MString standinOverrideRegistrant = "arnoldStandInNodeOverride";
 
@@ -911,9 +910,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                   AI_STANDIN_CLASSIFICATION,
                   standinOverrideRegistrant);
 
-   CHECK_MSTATUS(status);
-
-   CArnoldStandInDrawOverride::clearGPUResources();
+   CHECK_MSTATUS(status);      
 
    MString photometricLightOverrideRegistrant = "arnoldPhotometricLightNodeOverride";
 
@@ -923,7 +920,12 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    CHECK_MSTATUS(status);
 
-   CArnoldPhotometricLightDrawOverride::clearGPUResources();
+   if (MGlobal::mayaState() == MGlobal::kInteractive)
+   {
+      CArnoldPhotometricLightDrawOverride::clearGPUResources();
+      CArnoldAreaLightDrawOverride::clearGPUResources();
+      CArnoldStandInDrawOverride::clearGPUResources();
+   }
 #endif
    
    // Swatch renderer

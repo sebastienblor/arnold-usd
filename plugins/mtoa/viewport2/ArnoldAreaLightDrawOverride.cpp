@@ -167,17 +167,20 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 
 void CArnoldAreaLightDrawOverride::clearGPUResources()
 {
-    glDeleteShader(s_vertexShader);
-    glDeleteShader(s_fragmentShader);
-    glDeleteProgram(s_program);
-    if (s_isValid)
+    if (s_isInitialized)
     {
-        delete CArnoldAreaLightUserData::s_primitives[0];
-        delete CArnoldAreaLightUserData::s_primitives[1];
-        delete CArnoldAreaLightUserData::s_primitives[2];
+        glDeleteShader(s_vertexShader);
+        glDeleteShader(s_fragmentShader);
+        glDeleteProgram(s_program);
+        if (s_isValid)
+        {
+            delete CArnoldAreaLightUserData::s_primitives[0];
+            delete CArnoldAreaLightUserData::s_primitives[1];
+            delete CArnoldAreaLightUserData::s_primitives[2];
+        }
+        s_isInitialized = false;
+        s_isValid = false;
     }
-    s_isInitialized = false;
-    s_isValid = false;
 }
 
 void CArnoldAreaLightDrawOverride::initializeGPUResources()

@@ -257,12 +257,15 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
 
 void CArnoldStandInDrawOverride::clearGPUResources()
 {
-    glDeleteBuffers(1, &s_VBO);
-    glDeleteBuffers(1, &s_IBO);
-    glDeleteVertexArrays(1, &s_VAO);
-    glDeleteShader(s_vertexShader);
-    glDeleteShader(s_fragmentShader);
-    glDeleteProgram(s_program);
-    s_isValid = false;
-    s_isInitialized = false;
+    if (s_isInitialized)
+    {
+        glDeleteBuffers(1, &s_VBO);
+        glDeleteBuffers(1, &s_IBO);
+        glDeleteVertexArrays(1, &s_VAO);
+        glDeleteShader(s_vertexShader);
+        glDeleteShader(s_fragmentShader);
+        glDeleteProgram(s_program);
+        s_isValid = false;
+        s_isInitialized = false;
+    }
 }

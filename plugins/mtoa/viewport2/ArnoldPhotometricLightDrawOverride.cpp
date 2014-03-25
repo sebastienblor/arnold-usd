@@ -178,11 +178,14 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
 
 void CArnoldPhotometricLightDrawOverride::clearGPUResources()
 {    
-    glDeleteShader(s_vertexShader);
-    glDeleteShader(s_fragmentShader);
-    glDeleteProgram(s_program);
-    if (s_isValid)
-        delete sp_primitive;
-    s_isValid = false;
-    s_isInitialized = false;
+    if (s_isInitialized)
+    {
+        glDeleteShader(s_vertexShader);
+        glDeleteShader(s_fragmentShader);
+        glDeleteProgram(s_program);
+        if (s_isValid)
+            delete sp_primitive;
+        s_isValid = false;
+        s_isInitialized = false;
+    }
 }
