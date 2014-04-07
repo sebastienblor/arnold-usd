@@ -61,6 +61,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         
         self.addSeparator()
         self.addControl("aiSssSetname", label="SSS Set Name")
+        self.addControl("aiMotionVectorSource", label="Motion Vector Source")
         
         self.beginLayout('Subdivision', collapse=False)
         self.addControl("aiSubdivType", label="Type")

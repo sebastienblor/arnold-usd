@@ -425,7 +425,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
    {
       for (unsigned int j = 0; j < numColorSets; ++j)
       {
-         if (names[j] == MString("velocityPV"))
+         if (names[j] == m_motionVectorSource.asChar())
             m_useMotionVectors = true;
       }
    }
@@ -435,7 +435,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
       if (m_useMotionVectors)
       {
          names.clear();
-         names.append("velocityPV");
+         names.append(m_motionVectorSource);
          numColorSets = 1;
       }
       else
@@ -831,6 +831,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
       // Get Vertex Colors
+      MPlug plug = FindMayaPlug("aiMotionVectorSource");
+      if (!plug.isNull())
+         m_motionVectorSource = plug.asString();
       bool exportColors = GetVertexColors(geometry, vcolors);
 
       // Get all tangents, bitangents
@@ -883,7 +886,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          {
             if (exportVertices)
             {
-               std::vector<float>& motionVectors = vcolors["velocityPV"];
+               std::vector<float>& motionVectors = vcolors[m_motionVectorSource.asChar()];
                AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
@@ -1320,4 +1323,10 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.hasSoftMax = true;
    data.softMax.FLT = 1.f;
    helper.MakeInputFloat(data);
+
+   data.stringDefault = "velocityPV";
+   data.name = "aiMotionVectorSource";
+   data.shortName = "ai_motion_vector_source";
+   data.channelBox = false;
+   helper.MakeInputString(data);
 }

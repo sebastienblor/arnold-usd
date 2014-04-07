@@ -98,6 +98,7 @@ protected:
    bool m_displaced;
    bool m_isRefSmooth;
    bool m_useMotionVectors;
+   MString m_motionVectorSource;
    MObject m_geometry;
    MDagPath m_dagPathRef;
 };
