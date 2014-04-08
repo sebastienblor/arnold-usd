@@ -22,7 +22,7 @@ for subdir in ['attributes', 'common', 'extension', 'platform', 'utils', 'sessio
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldStandardNode.cpp'),
-                    os.path.join('nodes', 'shader', 'ArnoldSkinNode.cpp'),
+                    os.path.join('nodes', 'shader', 'ArnoldSkinShaderNode.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'driver', 'DriverTranslator.cpp'),
@@ -35,7 +35,7 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp')]
 include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                         os.path.join('nodes', 'shader', 'ArnoldStandardNode.h'),
-                        os.path.join('nodes', 'shader', 'ArnoldSkinNode.h'),
+                        os.path.join('nodes', 'shader', 'ArnoldSkinShaderNode.h'),
                         os.path.join('translators', 'camera', 'AutoCameraTranslator.h'),
                         os.path.join('translators', 'camera', 'CameraTranslator.h'),
                         os.path.join('translators', 'driver', 'DriverTranslator.h'),

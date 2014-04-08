@@ -37,7 +37,6 @@
 #include "nodes/light/ArnoldAreaLightNode.h"
 #include "nodes/light/ArnoldLightBlockerNode.h"
 #include "nodes/light/ArnoldPhotometricLightNode.h"
-#include "nodes/shader/ArnoldStandardNode.h"
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
