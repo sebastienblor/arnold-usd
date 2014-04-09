@@ -1,6 +1,7 @@
 #ifdef ENABLE_VP2
 #include <GL/glew.h>
 #include "viewport2/ArnoldStandardShaderOverride.h"
+#include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
@@ -771,6 +772,17 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    CHECK_MSTATUS(status);
 
+   MString arnoldSkinOverrideClassification = "drawdb/shader/surface/arnold/skin";
+   MString skinShaderOverrideRegistrant = "arnoldSkinShaderOverride";
+
+   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+               arnoldSkinOverrideClassification,
+               skinShaderOverrideRegistrant,
+               ArnoldSkinShaderOverride::creator);
+
+   CHECK_MSTATUS(status);
+
+
    MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
 
    status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
@@ -884,6 +896,15 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
                   arnoldStandardOverrideClassification,
                   shaderOverrideRegistrant);
+
+   CHECK_MSTATUS(status);
+
+   MString arnoldSkinOverrideClassification = "drawdb/shader/surface/arnold/skin";
+   MString skinShaderOverrideRegistrant = "arnoldSkinShaderOverride";
+
+   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+                  arnoldSkinOverrideClassification,
+                  skinShaderOverrideRegistrant);
 
    CHECK_MSTATUS(status);
    

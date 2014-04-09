@@ -185,7 +185,11 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          {
             creator    = CArnoldSkinShaderNode::creator;
             initialize = CArnoldSkinShaderNode::initialize;
-            abstract   = &CArnoldSkinShaderNode::s_abstract;            
+            abstract   = &CArnoldSkinShaderNode::s_abstract;
+            classification = "shader/surface";
+            classification += MString(":") + ARNOLD_CLASSIFY(classification);
+            classification += MString(":swatch/") + ARNOLD_SWATCH;
+            classification += MString(":drawdb/shader/surface/arnold/skin");
          }
          else
          {
