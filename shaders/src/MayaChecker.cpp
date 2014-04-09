@@ -80,8 +80,8 @@ shader_evaluate
    float ss = fmod(uv.x, 1.000001f);
    float tt = fmod(uv.y, 1.000001f);
 
-   const float filter = AiShaderEvalParamFlt(p_filter);
-   const float filterOffset = AiShaderEvalParamFlt(p_filterOffset);
+   const float filter = AiShaderEvalParamFlt(p_filter) / 20.0f;
+   const float filterOffset = AiShaderEvalParamFlt(p_filterOffset) / 20.0f;
    
    const float fw = MAX(sqrtf(sg->area), AI_EPSILON) * filter + filterOffset;
 
