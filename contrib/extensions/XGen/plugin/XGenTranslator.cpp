@@ -2,6 +2,7 @@
 #include "utils/time.h"
 
 #include <maya/MFileObject.h>
+#include <maya/MTime.h>
 
 #include "XGenTranslator.h"
 
@@ -330,6 +331,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
          // Export shaders
          rootShader = ExportShaders( shape );
+
+         ExportMatrix(shape, 0);
       }
       // For other patches we reuse the shaders and create new procedural
       else
@@ -349,7 +352,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       }
 
       AiNodeSetStr(shape, "name", NodeUniqueName(shape, buf));
-      ExportMatrix(shape, 0);
+      
       ProcessRenderFlags(shape);
 
       //AiNodeSetPtr( shape, "shader", rootShader );
@@ -398,7 +401,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          strData += " -geom " + strGeomFile;
          strData += " -patch " + strPatch;
          strData += " -description " + info.strDescription;
-		 strData += " -fps 24.0 ";  // frickin a!  here's your frame rate.. wasn't in the translator.. DAMN YOU AUTODESK!! 
+         MTime oneSec(1.0, MTime::kSeconds);
+         float fps =  (float)oneSec.asUnits(MTime::uiUnit());
+         sprintf(buf,"%f ",fps);
+		 strData += " -fps " + std::string(buf);  // frickin a!  here's your frame rate.. wasn't in the translator.. DAMN YOU AUTODESK!! 
 		 strData += " -motionSamplesLookup "+ mbSamplesString;
 		 strData += " -motionSamplesPlacement "+ mbSamplesString;
 
