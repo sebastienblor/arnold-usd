@@ -190,10 +190,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          isSo = true;
       }
 
-      AtNode *options = AiUniverseGetOptions();
+      AtNode* options = AiUniverseGetOptions();
       AiNodeSetBool(options, "preserve_scene_data", true);
       AiNodeSetBool(options, "skip_license_check", true);
-      AtNode * procedural = AiNode("procedural");
+      AtNode* procedural = AiNode("procedural");
       AiNodeSetStr(procedural, "dso", assfile.asChar());
       AiNodeSetBool(procedural, "load_at_init", true);
       AtMatrix mtx;
@@ -257,8 +257,13 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          while (!AiNodeIteratorFinished(iter))
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
+            if (node == procedural)
+               continue;
             if (node)
-            {  
+            {
+               if (node == procedural)
+                   continue; // Ignore own procedural node, we don't need to handle it, and it will introduce incorrect data, like a 0,0,0 -> 0,0,0 bounding box
+
                CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, "polymesh"))
                   g = new CArnoldPolymeshGeometry(node);
@@ -290,13 +295,17 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode* node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+                if (node == procedural)
+                    continue; // Ignore own procedural node, we don't need to handle it
                if (AiNodeGetByte(node, "visibility") == 0)
                   continue;
                AtMatrix total_matrix;
                AiM4Identity(total_matrix);
                bool inherit_xform = true;
+               bool isInstance = false;
                while(AiNodeIs(node, "ginstance"))
                {                  
+                  isInstance = true;
                   AtMatrix current_matrix;
                   AiNodeGetMatrix(node, "matrix", current_matrix);
                   if (inherit_xform)
@@ -306,6 +315,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   inherit_xform = AiNodeGetBool(node, "inherit_xform");
                   node = (AtNode*)AiNodeGetPtr(node, "node");
                }
+               if (!isInstance)
+                  continue;
                if (AiNodeIs(node, "polymesh") || AiNodeIs(node, "points") || AiNodeIs(node, "procedural"))
                {
                   CArnoldStandInGeom::geometryListIterType iter = geom->m_geometryList.find(node);

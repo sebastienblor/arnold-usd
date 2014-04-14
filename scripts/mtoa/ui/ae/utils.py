@@ -26,8 +26,7 @@ def arnoldDimControlIfFalse(node, target, source):
 
 def getNodeType(name):
     nodeType = pm.nodeType(name)
-    lights = ["ambientLight",
-                "directionalLight",
+    lights = ["directionalLight",
                 "pointLight",
                 "spotLight",
                 "areaLight"]
