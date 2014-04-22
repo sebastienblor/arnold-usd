@@ -2,12 +2,6 @@
 
 #ifdef ENABLE_VP2
 #include <GL/glew.h>
-#else
-#if defined(_DARWIN)
-   #include <OpenGL/gl.h>
-#else 
-   #include <GL/gl.h>
-#endif
 #endif
 
 #include <vector>
@@ -29,17 +23,17 @@ public:
 // since OpenGL 3.1, and it doesn't worth the code duplication
 class CDiskPrimitive : public CLinePrimitiveData{
 public:
-   CDiskPrimitive(GLsizei resolution = 20);
+   CDiskPrimitive(unsigned int resolution = 20);
 };
 
 class CCylinderPrimitive : public CLinePrimitiveData{
 public:
-   CCylinderPrimitive(float radius = 1.0f, float height = 1.0f, GLsizei resolution = 20);
+   CCylinderPrimitive(float radius = 1.0f, float height = 1.0f, unsigned int resolution = 20);
 };
 
 class CSpherePrimitive : public CLinePrimitiveData{
 public:
-   CSpherePrimitive(float radius = 1.0f, GLsizei resolution = 16);
+   CSpherePrimitive(float radius = 1.0f, unsigned int resolution = 16);
 };
 
 class CBoxPrimitive : public CLinePrimitiveData{
@@ -61,12 +55,12 @@ class CGLPrimitive {
 protected:
    union{
       struct{
-         GLuint m_VBO;
-         GLuint m_IBO;
+         unsigned int m_VBO;
+         unsigned int m_IBO;
       };
-      GLuint m_GLBuffers[2];
+      unsigned int m_GLBuffers[2];
    };
-   GLuint m_VAO;
+   unsigned int m_VAO;
    unsigned int m_numLineIndices;
    CGLPrimitive();
    void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
@@ -95,7 +89,7 @@ public:
    CGLPhotometricLightPrimitive();
 };
 
-bool checkShaderError(GLuint shader);
-bool checkProgramError(GLuint shader);
+bool checkShaderError(unsigned int shader);
+bool checkProgramError(unsigned int shader);
 
 #endif
