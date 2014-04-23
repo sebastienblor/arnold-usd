@@ -259,7 +259,7 @@ MObject CMayaScene::GetSceneArnoldRenderOptionsNode()
    }
    else
    {
-      AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
+      AiMsgDebug("[mtoa] could not find defaultArnoldRenderOptions");
    }
 
    return ArnoldRenderOptionsNode;

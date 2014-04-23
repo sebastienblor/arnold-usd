@@ -913,6 +913,10 @@ def createArnoldMayaintegrationSettings():
                         label="Enable Swatch Render",
                         attribute='defaultArnoldRenderOptions.enable_swatch_render')
 
+    pm.attrControlGrp('os_enable_standin_draw',
+                        label="Enable Standin Draw",
+                        attribute='defaultArnoldRenderOptions.enable_standin_draw')
+
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)

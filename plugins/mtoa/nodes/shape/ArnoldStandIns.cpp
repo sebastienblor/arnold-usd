@@ -1057,6 +1057,15 @@ void* CArnoldStandInShapeUI::creator()
 void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objectAndActiveOnly*/,
       MDrawRequestQueue & queue)
 {
+   // Are we displaying meshes?
+   if (!info.objectDisplayStatus(M3dView::kDisplayMeshes))
+      return;
+
+   // Do we enable display of standins?
+   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+   if (!ArnoldRenderOptionsNode.isNull()
+       && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_standin_draw").asBool())
+      return;
 
    // The draw data is used to pass geometry through the
    // draw queue. The data should hold all the information
@@ -1068,10 +1077,6 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
    CArnoldStandInGeom* geom = shapeNode->geometry();
    getDrawData(geom, data);
    request.setDrawData(data);
-
-   // Are we displaying meshes?
-   if (!info.objectDisplayStatus(M3dView::kDisplayMeshes))
-      return;
 
    // Use mode status to determine how to display object
    // why was there a switch if everything executed the same code??

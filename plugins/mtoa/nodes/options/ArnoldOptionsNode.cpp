@@ -87,6 +87,7 @@ MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_version;
+MObject CArnoldOptionsNode::s_enable_standin_draw;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -556,6 +557,10 @@ MStatus CArnoldOptionsNode::initialize()
    s_version = tAttr.create("version", "version", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_version);
+
+   s_enable_standin_draw = nAttr.create("enableStandinDraw", "enable_standin_draw", MFnNumericData::kBoolean);
+   nAttr.setDefault(true);
+   addAttribute(s_enable_standin_draw);
 
    return MS::kSuccess;
 }
