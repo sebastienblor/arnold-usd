@@ -179,7 +179,7 @@ int Procedural::Init(AtNode* node)
          AiNodeSetStr( m_sphere, "name", getUniqueName(buf,( strParentName + string("_sphere_shape") ).c_str() ) );
          AiNodeSetFlt( m_sphere, "radius", 0.5f );
          AiNodeSetPnt( m_sphere, "center", 0.0f, 0.0f, 0.0f );
-         AiNodeSetInt( m_sphere, "visibility", 0 );
+         AiNodeSetByte( m_sphere, "visibility", 0 );
          m_nodes.push_back( m_sphere );
       }
 
@@ -632,30 +632,41 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
    std::string asstocfile = fileBase + ".asstoc";
 
-   std::ifstream file(asstocfile.c_str());
-   if (!file.is_open())
+   if(m_bboxes.find(asstocfile) == m_bboxes.end())
    {
-      if (XGDebugLevel >= 2)
-         XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ asstocfile);
-      return false;
+
+      std::ifstream file(asstocfile.c_str());
+      if (!file.is_open())
+      {
+         if (XGDebugLevel >= 2)
+            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ asstocfile);
+         return false;
+      }
+
+      std::string line;
+      std::getline(file, line);
+
+      char *str = new char[line.length() + 1];
+      strcpy(str, line.c_str());
+
+      strtok(str, " ");
+      out_bbox.xmin = atof(strtok(NULL, " "));
+      out_bbox.ymin = atof(strtok(NULL, " "));
+      out_bbox.zmin = atof(strtok(NULL, " "));
+      out_bbox.xmax = atof(strtok(NULL, " "));
+      out_bbox.ymax = atof(strtok(NULL, " "));
+      out_bbox.zmax = atof(strtok(NULL, " "));
+
+      m_bboxes.insert(std::make_pair(asstocfile,out_bbox));
+
+      file.close();
+      delete str;
+
    }
-
-   std::string line;
-   std::getline(file, line);
-
-   char *str = new char[line.length() + 1];
-   strcpy(str, line.c_str());
-
-   strtok(str, " ");
-   out_bbox.xmin = atof(strtok(NULL, " "));
-   out_bbox.ymin = atof(strtok(NULL, " "));
-   out_bbox.zmin = atof(strtok(NULL, " "));
-   out_bbox.xmax = atof(strtok(NULL, " "));
-   out_bbox.ymax = atof(strtok(NULL, " "));
-   out_bbox.zmax = atof(strtok(NULL, " "));
-
-   file.close();
-   delete str;
+   else
+   {
+      out_bbox = m_bboxes[asstocfile];
+   }
    return true;
 
    // Use an auto_fclose since we are returning from the function all over the place.
@@ -1059,7 +1070,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
        AiNodeSetArray( nodeInstance, "matrix", matrix );
        AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
        AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
-       AiNodeSetInt( nodeInstance, "visibility", 65535 );
+       AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
 
        // Add custom renderer parameters.
        pushCustomParams( nodeInstance, pc, j);
@@ -1242,7 +1253,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
     }
 */
 
-
+   string strParentName = AiNodeGetName( m_node_face );
 
    // Default to 1.0 so that it has no effect for archive files that
    // do not contain BBOX information
@@ -1280,6 +1291,8 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
    }
    const double* archivesFrame = pc->get( PC(ArchivesFrame_XP) );
 
+   
+
 
     for ( unsigned int j = 0; j < cacheCount; j++ ) {
 
@@ -1297,7 +1310,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         vec3 axis2[2];
         double angle2[2];
         vec3 zeroAxis = { 0.f, 0.f, 0.f };
-
+        
         for ( unsigned int i=0; i <numSamples; i++ )
         {
             // Determine scaling values.
@@ -1410,7 +1423,6 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         }
 */
 
-      string strParentName = AiNodeGetName( m_node_face );
       string strID = itoa((int)m_nodes.size());
 
       string instance_name = strParentName + string("_archive_") + strID;
