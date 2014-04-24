@@ -922,6 +922,23 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 {
    string strParentName = AiNodeGetName( m_node_face );
 
+
+   // Build up the token and parameter lists to output for all
+   // passes of motionBlur.
+   double length_;
+   double width;
+   double depth;
+   vec3 P;
+   vec3 lengthVec;
+   vec3 axis1;
+   double angle1;
+   vec3 axis2;
+   double angle2[2];
+   vec3 zeroAxis = { 0.f, 0.f, 0.f };
+
+   mat44 xP0, xP, xN, tmp;
+
+
    unsigned int cacheCount = pc->get( PC(CacheCount) );
    unsigned int numSamples = pc->get( PC(NumMotionSamples) );
    //unsigned int shutterSize = pc->getSize( PC(Shutter) );
@@ -934,19 +951,6 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
     {
        AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
 
-        // Build up the token and parameter lists to output for all
-        // passes of motionBlur.
-        double length_[2];
-        double width[2];
-        double depth[2];
-        vec3 P[2];
-        vec3 lengthVec[2];
-        vec3 axis1[2];
-        double angle1[2];
-        vec3 axis2[2];
-        double angle2[2];
-        vec3 zeroAxis = { 0.f, 0.f, 0.f };
-
         for ( unsigned int i=0; i < numSamples; i++ )
         {
             // Determine scaling values.
@@ -957,98 +961,96 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
             const vec3* points_i = pc->get( PC(Points), i );
 
-            P[i] = points_i[p0];
+            P = points_i[p0];
             vec3 lengthP( points_i[p1] );
-            vec3 midP(( P[i] + lengthP )/2.0 );
+            vec3 midP(( P + lengthP )/2.0 );
             vec3 widthP( points_i[p2] );
             vec3 depthP( points_i[p3] );
-            lengthVec[i] = lengthP - P[i];
+            lengthVec = lengthP - P;
             vec3 widthVec = widthP - midP;
-            length_[i] = length(lengthVec[i]);
-            width[i] = length(widthVec) * 2.0;
-            depth[i] = length((depthP - midP)) * 2.0;
+            length_ = length(lengthVec);
+            width = length(widthVec) * 2.0;
+            depth = length((depthP - midP)) * 2.0;
 
             // Determine axis and angle of rotation.
             vec3 yAxis = { 0.f, 1.f, 0.f };
             vec3 xAxis = { 1.f, 0.f, 0.f };
             vec3 xChange;
 
-            axis1[i] = yAxis * lengthVec[i];
-            if( normalize( axis1[i] ) > 0.0 ) {
-                angle1[i] = angle( yAxis, lengthVec[i] );
-                xChange = rotateBy( xAxis, axis1[i], angle1[i] );
+            axis1 = yAxis * lengthVec;
+            if( normalize( axis1 ) > 0.0 ) {
+                angle1 = angle( yAxis, lengthVec );
+                xChange = rotateBy( xAxis, axis1, angle1 );
             } else {
-                angle1[i] = 0.0;
-                axis1[i] = xAxis;
+                angle1 = 0.0;
+                axis1 = xAxis;
                 xChange = xAxis;
             }
-            axis2[i] = xChange * widthVec;
-            if ( normalize( axis2[i] ) > 0.0 ) {
-                angle2[i] = angle( xChange, widthVec );
-                if ( dot( axis2[i], lengthVec[i] ) < 0.0 )
-                    angle2[i] *= -1.0;
+            axis2 = xChange * widthVec;
+            if ( normalize( axis2 ) > 0.0 ) {
+                angle2[i%2] = angle( xChange, widthVec );
+                if ( dot( axis2, lengthVec ) < 0.0 )
+                    angle2[i%2] *= -1.0;
             } else {
-                angle2[i] = 0.0;
+                angle2[i%2] = 0.0;
             }
-            axis2[i] = yAxis;
+            axis2 = yAxis;
 
             // We want to make sure motion frames take the shortest
             // distance from an angular position.
             if ( i > 0 ) {
-                if ( angle2[i] - angle2[i-1] > 3.14159 ) {
-                    angle2[i] -= 6.28319;
-                } else if ( angle2[i] - angle2[i-1] < -3.14159 ) {
-                    angle2[i] += 6.28319;
+                if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) {
+                    angle2[i%2] -= 6.28319;
+                } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
+                    angle2[i%2] += 6.28319;
                 }
             }
-        }
 
         // Now use these values to create the transforms for each motion
         // sample and put in a motion block
 
-        mat44 xP[2], xN, tmp;
-
-        for ( unsigned int i=0; i < numSamples; i++ ) {
+        
             // Translation
-            translation( tmp, P[i] + lengthVec[i] / 2.0 );
-            xP[i] = tmp;
+            translation( tmp, P + lengthVec / 2.0 );
+            xP = tmp;
+            if(i == 0)
+               xP0 = xP;
             
             // Rotation 1
-            if ( axis1[i] != zeroAxis ) {
-                rotation( tmp, axis1[i], (float)angle1[i] );
-                multiply( xP[i], xP[i], tmp );
+            if ( axis1 != zeroAxis ) {
+                rotation( tmp, axis1, (float)angle1 );
+                multiply( xP, xP, tmp );
                 if ( normalParam && (i==0) )
                     xN = tmp;
             }
             
             // Rotation 2
-            if ( axis2[i] != zeroAxis ) {
-                rotation( tmp, axis2[i], (float)angle2[i] );
-                multiply( xP[i], xP[i], tmp );
+            if ( axis2 != zeroAxis ) {
+                rotation( tmp, axis2, (float)angle2[i%2] );
+                multiply( xP, xP, tmp );
                 if ( normalParam && (i==0) )
                     multiply( xN, xN, tmp );
             }
             
             // Scale
          vec3 scaleV;
-         scaleV.x = (float)width[i];
-         scaleV.y = (float)length_[i];
-         scaleV.z = (float)depth[i];
+         scaleV.x = (float)width;
+         scaleV.y = (float)length_;
+         scaleV.z = (float)depth;
          scale( tmp, scaleV );
 
-            multiply( xP[i], xP[i], tmp );
+            multiply( xP, xP, tmp );
             if ( flipParam ) {
                 rotationX( tmp, (float)degtorad(-90.0) );
             } else {
                 rotationX( tmp, (float)degtorad(90) );
             }
-            multiply( xP[i], xP[i], tmp );
+            multiply( xP, xP, tmp );
             if ( normalParam && (i==0) )
                 multiply( xN, xN, tmp );
-        }
 
-        for ( unsigned int i=0; i < numSamples; i++ ) {
-           const float* xPi = &xP[i]._00;
+
+           const float* xPi = &xP._00;
             AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
@@ -1058,7 +1060,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         }
 
         // Add custom parameters and call sphere.
-        pc->inverseXformParams( j, xP[0], xN );
+        pc->inverseXformParams( j, xP0, xN );
 
         string strID = itoa( (int)m_nodes.size() );
 
