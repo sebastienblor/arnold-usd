@@ -371,7 +371,7 @@ typedef struct
    AtArray* camera_fov;
    float    render_aspect;
    float    image_aspect;
-   
+   float    output_aspect;
 } ShaderData;
 
 node_initialize
@@ -422,7 +422,7 @@ node_update
    int xres = AiNodeGetInt(univ, "xres");
    int yres = AiNodeGetInt(univ, "yres");
    data->render_aspect = (float(xres) / float(yres));
-
+   data->output_aspect = AiNodeGetFlt(univ, "aspect_ratio");
 }
 
 node_finish
@@ -566,9 +566,14 @@ shader_evaluate
 
                if (Pc.z < 0.0f)
                {
-                  float resAR = data->render_aspect;
-                  float imgAR = data->image_aspect;
-                  float camAR = AiShaderEvalParamFlt(p_camera_aspect);
+                  const float resAR = data->render_aspect;
+                  const float imgAR = data->image_aspect;
+                  const float outAR = data->output_aspect;
+                  const float camAR = AiShaderEvalParamFlt(p_camera_aspect);
+
+                  const float invOutAR = 1.0f / outAR;
+                  const float invCamAR = 1.0f / camAR;
+                  const float invImgAR = 1.0f / imgAR;
 
                   float hfov = AiArrayInterpolateFlt(data->camera_fov, sg->time, 0);
                   float nearp = AiShaderEvalParamFlt(p_camera_near);
@@ -586,23 +591,23 @@ shader_evaluate
                   {
                      if (fitType == FIT_CAMERA_RESOLUTION)
                      {
-                        vScale = resAR / camAR;
+                        vScale = resAR * invCamAR * invOutAR;
                      } 
                   }
                   else if (fillType == FILL_HORIZONTAL)
                   {
-                     vScale = imgAR / camAR;
+                     vScale = imgAR * invCamAR;
                   }
-                  else
+                  else // FILL_VERTICAL
                   {
                      if (fitType == FIT_CAMERA_RESOLUTION)
                      {
-                        vScale = resAR / camAR;
-                        uScale = resAR / imgAR;
+                        vScale = resAR * invCamAR * invOutAR;
+                        uScale = resAR * invImgAR * invOutAR;
                      }
                      else
                      {
-                        uScale= camAR / imgAR;
+                        uScale = camAR * invImgAR;
                      }
                   }
 
