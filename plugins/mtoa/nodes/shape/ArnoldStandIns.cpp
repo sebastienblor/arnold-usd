@@ -684,7 +684,7 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
 
-   s_drawOverride = eAttr.create("drawOverride", "draw_override");
+   s_drawOverride = eAttr.create("standInDrawOverride", "standin_draw_override");
    eAttr.addField("Use Global Settings", 0);
    eAttr.addField("Full", 1);
    eAttr.addField("Bounding Box", 2);

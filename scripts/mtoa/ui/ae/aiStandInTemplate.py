@@ -774,7 +774,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.beginLayout('File/Frame', collapse=False)        
         self.addCustom('dso', ArnoldStandInTemplateDsoNew, ArnoldStandInTemplateDsoReplace)
         self.addCustom('data', ArnoldStandInTemplateDataNew, ArnoldStandInTemplateDataReplace)
-        self.addControl("drawOverride")
+        self.addControl('standInDrawOverride')
         self.addControl('mode')
         self.addSeparator()
         self.addControl('frameNumber', label='Frame')
