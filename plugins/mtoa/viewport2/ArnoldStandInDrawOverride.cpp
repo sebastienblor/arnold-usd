@@ -316,6 +316,62 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
             hr = device->CreateBuffer(&bd, 0, &s_pDXConstantBuffer);
             if (FAILED(hr)) return;
+
+            DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+            ID3DBlob* vertexShaderBlob = 0;
+            ID3DBlob* pixelShaderBlob = 0;
+            ID3DBlob* errorBlob = 0;
+            MString effectLocation = MString(getenv("MTOA_PATH")) + MString("\\vp2\\standInBBox.hlsl");
+
+            hr = D3DCompileFromFile(
+                (LPCWSTR)effectLocation.asChar(),
+                0,
+                0,
+                "mainVS",
+                "vs_5_0",
+                0,
+                0,
+                &vertexShaderBlob,
+                &errorBlob);
+            if (FAILED(hr))
+            {
+                if (errorBlob) errorBlob->Release();
+                return;  
+            }
+            if (errorBlob) errorBlob->Release();
+            hr = device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), 0, &s_pDXVertexShader);
+            if (FAILED(hr))
+            {
+                vertexShaderBlob->Release();
+                return;
+            }
+
+            hr = D3DCompileFromFile(
+                (LPCWSTR)effectLocation.asChar(),
+                0,
+                0,
+                "mainPS",
+                "ps_5_0",
+                0,
+                0,
+                &pixelShaderBlob,
+                &errorBlob);
+            if (FAILED(hr))
+            {
+                if (errorBlob) errorBlob->Release();
+                return;  
+            } 
+
+            hr = device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), 0, &s_pDXPixelShader);
+            if (FAILED(hr))
+            {
+                pixelShaderBlob->Release();
+                if (vertexShaderBlob) vertexShaderBlob->Release();
+                if (errorBlob) errorBlob->Release();
+                return;
+            }
+
+            std::cerr << "Hooray\n";
 #endif
         }
     }
