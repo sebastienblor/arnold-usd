@@ -59,6 +59,7 @@ MObject CArnoldStandInShape::s_deferStandinLoad;
 MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
+MObject CArnoldStandInShape::s_drawOverride;
    
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -682,6 +683,14 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
+
+   s_drawOverride = eAttr.create("drawOverride", "draw_override");
+   eAttr.addField("Use Global Settings", 0);
+   eAttr.addField("Full", 1);
+   eAttr.addField("Bounding Box", 2);
+   eAttr.addField("Off", 3);
+   eAttr.setDefault(0);
+   addAttribute(s_drawOverride);
    
    // atributes that are used only by translation
    CAttrData data;
@@ -1062,10 +1071,10 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
       return;
 
    // Do we enable display of standins?
-   MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+   /*MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
    if (!ArnoldRenderOptionsNode.isNull()
        && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_standin_draw").asBool())
-      return;
+      return;*/
 
    // The draw data is used to pass geometry through the
    // draw queue. The data should hold all the information

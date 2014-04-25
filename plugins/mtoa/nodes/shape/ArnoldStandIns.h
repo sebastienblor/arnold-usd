@@ -94,6 +94,7 @@ private:
    static MObject s_scale;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
+   static MObject s_drawOverride;
 
    bool m_refreshAvoided;
 }; // class CArnoldStandInShape
