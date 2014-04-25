@@ -46,7 +46,11 @@ else:
 
 installDir = ''
 
-mayaVersion = sys.argv[1] if sys.argv[1] != '20135' else '2013.5'
+mayaVersion = ''
+if sys.argv[1] != '20135':
+    mayaVersion = sys.argv[1]
+else:
+    mayaVersion = '2013.5'
 enableEnvInstall = mayaVersion == '2012'
 
 userString = '~'
@@ -100,8 +104,29 @@ while True:
     else:
         break
 
+# http://stackoverflow.com/questions/7806563/how-to-unzip-a-file-with-python-2-4
+
+def unzip(zipFilePath, destDir):
+    zfile = zipfile.ZipFile(zipFilePath)
+    for name in zfile.namelist():
+        (dirName, fileName) = os.path.split(name)
+        print dirName, ' ', fileName
+        # Check if the directory exisits
+        if dirName == '.':
+            dirName = ''
+        newDir = os.path.join(destDir, dirName)
+        if not EnsureDir(newDir):
+            continue
+        if not fileName == '':
+            # file
+            fd = open(destDir + '/' + name, 'wb')
+            fd.write(zfile.read(name))
+            fd.close()
+    zfile.close()
+
 try:
-    zipfile.ZipFile(os.path.abspath('package.zip'), 'r').extractall(installDir)
+    #zipfile.ZipFile(os.path.abspath('package.zip'), 'r').extractall(installDir)
+    unzip(os.path.abspath('package.zip'), installDir)
 except:
     print 'Error extracting the contents of the package.'
     sys.exit(0)

@@ -61,6 +61,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         
         self.addSeparator()
         self.addControl("aiSssSetname", label="SSS Set Name")
+        self.addControl("aiMotionVectorSource", label="Motion Vector Source")
         
         self.beginLayout('Subdivision', collapse=False)
         self.addControl("aiSubdivType", label="Type")
@@ -152,6 +153,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
         
     def setup(self):
         self.addControl("aiStepSize", label="Step Size")
+        self.addControl("aiEnableDeformationBlur", label="Enable Deformation Blur")
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.addSeparator()

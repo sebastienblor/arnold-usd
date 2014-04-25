@@ -5,7 +5,7 @@
         <float name="Kd" />
     </properties>
     <values>
-        
+        <float name="Kd" value="1.0" />        
     </values>
     <outputs>
         <float3 name="outColor" />
