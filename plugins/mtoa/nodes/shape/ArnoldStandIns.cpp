@@ -1071,10 +1071,28 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
       return;
 
    // Do we enable display of standins?
-   /*MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
-   if (!ArnoldRenderOptionsNode.isNull()
-       && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_standin_draw").asBool())
-      return;*/
+   int drawOverride = 0;
+   MStatus status;
+   MFnDependencyNode dNode(info.multiPath().node(), &status);
+   if (status)
+   {
+      MPlug plug = dNode.findPlug("standInDrawOverride", &status);
+      if (!plug.isNull() && status)
+      {
+         const int localDrawOverride = plug.asShort();
+         if (localDrawOverride == 0) // use global settings
+         {
+            MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+            if (!ArnoldRenderOptionsNode.isNull())
+               drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
+         }
+         else
+            drawOverride = localDrawOverride - 1;
+      }
+   }
+
+   if (drawOverride == 2) // draw is disabled
+      return;
 
    // The draw data is used to pass geometry through the
    // draw queue. The data should hold all the information
@@ -1082,7 +1100,7 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
    //
    MDrawData data;
    MDrawRequest request = info.getPrototype(*this);
-   CArnoldStandInShape* shapeNode = (CArnoldStandInShape*) surfaceShape();
+   CArnoldStandInShape* shapeNode = reinterpret_cast<CArnoldStandInShape*>(surfaceShape());
    CArnoldStandInGeom* geom = shapeNode->geometry();
    getDrawData(geom, data);
    request.setDrawData(data);
