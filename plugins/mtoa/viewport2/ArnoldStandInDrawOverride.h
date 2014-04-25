@@ -35,6 +35,16 @@ private:
 
     static void initializeGPUResources();
 
+    // DX11 resources
+    #ifdef _WIN32
+    static ID3D11Buffer* s_pDXVertexBuffer;
+    static ID3D11Buffer* s_pDXIndexBuffer;
+    static ID3D11VertexShader* s_pDXVertexShader;
+    static ID3D11PixelShader* s_pDXPixelShader;
+    static ID3D11InputLayout* s_pDXVertexLayout;
+    static ID3D11Buffer* s_pDXConstantBuffer;
+    #endif
+
     static GLuint s_vertexShader;
     static GLuint s_fragmentShader;
     static GLuint s_program;

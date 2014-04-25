@@ -25,7 +25,26 @@ namespace{
     const char* fragmentShader =
 "out vec4 frag_color;\n"
 "void main() { frag_color = shadeColor;}\n";    
+#ifdef _WIN32
+#pragma pack(1)
+    struct SConstantBuffer{
+        AtMatrix wvp;
+        float scale[4];
+        float offset[4];
+        float color[4];
+    };
+#pragma pack()
+#endif
 }
+
+#ifdef _WIN32
+ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXVertexBuffer = 0;
+ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXIndexBuffer = 0;
+ID3D11VertexShader* CArnoldStandInDrawOverride::s_pDXVertexShader = 0;
+ID3D11PixelShader* CArnoldStandInDrawOverride::s_pDXPixelShader = 0;
+ID3D11InputLayout* CArnoldStandInDrawOverride::s_pDXVertexLayout = 0;
+ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
+#endif
 
 GLuint CArnoldStandInDrawOverride::s_vertexShader = 0;
 GLuint CArnoldStandInDrawOverride::s_fragmentShader = 0;
@@ -149,7 +168,7 @@ MUserData* CArnoldStandInDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldStandInDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL); // | MHWRender::kDirectX11); TODO support dx11 later
+    return (MHWRender::kOpenGL | MHWRender::kDirectX11);
 }
 
 void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)
@@ -158,60 +177,35 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         return;
     const SArnoldStandInUserData* userData = reinterpret_cast<const SArnoldStandInUserData*>(data);
 
-    glUseProgram(s_program);
+    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
 
-    float mat[4][4]; // load everything in one go, using one continous glUniformfv call
-    context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
-    glUniformMatrix4fv(s_modelViewProjLoc, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(s_scaleLoc, userData->m_scale[0], userData->m_scale[1], userData->m_scale[2], userData->m_scale[3]);
-    glUniform4f(s_offsetLoc, userData->m_offset[0], userData->m_offset[1], userData->m_offset[2], userData->m_offset[3]);
-    glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
-            userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-    glBindVertexArray(s_VAO);
+    if (theRenderer->drawAPIIsOpenGL())
+    {
+        glUseProgram(s_program);
 
-    glDrawElements(GL_LINES, 3 * 4 * 2, GL_UNSIGNED_INT, 0);
+        float mat[4][4]; // load everything in one go, using one continous glUniformfv call
+        context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).get(mat);
+        glUniformMatrix4fv(s_modelViewProjLoc, 1, GL_FALSE, &mat[0][0]);
+        glUniform4f(s_scaleLoc, userData->m_scale[0], userData->m_scale[1], userData->m_scale[2], userData->m_scale[3]);
+        glUniform4f(s_offsetLoc, userData->m_offset[0], userData->m_offset[1], userData->m_offset[2], userData->m_offset[3]);
+        glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+                userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
+        glBindVertexArray(s_VAO);
 
-    glBindVertexArray(0);
-    glUseProgram(0);
+        glDrawElements(GL_LINES, 3 * 4 * 2, GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(0);
+        glUseProgram(0);
+    }
 }
 
 void CArnoldStandInDrawOverride::initializeGPUResources()
-{
+{    
     if (s_isInitialized == false)
     {
+        MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
         s_isInitialized = true;
         s_isValid = false;
-
-        if (!GLEW_VERSION_4_3)
-            return; // right now, only opengl 4.3, we can lower this later
-
-        // program for wireframe display
-
-        s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        const char* stringPointers[2] = {shaderUniforms, vertexShader};
-        glShaderSource(s_vertexShader, 2, stringPointers, 0);
-        glCompileShader(s_vertexShader);
-
-        if (checkShaderError(s_vertexShader))
-            return;
-
-        s_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        stringPointers[1] = fragmentShader;
-        glShaderSource(s_fragmentShader, 2, stringPointers, 0);
-        glCompileShader(s_fragmentShader);
-
-        if (checkShaderError(s_fragmentShader))
-            return;
-
-        s_program = glCreateProgram();
-        glAttachShader(s_program, s_vertexShader);
-        glAttachShader(s_program, s_fragmentShader);
-        glLinkProgram(s_program);
-
-        if (checkProgramError(s_program))
-            return;
-
-        s_isValid = true;
 
         float vertices[8 * 3] = {
             0.0f, 0.0f, 0.0f,
@@ -224,34 +218,106 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             0.0f, 1.0f, 1.0f
         };
 
-        glGenBuffers(1, &s_VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-        glBufferData(GL_ARRAY_BUFFER, 8 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
         unsigned int indices[3 * 4 * 2] = {
             0, 1, 1, 2, 2, 3, 3, 0,
             4, 5, 5, 6, 6, 7, 7, 4,
             0, 4, 1, 5, 2, 6, 3, 7
         };
 
-        glGenBuffers(1, &s_IBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        if (theRenderer->drawAPIIsOpenGL())
+        {
+            if (!GLEW_VERSION_4_3)
+                return; // right now, only opengl 4.3, we can lower this later
 
-        glGenVertexArrays(1, &s_VAO);
-        glBindVertexArray(s_VAO);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-        glBindVertexArray(0);
+            // program for wireframe display
 
-        s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
-        s_scaleLoc = glGetUniformLocation(s_program, "scale");
-        s_offsetLoc = glGetUniformLocation(s_program, "offset");
-        s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
+            s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+            const char* stringPointers[2] = {shaderUniforms, vertexShader};
+            glShaderSource(s_vertexShader, 2, stringPointers, 0);
+            glCompileShader(s_vertexShader);
+
+            if (checkShaderError(s_vertexShader))
+                return;
+
+            s_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+            stringPointers[1] = fragmentShader;
+            glShaderSource(s_fragmentShader, 2, stringPointers, 0);
+            glCompileShader(s_fragmentShader);
+
+            if (checkShaderError(s_fragmentShader))
+                return;
+
+            s_program = glCreateProgram();
+            glAttachShader(s_program, s_vertexShader);
+            glAttachShader(s_program, s_fragmentShader);
+            glLinkProgram(s_program);
+
+            if (checkProgramError(s_program))
+                return;
+
+            s_isValid = true;            
+
+            glGenBuffers(1, &s_VBO);
+            glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+            glBufferData(GL_ARRAY_BUFFER, 8 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+            glGenBuffers(1, &s_IBO);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+            glGenVertexArrays(1, &s_VAO);
+            glBindVertexArray(s_VAO);
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
+            glBindVertexArray(0);
+
+            s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
+            s_scaleLoc = glGetUniformLocation(s_program, "scale");
+            s_offsetLoc = glGetUniformLocation(s_program, "offset");
+            s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
+        }
+        else
+        {
+#ifdef _WIN32
+            ID3D11Device* device = reinterpret_cast<ID3D11Device*>(theRenderer->GPUDeviceHandle());
+            if (!device)
+                return;
+            ID3D11DeviceContext* context = 0;
+            device->GetImmediateContext(&context);
+            if (!context)
+                return;
+
+            HRESULT hr;
+            D3D11_BUFFER_DESC bd;
+            ZeroMemory(&bd, sizeof(bd));
+            D3D11_SUBRESOURCE_DATA initData;
+            ZeroMemory(&initData, sizeof(initData));
+
+            bd.Usage = D3D11_USAGE_IMMUTABLE;
+            bd.ByteWidth = 8 * 3 * sizeof(float);
+            bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+            bd.CPUAccessFlags = 0;
+            initData.pSysMem = vertices;
+            hr = device->CreateBuffer(&bd, &initData, &s_pDXVertexBuffer);
+            if (FAILED(hr)) return;
+
+            bd.ByteWidth = 4 * 3 * 2 * sizeof(unsigned int);
+            bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+            initData.pSysMem = indices;
+            hr = device->CreateBuffer(&bd, &initData, &s_pDXIndexBuffer);
+            if (FAILED(hr)) return;
+
+            bd.Usage = D3D11_USAGE_DEFAULT;
+            bd.ByteWidth = sizeof(SConstantBuffer);
+            bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+            hr = device->CreateBuffer(&bd, 0, &s_pDXConstantBuffer);
+            if (FAILED(hr)) return;
+#endif
+        }
     }
 }
 
@@ -267,5 +333,38 @@ void CArnoldStandInDrawOverride::clearGPUResources()
         glDeleteProgram(s_program);
         s_isValid = false;
         s_isInitialized = false;
+
+#ifdef _WIN32
+        if (s_pDXVertexBuffer)
+        {
+            s_pDXVertexBuffer->Release();
+            s_pDXVertexBuffer = 0;
+        }
+        if (s_pDXIndexBuffer)
+        {
+            s_pDXIndexBuffer->Release();
+            s_pDXIndexBuffer = 0;
+        }
+        if (s_pDXVertexShader)
+        {
+            s_pDXVertexShader->Release();
+            s_pDXVertexShader = 0;
+        }
+        if (s_pDXPixelShader)
+        {
+            s_pDXPixelShader->Release();
+            s_pDXPixelShader = 0;
+        }
+        if (s_pDXVertexLayout)
+        {
+            s_pDXVertexLayout->Release();
+            s_pDXVertexLayout = 0;
+        }
+        if (s_pDXConstantBuffer)
+        {
+            s_pDXConstantBuffer->Release();
+            s_pDXConstantBuffer = 0;
+        }
+#endif
     }
 }

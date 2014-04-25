@@ -647,7 +647,7 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
 if env['ENABLE_VP2']:
-    vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml'])
+    vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml', '.hlsl'])
     env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
                     [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
 
