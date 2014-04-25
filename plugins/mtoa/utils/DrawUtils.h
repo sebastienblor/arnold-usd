@@ -2,6 +2,15 @@
 
 #ifdef ENABLE_VP2
 #include <GL/glew.h>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#ifndef D3DCOMPILE_ENABLE_STRICTNESS
+    #define D3DCOMPILE_ENABLE_STRICTNESS D3D10_SHADER_ENABLE_STRICTNESS
+    #define D3DCOMPILE_DEBUG D3D10_SHADER_DEBUG
+#endif
+#endif
 #endif
 
 #include <vector>

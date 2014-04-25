@@ -65,6 +65,8 @@ if local_env['ENABLE_VP2']:
 
 # LoadableModule doesn't work on windows for now.
 if system.os() == 'windows':
+    if local_env['ENABLE_VP2']:
+        local_env.Append(LIBS=['d3d11.lib', 'd3dcompiler.lib'])
     local_env.Append(LIBS=Split('ws2_32.lib'))
     MTOA = local_env.SharedLibrary('mtoa', source_files, LIBPREFIX='')
 else:
