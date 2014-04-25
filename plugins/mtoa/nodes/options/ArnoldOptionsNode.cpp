@@ -558,8 +558,11 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    addAttribute(s_version);
 
-   s_enable_standin_draw = nAttr.create("enableStandinDraw", "enable_standin_draw", MFnNumericData::kBoolean);
-   nAttr.setDefault(true);
+   s_enable_standin_draw = eAttr.create("standinDrawOverride", "standin_draw_override");
+   eAttr.addField("Full", 0);   
+   eAttr.addField("Bounding Box", 1);
+   eAttr.addField("Off", 2);
+   eAttr.setDefault(0);
    addAttribute(s_enable_standin_draw);
 
    return MS::kSuccess;
