@@ -87,6 +87,7 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    useSubFrame = false;
    useFrameExtension = false;
    dList = 0;
+   drawOverride = 0;
 }
 
 CArnoldStandInGeom::~CArnoldStandInGeom()
@@ -772,7 +773,6 @@ MStatus CArnoldStandInShape::initialize()
 // will ensure that the values are up-to-date.
 //
 CArnoldStandInGeom* CArnoldStandInShape::geometry()
-
 {
    int tmpMode = fGeometry.mode;
 
@@ -1102,6 +1102,7 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
    MDrawRequest request = info.getPrototype(*this);
    CArnoldStandInShape* shapeNode = reinterpret_cast<CArnoldStandInShape*>(surfaceShape());
    CArnoldStandInGeom* geom = shapeNode->geometry();
+   geom->drawOverride = drawOverride;
    getDrawData(geom, data);
    request.setDrawData(data);
 
@@ -1308,7 +1309,55 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       geom->updateView = false;
    }
 
-   if (geom->dList != 0)
+   if (geom->drawOverride == 1)
+   {
+      MBoundingBox m_bbox = geom->bbox;
+      float minPt[4];
+      float maxPt[4];
+      m_bbox.min().get(minPt);
+      m_bbox.max().get(maxPt);
+      const float bottomLeftFront[3] =
+      { minPt[0], minPt[1], minPt[2] };
+      const float topLeftFront[3] =
+      { minPt[0], maxPt[1], minPt[2] };
+      const float bottomRightFront[3] =
+      { maxPt[0], minPt[1], minPt[2] };
+      const float topRightFront[3] =
+      { maxPt[0], maxPt[1], minPt[2] };
+      const float bottomLeftBack[3] =
+      { minPt[0], minPt[1], maxPt[2] };
+      const float topLeftBack[3] =
+      { minPt[0], maxPt[1], maxPt[2] };
+      const float bottomRightBack[3] =
+      { maxPt[0], minPt[1], maxPt[2] };
+      const float topRightBack[3] =
+      { maxPt[0], maxPt[1], maxPt[2] };
+
+      glBegin(GL_LINE_STRIP);
+      glVertex3fv(bottomLeftFront);
+      glVertex3fv(bottomLeftBack);
+      glVertex3fv(topLeftBack);
+      glVertex3fv(topLeftFront);
+      glVertex3fv(bottomLeftFront);
+      glVertex3fv(bottomRightFront);
+      glVertex3fv(bottomRightBack);
+      glVertex3fv(topRightBack);
+      glVertex3fv(topRightFront);
+      glVertex3fv(bottomRightFront);
+      glEnd();
+
+      glBegin(GL_LINES);
+      glVertex3fv(bottomLeftBack);
+      glVertex3fv(bottomRightBack);
+
+      glVertex3fv(topLeftBack);
+      glVertex3fv(topRightBack);
+
+      glVertex3fv(topLeftFront);
+      glVertex3fv(topRightFront);
+      glEnd();
+   }
+   else if (geom->dList != 0)
    {
       const bool enableLighting = ((geom->mode == DM_SHADED) || (geom->mode == DM_SHADED_POLYWIRE))
                                     && (view.displayStyle() == M3dView::kGouraudShaded);
@@ -1323,7 +1372,6 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    }
    glPopAttrib();
    view.endGL();
-
 }
 
 void CArnoldStandInShapeUI::getDrawRequestsWireFrame(MDrawRequest& request, const MDrawInfo& info)

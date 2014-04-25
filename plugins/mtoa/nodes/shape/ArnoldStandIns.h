@@ -44,6 +44,7 @@ public:
    int dList;
    int updateView;
    int updateBBox;
+   int drawOverride;
 
    void Clear();
    void Draw(int DrawMode);
