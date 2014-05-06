@@ -295,7 +295,31 @@ def createArnoldRenderSettings():
                         label='Kick Render Flags',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.kickRenderFlags')
-             
+
+    pm.frameLayout(label='Callbacks', collapse=True)
+
+    pm.attrControlGrp(
+            'os_iprRefinementStartedCallback',
+            label='IPR Refinement Started',
+            attribute='defaultArnoldRenderOptions.IPRRefinementStarted')
+
+    pm.attrControlGrp(
+            'os_iprRefinementFinishedCallback',
+            label='IPR Refinement Finished',
+            attribute='defaultArnoldRenderOptions.IPRRefinementFinished')
+    
+    pm.attrControlGrp(
+            'os_iprStepStartedCallback',
+            label='IPR Step Started',
+            attribute='defaultArnoldRenderOptions.IPRStepStarted')
+
+    pm.attrControlGrp(
+            'os_iprStepFinishedCallback',
+            label='IPR Step Finished',
+            attribute='defaultArnoldRenderOptions.IPRStepFinished')
+
+    pm.setParent('..')
+
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)

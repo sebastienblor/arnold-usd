@@ -114,4 +114,10 @@ public:
    static MObject s_version;
    static MObject s_enable_standin_draw;
 
+   static MObject s_IPRRefinementStartedCallback;
+   static MObject s_IPRRefinementFinishedCallback;
+
+   static MObject s_IPRStepStartedCallback;
+   static MObject s_IPRStepFinishedCallback;   
+   
 };  // class CArnoldOptionsNode

@@ -88,6 +88,11 @@ MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_version;
 MObject CArnoldOptionsNode::s_enable_standin_draw;
+MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
+MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
+MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
+MObject CArnoldOptionsNode::s_IPRStepFinishedCallback;
+
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -564,6 +569,22 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Off", 2);
    eAttr.setDefault(0);
    addAttribute(s_enable_standin_draw);
+
+   s_IPRRefinementStartedCallback = tAttr.create("IPRRefinementStarted", "ipr_refinement_started", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRRefinementStartedCallback);
+
+   s_IPRRefinementFinishedCallback = tAttr.create("IPRRefinementFinished", "ipr_refinement_finished", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRRefinementFinishedCallback);
+
+   s_IPRStepStartedCallback = tAttr.create("IPRStepStarted", "ipr_step_started", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRStepStartedCallback);
+
+   s_IPRStepFinishedCallback = tAttr.create("IPRStepFinished", "ipr_step_finished", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRStepFinishedCallback);   
 
    return MS::kSuccess;
 }
