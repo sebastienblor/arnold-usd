@@ -42,7 +42,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ep", "expandProcedurals");
    syntax.addFlag("fsh", "forceTranslateShadingEngines");
 
-   syntax.setObjectType(MSyntax::kSelectionList);
+   syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
 
@@ -108,17 +108,25 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // use this result to set syntax.useSelectionAsDefault() prior to creating the MArgDatabase.
    MArgParser args(syntax, argList, &status);
    bool exportSelected = args.isFlagSet("selected");
-   syntax.useSelectionAsDefault(exportSelected);
    MArgDatabase argDB(syntax, argList, &status);
 
    // We force "selected" mode when objects are passed explicitly
    MSelectionList sList;
-   argDB.getObjects(sList);
-   if (sList.length() > 0)
+   MStringArray sListStrings;
+   argDB.getObjects(sListStrings);
+   const unsigned int sListStringsLength = sListStrings.length();
+   if (exportSelected)
    {
-      exportSelected = true;
+      if (sListStringsLength > 0)
+      {
+         for (unsigned int i = 0; i < sListStringsLength; ++i)
+            sList.add(sListStrings[i]);
+      }
+      else
+         MGlobal::getActiveSelectionList(sList);
    }
-   else if (exportSelected == true)
+   
+   if ((exportSelected == true) && (sList.length() == 0))
    {
       status = MStatus::kInvalidParameter;
       MGlobal::displayError("arnoldExportAss -selected needs an active selection or a list of objects");
@@ -355,7 +363,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       if (exportSelected)
       {
          // We can't precompute sList since it won't survive moving from frame to frame with viewFrame
-         argDB.getObjects(sList);
+         sList.clear();
+         if (sListStringsLength > 0)
+         {
+            for (unsigned int i = 0; i < sListStringsLength; ++i)
+               sList.add(sListStrings[i]);
+         }
+         else
+            MGlobal::getActiveSelectionList(sList);
          CMayaScene::Export(&sList);
       }
       else
