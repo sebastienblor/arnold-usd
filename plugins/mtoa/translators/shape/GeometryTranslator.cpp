@@ -887,7 +887,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
             if (exportVertices)
             {
                std::vector<float>& motionVectors = vcolors[m_motionVectorSource.asChar()];
-               AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
+               const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
                const float motionRange = (float)m_session->GetMotionByFrame();
@@ -895,10 +895,10 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
                {                  
                   AtVector vec = {*(vert++), *(vert++), *(vert++)};
                   AiArraySetPnt(verticesArray, i, vec);
-                  AtRGBA motionVector = *(motionVectorColors + i);
-                  vec.x += motionVector.r * motionRange;
-                  vec.y += motionVector.g * motionRange;
-                  vec.z += motionVector.b * motionRange;
+                  const AtRGBA* motionVector = motionVectorColors + i;
+                  vec.x += motionVector->r * motionRange;
+                  vec.y += motionVector->g * motionRange;
+                  vec.z += motionVector->b * motionRange;
                   AiArraySetPnt(verticesArray, i + numVerts, vec);
                }
                AiNodeSetArray(polymesh, "vlist", verticesArray);
