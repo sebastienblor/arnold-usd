@@ -166,6 +166,23 @@ namespace // <anonymous>
    };
 
 #ifdef ENABLE_VP2
+
+   struct shadingNodeOverride{
+      MString classification;
+      MString registrant;
+      MHWRender::MPxSurfaceShadingNodeOverride* (*creator)(const MObject&);
+   } shadingNodeOverrideList [] = {
+      {
+         "drawdb/shader/surface/arnold/standard",
+         "arnoldStandardShaderOverride",
+         ArnoldStandardShaderOverride::creator
+      } , {
+         "drawdb/shader/surface/arnold/skin",
+         "arnoldSkinShaderOverride",
+         ArnoldSkinShaderOverride::creator
+      }
+   };
+
    struct drawOverride{
       MString registrant;
       MString classification;
@@ -786,25 +803,15 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
 
 #ifdef ENABLE_VP2
-   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
-   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
-
-   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
-               arnoldStandardOverrideClassification,
-               shaderOverrideRegistrant,
-               ArnoldStandardShaderOverride::creator);
-
-   CHECK_MSTATUS(status);
-
-   MString arnoldSkinOverrideClassification = "drawdb/shader/surface/arnold/skin";
-   MString skinShaderOverrideRegistrant = "arnoldSkinShaderOverride";
-
-   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
-               arnoldSkinOverrideClassification,
-               skinShaderOverrideRegistrant,
-               ArnoldSkinShaderOverride::creator);
-
-   CHECK_MSTATUS(status);
+   for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+   {
+      const shadingNodeOverride& override = shadingNodeOverrideList[i];
+      status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+               override.classification,
+               override.registrant,
+               override.creator);
+      CHECK_MSTATUS(status);
+   }
 
    for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
    {
@@ -887,24 +894,15 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       }
    }
 #ifdef ENABLE_VP2
-   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
-   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-                  arnoldStandardOverrideClassification,
-                  shaderOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
-
-   MString arnoldSkinOverrideClassification = "drawdb/shader/surface/arnold/skin";
-   MString skinShaderOverrideRegistrant = "arnoldSkinShaderOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-                  arnoldSkinOverrideClassification,
-                  skinShaderOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
-
+   for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+   {
+      const shadingNodeOverride& override = shadingNodeOverrideList[i];
+      status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+               override.classification,
+               override.registrant);
+      CHECK_MSTATUS(status);
+   }
+   
    for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
    {
       const drawOverride& override = drawOverrideList[i];
