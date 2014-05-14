@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
+#include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
@@ -180,6 +181,10 @@ namespace // <anonymous>
          "drawdb/shader/surface/arnold/skin",
          "arnoldSkinShaderOverride",
          ArnoldSkinShaderOverride::creator
+      } , {
+         "drawdb/shader/surface/arnold/genericShader",
+         "arnoldGenericShaderOverride",
+         ArnoldGenericShaderOverride::creator
       }
    };
 
