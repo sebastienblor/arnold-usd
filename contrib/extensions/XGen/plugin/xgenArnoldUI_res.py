@@ -31,6 +31,7 @@ maya.stringTable['y_xgenArnoldUI.kCurveMode'] = u'Mode'
 maya.stringTable['y_xgenArnoldUI.kCurveModeRibbon'] = u'Ribbon'
 maya.stringTable['y_xgenArnoldUI.kCurveModeThick'] = u'Thick'
 maya.stringTable['y_xgenArnoldUI.kCurveModeOriented'] = u'Oriented'
+maya.stringTable['y_xgenArnoldUI.kCurveModeFlat'] = u'Flat'
 
 
 
@@ -38,7 +39,7 @@ maya.stringTable['y_xgenArnoldUI.kCurveModeOriented'] = u'Oriented'
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurSetttings'] = u'Arnold Motion Blur Settings'
 maya.stringTable['y_xgenArnoldUI.kArnoldApplyHairAnn'] = u"Apply default arnold XGen Hair Shader to the current Description.\nThe shader reacts to 'root_color', 'tip_color' and 'back_color' XGen custom shader parameters."
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurMultiplierAnn'] = u'Motion Factor multiplies the computed motion vectors.\nUse it to attenuate or accentuate the motion blur effect.'
-maya.stringTable['y_xgenArnoldUI.kSplineDegreeAnn'] = u'Spline Primitives can be rendered as linear segments or as cubic bezier curves.\nSet to Cubic for Card Primiives.\nHas no effect on Archives and Sphere Primitves.'
+maya.stringTable['y_xgenArnoldUI.kSplineModeAnn'] = u'Curve Primitive can be rendered as "ribbon", "oriented" or "thick".\nWhen "ribbon" is selected, "Face Camera" in Primitive Attributes will determine \nif "ribbon" or "oriented" will be used.'
 maya.stringTable['y_xgenArnoldUI.kArnoldRenderModeAnn'] = u"'Live' allows XGen to query patches and guide animation directly from Maya.\nThis mode doesn't support Motion Blur and will try to reuse information the preview generated.\n\n'Batch Render' mode will always read geometry and animation from files.\n'Batch Render' mode is always on when doing a Batch Render.\nYou must first export the patches and guide animation to caches.\nUse this mode to make sure your caches are properly exported before doing a Batch Render."
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationAnn'] = u'The motion offset when calculating motion blur.'
 maya.stringTable['y_xgenArnoldUI.kArnoldEnableMotionBlurAnn'] = u'Enable Motion Blur.\nTo compute the motion vectors, XGen needs to sample animated geometry and guide animations at multiple times.\nMake sure you export everything like for a Batch render.'

@@ -202,7 +202,7 @@ int Procedural::Init(AtNode* node)
          pProc->m_sphere = m_sphere;
          pProc->m_shaders = m_shaders;*/
 
-
+   
          while( nextFace( b, f ) )
          {
             // Skip camera culled bounding boxes.
@@ -803,6 +803,7 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
     bool bFaceCamera = pc->get( PC(FaceCamera) );
+    int mode = AiNodeGetInt( m_node, "ai_mode" );
 
     unsigned int numSamples = pc->get( PC(NumMotionSamples) );
     //unsigned int shutterSize = pc->getSize( PC(Shutter) );
@@ -816,7 +817,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     AtArray* num_points = AiArrayAllocate( numPointsTotal, numSamples, AI_TYPE_UINT );
     AtArray* points = AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_POINT );
     AtArray* radius = AiArrayAllocate( widthsSize>0 ? widthsSize : 1, 1, AI_TYPE_FLOAT );
-    AtArray* orientations = bFaceCamera ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
+    AtArray* orientations = (bFaceCamera || (mode == 1)) ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
 
     unsigned int* curNumPoints = (unsigned int*)num_points->data;
     AtPoint* curPoints = (AtPoint*)points->data;
@@ -827,7 +828,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     for ( int i=0; i < (int)numSamples; i++ )
     {
         // Add the points.
-        XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points." );
+        XGRenderAPIDebug( "Adding points." );
         memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtPoint )*pointsTotal );
         curPoints+=pointsTotal;
 
@@ -841,7 +842,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
            // Add the normals if necessary.
          if( orientations )
          {
-            XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding normals." );
+            XGRenderAPIDebug( "Adding normals." );
 
             unsigned int numVarying = *curNumPoints - 2;
 
@@ -870,7 +871,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    {
        float constantWidth = pc->get( PC(ConstantWidth) );
 
-      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Constant width: " + ftoa(constantWidth));
+      XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
       {string s = "Constant width: " + ftoa(constantWidth) + "\n";
       printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
@@ -882,7 +883,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    {
        const float* pWidths = pc->get( PC(Widths) );
 
-      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Non-constant width.");
+      XGRenderAPIDebug( "Non-constant width.");
       for( unsigned int w=0; w<widthsSize; ++w )
       {
          curRadius[w] = pWidths[w] * 0.5f;
@@ -897,7 +898,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     string strParentName = AiNodeGetName( m_node_face );
    string strID = itoa( (int)m_nodes.size() );
    AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
-   AiNodeSetStr( nodeCurves, "mode", bFaceCamera ? "ribbon" : "oriented");
+   AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
     AiNodeSetStr( nodeCurves, "basis", "b-spline" );
     //AiNodeSetInt( nodeCurves, "max_subdivs", 1000 );
     AiNodeSetArray( nodeCurves, "num_points", num_points );
@@ -905,6 +906,10 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    AiNodeSetArray( nodeCurves, "radius", radius );
    if( orientations ) AiNodeSetArray( nodeCurves, "orientations", orientations );
    AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+
+
+   float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
+   AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
 
    // Add custom renderer parameters.
    pushCustomParams( nodeCurves, pc );
@@ -1118,7 +1123,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
       memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
 
-       string strID = itoa( (int)m_nodes.size() );
+      string strID = itoa( (int)m_nodes.size() );
 
       char buf[512];
 

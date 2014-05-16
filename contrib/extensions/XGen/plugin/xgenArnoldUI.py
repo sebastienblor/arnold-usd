@@ -100,20 +100,18 @@ def xgArnoldUI(selfid):
     row.setLayout(hbox)
     expand.addWidget(row)
 
-    filler = QtGui.QWidget()
-    hbox.addWidget(filler)
-    row.setLayout(hbox)
-    expand.addWidget(row)
-
     expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldCurveSettings'  ])
     self.layout().addWidget( expand )
     self.arnold_expand_curve_settings = expand
     
-    self.arnold_minPixelWidth = FloatUI( "custom__arnold_min_pixel_width",
-                                maya.stringTable['y_xgenArnoldUI.kMinPixelWidthAnn'],
-                                k_RenderAPIRendererObj,0.0,10.0, 0.0, 2.0,maya.stringTable[ 'y_xgenArnoldUI.kminPixelWidth'  ], autoPlayblast=False)
-    self.arnold_minPixelWidth.xgAttrChanged.connect( self.xgArnoldRefresh )
+    self.arnold_minPixelWidth = FloatUI( "custom__arnold_minPixelWidth",
+                                maya.stringTable[ 'y_xgenArnoldUI.kMinPixelWidthAnn' ],
+                                k_RenderAPIRendererObj, 0.0, 10.0, 0.0, 2.0, maya.stringTable[ 'y_xgenArnoldUI.kminPixelWidth'  ], autoPlayblast=False)
+                                
+                                
     expand.addWidget(self.arnold_minPixelWidth)
+    self.arnold_minPixelWidth.xgAttrChanged.connect( self.xgArnoldRefresh )
+    
 
     # Horizontal layout
     row = QtGui.QWidget()
@@ -124,12 +122,11 @@ def xgArnoldUI(selfid):
     label.setFixedWidth(labelWidth())
     label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
     label.setIndent(10)
-    label.setToolTip(maya.stringTable[ 'y_xgenArnoldUI.kSplineDegreeAnn'  ])
+    label.setToolTip(maya.stringTable[ 'y_xgenArnoldUI.kSplineModeAnn'  ])
     hbox.addWidget(label)
     self.arnold_curveMode = QtGui.QComboBox()
     self.arnold_curveMode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kCurveModeRibbon'  ], "0" )
     self.arnold_curveMode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kCurveModeThick'  ], "1" )
-    self.arnold_curveMode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kCurveModeOriented'  ], "2" )
     self.arnold_curveMode.setToolTip(label.toolTip())
     self.connect(self.arnold_curveMode, QtCore.SIGNAL("activated(int)"), self.xgArnoldCurveModeChanged )
     hbox.addWidget(self.arnold_curveMode)
@@ -167,6 +164,7 @@ def xgArnoldUI(selfid):
                                 k_RenderAPIRendererObj, 0.0, 100.0 , 0.0, 2.0, maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurMultiplier'  ], autoPlayblast=False)
     expand.addWidget(self.arnold_motion_blur_multiplier)
     self.arnold_motion_blur_multiplier.xgAttrChanged.connect( self.xgArnoldRefresh )
+    
 
     # Horizontal layout
     row = QtGui.QWidget()
@@ -232,8 +230,7 @@ def xgArnoldRefresh(selfid):
     self.arnold_rendermode.setCurrentIndex( rendermode )
     self.arnold_curveMode.setCurrentIndex( curvTyp )
     
-    ### TODO:  FIX min pixel width  for some reason it does not work to update the shape node and this causes a weird error
-    #self.arnold_minPixelWidth.refresh()
+    self.arnold_minPixelWidth.refresh()
     self.arnold_motion_blur.refresh()
     self.arnold_motion_blur_mode.setCurrentIndex( mb_mode )
     self.arnold_motion_blur_steps.refresh()

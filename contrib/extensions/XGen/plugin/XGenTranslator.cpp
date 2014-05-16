@@ -38,6 +38,9 @@ struct DescInfo
    uint  motionBlurSteps;
    float moblurFactor;
    float moblurMultiplier;
+   
+   float aiMinPixelWidth;
+   int aiMode;
 
    bool  bCameraOrtho;
    float fCameraPos[3];
@@ -208,6 +211,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 			{
 			   MFnDagNode  xgenDesc;
 			   xgenDesc.setObject(childDagPath.node());
+            
+            
+            info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth").asFloat();
+            info.aiMode = xgenDesc.findPlug("aiMode").asInt();
 			   // get the motion blur values from the description here
 			   info.moblur = xgenDesc.findPlug("motionBlurOverride").asBool();
 			   info.moblurmode = xgenDesc.findPlug("motionBlurMode").asInt();
@@ -449,6 +456,13 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 // TODO XGEN:  LIVE mode seems to rely on this  attribute.. if it does not exist it tries to use whats cached in maya 
 //             we need to switch here for XGEN ui setting, existance of alembic file, and  maya UI vs batch render and always push this attribute for batch mode otherwise throw an error in batch mode and exit
  		 
+       AiNodeDeclare( shape, "ai_mode", "constant INT");
+       AiNodeSetInt(shape, "ai_mode", info.aiMode);
+       
+       AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
+       AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
+       
+       
          if (info.moblur && info.motionBlurSteps >1)
          {
             AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
