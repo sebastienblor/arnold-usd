@@ -863,9 +863,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
     }
 
-    // Arnold crashes if the radius is too small.
-    const float k_minRadius = 0.001f;
-
     // Add the constant widths.
     if( widthsSize==0 )
    {
@@ -875,8 +872,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       {string s = "Constant width: " + ftoa(constantWidth) + "\n";
       printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
-      if( *curRadius < k_minRadius )
-         *curRadius = k_minRadius;
    }
     // Add Varying Widths
     else
@@ -887,8 +882,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       for( unsigned int w=0; w<widthsSize; ++w )
       {
          curRadius[w] = pWidths[w] * 0.5f;
-         if( curRadius[w] < k_minRadius )
-            curRadius[w] = k_minRadius;
       }
    }
 
