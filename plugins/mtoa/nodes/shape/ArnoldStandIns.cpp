@@ -173,43 +173,33 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
       bool processRead = false;
       bool isSo = false;
+      bool isAss = false;
       
       // This will load correct platform library file independently of current extension
       unsigned int nchars = assfile.numChars();
-      if (nchars > 3 && assfile.substringW(nchars-3, nchars).toLowerCase() == ".so")
+      if ((nchars > 3) && (assfile.substringW(nchars - 3, nchars).toLowerCase() == ".so"))
       {
-         assfile = assfile.substringW(0, nchars-4)+LIBEXT;
+         assfile = assfile.substringW(0, nchars - 4) + LIBEXT;
          isSo = true;
       }
-      else if (nchars > 4 && assfile.substringW(nchars-4, nchars).toLowerCase() == ".dll")
+      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars).toLowerCase() == ".dll"))
       {
-         assfile = assfile.substringW(0, nchars-5)+LIBEXT;
+         assfile = assfile.substringW(0, nchars - 5) + LIBEXT;
          isSo = true;
       }
-      else if (nchars > 6 && assfile.substringW(nchars-6, nchars).toLowerCase() == ".dylib")
+      else if ((nchars > 6) && (assfile.substringW(nchars - 6, nchars).toLowerCase() == ".dylib"))
       {
-         assfile = assfile.substringW(0, nchars-7)+LIBEXT;
+         assfile = assfile.substringW(0, nchars - 7) + LIBEXT;
          isSo = true;
       }
+      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars).toLowerCase() == ".ass"))
+         isAss = true;
+      else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars).toLowerCase() == ".ass.gz"))
+         isAss = true;
 
       AtNode* options = AiUniverseGetOptions();
       AiNodeSetBool(options, "preserve_scene_data", true);
       AiNodeSetBool(options, "skip_license_check", true);
-      AtNode* procedural = AiNode("procedural");
-      AiNodeSetStr(procedural, "dso", assfile.asChar());
-      AiNodeSetBool(procedural, "load_at_init", true);
-      AtMatrix mtx;
-      AiM4Identity(mtx);
-      AiNodeSetMatrix(procedural, "matrix", mtx);
-
-      // If it is a lib file
-      if (isSo)
-      {
-         if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
-            AiNodeSetBool(procedural, "used_for_maya_display", true);
-         AiNodeSetStr(procedural, "data", dsoData.asChar());
-         CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-      }
 
       // setup procedural search path
       MString proceduralPath = "";
@@ -237,11 +227,36 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          proceduralPath += pathsep;
       }
       proceduralPath += getProjectFolderPath();
-      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());
+      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
 
-      if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-         processRead = true;
+      AtNode* procedural = 0;
       
+      if (isAss)
+      {
+         AiASSLoad(assfile.asChar());
+         processRead = true;
+      }
+      else
+      {         
+         AtNode* procedural = AiNode("procedural");
+         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetBool(procedural, "load_at_init", true);
+         AtMatrix mtx;
+         AiM4Identity(mtx);
+         AiNodeSetMatrix(procedural, "matrix", mtx);
+         // If it is a lib file
+         if (isSo)
+         {
+            if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
+               AiNodeSetBool(procedural, "used_for_maya_display", true);
+            AiNodeSetStr(procedural, "data", dsoData.asChar());
+            CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
+         }
+
+         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+            processRead = true;
+      }
+
       if (processRead)
       {
          geom->geomLoaded = geom->filename;
@@ -292,6 +307,8 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          while (!AiNodeIteratorFinished(iter))
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
+            if (node == procedural)
+               continue;
             if (node)
             {
                if (AiNodeGetByte(node, "visibility") == 0)
