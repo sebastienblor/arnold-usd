@@ -14,6 +14,8 @@
 #define __XGENARNOLDPROCEDURAL_H__
 
 #include <vector>
+#include <map>
+#include <string>
 
 #include <xgen/XgRenderAPI.h>
 using namespace XGenRenderAPI;
@@ -91,6 +93,8 @@ namespace XGenArnold
       std::vector<FaceRenderer*> m_faces;
 
       std::vector<AtNode*> m_nodes;
+
+      mutable std::map<std::string, bbox> m_bboxes;
       
    };
 
