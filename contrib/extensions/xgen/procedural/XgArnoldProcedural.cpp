@@ -23,6 +23,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <fcntl.h>
 
 #include <xgen/XgRenderAPIUtils.h>
 #include "XgArnoldProcedural.h"
@@ -150,6 +151,9 @@ const char* Procedural::getUniqueName( char* buf, const char* basename )
 
 int Procedural::Init(AtNode* node)
 {
+   // Temporary fix to be able to render the clumping modifier outside Maya
+   _fmode = _O_BINARY;
+
    char buf[512];
 
    string parameters( AiNodeGetStr( node, "data" ) );
