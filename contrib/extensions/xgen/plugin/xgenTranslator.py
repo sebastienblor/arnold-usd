@@ -29,5 +29,8 @@ templates.registerTranslatorUI(xgmDescriptionTemplate, "xgmDescription", "xgenTr
 # these  are used to build the  "renderer"  callbacks to slot arnold  settings into the  xgen GUI.   the values of these controls 
 # are stored on  each description node and can be parsed from there by the translator.
 # this is mainly to make  arnold fit into the   XGen workflow better. 
-xg.registerCallback( "RenderAPIRendererTabUIInit", "xgenArnoldUI.xgArnoldUI" )
+xg.deregisterCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldUI" )
 xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+xg.xgGlobal.DescriptionEditor.refresh("Full")
+xg.deregisterCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldUI" )
