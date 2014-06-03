@@ -33,6 +33,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
    syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
+   syntax.addFlag("ofn", "origFileName", MSyntax::kString);
 
    return syntax;
 }

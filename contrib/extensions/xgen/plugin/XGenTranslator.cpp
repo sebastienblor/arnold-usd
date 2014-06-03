@@ -1,8 +1,10 @@
 #include "extension/Extension.h"
 #include "utils/time.h"
+#include "scene/MayaScene.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
+#include <maya/MGlobal.h>
 
 #include "XGenTranslator.h"
 
@@ -11,6 +13,16 @@
 
 #include <string>
 #include <vector>
+
+
+static void SetEnv(const MString& env, const MString& val)
+{
+#ifdef WIN32
+   MGlobal::executePythonCommand(MString("import os;os.environ['")+env+MString("']='")+val+MString("'"));
+#else
+   setenv(env.asChar(), val.asChar(), true);
+#endif      
+}
 
 //#define DEBUG_MTOA 1
 
@@ -120,6 +132,16 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 #ifdef DEBUG_MTOA
       printf("mstrCurrentScene=%s\n",mstrCurrentScene.asChar() );
 #endif
+
+      // In Batch render, file name has a number added. Get the original name
+      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+      {
+         int exists = 0;
+            MGlobal::executeCommand("objExists defaultArnoldRenderOptions.mtoaOrigFileName", exists);
+         if (exists == 1)
+            MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.mtoaOrigFileName\"", mstrCurrentScene);
+      }
+
       MFileObject fo;
       fo.setRawFullName( mstrCurrentScene );
 
@@ -451,6 +473,11 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 		 AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
 		 sprintf(buf,"%i",3);
 		 AiNodeSetStr( shape, "xgen_renderMethod", buf );
+       
+       if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+       {
+         SetEnv("MI_MAYA_BATCH", "1");
+       }
 
 
 // TODO XGEN:  LIVE mode seems to rely on this  attribute.. if it does not exist it tries to use whats cached in maya 
