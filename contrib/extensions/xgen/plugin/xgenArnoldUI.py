@@ -48,6 +48,7 @@ def xgArnoldUI(selfid):
     addMethod( self, xgArnoldRenderModeChanged )
     addMethod( self, xgArnoldMotionBlurModeChanged )
     addMethod( self, xgArnoldMotionBlurChanged )
+    addMethod( self, xgArnoldPatchesChanged )
 
     expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldSettings'  ])
     self.arnold_expand_settings = expand
@@ -189,6 +190,24 @@ def xgArnoldUI(selfid):
     hbox.addWidget(filler)
     row.setLayout(hbox)
     expand.addWidget(row)
+    
+    
+    filler = QtGui.QWidget()
+    hbox.addWidget(filler)
+    row.setLayout(hbox)
+    expand.addWidget(row)
+
+    expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldAdvancedSettings'  ])
+    self.layout().addWidget( expand )
+    self.arnold_expand_advanced_settings = expand
+    
+    self.arnold_batchRenderPatch = BrowseUI( "custom__arnold_batchRenderPatch",
+                            maya.stringTable[ 'y_xgenArnoldUI.kPatchesPathAnn' ],
+                            k_RenderAPIRendererObj, "*.*", "in", maya.stringTable[ 'y_xgenArnoldUI.kPatchesPath' ])
+                                
+                                
+    expand.addWidget(self.arnold_batchRenderPatch)
+    self.connect(self.arnold_batchRenderPatch.textValue, QtCore.SIGNAL("textChanged(const QString&)"), self.xgArnoldPatchesChanged )
 
     # Register the Arnold renderer in the method combo box
     self.addRenderer("Arnold Renderer")
@@ -203,6 +222,7 @@ def xgArnoldRefresh(selfid):
     self.arnold_expand_settings.setVisible(vis)
     self.arnold_expand_motion_blur_settings.setVisible(vis)
     self.arnold_expand_curve_settings.setVisible(vis)
+    self.arnold_expand_advanced_settings.setVisible(vis)
 
     # Declare the Arnold custom parameters
     self.declareCustomAttr( 'arnold_rendermode', "0" )
@@ -213,6 +233,7 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_motion_blur_steps', "3" )
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
     self.declareCustomAttr( 'arnold_motion_blur_multiplier', "1.0" )
+    self.declareCustomAttr( 'arnold_batchRenderPatch', "" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
@@ -223,6 +244,7 @@ def xgArnoldRefresh(selfid):
     mb_steps = int(self.getCustomAttr( "arnold_motion_blur_steps" ))
     mb_factor = float(self.getCustomAttr( "arnold_motion_blur_factor" ))
     mb_multiplier = float(self.getCustomAttr( "arnold_motion_blur_multiplier" ))
+    batchRenderPatch = str(self.getCustomAttr( "arnold_batchRenderPatch" ))
 
     # Update the UI
     de = xgg.DescriptionEditor
@@ -243,6 +265,8 @@ def xgArnoldRefresh(selfid):
     self.arnold_motion_blur_factor.setEnabled( mb )
     self.arnold_motion_blur_multiplier.setEnabled( mb )
     
+    self.arnold_batchRenderPatch.refresh()
+    
     pal = de.currentPalette()
     desc = de.currentDescription()
 
@@ -261,6 +285,7 @@ def xgArnoldRefresh(selfid):
             cmds.setAttr( nExistsName + ".motion_blur_steps", mb_steps )
             cmds.setAttr( nExistsName + ".motion_blur_factor", mb_factor )
             cmds.setAttr( nExistsName + ".motion_blur_mult", mb_multiplier )
+            cmds.setAttr( nExistsName + ".aiBatchRenderPatch", batchRenderPatch, type="string")
             #cmds.setAttr( nExistsName + ".render_mode", rendermode )   live/batch?
         else:
             print "Couldn't find Description Shape!"
@@ -287,4 +312,7 @@ def xgArnoldMotionBlurChanged(self,state):
     self.setCustomAttr( "arnold_motion_blur", str(int(state)) )
     self.xgArnoldRefresh()
 
+def xgArnoldPatchesChanged(self, data):
+    self.setCustomAttr( "arnold_batchRenderPatch", str(data) )
+    self.xgArnoldRefresh()
 

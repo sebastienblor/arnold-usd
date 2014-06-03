@@ -22,6 +22,7 @@ class xgmDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiMinPixelWidth", label="Min Pixel Width")
         self.addControl("aiMode", label= "Curve Mode")
+        self.addControl("aiBatchRenderPatch", label= "Batch Render Patch")
         
 
 templates.registerTranslatorUI(xgmDescriptionTemplate, "xgmDescription", "xgenTranslator")

@@ -60,6 +60,8 @@ struct DescInfo
    float fCameraInvMat[16];
    float fCamRatio;
    float fBoundingBox[6];
+   
+   std::string batchRenderPatch;
 
    void setBoundingBox( float xmin, float ymin, float zmin, float xmax, float ymax, float zmax )
    {
@@ -243,6 +245,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 			   info.motionBlurSteps = 1;
 			   info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
 			   info.moblurMultiplier = xgenDesc.findPlug("motionBlurMult").asFloat();
+            
+            info.batchRenderPatch = xgenDesc.findPlug("aiBatchRenderPatch").asString().asChar();
 
 			   if (info.moblur)
 			   {
@@ -427,7 +431,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          strData += " -frame "+ std::string(buf);// +" -shutter 0.0"; // Pedro's suggestion was to remove the shutter value, it seemed not to make a diff
 		 strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
          strData += " -palette " + info.strPalette;
-         strData += " -geom " + strGeomFile;
+         if(info.batchRenderPatch.empty())
+            strData += " -geom " + strGeomFile;
+         else
+            strData += " -geom " + info.batchRenderPatch;
          strData += " -patch " + strPatch;
          strData += " -description " + info.strDescription;
          MTime oneSec(1.0, MTime::kSeconds);
@@ -567,13 +574,16 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
 	MStringArray  curveTypeEnum;
     curveTypeEnum.append ( "Ribbon" );
     curveTypeEnum.append ( "Thick" );
-    curveTypeEnum.append ( "Centered" );
     data.defaultValue.INT = 0;
     data.name = "aiMode";
     data.shortName = "ai_mode";
     data.enums= curveTypeEnum;
     helper.MakeInputEnum ( data );
 
+   data.defaultValue.STR = "";
+   data.name = "aiBatchRenderPatch";
+   data.shortName = "ai_batch_render_patch";
+   helper.MakeInputString ( data );
 }
 
 AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
