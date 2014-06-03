@@ -126,6 +126,20 @@ shader_evaluate
       sheenFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_sheen_ior)) * AiShaderEvalParamFlt(p_sheen_weight);
       sheenWeight *= sheenFresnel;
    
+      AtVector U, V;
+      if (!AiV3IsZero(sg->dPdu) && !AiV3IsZero(sg->dPdv))
+      {
+         // tangents available, use them
+         U = sg->dPdu;
+         V = AiV3Normalize(AiV3Cross(sg->Nf, sg->dPdu));
+         U = AiV3Normalize(AiV3Cross(V, sg->Nf));
+      }
+      else
+      {
+         // no tangents given, compute a pair
+         AiBuildLocalFramePolar(&U, &V, &sg->Nf);
+      }
+ 
       float lastSpecRoughness = 1.0f;
       if (!AiColorIsSmall(sheenWeight))
       {
@@ -135,7 +149,7 @@ shader_evaluate
             specularExponent = MAX(specularExponent, minRoughness);
          if (specularExponent < lastSpecRoughness)
             AiStateSetMsgFlt("previous_roughness", specularExponent);
-         void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         void* brdfData = AiCookTorranceMISCreateData(sg, &U, &V, specularExponent, specularExponent);
          AiLightsPrepare(sg);
          while (AiLightsGetSample(sg))
          {
@@ -147,7 +161,7 @@ shader_evaluate
             }
          }
 
-         sheen += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         sheen += AiCookTorranceIntegrate(&sg->Nf, sg, &U, &V, specularExponent, specularExponent);
          sheen *= sheenWeight;
       }
 
@@ -162,7 +176,7 @@ shader_evaluate
          if (sg->Rr_gloss > 0)
             specularExponent = MAX(specularExponent, minRoughness);
          AiStateSetMsgFlt("previous_roughness", specularExponent);
-         void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         void* brdfData = AiCookTorranceMISCreateData(sg, &U, &V, specularExponent, specularExponent);
          AiLightsPrepare(sg);
          while (AiLightsGetSample(sg))
          {
@@ -173,7 +187,7 @@ shader_evaluate
                   specular += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
             }
          }
-         specular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         specular += AiCookTorranceIntegrate(&sg->Nf, sg, &U, &V, specularExponent, specularExponent);
          specular *= specularWeight;
       }
    }
