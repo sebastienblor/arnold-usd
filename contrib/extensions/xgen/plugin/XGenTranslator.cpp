@@ -45,11 +45,10 @@ struct DescInfo
    std::string strDescription;
    std::vector<std::string> vecPatches;
    float fFrame;
-   bool  moblur;
+   uint  moblur;
    uint  moblurmode;
    uint  motionBlurSteps;
    float moblurFactor;
-   float moblurMultiplier;
    
    float aiMinPixelWidth;
    int aiMode;
@@ -240,18 +239,26 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth").asFloat();
             info.aiMode = xgenDesc.findPlug("aiMode").asInt();
 			   // get the motion blur values from the description here
-			   info.moblur = xgenDesc.findPlug("motionBlurOverride").asBool();
+			   info.moblur = xgenDesc.findPlug("motionBlurOverride").asInt();
 			   info.moblurmode = xgenDesc.findPlug("motionBlurMode").asInt();
 			   info.motionBlurSteps = 1;
-			   info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
-			   info.moblurMultiplier = xgenDesc.findPlug("motionBlurMult").asFloat();
+			   info.moblurFactor = 0.5;
             
             info.batchRenderPatch = xgenDesc.findPlug("aiBatchRenderPatch").asString().asChar();
 
-			   if (info.moblur)
-			   {
-				   info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
-			   }
+            if (info.moblur == 0)
+            {
+               if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
+               {
+                  info.motionBlurSteps = CMayaScene::GetArnoldSession()->GetMotionFrames().size();
+                  info.moblurFactor = float(CMayaScene::GetArnoldSession()->GetMotionByFrame());
+               }
+            }
+            else if (info.moblur == 1)
+            {
+               info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
+               info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
+            }
 #ifdef DEBUG_MTOA
                printf("strChild=%s\n",strChild.c_str() );
 #endif
@@ -396,29 +403,79 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 	  ///            and switch for  XGEN arnold renderer setting of "use renderglobals"  to either use our own compute or the renderglobals settings 
 
 
-		float stepSize = info.moblurFactor/(info.motionBlurSteps-1);
+		
 
-		MFloatArray steps;
-		for (uint stepCount = 0; stepCount < info.motionBlurSteps; stepCount++)
-		{
-			/// TODO XGEN: support all motion blur  directions 
-			// hardcoding  center motion blur right now 
-			steps.append(float((0.0 -(info.moblurFactor/2)) + (stepSize*stepCount)));
-		}
+      std::string mbSamplesString;
+      
+      if (info.moblur != 2 && info.motionBlurSteps > 1 && info.moblurFactor > 0.0f)
+      {
 
-	  std::string mbSamplesString;
-	  if (info.moblur && info.motionBlurSteps > 1) // TODO XGEN: or use renderglobals and  renderglobals value 
-	  {
-		for (uint sampCount = 0; sampCount < info.motionBlurSteps; sampCount ++)
-		{
-			sprintf(buf,"%f",steps[sampCount]*info.moblurMultiplier);
-			mbSamplesString += std::string(buf) + " ";
-		}
-	  }
-	  else
-	  {
-		mbSamplesString += std::string("0.0 ");
-	  }
+         if (info.moblur == 0)
+         {
+            if(CMayaScene::GetArnoldSession())
+            {
+               AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
+               AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
+               
+               std::vector<double> steps = CMayaScene::GetArnoldSession()->GetMotionFrames();
+            
+               for (uint sampCount = 0; sampCount < info.motionBlurSteps; sampCount ++)
+               {
+                  float sample = float(steps[sampCount] - GetExportFrame());
+
+                  // If 0.0 used as start step. XGen will not refresh next mb changes until frame is changed
+                  if(sampCount == 0 && sample == 0.0f)
+                     sample = 0.0001f;
+                  
+                  sprintf(buf,"%f",sample);
+                  mbSamplesString += std::string(buf) + " ";
+                  
+                  AiArraySetFlt(samples, sampCount, sample);
+               }
+               AiNodeSetArray(shape, "time_samples", samples);
+            }
+            else
+            {
+               mbSamplesString += std::string("0.0 ");
+            }
+         }
+         
+         else
+         {
+            MFloatArray steps;
+            float stepSize = info.moblurFactor/(info.motionBlurSteps-1);
+            
+            AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
+            AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
+
+            for (uint stepCount = 0; stepCount < info.motionBlurSteps; stepCount++)
+            {
+               if (info.moblurmode == 0)
+                  steps.append(float(0.0001 + (stepSize*stepCount))); // If 0.0 used as start step. XGen will not refresh next mb changes
+               else if (info.moblurmode == 1)
+                  steps.append(float((0.0 - (info.moblurFactor/2.0)) + (stepSize*stepCount)));
+               else
+                  steps.append(float((0.0 - info.moblurFactor) + (stepSize*stepCount)));
+            }
+
+            for (uint sampCount = 0; sampCount < info.motionBlurSteps; sampCount ++)
+            {
+               float sample = steps[sampCount];
+               
+               sprintf(buf,"%f",sample);
+               mbSamplesString += std::string(buf) + " ";
+               
+               AiArraySetFlt(samples, sampCount, sample);
+            }
+            AiNodeSetArray(shape, "time_samples", samples);
+         }
+         
+         
+      }
+      else
+      {
+         mbSamplesString += std::string("0.0 ");
+      }
 
 	  /// TODO XGEN:  make these args real  arnold arguments and make the procedural  build this string itself from the passed arguments 
 
@@ -427,7 +484,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          // Build the data argument
          std::string strData;
          strData =  "-debug 1 -warning 1 -stats 1 ";
-         sprintf(buf,"%f ",GetExportFrame()); // really hacky right now 
+         sprintf(buf,"%f ",GetExportFrame());
          strData += " -frame "+ std::string(buf);// +" -shutter 0.0"; // Pedro's suggestion was to remove the shutter value, it seemed not to make a diff
 		 strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
          strData += " -palette " + info.strPalette;
@@ -440,7 +497,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          MTime oneSec(1.0, MTime::kSeconds);
          float fps =  (float)oneSec.asUnits(MTime::uiUnit());
          sprintf(buf,"%f ",fps);
-		 strData += " -fps " + std::string(buf);  // frickin a!  here's your frame rate.. wasn't in the translator.. DAMN YOU AUTODESK!! 
+		 strData += " -fps " + std::string(buf);
 		 strData += " -motionSamplesLookup "+ mbSamplesString;
 		 strData += " -motionSamplesPlacement "+ mbSamplesString;
 
@@ -496,23 +553,6 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
        AiNodeDeclare( shape, "ai_min_pixel_width", "constant FLOAT");
        AiNodeSetFlt(shape, "ai_min_pixel_width", info.aiMinPixelWidth);
        
-       
-         if (info.moblur && info.motionBlurSteps >1)
-         {
-            AiNodeDeclare( shape, "time_samples", "constant ARRAY FLOAT");
-
-            AtArray* samples = AiArrayAllocate( info.motionBlurSteps, 1, AI_TYPE_FLOAT );
-
-          
-            for (uint c = 0; c < info.motionBlurSteps; c++)
-            {
-               float sample = steps[c];
-               AiArraySetFlt(samples, c, sample);
-            }
-
-            AiNodeSetArray(shape, "time_samples", samples);
-
-         }
 
       }
    }
@@ -535,10 +575,10 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-    data.defaultValue.BOOL = false;
+    data.defaultValue.INT = 0;
     data.name = "motionBlurOverride";
     data.shortName = "motion_blur_override";
-    helper.MakeInputBoolean ( data );
+    helper.MakeInputInt ( data );
 
 	MStringArray  enumNames;
     enumNames.append ( "Start On Frame" );

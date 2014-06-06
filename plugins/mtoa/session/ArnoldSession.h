@@ -114,6 +114,7 @@ public:
    
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
+   inline std::vector<double> GetMotionFrames() const { return m_motion_frames; }
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
    inline bool IsProgressive() const { return m_sessionOptions.IsProgressive(); }
 

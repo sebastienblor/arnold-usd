@@ -11,11 +11,17 @@ maya.stringTable['y_xgenArnoldUI.kRenderModeBatch'] = u'Batch Render'
 
 maya.stringTable['y_xgenArnoldUI.kArnoldEnableMotionBlur'] = u'Motion Blur'
 
-maya.stringTable['y_xgenArnoldUI.kMotionBlur'] = u'Position'
+maya.stringTable['y_xgenArnoldUI.kArnoldOverrideMotionBlur'] = u'Override Motion Blur'
+
+maya.stringTable['y_xgenArnoldUI.kMotionBlur'] = u'Motion Blur'
+maya.stringTable['y_xgenArnoldUI.kArnoldGlobalSettings'] = u'Use Global Settings'
+maya.stringTable['y_xgenArnoldUI.kArnoldOn'] = u'On'
+maya.stringTable['y_xgenArnoldUI.kArnoldOff'] = u'Off'
+
+maya.stringTable['y_xgenArnoldUI.kMotionBlurMode'] = u'Position'
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationStart'] = u'Start on Frame'
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationMiddle'] = u'Center on Frame'
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationEnd'] = u'End on Frame'
-maya.stringTable['y_xgenArnoldUI.kArnoldMBUseRenderGlobals'] = u'Use RenderGlobals'
 
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurSteps'] = u'Keys'
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurFactor'] = u'Length'
@@ -47,6 +53,7 @@ maya.stringTable['y_xgenArnoldUI.kSplineModeAnn'] = u'Curve Primitive can be ren
 maya.stringTable['y_xgenArnoldUI.kArnoldRenderModeAnn'] = u"'Live' allows XGen to query patches and guide animation directly from Maya.\nThis mode doesn't support Motion Blur and will try to reuse information the preview generated.\n\n'Batch Render' mode will always read geometry and animation from files.\n'Batch Render' mode is always on when doing a Batch Render.\nYou must first export the patches and guide animation to caches.\nUse this mode to make sure your caches are properly exported before doing a Batch Render."
 maya.stringTable['y_xgenArnoldUI.kArnoldKeyframeLocationAnn'] = u'The motion offset when calculating motion blur.'
 maya.stringTable['y_xgenArnoldUI.kArnoldEnableMotionBlurAnn'] = u'Enable Motion Blur.\nTo compute the motion vectors, XGen needs to sample animated geometry and guide animations at multiple times.\nMake sure you export everything like for a Batch render.'
+maya.stringTable['y_xgenArnoldUI.kArnoldOverrideMotionBlurAnn'] = u'Override the scene Motion Blur values.'
 maya.stringTable['y_xgenArnoldUI.kParametricSubdivisionsAnn'] = u'For Linear, defines the number of segments to use between control points.\nFor Cubic, defines a recursive number of subdivisions between control points.'
 maya.stringTable['y_xgenArnoldUI.kArnoldGeoshadersAnn'] = u'Setup a arnold geometry shader used to generate the XGen render time geometry.\nBy default, the setup is automatically done when a new description is created.\nYou can perform the setup manually for the current Description by clicking the Setup button.'
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurFactorAnn'] = u'Motion Blur time interval.'
