@@ -11,7 +11,7 @@ def aiUtilityCreateColorMode(attr):
                                                 (8, 'U Surface Derivative (dPdu)'), (9, 'V Surface Derivative (dPdv)'),
                                                 (10, 'Shading Point (Relative to BBox)'), (11, 'Primitive ID'), (12, 'Uniform ID'),
                                                 (13, 'Triangle Wireframe'), (14, 'Polygon Wireframe'), (15, 'Object'),
-                                                (16, 'Subdivision Edge Length'), (17, 'Floatgrid'), (18, 'Reflection Lines'),
+                                                (16, 'Edge Length'), (17, 'Floatgrid'), (18, 'Reflection Lines'),
                                                 (19, 'Bad UVs'), (20, 'Number of Lights'), (21, 'Object ID')])    
     cmds.setUITemplate(popTemplate=True)
 
@@ -19,6 +19,13 @@ def aiUtilitySetColorMode(attr):
     cmds.attrEnumOptionMenuGrp('AIUtilityColorMode', edit=True, attribute=attr)
 
 class AEaiUtilityTemplate(ShaderAETemplate):
+    def checkShadeMode(self, nodeName):
+        fullAttr = '%s.%s' % (nodeName, 'shade_mode')
+        shadeModeValue = pm.getAttr(fullAttr)
+        if shadeModeValue == 3:
+            pm.editorTemplate(dimControl=(nodeName, 'aoDistance', False))
+        else:
+            pm.editorTemplate(dimControl=(nodeName, 'aoDistance', True))
 
     def setup(self):
         self.addSwatch()
@@ -27,12 +34,13 @@ class AEaiUtilityTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout('Utility Attributes', collapse=False)
-        self.addControl('shade_mode', label='Shade Mode')
+        self.addControl('shade_mode', changeCommand=self.checkShadeMode, label='Shade Mode')
         self.addCustom('color_mode', aiUtilityCreateColorMode, aiUtilitySetColorMode)
         if int(ai.AiGetVersion()[2]) > 2:
             self.addControl('overlay_mode', label='Overlay Mode')
         self.addControl('color', label='Color')
         self.addControl('opacity', label='Opacity')
+        self.addControl('ao_distance', label='AO Distance')
         self.endLayout()
 
         # include/call base class/node attributes

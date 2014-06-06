@@ -436,6 +436,9 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 
    AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
    AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
+   AiNodeSetInt(camera, "shutter_type", FindMayaPlug("aiShutterType").asInt());
+   
+   ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
 
    GetMatrix(matrix);
    
@@ -624,6 +627,8 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("rolling_shutter");
    helper.MakeInput("shutter_start");
    helper.MakeInput("shutter_end");
+   helper.MakeInput("shutter_type");
+   helper.MakeInput("shutter_curve");
 }
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
