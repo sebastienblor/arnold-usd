@@ -48,6 +48,7 @@ def xgArnoldUI(selfid):
     addMethod( self, xgArnoldRenderModeChanged )
     addMethod( self, xgArnoldMotionBlurModeChanged )
     addMethod( self, xgArnoldMotionBlurChanged )
+    addMethod( self, xgArnoldPatchesChanged )
 
     expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldSettings'  ])
     self.arnold_expand_settings = expand
@@ -141,31 +142,7 @@ def xgArnoldUI(selfid):
     self.arnold_expand_motion_blur_settings = expand
     self.layout().addWidget( expand )
 
-    self.arnold_motion_blur = CheckBoxUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldEnableMotionBlur'  ],"custom__arnold_motion_blur",
-                                maya.stringTable[ 'y_xgenArnoldUI.kArnoldEnableMotionBlurAnn'  ],
-                                k_RenderAPIRendererObj)
-    self.connect(self.arnold_motion_blur.boxValue[0], QtCore.SIGNAL("clicked(bool)"), self.xgArnoldMotionBlurChanged )
-    expand.addWidget(self.arnold_motion_blur)
-
-    self.arnold_motion_blur_steps = IntegerUI( "custom__arnold_motion_blur_steps",
-                                maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurStepsAnn'  ],
-                                k_RenderAPIRendererObj,1,15,maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurSteps'  ], autoPlayblast=False)
-    expand.addWidget(self.arnold_motion_blur_steps)
-    self.arnold_motion_blur_steps.xgAttrChanged.connect( self.xgArnoldRefresh )
-
-    self.arnold_motion_blur_factor = FloatUI( "custom__arnold_motion_blur_factor",
-                                maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurFactorAnn'  ],
-                                k_RenderAPIRendererObj, 0.0, 100.0 , 0.0, 2.0, maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurFactor'  ], autoPlayblast=False)
-    expand.addWidget(self.arnold_motion_blur_factor)
-    self.arnold_motion_blur_factor.xgAttrChanged.connect( self.xgArnoldRefresh )
-
-    self.arnold_motion_blur_multiplier = FloatUI( "custom__arnold_motion_blur_multiplier",
-                                maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurMultiplierAnn'  ],
-                                k_RenderAPIRendererObj, 0.0, 100.0 , 0.0, 2.0, maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurMultiplier'  ], autoPlayblast=False)
-    expand.addWidget(self.arnold_motion_blur_multiplier)
-    self.arnold_motion_blur_multiplier.xgAttrChanged.connect( self.xgArnoldRefresh )
     
-
     # Horizontal layout
     row = QtGui.QWidget()
     hbox = QtGui.QHBoxLayout()
@@ -177,11 +154,34 @@ def xgArnoldUI(selfid):
     label.setIndent(10)
     label.setToolTip(maya.stringTable[ 'y_xgenArnoldUI.kArnoldKeyframeLocationAnn'  ])
     hbox.addWidget(label)
+    self.arnold_motion_blur = QtGui.QComboBox()
+    self.arnold_motion_blur.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldGlobalSettings' ], "0")
+    self.arnold_motion_blur.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldOn' ], "1")
+    self.arnold_motion_blur.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldOff' ], "2")
+    self.arnold_motion_blur.setToolTip(label.toolTip())
+    self.connect(self.arnold_motion_blur, QtCore.SIGNAL("activated(int)"), self.xgArnoldMotionBlurChanged )
+    hbox.addWidget(self.arnold_motion_blur)
+    filler = QtGui.QWidget()
+    hbox.addWidget(filler)
+    row.setLayout(hbox)
+    expand.addWidget(row)
+
+    
+    # Horizontal layout
+    row = QtGui.QWidget()
+    hbox = QtGui.QHBoxLayout()
+    hbox.setSpacing(3)
+    hbox.setContentsMargins(1,1,1,1)
+    self.arnold_motion_blur_mode_label = QtGui.QLabel(maya.stringTable[ 'y_xgenArnoldUI.kMotionBlurMode'  ])
+    self.arnold_motion_blur_mode_label.setFixedWidth(labelWidth())
+    self.arnold_motion_blur_mode_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+    self.arnold_motion_blur_mode_label.setIndent(10)
+    self.arnold_motion_blur_mode_label.setToolTip(maya.stringTable[ 'y_xgenArnoldUI.kArnoldKeyframeLocationAnn'  ])
+    hbox.addWidget(self.arnold_motion_blur_mode_label)
     self.arnold_motion_blur_mode = QtGui.QComboBox()
     self.arnold_motion_blur_mode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldKeyframeLocationStart' ], "0")
     self.arnold_motion_blur_mode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldKeyframeLocationMiddle' ], "1")
     self.arnold_motion_blur_mode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldKeyframeLocationEnd' ], "2")
-    self.arnold_motion_blur_mode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kArnoldMBUseRenderGlobals' ], "3")
     self.arnold_motion_blur_mode.setToolTip(label.toolTip())
     self.connect(self.arnold_motion_blur_mode, QtCore.SIGNAL("activated(int)"), self.xgArnoldMotionBlurModeChanged )
     hbox.addWidget(self.arnold_motion_blur_mode)
@@ -189,6 +189,32 @@ def xgArnoldUI(selfid):
     hbox.addWidget(filler)
     row.setLayout(hbox)
     expand.addWidget(row)
+    
+    
+    self.arnold_motion_blur_steps = IntegerUI( "custom__arnold_motion_blur_steps",
+                                maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurStepsAnn'  ],
+                                k_RenderAPIRendererObj,1,15,maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurSteps'  ], autoPlayblast=False)
+    expand.addWidget(self.arnold_motion_blur_steps)
+    self.arnold_motion_blur_steps.xgAttrChanged.connect( self.xgArnoldRefresh )
+
+    self.arnold_motion_blur_factor = FloatUI( "custom__arnold_motion_blur_factor",
+                                maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurFactorAnn'  ],
+                                k_RenderAPIRendererObj, 0.0, 100.0 , 0.0, 1.0, maya.stringTable[ 'y_xgenArnoldUI.kArnoldMotionBlurFactor'  ], autoPlayblast=False)
+    expand.addWidget(self.arnold_motion_blur_factor)
+    self.arnold_motion_blur_factor.xgAttrChanged.connect( self.xgArnoldRefresh )
+    
+
+    expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldAdvancedSettings'  ])
+    self.layout().addWidget( expand )
+    self.arnold_expand_advanced_settings = expand
+    
+    self.arnold_batchRenderPatch = BrowseUI( "custom__arnold_batchRenderPatch",
+                            maya.stringTable[ 'y_xgenArnoldUI.kPatchesPathAnn' ],
+                            k_RenderAPIRendererObj, "*.*", "in", maya.stringTable[ 'y_xgenArnoldUI.kPatchesPath' ])
+                                
+                                
+    expand.addWidget(self.arnold_batchRenderPatch)
+    self.connect(self.arnold_batchRenderPatch.textValue, QtCore.SIGNAL("textChanged(const QString&)"), self.xgArnoldPatchesChanged )
 
     # Register the Arnold renderer in the method combo box
     self.addRenderer("Arnold Renderer")
@@ -196,33 +222,34 @@ def xgArnoldUI(selfid):
 # RenderAPIRendererTabUIRefresh callback
 # Called at the end of RenderAPIRendererTab.refresh()
 def xgArnoldRefresh(selfid):
-
     self = castSelf(selfid)
 
     vis = self.renderer.currentText()=="Arnold Renderer"
     self.arnold_expand_settings.setVisible(vis)
     self.arnold_expand_motion_blur_settings.setVisible(vis)
     self.arnold_expand_curve_settings.setVisible(vis)
+    self.arnold_expand_advanced_settings.setVisible(vis)
 
     # Declare the Arnold custom parameters
     self.declareCustomAttr( 'arnold_rendermode', "0" )
     self.declareCustomAttr( 'arnold_curveMode', "0" )
     self.declareCustomAttr( 'arnold_minPixelWidth', "0.0" )
     self.declareCustomAttr( 'arnold_motion_blur', "0" )
-    self.declareCustomAttr( 'arnold_motion_blur_mode', "3" )
-    self.declareCustomAttr( 'arnold_motion_blur_steps', "3" )
+    self.declareCustomAttr( 'arnold_motion_blur_mode', "1" )
+    self.declareCustomAttr( 'arnold_motion_blur_steps', "2" )
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
-    self.declareCustomAttr( 'arnold_motion_blur_multiplier', "1.0" )
+    self.declareCustomAttr( 'arnold_batchRenderPatch', "" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
     curvTyp = int (self.getCustomAttr( "arnold_curveMode"))
     minPixW = float (self.getCustomAttr( "arnold_minPixelWidth"))
-    mb = self.getCustomAttr( "arnold_motion_blur" ) != "0"
+    mb = int(self.getCustomAttr( "arnold_motion_blur" ))
+    mbo = mb is 1
     mb_mode = int(self.getCustomAttr( "arnold_motion_blur_mode" ))
     mb_steps = int(self.getCustomAttr( "arnold_motion_blur_steps" ))
     mb_factor = float(self.getCustomAttr( "arnold_motion_blur_factor" ))
-    mb_multiplier = float(self.getCustomAttr( "arnold_motion_blur_multiplier" ))
+    batchRenderPatch = str(self.getCustomAttr( "arnold_batchRenderPatch" ))
 
     # Update the UI
     de = xgg.DescriptionEditor
@@ -231,17 +258,18 @@ def xgArnoldRefresh(selfid):
     self.arnold_curveMode.setCurrentIndex( curvTyp )
     
     self.arnold_minPixelWidth.refresh()
-    self.arnold_motion_blur.refresh()
+    self.arnold_motion_blur.setCurrentIndex( mb )
     self.arnold_motion_blur_mode.setCurrentIndex( mb_mode )
     self.arnold_motion_blur_steps.refresh()
     self.arnold_motion_blur_factor.refresh()
-    self.arnold_motion_blur_multiplier.refresh()
 
 
-    self.arnold_motion_blur_mode.setEnabled( mb )
-    self.arnold_motion_blur_steps.setEnabled( mb )
-    self.arnold_motion_blur_factor.setEnabled( mb )
-    self.arnold_motion_blur_multiplier.setEnabled( mb )
+    self.arnold_motion_blur_mode.setEnabled( mbo )
+    self.arnold_motion_blur_mode_label.setEnabled( mbo )
+    self.arnold_motion_blur_steps.setEnabled( mbo )
+    self.arnold_motion_blur_factor.setEnabled( mbo )
+    
+    self.arnold_batchRenderPatch.refresh()
     
     pal = de.currentPalette()
     desc = de.currentDescription()
@@ -260,7 +288,7 @@ def xgArnoldRefresh(selfid):
             cmds.setAttr( nExistsName + ".motion_blur_mode", mb_mode )
             cmds.setAttr( nExistsName + ".motion_blur_steps", mb_steps )
             cmds.setAttr( nExistsName + ".motion_blur_factor", mb_factor )
-            cmds.setAttr( nExistsName + ".motion_blur_mult", mb_multiplier )
+            cmds.setAttr( nExistsName + ".aiBatchRenderPatch", batchRenderPatch, type="string")
             #cmds.setAttr( nExistsName + ".render_mode", rendermode )   live/batch?
         else:
             print "Couldn't find Description Shape!"
@@ -283,8 +311,11 @@ def xgArnoldMotionBlurModeChanged(self,index):
     self.setCustomAttr( "arnold_motion_blur_mode", str(index) )
     self.xgArnoldRefresh()
 
-def xgArnoldMotionBlurChanged(self,state):
-    self.setCustomAttr( "arnold_motion_blur", str(int(state)) )
+def xgArnoldMotionBlurChanged(self,index):
+    self.setCustomAttr( "arnold_motion_blur", str(index) )
     self.xgArnoldRefresh()
 
+def xgArnoldPatchesChanged(self, data):
+    self.setCustomAttr( "arnold_batchRenderPatch", str(data) )
+    self.xgArnoldRefresh()
 

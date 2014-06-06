@@ -22,6 +22,7 @@ class xgmDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiMinPixelWidth", label="Min Pixel Width")
         self.addControl("aiMode", label= "Curve Mode")
+        self.addControl("aiBatchRenderPatch", label= "Batch Render Patch")
         
 
 templates.registerTranslatorUI(xgmDescriptionTemplate, "xgmDescription", "xgenTranslator")
@@ -29,5 +30,15 @@ templates.registerTranslatorUI(xgmDescriptionTemplate, "xgmDescription", "xgenTr
 # these  are used to build the  "renderer"  callbacks to slot arnold  settings into the  xgen GUI.   the values of these controls 
 # are stored on  each description node and can be parsed from there by the translator.
 # this is mainly to make  arnold fit into the   XGen workflow better. 
-xg.registerCallback( "RenderAPIRendererTabUIInit", "xgenArnoldUI.xgArnoldUI" )
-xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+
+if xg.xgGlobal.DescriptionEditor is not None:
+    # XGen has already been loaded
+    xg.deregisterCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+    xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldUI" )
+    xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+    xg.xgGlobal.DescriptionEditor.refresh("Full")
+    xg.deregisterCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldUI" )
+else:
+    # XGen has still not been loaded
+    xg.registerCallback( "RenderAPIRendererTabUIInit", "xgenArnoldUI.xgArnoldUI" )
+    xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
