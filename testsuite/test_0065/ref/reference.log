@@ -1,19 +1,94 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201300\msvc_opt\testsuite\test_0065\test_0065.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2013\bin\mayabatch.exe"
-mental ray for Maya 2013 
-mental ray: version 3.10.1.4, Jan 31 2012, revision 165283
-00:00:00   245MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
-ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+Starting "/usr/autodesk/maya2015-x64/bin/maya"
 
+Initialized VP2.0 renderer {
+  Version : 5.3.1.0. Feature Level 4.
+  Adapter : Quadro 600/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 
+  Driver : 4.4.0 NVIDIA 331.79.
+  API : OpenGL V.2.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 8
+  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 1024 MB.
+  CPU Memory Limit: 15110.1 MB.
+}
+mental ray for Maya 2015 
+mental ray: version 3.12.1.12, Jan 31 2014, revision 213714
+1 error generated.
+Error while processing /usr/autodesk/maya2015-x64/plug-ins/bifrost/db/presets/__rootincludeall__.h.
+00:00:00   444MB         | log started Mon Jun  9 13:05:52 2014
+00:00:00   444MB         | Arnold 4.2.0.1 linux clang-3.4.0 glibc-2.5 oiio-1.2.2 rlm-10.1.2 2014/06/05 12:23:38
+00:00:00   444MB         | running on localhost.localdomain with pid 25158
+00:00:00   444MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   444MB         |  (redhat) CentOS release 6.5 (Final), Linux kernel 2.6.32-431.17.1.el6.centos.plus.x86_64
+00:00:00   444MB         |  
+00:00:00   444MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
+00:00:00   444MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
+00:00:00   444MB         | loading plugin: /work/deploy/2015/shaders/mtoa_shaders.so ...
+00:00:00   444MB         | loaded 85 plugins from 1 lib(s) in 0:00.00
+00:00:00   444MB         | [mtoa] [mtoa_shaders] Generated 11 new Maya nodes for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   444MB         | [mtoa] [mtoa_shaders] Generated 39 translators for 39 Maya nodes (11 new and 28 existing) for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   444MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
+00:00:00   444MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
+00:00:00   444MB         | [mtoa] Loading extension xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so).
+00:00:00   444MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
+00:00:00   444MB         | [mtoa] [xgenTranslator] Declares a total of 0 new Maya nodes.
+00:00:00   444MB         | [mtoa] [xgenTranslator] Declares a total of 1 translators for 1 Maya nodes (0 new and 1 existing).
+00:00:00   444MB         | [mtoa] Successfully loaded extension library xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so).
+00:00:00   444MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
+00:00:00   445MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   445MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   445MB         | [mtoa] [renderview_driver] Generated 1 translators for 1 Maya nodes (0 new and 1 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   445MB         | loading plugin: /work/deploy/shaders/Gecko.so ...
+00:00:00   445MB         | loaded 3 plugins from 1 lib(s) in 0:00.00
+00:00:00   445MB WARNING | [mtoa] [Gecko] [node dGecko] Assigning temporary node id 1138176 to associated Maya type name aiDGecko.
+00:00:00   445MB WARNING | [mtoa] [Gecko] [node dArmadillo] Assigning temporary node id 1138177 to associated Maya type name aiDArmadillo.
+00:00:00   445MB WARNING | [mtoa] [Gecko] [node dSubsurface] Assigning temporary node id 1138178 to associated Maya type name aiDSubsurface.
+00:00:00   445MB         | [mtoa] [Gecko] Generated 3 new Maya nodes for Arnold plugin /work/deploy/shaders/Gecko.so.
+00:00:00   445MB         | [mtoa] [Gecko] Generated 3 translators for 3 Maya nodes (3 new and 0 existing) for Arnold plugin /work/deploy/shaders/Gecko.so.
+00:00:00   445MB         | loading plugin: /work/deploy/shaders/testShaders.so ...
+00:00:00   445MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   445MB WARNING | [mtoa] [testShaders] [node maya_bump2d] Assigning temporary node id 1138179 to associated Maya type name aiMayaBump2d.
+00:00:00   445MB         | [mtoa] [testShaders] Generated 1 new Maya nodes for Arnold plugin /work/deploy/shaders/testShaders.so.
+00:00:00   445MB         | [mtoa] [testShaders] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/shaders/testShaders.so.
+00:00:00   445MB         | [mtoa] Registering 6 loaded extensions:
+00:00:00   445MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
+00:00:00   445MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   445MB WARNING | [mtoa] Extension xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+00:00:00   445MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   445MB         | [mtoa] Registered extension Gecko provided by /work/deploy/shaders/Gecko.so.
+00:00:00   445MB ERROR   | [mtoa.attr] Unable to create static attribute corresponding to maya_bump2d.normalCamera
+
+API error detected in plugins/mtoa/attributes/AttrHelper.cpp at line 1287
+: (kInvalidParameter): Object already exists
+00:00:00   445MB         | [mtoa] Registered extension testShaders provided by /work/deploy/shaders/testShaders.so.
+libai.so already loaded
+
+00:00:00   445MB         | Successfully imported python module 'arnold'
 Successfully imported python module 'arnold'
+00:00:00   445MB         | Successfully imported python module 'mtoa'
 Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, AbcImport, mtoa, ikSpringSolver, Mayatomr, tiffFloatReader, AbcExport, VectorRender, quatNodes, gpuCache, mayaCharacterization, rotateHelper, Substance, MayaMuscle, AutodeskPacketFile, retargeterNodes, fbxmaya, matrixNodes, ik2Bsolver
-Maya 2013 importing module pymel 1.0.4 (C:\Program Files\Autodesk\Maya2013\Python\lib\site-packages\pymel\__init__.pyc)
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, Mayatomr, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, OpenEXRLoader, mayaCharacterization, mtoa, modelingToolkit, MayaMuscle, rotateHelper, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, Substance, shaderFXPlugin, ArubaTessellator, quatNodes, fbxmaya
+Maya 2015 importing module pymel 1.0.6 (/usr/autodesk/maya2015-x64/lib/python2.7/site-packages/pymel/__init__.py)
 Successfully registered renderer 'arnold'
-File read in 1 seconds.
+00:00:01   538MB         |  
+00:00:01   538MB         | releasing resources
+00:00:01   537MB         | Arnold shutdown
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201300/msvc_opt/testsuite/test_0065/test.ma
-Warning: file: C:\Users\borja\AppData\Local\Temp\AST33BA9856.tmp line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: C:\Users\borja\AppData\Local\Temp\AST33BA9856.tmp line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201300\msvc_opt\testsuite\test_0065\test.ma completed.
+File read in  2.4 seconds.
+Error: line 1: (kInvalidParameter): No element at given index
+# Traceback (most recent call last):
+#   File "/usr/autodesk/maya2015-x64/lib/python2.7/site-packages/pymel/core/__init__.py", line 151, in addPluginPyNodes
+#     _api.MEventMessage.removeCallback( id )
+# RuntimeError: (kInvalidParameter): No element at given index
+Warning: line 1: Python callback failed
+Result: /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0065/test.ma
+Warning: file: /tmp/ASTMPgeoj6G.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /tmp/ASTMPgeoj6G.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Scene /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0065/test.ma completed.
+mental ray: wallclock  0:00:06.72 total
+mental ray: CPU usage  0:00:09.02 total
+mental ray: current mem usage 4 MB, max mem usage 8 MB
