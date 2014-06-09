@@ -261,6 +261,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_lock_sampling_noise);
+
+   s_attributes.MakeInput("sss_use_autobump");
       
    s_aa_seed = uAttr.create("AA_seed", "aaseed", MFnUnitAttribute::kTime);
    uAttr.setStorable(false);

@@ -415,6 +415,11 @@ def createArnoldSamplingSettings():
     pm.attrControlGrp('ss_lock_sampling_noise',
                         label="Lock Sampling Pattern",
                         attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+
+    pm.attrControlGrp('ss_use_autobump',
+                        label='Enable bump mapping in SSS',
+                        attribute='defaultArnoldRenderOptions.sssUseAutobump',
+                        annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
     
     pm.frameLayout(label='Clamping', collapse=True)
 
