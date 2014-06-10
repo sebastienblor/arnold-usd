@@ -18,6 +18,8 @@ void* CLightBlockerTranslator::creator()
    
 AtNode* CLightBlockerTranslator::CreateArnoldNodes()
 {
+   if( (ComputeVisibility() & AI_RAY_CAMERA) == 0)
+      return NULL;
    return AddArnoldNode("light_blocker");
 }
 
@@ -36,5 +38,4 @@ void CLightBlockerTranslator::Export(AtNode* blocker)
    ProcessParameter(blocker, "ramp", AI_TYPE_FLOAT, "ramp");
    ProcessParameter(blocker, "ramp_axis", AI_TYPE_INT, "rampAxis");
 
-   if ((ComputeVisibility() & AI_RAY_CAMERA) == 0) AiNodeSetFlt(blocker, "density", 0.0f);
 }
