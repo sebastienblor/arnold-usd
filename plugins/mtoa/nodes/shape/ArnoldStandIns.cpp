@@ -1319,7 +1319,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
          geom->Draw(GM_NORMAL_AND_POLYGONS);
          glPopAttrib();
-         glEndList();         
+         glEndList();
          break;
       }
       geom->Clear();
@@ -1379,10 +1379,19 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       const bool enableLighting = ((geom->mode == DM_SHADED) || (geom->mode == DM_SHADED_POLYWIRE))
                                     && (view.displayStyle() == M3dView::kGouraudShaded);
       if (enableLighting)
+      {
          glEnable(GL_LIGHTING);
+         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+         glEnable(GL_COLOR_MATERIAL);
+         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+      }
+      
       glCallList(geom->dList);
       if (enableLighting)
-         glEnable(GL_LIGHTING);
+      {
+         glDisable(GL_LIGHTING);
+         glDisable(GL_COLOR_MATERIAL);
+      }
       // Draw scaled BBox
       if(geom->deferStandinLoad)
          glCallList(geom->dList+1);
