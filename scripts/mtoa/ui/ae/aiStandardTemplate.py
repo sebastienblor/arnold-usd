@@ -7,13 +7,6 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 class AEaiStandardTemplate(ShaderAETemplate):
     convertToMayaStyle = True
     
-    def checkSpecularBrdf(self, nodeName):
-        fullAttr = '%s.%s'%(nodeName, "specular_brdf")
-        brdfValue = pm.getAttr(fullAttr)
-        dim = (brdfValue != 1)
-        pm.editorTemplate(dimControl=(nodeName, "specularAnisotropy", dim))
-        pm.editorTemplate(dimControl=(nodeName, "specularRotation", dim))
-
     def checkSpecularFresnel(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "Fresnel_use_IOR")
         fresIorValue = pm.getAttr(fullAttr)
@@ -78,7 +71,6 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.beginLayout("Specular", collapse=False)
         self.addControl("Ks_color", label="Color")
         self.addControl("Ks", label="Weight")
-        self.addControl("specular_brdf", changeCommand=self.checkSpecularBrdf, label="BRDF")
         self.addControl("specular_roughness", label="Roughness")
         self.addControl("specular_anisotropy", label="Anisotropy")
         self.addControl("specular_rotation", label="Rotation")        
