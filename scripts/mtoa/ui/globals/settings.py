@@ -417,7 +417,7 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.lock_sampling_noise')
 
     pm.attrControlGrp('ss_use_autobump',
-                        label='Enable bump mapping in SSS',
+                        label='Use Autobump in SSS',
                         attribute='defaultArnoldRenderOptions.sssUseAutobump',
                         annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
     
