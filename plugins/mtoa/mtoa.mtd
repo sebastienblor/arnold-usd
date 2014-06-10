@@ -1075,6 +1075,8 @@
     aov.type                INT     0x05
     [attr aov_refraction]
     aov.type                INT     0x05
+    [attr aov_refraction_opacity]
+    aov.type                INT     0x05
     [attr aov_sss]
     aov.type                INT     0x05
 

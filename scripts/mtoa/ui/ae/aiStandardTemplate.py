@@ -144,7 +144,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.endLayout()
 
         self.addAOVLayout(aovReorder = ['direct_diffuse', 'indirect_diffuse', 'direct_specular', 'indirect_specular',
-                                        'reflection', 'refraction', 'emission', 'sss'])
+                                        'reflection', 'refraction', 'refraction_opacity', 'emission', 'sss'])
 
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
