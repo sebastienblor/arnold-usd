@@ -12,7 +12,7 @@ void CAutoCameraTranslator::Export(AtNode* camera)
    static const char* exportedParams[] = {
       "name", "fov", "matrix", 
       "exposure", "near_clip", "far_clip",
-      "rolling_shutter", "shutter_start", "shutter_end", 0
+      "rolling_shutter", "rolling_shutter_duration", "shutter_start", "shutter_end", 0
    };
 
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nentry);
