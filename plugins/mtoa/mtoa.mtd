@@ -1409,6 +1409,7 @@
         label               STRING  "Visible In Glossy"
 
 [node density]
+    maya.hide               BOOL    true
     [attr scatter_g]
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
