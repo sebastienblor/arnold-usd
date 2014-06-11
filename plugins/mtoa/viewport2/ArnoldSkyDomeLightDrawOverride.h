@@ -51,7 +51,6 @@ private:
     static GLuint s_VAOTexturedBall;
     static GLuint s_VAOTexturedAngular;
     static GLuint s_VAOTexturedLatLong;
-    static GLuint s_VAOTexturedCubic;
 
     static GLuint s_numWireframeIndices;
     static GLuint s_numTexturedIndices;

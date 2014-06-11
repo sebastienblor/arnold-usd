@@ -115,8 +115,8 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
             {
                case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
                case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
-               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
-               default: AiMappingCubicMap(&dir, &u, &v);
+               case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong
+               default: AiMappingLatLong(&dir, &u, &v);
             }
             const int id = x + y * divisionsX1;
             m_UVData[id].x = u;
@@ -517,7 +517,6 @@ MStatus CSphereLocator::initialize()
    eAttr.addField("mirrored_ball", 0);
    eAttr.addField("angular", 1);
    eAttr.addField("latlong", 2);
-   eAttr.addField("cubic", 3);
    eAttr.setInternal(true);
    addAttribute(s_format);
 

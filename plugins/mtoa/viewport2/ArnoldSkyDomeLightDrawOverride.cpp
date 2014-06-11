@@ -61,7 +61,6 @@ GLuint CArnoldSkyDomeLightDrawOverride::s_VAOWireframe = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedBall = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedAngular = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedLatLong = 0;
-GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedCubic = 0;
 
 GLint CArnoldSkyDomeLightDrawOverride::s_modelLocWireframe = 0;
 GLint CArnoldSkyDomeLightDrawOverride::s_viewProjLocWireframe = 0;
@@ -228,7 +227,6 @@ void CArnoldSkyDomeLightDrawOverride::clearGPUResources()
     glDeleteVertexArrays(1, &s_VAOTexturedBall);
     glDeleteVertexArrays(1, &s_VAOTexturedAngular);
     glDeleteVertexArrays(1, &s_VAOTexturedLatLong);
-    glDeleteVertexArrays(1, &s_VAOTexturedCubic);
 
     s_isValid = false;
     s_isInitialized = false;
@@ -300,7 +298,7 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
 
         const int resolution = 20; // 20 by 20 sphere should be enough
         // creating Vertex, Index buffers and Vertex Arrays
-        const int stride = 3 + 4 * 2; // first 3 for positions, the next 4 for the different UV coordinates
+        const int stride = 3 + 3 * 2; // first 3 for positions, the next 4 for the different UV coordinates
 
         // first vertex for the bottom pole, second for the top, and the rest
         // for the rings along the sphere from the bottom
@@ -320,8 +318,6 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         id += 2;
         AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
         id += 2;
-        AiMappingCubicMap(&dir, vertices + id, vertices + id + 1);
-        id += 2;
         dir.y = 1.0f;
         vertices[id++] = 0.0f;
         vertices[id++] = 1.0f;
@@ -331,8 +327,6 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
         id += 2;
         AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
-        id += 2;
-        AiMappingCubicMap(&dir, vertices + id, vertices + id + 1);
         id += 2;
         for (int yy = 0; yy < resolution; ++yy)
         {
@@ -350,8 +344,6 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
                 AiMappingAngularMap(&dir, vertices + id, vertices + id + 1);
                 id += 2;
                 AiMappingLatLong(&dir, vertices + id, vertices + id + 1);
-                id += 2;
-                AiMappingCubicMap(&dir, vertices + id, vertices + id + 1);
                 id += 2;
             }
         }
