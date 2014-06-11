@@ -433,7 +433,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
-   AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutter").asFloat());
+   AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
 
    AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
    AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
