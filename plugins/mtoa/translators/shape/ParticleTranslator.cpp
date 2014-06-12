@@ -1147,7 +1147,7 @@ void CParticleTranslator::Export(AtNode* anode)
       //exportParticleTimer.endTimer();
       //double elapsed = exportParticleTimer.elapsedTime();
       //AiMsgDebug("[mtoa] Particle system %s export took : %f seconds", m_fnParticleSystem.partialPathName().asChar(), elapsed);
-      if (!RequiresMotionData())
+      if (!RequiresMotionData() && (GetNumMotionSteps() > 1))
       {
          WriteOutParticle(anode);
          ProcessRenderFlags(anode);
