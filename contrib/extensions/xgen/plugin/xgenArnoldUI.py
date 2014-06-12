@@ -238,7 +238,7 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_motion_blur_mode', "1" )
     self.declareCustomAttr( 'arnold_motion_blur_steps', "2" )
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
-    self.declareCustomAttr( 'arnold_batchRenderPatch', "" )
+    self.declareCustomAttr( 'arnold_batchRenderPatch', "0" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
@@ -250,6 +250,8 @@ def xgArnoldRefresh(selfid):
     mb_steps = int(self.getCustomAttr( "arnold_motion_blur_steps" ))
     mb_factor = float(self.getCustomAttr( "arnold_motion_blur_factor" ))
     batchRenderPatch = str(self.getCustomAttr( "arnold_batchRenderPatch" ))
+    if batchRenderPatch == "0":
+        batchRenderPatch = ""
 
     # Update the UI
     de = xgg.DescriptionEditor
