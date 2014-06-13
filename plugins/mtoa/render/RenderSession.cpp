@@ -48,6 +48,17 @@ MCallbackId                         CRenderSession::s_idle_cb = 0;
 CRenderSession::RenderCallbackType  CRenderSession::m_renderCallback = NULL;
 CCritSec                            CRenderSession::m_render_lock;
 
+namespace{
+   // TODO : remove this in the future
+   // this is ugly, but we cannot
+   // do it otherwise because we cannot
+   // change the API
+   static MString IPRRefinementStarted("");
+   static MString IPRRefinementFinished("");
+   static MString IPRStepStarted("");
+   static MString IPRStepFinished("");
+}
+
 namespace
 {
    MString VerifyFileName(MString fileName, bool compressed)
@@ -329,6 +340,8 @@ void CRenderSession::SetRenderViewPanelName(const MString &panel)
    m_renderOptions.SetRenderViewPanelName(panel);
 }
 
+
+
 unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
@@ -339,6 +352,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
                                  : num_aa_samples;
    const int steps = (progressive_start < 0) ? abs(progressive_start) + 1 : 1;
    int ai_status(AI_SUCCESS);
+   CMayaScene::ExecuteScript(IPRRefinementStarted, false, true);
    renderSession->SetRendering(true);
    int sampling, i;
    for (sampling = progressive_start, i=1; sampling <= num_aa_samples; ++sampling, ++i)
@@ -349,7 +363,9 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
       AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA (step %d of %d)", sampling, i, steps);
+      CMayaScene::ExecuteScript(IPRStepStarted, false, true);
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
+      CMayaScene::ExecuteScript(IPRStepFinished, false, true);
 
       if (ai_status != AI_SUCCESS) break;
       if (sampling > 0) break;
@@ -357,6 +373,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    // Put this back after we're done interating through.
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
    renderSession->SetRendering(false);
+   CMayaScene::ExecuteScript(IPRRefinementFinished, false, true);
 
    return ai_status;
 }
@@ -501,6 +518,26 @@ void CRenderSession::DoIPRRender()
       // DEBUG_MEMORY;
       AddIdleRenderViewCallback("");
 
+      MStatus status;
+      // TODO : move this to a shared class later
+      // we have to query this here because
+      // we are not allowed to change the API for the next release
+      MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
+      if (status)
+      {
+         IPRRefinementStarted = optionsNode.findPlug("IPRRefinementStarted").asString();
+         IPRRefinementFinished = optionsNode.findPlug("IPRRefinementFinished").asString();
+         IPRStepStarted = optionsNode.findPlug("IPRStepStarted").asString();
+         IPRStepFinished = optionsNode.findPlug("IPRStepFinished").asString();
+      }
+      else
+      {
+         IPRRefinementStarted = "";
+         IPRRefinementFinished = "";
+         IPRStepStarted = "";
+         IPRStepFinished = "";
+      }
+
       // Start the render thread.
       m_render_thread = AiThreadCreate(CRenderSession::ProgressiveRenderThread,
                                        this,
@@ -604,6 +641,8 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    COptionsTranslator::AddProjectFoldersToSearchPaths(options);
    AiNodeDeclare(options, "is_swatch", "constant BOOL");
    AiNodeSetBool(options, "is_swatch", true);
+   AiNodeSetStr(options, "pin_threads", "off");
+   AiNodeSetInt(options, "threads", 4);
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);

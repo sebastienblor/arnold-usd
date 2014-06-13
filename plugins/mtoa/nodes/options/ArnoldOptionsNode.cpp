@@ -87,6 +87,12 @@ MObject CArnoldOptionsNode::s_absolute_texture_paths;
 MObject CArnoldOptionsNode::s_absolute_procedural_paths;
 MObject CArnoldOptionsNode::s_force_translate_shading_engines;
 MObject CArnoldOptionsNode::s_version;
+MObject CArnoldOptionsNode::s_enable_standin_draw;
+MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
+MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
+MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
+MObject CArnoldOptionsNode::s_IPRStepFinishedCallback;
+
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -255,6 +261,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_lock_sampling_noise);
+
+   s_attributes.MakeInput("sss_use_autobump");
       
    s_aa_seed = uAttr.create("AA_seed", "aaseed", MFnUnitAttribute::kTime);
    uAttr.setStorable(false);
@@ -556,6 +564,29 @@ MStatus CArnoldOptionsNode::initialize()
    s_version = tAttr.create("version", "version", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_version);
+
+   s_enable_standin_draw = eAttr.create("standinDrawOverride", "standin_draw_override");
+   eAttr.addField("Full", 0);   
+   eAttr.addField("Bounding Box", 1);
+   eAttr.addField("Off", 2);
+   eAttr.setDefault(0);
+   addAttribute(s_enable_standin_draw);
+
+   s_IPRRefinementStartedCallback = tAttr.create("IPRRefinementStarted", "ipr_refinement_started", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRRefinementStartedCallback);
+
+   s_IPRRefinementFinishedCallback = tAttr.create("IPRRefinementFinished", "ipr_refinement_finished", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRRefinementFinishedCallback);
+
+   s_IPRStepStartedCallback = tAttr.create("IPRStepStarted", "ipr_step_started", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRStepStartedCallback);
+
+   s_IPRStepFinishedCallback = tAttr.create("IPRStepFinished", "ipr_step_finished", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_IPRStepFinishedCallback);   
 
    return MS::kSuccess;
 }

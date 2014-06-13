@@ -35,4 +35,6 @@ void CLightBlockerTranslator::Export(AtNode* blocker)
    ProcessParameter(blocker, "height_edge", AI_TYPE_FLOAT, "heightEdge");
    ProcessParameter(blocker, "ramp", AI_TYPE_FLOAT, "ramp");
    ProcessParameter(blocker, "ramp_axis", AI_TYPE_INT, "rampAxis");
+
+   if ((ComputeVisibility() & AI_RAY_CAMERA) == 0) AiNodeSetFlt(blocker, "density", 0.0f);
 }

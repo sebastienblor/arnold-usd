@@ -212,7 +212,7 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   AtByte visibility = AiNodeGetInt(masterNode, "visibility");
+   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
    AiNodeSetByte(instance, "visibility", visibility);
 
    m_DagNode.setObject(masterInstance);

@@ -49,6 +49,11 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiTextureAffectOpacity";
    data.shortName = "ai_texture_affect_opacity";
    helper.MakeInputBoolean(data);
+
+   data.name = "aiEnableDeformationBlur";
+   data.shortName = "ai_enable_deformation_blur";
+   data.defaultValue.BOOL = false;
+   helper.MakeInputBoolean(data);
    
    data.name = "aiVolumeTexture";
    data.shortName = "ai_volume_texture";
@@ -341,7 +346,8 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "velocity_scale", AI_TYPE_VECTOR, "velocityScale");
    
    // first getting a simple color information from the color gradient
-   ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");     
+   ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
+   ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
    
    // support for gradient mode  
    // Exporting fluid data to a shader attached to the shape

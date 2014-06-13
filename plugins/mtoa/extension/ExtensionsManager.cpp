@@ -7,6 +7,8 @@
 
 #include "utils/Universe.h"
 
+#include "nodes/ArnoldNodeIDs.h"
+
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -348,6 +350,8 @@ MStatus CExtensionsManager::UnloadExtensions()
       MStatus extStatus = DeleteExtension(*it);
       if (MStatus::kSuccess != extStatus) status = extStatus;
    }
+
+   CExtension::s_autoNodeId = ARNOLD_NODEID_AUTOGEN;
 
    return status;
 }

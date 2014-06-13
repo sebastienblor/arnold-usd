@@ -1,64 +1,46 @@
+Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0079\test_0079.log', using stdout instead
 
-Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
+mental ray for Maya 2012 
+mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
+
+Error: TypeError: 'bool' object is not iterable
+00:00:00   239MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
+ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
 
-mental ray for Maya 2013 
-mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
-pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
-libai.so already loaded
-
-Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-File read in 0 seconds.
-Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0079/test.ma
-Warning: file: /usr/tmp/ASTMPS93WDZ.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMPS93WDZ.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   294MB         | log started Thu Oct 10 17:41:07 2013
-00:00:00   294MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 15:28:48
-00:00:00   294MB         | running on localhost.localdomain
-00:00:00   294MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   294MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   294MB         |  
-00:00:00   294MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   294MB         | loaded 84 plugins from 1 lib(s) in 0:00.12
-00:00:00   294MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   294MB WARNING |  cannot link a NULL node into MayaShadingEngine(volume); if you are trying to remove an existing link, use AiNodeUnlink() instead
-00:00:00   294MB WARNING | [mtoa] [translator <built-in>] particleShape1.self_shadows: ProcessParameter should not be used on motion steps greater than 0
-00:00:00   294MB WARNING | [mtoa] [translator <built-in>] particleShape1.opaque: ProcessParameter should not be used on motion steps greater than 0
-00:00:00   294MB WARNING | [mtoa] [translator <built-in>] particleShape1.receive_shadows: ProcessParameter should not be used on motion steps greater than 0
-00:00:00   294MB WARNING | [mtoa] [translator <built-in>] particleShape1.self_shadows: ProcessParameter should not be used on motion steps greater than 0
-00:00:00   294MB WARNING | [mtoa] [translator <built-in>] particleShape1.opaque: ProcessParameter should not be used on motion steps greater than 0
-00:00:00   294MB WARNING | too many messages (>5) of type: "[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0" -- not printing any more!
-00:00:00   295MB         |  
-00:00:00   295MB         | there are 1 light and 6 objects:
-00:00:00   295MB         |  1 polymesh
-00:00:00   295MB         |  4 instances
-00:00:00   295MB         |  1 points
-00:00:00   295MB         |  
-00:00:00   295MB         | rendering image at 160 x 120, 6 AA samples, 2 GI samples, 1 GI bounces
-00:00:00   295MB         |  initializing 21 nodes ...
-00:00:00   295MB WARNING |   pSphereShape1: discarded duplicate deformation keys
-00:00:00   295MB WARNING |   inst1: ginstance needs to reference an object
-00:00:00   295MB         |  node initialization done in 0:00.00
-00:00:00   296MB         |  creating root object list ...
-00:00:00   296MB         |   scene bounds: (-13.8198004 -1.08831453 -1.08831501) -> (0.0515369177 1.08831453 1.08831465)
-00:00:00   296MB         |  updating 22 nodes ...
-00:00:00   296MB         |  node update done in 0:00.00
-00:00:00   296MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   296MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   297MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   297MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:00   320MB         |     5% done - 68 rays/pixel
-00:00:00   320MB         |    20% done - 76 rays/pixel
-00:00:00   320MB         |    35% done - 82 rays/pixel
-00:00:00   320MB         |    55% done - 77 rays/pixel
-00:00:00   320MB         |    75% done - 91 rays/pixel
-00:00:00   318MB         |   100% done - 81 rays/pixel
-00:00:00   318MB         |  bucket workers done in 0:00.68
-00:00:00   318MB         | render done
-00:00:00   318MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0079/testrender.tif'
-00:00:00   318MB         |  
-00:00:00   318MB         | releasing resources
-00:00:00   314MB         | Arnold shutdown
-Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0079/test.ma completed.
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, mtoa, ikSpringSolver, Mayatomr, decomposeMatrix, tiffFloatReader, shaveNode, VectorRender, studioImport, mayaCharacterization, rotateHelper, MayaMuscle, Substance, OneClick, fbxmaya, stereoCamera, ik2Bsolver
+Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.pyc)
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEfileTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEprojectionTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/startup/buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/renderCreateBarUI.mel
+Successfully registered renderer 'arnold'
+File read in 1 seconds.
+Warning: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201217/msvc_opt/testsuite/test_0079/test.ma
+Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0079\test.ma completed.

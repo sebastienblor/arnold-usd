@@ -19,6 +19,7 @@ public:
    }
 
    static MSyntax newSyntax();
+   static void UpdateStandinsBoundingBoxes();
    static int GetRenderCameras(MDagPathArray &cameras);
    MStatus doIt(const MArgList& argList);
 

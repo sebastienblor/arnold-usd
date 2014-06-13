@@ -677,11 +677,13 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       ConvertMatrix (inclMatrix, mpm); // util From CNodeTranslator
    }
 
+   const unsigned int numMotionSteps = (m_motionDeform && RequiresMotionData()) ? GetNumMotionSteps() : 1;
+
    // declare the arrays  now that we have gathered all the particle info from each step
-   a_positionArray = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_POINT);
+   a_positionArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_POINT);
    bool multipleRadiuses = (!(m_minPixelWidth > AI_EPSILON)) && (m_out_radiusArrays.size() > 1);
    if (multipleRadiuses)
-      a_radiusArray = AiArrayAllocate(m_particleCount * m_multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      a_radiusArray = AiArrayAllocate(m_particleCount * m_multiCount, numMotionSteps, AI_TYPE_FLOAT);
    else
    {
       a_radiusArray = AiArrayAllocate(m_particleCount * m_multiCount, 1, AI_TYPE_FLOAT);
@@ -690,13 +692,13 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    }
 
    if (m_isSprite)
-      a_aspectArray = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      a_aspectArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_FLOAT);
 
    if (m_exportId)
-      a_ParticleIdArray = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_INT);
+      a_ParticleIdArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_INT);
 
    if (m_doMultiPoint) // multiPoint index
-      a_ParticleMultiIndexArray = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_INT);
+      a_ParticleMultiIndexArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_INT);
 
    if (m_hasRGB)
       a_rgbPPArray = AiArrayAllocate(m_particleCount*m_multiCount, 1,  AI_TYPE_RGB);
@@ -705,7 +707,8 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       a_opacityPPArray = AiArrayAllocate(m_particleCount*m_multiCount, 1, AI_TYPE_FLOAT);
    
    std::map <int, int>::iterator it;
-   for (uint s = 0; s < GetNumMotionSteps(); s++)
+   
+   for (unsigned int s = 0; s < numMotionSteps; s++)
    {
       bool writeRadius = false;
       if ((s == 0) || (multipleRadiuses && (s > 0)))
@@ -1115,6 +1118,11 @@ void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)
       //ExportMatrix(anode, step);
       if (m_motionDeform)
          ExportParticleNode(anode, step);
+      else if (step == (GetNumMotionSteps() - 1))
+      {
+         WriteOutParticle(anode);
+         ProcessRenderFlags(anode);
+      }
    }
    else
       ExportMatrix(anode, step);
@@ -1139,6 +1147,11 @@ void CParticleTranslator::Export(AtNode* anode)
       //exportParticleTimer.endTimer();
       //double elapsed = exportParticleTimer.elapsedTime();
       //AiMsgDebug("[mtoa] Particle system %s export took : %f seconds", m_fnParticleSystem.partialPathName().asChar(), elapsed);
+      if (!RequiresMotionData() && (GetNumMotionSteps() > 1))
+      {
+         WriteOutParticle(anode);
+         ProcessRenderFlags(anode);
+      }
    }
 
    else

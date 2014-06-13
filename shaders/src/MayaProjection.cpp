@@ -34,7 +34,8 @@ enum MayaProjectionParams
    p_linked_camera,
    p_camera_near,
    p_camera_hfov,
-   p_camera_aspect
+   p_camera_aspect,
+   p_use_reference_object
 };
 
 enum ProjectionType
@@ -359,6 +360,8 @@ node_parameters
    AiParameterFLT("cameraAspectRatio", 1.0f);
    AiMetaDataSetBool(mds, "cameraAspectRatio", "maya.hide", true);
 
+   AiParameterBOOL("useReferenceObject", true);
+
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
@@ -368,7 +371,7 @@ typedef struct
    AtArray* camera_fov;
    float    render_aspect;
    float    image_aspect;
-   
+   float    output_aspect;
 } ShaderData;
 
 node_initialize
@@ -419,7 +422,7 @@ node_update
    int xres = AiNodeGetInt(univ, "xres");
    int yres = AiNodeGetInt(univ, "yres");
    data->render_aspect = (float(xres) / float(yres));
-
+   data->output_aspect = AiNodeGetFlt(univ, "aspect_ratio");
 }
 
 node_finish
@@ -455,8 +458,10 @@ shader_evaluate
    bool mapped = false;
    AtVector P;
 
+   const bool useReferenceObject = AiShaderEvalParamBool(p_use_reference_object);
+
    AtPoint tmpPts;
-   bool usePref = SetRefererencePoints(sg, tmpPts);
+   bool usePref = useReferenceObject ? SetRefererencePoints(sg, tmpPts) : false;
 
    P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
 
@@ -520,7 +525,7 @@ shader_evaluate
       if (wrap || IsInsideBox(P))
       {
          AtVector tmpNrm;
-         bool useNref = SetRefererenceNormals(sg, tmpNrm);
+         bool useNref = useReferenceObject ? SetRefererenceNormals(sg, tmpNrm) : false;
          // In local use camera space
          AtVector N = sg->N;
          AtMatrix camm, *pcamm = 0;
@@ -561,9 +566,14 @@ shader_evaluate
 
                if (Pc.z < 0.0f)
                {
-                  float resAR = data->render_aspect;
-                  float imgAR = data->image_aspect;
-                  float camAR = AiShaderEvalParamFlt(p_camera_aspect);
+                  const float resAR = data->render_aspect;
+                  const float imgAR = data->image_aspect;
+                  const float outAR = data->output_aspect;
+                  const float camAR = AiShaderEvalParamFlt(p_camera_aspect);
+
+                  const float invOutAR = 1.0f / outAR;
+                  const float invCamAR = 1.0f / camAR;
+                  const float invImgAR = 1.0f / imgAR;
 
                   float hfov = AiArrayInterpolateFlt(data->camera_fov, sg->time, 0);
                   float nearp = AiShaderEvalParamFlt(p_camera_near);
@@ -581,23 +591,23 @@ shader_evaluate
                   {
                      if (fitType == FIT_CAMERA_RESOLUTION)
                      {
-                        vScale = resAR / camAR;
+                        vScale = resAR * invCamAR * invOutAR;
                      } 
                   }
                   else if (fillType == FILL_HORIZONTAL)
                   {
-                     vScale = imgAR / camAR;
+                     vScale = imgAR * invCamAR;
                   }
-                  else
+                  else // FILL_VERTICAL
                   {
                      if (fitType == FIT_CAMERA_RESOLUTION)
                      {
-                        vScale = resAR / camAR;
-                        uScale = resAR / imgAR;
+                        vScale = resAR * invCamAR * invOutAR;
+                        uScale = resAR * invImgAR * invOutAR;
                      }
                      else
                      {
-                        uScale= camAR / imgAR;
+                        uScale = camAR * invImgAR;
                      }
                   }
 

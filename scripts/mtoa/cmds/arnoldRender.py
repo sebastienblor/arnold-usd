@@ -1,18 +1,35 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.core as core
+import platform, os
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
     core.createOptions()
     cmds.arnoldRender(cam=camera, w=width, h=height) 
     
-def arnoldBatchRenderOptionsString():
+def arnoldBatchRenderOptionsString():    
+    origFileName = cmds.file(q=True, sn=True)
+    
+    if not cmds.about(batch=True):
+        silentMode = 0
+        try:
+            silentMode = int(os.environ['MTOA_SILENT_MODE'])
+        except:
+            pass
+        if silentMode != 1:
+            dialogMessage = 'Are you sure you want to start a potentially long task?'
+            if platform.system().lower() == 'linux':
+                dialogMessage += ' (batch render on linux cannot be stopped)'
+            ret = cmds.confirmDialog(title='Confirm', message=dialogMessage,
+                                        button=['Yes', 'No'], defaultButton='Yes', cancelButton='No', dismissString='No')
+            if ret != 'Yes':
+                raise Exception('Stopping batch render.')
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']
-        return ' -r arnold -ai:port %i ' % port
+        return ' -r arnold -ai:ofn ' + origFileName + ' -ai:port %i ' % port
     except:
-        return ' -r arnold '
+        return ' -r arnold -ai:ofn ' + origFileName + ' '
 
 def arnoldBatchRender(option):
     # Make sure the aiOptions node exists
@@ -23,6 +40,8 @@ def arnoldBatchRender(option):
     i, n = 0, len(options)
     if cmds.objExists('defaultResolution.mtoaCommandPort'):
         kwargs['port'] = cmds.getAttr('defaultResolution.mtoaCommandPort')
+    if cmds.objExists('defaultArnoldRenderOptions.mtoaOrigFileName'):
+        kwargs['ofn'] = cmds.getAttr('defaultArnoldRenderOptions.mtoaOrigFileName')
     while i < n:
         if options[i] in ["-w", "-width"]:
             i += 1

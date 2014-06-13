@@ -86,11 +86,16 @@ MStatus CArnoldShaderNode::initialize()
    {
       classes.clear();
       classParts[i].split('/', classes);
-      for (unsigned int j=0; j < classes.length() && doBump == false; ++j)
+      if (classes.length())
       {
-         if (classes[j] == "surface")
+         if (classes[0] == MString("drawdb")) // skip drawdb classification fragments
+            continue;
+         for (unsigned int j = 0; (j < classes.length()) && (doBump == false); ++j)
          {
-            doBump = true;
+            if (classes[j] == "surface")
+            {
+               doBump = true;
+            }
          }
       }
    }

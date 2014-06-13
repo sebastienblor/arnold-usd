@@ -597,7 +597,7 @@ class ArnoldAOVEditor(object):
         pm.setParent(self.mainCol)
 
         pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH,
-                            collapsable=True, collapse=False)
+                            collapsable=True, collapse=False, height=200)
 
         self.browser = AOVBrowser(self.renderOptions)
         pm.setParent(self.mainCol)

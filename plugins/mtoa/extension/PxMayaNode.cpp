@@ -6,8 +6,8 @@
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
+#include "nodes/shader/ArnoldSkinShaderNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
-#include "nodes/shader/ArnoldSkinNode.h"
 #include "nodes/ArnoldNodeIDs.h"
 
 #include <ai_metadata.h>
@@ -160,8 +160,9 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    // we could also let type to MPxNode::kLast et let manager
    // handle this, but having access to builting classes for subclassing
    // might be useful to extensions anyway.
+   MString drawdbClassification = "";
    if (NULL == creator)
-   {
+   {      
       if (arnoldNodeTypeName == "light")
       {
          // TODO : define a base light class
@@ -176,18 +177,21 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             creator    = CArnoldStandardNode::creator;
             initialize = CArnoldStandardNode::initialize;
             abstract   = &CArnoldStandardNode::s_abstract;
+            drawdbClassification = ":drawdb/shader/surface/arnold/standard";
          }
-         else if (id == ARNOLD_NODEID_SKIN)
+         else if (id == ARNOLD_NODEID_SKIN_SSS)
          {
-            creator    = CArnoldSkinNode::creator;
-            initialize = CArnoldSkinNode::initialize;
-            abstract   = &CArnoldSkinNode::s_abstract;
+            creator    = CArnoldSkinShaderNode::creator;
+            initialize = CArnoldSkinShaderNode::initialize;
+            abstract   = &CArnoldSkinShaderNode::s_abstract;
+            drawdbClassification = ":drawdb/shader/surface/arnold/skin";
          }
          else
          {
             creator    = CArnoldShaderNode::creator;
             initialize = CArnoldShaderNode::initialize;
             abstract   = &CArnoldShaderNode::s_abstract;
+            drawdbClassification = ":drawdb/shader/surface/arnold/genericShader";
          }
          type = MPxNode::kDependNode;
       }
@@ -228,6 +232,8 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          classification += MString(":") + ARNOLD_CLASSIFY(classification);
          if (doSwatch) classification += MString(":swatch/") + ARNOLD_SWATCH;
       }
+      if (drawdbClassification.numChars() != 0)
+         classification += drawdbClassification;
    }
 
    return MStatus::kSuccess;

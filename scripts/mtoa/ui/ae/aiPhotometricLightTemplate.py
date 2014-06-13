@@ -41,7 +41,7 @@ class AEaiPhotometricLightTemplate(lightTemplate.LightTemplate):
         cmds.symbolButton( image='navButtonBrowse.png', command=self.LoadFilenameButtonPush)
      
     def filenameReplace(self, nodeName):
-        cmds.textFieldButtonGrp("filenameGrp", edit=True,
+        cmds.textFieldGrp("filenameGrp", edit=True,
                                     text=cmds.getAttr(nodeName) )
             
         

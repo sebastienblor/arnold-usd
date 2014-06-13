@@ -5,10 +5,8 @@
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
-   #include <OpenGL/glu.h>
 #else 
    #include <GL/gl.h>
-   #include <GL/glu.h>
 #endif   
 
 
@@ -120,7 +118,7 @@ void CArnoldLightBlockerNode::draw(M3dView& view, const MDagPath& path, M3dView:
 {
    view.beginGL();
    
-   glPushAttrib(GL_ALL_ATTRIB_BITS);
+   glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT);
    
    MObject tmo = thisMObject();
    MStatus status;
@@ -150,49 +148,15 @@ void CArnoldLightBlockerNode::draw(M3dView& view, const MDagPath& path, M3dView:
    switch (geometryType)
    {
    case 0: // box
-      glBegin(GL_QUADS);
-      
-      glVertex3f(-0.5f, -0.5f, -0.5f);
-      glVertex3f(0.5f, -0.5f, -0.5f);
-      glVertex3f(0.5f, -0.5f, 0.5f);
-      glVertex3f(-0.5f, -0.5f, 0.5f);
-      
-      glVertex3f(-0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(-0.5f, 0.5f, 0.5f);
-      
-      glVertex3f(-0.5f, -0.5f, -0.5f);
-      glVertex3f(-0.5f, 0.5f, -0.5f);
-      glVertex3f(-0.5f, 0.5f, 0.5f);
-      glVertex3f(-0.5f, -0.5f, 0.5f);
-      
-      glVertex3f(0.5f, -0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(0.5f, -0.5f, 0.5f);
-      
-      glVertex3f(-0.5f, -0.5f, -0.5f);
-      glVertex3f(-0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, 0.5f, -0.5f);
-      glVertex3f(0.5f, -0.5f, -0.5f);
-      
-      glVertex3f(-0.5f, -0.5f, 0.5f);
-      glVertex3f(-0.5f, 0.5f, 0.5f);
-      glVertex3f(0.5f, 0.5f, 0.5f);
-      glVertex3f(0.5f, -0.5f, 0.5f);
-      
-      glEnd();
+      {
+         static CBoxPrimitive primitive(0.5f);
+         primitive.draw();
+      }
       break;
    case 1: // sphere
       {
-         GLUquadricObj *qobj;
-         qobj = gluNewQuadric();
-         
-         gluQuadricDrawStyle(qobj, GLU_LINE);
-         gluQuadricNormals(qobj, GLU_NONE);
-         
-         gluSphere(qobj, 0.5, 16, 16);
+         static CSpherePrimitive primitive(0.5f);
+         primitive.draw();
       }
       break;
    case 2: // plane
@@ -207,16 +171,8 @@ void CArnoldLightBlockerNode::draw(M3dView& view, const MDagPath& path, M3dView:
       break;
    case 3: // cylinder
       {
-         GLUquadricObj *qobj;
-         qobj = gluNewQuadric();
-         
-         gluQuadricDrawStyle(qobj, GLU_LINE);
-         gluQuadricNormals(qobj, GLU_NONE);
-         glPushMatrix();
-         glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-         glTranslatef(0.0f, 0.0f, -0.5f);
-         gluCylinder(qobj, 0.5f, 0.5f, 1.0f, 20, 1);
-         glPopMatrix();         
+         static CCylinderPrimitive primitive(0.5f, 0.5f);
+         primitive.draw();
       }
       break;
    }

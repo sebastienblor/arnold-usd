@@ -888,6 +888,19 @@ void CProjectionTranslator::Export(AtNode* shader)
       // no linked camera, fit type needs to be None ?
       AiNodeSetInt(shader, "fitType", 0);
    }
+   ProcessParameter(shader, "useReferenceObject", AI_TYPE_BOOLEAN, "aiUseReferenceObject");
+}
+
+void ProjectionTranslatorNodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("projection");
+   
+   CAttrData data;
+   
+   data.defaultValue.BOOL = true;
+   data.name = "aiUseReferenceObject";
+   data.shortName = "ai_use_reference_object";
+   helper.MakeInputBoolean(data);
 }
 
 // Ramp

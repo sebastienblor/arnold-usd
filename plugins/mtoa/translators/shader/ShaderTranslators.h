@@ -67,6 +67,7 @@ void* CreateQuadShadingSwitchTranslator();
 
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
+void ProjectionTranslatorNodeInitializer(CAbTranslator context);
 
 class CBump2DTranslator : public CShaderTranslator
 {

@@ -9,7 +9,6 @@
 #include <maya/MColor.h>
 #include <maya/MDagPath.h>
 #include <maya/MFloatVector.h>
-#include <maya/MFnAmbientLight.h>
 #include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
