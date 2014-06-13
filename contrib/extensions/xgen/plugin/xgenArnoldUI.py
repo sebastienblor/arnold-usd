@@ -22,6 +22,7 @@ import types
 
 k_RenderAPIRenderer = "Renderman"
 k_RenderAPIRendererObj = k_RenderAPIRenderer + "Renderer"
+k_RenderAPIRendererInit = False
 
 def castSelf(selfid):
     # Can't pass self as an object.
@@ -218,10 +219,18 @@ def xgArnoldUI(selfid):
 
     # Register the Arnold renderer in the method combo box
     self.addRenderer("Arnold Renderer")
+    global k_RenderAPIRendererInit
+    k_RenderAPIRendererInit = True
 
 # RenderAPIRendererTabUIRefresh callback
 # Called at the end of RenderAPIRendererTab.refresh()
 def xgArnoldRefresh(selfid):
+
+    # Init the UI if we missed the init callback (load after xgenToolkit plugin).
+    if not k_RenderAPIRendererInit:
+        xgArnoldUI(selfid)
+
+        
     self = castSelf(selfid)
 
     vis = self.renderer.currentText()=="Arnold Renderer"
@@ -238,7 +247,7 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_motion_blur_mode', "1" )
     self.declareCustomAttr( 'arnold_motion_blur_steps', "2" )
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
-    self.declareCustomAttr( 'arnold_batchRenderPatch', "" )
+    self.declareCustomAttr( 'arnold_batchRenderPatch', "0" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
@@ -250,6 +259,8 @@ def xgArnoldRefresh(selfid):
     mb_steps = int(self.getCustomAttr( "arnold_motion_blur_steps" ))
     mb_factor = float(self.getCustomAttr( "arnold_motion_blur_factor" ))
     batchRenderPatch = str(self.getCustomAttr( "arnold_batchRenderPatch" ))
+    if batchRenderPatch == "0":
+        batchRenderPatch = ""
 
     # Update the UI
     de = xgg.DescriptionEditor

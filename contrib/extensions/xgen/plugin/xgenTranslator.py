@@ -31,14 +31,6 @@ templates.registerTranslatorUI(xgmDescriptionTemplate, "xgmDescription", "xgenTr
 # are stored on  each description node and can be parsed from there by the translator.
 # this is mainly to make  arnold fit into the   XGen workflow better. 
 
-if xg.xgGlobal.DescriptionEditor is not None:
-    # XGen has already been loaded
-    xg.deregisterCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
-    xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldUI" )
-    xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
-    xg.xgGlobal.DescriptionEditor.refresh("Full")
-    xg.deregisterCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldUI" )
-else:
-    # XGen has still not been loaded
-    xg.registerCallback( "RenderAPIRendererTabUIInit", "xgenArnoldUI.xgArnoldUI" )
-    xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+xg.registerCallback( "RenderAPIRendererTabUIInit", "xgenArnoldUI.xgArnoldUI" )
+xg.registerCallback( "RenderAPIRendererTabUIRefresh", "xgenArnoldUI.xgArnoldRefresh" )
+xg.xgGlobal.DescriptionEditor.refresh( "Full" )
