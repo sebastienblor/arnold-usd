@@ -152,7 +152,9 @@ const char* Procedural::getUniqueName( char* buf, const char* basename )
 int Procedural::Init(AtNode* node)
 {
    // Temporary fix to be able to render the clumping modifier outside Maya
+#ifdef WIN32
    _fmode = _O_BINARY;
+#endif
 
    char buf[512];
 
