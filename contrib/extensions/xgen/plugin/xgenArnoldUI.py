@@ -22,6 +22,7 @@ import types
 
 k_RenderAPIRenderer = "Renderman"
 k_RenderAPIRendererObj = k_RenderAPIRenderer + "Renderer"
+k_RenderAPIRendererInit = False
 
 def castSelf(selfid):
     # Can't pass self as an object.
@@ -218,10 +219,18 @@ def xgArnoldUI(selfid):
 
     # Register the Arnold renderer in the method combo box
     self.addRenderer("Arnold Renderer")
+    global k_RenderAPIRendererInit
+    k_RenderAPIRendererInit = True
 
 # RenderAPIRendererTabUIRefresh callback
 # Called at the end of RenderAPIRendererTab.refresh()
 def xgArnoldRefresh(selfid):
+
+    # Init the UI if we missed the init callback (load after xgenToolkit plugin).
+    if not k_RenderAPIRendererInit:
+        xgArnoldUI(selfid)
+
+        
     self = castSelf(selfid)
 
     vis = self.renderer.currentText()=="Arnold Renderer"
