@@ -1,46 +1,79 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0086\test_0086.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
-mental ray for Maya 2012 
-mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
-
-Error: TypeError: 'bool' object is not iterable
-00:00:00   238MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
-ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+Starting "/usr/autodesk/maya2015-x64/bin/maya"
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, mtoa, ikSpringSolver, Mayatomr, decomposeMatrix, tiffFloatReader, shaveNode, VectorRender, studioImport, mayaCharacterization, rotateHelper, MayaMuscle, Substance, OneClick, fbxmaya, ik2Bsolver
-Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.pyc)
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/startup/buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/renderCreateBarUI.mel
-Successfully registered renderer 'arnold'
-File read in 1 seconds.
-Warning: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201217/msvc_opt/testsuite/test_0086/test.ma
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0086\test.ma completed.
+Initialized VP2.0 renderer {
+  Version : 5.3.1.0. Feature Level 4.
+  Adapter : Quadro 600/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 
+  Driver : 4.4.0 NVIDIA 331.79.
+  API : OpenGL V.2.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 8
+  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 1024 MB.
+  CPU Memory Limit: 15110.1 MB.
+}
+mental ray for Maya 2015 
+mental ray: version 3.12.1.12, Jan 31 2014, revision 213714
+1 error generated.
+Error while processing /usr/autodesk/maya2015-x64/plug-ins/bifrost/db/presets/__rootincludeall__.h.
+00:00:00   417MB         | log started Wed Jun 18 18:16:14 2014
+00:00:00   417MB         | Arnold 4.2.0.4 linux clang-3.4.0 glibc-2.5 oiio-1.2.2 rlm-10.1.2 2014/06/13 10:22:00
+00:00:00   417MB         | running on localhost.localdomain with pid 25390
+00:00:00   417MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   417MB         |  (redhat) CentOS release 6.5 (Final), Linux kernel 2.6.32-431.17.1.el6.centos.plus.x86_64
+00:00:00   417MB         |  
+00:00:00   417MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
+00:00:00   417MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
+00:00:00   417MB         | loading plugin: /work/deploy/2015/shaders/mtoa_shaders.so ...
+00:00:00   418MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
+00:00:00   418MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   418MB         | [mtoa] [mtoa_shaders] Generated 40 translators for 40 Maya nodes (12 new and 28 existing) for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   418MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
+00:00:00   418MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
+00:00:00   418MB         | [mtoa] Loading extension xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so).
+00:00:00   418MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
+00:00:00   418MB         | [mtoa] [xgenTranslator] Declares a total of 0 new Maya nodes.
+00:00:00   418MB         | [mtoa] [xgenTranslator] Declares a total of 1 translators for 1 Maya nodes (0 new and 1 existing).
+00:00:00   418MB         | [mtoa] Successfully loaded extension library xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so).
+00:00:00   418MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
+00:00:00   418MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   418MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   418MB         | [mtoa] [renderview_driver] Generated 1 translators for 1 Maya nodes (0 new and 1 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   418MB         | loading plugin: /work/deploy/shaders/Gecko.so ...
+00:00:00   418MB         | loaded 3 plugins from 1 lib(s) in 0:00.00
+00:00:00   418MB WARNING | [mtoa] [Gecko] [node dGecko] Assigning temporary node id 1138176 to associated Maya type name aiDGecko.
+00:00:00   418MB WARNING | [mtoa] [Gecko] [node dArmadillo] Assigning temporary node id 1138177 to associated Maya type name aiDArmadillo.
+00:00:00   418MB WARNING | [mtoa] [Gecko] [node dSubsurface] Assigning temporary node id 1138178 to associated Maya type name aiDSubsurface.
+00:00:00   418MB         | [mtoa] [Gecko] Generated 3 new Maya nodes for Arnold plugin /work/deploy/shaders/Gecko.so.
+00:00:00   418MB         | [mtoa] [Gecko] Generated 3 translators for 3 Maya nodes (3 new and 0 existing) for Arnold plugin /work/deploy/shaders/Gecko.so.
+00:00:00   418MB         | loading plugin: /work/deploy/shaders/testShaders.so ...
+00:00:00   418MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   418MB WARNING | [mtoa] [testShaders] [node maya_bump2d] Assigning temporary node id 1138179 to associated Maya type name aiMayaBump2d.
+00:00:00   418MB         | [mtoa] [testShaders] Generated 1 new Maya nodes for Arnold plugin /work/deploy/shaders/testShaders.so.
+00:00:00   418MB         | [mtoa] [testShaders] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/shaders/testShaders.so.
+00:00:00   418MB         | [mtoa] Registering 6 loaded extensions:
+00:00:00   418MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
+00:00:00   418MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   418MB WARNING | [mtoa] Extension xgenTranslator(/work/deploy/2015/extensions/xgenTranslator.so) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+00:00:00   418MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   418MB         | [mtoa] Registered extension Gecko provided by /work/deploy/shaders/Gecko.so.
+00:00:00   418MB         | [mtoa] Registered extension testShaders provided by /work/deploy/shaders/testShaders.so.
+libai.so already loaded
+
+00:00:00   418MB         | Successfully imported python module 'arnold'
+00:00:00   418MB         | Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, rotateHelper, MayaMuscle, tiffFloatReader, bifrostvisplugin, matrixNodes, Mayatomr, AbcImport, BifrostMain, ikSpringSolver, autoLoader, sceneAssembly, ik2Bsolver, AbcExport, gpuCache, Substance, retargeterNodes, shaderFXPlugin, ArubaTessellator, mayaCharacterization, quatNodes, mtoa, fbxmaya
+Maya 2015 importing module pymel 1.0.6 (/usr/autodesk/maya2015-x64/lib/python2.7/site-packages/pymel/__init__.py)
+00:00:01   506MB         |  
+00:00:01   506MB         | releasing resources
+00:00:01   506MB         | Arnold shutdown
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.4 seconds.
+Result: /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0086/test.ma
+Scene /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0086/test.ma completed.
+mental ray: wallclock  0:00:06.82 total
+mental ray: CPU usage  0:00:09.39 total
+mental ray: current mem usage 4 MB, max mem usage 8 MB
