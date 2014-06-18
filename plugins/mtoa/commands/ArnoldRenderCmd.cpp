@@ -33,6 +33,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
    syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
+   syntax.addFlag("ofn", "origFileName", MSyntax::kString);
 
    return syntax;
 }
@@ -119,12 +120,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -asciiAss";
       }
       if (renderType == MTOA_RENDER_EXPORTASS)
-      {
-         if (expandProcedurals)
-            cmdStr += " -ep";
+      {         
          if (outputAssBoundingBox)
             cmdStr += " -bb";
       }
+      if (expandProcedurals)
+         cmdStr += " -ep";
       if (forceTranslateShadingEngines)
       {
          cmdStr += " -forceTranslateShadingEngines";

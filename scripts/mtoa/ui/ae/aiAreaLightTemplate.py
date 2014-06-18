@@ -47,6 +47,29 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         pm.mel.AEdependNodeTemplate(self.nodeName)
 
         self.addExtraControls()
+        suppressList = ['aiShadowDensity', 'aiCastShadows', 'update',
+            'aiSamples', 'aiNormalize', 'aiColorTemperature',
+            'aiShadowColor', 'aiResolution', 'ghostFrames',
+            'motionBlur', 'visibleInReflections', 'visibleInRefractions',
+            'castsShadows', 'receiveShadows', 'maxVisibilitySamplesOverride',
+            'maxVisibilitySamples', 'geometryAntialiasingOverride', 'antialiasingLevel',
+            'shadingSamplesOverride', 'shadingSamples', 'maxShadingSamples',
+            'volumeSamplesOverride', 'volumeSamples', 'layerRenderable',
+            'ghostingControl', 'ghostCustomSteps', 'ghostColorPreA',
+            'ghostColorPre', 'ghostColorPostA', 'ghostColorPost',
+            'ghostRangeStart', 'ghostRangeEnd', 'ghostDriver',
+            'depthJitter', 'ignoreSelfShadowing', 'primaryVisibility',
+            'localPosition', 'localScale', 'pointCamera', 'normalCamera',
+            'visibility', 'intermediateObject', 'template', 'ghosting',
+            'objectColorRGB', 'useObjectColor', 'objectColor',
+            'containerType', 'creationDate', 'creator',
+            'customTreatment', 'uiTreatment', 'templateVersion',
+            'viewMode', 'iconName', 'viewName', 'templatePath',
+            'rmbCommand', 'blackBox', 'drawOverride',
+            'renderInfo', 'renderLayerInfo', 'compInstObjGroups',
+            'lodVisibility', 'templateName', 'selectionChildHighlighting']
+        for sup in suppressList:
+            self.suppress(sup)
         self.endScrollLayout()
 
 class BaseAreaLightTemplate(lightTemplate.LightTemplate):

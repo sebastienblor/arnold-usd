@@ -178,19 +178,11 @@ driver_needs_bucket
    return true;
 }
 
-driver_process_bucket
-{
-
-}
-
-driver_prepare_bucket
-{
-}
 
 /// Convert the data to Maya format.
 /// driver_write_bucket takes the data from Arnold and converts it to
 /// 0-255 instead of 0-1. It also flips it around height.
-driver_write_bucket
+driver_process_bucket
 {
    int         pixel_type;
    const void* bucket_data;
@@ -340,6 +332,14 @@ driver_write_bucket
       CopyBucketToBuffer(s_outputDriverData.swatchPixels, msg);
    else
       s_displayUpdateQueue.push(msg);
+}
+
+driver_prepare_bucket
+{
+}
+
+driver_write_bucket
+{
 }
 
 

@@ -425,7 +425,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
    {
       for (unsigned int j = 0; j < numColorSets; ++j)
       {
-         if (names[j] == MString("velocityPV"))
+         if (names[j] == m_motionVectorSource.asChar())
             m_useMotionVectors = true;
       }
    }
@@ -435,7 +435,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
       if (m_useMotionVectors)
       {
          names.clear();
-         names.append("velocityPV");
+         names.append(m_motionVectorSource);
          numColorSets = 1;
       }
       else
@@ -831,6 +831,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
       // Get Vertex Colors
+      MPlug plug = FindMayaPlug("aiMotionVectorSource");
+      if (!plug.isNull())
+         m_motionVectorSource = plug.asString();
       bool exportColors = GetVertexColors(geometry, vcolors);
 
       // Get all tangents, bitangents
@@ -883,19 +886,29 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          {
             if (exportVertices)
             {
-               std::vector<float>& motionVectors = vcolors["velocityPV"];
-               AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
+               const float motionVectorScale = FindMayaPlug("aiMotionVectorScale").asFloat();
+               // 0 - unit / frame
+               // 1 - unit / second
+               const short motionVectorUnit = FindMayaPlug("aiMotionVectorUnit").asShort();
+               std::vector<float>& motionVectors = vcolors[m_motionVectorSource.asChar()];
+               const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
-               const float motionRange = (float)m_session->GetMotionByFrame();
+               float motionRange = (float)m_session->GetMotionByFrame() * motionVectorScale;
+               if (motionVectorUnit == 1)
+               {
+                  MTime oneSec(1.0, MTime::kSeconds);
+                  const float fps =  (float)oneSec.asUnits(MTime::uiUnit());
+                  motionRange /= fps;
+               }
                for (unsigned int i = 0; i < numVerts; ++i)
                {                  
                   AtVector vec = {*(vert++), *(vert++), *(vert++)};
                   AiArraySetPnt(verticesArray, i, vec);
-                  AtRGBA motionVector = *(motionVectorColors + i);
-                  vec.x += motionVector.r * motionRange;
-                  vec.y += motionVector.g * motionRange;
-                  vec.z += motionVector.b * motionRange;
+                  const AtRGBA* motionVector = motionVectorColors + i;
+                  vec.x += motionVector->r * motionRange;
+                  vec.y += motionVector->g * motionRange;
+                  vec.z += motionVector->b * motionRange;
                   AiArraySetPnt(verticesArray, i + numVerts, vec);
                }
                AiNodeSetArray(polymesh, "vlist", verticesArray);
@@ -1111,7 +1124,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
    
-   AtByte visibility = AiNodeGetByte(masterNode, "visibility");
+   AtByte visibility = ComputeVisibility();
    AiNodeSetByte(instance, "visibility", visibility);
 
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
@@ -1319,5 +1332,32 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.min.FLT = 0.f;
    data.hasSoftMax = true;
    data.softMax.FLT = 1.f;
+   helper.MakeInputFloat(data);
+
+   data.stringDefault = "velocityPV";
+   data.name = "aiMotionVectorSource";
+   data.shortName = "ai_motion_vector_source";
+   data.channelBox = false;
+   helper.MakeInputString(data);
+
+   data.defaultValue.INT = 0;
+   data.name = "aiMotionVectorUnit";
+   data.shortName = "ai_motion_vector_unit";
+   data.channelBox = false;
+   data.enums = MStringArray();
+   data.enums.append("Per Frame");
+   data.enums.append("Per Second");
+   helper.MakeInputEnum(data);
+
+   data.defaultValue.FLT = 1.f;
+   data.name = "aiMotionVectorScale";
+   data.shortName = "ai_motion_vector_scale";
+   data.hasMin = false;
+   data.hasMax = false;
+   data.hasSoftMin = true;
+   data.hasSoftMax = true;
+   data.softMin.FLT = 0.f;
+   data.softMax.FLT = 2.f;
+   data.channelBox = false;
    helper.MakeInputFloat(data);
 }

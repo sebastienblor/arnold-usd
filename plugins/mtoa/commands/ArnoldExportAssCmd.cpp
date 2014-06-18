@@ -18,6 +18,7 @@
 #include <maya/MFileObject.h>
 #include <maya/MFnRenderLayer.h>
 #include <maya/MAnimControl.h>
+#include <maya/MBoundingBox.h>
 
 #include <math.h>
 
@@ -41,7 +42,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ep", "expandProcedurals");
    syntax.addFlag("fsh", "forceTranslateShadingEngines");
 
-   syntax.setObjectType(MSyntax::kSelectionList);
+   syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
 
@@ -74,6 +75,28 @@ int CArnoldExportAssCmd::GetRenderCameras(MDagPathArray &cameras)
    return size;
 }
 
+void CArnoldExportAssCmd::UpdateStandinsBoundingBoxes()
+{
+   MItDag it(MItDag::kDepthFirst, MFn::kPluginShape);
+
+   while (!it.isDone())
+   {
+      MDagPath dgShape;
+      it.getPath(dgShape);
+
+      MFnDependencyNode dpNode(dgShape.node());
+      MString nodeType = dpNode.typeName();
+      if (nodeType == "aiStandIn")
+      {
+         MFnDagNode dagShape(dgShape);
+         MBoundingBox boundingBox = dagShape.boundingBox();
+         MPoint bbMin = boundingBox.min();
+         MPoint bbMax = boundingBox.max();
+      }
+      it.next();
+   }
+}
+
 // FIXME: that should be a method on CMayaScene so we can share it between commands
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
@@ -85,17 +108,25 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // use this result to set syntax.useSelectionAsDefault() prior to creating the MArgDatabase.
    MArgParser args(syntax, argList, &status);
    bool exportSelected = args.isFlagSet("selected");
-   syntax.useSelectionAsDefault(exportSelected);
    MArgDatabase argDB(syntax, argList, &status);
 
    // We force "selected" mode when objects are passed explicitly
    MSelectionList sList;
-   argDB.getObjects(sList);
-   if (sList.length() > 0)
+   MStringArray sListStrings;
+   argDB.getObjects(sListStrings);
+   const unsigned int sListStringsLength = sListStrings.length();
+   if (exportSelected)
    {
-      exportSelected = true;
+      if (sListStringsLength > 0)
+      {
+         for (unsigned int i = 0; i < sListStringsLength; ++i)
+            sList.add(sListStrings[i]);
+      }
+      else
+         MGlobal::getActiveSelectionList(sList);
    }
-   else if (exportSelected == true)
+   
+   if ((exportSelected == true) && (sList.length() == 0))
    {
       status = MStatus::kInvalidParameter;
       MGlobal::displayError("arnoldExportAss -selected needs an active selection or a list of objects");
@@ -290,6 +321,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       if (computation.isInterruptRequested())
          break;
       MGlobal::viewFrame(curframe);
+      UpdateStandinsBoundingBoxes(); // Need to update the bounding box attribute of standins, because in batch export it cannot be recomputed and it's needed for correct and optimal rendering
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
       // Setup CMayaScene for MTOA_SESSION_ASS mode
@@ -326,15 +358,19 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       renderSession->SetForceTranslateShadingEngines(forceTranslateShadingEngines);
       
       MFnDependencyNode fnCam;
-      MString mayaVersion = MGlobal::mayaVersion();     
-      MString appString = MString("MtoA ") + MTOA_VERSION + " Maya " + mayaVersion;
-      AiSetAppString(appString.asChar());
 
       // Export the scene or the selection
       if (exportSelected)
       {
          // We can't precompute sList since it won't survive moving from frame to frame with viewFrame
-         argDB.getObjects(sList);
+         sList.clear();
+         if (sListStringsLength > 0)
+         {
+            for (unsigned int i = 0; i < sListStringsLength; ++i)
+               sList.add(sListStrings[i]);
+         }
+         else
+            MGlobal::getActiveSelectionList(sList);
          CMayaScene::Export(&sList);
       }
       else

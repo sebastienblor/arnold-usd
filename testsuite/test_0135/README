@@ -1,0 +1,5 @@
+Triplanar projection is not reading the Nref user data properly (Ticket #1720)
+
+It tries to read a Point, while MtoA stores a Vector.
+
+author: r3D

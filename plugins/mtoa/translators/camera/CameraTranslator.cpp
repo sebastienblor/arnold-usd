@@ -376,10 +376,9 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
 
 void CCameraTranslator::ExportImagePlanes(unsigned int step)
-{
-    MPlugArray connectedPlugs;
-    MPlug      imagePlanePlug;
-    MPlug      imagePlaneNodePlug;
+{   
+   MPlug      imagePlanePlug;
+   MPlug      imagePlaneNodePlug;
    MStatus    status;
 
    // first we get the image planes connected to this camera
@@ -389,13 +388,14 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
    {
       for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
       {
+         MPlugArray connectedPlugs;
          imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
          imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-         MObject resNode = connectedPlugs[0].node(&status);
-
-         if (status)
+         if (status && (connectedPlugs.length() > 0))
          {
-            ExportImagePlane(step, resNode);
+            MObject resNode = connectedPlugs[0].node(&status);   
+            if (status)
+               ExportImagePlane(step, resNode);
          }
       }
    }
@@ -411,6 +411,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
       AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
+      AiNodeSetFlt(camera, "aperture_aspect_ratio",   FindMayaPlug("aiApertureAspectRatio").asFloat());
    }
    else
    {
@@ -419,6 +420,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
       AiNodeSetInt(camera, "aperture_blades", 0);
       AiNodeSetFlt(camera, "aperture_rotation", 0.f);
       AiNodeSetFlt(camera, "aperture_blade_curvature", 0.f);
+      AiNodeSetFlt(camera, "aperture_aspect_ratio", 1.0f);
    }
 }
 
@@ -431,9 +433,13 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
    AiNodeSetInt(camera, "rolling_shutter", FindMayaPlug("aiRollingShutter").asInt());
+   AiNodeSetFlt(camera, "rolling_shutter_duration", FindMayaPlug("aiRollingShutterDuration").asFloat());
 
    AiNodeSetFlt(camera, "shutter_start", FindMayaPlug("aiShutterStart").asFloat());
    AiNodeSetFlt(camera, "shutter_end", FindMayaPlug("aiShutterEnd").asFloat());
+   AiNodeSetInt(camera, "shutter_type", FindMayaPlug("aiShutterType").asInt());
+   
+   ProcessArrayParameter(camera, "shutter_curve", FindMayaPlug("aiShutterCurve"));
 
    GetMatrix(matrix);
    
@@ -620,8 +626,11 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("exposure");
    helper.MakeInput("filtermap");
    helper.MakeInput("rolling_shutter");
+   helper.MakeInput("rolling_shutter_duration");
    helper.MakeInput("shutter_start");
    helper.MakeInput("shutter_end");
+   helper.MakeInput("shutter_type");
+   helper.MakeInput("shutter_curve");
 }
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
@@ -631,6 +640,7 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInput("aperture_blades");
    helper.MakeInput("aperture_blade_curvature");
    helper.MakeInput("aperture_rotation");
+   helper.MakeInput("aperture_aspect_ratio");
    helper.MakeInput("filtermap");
 
    CAttrData data;

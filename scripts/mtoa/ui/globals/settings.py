@@ -295,7 +295,31 @@ def createArnoldRenderSettings():
                         label='Kick Render Flags',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.kickRenderFlags')
-             
+
+    pm.frameLayout(label='Callbacks', collapse=True)
+
+    pm.attrControlGrp(
+            'os_iprRefinementStartedCallback',
+            label='IPR Refinement Started',
+            attribute='defaultArnoldRenderOptions.IPRRefinementStarted')
+
+    pm.attrControlGrp(
+            'os_iprRefinementFinishedCallback',
+            label='IPR Refinement Finished',
+            attribute='defaultArnoldRenderOptions.IPRRefinementFinished')
+    
+    pm.attrControlGrp(
+            'os_iprStepStartedCallback',
+            label='IPR Step Started',
+            attribute='defaultArnoldRenderOptions.IPRStepStarted')
+
+    pm.attrControlGrp(
+            'os_iprStepFinishedCallback',
+            label='IPR Step Finished',
+            attribute='defaultArnoldRenderOptions.IPRStepFinished')
+
+    pm.setParent('..')
+
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -391,6 +415,11 @@ def createArnoldSamplingSettings():
     pm.attrControlGrp('ss_lock_sampling_noise',
                         label="Lock Sampling Pattern",
                         attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+
+    pm.attrControlGrp('ss_use_autobump',
+                        label='Use Autobump in SSS',
+                        attribute='defaultArnoldRenderOptions.sssUseAutobump',
+                        annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
     
     pm.frameLayout(label='Clamping', collapse=True)
 
@@ -912,6 +941,10 @@ def createArnoldMayaintegrationSettings():
     pm.attrControlGrp('os_enable_swatch_render',
                         label="Enable Swatch Render",
                         attribute='defaultArnoldRenderOptions.enable_swatch_render')
+
+    pm.attrControlGrp('os_standin_draw_override',
+                        label="StandIn Draw Override",
+                        attribute='defaultArnoldRenderOptions.standin_draw_override')
 
     pm.setParent('..')
 

@@ -24,7 +24,15 @@ Debug
 *.bat
 docs
 plugins/mtoa/utils/MercurialID.h
-
+*.zip
+*.run
+*.sh
+*.obj
+*.patch
+*.dump
+compat_reports/*
+*.vcxproj
+*.filters
 syntax: regexp
 \.launch$
 syntax: regexp

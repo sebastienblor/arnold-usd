@@ -46,17 +46,6 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
 
    data.hasSoftMax = false;
 
-   // FIXME: look into using CDagTranslator::MakeMayaVisibilityFlags
-   data.defaultValue.BOOL = true;
-   data.name = "primaryVisibility";
-   data.shortName = "vis";
-   helper.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL = true;
-   data.name = "castsShadows";
-   data.shortName = "csh";
-   helper.MakeInputBoolean(data);
-
    data.name = "aiCurveShader";
    data.shortName = "ai_curve_shader";
    data.hasMin = false;

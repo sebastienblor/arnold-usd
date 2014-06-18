@@ -30,3 +30,11 @@ class Bump2dTemplate(templates.AttributeTemplate):
         self.addControl('aiGammaCorrect', label='Gamma Correct')
 
 templates.registerAETemplate(Bump2dTemplate, 'bump2d')
+
+class ProjectionTemplate(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl('aiUseReferenceObject', label='Use Texture Reference Object')
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
+
+templates.registerAETemplate(ProjectionTemplate, 'projection')

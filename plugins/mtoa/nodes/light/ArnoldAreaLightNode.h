@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/DrawUtils.h" // so glew is going to be included before gl.h
+
 #include "attributes/AttrHelper.h"
 #include "nodes/ArnoldNodeIDs.h"
 
@@ -15,10 +17,8 @@
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
-   #include <OpenGL/glu.h>
 #else 
    #include <GL/gl.h>
-   #include <GL/glu.h>
 #endif   
 
 class CArnoldAreaLightNode : public MPxLocatorNode

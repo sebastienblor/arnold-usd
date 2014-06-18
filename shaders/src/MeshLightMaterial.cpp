@@ -15,6 +15,7 @@ node_parameters
    AiMetaDataSetBool(mds, "color", "always_linear", true); // no gamma correction
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMeshLightMaterial");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1B);
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

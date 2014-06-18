@@ -59,6 +59,7 @@ MObject CArnoldStandInShape::s_deferStandinLoad;
 MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
+MObject CArnoldStandInShape::s_drawOverride;
    
 enum StandinDrawingMode{
    DM_BOUNDING_BOX,
@@ -86,6 +87,7 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    useSubFrame = false;
    useFrameExtension = false;
    dList = 0;
+   drawOverride = 0;
 }
 
 CArnoldStandInGeom::~CArnoldStandInGeom()
@@ -171,43 +173,33 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
       bool processRead = false;
       bool isSo = false;
+      bool isAss = false;
       
       // This will load correct platform library file independently of current extension
       unsigned int nchars = assfile.numChars();
-      if (nchars > 3 && assfile.substringW(nchars-3, nchars).toLowerCase() == ".so")
+      if ((nchars > 3) && (assfile.substringW(nchars - 3, nchars).toLowerCase() == ".so"))
       {
-         assfile = assfile.substringW(0, nchars-4)+LIBEXT;
+         assfile = assfile.substringW(0, nchars - 4) + LIBEXT;
          isSo = true;
       }
-      else if (nchars > 4 && assfile.substringW(nchars-4, nchars).toLowerCase() == ".dll")
+      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars).toLowerCase() == ".dll"))
       {
-         assfile = assfile.substringW(0, nchars-5)+LIBEXT;
+         assfile = assfile.substringW(0, nchars - 5) + LIBEXT;
          isSo = true;
       }
-      else if (nchars > 6 && assfile.substringW(nchars-6, nchars).toLowerCase() == ".dylib")
+      else if ((nchars > 6) && (assfile.substringW(nchars - 6, nchars).toLowerCase() == ".dylib"))
       {
-         assfile = assfile.substringW(0, nchars-7)+LIBEXT;
+         assfile = assfile.substringW(0, nchars - 7) + LIBEXT;
          isSo = true;
       }
+      else if ((nchars > 4) && (assfile.substringW(nchars - 4, nchars).toLowerCase() == ".ass"))
+         isAss = true;
+      else if ((nchars > 7) && (assfile.substringW(nchars - 7, nchars).toLowerCase() == ".ass.gz"))
+         isAss = true;
 
       AtNode* options = AiUniverseGetOptions();
       AiNodeSetBool(options, "preserve_scene_data", true);
       AiNodeSetBool(options, "skip_license_check", true);
-      AtNode* procedural = AiNode("procedural");
-      AiNodeSetStr(procedural, "dso", assfile.asChar());
-      AiNodeSetBool(procedural, "load_at_init", true);
-      AtMatrix mtx;
-      AiM4Identity(mtx);
-      AiNodeSetMatrix(procedural, "matrix", mtx);
-
-      // If it is a lib file
-      if (isSo)
-      {
-         if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
-            AiNodeSetBool(procedural, "used_for_maya_display", true);
-         AiNodeSetStr(procedural, "data", dsoData.asChar());
-         CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-      }
 
       // setup procedural search path
       MString proceduralPath = "";
@@ -235,11 +227,36 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          proceduralPath += pathsep;
       }
       proceduralPath += getProjectFolderPath();
-      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());
+      AiNodeSetStr(options, "procedural_searchpath", proceduralPath.asChar());      
 
-      if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-         processRead = true;
+      AtNode* procedural = 0;
       
+      if (isAss)
+      {
+         AiASSLoad(assfile.asChar());
+         processRead = true;
+      }
+      else
+      {         
+         AtNode* procedural = AiNode("procedural");
+         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetBool(procedural, "load_at_init", true);
+         AtMatrix mtx;
+         AiM4Identity(mtx);
+         AiNodeSetMatrix(procedural, "matrix", mtx);
+         // If it is a lib file
+         if (isSo)
+         {
+            if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
+               AiNodeSetBool(procedural, "used_for_maya_display", true);
+            AiNodeSetStr(procedural, "data", dsoData.asChar());
+            CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
+         }
+
+         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+            processRead = true;
+      }
+
       if (processRead)
       {
          geom->geomLoaded = geom->filename;
@@ -260,10 +277,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (node == procedural)
                continue;
             if (node)
-            {
-               if (node == procedural)
-                   continue; // Ignore own procedural node, we don't need to handle it, and it will introduce incorrect data, like a 0,0,0 -> 0,0,0 bounding box
-
+            {  
                CArnoldStandInGeometry* g = 0;
                if (AiNodeIs(node, "polymesh"))
                   g = new CArnoldPolymeshGeometry(node);
@@ -293,10 +307,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          while (!AiNodeIteratorFinished(iter))
          {
             AtNode* node = AiNodeIteratorGetNext(iter);
+            if (node == procedural)
+               continue;
             if (node)
             {
-                if (node == procedural)
-                    continue; // Ignore own procedural node, we don't need to handle it
                if (AiNodeGetByte(node, "visibility") == 0)
                   continue;
                AtMatrix total_matrix;
@@ -687,6 +701,14 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
+
+   s_drawOverride = eAttr.create("standInDrawOverride", "standin_draw_override");
+   eAttr.addField("Use Global Settings", 0);
+   eAttr.addField("Full", 1);
+   eAttr.addField("Bounding Box", 2);
+   eAttr.addField("Off", 3);
+   eAttr.setDefault(0);
+   addAttribute(s_drawOverride);
    
    // atributes that are used only by translation
    CAttrData data;
@@ -768,7 +790,6 @@ MStatus CArnoldStandInShape::initialize()
 // will ensure that the values are up-to-date.
 //
 CArnoldStandInGeom* CArnoldStandInShape::geometry()
-
 {
    int tmpMode = fGeometry.mode;
 
@@ -1062,6 +1083,33 @@ void* CArnoldStandInShapeUI::creator()
 void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objectAndActiveOnly*/,
       MDrawRequestQueue & queue)
 {
+   // Are we displaying meshes?
+   if (!info.objectDisplayStatus(M3dView::kDisplayMeshes))
+      return;
+
+   // Do we enable display of standins?
+   int drawOverride = 0;
+   MStatus status;
+   MFnDependencyNode dNode(info.multiPath().node(), &status);
+   if (status)
+   {
+      MPlug plug = dNode.findPlug("standInDrawOverride", &status);
+      if (!plug.isNull() && status)
+      {
+         const int localDrawOverride = plug.asShort();
+         if (localDrawOverride == 0) // use global settings
+         {
+            MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+            if (!ArnoldRenderOptionsNode.isNull())
+               drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
+         }
+         else
+            drawOverride = localDrawOverride - 1;
+      }
+   }
+
+   if (drawOverride == 2) // draw is disabled
+      return;
 
    // The draw data is used to pass geometry through the
    // draw queue. The data should hold all the information
@@ -1069,14 +1117,11 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
    //
    MDrawData data;
    MDrawRequest request = info.getPrototype(*this);
-   CArnoldStandInShape* shapeNode = (CArnoldStandInShape*) surfaceShape();
+   CArnoldStandInShape* shapeNode = reinterpret_cast<CArnoldStandInShape*>(surfaceShape());
    CArnoldStandInGeom* geom = shapeNode->geometry();
+   geom->drawOverride = drawOverride;
    getDrawData(geom, data);
    request.setDrawData(data);
-
-   // Are we displaying meshes?
-   if (!info.objectDisplayStatus(M3dView::kDisplayMeshes))
-      return;
 
    // Use mode status to determine how to display object
    // why was there a switch if everything executed the same code??
@@ -1091,7 +1136,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    view.beginGL();
    glPushAttrib(GL_ALL_ATTRIB_BITS);
    glEnable(GL_DEPTH_TEST);
-   glDepthFunc(GL_LESS);
+   glDepthFunc(GL_LEQUAL);
 
    if (geom->updateView || geom->updateBBox)
    {
@@ -1274,29 +1319,85 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
          geom->Draw(GM_NORMAL_AND_POLYGONS);
          glPopAttrib();
-         glEndList();         
+         glEndList();
          break;
       }
       geom->Clear();
       geom->updateView = false;
    }
 
-   if (geom->dList != 0)
+   if (geom->drawOverride == 1)
+   {
+      MBoundingBox m_bbox = geom->bbox;
+      float minPt[4];
+      float maxPt[4];
+      m_bbox.min().get(minPt);
+      m_bbox.max().get(maxPt);
+      const float bottomLeftFront[3] =
+      { minPt[0], minPt[1], minPt[2] };
+      const float topLeftFront[3] =
+      { minPt[0], maxPt[1], minPt[2] };
+      const float bottomRightFront[3] =
+      { maxPt[0], minPt[1], minPt[2] };
+      const float topRightFront[3] =
+      { maxPt[0], maxPt[1], minPt[2] };
+      const float bottomLeftBack[3] =
+      { minPt[0], minPt[1], maxPt[2] };
+      const float topLeftBack[3] =
+      { minPt[0], maxPt[1], maxPt[2] };
+      const float bottomRightBack[3] =
+      { maxPt[0], minPt[1], maxPt[2] };
+      const float topRightBack[3] =
+      { maxPt[0], maxPt[1], maxPt[2] };
+
+      glBegin(GL_LINE_STRIP);
+      glVertex3fv(bottomLeftFront);
+      glVertex3fv(bottomLeftBack);
+      glVertex3fv(topLeftBack);
+      glVertex3fv(topLeftFront);
+      glVertex3fv(bottomLeftFront);
+      glVertex3fv(bottomRightFront);
+      glVertex3fv(bottomRightBack);
+      glVertex3fv(topRightBack);
+      glVertex3fv(topRightFront);
+      glVertex3fv(bottomRightFront);
+      glEnd();
+
+      glBegin(GL_LINES);
+      glVertex3fv(bottomLeftBack);
+      glVertex3fv(bottomRightBack);
+
+      glVertex3fv(topLeftBack);
+      glVertex3fv(topRightBack);
+
+      glVertex3fv(topLeftFront);
+      glVertex3fv(topRightFront);
+      glEnd();
+   }
+   else if (geom->dList != 0)
    {
       const bool enableLighting = ((geom->mode == DM_SHADED) || (geom->mode == DM_SHADED_POLYWIRE))
                                     && (view.displayStyle() == M3dView::kGouraudShaded);
       if (enableLighting)
+      {
          glEnable(GL_LIGHTING);
+         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+         glEnable(GL_COLOR_MATERIAL);
+         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+      }
+      
       glCallList(geom->dList);
       if (enableLighting)
-         glEnable(GL_LIGHTING);
+      {
+         glDisable(GL_LIGHTING);
+         glDisable(GL_COLOR_MATERIAL);
+      }
       // Draw scaled BBox
       if(geom->deferStandinLoad)
          glCallList(geom->dList+1);
    }
    glPopAttrib();
    view.endGL();
-
 }
 
 void CArnoldStandInShapeUI::getDrawRequestsWireFrame(MDrawRequest& request, const MDrawInfo& info)

@@ -8,6 +8,32 @@ AtNode* CAutoCameraTranslator::CreateArnoldNodes()
 void CAutoCameraTranslator::Export(AtNode* camera)
 {
    const AtNodeEntry* nentry = AiNodeGetNodeEntry(camera);
+
+   static const char* exportedParams[] = {
+      "name", "fov", "matrix", 
+      "exposure", "near_clip", "far_clip",
+      "rolling_shutter", "rolling_shutter_duration", "shutter_start", "shutter_end", 0
+   };
+
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nentry);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      bool skipParam = false;
+      for (const char** it = exportedParams; *it != 0; ++it)
+      {
+         if (strcmp(paramName, *it) == 0)
+         {
+            skipParam = true;
+            break;
+         }
+      }
+      if (!skipParam) ProcessParameter(camera, paramName, AiParamGetType(paramEntry));
+   }
+   AiParamIteratorDestroy(nodeParam);
+
    const AtParamEntry* pentry = AiNodeEntryLookUpParameter(nentry, "fov");
    if (pentry != 0)
    {
@@ -26,7 +52,7 @@ void CAutoCameraTranslator::Export(AtNode* camera)
          }
       }
    }
-   CNodeTranslator::Export(camera);
+
    ExportCameraData(camera);
    if (m_exportFOV)
    {

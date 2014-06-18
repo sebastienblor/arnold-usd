@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/DrawUtils.h" // so glew is going to be included before gl.h
+
 #include "attributes/AttrHelper.h"
 #include "nodes/ArnoldNodeIDs.h"
 

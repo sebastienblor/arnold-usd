@@ -80,26 +80,24 @@ shader_evaluate
    float ss = fmod(uv.x, 1.000001f);
    float tt = fmod(uv.y, 1.000001f);
 
-   // Filterwidth
-   //float fw = static_cast<float>(MAX(sqrt(sg->area), AI_EPSILON));
-   //fw = fw * filter + filterOffset * 2.0f;
+   const float filter = AiShaderEvalParamFlt(p_filter) / 20.0f;
+   const float filterOffset = AiShaderEvalParamFlt(p_filterOffset) / 20.0f;
    
-   // Set fw to zero at the moment 
-   float fw = 0.0f; 
+   const float fw = MAX(sqrtf(sg->area), AI_EPSILON) * filter + filterOffset;
 
    float dss = fw;
    float dtt = fw;
 
    float f = 0.5f - 2.0f *
-             (FilteredPulseTrain(0.5, 1, ss, dss) - 0.5f) *
-             (FilteredPulseTrain(0.5, 1, tt, dtt) - 0.5f);
+             (FilteredPulseTrain(0.5f, 1.0f, ss, dss) - 0.5f) *
+             (FilteredPulseTrain(0.5f, 1.0f, tt, dtt) - 0.5f);
 
    f = 0.5f + (f - 0.5f) * AiShaderEvalParamFlt(p_contrast);
 
-   sg->out.RGBA.r = color1.r + (color2.r - color1.r) * f;
-   sg->out.RGBA.g = color1.g + (color2.g - color1.g) * f;
-   sg->out.RGBA.b = color1.b + (color2.b - color1.b) * f;
-   sg->out.RGBA.a = 1.0f - f;
+   sg->out.RGBA.r = CLAMP(color1.r + (color2.r - color1.r) * f, 0.0f, 1.0f);
+   sg->out.RGBA.g = CLAMP(color1.g + (color2.g - color1.g) * f, 0.0f, 1.0f);
+   sg->out.RGBA.b = CLAMP(color1.b + (color2.b - color1.b) * f, 0.0f, 1.0f);
+   sg->out.RGBA.a = CLAMP(1.0f - f, 0.0f, 1.0f);
 
    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

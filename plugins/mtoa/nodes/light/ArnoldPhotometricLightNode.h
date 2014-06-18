@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/DrawUtils.h"
+
 #include "nodes/SphereLocator.h"
 #include "attributes/AttrHelper.h"
 
@@ -7,10 +9,8 @@
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
-   #include <OpenGL/glu.h>
 #else 
    #include <GL/gl.h>
-   #include <GL/glu.h>
 #endif 
 
 

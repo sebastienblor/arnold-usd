@@ -23,6 +23,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <fcntl.h>
 
 #include <xgen/XgRenderAPIUtils.h>
 #include "XgArnoldProcedural.h"
@@ -150,6 +151,11 @@ const char* Procedural::getUniqueName( char* buf, const char* basename )
 
 int Procedural::Init(AtNode* node)
 {
+   // Temporary fix to be able to render the clumping modifier outside Maya
+#ifdef WIN32
+   _fmode = _O_BINARY;
+#endif
+
    char buf[512];
 
    string parameters( AiNodeGetStr( node, "data" ) );
@@ -173,15 +179,13 @@ int Procedural::Init(AtNode* node)
       string strParentName = AiNodeGetName( m_node );
       string strParentDso = AiNodeGetStr( m_node, "dso" );
 
-      bool bLoadAtInit = AiNodeGetBool( m_node, "load_at_init" );
-
       // Create a sphere shape node
       {
          m_sphere = AiNode("sphere");
          AiNodeSetStr( m_sphere, "name", getUniqueName(buf,( strParentName + string("_sphere_shape") ).c_str() ) );
          AiNodeSetFlt( m_sphere, "radius", 0.5f );
          AiNodeSetPnt( m_sphere, "center", 0.0f, 0.0f, 0.0f );
-         AiNodeSetInt( m_sphere, "visibility", 0 );
+         AiNodeSetByte( m_sphere, "visibility", 0 );
          m_nodes.push_back( m_sphere );
       }
 
@@ -197,14 +201,14 @@ int Procedural::Init(AtNode* node)
          //if( isEmpty( b ) )
          //   continue;
 
-         string strFaceProcName = strParentName + string("_face");// + itoa( f );
+         //string strFaceProcName = strParentName + string("_face");// + itoa( f );
 
-         Procedural* pProc = new Procedural();
+         /*Procedural* pProc = new Procedural();
          pProc->m_node = m_node;
          pProc->m_sphere = m_sphere;
-         pProc->m_shaders = m_shaders;
+         pProc->m_shaders = m_shaders;*/
 
-
+   
          while( nextFace( b, f ) )
          {
             // Skip camera culled bounding boxes.
@@ -219,12 +223,13 @@ int Procedural::Init(AtNode* node)
             total.ymax = total.ymax > b.ymax ? total.ymax : b.ymax;
             total.zmax = total.zmax > b.zmax ? total.zmax : b.zmax;
 
-            initFaceRenderer( pProc, f );
+            initFaceRenderer( this, f );
          }
 
+         m_node_face = m_node;
          // Clone ourself, this will help us keep all the user parameters.
          // We could also provide a back pointer to the original top level node.
-         AtNode* nodeFaceProc = AiNode( "procedural" );
+         /*AtNode* nodeFaceProc = AiNode( "procedural" );
          pProc->m_node_face = nodeFaceProc;
 
          // Change name, dso, userdata, and bounding box
@@ -235,11 +240,11 @@ int Procedural::Init(AtNode* node)
          AiNodeSetPnt( nodeFaceProc, "min", (float)total.xmin, (float)total.ymin, (float)total.zmin );
          AiNodeSetPnt( nodeFaceProc, "max", (float)total.xmax, (float)total.ymax, (float)total.zmax );
 
-         m_nodes.push_back( nodeFaceProc );
+         m_nodes.push_back( nodeFaceProc );*/
       }
 
       // Add a cleanup procedural that will be responsible to cleanup the Top Level Patch data.
-      {
+      /*{
          AtNode* nodeCleanupProc = AiNode( "procedural" );
          string strCleanupProcName =  strParentName + "_cleanup";
 
@@ -256,11 +261,11 @@ int Procedural::Init(AtNode* node)
          AiNodeSetPnt( nodeCleanupProc, "max", maxParentBBox.x, maxParentBBox.y, maxParentBBox.z );
 
          m_nodes.push_back( nodeCleanupProc );
-      }
+      }*/
     }
 
    // Face Init
-    else if( m_faces.size()!=0 )
+    if( m_faces.size()!=0 )
     {
        render();
     }
@@ -552,8 +557,8 @@ const float* Procedural::get( EFloatArrayAttribute in_attr) const
     }
     else if( in_attr==Shutter )
     {
-       uiArraySize = getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
-       if( getFloatArray( m_camera, "time_samples", resultPtr, false ) )
+       uiArraySize = getArraySize( m_node, "time_samples", AI_TYPE_FLOAT, false );
+       if( getFloatArray( m_node, "time_samples", resultPtr, false ) )
           return resultPtr;
     }
 
@@ -580,7 +585,7 @@ unsigned int Procedural::getSize( EFloatArrayAttribute in_attr )const
     }
     else if( in_attr==Shutter )
     {
-       return 0;//getArraySize( m_camera, "time_samples", AI_TYPE_FLOAT, false );
+       return getArraySize( m_node, "time_samples", AI_TYPE_FLOAT, false );
     }
 
     return 0;
@@ -633,30 +638,41 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
    std::string asstocfile = fileBase + ".asstoc";
 
-   std::ifstream file(asstocfile.c_str());
-   if (!file.is_open())
+   if(m_bboxes.find(asstocfile) == m_bboxes.end())
    {
-      if (XGDebugLevel >= 2)
-         XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ asstocfile);
-      return false;
+
+      std::ifstream file(asstocfile.c_str());
+      if (!file.is_open())
+      {
+         if (XGDebugLevel >= 2)
+            XGRenderAPIDebug(/*msg::C|msg::PRIMITIVE|2,*/ "Could not open "+ asstocfile);
+         return false;
+      }
+
+      std::string line;
+      std::getline(file, line);
+
+      char *str = new char[line.length() + 1];
+      strcpy(str, line.c_str());
+
+      strtok(str, " ");
+      out_bbox.xmin = atof(strtok(NULL, " "));
+      out_bbox.ymin = atof(strtok(NULL, " "));
+      out_bbox.zmin = atof(strtok(NULL, " "));
+      out_bbox.xmax = atof(strtok(NULL, " "));
+      out_bbox.ymax = atof(strtok(NULL, " "));
+      out_bbox.zmax = atof(strtok(NULL, " "));
+
+      m_bboxes.insert(std::make_pair(asstocfile,out_bbox));
+
+      file.close();
+      delete str;
+
    }
-
-   std::string line;
-   std::getline(file, line);
-
-   char *str = new char[line.length() + 1];
-   strcpy(str, line.c_str());
-
-   strtok(str, " ");
-   out_bbox.xmin = atof(strtok(NULL, " "));
-   out_bbox.ymin = atof(strtok(NULL, " "));
-   out_bbox.zmin = atof(strtok(NULL, " "));
-   out_bbox.xmax = atof(strtok(NULL, " "));
-   out_bbox.ymax = atof(strtok(NULL, " "));
-   out_bbox.zmax = atof(strtok(NULL, " "));
-
-   file.close();
-   delete str;
+   else
+   {
+      out_bbox = m_bboxes[asstocfile];
+   }
    return true;
 
    // Use an auto_fclose since we are returning from the function all over the place.
@@ -793,6 +809,7 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
     bool bFaceCamera = pc->get( PC(FaceCamera) );
+    int mode = AiNodeGetInt( m_node, "ai_mode" );
 
     unsigned int numSamples = pc->get( PC(NumMotionSamples) );
     //unsigned int shutterSize = pc->getSize( PC(Shutter) );
@@ -806,7 +823,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     AtArray* num_points = AiArrayAllocate( numPointsTotal, numSamples, AI_TYPE_UINT );
     AtArray* points = AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_POINT );
     AtArray* radius = AiArrayAllocate( widthsSize>0 ? widthsSize : 1, 1, AI_TYPE_FLOAT );
-    AtArray* orientations = bFaceCamera ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
+    AtArray* orientations = (bFaceCamera || (mode == 1)) ? NULL : AiArrayAllocate( pointsTotal, numSamples, AI_TYPE_VECTOR );
 
     unsigned int* curNumPoints = (unsigned int*)num_points->data;
     AtPoint* curPoints = (AtPoint*)points->data;
@@ -817,7 +834,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     for ( int i=0; i < (int)numSamples; i++ )
     {
         // Add the points.
-        XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points." );
+        XGRenderAPIDebug( "Adding points." );
         memcpy( curPoints, pc->get( PC(Points), i ), sizeof( AtPoint )*pointsTotal );
         curPoints+=pointsTotal;
 
@@ -831,7 +848,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
            // Add the normals if necessary.
          if( orientations )
          {
-            XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding normals." );
+            XGRenderAPIDebug( "Adding normals." );
 
             unsigned int numVarying = *curNumPoints - 2;
 
@@ -852,32 +869,25 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
     }
 
-    // Arnold crashes if the radius is too small.
-    const float k_minRadius = 0.001f;
-
     // Add the constant widths.
     if( widthsSize==0 )
    {
        float constantWidth = pc->get( PC(ConstantWidth) );
 
-      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Constant width: " + ftoa(constantWidth));
+      XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
       {string s = "Constant width: " + ftoa(constantWidth) + "\n";
       printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
-      if( *curRadius < k_minRadius )
-         *curRadius = k_minRadius;
    }
     // Add Varying Widths
     else
    {
        const float* pWidths = pc->get( PC(Widths) );
 
-      XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Non-constant width.");
+      XGRenderAPIDebug( "Non-constant width.");
       for( unsigned int w=0; w<widthsSize; ++w )
       {
          curRadius[w] = pWidths[w] * 0.5f;
-         if( curRadius[w] < k_minRadius )
-            curRadius[w] = k_minRadius;
       }
    }
 
@@ -887,7 +897,7 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
     string strParentName = AiNodeGetName( m_node_face );
    string strID = itoa( (int)m_nodes.size() );
    AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
-   AiNodeSetStr( nodeCurves, "mode", bFaceCamera ? "ribbon" : "oriented");
+   AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
     AiNodeSetStr( nodeCurves, "basis", "b-spline" );
     //AiNodeSetInt( nodeCurves, "max_subdivs", 1000 );
     AiNodeSetArray( nodeCurves, "num_points", num_points );
@@ -895,6 +905,10 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    AiNodeSetArray( nodeCurves, "radius", radius );
    if( orientations ) AiNodeSetArray( nodeCurves, "orientations", orientations );
    AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+
+
+   float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
+   AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
 
    // Add custom renderer parameters.
    pushCustomParams( nodeCurves, pc );
@@ -912,6 +926,23 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 {
    string strParentName = AiNodeGetName( m_node_face );
 
+
+   // Build up the token and parameter lists to output for all
+   // passes of motionBlur.
+   double length_;
+   double width;
+   double depth;
+   vec3 P;
+   vec3 lengthVec;
+   vec3 axis1;
+   double angle1;
+   vec3 axis2;
+   double angle2[2];
+   vec3 zeroAxis = { 0.f, 0.f, 0.f };
+
+   mat44 xP0, xP, xN, tmp;
+
+
    unsigned int cacheCount = pc->get( PC(CacheCount) );
    unsigned int numSamples = pc->get( PC(NumMotionSamples) );
    //unsigned int shutterSize = pc->getSize( PC(Shutter) );
@@ -924,19 +955,6 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
     {
        AtArray* matrix = AiArrayAllocate( 1, numSamples, AI_TYPE_MATRIX );
 
-        // Build up the token and parameter lists to output for all
-        // passes of motionBlur.
-        double length_[2];
-        double width[2];
-        double depth[2];
-        vec3 P[2];
-        vec3 lengthVec[2];
-        vec3 axis1[2];
-        double angle1[2];
-        vec3 axis2[2];
-        double angle2[2];
-        vec3 zeroAxis = { 0.f, 0.f, 0.f };
-
         for ( unsigned int i=0; i < numSamples; i++ )
         {
             // Determine scaling values.
@@ -947,98 +965,96 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
             const vec3* points_i = pc->get( PC(Points), i );
 
-            P[i] = points_i[p0];
+            P = points_i[p0];
             vec3 lengthP( points_i[p1] );
-            vec3 midP(( P[i] + lengthP )/2.0 );
+            vec3 midP(( P + lengthP )/2.0 );
             vec3 widthP( points_i[p2] );
             vec3 depthP( points_i[p3] );
-            lengthVec[i] = lengthP - P[i];
+            lengthVec = lengthP - P;
             vec3 widthVec = widthP - midP;
-            length_[i] = length(lengthVec[i]);
-            width[i] = length(widthVec) * 2.0;
-            depth[i] = length((depthP - midP)) * 2.0;
+            length_ = length(lengthVec);
+            width = length(widthVec) * 2.0;
+            depth = length((depthP - midP)) * 2.0;
 
             // Determine axis and angle of rotation.
             vec3 yAxis = { 0.f, 1.f, 0.f };
             vec3 xAxis = { 1.f, 0.f, 0.f };
             vec3 xChange;
 
-            axis1[i] = yAxis * lengthVec[i];
-            if( normalize( axis1[i] ) > 0.0 ) {
-                angle1[i] = angle( yAxis, lengthVec[i] );
-                xChange = rotateBy( xAxis, axis1[i], angle1[i] );
+            axis1 = yAxis * lengthVec;
+            if( normalize( axis1 ) > 0.0 ) {
+                angle1 = angle( yAxis, lengthVec );
+                xChange = rotateBy( xAxis, axis1, angle1 );
             } else {
-                angle1[i] = 0.0;
-                axis1[i] = xAxis;
+                angle1 = 0.0;
+                axis1 = xAxis;
                 xChange = xAxis;
             }
-            axis2[i] = xChange * widthVec;
-            if ( normalize( axis2[i] ) > 0.0 ) {
-                angle2[i] = angle( xChange, widthVec );
-                if ( dot( axis2[i], lengthVec[i] ) < 0.0 )
-                    angle2[i] *= -1.0;
+            axis2 = xChange * widthVec;
+            if ( normalize( axis2 ) > 0.0 ) {
+                angle2[i%2] = angle( xChange, widthVec );
+                if ( dot( axis2, lengthVec ) < 0.0 )
+                    angle2[i%2] *= -1.0;
             } else {
-                angle2[i] = 0.0;
+                angle2[i%2] = 0.0;
             }
-            axis2[i] = yAxis;
+            axis2 = yAxis;
 
             // We want to make sure motion frames take the shortest
             // distance from an angular position.
             if ( i > 0 ) {
-                if ( angle2[i] - angle2[i-1] > 3.14159 ) {
-                    angle2[i] -= 6.28319;
-                } else if ( angle2[i] - angle2[i-1] < -3.14159 ) {
-                    angle2[i] += 6.28319;
+                if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) {
+                    angle2[i%2] -= 6.28319;
+                } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
+                    angle2[i%2] += 6.28319;
                 }
             }
-        }
 
         // Now use these values to create the transforms for each motion
         // sample and put in a motion block
 
-        mat44 xP[2], xN, tmp;
-
-        for ( unsigned int i=0; i < numSamples; i++ ) {
+        
             // Translation
-            translation( tmp, P[i] + lengthVec[i] / 2.0 );
-            xP[i] = tmp;
+            translation( tmp, P + lengthVec / 2.0 );
+            xP = tmp;
             
             // Rotation 1
-            if ( axis1[i] != zeroAxis ) {
-                rotation( tmp, axis1[i], (float)angle1[i] );
-                multiply( xP[i], xP[i], tmp );
+            if ( axis1 != zeroAxis ) {
+                rotation( tmp, axis1, (float)angle1 );
+                multiply( xP, xP, tmp );
                 if ( normalParam && (i==0) )
                     xN = tmp;
             }
             
             // Rotation 2
-            if ( axis2[i] != zeroAxis ) {
-                rotation( tmp, axis2[i], (float)angle2[i] );
-                multiply( xP[i], xP[i], tmp );
+            if ( axis2 != zeroAxis ) {
+                rotation( tmp, axis2, (float)angle2[i%2] );
+                multiply( xP, xP, tmp );
                 if ( normalParam && (i==0) )
                     multiply( xN, xN, tmp );
             }
             
             // Scale
          vec3 scaleV;
-         scaleV.x = (float)width[i];
-         scaleV.y = (float)length_[i];
-         scaleV.z = (float)depth[i];
+         scaleV.x = (float)width;
+         scaleV.y = (float)length_;
+         scaleV.z = (float)depth;
          scale( tmp, scaleV );
 
-            multiply( xP[i], xP[i], tmp );
+            multiply( xP, xP, tmp );
             if ( flipParam ) {
                 rotationX( tmp, (float)degtorad(-90.0) );
             } else {
                 rotationX( tmp, (float)degtorad(90) );
             }
-            multiply( xP[i], xP[i], tmp );
+            multiply( xP, xP, tmp );
             if ( normalParam && (i==0) )
                 multiply( xN, xN, tmp );
-        }
 
-        for ( unsigned int i=0; i < numSamples; i++ ) {
-           const float* xPi = &xP[i]._00;
+            if(i == 0)
+               xP0 = xP;
+
+           const float* xPi = &xP._00;
             AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
@@ -1048,7 +1064,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
         }
 
         // Add custom parameters and call sphere.
-        pc->inverseXformParams( j, xP[0], xN );
+        pc->inverseXformParams( j, xP0, xN );
 
         string strID = itoa( (int)m_nodes.size() );
 
@@ -1060,10 +1076,10 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
        AiNodeSetArray( nodeInstance, "matrix", matrix );
        AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
        AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
-       AiNodeSetInt( nodeInstance, "visibility", 65535 );
+       AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
 
        // Add custom renderer parameters.
-       pushCustomParams( nodeInstance, pc );
+       pushCustomParams( nodeInstance, pc, j);
 
        // Keep our new nodes.
        m_nodes.push_back( nodeInstance );
@@ -1106,7 +1122,7 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
       AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
       memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
 
-       string strID = itoa( (int)m_nodes.size() );
+      string strID = itoa( (int)m_nodes.size() );
 
       char buf[512];
 
@@ -1138,15 +1154,21 @@ struct CustomParamTypeEntry
    size_t m_sizeOf;
    size_t m_components;
    AtByte m_type;
+   bool   m_constant;
 };
 
 const static CustomParamTypeEntry g_mapCustomParamTypes[]=
 {
-   { "uniform float ",    "uniform FLOAT",    sizeof(float),    1, AI_TYPE_FLOAT },
-   { "uniform color ",    "uniform RGB",       sizeof(AtRGB),       3, AI_TYPE_RGB },
-   { "uniform vector ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
-   { "uniform normal ",    "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR },
-   { "uniform point ",    "uniform POINT",    sizeof(AtPoint),    3, AI_TYPE_POINT },
+   { "uniform float ",    "uniform FLOAT",     sizeof(float),       1, AI_TYPE_FLOAT,  false},
+   { "constant float ",   "constant FLOAT",    sizeof(float),       1, AI_TYPE_FLOAT,  true },
+   { "uniform color ",    "uniform RGB",       sizeof(AtRGB),       3, AI_TYPE_RGB,    false },
+   { "constant color ",   "constant RGB",      sizeof(AtRGB),       3, AI_TYPE_RGB,    true },
+   { "uniform vector ",   "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR, false },
+   { "constant vector ",  "constant VECTOR",   sizeof(AtVector),    3, AI_TYPE_VECTOR, true },
+   { "uniform normal ",   "uniform VECTOR",    sizeof(AtVector),    3, AI_TYPE_VECTOR, false },
+   { "constant normal ",  "constant VECTOR",   sizeof(AtVector),    3, AI_TYPE_VECTOR, true },
+   { "uniform point ",    "uniform POINT",     sizeof(AtPoint),     3, AI_TYPE_POINT,  false },
+   { "constant point ",   "constant POINT",    sizeof(AtPoint),     3, AI_TYPE_POINT,  true },
 };
 const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / sizeof(CustomParamTypeEntry);
 
@@ -1156,7 +1178,7 @@ const static size_t g_ulCustomParamTypesCount = sizeof(g_mapCustomParamTypes) / 
  *
  * @param i index into param array
  */
-void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc )
+void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigned int cacheCount)
 {
    unsigned int customAttrCount = pc->getSize( PC( CustomAttrNames ) );
    // Push any user-defined custom attributes.
@@ -1178,9 +1200,31 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc )
             unsigned int fixAttrCount = (unsigned int)(attrCount/e.m_components);
 
             AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
-            AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
-            memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
-            AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+            if(e.m_constant) //constant attribute
+            {
+               unsigned int offset = (unsigned int)(cacheCount*e.m_components);
+               switch(e.m_type)
+               {
+                  case AI_TYPE_FLOAT:
+                     AiNodeSetFlt( in_node, fixedAttrName.c_str(), attrValue[offset]);
+                     break;
+                  case AI_TYPE_RGB:
+                     AiNodeSetRGB( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                     break;
+                  case AI_TYPE_VECTOR:
+                     AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                     break;
+                  case AI_TYPE_POINT:
+                     AiNodeSetPnt( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                     break;
+               }
+            }
+            else // uniform attribute
+            {
+               AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
+               memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
+               AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+            }
             break;
          }
       }
@@ -1215,7 +1259,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
     }
 */
 
-
+   string strParentName = AiNodeGetName( m_node_face );
 
    // Default to 1.0 so that it has no effect for archive files that
    // do not contain BBOX information
@@ -1253,6 +1297,19 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
    }
    const double* archivesFrame = pc->get( PC(ArchivesFrame_XP) );
 
+   double length_;
+   double width;
+   double depth;
+   vec3 P;
+   vec3 lengthVec;
+   vec3 axis1;
+   double angle1;
+   vec3 axis2;
+   double angle2[2];
+   vec3 zeroAxis = { 0.f, 0.f, 0.f };
+
+   mat44 xP, xP0, xN, tmp;
+
 
     for ( unsigned int j = 0; j < cacheCount; j++ ) {
 
@@ -1260,17 +1317,13 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
         // Build up the token and parameter lists to output for all
         // passes of motionBlur.
-        double length_[2];
-        double width[2];
-        double depth[2];
-        vec3 P[2];
-        vec3 lengthVec[2];
-        vec3 axis1[2];
-        double angle1[2];
-        vec3 axis2[2];
-        double angle2[2];
-        vec3 zeroAxis = { 0.f, 0.f, 0.f };
+        
+        int jj=j*lodLevels*numSamples;
 
+        string strID = itoa((int)m_nodes.size());
+
+        string instance_name = strParentName + string("_archive_") + strID;
+        
         for ( unsigned int i=0; i <numSamples; i++ )
         {
             // Determine scaling values.
@@ -1281,89 +1334,82 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
             const vec3* points_i = pc->get( PC(Points), i );
 
-            P[i] = points_i[p0];
+            P = points_i[p0];
             vec3 lengthP( points_i[p1] );
-            vec3 midP(( P[i] + lengthP )/2.0 );
+            vec3 midP(( P + lengthP )/2.0 );
             vec3 widthP( points_i[p2] );
             vec3 depthP( points_i[p3] );
-            lengthVec[i] = lengthP - P[i];
+            lengthVec = lengthP - P;
             vec3 widthVec = widthP - midP;
-            length_[i] = length(lengthVec[i]);
-            width[i] = length( widthVec ) * 2.0;
-            depth[i] = length(depthP - midP)* 2.0;
+            length_ = length(lengthVec);
+            width = length( widthVec ) * 2.0;
+            depth = length(depthP - midP)* 2.0;
 
             // Determine axis and angle of rotation.
             vec3 yAxis={ 0.0, 1.0, 0.0 };
             vec3 xAxis={ 1.0, 0.0, 0.0 };
             vec3 xChange;
 
-            axis1[i] = yAxis * lengthVec[i];
-            if ( normalize(axis1[i]) > 0.0 ) {
-                angle1[i] = angle(yAxis, lengthVec[i] );
-                xChange = rotateBy(xAxis, axis1[i], angle1[i] );
+            axis1 = yAxis * lengthVec;
+            if ( normalize(axis1) > 0.0 ) {
+                angle1 = angle(yAxis, lengthVec );
+                xChange = rotateBy(xAxis, axis1, angle1 );
             } else {
-                angle1[i] = 0.0;
-                axis1[i] = xAxis;
+                angle1 = 0.0;
+                axis1 = xAxis;
                 xChange = xAxis;
             }
-            axis2[i] = xChange * widthVec;
-            if ( normalize(axis2[i]) > 0.0 ) {
-                angle2[i] = angle( xChange, widthVec );
-                if ( dot( axis2[i], lengthVec[i] ) < 0.0 )
-                    angle2[i] *= -1.0;
+            axis2 = xChange * widthVec;
+            if ( normalize(axis2) > 0.0 ) {
+                angle2[i%2] = angle( xChange, widthVec );
+                if ( dot( axis2, lengthVec ) < 0.0 )
+                    angle2[i%2] *= -1.0;
             } else {
-                angle2[i] = 0.0;
+                angle2[i%2] = 0.0;
             }
-            axis2[i] = yAxis;
+            axis2 = yAxis;
 
 
             // We want to make sure motion frames take the shortest
             // distance from an angular position.
             if ( i > 0 ) {
-                if ( angle2[i] - angle2[i-1] > 3.14159 ) {
-                    angle2[i] -= 6.28319;
-                } else if ( angle2[i] - angle2[i-1] < -3.14159 ) {
-                    angle2[i] += 6.28319;
+                if ( angle2[i%2] - angle2[(i-1)%2] > 3.14159 ) {
+                    angle2[i%2] -= 6.28319;
+                } else if ( angle2[i%2] - angle2[(i-1)%2] < -3.14159 ) {
+                    angle2[i%2] += 6.28319;
                 }
             }
-        }
 
         // Now use these values to create the transforms for each motion
         // sample and put in a motion block
 
-        mat44 xP[2], xN, tmp;
-        int jj=j*lodLevels*numSamples;
-
-        for ( unsigned int i=0; i<numSamples; i++ ) {
             // Translation
-            translation( tmp, P[i] );
-            xP[i] = tmp;
+            translation( tmp, P );
+            xP = tmp;
 
             // Rotation 1
-            if ( axis1[i] != zeroAxis ) {
-                rotation( tmp, axis1[i], (float)angle1[i] );
-                multiply( xP[i], xP[i], tmp );
+            if ( axis1 != zeroAxis ) {
+                rotation( tmp, axis1, (float)angle1 );
+                multiply( xP, xP, tmp );
                 if ( normalParam && (i==0))
                     xN = tmp;
             }
 
             // Rotation 2
-            if ( axis2[i] != zeroAxis ) {
-                rotation( tmp, axis2[i], (float)angle2[i] );
-                multiply( xP[i], xP[i], tmp );
+            if ( axis2 != zeroAxis ) {
+                rotation( tmp, axis2, (float)angle2[i%2] );
+                multiply( xP, xP, tmp );
                 if ( normalParam && (i==0) )
                     multiply( xN, xN, tmp );
             }
 
             // Scale
             vec3 scaleV;
-            scaleV.x = (float)(bbox_scale * width[i]);
-            scaleV.y = (float)(bbox_scale * length_[i]);
-            scaleV.z = (float)(bbox_scale * depth[i]);
+            scaleV.x = (float)(bbox_scale * width);
+            scaleV.y = (float)(bbox_scale * length_);
+            scaleV.z = (float)(bbox_scale * depth);
             scale( tmp, scaleV );
-            multiply( xP[i], xP[i], tmp );
-
-        }
+            multiply( xP, xP, tmp );
 
 
 /*
@@ -1383,15 +1429,12 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         }
 */
 
-      string strParentName = AiNodeGetName( m_node_face );
-      string strID = itoa((int)m_nodes.size());
-
-      string instance_name = strParentName + string("_archive_") + strID;
       //std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
 
+            if(i == 0)
+               xP0 = xP;
 
-        for ( unsigned int i=0; i < numSamples; i++ ) {
-           float* xPi = &xP[i]._00;
+           float* xPi = &xP._00;
             AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
@@ -1411,7 +1454,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 */
 
         // Add custom parameters.
-        pc->inverseXformParams( j, xP[0], xN );
+        pc->inverseXformParams( j, xP0, xN );
 
         // Get archive bbox
 
@@ -1486,7 +1529,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
             
 
             // Add custom renderer parameters.
-            //pushCustomParams( archive_procedural, pc );
+            pushCustomParams( archive_procedural, pc ,j);
 
             m_nodes.push_back( archive_procedural );
          }
