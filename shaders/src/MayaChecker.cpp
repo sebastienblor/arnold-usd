@@ -89,8 +89,8 @@ shader_evaluate
    float dtt = fw;
 
    float f = 0.5f - 2.0f *
-             (FilteredPulseTrain(0.5, 1, ss, dss) - 0.5f) *
-             (FilteredPulseTrain(0.5, 1, tt, dtt) - 0.5f);
+             (FilteredPulseTrain(0.5f, 1.0f, ss, dss) - 0.5f) *
+             (FilteredPulseTrain(0.5f, 1.0f, tt, dtt) - 0.5f);
 
    f = 0.5f + (f - 0.5f) * AiShaderEvalParamFlt(p_contrast);
 
