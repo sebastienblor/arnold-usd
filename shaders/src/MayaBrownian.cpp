@@ -109,7 +109,6 @@ shader_evaluate
 
       if((maxP * curFreq) < LONG_MAX)
       {
-         AtPoint P1 = P * curFreq;
          float tmp = AiPerlin3(P * curFreq);
          tmp = curAmp * tmp;
          tmp = foctave * tmp;

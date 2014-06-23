@@ -376,10 +376,9 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
 
 void CCameraTranslator::ExportImagePlanes(unsigned int step)
-{
-    MPlugArray connectedPlugs;
-    MPlug      imagePlanePlug;
-    MPlug      imagePlaneNodePlug;
+{   
+   MPlug      imagePlanePlug;
+   MPlug      imagePlaneNodePlug;
    MStatus    status;
 
    // first we get the image planes connected to this camera
@@ -389,13 +388,14 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
    {
       for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
       {
+         MPlugArray connectedPlugs;
          imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
          imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-         MObject resNode = connectedPlugs[0].node(&status);
-
-         if (status)
+         if (status && (connectedPlugs.length() > 0))
          {
-            ExportImagePlane(step, resNode);
+            MObject resNode = connectedPlugs[0].node(&status);   
+            if (status)
+               ExportImagePlane(step, resNode);
          }
       }
    }
