@@ -157,9 +157,6 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
-    vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0', '10.0Exp', '11.0')))
-
-if system.os() == 'windows':
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
@@ -237,6 +234,13 @@ if int(maya_version) >= 201450:
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
 
+if int(maya_version_base) == 2012:
+    env['MSVC_VERSION'] = '9.0'
+elif (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
+    env['MSVC_VERSION'] = '10.0'
+elif int(maya_version_base) >= 2015:
+    env['MSVC_VERSION'] = '11.0'
+
 mercurial_id = ""
 try:
     p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
@@ -271,6 +275,8 @@ if system.os() == 'linux':
         print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
     except:
         pass
+elif system.os() == 'windows':
+    print 'MSVC version   : %s' % (env['MSVC_VERSION'])
 print 'Mercurial ID   : %s' % mercurial_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
