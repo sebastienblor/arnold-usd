@@ -238,7 +238,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       }
       else
       {         
-         AtNode* procedural = AiNode("procedural");
+         procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
          AtMatrix mtx;
