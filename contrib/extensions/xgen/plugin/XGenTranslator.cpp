@@ -233,46 +233,45 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             MDagPath::getAPathTo( descDagPath.child(i),childDagPath );
 
             std::string strChild = childDagPath.fullPathName().asChar();
-			char buf[512];
-			sprintf(buf,"nodeType %s;",strChild.c_str());
-			MString nodeType = MGlobal::executeCommandStringResult(buf);
+            char buf[512];
+            sprintf(buf,"nodeType %s;",strChild.c_str());
+            MString nodeType = MGlobal::executeCommandStringResult(buf);
 
             strChild = strChild.substr( 1+ info.strPalette.size() + 1 + info.strDescription.size() + 1 );
 
-            // Ignore the first child. It should be the description shape
-			if (nodeType == "xgmDescription") 
-			{
-			   MFnDagNode  xgenDesc;
-			   xgenDesc.setObject(childDagPath.node());
-            
-            info.renderMode = xgenDesc.findPlug("renderMode").asInt();
-            
-            info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth").asFloat();
-            info.aiMode = xgenDesc.findPlug("aiMode").asInt();
-			   // get the motion blur values from the description here
-			   info.moblur = xgenDesc.findPlug("motionBlurOverride").asInt();
-			   info.moblurmode = xgenDesc.findPlug("motionBlurMode").asInt();
-			   info.motionBlurSteps = 1;
-			   info.moblurFactor = 0.5;
-            
-            info.auxRenderPatch = xgenDesc.findPlug("aiAuxRenderPatch").asString().asChar();
-            info.useAuxRenderPatch = xgenDesc.findPlug("aiUseAuxRenderPatch").asBool();
+         // Get the data for the translation from the description shape
+            if (nodeType == "xgmDescription") 
+            {
+               MFnDagNode  xgenDesc;
+               xgenDesc.setObject(childDagPath.node());
+               
+               info.renderMode = xgenDesc.findPlug("renderMode").asInt();
+               
+               info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth").asFloat();
+               info.aiMode = xgenDesc.findPlug("aiMode").asInt();
+               info.renderMode = xgenDesc.findPlug("renderMode").asInt();
+               info.moblur = xgenDesc.findPlug("motionBlurOverride").asInt();
+               info.moblurmode = xgenDesc.findPlug("motionBlurMode").asInt();
+               info.motionBlurSteps = 1;
+               info.moblurFactor = 0.5;
+               info.auxRenderPatch = xgenDesc.findPlug("aiAuxRenderPatch").asString().asChar();
+               info.useAuxRenderPatch = xgenDesc.findPlug("aiUseAuxRenderPatch").asBool();
 
-            //  use render globals moblur settings
-            if (info.moblur == 0)
-            {
-               if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
+               //  use render globals moblur settings
+               if (info.moblur == 0)
                {
-                  info.motionBlurSteps = CMayaScene::GetArnoldSession()->GetMotionFrames().size();
-                  info.moblurFactor = float(CMayaScene::GetArnoldSession()->GetMotionByFrame());
+                  if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
+                  {
+                     info.motionBlurSteps = CMayaScene::GetArnoldSession()->GetMotionFrames().size();
+                     info.moblurFactor = float(CMayaScene::GetArnoldSession()->GetMotionByFrame());
+                  }
                }
-            }
-            // use  xgen per  description moblur settings
-            else if (info.moblur == 1)
-            {
-               info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
-               info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
-            }
+               // use  xgen per  description moblur settings
+               else if (info.moblur == 1)
+               {
+                  info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
+                  info.moblurFactor = xgenDesc.findPlug("motionBlurFactor").asFloat();
+               }
 #ifdef DEBUG_MTOA
                printf("strChild=%s\n",strChild.c_str() );
 #endif
@@ -280,70 +279,79 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             // Look for patches
             else
             {
-               // Perform a check on the description suffix.
-               std::string strCheckDesc = strChild.substr( strChild.size()-info.strDescription.size() );
-#ifdef DEBUG_MTOA
-               printf( "%s == %s\n", strCheckDesc.c_str(), info.strDescription.c_str() );
-#endif
-               if( strCheckDesc == info.strDescription )
+               // TODO XGEN: in "LIVE" mode, this only works to update the geo position for guide style xgen,
+               //  groom xgen needs an openGL preview before geo translation is taken into account
+               //  we want to look for the  xgmSubdPatch node so we can get the BBox values and force an update on it
+               if (nodeType == "transform")  // lets find the subdivPatch  transform 
                {
-                  strChild = strChild.substr( 0, strChild.size() - (info.strDescription.size() + 1) );
+                  uint shapeCount = childDagPath.childCount();
+                  for (uint x = 0; x < shapeCount; ++x)
+                  {
+                     MDagPath xgenShape;
+                     MDagPath::getAPathTo( childDagPath.child(x),xgenShape );
+                     if (xgenShape.apiType() == MFn::kTransform) // we've found another transform, probably a guide?
+                     {
+                        continue;
+                     }
+                     std::string strShape = xgenShape.fullPathName().asChar();
+                     char buf[512];
+                     sprintf(buf,"nodeType %s;",strShape.c_str());
+                     MString nodeTyp = MGlobal::executeCommandStringResult(buf);
+                     
+                     // we want to  skip this if its  a  groomable spline description
+                     if (nodeTyp == "igmDescription")
+                     {
+                        continue;
+                     }
+                     
+                     if (nodeTyp == "xgmSubdPatch")
+                     {
+               #ifdef DEBUG_MTOA
+                        printf("found xgmSubdPatch!\n");
+               #endif
+                        
+                        // Perform a check on the description suffix.
+                        std::string strCheckDesc = strChild.substr( strChild.size()-info.strDescription.size() );
 #ifdef DEBUG_MTOA
-                  printf("strPatch=%s\n",strChild.c_str() );
+                        printf( "%s == %s\n", strCheckDesc.c_str(), info.strDescription.c_str() );
 #endif
-                  info.vecPatches.push_back( strChild );
-               }
-            // TODO XGEN: in "LIVE" mode, this only works to update the geo position for guide style xgen,
-            //  groom xgen needs an openGL preview before geo translation is taken into account
-            //  we want to look for the  xgmSubdPatch node so we can get the BBox values and force an update on it
-			   if (nodeType == "transform")
-			   {
-				   uint shapeCount = childDagPath.childCount();
-					for (uint x = 0; x < shapeCount; ++x)
-					{
-						MDagPath xgenShape;
-						MDagPath::getAPathTo( childDagPath.child(x),xgenShape );
-						if (xgenShape.apiType() == MFn::kTransform) // we've found another transform
-						{
-							continue;
-						}
-						std::string strChild = xgenShape.fullPathName().asChar();
-						char buf[512];
-						sprintf(buf,"nodeType %s;",strChild.c_str());
-						MString nodeTyp = MGlobal::executeCommandStringResult(buf);
-						if (nodeTyp == "xgmSubdPatch")
-						{
+                        if( strCheckDesc == info.strDescription )
+                        {
+                           std::string strChildSub = strChild.substr( 0, strChild.size() - (info.strDescription.size() + 1) );
 #ifdef DEBUG_MTOA
-							printf("found xgmSubdPatch!\n");
+                           printf("strPatch=%s\n",strChildSub.c_str() );
 #endif
-							MFnDagNode  xgenNode;
-							xgenNode.setObject(xgenShape.node());
-							float xmin,ymin,zmin;
-							float xmax,ymax,zmax;
-							float xlen,ylen,zlen;
-							xmin = xgenNode.findPlug ( "bboxCorner10" ).asFloat();
-							ymin = xgenNode.findPlug ( "bboxCorner11" ).asFloat();
-							zmin = xgenNode.findPlug ( "bboxCorner12" ).asFloat();
-							xmax = xgenNode.findPlug ( "bboxCorner20" ).asFloat();
-							ymax = xgenNode.findPlug ( "bboxCorner21" ).asFloat();
-							zmax = xgenNode.findPlug ( "bboxCorner22" ).asFloat();
-							xlen = xmax-xmin;
-							ylen = ymax-ymin;
-							zlen = zmax-zmin;
-							xmin -= xlen*5*fUnitConvFactor; /// really this is  xlen*.5*10*fUnitConvFactor 
-							ymin -= ylen*5*fUnitConvFactor;
-							zmin -= zlen*5*fUnitConvFactor;
-							xmax += xlen*5*fUnitConvFactor;
-							ymax += ylen*5*fUnitConvFactor;
-							zmax += zlen*5*fUnitConvFactor; 
+                           info.vecPatches.push_back( strChildSub );
+                        }
 
-                     //printf("bbox: %f, %f, %f, %f, %f, %f\n",xmin,ymin,zmin,xmax,ymax,zmax);
+                        MFnDagNode  xgenNode;
+                        xgenNode.setObject(xgenShape.node());
+                        float xmin,ymin,zmin;
+                        float xmax,ymax,zmax;
+                        float xlen,ylen,zlen;
+                        xmin = xgenNode.findPlug ( "bboxCorner10" ).asFloat();
+                        ymin = xgenNode.findPlug ( "bboxCorner11" ).asFloat();
+                        zmin = xgenNode.findPlug ( "bboxCorner12" ).asFloat();
+                        xmax = xgenNode.findPlug ( "bboxCorner20" ).asFloat();
+                        ymax = xgenNode.findPlug ( "bboxCorner21" ).asFloat();
+                        zmax = xgenNode.findPlug ( "bboxCorner22" ).asFloat();
+                        xlen = xmax-xmin;
+                        ylen = ymax-ymin;
+                        zlen = zmax-zmin;
+                        xmin -= xlen*5*fUnitConvFactor; /// really this is  xlen*.5*10*fUnitConvFactor 
+                        ymin -= ylen*5*fUnitConvFactor;
+                        zmin -= zlen*5*fUnitConvFactor;
+                        xmax += xlen*5*fUnitConvFactor;
+                        ymax += ylen*5*fUnitConvFactor;
+                        zmax += zlen*5*fUnitConvFactor; 
 
-							//info.setBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
-							break; // we only need to find one subd patch, and want to skip  any guides in here.. 
-						}
-					}
-			   } // end force update and bbox  subdiv patch
+                        //printf("bbox: %f, %f, %f, %f, %f, %f\n",xmin,ymin,zmin,xmax,ymax,zmax);
+
+                        //info.setBoundingBox(xmin,ymin,zmin,xmax,ymax,zmax);
+                        break; // we only need to find one subd patch, and want to skip  any guides in here.. 
+                     }
+                  }
+               }  // end force update and bbox  subdiv patch
             }
          }
       }
