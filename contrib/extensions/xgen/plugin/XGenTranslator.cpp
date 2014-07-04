@@ -26,6 +26,12 @@ static void SetEnv(const MString& env, const MString& val)
 
 //#define DEBUG_MTOA 1
 
+inline bool alembicExists(const std::string& name)
+{
+   struct stat buffer;
+   return (stat (name.c_str(), &buffer) == 0);
+}
+
 AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
 {
    //AiMsgInfo("[CXgDescriptionTranslator] CreateArnoldNodes()");
@@ -45,10 +51,13 @@ struct DescInfo
    std::string strDescription;
    std::vector<std::string> vecPatches;
    float fFrame;
+   uint  renderMode;
    uint  moblur;
    uint  moblurmode;
    uint  motionBlurSteps;
    float moblurFactor;
+   
+   bool  hasAlembicFile;
    
    float aiMinPixelWidth;
    int aiMode;
@@ -59,8 +68,9 @@ struct DescInfo
    float fCameraInvMat[16];
    float fCamRatio;
    float fBoundingBox[6];
-   
-   std::string batchRenderPatch;
+
+   std::string auxRenderPatch;
+   bool useAuxRenderPatch;
 
    void setBoundingBox( float xmin, float ymin, float zmin, float xmax, float ymax, float zmax )
    {
@@ -235,6 +245,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 			   MFnDagNode  xgenDesc;
 			   xgenDesc.setObject(childDagPath.node());
             
+            info.renderMode = xgenDesc.findPlug("renderMode").asInt();
             
             info.aiMinPixelWidth = xgenDesc.findPlug("aiMinPixelWidth").asFloat();
             info.aiMode = xgenDesc.findPlug("aiMode").asInt();
@@ -244,8 +255,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 			   info.motionBlurSteps = 1;
 			   info.moblurFactor = 0.5;
             
-            info.batchRenderPatch = xgenDesc.findPlug("aiBatchRenderPatch").asString().asChar();
+            info.auxRenderPatch = xgenDesc.findPlug("aiAuxRenderPatch").asString().asChar();
+            info.useAuxRenderPatch = xgenDesc.findPlug("aiUseAuxRenderPatch").asBool();
 
+            //  use render globals moblur settings
             if (info.moblur == 0)
             {
                if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(MTOA_MBLUR_OBJECT))
@@ -254,6 +267,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                   info.moblurFactor = float(CMayaScene::GetArnoldSession()->GetMotionByFrame());
                }
             }
+            // use  xgen per  description moblur settings
             else if (info.moblur == 1)
             {
                info.motionBlurSteps = xgenDesc.findPlug("motionBlurSteps").asInt();
@@ -279,8 +293,9 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 #endif
                   info.vecPatches.push_back( strChild );
                }
-			   // TODO XGEN: in "LIVE" mode, this only works to update the geo position for guide style xgen, groom xgen needs an openGL preview before geo translation is taken into account
-               // we want to look for the  xgmSubdPatch node so we can get the BBox values and force an update on it
+            // TODO XGEN: in "LIVE" mode, this only works to update the geo position for guide style xgen,
+            //  groom xgen needs an openGL preview before geo translation is taken into account
+            //  we want to look for the  xgmSubdPatch node so we can get the BBox values and force an update on it
 			   if (nodeType == "transform")
 			   {
 				   uint shapeCount = childDagPath.childCount();
@@ -351,9 +366,18 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    AtNode* rootShader = NULL;
 
    // The geom cache file should contain all the patches the palette uses.
-   // Xgen gives an error if a patch used in the palette isn't found: Caf error. No geometry named 'pPlane1' found in caf file(frame):
+   // Xgen gives an error if a patch used in the palette isn't found: Caf(alembic/abc) error. No geometry named 'pPlane1' found in caf(abc) file(frame):
    std::string strGeomFile = info.strScene + "__" + info.strPalette + ".abc";
-
+   
+   if(info.useAuxRenderPatch )// use override patch file)
+   {
+      if (!info.auxRenderPatch.empty())
+      {
+         strGeomFile = info.auxRenderPatch;
+      }
+   }
+   // lets check if the  .abc file exists
+   info.hasAlembicFile = alembicExists(strGeomFile);
 
    for( unsigned int i=0; i<info.vecPatches.size(); ++i )
    {
@@ -399,18 +423,48 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
 	  //  MOTION BLUR COMPUTATION STUFF 
 
-	  /// TODO XGEN: use Arnoldsession stuff to get motion blur steps instead of computing ourselves,
-	  ///            and switch for  XGEN arnold renderer setting of "use renderglobals"  to either use our own compute or the renderglobals settings 
-
+   /// TODO THINK MORE: in the GUI, LIVE mode seems to rely on  ENV variable  MI_MAYA_BATCH
+   ///             if it does not exist it tries to use whats "cached" in the xgen data blob inside maya.
+   ///             We need to switch here for XGEN ui setting, existance of alembic file, and  maya UI vs batch render
+   ///             If at all possible we want to use the alembic geo if it exists which will allow for motion blur if desired
+   ///            Fallback order is as follows in the comments:
 
 		
 
       std::string mbSamplesString;
+      MFloatArray steps;
+      bool batchModeOk = false;
       
+      // if maya session is in batch or  xgen render mode is batch we want to 
+      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch() || info.renderMode == 3)
+      {
+         batchModeOk = true;
+      }
+
+      // check if we don't have an alembic
+      if (!info.hasAlembicFile) // we don't have the alembic
+      {
+         AiMsgError("[XGEN]: CAN'T MOTION BLUR,  alembic file-> %s  has not been exported", strGeomFile.c_str());
+         info.moblur = 2; // turning off xgen motion blur
+         info.renderMode = 1; // set to live mode  for good measure
+         batchModeOk = false;
+      }
+      
+      if (batchModeOk)
+      {
+         AiMsgInfo("[XGEN]: All batch mode tests passed! proceeding with Xgeneration... using alembic patch cache");
+         SetEnv("MI_MAYA_BATCH", "1");  // this is apparently the magic that forces xgen to batch mode vs live
+      }
+      else
+      {
+         AiMsgWarning("[XGEN]: Batch mode tests failed! proceeding with Xgeneration... using live scene data");
+      }
+      
+      // if motion blur is enabled
       if (info.moblur != 2 && info.motionBlurSteps > 1 && info.moblurFactor > 0.0f)
       {
 
-         if (info.moblur == 0)
+         if (info.moblur == 0) // use render globals
          {
             if(CMayaScene::GetArnoldSession())
             {
@@ -436,11 +490,12 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             }
             else
             {
+               AiMsgWarning("[XGEN]: Motion blur sample settings cannot be aquired from Arnold Render Globals");
                mbSamplesString += std::string("0.0 ");
             }
          }
          
-         else
+         else // xgen blur on
          {
             MFloatArray steps;
             float stepSize = info.moblurFactor/(info.motionBlurSteps-1);
@@ -472,6 +527,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          
          
       }
+      // if motion blur is disabled
       else
       {
          mbSamplesString += std::string("0.0 ");
@@ -488,10 +544,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          strData += " -frame "+ std::string(buf);// +" -shutter 0.0"; // Pedro's suggestion was to remove the shutter value, it seemed not to make a diff
 		 strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
          strData += " -palette " + info.strPalette;
-         if(info.batchRenderPatch.empty())
-            strData += " -geom " + strGeomFile;
-         else
-            strData += " -geom " + info.batchRenderPatch;
+         strData += " -geom " + strGeomFile;
          strData += " -patch " + strPatch;
          strData += " -description " + info.strDescription;
          MTime oneSec(1.0, MTime::kSeconds);
@@ -535,17 +588,9 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          AiNodeSetStr( shape, "irRenderCamRatio", buf );
 
 		 AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
-		 sprintf(buf,"%i",3);
+       sprintf(buf,"%i",info.renderMode);
 		 AiNodeSetStr( shape, "xgen_renderMethod", buf );
        
-       if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
-       {
-         SetEnv("MI_MAYA_BATCH", "1");
-       }
-
-
-// TODO XGEN:  LIVE mode seems to rely on this  attribute.. if it does not exist it tries to use whats cached in maya 
-//             we need to switch here for XGEN ui setting, existance of alembic file, and  maya UI vs batch render and always push this attribute for batch mode otherwise throw an error in batch mode and exit
  		 
        AiNodeDeclare( shape, "ai_mode", "constant INT");
        AiNodeSetInt(shape, "ai_mode", info.aiMode);
@@ -574,6 +619,12 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    CShapeTranslator::MakeMayaVisibilityFlags(helper);
 
    CAttrData data;
+   
+   // render mode  1 = live  3 = batch
+   data.defaultValue.INT = 1;
+   data.name = "renderMode";
+   data.shortName = "render_mode";
+   helper.MakeInputInt ( data );
 
     data.defaultValue.INT = 0;
     data.name = "motionBlurOverride";
@@ -620,8 +671,13 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
     data.enums= curveTypeEnum;
     helper.MakeInputEnum ( data );
 
+   data.defaultValue.BOOL = false;
+   data.name = "aiUseAuxRenderPatch";
+   data.shortName = "ai_use_aux_render_patch";
+   helper.MakeInputBoolean ( data );
+    
    data.defaultValue.STR = "";
-   data.name = "aiBatchRenderPatch";
+   data.name = "aiAuxRenderPatch";
    data.shortName = "ai_batch_render_patch";
    helper.MakeInputString ( data );
 }
