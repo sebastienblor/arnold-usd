@@ -96,12 +96,6 @@ vars.AddVariables(
     PathVariable('ARNOLD_PYTHON', 
                  'Where to find Arnold python bindings', 
                  os.path.join('$ARNOLD', 'python'), PathVariable.PathIsDir),  
-    PathVariable('GLEW_INCLUDES', 
-                 'Where to find GLEW includes', 
-                 glew_default_include, PathVariable.PathIsDir),
-    PathVariable('GLEW_LIB', 
-                 'Where to find GLEW static library', 
-                 glew_default_lib, PathVariable.PathIsFile),
     PathVariable('TARGET_MODULE_PATH', 
                  'Path used for installation of the mtoa module', 
                  '.', PathVariable.PathIsDirCreate),
@@ -233,6 +227,8 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
+    env.Append(GLEW_INCLUDES = Split(glew_default_include))
+    env.Append(GLEW_LIB = glew_default_lib)
 
 if int(maya_version_base) == 2012:
     env['MSVC_VERSION'] = '9.0'
