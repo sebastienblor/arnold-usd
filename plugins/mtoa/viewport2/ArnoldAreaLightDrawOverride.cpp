@@ -190,7 +190,7 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_4_3)
+        if (!GLEW_VERSION_3_2)
             return; // right now, only opengl 4.3, we can lower this later       
 
         s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
