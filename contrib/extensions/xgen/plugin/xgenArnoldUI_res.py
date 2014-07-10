@@ -40,7 +40,8 @@ maya.stringTable['y_xgenArnoldUI.kCurveModeOriented'] = u'Oriented'
 maya.stringTable['y_xgenArnoldUI.kCurveModeFlat'] = u'Flat'
 
 maya.stringTable['y_xgenArnoldUI.kArnoldAdvancedSettings'] = u'Arnold Advanced Settings'
-maya.stringTable['y_xgenArnoldUI.kPatchesPath'] = u'Batch Render Patch'
+maya.stringTable['y_xgenArnoldUI.kUsePatchesPath'] = u'Use Aux Render Patch'
+maya.stringTable['y_xgenArnoldUI.kPatchesPath'] = u'Auxilary Render Patch'
 
 
 
@@ -61,4 +62,5 @@ maya.stringTable['y_xgenArnoldUI.kSubPixelSizeAnn'] = u"Subdivides geometry unti
 maya.stringTable['y_xgenArnoldUI.kApproximationMethodAnn'] = u"Type of arnold approximation to use when subdividing render time hair bezier curves or card NURBS patches.\n'No Approximation' won't subdivide the render time geometry.\n'Parametric Approximation' subdivides render time geometry a number of times between control points.\n'Fine Approximation' subdivides until edges hit a given length in pixel size. It's view dependent."
 maya.stringTable['y_xgenArnoldUI.kArnoldMotionBlurStepsAnn'] = u'Defines the number of times the XGen geometry is evaluated to produced non-linear motion blur.\nA lower value makes the render go faster but the motion blur effect might not capture the rotation of teh primitives.'
 maya.stringTable['y_xgenArnoldUI.kMinPixelWidthAnn'] = u'Arnold Minimum pixel width for curves'
-maya.stringTable['y_xgenArnoldUI.kPatchesPathAnn'] = u'Override the Patch file used for the Batch Render'
+maya.stringTable['y_xgenArnoldUI.kUsePatchesPathAnn'] = u'Override the Patch .abc file'
+maya.stringTable['y_xgenArnoldUI.kPatchesPathAnn'] = u'Override the Patch .abc file'

@@ -158,6 +158,9 @@ vars.AddVariables(
 
 if system.os() == 'windows':
     vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0', '10.0Exp', '11.0')))
+if system.os() == 'darwin':
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.6', '10.7', '10.8', '10.9')))
+    vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os() == 'windows':
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
@@ -351,6 +354,10 @@ if env['COMPILER'] == 'gcc':
         ## tell gcc to compile a 64 bit binary
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+        env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
 
 elif env['COMPILER'] == 'msvc':
     MSVC_FLAGS  = " /W3"         # Warning level : 3

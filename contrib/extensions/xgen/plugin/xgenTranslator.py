@@ -14,6 +14,8 @@ class xgmDescriptionTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
         self.addSeparator()
+        self.addControl("renderMode", label="Render Mode")
+        self.addSeparator()
         self.addControl("motionBlurOverride", label="Motion Blur Override")
         self.addControl("motionBlurMode", label="Motion Blur Mode")
         self.addControl("motionBlurSteps", label="Motion_Blur_Steps")
@@ -22,7 +24,8 @@ class xgmDescriptionTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiMinPixelWidth", label="Min Pixel Width")
         self.addControl("aiMode", label= "Curve Mode")
-        self.addControl("aiBatchRenderPatch", label= "Batch Render Patch")
+        self.addControl("aiUseAuxRenderPatch", label = "Use Aux Render Patch")
+        self.addControl("aiAuxRenderPatch", label= "Auxilary Render Patch")
         
 
 templates.registerTranslatorUI(xgmDescriptionTemplate, "xgmDescription", "xgenTranslator")
