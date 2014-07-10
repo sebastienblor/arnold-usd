@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include "ViewportUtils.h"
+
 #include <ai.h>
 
 namespace{
@@ -211,30 +213,33 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
 
 void CArnoldSkyDomeLightDrawOverride::clearGPUResources()
 {
-    glDeleteShader(s_vertexShaderWireframe);
-    glDeleteShader(s_fragmentShaderWireframe);
-    glDeleteProgram(s_programWireframe);
+    if (s_isInitialized && InitializeGLEW())
+    {
+        glDeleteShader(s_vertexShaderWireframe);
+        glDeleteShader(s_fragmentShaderWireframe);
+        glDeleteProgram(s_programWireframe);
 
-    glDeleteShader(s_vertexShaderTextured);
-    glDeleteShader(s_fragmentShaderTextured);
-    glDeleteProgram(s_programTextured);
+        glDeleteShader(s_vertexShaderTextured);
+        glDeleteShader(s_fragmentShaderTextured);
+        glDeleteProgram(s_programTextured);
 
-    glDeleteBuffers(1, &s_VBO);
-    glDeleteBuffers(1, &s_IBOWireframe);
-    glDeleteBuffers(1, &s_IBOTextured);
+        glDeleteBuffers(1, &s_VBO);
+        glDeleteBuffers(1, &s_IBOWireframe);
+        glDeleteBuffers(1, &s_IBOTextured);
 
-    glDeleteVertexArrays(1, &s_VAOWireframe);
-    glDeleteVertexArrays(1, &s_VAOTexturedBall);
-    glDeleteVertexArrays(1, &s_VAOTexturedAngular);
-    glDeleteVertexArrays(1, &s_VAOTexturedLatLong);
+        glDeleteVertexArrays(1, &s_VAOWireframe);
+        glDeleteVertexArrays(1, &s_VAOTexturedBall);
+        glDeleteVertexArrays(1, &s_VAOTexturedAngular);
+        glDeleteVertexArrays(1, &s_VAOTexturedLatLong);
 
-    s_isValid = false;
-    s_isInitialized = false;
+        s_isValid = false;
+        s_isInitialized = false;
+    }
 }
 
 void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
 {
-    if (s_isInitialized == false)
+    if ((s_isInitialized == false) && InitializeGLEW())
     {
         s_isInitialized = true;
         s_isValid = false;

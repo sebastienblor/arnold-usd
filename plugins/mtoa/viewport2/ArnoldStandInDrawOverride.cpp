@@ -4,6 +4,8 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MTransformationMatrix.h>
 
+#include "ViewportUtils.h"
+
 #include <iostream>
 
 #include <ai.h>
@@ -177,7 +179,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
 
 void CArnoldStandInDrawOverride::initializeGPUResources()
 {
-    if (s_isInitialized == false)
+    if ((s_isInitialized == false) && InitializeGLEW())
     {
         s_isInitialized = true;
         s_isValid = false;
@@ -257,7 +259,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
 
 void CArnoldStandInDrawOverride::clearGPUResources()
 {
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         glDeleteBuffers(1, &s_VBO);
         glDeleteBuffers(1, &s_IBO);

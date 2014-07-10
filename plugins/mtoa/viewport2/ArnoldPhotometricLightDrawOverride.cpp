@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+#include "ViewportUtils.h"
+
 #include <ai.h>
 
 namespace{
@@ -133,7 +135,7 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
 
 void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
 {
-    if (s_isInitialized == false)
+    if ((s_isInitialized == false) && InitializeGLEW())
     {
         s_isInitialized = true;
         s_isValid = false;
@@ -178,7 +180,7 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
 
 void CArnoldPhotometricLightDrawOverride::clearGPUResources()
 {    
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
