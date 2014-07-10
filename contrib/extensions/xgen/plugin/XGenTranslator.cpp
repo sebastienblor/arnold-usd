@@ -444,7 +444,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       bool batchModeOk = false;
       
       // if maya session is in batch or  xgen render mode is batch we want to 
-      if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch() || info.renderMode == 3)
+      if((CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch()) || (info.renderMode == 3))
       {
          batchModeOk = true;
       }
