@@ -96,6 +96,12 @@ vars.AddVariables(
     PathVariable('ARNOLD_PYTHON', 
                  'Where to find Arnold python bindings', 
                  os.path.join('$ARNOLD', 'python'), PathVariable.PathIsDir),  
+    PathVariable('GLEW_INCLUDES', 
+                 'Where to find GLEW includes', 
+                 glew_default_include, PathVariable.PathIsDir),
+    PathVariable('GLEW_LIB', 
+                 'Where to find GLEW static library', 
+                 glew_default_lib, PathVariable.PathIsFile),
     PathVariable('TARGET_MODULE_PATH', 
                  'Path used for installation of the mtoa module', 
                  '.', PathVariable.PathIsDirCreate),
@@ -151,6 +157,9 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
+if system.os() == 'darwin':
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.6', '10.7', '10.8', '10.9')))
+    vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
@@ -353,6 +362,10 @@ if env['COMPILER'] == 'gcc':
         ## tell gcc to compile a 64 bit binary
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+        env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
 
 elif env['COMPILER'] == 'msvc':
     MSVC_FLAGS  = " /W3"         # Warning level : 3

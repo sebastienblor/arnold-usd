@@ -10,9 +10,8 @@ import os
 Import('maya_env')
 local_env = maya_env.Clone()
 
-if local_env['ENABLE_VP2']:
-    GLEW_INCLUDES = local_env.subst(local_env['GLEW_INCLUDES'])
-    GLEW_LIB = local_env.subst(local_env['GLEW_LIB'])
+GLEW_INCLUDES = local_env.subst(local_env['GLEW_INCLUDES'])
+GLEW_LIB = local_env.subst(local_env['GLEW_LIB'])
 
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')

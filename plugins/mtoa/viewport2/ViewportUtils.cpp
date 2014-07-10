@@ -1,5 +1,7 @@
 #include "ViewportUtils.h"
 
+#include <GL/glew.h>
+
 #include <maya/MShaderManager.h>
 #include <maya/MFragmentManager.h>
 
@@ -16,6 +18,7 @@ namespace{
                 fragmentMgr->addFragmentPath(searchPath);
         }
     }
+    int glewInitialized = -1;
 }
 
 void SetFragmentSearchPath(const MString& path)
@@ -68,4 +71,17 @@ bool LoadShadeFragment(const MString& shadeFragment)
         }
     }    
     return false;
+}
+
+bool InitializeGLEW()
+{
+    if (glewInitialized == -1)
+    {
+        GLenum err = glewInit();
+        if (GLEW_OK != err)
+            glewInitialized = 0;
+        else
+            glewInitialized = 1;
+    }
+    return glewInitialized == 1;
 }

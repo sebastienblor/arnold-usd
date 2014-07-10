@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#include "ViewportUtils.h"
+
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
 
@@ -167,7 +169,7 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 
 void CArnoldAreaLightDrawOverride::clearGPUResources()
 {
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
@@ -185,12 +187,12 @@ void CArnoldAreaLightDrawOverride::clearGPUResources()
 
 void CArnoldAreaLightDrawOverride::initializeGPUResources()
 {
-    if (s_isInitialized == false)
+    if ((s_isInitialized == false) && InitializeGLEW())
     {
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_4_3)
+        if (!GLEW_VERSION_3_2)
             return; // right now, only opengl 4.3, we can lower this later       
 
         s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
