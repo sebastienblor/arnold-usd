@@ -184,8 +184,8 @@
     maya.id                 INT     0x4449524c
     maya.classification     STRING  "light"
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr angle]
         min                 FLOAT   0.0
@@ -243,8 +243,8 @@
     maya.id                 INT     0x504f4954
     maya.classification     STRING  "light"
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr radius]
         min                 FLOAT   0.0
@@ -303,8 +303,8 @@
     maya.id                 INT     0x5350544c
     maya.classification     STRING  "light"
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr radius]
         min                 FLOAT   0.0
@@ -386,8 +386,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -443,8 +443,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -496,8 +496,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -564,8 +564,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -621,8 +621,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -677,8 +677,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
