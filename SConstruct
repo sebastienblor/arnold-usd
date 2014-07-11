@@ -156,10 +156,11 @@ vars.AddVariables(
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', '')
 )
 
-if system.os() == 'windows':
 if system.os() == 'darwin':
     vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.6', '10.7', '10.8', '10.9')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
+
+if system.os() == 'windows':    
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
@@ -236,8 +237,6 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
-    env.Append(GLEW_INCLUDES = Split(glew_default_include))
-    env.Append(GLEW_LIB = glew_default_lib)
 
 if int(maya_version_base) == 2012:
     env['MSVC_VERSION'] = '9.0'
