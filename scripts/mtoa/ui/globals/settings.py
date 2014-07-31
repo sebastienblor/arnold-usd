@@ -94,9 +94,10 @@ def updateLogSettings(*args):
     logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
 
 def getBackgroundShader(*args):
-    conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
-    if conns:
-        return conns[0].split('.')[0]
+    if cmds.objExists('defaultArnoldRenderOptions.background'):
+        conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
+        if conns:
+            return conns[0].split('.')[0]
     return ""
 
 def selectBackground(*args):
