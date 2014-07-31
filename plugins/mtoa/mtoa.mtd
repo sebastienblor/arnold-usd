@@ -712,6 +712,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
+    maya.swatch             BOOL    False
     [attr barndoor_bottom_edge]
         min                 FLOAT   0
         max                 FLOAT   1.0
@@ -756,6 +757,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
+    maya.swatch             BOOL    False
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -776,6 +778,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
     maya.output             INT     0x05
+    maya.swatch             BOOL    False
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -797,6 +800,7 @@
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight mesh"
+    maya.swatch             BOOL    False
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
