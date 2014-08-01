@@ -277,12 +277,8 @@ def registerArnoldRenderer():
             # AE Templates
             # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
             pm.evalDeferred(aeUtils.loadAETemplates)
-            if pm.mel.getApplicationVersionAsFloat() < 2013:
-                _addAEHooks()
-                aeUtils._makeAEProc('templates', 'shapeTemplate', 'AEshapeTemplate')
-            else:
-                import rendererCallbacks
-                rendererCallbacks.registerCallbacks()
+            import rendererCallbacks
+            rendererCallbacks.registerCallbacks()
             import mtoa.ui.ae.customShapeAttributes
             import mtoa.ui.ae.customShaderTemplates
             if not pm.about(batch=True):

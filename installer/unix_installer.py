@@ -51,7 +51,6 @@ if sys.argv[1] != '20135':
     mayaVersion = sys.argv[1]
 else:
     mayaVersion = '2013.5'
-enableEnvInstall = mayaVersion == '2012'
 
 userString = '~'
 sudoUser = ''
@@ -135,8 +134,7 @@ except:
 mtoaModPath = os.path.join(installDir, 'mtoa.mod')
 mtoaMod = open(mtoaModPath, 'w')
 mtoaMod.write('+ mtoa any %s\n' % installDir)
-if not enableEnvInstall:
-    mtoaMod.write('PATH +:= bin\n')
+mtoaMod.write('PATH +:= bin\n')
 mtoaMod.close()
 
 # setting up executables properly
@@ -169,27 +167,6 @@ if installMode == 1: # do the proper installation
         subprocess.call(['chown', sudoUser, os.path.join(modulesDir, 'mtoa.mod')])
     except:
         pass
-    if enableEnvInstall:
-        mayaEnvPath = os.path.join(mayaBaseDir, 'Maya.env')
-        mayaEnvContents = []
-        additionToEnv = ['PATH=$PATH:%s\n' % os.path.join(installDir, 'bin')]
-        if os.path.exists(mayaEnvPath):
-            for line in open(mayaEnvPath, 'r').readlines():
-                if line in additionToEnv:
-                    continue
-                if line[-1:] != '\n':
-                    line += '\n'
-                mayaEnvContents.append(line)
-        mayaEnv = open(mayaEnvPath, 'w')
-        for line in mayaEnvContents:
-            mayaEnv.write(line)
-        for line in additionToEnv:
-            mayaEnv.write(line)
-        mayaEnv.close()
-    try:
-        subprocess.call(['chown', '-R', sudoUser, installDir])
-    except:
-        print 'Error setting the user as the owner of the installation directory.'
     # install the renderer description file in the maya dir
     mayaInstallDir = ''
     if sys.platform == 'darwin':

@@ -238,9 +238,7 @@ if int(maya_version) >= 201450:
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
 
-if int(maya_version_base) == 2012:
-    env['MSVC_VERSION'] = '9.0'
-elif (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
+if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
     env['MSVC_VERSION'] = '10.0'
 elif int(maya_version_base) >= 2015:
     env['MSVC_VERSION'] = '11.0'
