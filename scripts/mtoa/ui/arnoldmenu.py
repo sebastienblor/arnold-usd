@@ -4,6 +4,7 @@ from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
 import maya.cmds as cmds
 import mtoa.txManager
+import mtoa.lightManager
 import arnold as ai
 
 
@@ -71,6 +72,10 @@ def arnoldTxManager():
     win = mtoa.txManager.MtoATxManager()
     win.create()
     win.refreshList()
+    
+def arnoldLightManager():
+    win = mtoa.lightManager.MtoALightManager()
+    win.create()
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -119,6 +124,9 @@ def createArnoldMenu():
                     
         pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldMenu',
                     c=lambda *args: arnoldTxManager())
+                    
+        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
+                    c=lambda *args: arnoldLightManager())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())

@@ -14,6 +14,9 @@ _callbackIds = om.MCallbackIdArray()
 global _nodeAddedCallbacks
 _nodeAddedCallbacks = defaultdict(list)
 
+global _nodeRemovedCallbacks
+_nodeRemovedCallbacks = defaultdict(list)
+
 global _attrChangedCallbacks
 _attrChangedCallbacks = {}
 
@@ -65,6 +68,23 @@ def _makeNodeAddedCB(nodeType):
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
+    
+def _makeNodeRemovedCB(nodeType):
+    def nodeRemovedCB(obj, *args):
+        # nodeAdded callback includes sub-types, but we want exact type only
+        mfn = pm.api.MFnDependencyNode(obj)
+        if mfn.typeName() != nodeType:
+            return
+        global _nodeRemovedCallbacks
+        for func, apiArgs in _nodeRemovedCallbacks[nodeType]:
+            if apiArgs:
+                func(obj)
+            else:
+                node = pm.PyNode(obj)
+                func(node)
+    # no unicode allowed
+    nodeRemovedCB.__name__ = "nodeRemovedCB_" + str(nodeType) 
+    return nodeRemovedCB
 
 def addNodeAddedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
     """
@@ -85,6 +105,29 @@ def addNodeAddedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
         cb = _makeNodeAddedCB(nodeType)
         manageCallback(om.MDGMessage.addNodeAddedCallback(cb, nodeType))
     _nodeAddedCallbacks[nodeType].append((func, apiArgs))
+    
+    if applyToExisting and apiArgs:
+        _updateExistingNodes(nodeType, func)
+        
+def addNodeRemovedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
+    """
+    creates and manages a node removed callback
+
+    Parameters
+    ----------
+    func : callback function
+        should take a single argument. the type of the argument is controlled by the apiArgs flag
+    nodeType : string
+        type of node to install callbacks for
+    applyToExisting : boolean
+        whether to apply the function to existing nodes
+    apiArgs : boolean
+        if True, api objects (MObjects, MPlugs, etc) are left as is. If False, they're converted to string names
+    """
+    if nodeType not in _nodeRemovedCallbacks:
+        cb = _makeNodeRemovedCB(nodeType)
+        manageCallback(om.MDGMessage.addNodeRemovedCallback(cb, nodeType))
+    _nodeRemovedCallbacks[nodeType].append((func, apiArgs))
     
     if applyToExisting and apiArgs:
         _updateExistingNodes(nodeType, func)
