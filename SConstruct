@@ -351,9 +351,6 @@ if env['COMPILER'] == 'gcc':
         else: 
             env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
             env.Append(LINKFLAGS = Split('-g')) 
-    if system.os() == 'linux' and env['MODE'] == 'profile':
-        env.Append(CCFLAGS = Split('-pg'))
-        env.Append(LINKFLAGS = Split('-pg'))
 
     if system.os() == 'darwin':
         ## tell gcc to compile a 64 bit binary
