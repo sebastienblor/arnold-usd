@@ -165,6 +165,17 @@ if system.os() == 'windows':
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
     tmp_env.Append(MSVC_ARCH = 'amd64')
+    MAYA_ROOT = tmp_env.subst(tmp_env['MAYA_ROOT'])
+    MAYA_INCLUDE_PATH = tmp_env.subst(tmp_env['MAYA_INCLUDE_PATH'])
+    if MAYA_INCLUDE_PATH == '.':
+        MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+    maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+    maya_version_base = maya_version[0:4]
+    if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
+        tmp_env['MSVC_VERSION'] = '10.0'
+    elif int(maya_version_base) >= 2015:
+        tmp_env['MSVC_VERSION'] = '11.0'
+    #print tmp_env['MSVC_VERSION']
     env = tmp_env.Clone(tools=['default'])
     # restore as the Clone overrides it
     env['TARGET_ARCH'] = 'x86_64'
@@ -200,10 +211,10 @@ if env['COLOR_CMDS']:
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
 MAYA_INCLUDE_PATH = env.subst(env['MAYA_INCLUDE_PATH'])
 if env['MAYA_INCLUDE_PATH'] == '.':
-	if system.os() == 'darwin':
-	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
-	else:
-	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+    if system.os() == 'darwin':
+        MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
+    else:
+        MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
 EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
@@ -237,11 +248,6 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
-
-if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
-    env['MSVC_VERSION'] = '10.0'
-elif int(maya_version_base) >= 2015:
-    env['MSVC_VERSION'] = '11.0'
 
 mercurial_id = ""
 try:
@@ -578,7 +584,7 @@ else:
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
         else:
-	          cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
+              cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
          
         if cmd :
             p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
