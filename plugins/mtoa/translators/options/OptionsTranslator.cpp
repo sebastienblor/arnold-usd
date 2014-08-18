@@ -421,8 +421,6 @@ void COptionsTranslator::Export(AtNode *options)
    MStringArray outputStrings;
 
    ExportAOVs();
-
-   SetCamera(options);
    
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
    
@@ -432,96 +430,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    MStatus status;
 
-   const AtNodeEntry* optionsEntry = AiNodeGetNodeEntry(options);
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(options));
-   while (!AiParamIteratorFinished(nodeParam))
-   {
-      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
-      const char* paramName = AiParamGetName(paramEntry);
-
-      if (strcmp(paramName, "name") != 0)
-      {
-         // Special cases
-         if (strcmp(paramName, "threads") == 0)
-         {
-            AiNodeSetInt(options, "threads", FindMayaPlug("threads_autodetect").asBool() ? 0 : FindMayaPlug("threads").asInt());
-         }
-         else if (strcmp(paramName, "AA_sample_clamp") == 0)
-         {
-            if (FindMayaPlug("use_sample_clamp").asBool())
-            {
-               CNodeTranslator::ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
-            }
-            if (FindMayaPlug("use_sample_clamp_AOVs").asBool())
-            {
-               CNodeTranslator::ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
-            }
-         }
-         else if (strcmp(paramName, "AA_seed") == 0)
-         {
-            // FIXME: this is supposed to use a connection to AA_seed attribute
-            if (!FindMayaPlug("lock_sampling_noise").asBool())
-            {
-               AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
-            }
-         }
-         else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
-         {
-            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
-         }
-         else if (strcmp(paramName, "bucket_scanning") == 0)
-         {
-            CNodeTranslator::ProcessParameter(options, "bucket_scanning", AI_TYPE_INT, "bucketScanning");
-         }
-         else if (strcmp(paramName, "texture_autotile") == 0)
-         {
-            AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
-         }
-         else
-         {
-            // Process parameter automatically
-            // FIXME: we can't use the default method since the options names don't
-            // follow the standard "toMayaStyle" behavior when no metadata is present
-            // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
-            const char* attrName;
-            MPlug plug;
-            if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
-            {
-               plug = FindMayaPlug(attrName);
-            }
-            else
-            {
-               plug = FindMayaPlug(paramName);
-            }
-            // Don't print warnings, just debug for missing options attributes are there are a lot
-            // that are not exposed in Maya
-            if (!plug.isNull())
-            {
-               ProcessParameter(options, paramName, AiParamGetType(paramEntry), plug);
-            }
-            else
-            {
-               // AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
-               //      GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
-            }
-         }
-      }
-   }
-   AiParamIteratorDestroy(nodeParam);
-
-   AddProjectFoldersToSearchPaths(options);
-
-   // BACKGROUND SHADER
-   //
-   MPlugArray conns;
-   MPlug pBG = FindMayaPlug("background");
-   pBG.connectedTo(conns, true, false);
-   if (conns.length() == 1)
-   {
-      AiNodeSetPtr(options, "background", ExportNode(conns[0]));
-   }
-
-   ExportAtmosphere(options);
+   Update(options);
 
    // frame number
    AiNodeDeclare(options, "frame", "constant FLOAT");
