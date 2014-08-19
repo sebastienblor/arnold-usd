@@ -309,20 +309,6 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                #ifdef DEBUG_MTOA
                         printf("found xgmSubdPatch!\n");
                #endif
-                        
-                        // Perform a check on the description suffix.
-                        std::string strCheckDesc = strChild.substr( strChild.size()-info.strDescription.size() );
-#ifdef DEBUG_MTOA
-                        printf( "%s == %s\n", strCheckDesc.c_str(), info.strDescription.c_str() );
-#endif
-                        if( strCheckDesc == info.strDescription )
-                        {
-                           std::string strChildSub = strChild.substr( 0, strChild.size() - (info.strDescription.size() + 1) );
-#ifdef DEBUG_MTOA
-                           printf("strPatch=%s\n",strChildSub.c_str() );
-#endif
-                           info.vecPatches.push_back( strChildSub );
-                        }
 
                         MFnDagNode  xgenNode;
                         xgenNode.setObject(xgenShape.node());
@@ -344,6 +330,18 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                         xmax += xlen*5*fUnitConvFactor;
                         ymax += ylen*5*fUnitConvFactor;
                         zmax += zlen*5*fUnitConvFactor; 
+
+                        MPlug geo = xgenNode.findPlug ( "geometry");
+                        MPlugArray connections;
+                        geo.connectedTo(connections, true, false);
+                        if (connections.length() > 0)
+                        {
+                           MFnDagNode patch;
+                           patch.setObject(connections[0].node());
+                           patch.setObject(patch.parent(0));
+                           std::string strChildSub = patch.name().asChar();
+                           info.vecPatches.push_back( strChildSub );
+                        }
 
                         //printf("bbox: %f, %f, %f, %f, %f, %f\n",xmin,ymin,zmin,xmax,ymax,zmax);
 
