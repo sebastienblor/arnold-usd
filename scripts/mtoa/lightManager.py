@@ -241,9 +241,10 @@ class MtoALightManager(object):
                 cmds.connectControl('lightManager_samples_'+elementName, elementName+'.aiSamples', index=1)
                 cmds.connectControl('lightManager_samples_'+elementName, elementName+'.aiSamples', index=2)
                 
-                cmds.checkBoxGrp('lightManager_visibility_'+elementName, columnAlign=[1,'right'], columnAttach=[(1, 'both', 12)])
+                cmds.checkBoxGrp('lightManager_visibility_'+elementName, label="E:", columnWidth2=[18,22])
                 try:
                     cmds.connectControl('lightManager_visibility_'+elementName, elementName+'.visibility', index=1)
+                    cmds.connectControl('lightManager_visibility_'+elementName, elementName+'.visibility', index=2)
                 except:
                     pass
                     
