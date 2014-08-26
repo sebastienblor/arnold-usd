@@ -1342,6 +1342,21 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
             break;
          }
       }
+      else if (oAttr.hasFn(MFn::kMessageAttribute) && (attributeDeclaration == DECLARATION_CONSTANT))
+      {
+         MPlugArray pArr;
+         pAttr.connectedTo(pArr, true, false);
+         if (pArr.length() > 0)
+         {
+            MPlug connectedPlug = pArr[0];
+            AtNode* connectedNode = translator->ExportNode(connectedPlug);
+            if (connectedNode != 0)
+            {
+               AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE);
+               AiNodeSetPtr(anode, aname, connectedNode);
+            }
+         }
+      }      
       //else
       //   AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
       //         GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
