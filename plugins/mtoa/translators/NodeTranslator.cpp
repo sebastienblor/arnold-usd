@@ -2350,6 +2350,11 @@ AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
    AtByte visibility = AI_RAY_ALL;
    MPlug plug;
 
+   plug = FindMayaPlug("visibility");
+
+   if (!plug.isNull() && !plug.asBool())
+      return 0;
+
    plug = FindMayaPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
    {
