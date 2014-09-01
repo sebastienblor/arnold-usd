@@ -275,7 +275,7 @@ CPhotometricLightPrimitive::CPhotometricLightPrimitive()
 
 #include <iostream>
 
-CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
+CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0),
    m_numLineIndices(0)
 {
 
@@ -284,7 +284,6 @@ CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
 CGLPrimitive::~CGLPrimitive()
 {
    glDeleteBuffers(2, m_GLBuffers);
-   glDeleteVertexArrays(1, &m_VAO);
 }
 
 void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices)
@@ -299,23 +298,21 @@ void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVerti
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-   glGenVertexArrays(1, &m_VAO);
-   glBindVertexArray(m_VAO);
-   glEnableVertexAttribArray(0);
-   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-   glBindVertexArray(0);
    m_numLineIndices = numIndices;
 }
 
 void CGLPrimitive::draw() const
 {
-   glBindVertexArray(m_VAO);
+   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, (char*)0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
 
    glDrawElements(GL_LINES, m_numLineIndices, GL_UNSIGNED_INT, 0);
 
-   glBindVertexArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 CGLQuadLightPrimitive::CGLQuadLightPrimitive()

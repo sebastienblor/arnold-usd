@@ -8,21 +8,19 @@
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
 
-const char* shaderUniforms = "#version 150\n"
+const char* shaderUniforms = "#version 120\n"
 "uniform mat4 model;\n"
 "uniform mat4 viewProj;\n"
 "uniform vec4 shadeColor;\n";
 
 const char* vertexShader = 
-"in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = viewProj * (model * vec4(position, 1.0f));\n"
+"gl_Position = viewProj * (model * gl_Vertex);\n"
 "}\n";
 
 const char* fragmentShader =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";
+"void main() { gl_FragColor = shadeColor;}\n";
 
 GLuint CArnoldAreaLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_fragmentShader = 0;
@@ -192,8 +190,8 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_3_2)
-            return; // right now, only opengl 4.3, we can lower this later       
+        if (!GLEW_VERSION_2_1)
+            return; // right now, only opengl 4.3, we can lower this later 
 
         s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
         const char* stringPointers[2] = {shaderUniforms, vertexShader};

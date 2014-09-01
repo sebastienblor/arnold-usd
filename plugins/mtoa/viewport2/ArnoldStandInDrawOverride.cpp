@@ -11,22 +11,20 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 150\n"
+    const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
 "uniform vec4 scale;"
 "uniform vec4 offset;"
 "uniform vec4 shadeColor;\n";
 
     const char* vertexShader = 
-"in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = modelViewProj * vec4(position * scale.xyz + offset.xyz, 1.0f);\n"
+"gl_Position = modelViewProj * vec4(gl_Vertex.xyz * scale.xyz + offset.xyz, 1.0f);\n"
 "}\n";
 
     const char* fragmentShader =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";    
+"void main() { gl_FragColor = shadeColor;}\n";    
 }
 
 GLuint CArnoldStandInDrawOverride::s_vertexShader = 0;
@@ -184,7 +182,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_3_2)
+        if (!GLEW_VERSION_2_1)
             return; // right now, only opengl 4.3, we can lower this later
 
         // program for wireframe display

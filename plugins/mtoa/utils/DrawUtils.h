@@ -60,7 +60,6 @@ protected:
       };
       unsigned int m_GLBuffers[2];
    };
-   unsigned int m_VAO;
    unsigned int m_numLineIndices;
    CGLPrimitive();
    void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);

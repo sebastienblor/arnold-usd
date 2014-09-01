@@ -11,20 +11,18 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 150\n"
+    const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
 "uniform vec4 shadeColor;\n";
 
     const char* vertexShader = 
-"in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = modelViewProj * vec4(position, 1.0f);\n"
+"gl_Position = modelViewProj * gl_Vertex;\n"
 "}\n";
 
     const char* fragmentShader =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";    
+"void main() { gl_FragColor = shadeColor;}\n";    
 }
 
 GLuint CArnoldPhotometricLightDrawOverride::s_vertexShader = 0;
@@ -140,7 +138,7 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_3_2)
+        if (!GLEW_VERSION_2_1)
             return;
 
         // program for wireframe display
