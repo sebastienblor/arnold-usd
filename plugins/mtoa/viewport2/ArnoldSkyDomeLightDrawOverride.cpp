@@ -11,32 +11,29 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 150\n"
+    const char* shaderUniforms = "#version 120\n"
 "uniform mat4 model;\n"
 "uniform mat4 viewProj;\n"
 "uniform float scale;\n"
 "uniform vec4 shadeColor;\n";
 
     const char* vertexShaderWireframe = 
-"in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = viewProj * (model * vec4(scale * position, 1.0f));\n"
+"gl_Position = viewProj * (model * vec4(scale * gl_Vertex.xyz, 1.0f));\n"
 "}\n";
 
     const char* vertexShaderTextured = 
-"in vec3 position;\n"
 "in vec2 texcoord;\n"
 "out vec2 tx;\n"
 "void main()\n"
 "{\n"
-"gl_Position = viewProj * (scale * vec4(position, 1.0f));\n"
+"gl_Position = viewProj * (scale * vec4(gl_Vertex, 1.0f));\n"
 "tx = texcoord;\n"
 "}\n";    
 
     const char* fragmentShaderWireframe =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";
+"void main() { gl_FragColor = shadeColor;}\n";
 
     const char* fragmentShaderTextured =
 "in vec2 tx;\n"
@@ -58,11 +55,6 @@ bool CArnoldSkyDomeLightDrawOverride::s_isInitialized = false;
 GLuint CArnoldSkyDomeLightDrawOverride::s_VBO = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_IBOWireframe = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_IBOTextured = 0;
-
-GLuint CArnoldSkyDomeLightDrawOverride::s_VAOWireframe = 0;
-GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedBall = 0;
-GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedAngular = 0;
-GLuint CArnoldSkyDomeLightDrawOverride::s_VAOTexturedLatLong = 0;
 
 GLint CArnoldSkyDomeLightDrawOverride::s_modelLocWireframe = 0;
 GLint CArnoldSkyDomeLightDrawOverride::s_viewProjLocWireframe = 0;
@@ -189,11 +181,13 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
 
-    if (context.getDisplayStyle() & MHWRender::MDrawContext::kGouraudShaded)
+    const int stride = 3 + 3 * 2;
+
+    /*if (context.getDisplayStyle() & MHWRender::MDrawContext::kGouraudShaded)
     {
 
     }
-    else
+    else*/
     {
         glUseProgram(s_programWireframe);
 
@@ -203,11 +197,19 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
         glUniform4f(s_shadeColorLocWireframe, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
             userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
 
-        glBindVertexArray(s_VAOWireframe);
+        //glBindVertexArray(s_VAOWireframe);
+        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(3, GL_FLOAT, stride * sizeof(float), (char*)0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBOWireframe);
+
         glDrawElements(GL_LINES, s_numWireframeIndices, GL_UNSIGNED_INT, 0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glDisableClientState(GL_VERTEX_ARRAY);
     }
     
-    glBindVertexArray(0);
     glUseProgram(0);
 }
 
@@ -227,11 +229,6 @@ void CArnoldSkyDomeLightDrawOverride::clearGPUResources()
         glDeleteBuffers(1, &s_IBOWireframe);
         glDeleteBuffers(1, &s_IBOTextured);
 
-        glDeleteVertexArrays(1, &s_VAOWireframe);
-        glDeleteVertexArrays(1, &s_VAOTexturedBall);
-        glDeleteVertexArrays(1, &s_VAOTexturedAngular);
-        glDeleteVertexArrays(1, &s_VAOTexturedLatLong);
-
         s_isValid = false;
         s_isInitialized = false;
     }
@@ -244,7 +241,7 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_3_2)
+        if (!GLEW_VERSION_2_1)
             return; // right now, only opengl 4.3, we can lower this later
 
         // program for wireframe display
@@ -275,7 +272,7 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
 
         // program for textured display
 
-        s_vertexShaderTextured = glCreateShader(GL_VERTEX_SHADER);
+        /*s_vertexShaderTextured = glCreateShader(GL_VERTEX_SHADER);
         stringPointers[1] = vertexShaderTextured;
         glShaderSource(s_vertexShaderTextured, 2, stringPointers, 0);
         glCompileShader(s_vertexShaderTextured);
@@ -297,7 +294,7 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         glLinkProgram(s_programTextured);
 
         if (checkProgramError(s_programTextured))
-            return;
+            return;*/
 
         s_isValid = true;
 
@@ -395,14 +392,6 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, s_numWireframeIndices * sizeof(unsigned int),
                         indicesWireframe, GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-        glGenVertexArrays(1, &s_VAOWireframe);
-        glBindVertexArray(s_VAOWireframe);
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBOWireframe);
-        glBindVertexArray(0);
 
         s_modelLocWireframe = glGetUniformLocation(s_programWireframe, "model");
         s_viewProjLocWireframe = glGetUniformLocation(s_programWireframe, "viewProj");
