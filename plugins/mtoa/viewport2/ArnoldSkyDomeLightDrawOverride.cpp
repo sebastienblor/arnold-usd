@@ -23,31 +23,31 @@ namespace{
 "gl_Position = viewProj * (model * vec4(scale * gl_Vertex.xyz, 1.0f));\n"
 "}\n";
 
-    const char* vertexShaderTextured = 
+    /*const char* vertexShaderTextured = 
 "in vec2 texcoord;\n"
 "out vec2 tx;\n"
 "void main()\n"
 "{\n"
 "gl_Position = viewProj * (scale * vec4(gl_Vertex, 1.0f));\n"
 "tx = texcoord;\n"
-"}\n";    
+"}\n";*/    
 
     const char* fragmentShaderWireframe =
 "void main() { gl_FragColor = shadeColor;}\n";
 
-    const char* fragmentShaderTextured =
+    /*const char* fragmentShaderTextured =
 "in vec2 tx;\n"
 "out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";    
+"void main() { frag_color = shadeColor;}\n";*/    
 }
 
 GLuint CArnoldSkyDomeLightDrawOverride::s_vertexShaderWireframe = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_fragmentShaderWireframe = 0;
 GLuint CArnoldSkyDomeLightDrawOverride::s_programWireframe = 0;
 
-GLuint CArnoldSkyDomeLightDrawOverride::s_vertexShaderTextured = 0;
-GLuint CArnoldSkyDomeLightDrawOverride::s_fragmentShaderTextured = 0;
-GLuint CArnoldSkyDomeLightDrawOverride::s_programTextured = 0;
+//GLuint CArnoldSkyDomeLightDrawOverride::s_vertexShaderTextured = 0;
+//GLuint CArnoldSkyDomeLightDrawOverride::s_fragmentShaderTextured = 0;
+//GLuint CArnoldSkyDomeLightDrawOverride::s_programTextured = 0;
 
 bool CArnoldSkyDomeLightDrawOverride::s_isValid = false;
 bool CArnoldSkyDomeLightDrawOverride::s_isInitialized = false;
@@ -221,9 +221,9 @@ void CArnoldSkyDomeLightDrawOverride::clearGPUResources()
         glDeleteShader(s_fragmentShaderWireframe);
         glDeleteProgram(s_programWireframe);
 
-        glDeleteShader(s_vertexShaderTextured);
-        glDeleteShader(s_fragmentShaderTextured);
-        glDeleteProgram(s_programTextured);
+        //glDeleteShader(s_vertexShaderTextured);
+        //glDeleteShader(s_fragmentShaderTextured);
+        //glDeleteProgram(s_programTextured);
 
         glDeleteBuffers(1, &s_VBO);
         glDeleteBuffers(1, &s_IBOWireframe);
