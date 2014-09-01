@@ -182,7 +182,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_3_2)
+        if (!GLEW_VERSION_2_1)
             return; // right now, only opengl 4.3, we can lower this later
 
         // program for wireframe display
