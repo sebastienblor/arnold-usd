@@ -318,7 +318,8 @@ def registerArnoldRenderer():
                         break
                     except:
                         pass
-            arnoldShelf.createArnoldShelf()
+            if not pm.about(batch=True):
+                pm.evalDeferred(arnoldShelf.createArnoldShelf)
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
