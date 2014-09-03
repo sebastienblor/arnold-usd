@@ -9,22 +9,20 @@
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 150\n"
+    const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
 "uniform vec4 scale;"
 "uniform vec4 offset;"
 "uniform vec4 shadeColor;\n";
 
-    const char* vertexShader = 
-"in vec3 position;\n"
+    const char* vertexShader =
 "void main()\n"
 "{\n"
-"gl_Position = modelViewProj * vec4(position * scale.xyz + offset.xyz, 1.0f);\n"
+"gl_Position = modelViewProj * vec4(gl_Vertex.xyz * scale.xyz + offset.xyz, 1.0f);\n"
 "}\n";
 
     const char* fragmentShader =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";    
+"void main() { gl_FragColor = shadeColor;}\n";    
 #ifdef _WIN32
 #pragma pack(1)
     struct SConstantBuffer{
@@ -226,7 +224,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
 
         if (theRenderer->drawAPIIsOpenGL())
         {
-            if (!GLEW_VERSION_4_3)
+            if (!GLEW_VERSION_2_1)
                 return; // right now, only opengl 4.3, we can lower this later
 
             // program for wireframe display
