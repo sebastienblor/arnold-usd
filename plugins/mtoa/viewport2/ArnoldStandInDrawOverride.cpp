@@ -195,6 +195,16 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         glBindVertexArray(0);
         glUseProgram(0);
     }
+    else
+    {
+        ID3D11Device* device = reinterpret_cast<ID3D11Device*>(theRenderer->GPUDeviceHandle());
+        if (!device)
+            return;
+        ID3D11DeviceContext* context = 0;
+        device->GetImmediateContext(&context);
+        if (!context)
+            return;
+    }
 }
 
 void CArnoldStandInDrawOverride::initializeGPUResources()
@@ -319,23 +329,25 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             ID3DBlob* vertexShaderBlob = 0;
             ID3DBlob* pixelShaderBlob = 0;
             ID3DBlob* errorBlob = 0;
-            MString effectLocation = MString(getenv("MTOA_PATH")) + MString("\\vp2\\standInBBox.hlsl");
+            //MString effectLocation = MString(getenv("MTOA_PATH")) + MString("vp2/standInBBox.hlsl");
+            MString effectLocation = "C:\\work\\deploy\\2015\\vp2\\standInBBox.hlsl";
 
             hr = D3DCompileFromFile(
-                (LPCWSTR)effectLocation.asChar(),
+                effectLocation.asWChar(),
                 0,
                 0,
                 "mainVS",
                 "vs_5_0",
-                0,
+                shaderFlags,
                 0,
                 &vertexShaderBlob,
                 &errorBlob);
             if (FAILED(hr))
-            {
+            {                
                 if (errorBlob) errorBlob->Release();
                 return;  
             }
+
             if (errorBlob) errorBlob->Release();
             hr = device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), 0, &s_pDXVertexShader);
             if (FAILED(hr))
@@ -345,7 +357,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             }
 
             hr = D3DCompileFromFile(
-                (LPCWSTR)effectLocation.asChar(),
+                effectLocation.asWChar(),
                 0,
                 0,
                 "mainPS",
