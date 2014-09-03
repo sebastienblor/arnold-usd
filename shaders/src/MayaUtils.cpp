@@ -26,10 +26,10 @@ float RampLuminance(const AtRGB &color)
    return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
 }
 
-float RampLuminance(const AtRGBA &color)
+/*float RampLuminance(const AtRGBA &color)
 {
    return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
-}
+}*/
 
 template <typename ValType>
 void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)

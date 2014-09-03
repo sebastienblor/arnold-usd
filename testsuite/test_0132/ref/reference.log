@@ -1,70 +1,45 @@
+Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0132\test_0132.log', using stdout instead
 
-Starting "/usr/autodesk/maya2012-x64/bin/maya"
-
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
-libai.so already loaded
-
-Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
+Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
 mental ray for Maya 2012 
-// Mental ray for Maya: using startup file /usr/autodesk/maya2012-x64/mentalray/maya.rayrc.
-mental ray for Maya: setup
-mental ray for Maya: initialize
-mental ray: version 3.9.1.48, Dec  8 2011, revision 162457
-mental ray for Maya: using 1 license
-mental ray for Maya: register extensions
-// mental ray Node Factory: loaded
-mental ray for Maya: successfully registered
-mental ray for Maya: loading startup file: /usr/autodesk/maya2012-x64/mentalray/maya.rayrc
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/AdskShaderSDKWrappers.mi
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/architectural.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/architectural.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/base.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/base.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/contour.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/contour.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/paint.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/paint.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/physics.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/physics.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/production.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/production.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/shaveMRShader.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/shaveMRShader.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/subsurface.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/subsurface.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/surfaceSampler.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/surfaceSampler.so
-// generating Maya nodes...
-// parsing /usr/autodesk/maya2012-x64/mentalray/include/userdata.mi
-// loading /usr/autodesk/maya2012-x64/mentalray/lib/userdata.so
-// generating Maya nodes...
-File read in 0 seconds.
-Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0132/test.ma
-Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0132/test.ma completed.
+mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
+
+Error: TypeError: 'bool' object is not iterable
+00:00:00   236MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
+ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, mtoa, ikSpringSolver, Mayatomr, decomposeMatrix, tiffFloatReader, shaveNode, VectorRender, studioImport, mayaCharacterization, rotateHelper, MayaMuscle, Substance, OneClick, fbxmaya, ik2Bsolver
+Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.pyc)
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEbump2dTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEdisplacementShaderTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEfileTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEobjectSetTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEprojectionTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEshadingEngineTemplate.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/startup/buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/renderCreateBarUI.mel
+Successfully registered renderer 'arnold'
+File read in 1 seconds.
+Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201217/msvc_opt/testsuite/test_0132/test.ma
+Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0132\test.ma completed.

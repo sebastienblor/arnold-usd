@@ -68,7 +68,7 @@ void CSpotLightTranslator::Export(AtNode* light)
 
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
+   AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + MAX(0.0, fnLight.penumbraAngle()) * 2.0f) * AI_RTOD));
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
@@ -482,6 +482,7 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.name = "color";
    data.shortName = "sc";
    data.defaultValue.RGB = AI_RGB_WHITE;
+   data.keyable = false;
    data.channelBox = true;
    helper.MakeInputRGB(data);
 
@@ -490,18 +491,21 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    data.min.FLT = 0.0f;
    data.softMax.FLT = 10.0f;
    data.defaultValue.FLT = 1.0f;
+   data.keyable = false;
    data.channelBox = true;
    helper.MakeInputFloat(data);
 
    data.name = "emitDiffuse";
    data.shortName = "emitDiffuse";
    data.defaultValue.BOOL = true;
+   data.keyable = false;
    data.channelBox = true;
    helper.MakeInputBoolean(data);
 
    data.name = "emitSpecular";
    data.shortName = "emitSpecular";
    data.defaultValue.BOOL = true;
+   data.keyable = false;
    data.channelBox = true;
    helper.MakeInputBoolean(data);
 

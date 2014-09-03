@@ -14,8 +14,14 @@ _callbackIds = om.MCallbackIdArray()
 global _nodeAddedCallbacks
 _nodeAddedCallbacks = defaultdict(list)
 
+global _nodeRemovedCallbacks
+_nodeRemovedCallbacks = defaultdict(list)
+
 global _attrChangedCallbacks
 _attrChangedCallbacks = {}
+
+global _nameChangedCallbacks
+_nameChangedCallbacks = defaultdict(list)
 
 CONTEXTS = [om.MNodeMessage.kConnectionMade,
             om.MNodeMessage.kConnectionBroken,
@@ -65,6 +71,23 @@ def _makeNodeAddedCB(nodeType):
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
+    
+def _makeNodeRemovedCB(nodeType):
+    def nodeRemovedCB(obj, *args):
+        # nodeAdded callback includes sub-types, but we want exact type only
+        mfn = pm.api.MFnDependencyNode(obj)
+        if mfn.typeName() != nodeType:
+            return
+        global _nodeRemovedCallbacks
+        for func, apiArgs in _nodeRemovedCallbacks[nodeType]:
+            if apiArgs:
+                func(obj)
+            else:
+                node = pm.PyNode(obj)
+                func(node)
+    # no unicode allowed
+    nodeRemovedCB.__name__ = "nodeRemovedCB_" + str(nodeType) 
+    return nodeRemovedCB
 
 def addNodeAddedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
     """
@@ -85,6 +108,29 @@ def addNodeAddedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
         cb = _makeNodeAddedCB(nodeType)
         manageCallback(om.MDGMessage.addNodeAddedCallback(cb, nodeType))
     _nodeAddedCallbacks[nodeType].append((func, apiArgs))
+    
+    if applyToExisting and apiArgs:
+        _updateExistingNodes(nodeType, func)
+        
+def addNodeRemovedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
+    """
+    creates and manages a node removed callback
+
+    Parameters
+    ----------
+    func : callback function
+        should take a single argument. the type of the argument is controlled by the apiArgs flag
+    nodeType : string
+        type of node to install callbacks for
+    applyToExisting : boolean
+        whether to apply the function to existing nodes
+    apiArgs : boolean
+        if True, api objects (MObjects, MPlugs, etc) are left as is. If False, they're converted to string names
+    """
+    if nodeType not in _nodeRemovedCallbacks:
+        cb = _makeNodeRemovedCB(nodeType)
+        manageCallback(om.MDGMessage.addNodeRemovedCallback(cb, nodeType))
+    _nodeRemovedCallbacks[nodeType].append((func, apiArgs))
     
     if applyToExisting and apiArgs:
         _updateExistingNodes(nodeType, func)
@@ -124,6 +170,26 @@ def _makeInstallAttributeChangedCallback(nodeType):
 #        _attrChangedCallbacks[_getHandle(node)]
         manageCallback(om.MNodeMessage.addAttributeChangedCallback(obj, attrChanged))
     return installAttrChangeCallback
+    
+def _makeInstallNameChangedCallback(nodeType):
+    """
+    make a function to be used with a nodeAdded callback which
+    installs nameChanged callbacks
+    """
+    def installNameChangeCallback(obj):
+        fnNode = om.MFnDependencyNode(obj)
+        # nodeAdded callback includes sub-types, but we want exact type only
+        if fnNode.typeName() != nodeType:
+            return
+        # scriptJob does not receive an arg, but we want ours to
+        def nameChanged(obj, name, *args):
+            global _nameChangedCallbacks
+            for func, apiArgs in _nameChangedCallbacks[nodeType]:
+                func(obj, name, *args)
+            
+        manageCallback(om.MNodeMessage.addNameChangedCallback(obj, nameChanged))
+    return installNameChangeCallback
+
 
 def _updateExistingNodes(nodeType, func):
     fnNode = om.MFnDependencyNode()
@@ -211,6 +277,32 @@ def addAttributeChangedCallbacks(nodeType, attrFuncs, context=ANY_CHANGE):
 
 def removeAttributeChangedCallbacks(nodeType, attribute):
     return _attrChangedCallbacks[nodeType].pop(attribute)
+    
+    
+def addNameChangedCallback(func, nodeType, context=ANY_CHANGE, applyToExisting=True):
+    """
+    creates and manages a name changed callback
+
+    Parameters
+    ----------
+    func : function
+        should take a single string arg for the node of the attribute that changed
+    nodeType : string
+        type of node to install attribute changed callbacks for 
+    applyToExisting : boolean
+        whether to apply the function to existing nodes
+    """
+    assert callable(func), "please pass a function as the first argument"
+    global _nameChangedCallbacks
+    nodeAddedCallback = _makeInstallNameChangedCallback(nodeType)
+    if nodeType not in _nameChangedCallbacks:
+        # add a callback which creates the scriptJob that calls our function
+        addNodeAddedCallback(nodeAddedCallback, nodeType, applyToExisting=False, apiArgs=True)
+        _nameChangedCallbacks[nodeType].append((func, context))
+
+    # setup callback for existing nodes
+    if applyToExisting and not om.MFileIO.isOpeningFile():
+        _updateExistingNodes(nodeType, nodeAddedCallback)
 
 # cleanup callbacks once the mtoa plugin unloads
 manageCallback(om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginUnload, _removeCallbacks, None))

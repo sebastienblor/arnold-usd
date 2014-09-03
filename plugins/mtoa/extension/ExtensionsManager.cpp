@@ -703,7 +703,7 @@ MStatus CExtensionsManager::DeregisterExtensions()
    {
       if (extIt->IsRegistered() || extIt->IsDeferred())
       {
-         MStatus extStatus = RegisterExtension(&(*extIt));
+         MStatus extStatus = DeregisterExtension(&(*extIt));
          if (MStatus::kSuccess != extStatus) status = extStatus;
       }
    }

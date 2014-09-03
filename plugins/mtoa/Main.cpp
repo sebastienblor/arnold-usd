@@ -1,7 +1,7 @@
 #ifdef ENABLE_VP2
-#include <GL/glew.h>
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
+#include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
@@ -54,7 +54,6 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
-#include "translators/shape/XGenTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
@@ -165,6 +164,53 @@ namespace // <anonymous>
       }
    };
 
+#ifdef ENABLE_VP2
+
+   struct shadingNodeOverride{
+      MString classification;
+      MString registrant;
+      MHWRender::MPxSurfaceShadingNodeOverride* (*creator)(const MObject&);
+   } shadingNodeOverrideList [] = {
+      {
+         "drawdb/shader/surface/arnold/standard",
+         "arnoldStandardShaderOverride",
+         ArnoldStandardShaderOverride::creator
+      } , {
+         "drawdb/shader/surface/arnold/skin",
+         "arnoldSkinShaderOverride",
+         ArnoldSkinShaderOverride::creator
+      } , {
+         "drawdb/shader/surface/arnold/genericShader",
+         "arnoldGenericShaderOverride",
+         ArnoldGenericShaderOverride::creator
+      }
+   };
+
+   struct drawOverride{
+      MString registrant;
+      MString classification;
+      MHWRender::MPxDrawOverride* (*creator)(const MObject&);
+   } drawOverrideList [] = {
+      {
+         "arnoldAreaLightNodeOverride",
+         AI_AREA_LIGHT_CLASSIFICATION,
+         CArnoldAreaLightDrawOverride::creator
+      } , {
+         "arnoldSkyDomeLightNodeOverride",
+         AI_SKYDOME_LIGHT_CLASSIFICATION,
+         CArnoldSkyDomeLightDrawOverride::creator
+      } , {
+         "arnoldStandInNodeOverride",
+         AI_STANDIN_CLASSIFICATION,
+         CArnoldStandInDrawOverride::creator
+      } , {
+         "arnoldPhotometricLightNodeOverride",
+         AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
+         CArnoldPhotometricLightDrawOverride::creator
+      }
+   };
+#endif
+
    template < typename T, size_t N >
    size_t sizeOfArray(T const (&array)[ N ])
    {
@@ -264,7 +310,6 @@ namespace // <anonymous>
       builtin->RegisterTranslator("lightLinker",
                                     "",
                                     CLightLinkerTranslator::creator);
-
       // Geometry
       builtin->RegisterTranslator("mesh",
                                     "polymesh",
@@ -328,8 +373,7 @@ namespace // <anonymous>
       builtin->RegisterTranslator("stereoRigCamera",
                                     "spherical",
                                     CSphericalCameraTranslator::creator,
-                                    CSphericalCameraTranslator::NodeInitializer);
-                                 
+                                    CSphericalCameraTranslator::NodeInitializer);                                 
        // Hair
       builtin->RegisterTranslator("pfxHair",
                                     "",
@@ -484,17 +528,6 @@ namespace // <anonymous>
                                        CFluidTexture2DTranslator::creator);
       }
       
-#ifdef ENABLE_XGEN
-      // register the xgen extesion separately
-      CExtension* xgen = CExtensionsManager::NewExtension("xgen");
-      xgen->Requires("xgenToolkit");
-      xgen->RegisterTranslator("xgmDescription",
-                                 "",
-                                 CXgDescriptionTranslator::creator, CXgDescriptionTranslator::NodeInitializer);
-
-      CExtensionsManager::RegisterExtension(xgen);
-#endif
-
       // Will load all found plugins and try to register nodes and translators
 
 
@@ -584,19 +617,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MStatus status, returnStatus;
    returnStatus = MStatus::kSuccess;
-
-#ifdef ENABLE_VP2
-   if (MGlobal::mayaState() == MGlobal::kInteractive)
-   {
-      GLenum err = glewInit();
-      if (GLEW_OK != err)
-      {
-         returnStatus = MStatus::kFailure;
-         returnStatus.perror("Erorr initializing GLEW!");
-         return returnStatus;
-      }
-   }
-#endif  
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
@@ -762,62 +782,25 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
 
 #ifdef ENABLE_VP2
-   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
-   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
+   for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+   {
+      const shadingNodeOverride& override = shadingNodeOverrideList[i];
+      status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
+               override.classification,
+               override.registrant,
+               override.creator);
+      CHECK_MSTATUS(status);
+   }
 
-   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
-               arnoldStandardOverrideClassification,
-               shaderOverrideRegistrant,
-               ArnoldStandardShaderOverride::creator);
-
-   CHECK_MSTATUS(status);
-
-   MString arnoldSkinOverrideClassification = "drawdb/shader/surface/arnold/skin";
-   MString skinShaderOverrideRegistrant = "arnoldSkinShaderOverride";
-
-   status = MHWRender::MDrawRegistry::registerSurfaceShadingNodeOverrideCreator(
-               arnoldSkinOverrideClassification,
-               skinShaderOverrideRegistrant,
-               ArnoldSkinShaderOverride::creator);
-
-   CHECK_MSTATUS(status);
-
-
-   MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
-
-   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
-               AI_AREA_LIGHT_CLASSIFICATION,
-               areaLightOverrideRegistrant,
-               CArnoldAreaLightDrawOverride::creator);
-
-   CHECK_MSTATUS(status);
-
-   MString skyDomeLightOverrideRegistrant = "arnoldSkyDomeLightNodeOverride";
-
-   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
-               AI_SKYDOME_LIGHT_CLASSIFICATION,
-               skyDomeLightOverrideRegistrant,
-               CArnoldSkyDomeLightDrawOverride::creator);
-
-   CHECK_MSTATUS(status);
-
-   MString standinOverrideRegistrant = "arnoldStandInNodeOverride";
-
-   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
-               AI_STANDIN_CLASSIFICATION,
-               standinOverrideRegistrant,
-               CArnoldStandInDrawOverride::creator);
-
-   CHECK_MSTATUS(status);
-
-   MString photometricLightOverrideRegistrant = "arnoldPhotometricLightNodeOverride";
-
-   status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
-               AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
-               photometricLightOverrideRegistrant,
-               CArnoldPhotometricLightDrawOverride::creator);
-
-   CHECK_MSTATUS(status);
+   for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
+   {
+      const drawOverride& override = drawOverrideList[i];
+      status = MHWRender::MDrawRegistry::registerDrawOverrideCreator(
+               override.classification,
+               override.registrant,
+               override.creator);
+      CHECK_MSTATUS(status);
+   }
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -890,58 +873,23 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       }
    }
 #ifdef ENABLE_VP2
-   MString arnoldStandardOverrideClassification = "drawdb/shader/surface/arnold/standard";
-   MString shaderOverrideRegistrant = "arnoldStandardShaderOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-                  arnoldStandardOverrideClassification,
-                  shaderOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
-
-   MString arnoldSkinOverrideClassification = "drawdb/shader/surface/arnold/skin";
-   MString skinShaderOverrideRegistrant = "arnoldSkinShaderOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
-                  arnoldSkinOverrideClassification,
-                  skinShaderOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
+   for (size_t i = 0; i < sizeOfArray(shadingNodeOverrideList); ++i)
+   {
+      const shadingNodeOverride& override = shadingNodeOverrideList[i];
+      status = MHWRender::MDrawRegistry::deregisterSurfaceShadingNodeOverrideCreator(
+               override.classification,
+               override.registrant);
+      CHECK_MSTATUS(status);
+   }
    
-   MString areaLightOverrideRegistrant = "arnoldAreaLightNodeOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
-                  AI_AREA_LIGHT_CLASSIFICATION,
-                  areaLightOverrideRegistrant);
-
-   CHECK_MSTATUS(status);      
-
-   MString skyDomeLightOverrideRegistrant = "arnoldSkyDomeLightNodeOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
-                  AI_SKYDOME_LIGHT_CLASSIFICATION,
-                  skyDomeLightOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
-
-   if (MGlobal::mayaState() == MGlobal::kInteractive)
-      CArnoldSkyDomeLightDrawOverride::clearGPUResources();
-
-   MString standinOverrideRegistrant = "arnoldStandInNodeOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
-                  AI_STANDIN_CLASSIFICATION,
-                  standinOverrideRegistrant);
-
-   CHECK_MSTATUS(status);      
-
-   MString photometricLightOverrideRegistrant = "arnoldPhotometricLightNodeOverride";
-
-   status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
-                  AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
-                  photometricLightOverrideRegistrant);
-
-   CHECK_MSTATUS(status);
+   for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
+   {
+      const drawOverride& override = drawOverrideList[i];
+      status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
+               override.classification,
+               override.registrant);
+      CHECK_MSTATUS(status);
+   }
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {

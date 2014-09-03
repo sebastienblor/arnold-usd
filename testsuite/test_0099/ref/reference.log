@@ -1,31 +1,75 @@
 
-Starting "/usr/autodesk/maya2012-x64/bin/maya"
+Starting "/usr/autodesk/maya2015-x64/bin/maya"
 
-00:00:00   170MB WARNING | [mtoa] [shave] [node ShaveHair] Assigning temporary node id 1138176 to associated Maya type name shaveHair.
-00:00:00   172MB WARNING | [mtoa] Extension shave(/work/deploy/2012/extensions/shave.so) requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-00:00:00   172MB WARNING | [mtoa] Extension FumeExtension(/work/deploy/2012/extensions/FumeExtension.so) requires Maya plugin FumeFX, registering will be deferred until plugin is loaded.
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, mayaHIK, mtoa
+Initialized VP2.0 renderer {
+  Version : 5.3.1.0. Feature Level 4.
+  Adapter : Quadro 600/PCIe/SSE2
+  Vendor ID: 4318. Device ID : 
+  Driver : 4.4.0 NVIDIA 331.79.
+  API : OpenGL V.2.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 8
+  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 1024 MB.
+  CPU Memory Limit: 15110.1 MB.
+}
+mental ray for Maya 2015 
+mental ray: version 3.12.1.12, Jan 31 2014, revision 213714
+00:00:00   355MB         | log started Thu Jun 12 19:22:34 2014
+00:00:00   355MB         | Arnold 4.2.0.3 linux clang-3.4.0 glibc-2.5 oiio-1.2.2 rlm-10.1.2 2014/06/12 09:51:32
+00:00:00   355MB         | running on localhost.localdomain with pid 6067
+00:00:00   355MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   355MB         |  (redhat) CentOS release 6.5 (Final), Linux kernel 2.6.32-431.17.1.el6.centos.plus.x86_64
+00:00:00   355MB         |  
+00:00:00   356MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
+00:00:00   356MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
+00:00:00   356MB         | loading plugin: /work/deploy/2015/shaders/mtoa_shaders.so ...
+00:00:00   356MB         | loaded 86 plugins from 1 lib(s) in 0:00.00
+00:00:00   357MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   357MB         | [mtoa] [mtoa_shaders] Generated 40 translators for 40 Maya nodes (12 new and 28 existing) for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   357MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
+00:00:00   357MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
+00:00:00   357MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
+00:00:00   357MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   357MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   357MB         | [mtoa] [renderview_driver] Generated 1 translators for 1 Maya nodes (0 new and 1 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   357MB         | loading plugin: /work/deploy/shaders/Gecko.so ...
+00:00:00   357MB         | loaded 3 plugins from 1 lib(s) in 0:00.00
+00:00:00   357MB WARNING | [mtoa] [Gecko] [node dGecko] Assigning temporary node id 1138176 to associated Maya type name aiDGecko.
+00:00:00   357MB WARNING | [mtoa] [Gecko] [node dArmadillo] Assigning temporary node id 1138177 to associated Maya type name aiDArmadillo.
+00:00:00   357MB WARNING | [mtoa] [Gecko] [node dSubsurface] Assigning temporary node id 1138178 to associated Maya type name aiDSubsurface.
+00:00:00   357MB         | [mtoa] [Gecko] Generated 3 new Maya nodes for Arnold plugin /work/deploy/shaders/Gecko.so.
+00:00:00   357MB         | [mtoa] [Gecko] Generated 3 translators for 3 Maya nodes (3 new and 0 existing) for Arnold plugin /work/deploy/shaders/Gecko.so.
+00:00:00   357MB         | loading plugin: /work/deploy/shaders/testShaders.so ...
+00:00:00   357MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
+00:00:00   357MB WARNING | [mtoa] [testShaders] [node maya_bump2d] Assigning temporary node id 1138179 to associated Maya type name aiMayaBump2d.
+00:00:00   357MB         | [mtoa] [testShaders] Generated 1 new Maya nodes for Arnold plugin /work/deploy/shaders/testShaders.so.
+00:00:00   357MB         | [mtoa] [testShaders] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/shaders/testShaders.so.
+00:00:00   357MB         | [mtoa] Registering 5 loaded extensions:
+00:00:00   358MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
+00:00:00   358MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2015/shaders/mtoa_shaders.so.
+00:00:00   358MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
+00:00:00   359MB         | [mtoa] Registered extension Gecko provided by /work/deploy/shaders/Gecko.so.
+00:00:00   359MB         | [mtoa] Registered extension testShaders provided by /work/deploy/shaders/testShaders.so.
 libai.so already loaded
 
-Maya 2012 importing module pymel 1.0.3 (/usr/autodesk/maya2012-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/initDefaultFilters.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEfileTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/renderCreateBarUI.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/hyperShadePanel.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-Maya 2012 sourcing MEL override /work/deploy/2012/scripts/mtoa/2012/mel/buildShaderMenus.mel
-File read in 0 seconds.
-Result: /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0099/test.ma
-Scene /work/mtoa/build/linux_x86_64/201217/gcc_opt/testsuite/test_0099/test.ma completed.
+00:00:00   361MB         | Successfully imported python module 'arnold'
+00:00:00   361MB         | Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, Mayatomr, ikSpringSolver, mayaCharacterization, ik2Bsolver, mtoa, AbcExport, retargeterNodes
+Maya 2015 importing module pymel 1.0.6 (/usr/autodesk/maya2015-x64/lib/python2.7/site-packages/pymel/__init__.py)
+00:00:01   460MB         |  
+00:00:01   460MB         | releasing resources
+00:00:01   460MB         | Arnold shutdown
+1 error generated.
+Error while processing /usr/autodesk/maya2015-x64/plug-ins/bifrost/db/presets/__rootincludeall__.h.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.22 seconds.
+Result: /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0099/test.ma
+Warning: file: /tmp/ASTMPeesC4o.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /tmp/ASTMPeesC4o.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Scene /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0099/test.ma completed.
+mental ray: wallclock  0:00:07.12 total
+mental ray: CPU usage  0:00:13.76 total
+mental ray: current mem usage 4 MB, max mem usage 8 MB

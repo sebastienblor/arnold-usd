@@ -288,7 +288,7 @@ node_update
                prevToken = (int) tokens.size()-1;
                breakFound = true;
             }
-            else if (sub.substr(0, 5) == "<udim")
+            else if ((sub.substr(0, 5) == "<udim") || (sub.substr(0, 5) == "<UDIM"))
             {
                /*
                mari/zbrush/cyslice-style

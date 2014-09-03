@@ -94,9 +94,10 @@ def updateLogSettings(*args):
     logToFile = pm.getAttr('defaultArnoldRenderOptions.log_to_file')
 
 def getBackgroundShader(*args):
-    conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
-    if conns:
-        return conns[0].split('.')[0]
+    if cmds.objExists('defaultArnoldRenderOptions.background'):
+        conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
+        if conns:
+            return conns[0].split('.')[0]
     return ""
 
 def selectBackground(*args):
@@ -295,7 +296,31 @@ def createArnoldRenderSettings():
                         label='Kick Render Flags',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.kickRenderFlags')
-             
+
+    pm.frameLayout(label='Callbacks', collapse=True)
+
+    pm.attrControlGrp(
+            'os_iprRefinementStartedCallback',
+            label='IPR Refinement Started',
+            attribute='defaultArnoldRenderOptions.IPRRefinementStarted')
+
+    pm.attrControlGrp(
+            'os_iprRefinementFinishedCallback',
+            label='IPR Refinement Finished',
+            attribute='defaultArnoldRenderOptions.IPRRefinementFinished')
+    
+    pm.attrControlGrp(
+            'os_iprStepStartedCallback',
+            label='IPR Step Started',
+            attribute='defaultArnoldRenderOptions.IPRStepStarted')
+
+    pm.attrControlGrp(
+            'os_iprStepFinishedCallback',
+            label='IPR Step Finished',
+            attribute='defaultArnoldRenderOptions.IPRStepFinished')
+
+    pm.setParent('..')
+
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -391,6 +416,11 @@ def createArnoldSamplingSettings():
     pm.attrControlGrp('ss_lock_sampling_noise',
                         label="Lock Sampling Pattern",
                         attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+
+    pm.attrControlGrp('ss_use_autobump',
+                        label='Use Autobump in SSS',
+                        attribute='defaultArnoldRenderOptions.sssUseAutobump',
+                        annotation='WARNING : Enabling this checkbox triples shader evaluations in SSS.')
     
     pm.frameLayout(label='Clamping', collapse=True)
 

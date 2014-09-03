@@ -886,19 +886,29 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          {
             if (exportVertices)
             {
+               const float motionVectorScale = FindMayaPlug("aiMotionVectorScale").asFloat();
+               // 0 - unit / frame
+               // 1 - unit / second
+               const short motionVectorUnit = FindMayaPlug("aiMotionVectorUnit").asShort();
                std::vector<float>& motionVectors = vcolors[m_motionVectorSource.asChar()];
-               AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
+               const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
-               const float motionRange = (float)m_session->GetMotionByFrame();
+               float motionRange = (float)m_session->GetMotionByFrame() * motionVectorScale;
+               if (motionVectorUnit == 1)
+               {
+                  MTime oneSec(1.0, MTime::kSeconds);
+                  const float fps =  (float)oneSec.asUnits(MTime::uiUnit());
+                  motionRange /= fps;
+               }
                for (unsigned int i = 0; i < numVerts; ++i)
                {                  
                   AtVector vec = {*(vert++), *(vert++), *(vert++)};
                   AiArraySetPnt(verticesArray, i, vec);
-                  AtRGBA motionVector = *(motionVectorColors + i);
-                  vec.x += motionVector.r * motionRange;
-                  vec.y += motionVector.g * motionRange;
-                  vec.z += motionVector.b * motionRange;
+                  const AtRGBA* motionVector = motionVectorColors + i;
+                  vec.x += motionVector->r * motionRange;
+                  vec.y += motionVector->g * motionRange;
+                  vec.z += motionVector->b * motionRange;
                   AiArraySetPnt(verticesArray, i + numVerts, vec);
                }
                AiNodeSetArray(polymesh, "vlist", verticesArray);
@@ -1329,4 +1339,25 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_motion_vector_source";
    data.channelBox = false;
    helper.MakeInputString(data);
+
+   data.defaultValue.INT = 0;
+   data.name = "aiMotionVectorUnit";
+   data.shortName = "ai_motion_vector_unit";
+   data.channelBox = false;
+   data.enums = MStringArray();
+   data.enums.append("Per Frame");
+   data.enums.append("Per Second");
+   helper.MakeInputEnum(data);
+
+   data.defaultValue.FLT = 1.f;
+   data.name = "aiMotionVectorScale";
+   data.shortName = "ai_motion_vector_scale";
+   data.hasMin = false;
+   data.hasMax = false;
+   data.hasSoftMin = true;
+   data.hasSoftMax = true;
+   data.softMin.FLT = 0.f;
+   data.softMax.FLT = 2.f;
+   data.channelBox = false;
+   helper.MakeInputFloat(data);
 }

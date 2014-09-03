@@ -3,26 +3,27 @@
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MTransformationMatrix.h>
+#include <maya/M3dView.h>
 
 #include <iostream>
+
+#include "ViewportUtils.h"
 
 #include <ai.h>
 
 namespace{
-    const char* shaderUniforms = "#version 150\n"
+    const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
 "uniform vec4 shadeColor;\n";
 
     const char* vertexShader = 
-"in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = modelViewProj * vec4(position, 1.0f);\n"
+"gl_Position = modelViewProj * gl_Vertex;\n"
 "}\n";
 
     const char* fragmentShader =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";    
+"void main() { gl_FragColor = shadeColor;}\n";    
 }
 
 GLuint CArnoldPhotometricLightDrawOverride::s_vertexShader = 0;
@@ -116,6 +117,8 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
 {    
     if (!s_isValid)
         return;
+    if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
+        return;
     const SArnoldPhotometricLightUserData* userData = reinterpret_cast<const SArnoldPhotometricLightUserData*>(data);
 
     glUseProgram(s_program);
@@ -133,12 +136,12 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
 
 void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
 {
-    if (s_isInitialized == false)
+    if ((s_isInitialized == false) && InitializeGLEW())
     {
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_3_2)
+        if (!GLEW_VERSION_2_1)
             return;
 
         // program for wireframe display
@@ -178,7 +181,7 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
 
 void CArnoldPhotometricLightDrawOverride::clearGPUResources()
 {    
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);

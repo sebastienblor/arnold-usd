@@ -39,19 +39,13 @@ private:
     static GLuint s_fragmentShaderWireframe;
     static GLuint s_programWireframe;
 
-    static GLuint s_vertexShaderTextured;
-    static GLuint s_fragmentShaderTextured;
-    static GLuint s_programTextured;
+    //static GLuint s_vertexShaderTextured;
+    //static GLuint s_fragmentShaderTextured;
+    //static GLuint s_programTextured;
 
     static GLuint s_VBO;
     static GLuint s_IBOWireframe;
     static GLuint s_IBOTextured;
-
-    static GLuint s_VAOWireframe;
-    static GLuint s_VAOTexturedBall;
-    static GLuint s_VAOTexturedAngular;
-    static GLuint s_VAOTexturedLatLong;
-    static GLuint s_VAOTexturedCubic;
 
     static GLuint s_numWireframeIndices;
     static GLuint s_numTexturedIndices;

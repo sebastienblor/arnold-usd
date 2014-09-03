@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ShapeTranslator.h"
+#include "translators/shape/ShapeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 class CXgDescriptionTranslator : public CShapeTranslator
 {

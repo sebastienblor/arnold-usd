@@ -5,7 +5,8 @@ import subprocess
 import sys, os
 sys.path = ["tools/python"] + sys.path
 
-import system, glob
+import system
+import glob
 from build_tools import *
 from solidangle_tools import *
 
@@ -24,13 +25,19 @@ MTOA_VERSION = get_mtoa_version(4)
 if system.os() == 'darwin':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
+    glew_default_lib = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'lib', 'libGLEW.a')
+    glew_default_include = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'include')
 elif system.os() == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
+    glew_default_lib = '/usr/lib64/libGLEW.a'
+    glew_default_include = '/usr/include'
 elif system.os() == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
+    glew_default_lib = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'lib', 'glew32s.lib')
+    glew_default_include = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'include')
 else:
     print "Unknown operating system: %s" % system.os()
     Exit(1)
@@ -89,6 +96,12 @@ vars.AddVariables(
     PathVariable('ARNOLD_PYTHON', 
                  'Where to find Arnold python bindings', 
                  os.path.join('$ARNOLD', 'python'), PathVariable.PathIsDir),  
+    PathVariable('GLEW_INCLUDES', 
+                 'Where to find GLEW includes', 
+                 glew_default_include, PathVariable.PathIsDir),
+    PathVariable('GLEW_LIB', 
+                 'Where to find GLEW static library', 
+                 glew_default_lib, PathVariable.PathIsFile),
     PathVariable('TARGET_MODULE_PATH', 
                  'Path used for installation of the mtoa module', 
                  '.', PathVariable.PathIsDirCreate),
@@ -143,14 +156,26 @@ vars.AddVariables(
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', '')
 )
 
-if system.os() == 'windows':
-    vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0', '10.0Exp', '11.0')))
+if system.os() == 'darwin':
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.6', '10.7', '10.8', '10.9')))
+    vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
-if system.os() == 'windows':
+if system.os() == 'windows':    
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
     tmp_env.Append(MSVC_ARCH = 'amd64')
+    MAYA_ROOT = tmp_env.subst(tmp_env['MAYA_ROOT'])
+    MAYA_INCLUDE_PATH = tmp_env.subst(tmp_env['MAYA_INCLUDE_PATH'])
+    if MAYA_INCLUDE_PATH == '.':
+        MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+    maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+    maya_version_base = maya_version[0:4]
+    if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
+        tmp_env['MSVC_VERSION'] = '10.0'
+    elif int(maya_version_base) >= 2015:
+        tmp_env['MSVC_VERSION'] = '11.0'
+    #print tmp_env['MSVC_VERSION']
     env = tmp_env.Clone(tools=['default'])
     # restore as the Clone overrides it
     env['TARGET_ARCH'] = 'x86_64'
@@ -186,10 +211,10 @@ if env['COLOR_CMDS']:
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
 MAYA_INCLUDE_PATH = env.subst(env['MAYA_INCLUDE_PATH'])
 if env['MAYA_INCLUDE_PATH'] == '.':
-	if system.os() == 'darwin':
-	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
-	else:
-	    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+    if system.os() == 'darwin':
+        MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
+    else:
+        MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
 EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
@@ -258,6 +283,8 @@ if system.os() == 'linux':
         print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
     except:
         pass
+elif system.os() == 'windows':
+    print 'MSVC version   : %s' % (env['MSVC_VERSION'])
 print 'Mercurial ID   : %s' % mercurial_id
 print 'SCons          : %s' % (SCons.__version__)
 print ''
@@ -330,14 +357,15 @@ if env['COMPILER'] == 'gcc':
         else: 
             env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
             env.Append(LINKFLAGS = Split('-g')) 
-    if system.os() == 'linux' and env['MODE'] == 'profile':
-        env.Append(CCFLAGS = Split('-pg'))
-        env.Append(LINKFLAGS = Split('-pg'))
 
     if system.os() == 'darwin':
         ## tell gcc to compile a 64 bit binary
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+        env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
 
 elif env['COMPILER'] == 'msvc':
     MSVC_FLAGS  = " /W3"         # Warning level : 3
@@ -556,7 +584,7 @@ else:
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
         else:
-	          cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
+              cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
          
         if cmd :
             p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
@@ -636,7 +664,7 @@ scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.me
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
-# install mtoa version specific scritps (myst be done after to allow overwriting)
+# install mtoa version specific scripts (must be done after to allow overwriting)
 versionfiles = find_files_recursive(os.path.join('scripts', maya_version_base), ['.py', '.mel'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base, x) for x in versionfiles],
               [os.path.join('scripts', maya_version_base, x) for x in versionfiles])
@@ -767,7 +795,7 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS)):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):        
@@ -775,8 +803,10 @@ for ext in os.listdir(ext_base_dir):
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                              duplicate   = 0,
                              exports     = ['ext_env', 'env'])
-        if len(EXT) == 2:
-            EXT_SHADERS = EXT[1]        
+        if len(EXT) >= 2:
+            EXT_SHADERS = EXT[1] 
+        if len(EXT) == 3:
+            EXT_PROCS = EXT[2]
         
         # EXT may contain a shader result
         ext_arnold = None
@@ -790,11 +820,24 @@ for ext in os.listdir(ext_base_dir):
         else:
             plugin = str(EXT[0])
         ext_files.append(plugin)
-        pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
-        pyfile = os.path.join(ext_dir, 'plugin', pyfile)
-        if os.path.exists(pyfile):
-            ext_files.append(pyfile)
-            env.Install(TARGET_EXTENSION_PATH, pyfile)
+        
+        pluginDir = os.path.join(ext_dir, 'plugin')
+        pyfiles = glob.glob(pluginDir+"/*.py")
+        
+        for pyfile  in pyfiles:
+            if os.path.exists(pyfile):
+                ext_files.append(pyfile)
+                env.Install(TARGET_EXTENSION_PATH, pyfile)
+
+#TODO XGEN: figure out the proper place these can go so that they always override the maya scripts
+
+        # install extension override scripts
+        scriptsDir = os.path.join(ext_dir, 'scripts')
+        extensionFiles = find_files_recursive(scriptsDir, ['.py', '.mel'])
+        for extFile  in extensionFiles:
+            overrideScriptsDir = os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version_base)
+            env.Install(overrideScriptsDir, os.path.join(ext_dir, 'scripts',extFile))
+
         if ext_arnold and (target_type == 'shader'):
             mtdfile = os.path.splitext(os.path.basename(ext_arnold))[0] + '.mtd'
             mtdfile = os.path.join(ext_dir, 'shaders', mtdfile)
@@ -811,6 +854,11 @@ for ext in os.listdir(ext_base_dir):
             else:
                 env.Install(TARGET_SHADER_PATH, ext_arnold)
             package_files += [[ext_arnold, target_path]]
+        if ext_arnold:
+            if len(EXT) == 3:
+                procedural = EXT[2]
+                ext_files.append(procedural)
+                env.Install(TARGET_PROCEDURAL_PATH, procedural)
         for p in ext_files:
             package_files += [[p, 'extensions']]
         local_env = env.Clone()
@@ -851,6 +899,11 @@ PACKAGE_FILES = [
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
+    
+if env['ENABLE_XGEN'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
 
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]

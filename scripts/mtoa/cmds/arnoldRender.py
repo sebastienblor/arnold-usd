@@ -9,6 +9,8 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     cmds.arnoldRender(cam=camera, w=width, h=height) 
     
 def arnoldBatchRenderOptionsString():    
+    origFileName = cmds.file(q=True, sn=True)
+    
     if not cmds.about(batch=True):
         silentMode = 0
         try:
@@ -25,9 +27,9 @@ def arnoldBatchRenderOptionsString():
                 raise Exception('Stopping batch render.')
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']
-        return ' -r arnold -ai:port %i ' % port
+        return ' -r arnold -ai:ofn \\"' + origFileName + '\\" -ai:port %i ' % port
     except:
-        return ' -r arnold '
+        return ' -r arnold -ai:ofn \\"' + origFileName + '\\" '
 
 def arnoldBatchRender(option):
     # Make sure the aiOptions node exists
@@ -38,6 +40,8 @@ def arnoldBatchRender(option):
     i, n = 0, len(options)
     if cmds.objExists('defaultResolution.mtoaCommandPort'):
         kwargs['port'] = cmds.getAttr('defaultResolution.mtoaCommandPort')
+    if cmds.objExists('defaultArnoldRenderOptions.mtoaOrigFileName'):
+        kwargs['ofn'] = cmds.getAttr('defaultArnoldRenderOptions.mtoaOrigFileName')
     while i < n:
         if options[i] in ["-w", "-width"]:
             i += 1
