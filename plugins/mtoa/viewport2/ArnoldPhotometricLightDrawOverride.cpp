@@ -3,6 +3,7 @@
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MTransformationMatrix.h>
+#include <maya/M3dView.h>
 
 #include <iostream>
 
@@ -115,6 +116,8 @@ MHWRender::DrawAPI CArnoldPhotometricLightDrawOverride::supportedDrawAPIs() cons
 void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)
 {    
     if (!s_isValid)
+        return;
+    if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
         return;
     const SArnoldPhotometricLightUserData* userData = reinterpret_cast<const SArnoldPhotometricLightUserData*>(data);
 

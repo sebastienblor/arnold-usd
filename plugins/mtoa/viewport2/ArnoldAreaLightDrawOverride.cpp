@@ -7,6 +7,7 @@
 
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/M3dView.h>
 
 const char* shaderUniforms = "#version 120\n"
 "uniform mat4 model;\n"
@@ -234,6 +235,8 @@ void CArnoldAreaLightDrawOverride::draw(
                                     const MUserData* data)
 {
     if (s_isValid == false)
+        return;
+    if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
         return;
     const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);        
     glUseProgram(s_program);
