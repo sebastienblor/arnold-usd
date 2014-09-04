@@ -26,7 +26,7 @@ namespace{
 #ifdef _WIN32
 #pragma pack(1)
     struct SConstantBuffer{
-        AtMatrix wvp;
+        float wvp[4][4];
         float scale[4];
         float offset[4];
         float color[4];
@@ -200,10 +200,45 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         ID3D11Device* device = reinterpret_cast<ID3D11Device*>(theRenderer->GPUDeviceHandle());
         if (!device)
             return;
-        ID3D11DeviceContext* context = 0;
-        device->GetImmediateContext(&context);
-        if (!context)
+        ID3D11DeviceContext* dxContext = 0;
+        device->GetImmediateContext(&dxContext);
+        if (!dxContext)
             return;
+
+        // setting up shader
+        dxContext->VSSetShader(s_pDXVertexShader, 0, 0);
+        dxContext->IASetInputLayout(s_pDXVertexLayout);
+        dxContext->PSSetShader(s_pDXPixelShader, 0, 0);
+
+        // filling up constant buffer
+        SConstantBuffer buffer;
+        context.getMatrix(MHWRender::MDrawContext::kWorldViewProjMtx).transpose().get(buffer.wvp);
+        buffer.scale[0] = userData->m_scale[0];
+        buffer.scale[1] = userData->m_scale[1];
+        buffer.scale[2] = userData->m_scale[2];
+        buffer.scale[3] = userData->m_scale[3];
+
+        buffer.offset[0] = userData->m_offset[0];
+        buffer.offset[1] = userData->m_offset[1];
+        buffer.offset[2] = userData->m_offset[2];
+        buffer.offset[3] = userData->m_offset[3];
+        
+        buffer.color[0] = userData->m_wireframeColor[0];
+        buffer.color[1] = userData->m_wireframeColor[1];
+        buffer.color[2] = userData->m_wireframeColor[2];
+        buffer.color[3] = userData->m_wireframeColor[3];
+
+        dxContext->UpdateSubresource(s_pDXConstantBuffer, 0, 0, &buffer, 0, 0);
+        dxContext->VSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
+        dxContext->PSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
+
+        // setting up draw buffers and draw
+        const unsigned int stride = sizeof(float) * 3;
+        const unsigned int offset = 0;
+        dxContext->IASetVertexBuffers(0, 1, &s_pDXVertexBuffer, &stride, &offset);
+        dxContext->IASetIndexBuffer(s_pDXIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+        dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+        dxContext->DrawIndexed(3 * 4 * 2, 0, 0);
     }
 }
 
@@ -373,15 +408,26 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             } 
 
             hr = device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), 0, &s_pDXPixelShader);
+            pixelShaderBlob->Release();
             if (FAILED(hr))
-            {
-                pixelShaderBlob->Release();
+            {                
                 if (vertexShaderBlob) vertexShaderBlob->Release();
                 if (errorBlob) errorBlob->Release();
                 return;
             }
 
+            D3D11_INPUT_ELEMENT_DESC layout[] =
+            {
+                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            };
+            int numLayoutElements = sizeof layout/sizeof layout[0];
+            hr = device->CreateInputLayout(layout, numLayoutElements, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &s_pDXVertexLayout);
+            vertexShaderBlob->Release();
+            if (FAILED(hr))
+                return;
+
             std::cerr << "Hooray\n";
+            s_isValid = true;
 #endif
         }
     }
