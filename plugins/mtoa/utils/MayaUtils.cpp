@@ -56,3 +56,14 @@ MString getProjectFolderPath()
    MGlobal::executePythonCommand("import maya.cmds as cmds;cmds.workspace(query=True, rootDirectory=True)", res);
    return res;
 }
+
+MString replaceInString(const MString& source, const MString& origString, const MString& toReplace)
+{
+   if (origString == toReplace)
+      return source;
+   MString ret = source;
+   int index = ret.indexW(origString);
+   for (;index != -1; index = ret.indexW(origString))
+      ret = ret.substringW(0, index) + toReplace + ret.substringW(index + origString.numChars(), ret.numChars());
+   return ret;
+}

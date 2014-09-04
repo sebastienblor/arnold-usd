@@ -8,6 +8,8 @@
 
 #include <ai.h>
 
+#include "utils/MayaUtils.h"
+
 namespace{
     const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
@@ -366,8 +368,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             ID3DBlob* vertexShaderBlob = 0;
             ID3DBlob* pixelShaderBlob = 0;
             ID3DBlob* errorBlob = 0;
-            //MString effectLocation = MString(getenv("MTOA_PATH")) + MString("vp2/standInBBox.hlsl");
-            MString effectLocation = "C:\\work\\deploy\\2015\\vp2\\standInBBox.hlsl";
+            MString effectLocation = replaceInString(MString(getenv("MTOA_PATH")), "\\", "/") + MString("/vp2/standInBBox.hlsl");
 #if _MSC_VER < 1700
             hr = D3DX11CompileFromFile(
                 effectLocation.asChar(),
