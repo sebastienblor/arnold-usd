@@ -5,6 +5,9 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <d3d11.h>
+#if _MSC_VER < 1700
+#include <d3dx11.h>
+#endif
 #include <d3dcompiler.h>
 #ifndef D3DCOMPILE_ENABLE_STRICTNESS
     #define D3DCOMPILE_ENABLE_STRICTNESS D3D10_SHADER_ENABLE_STRICTNESS

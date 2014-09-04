@@ -197,6 +197,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
     }
     else
     {
+#ifdef _WIN32
         ID3D11Device* device = reinterpret_cast<ID3D11Device*>(theRenderer->GPUDeviceHandle());
         if (!device)
             return;
@@ -239,6 +240,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         dxContext->IASetIndexBuffer(s_pDXIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
         dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
         dxContext->DrawIndexed(3 * 4 * 2, 0, 0);
+#endif
     }
 }
 
@@ -366,7 +368,20 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             ID3DBlob* errorBlob = 0;
             //MString effectLocation = MString(getenv("MTOA_PATH")) + MString("vp2/standInBBox.hlsl");
             MString effectLocation = "C:\\work\\deploy\\2015\\vp2\\standInBBox.hlsl";
-
+#if _MSC_VER < 1700
+            hr = D3DX11CompileFromFile(
+                effectLocation.asChar(),
+                0,
+                0,
+                "mainVS",
+                "vs_5_0",
+                shaderFlags,
+                0,
+                0,
+                &vertexShaderBlob,
+                &errorBlob,
+                NULL);
+#else
             hr = D3DCompileFromFile(
                 effectLocation.asWChar(),
                 0,
@@ -377,6 +392,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
                 0,
                 &vertexShaderBlob,
                 &errorBlob);
+#endif
             if (FAILED(hr))
             {                
                 if (errorBlob) errorBlob->Release();
@@ -390,7 +406,20 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
                 vertexShaderBlob->Release();
                 return;
             }
-
+#if _MSC_VER < 1700
+            hr = D3DX11CompileFromFile(
+                effectLocation.asChar(),
+                0,
+                0,
+                "mainPS",
+                "ps_5_0",
+                shaderFlags,
+                0,
+                0,
+                &pixelShaderBlob,
+                &errorBlob,
+                NULL);
+#else
             hr = D3DCompileFromFile(
                 effectLocation.asWChar(),
                 0,
@@ -401,6 +430,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
                 0,
                 &pixelShaderBlob,
                 &errorBlob);
+#endif
             if (FAILED(hr))
             {
                 if (errorBlob) errorBlob->Release();
