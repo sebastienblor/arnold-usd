@@ -103,4 +103,27 @@ public:
 bool checkShaderError(unsigned int shader);
 bool checkProgramError(unsigned int shader);
 
+#ifdef _WIN32
+#include <maya/MString.h>
+
+// simple class to handle most of our needs
+class DXShader{
+private:
+   ID3D11VertexShader* p_vertexShader;
+   ID3D11PixelShader* p_pixelShader;
+   
+   ID3DBlob* p_vertexShaderBlob;
+   ID3DBlob* p_pixelShaderBlob;
+
+   bool m_isValid;
+public:
+   DXShader(ID3D11Device* device, const MString& shaderName);
+   ~DXShader();
+
+   ID3DBlob* getVertexShaderBlob();
+   void setShader(ID3D11DeviceContext* context);
+   bool isValid() const;
+};
+#endif
+
 #endif

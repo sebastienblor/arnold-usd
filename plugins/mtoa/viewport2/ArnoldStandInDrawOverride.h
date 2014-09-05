@@ -39,10 +39,10 @@ private:
     #ifdef _WIN32
     static ID3D11Buffer* s_pDXVertexBuffer;
     static ID3D11Buffer* s_pDXIndexBuffer;
-    static ID3D11VertexShader* s_pDXVertexShader;
-    static ID3D11PixelShader* s_pDXPixelShader;
     static ID3D11InputLayout* s_pDXVertexLayout;
     static ID3D11Buffer* s_pDXConstantBuffer;
+
+    static DXShader* s_pDXShader;
     #endif
 
     static GLuint s_vertexShader;

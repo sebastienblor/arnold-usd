@@ -40,10 +40,9 @@ namespace{
 #ifdef _WIN32
 ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXVertexBuffer = 0;
 ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXIndexBuffer = 0;
-ID3D11VertexShader* CArnoldStandInDrawOverride::s_pDXVertexShader = 0;
-ID3D11PixelShader* CArnoldStandInDrawOverride::s_pDXPixelShader = 0;
 ID3D11InputLayout* CArnoldStandInDrawOverride::s_pDXVertexLayout = 0;
 ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
+DXShader* CArnoldStandInDrawOverride::s_pDXShader = 0;
 #endif
 
 GLuint CArnoldStandInDrawOverride::s_vertexShader = 0;
@@ -209,9 +208,10 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
             return;
 
         // setting up shader
-        dxContext->VSSetShader(s_pDXVertexShader, 0, 0);
+        //dxContext->VSSetShader(s_pDXVertexShader, 0, 0);        
+        //dxContext->PSSetShader(s_pDXPixelShader, 0, 0);
+        s_pDXShader->setShader(dxContext);
         dxContext->IASetInputLayout(s_pDXVertexLayout);
-        dxContext->PSSetShader(s_pDXPixelShader, 0, 0);
 
         // filling up constant buffer
         SConstantBuffer buffer;
@@ -364,96 +364,15 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             hr = device->CreateBuffer(&bd, 0, &s_pDXConstantBuffer);
             if (FAILED(hr)) return;
 
-            DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-            ID3DBlob* vertexShaderBlob = 0;
-            ID3DBlob* pixelShaderBlob = 0;
-            ID3DBlob* errorBlob = 0;
-            MString effectLocation = replaceInString(MString(getenv("MTOA_PATH")), "\\", "/") + MString("/vp2/standInBBox.hlsl");
-#if _MSC_VER < 1700
-            hr = D3DX11CompileFromFile(
-                effectLocation.asChar(),
-                0,
-                0,
-                "mainVS",
-                "vs_5_0",
-                shaderFlags,
-                0,
-                0,
-                &vertexShaderBlob,
-                &errorBlob,
-                NULL);
-#else
-            hr = D3DCompileFromFile(
-                effectLocation.asWChar(),
-                0,
-                0,
-                "mainVS",
-                "vs_5_0",
-                shaderFlags,
-                0,
-                &vertexShaderBlob,
-                &errorBlob);
-#endif
-            if (FAILED(hr))
-            {                
-                if (errorBlob) errorBlob->Release();
-                return;  
-            }
-
-            if (errorBlob) errorBlob->Release();
-            hr = device->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), 0, &s_pDXVertexShader);
-            if (FAILED(hr))
-            {
-                vertexShaderBlob->Release();
-                return;
-            }
-#if _MSC_VER < 1700
-            hr = D3DX11CompileFromFile(
-                effectLocation.asChar(),
-                0,
-                0,
-                "mainPS",
-                "ps_5_0",
-                shaderFlags,
-                0,
-                0,
-                &pixelShaderBlob,
-                &errorBlob,
-                NULL);
-#else
-            hr = D3DCompileFromFile(
-                effectLocation.asWChar(),
-                0,
-                0,
-                "mainPS",
-                "ps_5_0",
-                0,
-                0,
-                &pixelShaderBlob,
-                &errorBlob);
-#endif
-            if (FAILED(hr))
-            {
-                if (errorBlob) errorBlob->Release();
-                return;  
-            } 
-
-            hr = device->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), 0, &s_pDXPixelShader);
-            pixelShaderBlob->Release();
-            if (FAILED(hr))
-            {                
-                if (vertexShaderBlob) vertexShaderBlob->Release();
-                if (errorBlob) errorBlob->Release();
-                return;
-            }
+            s_pDXShader = new DXShader(device, "standInBBox");
 
             D3D11_INPUT_ELEMENT_DESC layout[] =
             {
                 { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
             int numLayoutElements = sizeof layout/sizeof layout[0];
-            hr = device->CreateInputLayout(layout, numLayoutElements, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &s_pDXVertexLayout);
-            vertexShaderBlob->Release();
+            hr = device->CreateInputLayout(layout, numLayoutElements, s_pDXShader->getVertexShaderBlob()->GetBufferPointer(), s_pDXShader->getVertexShaderBlob()->GetBufferSize(), &s_pDXVertexLayout);
+            //vertexShaderBlob->Release();
             if (FAILED(hr))
                 return;
 
@@ -488,16 +407,6 @@ void CArnoldStandInDrawOverride::clearGPUResources()
             s_pDXIndexBuffer->Release();
             s_pDXIndexBuffer = 0;
         }
-        if (s_pDXVertexShader)
-        {
-            s_pDXVertexShader->Release();
-            s_pDXVertexShader = 0;
-        }
-        if (s_pDXPixelShader)
-        {
-            s_pDXPixelShader->Release();
-            s_pDXPixelShader = 0;
-        }
         if (s_pDXVertexLayout)
         {
             s_pDXVertexLayout->Release();
@@ -508,6 +417,12 @@ void CArnoldStandInDrawOverride::clearGPUResources()
             s_pDXConstantBuffer->Release();
             s_pDXConstantBuffer = 0;
         }
+        if (s_pDXShader)
+        {
+            delete s_pDXShader;
+            s_pDXShader = 0;
+        }
+        
 #endif
     }
 }
