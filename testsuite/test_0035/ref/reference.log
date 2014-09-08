@@ -1,46 +1,46 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0035\test_0035.log', using stdout instead
+Cannot open log file 'C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0035\test_0035.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
-mental ray for Maya 2012 
-mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
-
-Error: TypeError: 'bool' object is not iterable
-00:00:00   238MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
-ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 5.3.1.100. Feature Level 5.
+  Adapter : AMD FirePro W8000 (FireGL V)
+  Vendor ID: 4098. Device ID : 26506
+  Driver : aticfx64.dll:13.352.1014.0.
+  API : DirectX V.11.  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Active stereo support available : 0
+  GPU Memory Limit : 4095 MB.
+  CPU Memory Limit: 15523.9 MB.
+}
+1 error generated.
+Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
+00:00:00   318MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
+00:00:00   320MB WARNING | [mtoa] Extension xgenTranslator(C:/work/deploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+ai.dll loaded from non standard location C:\arnold4210\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, mtoa, ikSpringSolver, Mayatomr, decomposeMatrix, tiffFloatReader, shaveNode, VectorRender, studioImport, mayaCharacterization, rotateHelper, MayaMuscle, Substance, OneClick, fbxmaya, ik2Bsolver
-Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.pyc)
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/startup/buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/renderCreateBarUI.mel
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, VectorRender, AutodeskPacketFile, OpenEXRLoader, Unfold3D, mayaCharacterization, SOuP, mtoa, modelingToolkit, MayaMuscle, rotateHelper, DirectConnect, dx11Shader, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, shaderFXPlugin, objExport, bifrostshellnode, ArubaTessellator, quatNodes, fbxmaya
+Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.pyc)
 Successfully registered renderer 'arnold'
-File read in 1 seconds.
-Warning: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201217/msvc_opt/testsuite/test_0035/test.ma
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0035\test.ma completed.
+Warning: file: C:/Users/Pal/Documents/maya/2015-x64/scripts/userSetup.mel line 1: Loading plug-in "mtoa" has resulted in changes to the scene that may need to be saved.
+
+----------------------------------------------------------
+Time: 2014/9/8 16:11:34
+----------------------------------------------------------
+
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  0.33 seconds.
+Result: C:/work/mtoa/build/windows_x86_64/201501/msvc_opt/testsuite/test_0035/test.ma
+Scene C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0035\test.ma completed.
+
+----------------------------------------------------------
+Time: 2014/9/8 16:11:36
+----------------------------------------------------------
+
+
+----------------------------------------------------------
+Time: 2014/9/8 16:11:36
+----------------------------------------------------------
+

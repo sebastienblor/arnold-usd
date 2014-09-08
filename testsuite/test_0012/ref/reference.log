@@ -1,51 +1,41 @@
+Cannot open log file 'C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0012\test_0012.log', using stdout instead
 
-Starting "/usr/autodesk/maya2013.5-x64/bin/maya"
+Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 5.3.1.100. Feature Level 5.
+  Adapter : AMD FirePro W8000 (FireGL V)
+  Vendor ID: 4098. Device ID : 26506
+  Driver : aticfx64.dll:13.352.1014.0.
+  API : DirectX V.11.  Max texture size : 16384 * 16384.
+  Max tex coords : 32
+  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
+  Active stereo support available : 0
+  GPU Memory Limit : 4095 MB.
+  CPU Memory Limit: 15523.9 MB.
+}
+1 error generated.
+Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
+00:00:00   318MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
+00:00:00   320MB WARNING | [mtoa] Extension xgenTranslator(C:/work/deploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+ai.dll loaded from non standard location C:\arnold4210\bin
 
-mental ray for Maya 2013 
-mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
-pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
-libai.so already loaded
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, VectorRender, AutodeskPacketFile, OpenEXRLoader, Unfold3D, mayaCharacterization, SOuP, mtoa, modelingToolkit, MayaMuscle, rotateHelper, DirectConnect, dx11Shader, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, shaderFXPlugin, objExport, bifrostshellnode, ArubaTessellator, quatNodes, fbxmaya
+Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.pyc)
+Successfully registered renderer 'arnold'
+Warning: file: C:/Users/Pal/Documents/maya/2015-x64/scripts/userSetup.mel line 1: Loading plug-in "mtoa" has resulted in changes to the scene that may need to be saved.
 
-Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013.5-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-Maya 2013 sourcing MEL override /work/deploy/20135/scripts/mtoa/2013/mel/initDefaultFilters.mel
-File read in 0 seconds.
+----------------------------------------------------------
+Time: 2014/9/8 16:10:06
+----------------------------------------------------------
+
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0012/test.ma
-Warning: file: /usr/tmp/ASTMP8QJtab.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /usr/tmp/ASTMP8QJtab.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-00:00:00   292MB         | log started Thu Oct 10 16:34:36 2013
-00:00:00   292MB         | Arnold 4.1.0.0.dev linux icc130 glibc212 libstdc++3413 oiio10202 2013/10/10 13:12:13
-00:00:00   292MB         | running on localhost.localdomain
-00:00:00   292MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   292MB         |  CentOS 6.4 (Final), Linux kernel 2.6.32-358.18.1.el6.centos.plus.x86_64
-00:00:00   292MB         |  
-00:00:00   292MB         | loading plugin: /work/deploy/20135/shaders/mtoa_shaders.so ...
-00:00:00   293MB         | loaded 84 plugins from 1 lib(s) in 0:00.06
-00:00:00   293MB WARNING | [mtoa] No light in scene
-00:00:00   293MB WARNING | [mtoa.extensions]  aiAOVDriver Found no translator named "maya"
-00:00:00   293MB         |  
-00:00:00   293MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 2 GI bounces
-00:00:00   293MB         |  initializing 13 nodes ...
-00:00:00   293MB         |  node initialization done in 0:00.00
-00:00:00   295MB         |  creating root object list ...
-00:00:00   295MB         |   no objects
-00:00:00   295MB         |  updating 14 nodes ...
-00:00:00   295MB         |  node update done in 0:00.00
-00:00:00   295MB         |  [aov] registered driver: "defaultArnoldDriver@driver_tiff.RGBA" (driver_tiff)
-00:00:00   295MB         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldFilter@gaussian_filter" (gaussian_filter)
-00:00:00   295MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00   295MB         |  starting 8 bucket workers of size 64x64 ...
-00:00:00   308MB         |     5% done - 6 rays/pixel
-00:00:00   306MB         |    20% done - 6 rays/pixel
-00:00:00   306MB         |    35% done - 7 rays/pixel
-00:00:00   304MB         |    60% done - 8 rays/pixel
-00:00:00   302MB         |    80% done - 9 rays/pixel
-00:00:00   302MB         |   100% done - 9 rays/pixel
-00:00:00   300MB         |  bucket workers done in 0:00.08
-00:00:00   300MB         | render done
-00:00:00   300MB         | [driver_tiff] writing file `/work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0012/testrender.tif'
-00:00:00   301MB         |  
-00:00:00   301MB         | releasing resources
-00:00:00   300MB         | Arnold shutdown
-Scene /work/mtoa/build/linux_x86_64/201350/gcc_opt/testsuite/test_0012/test.ma completed.
+File read in  0.33 seconds.
+Result: C:/work/mtoa/build/windows_x86_64/201501/msvc_opt/testsuite/test_0012/test.ma
+Scene C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0012\test.ma completed.
+
+----------------------------------------------------------
+Time: 2014/9/8 16:10:07
+----------------------------------------------------------
+
