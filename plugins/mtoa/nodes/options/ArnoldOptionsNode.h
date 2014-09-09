@@ -118,6 +118,8 @@ public:
    static MObject s_IPRRefinementFinishedCallback;
 
    static MObject s_IPRStepStartedCallback;
-   static MObject s_IPRStepFinishedCallback;   
+   static MObject s_IPRStepFinishedCallback;
+
+   static MObject s_output_overscan;
    
 };  // class CArnoldOptionsNode

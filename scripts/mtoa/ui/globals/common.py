@@ -1259,6 +1259,10 @@ def createArnoldCommonRenderCameras():
     pm.setUITemplate(popTemplate=True)
 
 
+def changeArnoldOverscan(*args):
+    if pm.objExists('defaultArnoldRenderOptions'):
+        pm.setAttr('defaultArnoldRenderOptions.outputOverscan', pm.textFieldGrp("arnoldOverscan", query=True, text=True));
+
 # ----------------------------------------------------------------------------
 # Code to create and update the Resolution frame
 #
@@ -1377,6 +1381,12 @@ def createArnoldCommonResolution():
 
 
     pm.connectControl('ratioLockRadio', 'defaultResolution.lockDeviceAspectRatio', index=1)
+
+    pm.textFieldGrp('arnoldOverscan',
+                        label='Overscan',
+                        changeCommand=changeArnoldOverscan)
+
+    pm.connectControl('arnoldOverscan', 'defaultArnoldRenderOptions.outputOverscan', index=1)
 
     pm.floatFieldGrp('mayaSoftwareResWidth',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidth"),
