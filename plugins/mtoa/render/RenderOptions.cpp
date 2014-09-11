@@ -254,39 +254,6 @@ void CRenderOptions::SetCamera(MDagPath& camera)
    m_camera = camera;
 }
 
-void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
-{
-   MString ms = s;
-   ms.toLowerCase();
-   if (ms.rindex('%') == (ms.length() - 1))
-   {
-      isPercent = true;
-      ms = ms.substring(0, ms.length() - 2);
-   }
-   else if (ms.rindexW(MString("px")) == (ms.length() - 2))
-   {
-      isPercent = false;
-      ms = ms.substring(0, ms.length() - 3);
-   }
-   else
-      isPercent = false;
-
-   if (ms.isInt())
-      overscan = (float)ms.asInt();
-   else if (ms.isFloat())
-      overscan = ms.asFloat();
-   else if (ms.isDouble())
-      overscan = (float)ms.asDouble();
-   else
-      overscan = 0.0f;
-
-   if (isPercent)
-      overscan = overscan / 100.0f;
-
-   if (overscan < AI_EPSILON)
-      overscan = 0.0f;
-}
-
 void CRenderOptions::UpdateImageDimensions()
 {
    AtNode* options = AiUniverseGetOptions();
@@ -297,69 +264,6 @@ void CRenderOptions::UpdateImageDimensions()
       AiNodeSetInt(options, "region_max_x", maxX());
       AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
    }
-   else
-   {
-      MObject node = GetArnoldRenderOptions();
-      if (node != MObject::kNullObj)
-      {
-         MFnDependencyNode fnArnoldRenderOptions(node);
-         
-         float overscanL = 0.0f;
-         float overscanR = 0.0f;
-         float overscanT = 0.0f;
-         float overscanB = 0.0f;
-         bool overscanLP = false;
-         bool overscanRP = false;
-         bool overscanTP = false;
-         bool overscanBP = false;
-
-         MString overscanString = fnArnoldRenderOptions.findPlug("outputOverscan").asString();
-         MStringArray split;
-         overscanString.split(' ', split);
-         const unsigned int splitLength = split.length();
-         if (splitLength == 1)
-         {
-            ParseOverscanSettings(split[0], overscanL, overscanLP);
-            overscanR = overscanL;
-            overscanT = overscanL;
-            overscanB = overscanL;
-            overscanRP = overscanLP;
-            overscanTP = overscanLP;
-            overscanBP = overscanLP;
-         }
-         else if (splitLength == 2)
-         {
-            ParseOverscanSettings(split[0], overscanT, overscanTP);
-            overscanB = overscanT;
-            overscanBP = overscanTP;
-            ParseOverscanSettings(split[1], overscanL, overscanLP);
-            overscanR = overscanL;
-            overscanRP = overscanLP;
-         }
-         else if (splitLength == 3)
-         {
-            ParseOverscanSettings(split[0], overscanT, overscanTP);
-            ParseOverscanSettings(split[1], overscanL, overscanLP);
-            overscanR = overscanL;
-            overscanRP = overscanLP;
-            ParseOverscanSettings(split[2], overscanB, overscanBP);
-         }
-         else if (splitLength == 4)
-         {
-            ParseOverscanSettings(split[0], overscanT, overscanTP);
-            ParseOverscanSettings(split[1], overscanR, overscanRP);
-            ParseOverscanSettings(split[2], overscanB, overscanBP);
-            ParseOverscanSettings(split[3], overscanL, overscanLP);
-         }
-
-         AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width() * overscanL) : -(int)overscanL);
-         AiNodeSetInt(options, "region_max_x", overscanRP ? width() + (int)ceilf((float)width() * overscanR) : width() + (int)overscanR - 1);
-         AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height() * overscanT) : -(int)overscanT);
-         AiNodeSetInt(options, "region_max_y", overscanBP ? height() + (int)ceilf((float)height() * overscanB) : height() + (int)overscanB - 1);
-
-         std::cerr << AiNodeGetInt(options, "region_min_x") << " - " << AiNodeGetInt(options, "region_max_x") << " - " << AiNodeGetInt(options, "region_min_y") << " - " << AiNodeGetInt(options, "region_max_y") << std::endl;
-      }      
-   }   
 
    AiNodeSetInt(options, "xres", width());
    AiNodeSetInt(options, "yres", height());
