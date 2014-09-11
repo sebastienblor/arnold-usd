@@ -256,18 +256,17 @@ void CRenderOptions::SetCamera(MDagPath& camera)
 
 void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
 {
-   std::cerr << "Parsing string : " << s.asChar() << std::endl;
    MString ms = s;
    ms.toLowerCase();
    if (ms.rindex('%') == (ms.length() - 1))
    {
       isPercent = true;
-      ms = ms.substring(0, ms.length() - 1);
+      ms = ms.substring(0, ms.length() - 2);
    }
    else if (ms.rindexW(MString("px")) == (ms.length() - 2))
    {
       isPercent = false;
-      ms = ms.substring(0, ms.length() - 2);
+      ms = ms.substring(0, ms.length() - 3);
    }
    else
       isPercent = false;
@@ -312,11 +311,9 @@ void CRenderOptions::UpdateImageDimensions()
          bool overscanBP = false;
 
          MString overscanString = fnArnoldRenderOptions.findPlug("outputOverscan").asString();
-         std::cerr << overscanString.asChar() << std::endl;
          MStringArray split;
          overscanString.split(' ', split);
          const unsigned int splitLength = split.length();
-         std::cerr << "Split length : " << splitLength << std::endl;
          if (splitLength == 1)
          {
             ParseOverscanSettings(split[0], overscanL, overscanLP);
@@ -353,9 +350,9 @@ void CRenderOptions::UpdateImageDimensions()
          }
 
          AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width() * overscanL) : -(int)overscanL);
-         AiNodeSetInt(options, "region_max_x", overscanRP ? width() + (int)ceilf((float)width() * overscanR) : width() + (int)overscanR);
+         AiNodeSetInt(options, "region_max_x", overscanRP ? width() + (int)ceilf((float)width() * overscanR) : width() + (int)overscanR - 1);
          AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height() * overscanT) : -(int)overscanT);
-         AiNodeSetInt(options, "region_max_y", overscanBP ? height() + (int)ceilf((float)height() * overscanB) : height() + (int)overscanB);
+         AiNodeSetInt(options, "region_max_y", overscanBP ? height() + (int)ceilf((float)height() * overscanB) : height() + (int)overscanB - 1);
 
          std::cerr << AiNodeGetInt(options, "region_min_x") << " - " << AiNodeGetInt(options, "region_max_x") << " - " << AiNodeGetInt(options, "region_min_y") << " - " << AiNodeGetInt(options, "region_max_y") << std::endl;
       }      
