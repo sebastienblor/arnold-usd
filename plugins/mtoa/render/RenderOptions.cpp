@@ -280,6 +280,9 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
    else
       overscan = 0.0f;
 
+   if (isPercent)
+      overscan = overscan / 100.0f;
+
    if (overscan < AI_EPSILON)
       overscan = 0.0f;
 }
