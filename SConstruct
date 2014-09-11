@@ -708,6 +708,14 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])
+              
+if system.os() == "windows":
+    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.dll')))
+elif system.os() == 'linux':
+    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.so')))
+elif system.os() == 'darwin':
+    env.Install(TARGET_PROCEDURAL_PATH,glob.glob(os.path.join('installer', 'bin', 'volume_openvdb.dylib')))
+              
 # install icons
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
@@ -904,6 +912,13 @@ if env['ENABLE_XGEN'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
+    
+if system.os() == "windows":
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
+elif system.os() == 'linux':
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.so'), 'procedurals'])
+elif system.os() == 'darwin':
+    PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dylib'), 'procedurals'])
 
 for p in MTOA_PROCS:
     PACKAGE_FILES += [[p, 'procedurals']]
@@ -962,6 +977,7 @@ def create_installer(target, source, env):
     import shutil
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
     shutil.copyfile(os.path.abspath('installer/MtoAEULA.txt'), os.path.join(tempdir, 'MtoAEULA.txt'))
+
     if system.os() == "windows":
         import zipfile
         shutil.copyfile(os.path.abspath('installer/SA.ico'), os.path.join(tempdir, 'SA.ico'))

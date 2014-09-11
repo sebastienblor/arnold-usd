@@ -1,5 +1,5 @@
 ﻿import pymel.core as pm
-from mtoa.core import createStandIn
+from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
 import maya.cmds as cmds
@@ -111,6 +111,9 @@ def createArnoldMenu():
                     c=lambda *args: cmds.CreateSpotLight())
         pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
                     c=lambda *args: cmds.CreateAreaLight())
+                    
+        pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu',
+                    c=lambda *args: createVolume())
                     
         pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",

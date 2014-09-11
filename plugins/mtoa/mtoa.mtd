@@ -20,6 +20,7 @@
 # motion_vector               0x00115D0F
 # image                       0x00115D17
 # physical_sky                0x00115D1E
+# density                     0x00115D21
 
 # options
 
@@ -1396,6 +1397,15 @@
         softmin             FLOAT   0.1
         softmax             FLOAT   5.0
         
+[node density]
+    desc                    STRING  "Density"
+    maya.name               STRING  "aiDensity"
+    maya.id                 INT     0x00115D21
+    maya.classification     STRING  "shader/volume"
+    [attr scatter_g]
+        min                 FLOAT   -1.0
+        max                 FLOAT   1.0
+        
 # dag nodes
 
 [node polymesh]
@@ -1426,12 +1436,6 @@
     [attr glossy_visibility]
         maya.name           STRING  "aiGlossyVisibility"
         label               STRING  "Visible In Glossy"
-
-[node density]
-    maya.hide               BOOL    true
-    [attr scatter_g]
-        min                 FLOAT   -1.0
-        max                 FLOAT   1.0
 
 # drivers
 
