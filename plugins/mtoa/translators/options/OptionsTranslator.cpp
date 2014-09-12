@@ -590,64 +590,66 @@ void COptionsTranslator::Update(AtNode *options)
    {
       AiNodeSetPtr(options, "background", NULL);
    }
-
-   MString overscanString = FindMayaPlug("outputOverscan").asString();
-   if (overscanString != "")
+   if ((m_session->GetSessionMode() & MTOA_SESSION_BATCH) || (m_session->GetSessionMode() & MTOA_SESSION_ASS))
    {
-      float overscanL = 0.0f;
-      float overscanR = 0.0f;
-      float overscanT = 0.0f;
-      float overscanB = 0.0f;
-      bool overscanLP = false;
-      bool overscanRP = false;
-      bool overscanTP = false;
-      bool overscanBP = false;
-      
-      MStringArray split;
-      overscanString.split(' ', split);
-      const unsigned int splitLength = split.length();
-      if (splitLength == 1)
+      MString overscanString = FindMayaPlug("outputOverscan").asString();
+      if (overscanString != "")
       {
-         ParseOverscanSettings(split[0], overscanL, overscanLP);
-         overscanR = overscanL;
-         overscanT = overscanL;
-         overscanB = overscanL;
-         overscanRP = overscanLP;
-         overscanTP = overscanLP;
-         overscanBP = overscanLP;
-      }
-      else if (splitLength == 2)
-      {
-         ParseOverscanSettings(split[0], overscanT, overscanTP);
-         overscanB = overscanT;
-         overscanBP = overscanTP;
-         ParseOverscanSettings(split[1], overscanL, overscanLP);
-         overscanR = overscanL;
-         overscanRP = overscanLP;
-      }
-      else if (splitLength == 3)
-      {
-         ParseOverscanSettings(split[0], overscanT, overscanTP);
-         ParseOverscanSettings(split[1], overscanL, overscanLP);
-         overscanR = overscanL;
-         overscanRP = overscanLP;
-         ParseOverscanSettings(split[2], overscanB, overscanBP);
-      }
-      else if (splitLength == 4)
-      {
-         ParseOverscanSettings(split[0], overscanT, overscanTP);
-         ParseOverscanSettings(split[1], overscanR, overscanRP);
-         ParseOverscanSettings(split[2], overscanB, overscanBP);
-         ParseOverscanSettings(split[3], overscanL, overscanLP);
-      }
+         float overscanL = 0.0f;
+         float overscanR = 0.0f;
+         float overscanT = 0.0f;
+         float overscanB = 0.0f;
+         bool overscanLP = false;
+         bool overscanRP = false;
+         bool overscanTP = false;
+         bool overscanBP = false;
+         
+         MStringArray split;
+         overscanString.split(' ', split);
+         const unsigned int splitLength = split.length();
+         if (splitLength == 1)
+         {
+            ParseOverscanSettings(split[0], overscanL, overscanLP);
+            overscanR = overscanL;
+            overscanT = overscanL;
+            overscanB = overscanL;
+            overscanRP = overscanLP;
+            overscanTP = overscanLP;
+            overscanBP = overscanLP;
+         }
+         else if (splitLength == 2)
+         {
+            ParseOverscanSettings(split[0], overscanT, overscanTP);
+            overscanB = overscanT;
+            overscanBP = overscanTP;
+            ParseOverscanSettings(split[1], overscanL, overscanLP);
+            overscanR = overscanL;
+            overscanRP = overscanLP;
+         }
+         else if (splitLength == 3)
+         {
+            ParseOverscanSettings(split[0], overscanT, overscanTP);
+            ParseOverscanSettings(split[1], overscanL, overscanLP);
+            overscanR = overscanL;
+            overscanRP = overscanLP;
+            ParseOverscanSettings(split[2], overscanB, overscanBP);
+         }
+         else if (splitLength == 4)
+         {
+            ParseOverscanSettings(split[0], overscanT, overscanTP);
+            ParseOverscanSettings(split[1], overscanR, overscanRP);
+            ParseOverscanSettings(split[2], overscanB, overscanBP);
+            ParseOverscanSettings(split[3], overscanL, overscanLP);
+         }
 
-      const int width = AiNodeGetInt(options, "xres");
-      const int height = AiNodeGetInt(options, "yres");
+         const int width = AiNodeGetInt(options, "xres");
+         const int height = AiNodeGetInt(options, "yres");
 
-      AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width * overscanL) : -(int)overscanL);
-      AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
-      AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
-      AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
+         AiNodeSetInt(options, "region_min_x", overscanLP ? (int)ceilf(-(float)width * overscanL) : -(int)overscanL);
+         AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
+         AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
+         AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
+      }
    }
 
    ExportAtmosphere(options);   
