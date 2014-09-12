@@ -648,8 +648,6 @@ void COptionsTranslator::Update(AtNode *options)
       AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
       AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
       AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
-
-      std::cerr << AiNodeGetInt(options, "region_min_x") << " - " << AiNodeGetInt(options, "region_max_x") << " - " << AiNodeGetInt(options, "region_min_y") << " - " << AiNodeGetInt(options, "region_max_y") << std::endl;
    }
 
    ExportAtmosphere(options);   
