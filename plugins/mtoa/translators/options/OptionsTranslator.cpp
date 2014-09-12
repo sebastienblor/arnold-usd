@@ -543,8 +543,6 @@ void COptionsTranslator::Update(AtNode *options)
          }
          else
          {
-            if (strcmp(paramName, "region_min_x") == 0)
-               std::cerr << "Writing minimum region x\n";
             // Process parameter automatically
             // FIXME: we can't use the default method since the options names don't
             // follow the standard "toMayaStyle" behavior when no metadata is present
