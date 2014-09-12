@@ -259,6 +259,9 @@ def createArnoldRenderSettings():
                         attribute='defaultArnoldRenderOptions.bucketSize')
 
     
+    pm.attrControlGrp('os_output_overscan',
+                        label='Overscan',
+                        attribute='defaultArnoldRenderOptions.outputOverscan')
     
     pm.separator()
 
