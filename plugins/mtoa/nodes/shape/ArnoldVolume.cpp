@@ -328,10 +328,12 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       minCoords[0] = bbox.min.x;
       minCoords[1] = bbox.min.y;
       minCoords[2] = bbox.min.z;
+      minCoords[3] = 0.0f;
 
       maxCoords[0] = bbox.max.x;
       maxCoords[1] = bbox.max.y;
       maxCoords[2] = bbox.max.z;
+      maxCoords[3] = 0.0f;
 
       if (AiUniverseCreated) ArnoldUniverseEnd();
       
