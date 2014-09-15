@@ -418,12 +418,12 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
 {
    MString ms = s;
    ms.toLowerCase();
-   if (ms.rindex('%') == (ms.length() - 1))
+   if (ms.rindex('%') == (int)(ms.length() - 1))
    {
       isPercent = true;
       ms = ms.substring(0, ms.length() - 2);
    }
-   else if (ms.rindexW(MString("px")) == (ms.length() - 2))
+   else if (ms.rindexW(MString("px")) == (int)(ms.length() - 2))
    {
       isPercent = false;
       ms = ms.substring(0, ms.length() - 3);
