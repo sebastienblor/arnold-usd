@@ -171,8 +171,8 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
      
       AiNodeSetFlt(volume, "step_size", m_DagNode.findPlug("stepSize").asFloat());
 
-      MPlug loadtAtInit = m_DagNode.findPlug("loadtAtInit");
-      if (loadtAtInit.asBool())
+      MPlug loadAtInit = m_DagNode.findPlug("loadAtInit");
+      if (loadAtInit.asBool())
          AiNodeSetBool(volume, "load_at_init", true);
       
       ExportBoundingBox(volume);

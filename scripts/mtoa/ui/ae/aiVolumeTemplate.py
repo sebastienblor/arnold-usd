@@ -81,7 +81,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('stepSize')
         self.addControl('MinBoundingBox')
         self.addControl('MaxBoundingBox')
-        self.addControl('loadtAtInit')
+        self.addControl('loadAtInit')
         
         self.addSeparator()
         

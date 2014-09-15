@@ -138,7 +138,7 @@ MStatus CArnoldVolumeShape::initialize()
    tAttr.setStorable(true);
    addAttribute(s_data);
    
-   s_loadAtInit = nAttr.create("loadtAtInit", "loadtAtInit", MFnNumericData::kBoolean, 0);
+   s_loadAtInit = nAttr.create("loadAtInit", "loadAtInit", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
