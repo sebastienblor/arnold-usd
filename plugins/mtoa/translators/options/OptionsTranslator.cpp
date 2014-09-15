@@ -588,7 +588,7 @@ void COptionsTranslator::Update(AtNode *options)
    {
       AiNodeSetPtr(options, "background", NULL);
    }
-   if ((m_session->GetSessionMode() & MTOA_SESSION_BATCH) || (m_session->GetSessionMode() & MTOA_SESSION_ASS))
+   if ((m_session->GetSessionMode() == MTOA_SESSION_BATCH) || (m_session->GetSessionMode() == MTOA_SESSION_ASS))
    {
       MString overscanString = FindMayaPlug("outputOverscan").asString();
       if (overscanString != "")
@@ -647,6 +647,8 @@ void COptionsTranslator::Update(AtNode *options)
          AiNodeSetInt(options, "region_max_x", overscanRP ? width + (int)ceilf((float)width * overscanR) : width + (int)overscanR - 1);
          AiNodeSetInt(options, "region_min_y", overscanTP ? (int)ceilf(-(float)height * overscanT) : -(int)overscanT);
          AiNodeSetInt(options, "region_max_y", overscanBP ? height + (int)ceilf((float)height * overscanB) : height + (int)overscanB - 1);
+
+         //AiMsgInfo("Exporting overscan : %f %f %f %f", overscanL, overscanT, overscanB, overscanR);
       }
    }
 
