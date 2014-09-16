@@ -92,6 +92,7 @@ MObject CArnoldOptionsNode::s_IPRRefinementStartedCallback;
 MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
 MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
 MObject CArnoldOptionsNode::s_IPRStepFinishedCallback;
+MObject CArnoldOptionsNode::s_output_overscan;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -586,7 +587,11 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_IPRStepFinishedCallback = tAttr.create("IPRStepFinished", "ipr_step_finished", MFnData::kString);
    tAttr.setKeyable(false);
-   addAttribute(s_IPRStepFinishedCallback);   
+   addAttribute(s_IPRStepFinishedCallback);
+
+   s_output_overscan = tAttr.create("outputOverscan", "output_overscan", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_output_overscan);
 
    return MS::kSuccess;
 }

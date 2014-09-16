@@ -3,24 +3,25 @@
 #include <iostream>
 #include <vector>
 
+#include "ViewportUtils.h"
+
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/M3dView.h>
 
-const char* shaderUniforms = "#version 150\n"
+const char* shaderUniforms = "#version 120\n"
 "uniform mat4 model;\n"
 "uniform mat4 viewProj;\n"
 "uniform vec4 shadeColor;\n";
 
 const char* vertexShader = 
-"in vec3 position;\n"
 "void main()\n"
 "{\n"
-"gl_Position = viewProj * (model * vec4(position, 1.0f));\n"
+"gl_Position = viewProj * (model * gl_Vertex);\n"
 "}\n";
 
 const char* fragmentShader =
-"out vec4 frag_color;\n"
-"void main() { frag_color = shadeColor;}\n";
+"void main() { gl_FragColor = shadeColor;}\n";
 
 GLuint CArnoldAreaLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_fragmentShader = 0;
@@ -167,7 +168,7 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 
 void CArnoldAreaLightDrawOverride::clearGPUResources()
 {
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
@@ -185,13 +186,13 @@ void CArnoldAreaLightDrawOverride::clearGPUResources()
 
 void CArnoldAreaLightDrawOverride::initializeGPUResources()
 {
-    if (s_isInitialized == false)
+    if ((s_isInitialized == false) && InitializeGLEW())
     {
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_4_3)
-            return; // right now, only opengl 4.3, we can lower this later       
+        if (!GLEW_VERSION_2_1)
+            return; // right now, only opengl 4.3, we can lower this later 
 
         s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
         const char* stringPointers[2] = {shaderUniforms, vertexShader};
@@ -234,6 +235,8 @@ void CArnoldAreaLightDrawOverride::draw(
                                     const MUserData* data)
 {
     if (s_isValid == false)
+        return;
+    if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
         return;
     const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);        
     glUseProgram(s_program);

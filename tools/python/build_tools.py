@@ -184,7 +184,10 @@ def get_arnold_version(path, components = 4):
    return version      
 
 def get_maya_version(path):
-   f = open(path, 'r')
+   try:
+      f = open(path, 'r')
+   except:
+      return "000000"
    while True:
       line = f.readline().lstrip(' \t')
       if line == "":

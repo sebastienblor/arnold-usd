@@ -1258,7 +1258,6 @@ def createArnoldCommonRenderCameras():
     pm.setParent(parent)
     pm.setUITemplate(popTemplate=True)
 
-
 # ----------------------------------------------------------------------------
 # Code to create and update the Resolution frame
 #

@@ -1,29 +1,32 @@
 import subprocess, zipfile, shutil
 import os, sys
 
+try: input = raw_input
+except NameError: pass
+
 subprocess.call(['less', '-e', os.path.abspath('MtoAEULA.txt')])
 
 def InstallerHeader():
     os.system('clear')
-    print '   --== Maya to Arnold Installer ==--    '
+    print('   --== Maya to Arnold Installer ==--    ')
 
 InstallerHeader()
-print '''
+print('''
     Please type accept and press enter to agree to the terms and conditions,
     or press enter to exit.
-      '''
-inp = raw_input('    ').replace(' ', '').lower()
+      ''')
+inp = input('    ').replace(' ', '').lower()
 
 if inp != 'accept':
     sys.exit(0)
 
 InstallerHeader()
-print ''' 
+print(''' 
     Installation modes:
         1) Automatic (set up Maya module and arnoldRenderer.xml)
         2) Extract the package
-      '''
-inp = raw_input('    Please select mode [1] : ')
+      ''')
+inp = input('    Please select mode [1] : ')
 inp = inp.replace(' ', '')
 
 installMode = 1
@@ -37,8 +40,8 @@ else:
     try:
         p = subprocess.Popen('whoami', stdout=subprocess.PIPE)
         whoami, err = p.communicate()
-        if whoami[0:4] != 'root':
-            print 'Root privileges are required to configure MtoA for Maya.'
+        if whoami.find(b'root') != 0:
+            print('Root privileges are required to configure MtoA for Maya.')
             sys.exit(0)
         isRoot = True
     except:
@@ -51,7 +54,6 @@ if sys.argv[1] != '20135':
     mayaVersion = sys.argv[1]
 else:
     mayaVersion = '2013.5'
-enableEnvInstall = mayaVersion == '2012'
 
 userString = '~'
 sudoUser = ''
@@ -84,21 +86,21 @@ while True:
     homeDir = os.path.expanduser(userString)
     InstallerHeader()
     installDir = os.path.join(homeDir, 'solidangle', 'mtoa', mayaVersion)
-    print '''
+    print('''
     Select the installation directory.
     [%s]
-          ''' % installDir
-    inp = raw_input('    ').lstrip()   
+          ''' % installDir)
+    inp = input('    ').lstrip()   
     if inp != '':
         installDir = inp
     if not EnsureDir(installDir):
         InstallerHeader()
-        print '''
+        print('''
     Cannot create target directory.
     Do you want to install to a different directory?
     [yes / no]
-              '''
-        inp = raw_input('    ').replace(' ', '').lower()
+              ''')
+        inp = input('    ').replace(' ', '').lower()
         if inp != 'yes':
             sys.exit(0)
     else:
@@ -110,7 +112,6 @@ def unzip(zipFilePath, destDir):
     zfile = zipfile.ZipFile(zipFilePath)
     for name in zfile.namelist():
         (dirName, fileName) = os.path.split(name)
-        print dirName, ' ', fileName
         # Check if the directory exisits
         if dirName == '.':
             dirName = ''
@@ -128,15 +129,14 @@ try:
     #zipfile.ZipFile(os.path.abspath('package.zip'), 'r').extractall(installDir)
     unzip(os.path.abspath('package.zip'), installDir)
 except:
-    print 'Error extracting the contents of the package.'
+    print('Error extracting the contents of the package.')
     sys.exit(0)
 
 # regenerating the module file
 mtoaModPath = os.path.join(installDir, 'mtoa.mod')
 mtoaMod = open(mtoaModPath, 'w')
 mtoaMod.write('+ mtoa any %s\n' % installDir)
-if not enableEnvInstall:
-    mtoaMod.write('PATH +:= bin\n')
+mtoaMod.write('PATH +:= bin\n')
 mtoaMod.close()
 
 # setting up executables properly
@@ -145,7 +145,7 @@ for ex in exList:
     try:
         subprocess.call(['chmod', '+x', os.path.join(installDir, ex)])
     except:
-        print 'Error adding +x to executable %s' % ex
+        print('Error adding +x to executable %s' % ex)
         sys.exit(0)
 
 if installMode == 1: # do the proper installation
@@ -157,39 +157,18 @@ if installMode == 1: # do the proper installation
         mayaBaseDir = os.path.join(homeDir, 'maya', '%s-x64' % mayaVersion)
     if not os.path.exists(mayaBaseDir):
         os.system('clear')
-        print 'Home directory for Maya %s does not exists.' % mayaVersion
+        print('Home directory for Maya %s does not exists.' % mayaVersion)
         sys.exit(1)
     modulesDir = os.path.join(mayaBaseDir, 'modules')
     if not EnsureDir(modulesDir):
         os.system('clear')
-        print 'Modules directory for the current Maya version cannot be created.'
+        print('Modules directory for the current Maya version cannot be created.')
         sys.exit(1)
     shutil.copy(mtoaModPath, os.path.join(modulesDir, 'mtoa.mod'))
     try:
         subprocess.call(['chown', sudoUser, os.path.join(modulesDir, 'mtoa.mod')])
     except:
         pass
-    if enableEnvInstall:
-        mayaEnvPath = os.path.join(mayaBaseDir, 'Maya.env')
-        mayaEnvContents = []
-        additionToEnv = ['PATH=$PATH:%s\n' % os.path.join(installDir, 'bin')]
-        if os.path.exists(mayaEnvPath):
-            for line in open(mayaEnvPath, 'r').readlines():
-                if line in additionToEnv:
-                    continue
-                if line[-1:] != '\n':
-                    line += '\n'
-                mayaEnvContents.append(line)
-        mayaEnv = open(mayaEnvPath, 'w')
-        for line in mayaEnvContents:
-            mayaEnv.write(line)
-        for line in additionToEnv:
-            mayaEnv.write(line)
-        mayaEnv.close()
-    try:
-        subprocess.call(['chown', '-R', sudoUser, installDir])
-    except:
-        print 'Error setting the user as the owner of the installation directory.'
     # install the renderer description file in the maya dir
     mayaInstallDir = ''
     if sys.platform == 'darwin':
@@ -197,11 +176,11 @@ if installMode == 1: # do the proper installation
     else:
         mayaInstallDir = os.path.join('/usr', 'autodesk', 'maya%s-x64' % mayaVersion)
     if not os.path.exists(mayaInstallDir):
-        print '''
+        print('''
     Please specify maya installation directory
     for version %s :
-        ''' % mayaVersion
-        mayaInstallDir = raw_input('    ')
+        ''' % mayaVersion)
+        mayaInstallDir = input('    ')
     if sys.platform == 'darwin':
         renderDescFolder = os.path.join(mayaInstallDir, 'Maya.app', 'Contents', 'bin', 'rendererDesc')
     else:
@@ -209,4 +188,4 @@ if installMode == 1: # do the proper installation
     shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
 
 os.system('clear')
-print 'Installation successful!'
+print('Installation successful!')

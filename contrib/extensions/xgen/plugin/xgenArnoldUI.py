@@ -50,6 +50,7 @@ def xgArnoldUI(selfid):
     addMethod( self, xgArnoldMotionBlurModeChanged )
     addMethod( self, xgArnoldMotionBlurChanged )
     addMethod( self, xgArnoldPatchesChanged )
+    addMethod( self, xgArnoldUseAuxPatchesChanged )
 
     expand = ExpandUI(maya.stringTable[ 'y_xgenArnoldUI.kArnoldSettings'  ])
     self.arnold_expand_settings = expand
@@ -70,7 +71,7 @@ def xgArnoldUI(selfid):
     self.arnold_rendermode = QtGui.QComboBox()
     self.arnold_rendermode.setFixedWidth( 120 )
     self.arnold_rendermode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kRenderModeLive'  ], "1" )
-    self.arnold_rendermode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kRenderModeBatch'  ], "3" )
+    self.arnold_rendermode.addItem(maya.stringTable[ 'y_xgenArnoldUI.kRenderModeBatch' ], "3" )
     self.arnold_rendermode.setToolTip(label.toolTip())
     self.connect(self.arnold_rendermode , QtCore.SIGNAL("activated(int)"), self.xgArnoldRenderModeChanged )
     hbox.addWidget(self.arnold_rendermode)
@@ -209,13 +210,20 @@ def xgArnoldUI(selfid):
     self.layout().addWidget( expand )
     self.arnold_expand_advanced_settings = expand
     
-    self.arnold_batchRenderPatch = BrowseUI( "custom__arnold_batchRenderPatch",
+    self.arnold_useAuxRenderPatch = CheckBoxUI(maya.stringTable[ 'y_xgenArnoldUI.kUsePatchesPath'  ],"custom__arnold_useAuxRenderPatch",
+                                    maya.stringTable[ 'y_xgenArnoldUI.kUsePatchesPathAnn'  ],k_RenderAPIRendererObj)
+
+    expand.addWidget(self.arnold_useAuxRenderPatch)
+    self.connect(self.arnold_useAuxRenderPatch.boxValue[0],
+                 QtCore.SIGNAL("clicked(bool)"), self.xgArnoldUseAuxPatchesChanged)
+    
+    self.arnold_auxRenderPatch = BrowseUI( "custom__arnold_auxRenderPatch",
                             maya.stringTable[ 'y_xgenArnoldUI.kPatchesPathAnn' ],
-                            k_RenderAPIRendererObj, "*.*", "in", maya.stringTable[ 'y_xgenArnoldUI.kPatchesPath' ])
+                            k_RenderAPIRendererObj, "*.abc", "in", maya.stringTable[ 'y_xgenArnoldUI.kPatchesPath' ])
                                 
                                 
-    expand.addWidget(self.arnold_batchRenderPatch)
-    self.connect(self.arnold_batchRenderPatch.textValue, QtCore.SIGNAL("textChanged(const QString&)"), self.xgArnoldPatchesChanged )
+    expand.addWidget(self.arnold_auxRenderPatch)
+    self.connect(self.arnold_auxRenderPatch.textValue, QtCore.SIGNAL("textChanged(const QString&)"), self.xgArnoldPatchesChanged )
 
     # Register the Arnold renderer in the method combo box
     self.addRenderer("Arnold Renderer")
@@ -247,7 +255,8 @@ def xgArnoldRefresh(selfid):
     self.declareCustomAttr( 'arnold_motion_blur_mode', "1" )
     self.declareCustomAttr( 'arnold_motion_blur_steps', "2" )
     self.declareCustomAttr( 'arnold_motion_blur_factor', "0.5" )
-    self.declareCustomAttr( 'arnold_batchRenderPatch', "0" )
+    self.declareCustomAttr( 'arnold_useAuxRenderPatch', "0" )
+    self.declareCustomAttr( 'arnold_auxRenderPatch', "0" )
     
     # Get all the values
     rendermode = int(self.getCustomAttr( "arnold_rendermode" ))
@@ -258,9 +267,10 @@ def xgArnoldRefresh(selfid):
     mb_mode = int(self.getCustomAttr( "arnold_motion_blur_mode" ))
     mb_steps = int(self.getCustomAttr( "arnold_motion_blur_steps" ))
     mb_factor = float(self.getCustomAttr( "arnold_motion_blur_factor" ))
-    batchRenderPatch = str(self.getCustomAttr( "arnold_batchRenderPatch" ))
-    if batchRenderPatch == "0":
-        batchRenderPatch = ""
+    useAuxRenderPatch = self.getCustomAttr( "arnold_useAuxRenderPatch" ) != "0"
+    auxRenderPatch = str(self.getCustomAttr( "arnold_auxRenderPatch" ))
+    if auxRenderPatch == "0":
+        auxRenderPatch = ""
 
     # Update the UI
     de = xgg.DescriptionEditor
@@ -280,7 +290,9 @@ def xgArnoldRefresh(selfid):
     self.arnold_motion_blur_steps.setEnabled( mbo )
     self.arnold_motion_blur_factor.setEnabled( mbo )
     
-    self.arnold_batchRenderPatch.refresh()
+    self.arnold_useAuxRenderPatch.refresh()
+    self.arnold_auxRenderPatch.refresh()
+    self.arnold_auxRenderPatch.setEnabled(useAuxRenderPatch)
     
     pal = de.currentPalette()
     desc = de.currentDescription()
@@ -299,8 +311,12 @@ def xgArnoldRefresh(selfid):
             cmds.setAttr( nExistsName + ".motion_blur_mode", mb_mode )
             cmds.setAttr( nExistsName + ".motion_blur_steps", mb_steps )
             cmds.setAttr( nExistsName + ".motion_blur_factor", mb_factor )
-            cmds.setAttr( nExistsName + ".aiBatchRenderPatch", batchRenderPatch, type="string")
-            #cmds.setAttr( nExistsName + ".render_mode", rendermode )   live/batch?
+            cmds.setAttr( nExistsName + ".aiUseAuxRenderPatch", useAuxRenderPatch )
+            cmds.setAttr( nExistsName + ".aiAuxRenderPatch", auxRenderPatch, type="string")
+            if rendermode == 0:
+                cmds.setAttr( nExistsName + ".render_mode", 1 ) #  live = 1
+            else:
+                cmds.setAttr( nExistsName + ".render_mode", 3 ) #  batch = 3
         else:
             print "Couldn't find Description Shape!"
 
@@ -327,6 +343,13 @@ def xgArnoldMotionBlurChanged(self,index):
     self.xgArnoldRefresh()
 
 def xgArnoldPatchesChanged(self, data):
-    self.setCustomAttr( "arnold_batchRenderPatch", str(data) )
+    self.setCustomAttr( "arnold_auxRenderPatch", str(data) )
     self.xgArnoldRefresh()
 
+def xgArnoldUseAuxPatchesChanged(self, state):
+    self.setCustomAttr( "arnold_useAuxRenderPatch", str(int(state)) )
+    if state:
+        self.arnold_auxRenderPatch.setEnabled(True)
+    else:
+        self.arnold_auxRenderPatch.setEnabled(False)
+    self.xgArnoldRefresh()

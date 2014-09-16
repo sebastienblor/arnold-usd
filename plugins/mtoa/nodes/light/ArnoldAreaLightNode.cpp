@@ -119,29 +119,9 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       break;
    }
    bool setBoundingBox = true;
-   // Quad
-   if (areaType == "quad")
-   {
-      glBegin(GL_LINES);
-      glVertex3f(-1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f, 1.0f, 0.0f);      
-      glVertex3f( 1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f,-1.0f, 0.0f);      
-      glVertex3f( 1.0f,-1.0f, 0.0f);
-      glVertex3f(-1.0f,-1.0f, 0.0f);      
-      glVertex3f(-1.0f,-1.0f, 0.0f);
-      glVertex3f(-1.0f, 1.0f, 0.0f);      
-      glVertex3f(-1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f,-1.0f, 0.0f);
-      glVertex3f(-1.0f,-1.0f, 0.0f);
-      glVertex3f( 1.0f, 1.0f, 0.0f);
-      // Done Drawing The direction
-      glVertex3f( 0.0f, 0.0f, 0.0f);
-      glVertex3f( 0.0f, 0.0f,-1.0f);
-      glEnd();
-   }
+   
    // Disk
-   else if (areaType == "disk")
+   if (areaType == "disk")
    {      
       glPushMatrix();
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
@@ -186,6 +166,29 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       primitive.draw();
       glPopMatrix();
    }
+   // Quad
+   else
+   {
+      glBegin(GL_LINES);
+      glVertex3f(-1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f, 1.0f, 0.0f);      
+      glVertex3f( 1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f,-1.0f, 0.0f);      
+      glVertex3f( 1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f,-1.0f, 0.0f);      
+      glVertex3f(-1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f, 1.0f, 0.0f);      
+      glVertex3f(-1.0f, 1.0f, 0.0f);
+      glVertex3f( 1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f,-1.0f, 0.0f);
+      glVertex3f( 1.0f, 1.0f, 0.0f);
+      // Done Drawing The direction
+      glVertex3f( 0.0f, 0.0f, 0.0f);
+      glVertex3f( 0.0f, 0.0f,-1.0f);
+      glEnd();
+   }
+   
+   
    
    // There is a reason for this
    // I can`t set attributeAffects with aiTranslator
@@ -205,7 +208,7 @@ bool CArnoldAreaLightNode::isBounded() const
 
 MBoundingBox CArnoldAreaLightNode::boundingBox() const
 {
-   return m_boundingBox;;
+   return m_boundingBox;
 }
 
 void* CArnoldAreaLightNode::creator()

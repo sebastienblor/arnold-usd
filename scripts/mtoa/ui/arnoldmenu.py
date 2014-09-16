@@ -1,9 +1,10 @@
 ﻿import pymel.core as pm
-from mtoa.core import createStandIn
+from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
 import maya.cmds as cmds
 import mtoa.txManager
+import mtoa.lightManager
 import arnold as ai
 
 
@@ -41,7 +42,7 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldMercurialID:
         arnoldAboutText += " - " + arnoldMercurialID
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())+"\n\n"
-    arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2013\nSolid Angle SL\n\n"
+    arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2014\nSolid Angle SL\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard,\nYannick Puech, Borja Morales, Nicolas Dumay,\nPedro Fernando Gomez, Pál Mezei\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, \nChad Dombrova, Gaetan Guidet, Gaël Honorez,\nDiego Garcés, Kevin Tureski, Frédéric Servant"
 
@@ -71,6 +72,10 @@ def arnoldTxManager():
     win = mtoa.txManager.MtoATxManager()
     win.create()
     win.refreshList()
+    
+def arnoldLightManager():
+    win = mtoa.lightManager.MtoALightManager()
+    win.create()
 
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -107,6 +112,9 @@ def createArnoldMenu():
         pm.menuItem('MayaQuadLight', parent='ArnoldLights', label="Maya Quad Light",
                     c=lambda *args: cmds.CreateAreaLight())
                     
+        pm.menuItem('ArnoldVolume', label='Volume', parent='ArnoldMenu',
+                    c=lambda *args: createVolume())
+                    
         pm.menuItem('ArnoldFlush', label='Flush Caches', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldFlushTexture', parent='ArnoldFlush', label="Textures",
                     c=lambda *args: cmds.arnoldFlushCache(textures=True))
@@ -119,6 +127,9 @@ def createArnoldMenu():
                     
         pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldMenu',
                     c=lambda *args: arnoldTxManager())
+                    
+        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
+                    c=lambda *args: arnoldLightManager())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())

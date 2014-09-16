@@ -275,7 +275,7 @@ CPhotometricLightPrimitive::CPhotometricLightPrimitive()
 
 #include <iostream>
 
-CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
+CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0),
    m_numLineIndices(0)
 {
 
@@ -284,7 +284,6 @@ CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
 CGLPrimitive::~CGLPrimitive()
 {
    glDeleteBuffers(2, m_GLBuffers);
-   glDeleteVertexArrays(1, &m_VAO);
 }
 
 void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices)
@@ -299,23 +298,21 @@ void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVerti
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-   glGenVertexArrays(1, &m_VAO);
-   glBindVertexArray(m_VAO);
-   glEnableVertexAttribArray(0);
-   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-   glBindVertexArray(0);
    m_numLineIndices = numIndices;
 }
 
 void CGLPrimitive::draw() const
 {
-   glBindVertexArray(m_VAO);
+   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, (char*)0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
 
    glDrawElements(GL_LINES, m_numLineIndices, GL_UNSIGNED_INT, 0);
 
-   glBindVertexArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 CGLQuadLightPrimitive::CGLQuadLightPrimitive()
@@ -553,5 +550,130 @@ bool checkProgramError(unsigned int program)
    }
    return false;
 }
+
+#ifdef _WIN32
+
+#include "MayaUtils.h"
+#include <windows.h>
+
+DXShader::DXShader(ID3D11Device* device, const MString& shaderName) :
+   p_vertexShader(0), p_pixelShader(0), p_vertexShaderBlob(0), p_pixelShaderBlob(0), m_isValid(false)
+{
+   DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+   ID3DBlob* errorBlob = 0;
+
+   MString effectLocation = replaceInString(MString(getenv("MTOA_PATH")), "\\", "/") + MString("/vp2/") + shaderName + MString(".hlsl");
+
+   HRESULT hr;
+
+#if _MSC_VER < 1700
+   hr = D3DX11CompileFromFile(
+      effectLocation.asChar(),
+      0,
+      0,
+      "mainVS",
+      "vs_5_0",
+      shaderFlags,
+      0,
+      0,
+      &p_vertexShaderBlob,
+      &errorBlob,
+      NULL);
+#else
+   hr = D3DCompileFromFile(
+      effectLocation.asWChar(),
+      0,
+      0,
+      "mainVS",
+      "vs_5_0",
+      shaderFlags,
+      0,
+      &p_vertexShaderBlob,
+      &errorBlob);
+#endif
+   if (FAILED(hr))
+   {                
+      if (errorBlob) errorBlob->Release();
+         return;  
+   }
+
+   if (errorBlob) errorBlob->Release();
+   hr = device->CreateVertexShader(p_vertexShaderBlob->GetBufferPointer(), p_vertexShaderBlob->GetBufferSize(), 0, &p_vertexShader);
+   if (FAILED(hr))
+   {
+      return;
+   }
+#if _MSC_VER < 1700
+   hr = D3DX11CompileFromFile(
+      effectLocation.asChar(),
+      0,
+      0,
+      "mainPS",
+      "ps_5_0",
+      shaderFlags,
+      0,
+      0,
+      &p_pixelShaderBlob,
+      &errorBlob,
+      NULL);
+#else
+   hr = D3DCompileFromFile(
+      effectLocation.asWChar(),
+      0,
+      0,
+      "mainPS",
+      "ps_5_0",
+      0,
+      0,
+      &p_pixelShaderBlob,
+      &errorBlob);
+#endif
+   if (FAILED(hr))
+   {
+      if (errorBlob) errorBlob->Release();
+         return;  
+   } 
+
+   hr = device->CreatePixelShader(p_pixelShaderBlob->GetBufferPointer(), p_pixelShaderBlob->GetBufferSize(), 0, &p_pixelShader);   
+   if (FAILED(hr))
+   {                
+      return;
+   }
+
+   m_isValid = true;
+}
+
+DXShader::~DXShader()
+{
+   if (p_vertexShader)
+      p_vertexShader->Release();
+   if (p_pixelShader)
+      p_pixelShader->Release();
+   if (p_vertexShaderBlob)
+      p_vertexShaderBlob->Release();
+   if (p_pixelShaderBlob)
+      p_pixelShaderBlob->Release();
+}
+
+ID3DBlob* DXShader::getVertexShaderBlob()
+{
+   return p_vertexShaderBlob;   
+}
+
+void DXShader::setShader(ID3D11DeviceContext* context)
+{
+   if (m_isValid)
+   {
+      context->VSSetShader(p_vertexShader, 0, 0);
+      context->PSSetShader(p_pixelShader, 0, 0);
+   }
+}
+
+bool DXShader::isValid() const
+{
+   return m_isValid;
+}
+
+#endif
 
 #endif

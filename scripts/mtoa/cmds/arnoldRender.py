@@ -27,9 +27,9 @@ def arnoldBatchRenderOptionsString():
                 raise Exception('Stopping batch render.')
     try:
         port = core.MTOA_GLOBALS['COMMAND_PORT']
-        return ' -r arnold -ai:ofn ' + origFileName + ' -ai:port %i ' % port
+        return ' -r arnold -ai:ofn \\"' + origFileName + '\\" -ai:port %i ' % port
     except:
-        return ' -r arnold -ai:ofn ' + origFileName + ' '
+        return ' -r arnold -ai:ofn \\"' + origFileName + '\\" '
 
 def arnoldBatchRender(option):
     # Make sure the aiOptions node exists

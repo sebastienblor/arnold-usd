@@ -1,5 +1,4 @@
 #ifdef ENABLE_VP2
-#include <GL/glew.h>
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldGenericShaderOverride.h"
@@ -8,6 +7,7 @@
 #include "viewport2/ArnoldStandInDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
+#include "viewport2/ArnoldVolumeDrawOverride.h"
 #include <maya/MDrawRegistry.h>
 #endif
 
@@ -35,6 +35,7 @@
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
+#include "nodes/shape/ArnoldVolume.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
 #include "nodes/light/ArnoldLightBlockerNode.h"
@@ -55,6 +56,7 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shape/FluidTranslator.h"
+#include "translators/shape/VolumeTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
@@ -111,6 +113,7 @@ namespace // <anonymous>
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
+   const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/photometricLight";
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
 
@@ -208,6 +211,10 @@ namespace // <anonymous>
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
          CArnoldPhotometricLightDrawOverride::creator
+      } , {
+         "arnoldVolumeNodeOverride",
+         AI_VOLUME_CLASSIFICATION,
+         CArnoldVolumeDrawOverride::creator
       }
    };
 #endif
@@ -231,6 +238,16 @@ namespace // <anonymous>
                            CArnoldStandInShape::initialize,
                            CArnoldStandInShapeUI::creator,
                            &AI_STANDIN_CLASSIFICATION);
+      CHECK_MSTATUS(status);
+      
+      // VOLUME
+      status = plugin.registerShape(
+                           "aiVolume",
+                           CArnoldVolumeShape::id,
+                           CArnoldVolumeShape::creator,
+                           CArnoldVolumeShape::initialize,
+                           CArnoldVolumeShapeUI::creator,
+                           &AI_VOLUME_CLASSIFICATION);
       CHECK_MSTATUS(status);
 
       for (size_t i = 0; i < sizeOfArray(mayaNodeList); ++i)
@@ -332,6 +349,10 @@ namespace // <anonymous>
                                     "",
                                     CFluidTranslator::creator,
                                     CFluidTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiVolume",
+                                    "",
+                                    CArnoldVolumeTranslator::creator,
+                                    CArnoldVolumeTranslator::NodeInitializer);
       // Multiple camera translators for single Maya camera node
       builtin->RegisterTranslator("camera",
                                     "perspective",
@@ -619,19 +640,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MStatus status, returnStatus;
    returnStatus = MStatus::kSuccess;
 
-#ifdef ENABLE_VP2
-   if (MGlobal::mayaState() == MGlobal::kInteractive)
-   {
-      GLenum err = glewInit();
-      if (GLEW_OK != err)
-      {
-         returnStatus = MStatus::kFailure;
-         returnStatus.perror("Erorr initializing GLEW!");
-         return returnStatus;
-      }
-   }
-#endif  
-
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    // Load metadata for builtin (mtoa.mtd)
@@ -910,6 +918,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       CArnoldPhotometricLightDrawOverride::clearGPUResources();
       CArnoldAreaLightDrawOverride::clearGPUResources();
       CArnoldStandInDrawOverride::clearGPUResources();
+      CArnoldVolumeDrawOverride::clearGPUResources();
    }
 #endif
    

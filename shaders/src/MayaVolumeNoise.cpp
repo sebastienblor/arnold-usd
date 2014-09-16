@@ -197,11 +197,18 @@ shader_evaluate
             float nyquist = 2.0f * pixelSize;
             float pixel = 1.0f;
             int depthTop = 0;
-            
-            while (pixel > nyquist)
+            if ((frequencyRatio - AI_EPSILON) > 1.0f)
             {
-               pixel /= frequencyRatio;
-               depthTop++;
+               while (pixel > nyquist)
+               {
+                  pixel /= frequencyRatio;
+                  depthTop++;
+               }
+            }
+            else
+            {
+               pixel = nyquist;
+               depthTop = depthMax;
             }
             
             depthMax = depthMax > depthTop ? depthTop : depthMax;

@@ -2,6 +2,18 @@
 
 #ifdef ENABLE_VP2
 #include <GL/glew.h>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <d3d11.h>
+#if _MSC_VER < 1700
+#include <d3dx11.h>
+#endif
+#include <d3dcompiler.h>
+#ifndef D3DCOMPILE_ENABLE_STRICTNESS
+    #define D3DCOMPILE_ENABLE_STRICTNESS D3D10_SHADER_ENABLE_STRICTNESS
+    #define D3DCOMPILE_DEBUG D3D10_SHADER_DEBUG
+#endif
+#endif
 #endif
 
 #include <vector>
@@ -60,7 +72,6 @@ protected:
       };
       unsigned int m_GLBuffers[2];
    };
-   unsigned int m_VAO;
    unsigned int m_numLineIndices;
    CGLPrimitive();
    void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
@@ -91,5 +102,28 @@ public:
 
 bool checkShaderError(unsigned int shader);
 bool checkProgramError(unsigned int shader);
+
+#ifdef _WIN32
+#include <maya/MString.h>
+
+// simple class to handle most of our needs
+class DXShader{
+private:
+   ID3D11VertexShader* p_vertexShader;
+   ID3D11PixelShader* p_pixelShader;
+   
+   ID3DBlob* p_vertexShaderBlob;
+   ID3DBlob* p_pixelShaderBlob;
+
+   bool m_isValid;
+public:
+   DXShader(ID3D11Device* device, const MString& shaderName);
+   ~DXShader();
+
+   ID3DBlob* getVertexShaderBlob();
+   void setShader(ID3D11DeviceContext* context);
+   bool isValid() const;
+};
+#endif
 
 #endif

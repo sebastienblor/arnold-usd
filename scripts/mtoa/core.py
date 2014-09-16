@@ -131,6 +131,9 @@ def createStandIn(path=None):
     if path:
         standIn.dso.set(path)
     return standIn
+    
+def createVolume():
+    pm.createNode('aiVolume', n='ArnoldVolumeShape')
 
 def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     """
