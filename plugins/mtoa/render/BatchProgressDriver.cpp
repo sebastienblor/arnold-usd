@@ -103,7 +103,7 @@ driver_open
 {
    AtNode* options = AiUniverseGetOptions();
    const int regionMinX = AiNodeGetInt(options, "region_min_x");
-   if (regionMinX == -1)
+   if (regionMinX == INT_MIN)
    {
       const int xRes = AiNodeGetInt(options, "xres");
       const int yRes = AiNodeGetInt(options, "yres");
