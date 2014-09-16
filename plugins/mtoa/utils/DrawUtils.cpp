@@ -551,4 +551,129 @@ bool checkProgramError(unsigned int program)
    return false;
 }
 
+#ifdef _WIN32
+
+#include "MayaUtils.h"
+#include <windows.h>
+
+DXShader::DXShader(ID3D11Device* device, const MString& shaderName) :
+   p_vertexShader(0), p_pixelShader(0), p_vertexShaderBlob(0), p_pixelShaderBlob(0), m_isValid(false)
+{
+   DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+   ID3DBlob* errorBlob = 0;
+
+   MString effectLocation = replaceInString(MString(getenv("MTOA_PATH")), "\\", "/") + MString("/vp2/") + shaderName + MString(".hlsl");
+
+   HRESULT hr;
+
+#if _MSC_VER < 1700
+   hr = D3DX11CompileFromFile(
+      effectLocation.asChar(),
+      0,
+      0,
+      "mainVS",
+      "vs_5_0",
+      shaderFlags,
+      0,
+      0,
+      &p_vertexShaderBlob,
+      &errorBlob,
+      NULL);
+#else
+   hr = D3DCompileFromFile(
+      effectLocation.asWChar(),
+      0,
+      0,
+      "mainVS",
+      "vs_5_0",
+      shaderFlags,
+      0,
+      &p_vertexShaderBlob,
+      &errorBlob);
+#endif
+   if (FAILED(hr))
+   {                
+      if (errorBlob) errorBlob->Release();
+         return;  
+   }
+
+   if (errorBlob) errorBlob->Release();
+   hr = device->CreateVertexShader(p_vertexShaderBlob->GetBufferPointer(), p_vertexShaderBlob->GetBufferSize(), 0, &p_vertexShader);
+   if (FAILED(hr))
+   {
+      return;
+   }
+#if _MSC_VER < 1700
+   hr = D3DX11CompileFromFile(
+      effectLocation.asChar(),
+      0,
+      0,
+      "mainPS",
+      "ps_5_0",
+      shaderFlags,
+      0,
+      0,
+      &p_pixelShaderBlob,
+      &errorBlob,
+      NULL);
+#else
+   hr = D3DCompileFromFile(
+      effectLocation.asWChar(),
+      0,
+      0,
+      "mainPS",
+      "ps_5_0",
+      0,
+      0,
+      &p_pixelShaderBlob,
+      &errorBlob);
+#endif
+   if (FAILED(hr))
+   {
+      if (errorBlob) errorBlob->Release();
+         return;  
+   } 
+
+   hr = device->CreatePixelShader(p_pixelShaderBlob->GetBufferPointer(), p_pixelShaderBlob->GetBufferSize(), 0, &p_pixelShader);   
+   if (FAILED(hr))
+   {                
+      return;
+   }
+
+   m_isValid = true;
+}
+
+DXShader::~DXShader()
+{
+   if (p_vertexShader)
+      p_vertexShader->Release();
+   if (p_pixelShader)
+      p_pixelShader->Release();
+   if (p_vertexShaderBlob)
+      p_vertexShaderBlob->Release();
+   if (p_pixelShaderBlob)
+      p_pixelShaderBlob->Release();
+}
+
+ID3DBlob* DXShader::getVertexShaderBlob()
+{
+   return p_vertexShaderBlob;   
+}
+
+void DXShader::setShader(ID3D11DeviceContext* context)
+{
+   if (m_isValid)
+   {
+      context->VSSetShader(p_vertexShader, 0, 0);
+      context->PSSetShader(p_pixelShader, 0, 0);
+   }
+}
+
+bool DXShader::isValid() const
+{
+   return m_isValid;
+}
+
+#endif
+
 #endif
