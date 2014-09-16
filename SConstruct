@@ -678,7 +678,10 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
               [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 
 if env['ENABLE_VP2']:
-    vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), ['.xml', '.hlsl'])
+    vp2ShaderExtensions = ['.xml']
+    if system.os() == 'windows':
+        vp2ShaderExtensions.append('.hlsl')
+    vp2shaders = find_files_recursive(os.path.join('plugins', 'mtoa', 'viewport2'), vp2ShaderExtensions)
     env.InstallAs([os.path.join(TARGET_VP2_PATH, x) for x in vp2shaders],
                     [os.path.join('plugins', 'mtoa', 'viewport2', x) for x in vp2shaders])
 
@@ -910,6 +913,8 @@ PACKAGE_FILES = [
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
+    if system.os() == 'windows':
+        PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.hlsl'), 'vp2'])
     
 if env['ENABLE_XGEN'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
