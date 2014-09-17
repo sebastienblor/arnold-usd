@@ -82,7 +82,11 @@ node_initialize
    AtNode* cameraNode = AiUniverseGetCamera();
    if (cameraNode != 0)
       cameraName = AiNodeGetName(cameraNode);
-   InitializeDisplayUpdateQueue(cameraName, "renderView");
+   MString commandRet;
+   MGlobal::executeCommand("getPanel -scriptType \"renderWindowPanel\"", commandRet);
+   if (commandRet == "")
+      commandRet = "renderView";
+   InitializeDisplayUpdateQueue(cameraName, commandRet);
 
    AiDriverInitialize(node, false, NULL);
 
