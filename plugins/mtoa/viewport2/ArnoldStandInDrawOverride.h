@@ -54,9 +54,7 @@ private:
     static GLint s_offsetLoc;
     static GLint s_shadeColorLoc;
 
-    static GLuint s_VBO;
-    static GLuint s_IBO;
-    static GLuint s_VAO;
+    static CGPUPrimitive* sp_primitive;
 
     static bool s_isValid;
     static bool s_isInitialized;

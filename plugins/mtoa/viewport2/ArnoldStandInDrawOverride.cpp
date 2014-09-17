@@ -9,6 +9,7 @@
 #include <ai.h>
 
 #include "utils/MayaUtils.h"
+#include "ViewportUtils.h"
 
 namespace{
     const char* shaderUniforms = "#version 120\n"
@@ -54,9 +55,7 @@ GLint CArnoldStandInDrawOverride::s_scaleLoc = 0;
 GLint CArnoldStandInDrawOverride::s_offsetLoc = 0;
 GLint CArnoldStandInDrawOverride::s_shadeColorLoc = 0;
 
-GLuint CArnoldStandInDrawOverride::s_VBO = 0;
-GLuint CArnoldStandInDrawOverride::s_IBO = 0;
-GLuint CArnoldStandInDrawOverride::s_VAO = 0;
+CGPUPrimitive* CArnoldStandInDrawOverride::sp_primitive = 0;
 
 bool CArnoldStandInDrawOverride::s_isValid = false;
 bool CArnoldStandInDrawOverride::s_isInitialized = false;
@@ -189,11 +188,8 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         glUniform4f(s_offsetLoc, userData->m_offset[0], userData->m_offset[1], userData->m_offset[2], userData->m_offset[3]);
         glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
                 userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-        glBindVertexArray(s_VAO);
 
-        glDrawElements(GL_LINES, 3 * 4 * 2, GL_UNSIGNED_INT, 0);
-
-        glBindVertexArray(0);
+        sp_primitive->draw();
         glUseProgram(0);
     }
     else
@@ -271,10 +267,10 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             0, 4, 1, 5, 2, 6, 3, 7
         };
 
-        if (theRenderer->drawAPIIsOpenGL())
+        if (theRenderer->drawAPIIsOpenGL() && InitializeGLEW())
         {
             if (!GLEW_VERSION_2_1)
-                return; // right now, only opengl 4.3, we can lower this later
+                return;
 
             // program for wireframe display
 
@@ -302,25 +298,9 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             if (checkProgramError(s_program))
                 return;
 
-            s_isValid = true;            
+            s_isValid = true;
 
-            glGenBuffers(1, &s_VBO);
-            glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-            glBufferData(GL_ARRAY_BUFFER, 8 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-            glGenBuffers(1, &s_IBO);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-            glGenVertexArrays(1, &s_VAO);
-            glBindVertexArray(s_VAO);
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-            glBindVertexArray(0);
+            sp_primitive = CGBoxPrimitive::generate(new CGLPrimitive());
 
             s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
             s_scaleLoc = glGetUniformLocation(s_program, "scale");
@@ -376,7 +356,6 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             if (FAILED(hr))
                 return;
 
-            std::cerr << "Hooray\n";
             s_isValid = true;
 #endif
         }
@@ -387,9 +366,7 @@ void CArnoldStandInDrawOverride::clearGPUResources()
 {
     if (s_isInitialized)
     {
-        glDeleteBuffers(1, &s_VBO);
-        glDeleteBuffers(1, &s_IBO);
-        glDeleteVertexArrays(1, &s_VAO);
+        if (sp_primitive) delete sp_primitive;
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
         glDeleteProgram(s_program);

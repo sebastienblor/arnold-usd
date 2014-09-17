@@ -218,10 +218,6 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         if (checkProgramError(s_program))
             return;
 
-        /*CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();*/
-
         CArnoldAreaLightUserData::s_primitives[0] = CGQuadLightPrimitive::generate(new CGLPrimitive());
         CArnoldAreaLightUserData::s_primitives[1] = CGDiskLightPrimitive::generate(new CGLPrimitive());
         CArnoldAreaLightUserData::s_primitives[2] = CGCylinderPrimitive::generate(new CGLPrimitive());

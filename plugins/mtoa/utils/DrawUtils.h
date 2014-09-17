@@ -112,6 +112,12 @@ public:
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
+class CGBoxPrimitive{
+public:
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
+};
+
+
 bool checkShaderError(unsigned int shader);
 bool checkProgramError(unsigned int shader);
 
