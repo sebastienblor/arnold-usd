@@ -33,7 +33,7 @@ GLuint CArnoldPhotometricLightDrawOverride::s_program = 0;
 GLint CArnoldPhotometricLightDrawOverride::s_modelViewProjLoc = 0;
 GLint CArnoldPhotometricLightDrawOverride::s_shadeColorLoc = 0;
 
-CGLPrimitive* CArnoldPhotometricLightDrawOverride::sp_primitive = 0;
+CGPUPrimitive* CArnoldPhotometricLightDrawOverride::sp_primitive = 0;
 
 bool CArnoldPhotometricLightDrawOverride::s_isValid = false;
 bool CArnoldPhotometricLightDrawOverride::s_isInitialized = false;
@@ -170,7 +170,7 @@ void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
         if (checkProgramError(s_program))
             return;       
 
-        sp_primitive = new CGLPhotometricLightPrimitive();
+        sp_primitive = CGPhotometricLightPrimitive::generate(new CGLPrimitive());
 
         s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
         s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");

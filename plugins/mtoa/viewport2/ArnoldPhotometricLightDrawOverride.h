@@ -44,7 +44,7 @@ private:
     static GLint s_modelViewProjLoc;
     static GLint s_shadeColorLoc;
 
-    static CGLPrimitive* sp_primitive;
+    static CGPUPrimitive* sp_primitive;
 
     static bool s_isValid;
     static bool s_isInitialized;

@@ -60,10 +60,21 @@ public:
 
 #ifdef ENABLE_VP2
 
+class CGPUPrimitive {
+protected:
+   unsigned int m_numLineIndices;
+   CGPUPrimitive() : m_numLineIndices(0) { }
+public:
+   virtual ~CGPUPrimitive() {}
+   virtual void draw() const = 0;
+
+   virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices) = 0;
+};
+
 // TODO unify these two classes later, that can deal both
 // with vbo and the old pipeline and static / dynamic initialization
 // IBO has to contain both wireframe and triangle indices
-class CGLPrimitive {
+class CGLPrimitive : public CGPUPrimitive {
 protected:
    union{
       struct{
@@ -71,13 +82,14 @@ protected:
          unsigned int m_IBO;
       };
       unsigned int m_GLBuffers[2];
-   };
-   unsigned int m_numLineIndices;
-   CGLPrimitive();
-   void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
+   };   
 public:
+   CGLPrimitive();
+
    virtual ~CGLPrimitive();
    virtual void draw() const;
+
+   virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
 };
 
 class CGLQuadLightPrimitive : public CGLPrimitive{
@@ -95,9 +107,9 @@ public:
    CGLCylinderPrimitive();
 };
 
-class CGLPhotometricLightPrimitive : public CGLPrimitive{
+class CGPhotometricLightPrimitive{
 public:
-   CGLPhotometricLightPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 bool checkShaderError(unsigned int shader);
