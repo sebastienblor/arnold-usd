@@ -92,19 +92,19 @@ public:
    virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
 };
 
-class CGLQuadLightPrimitive : public CGLPrimitive{
+class CGQuadLightPrimitive{
 public:
-   CGLQuadLightPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
-class CGLDiskLightPrimitive : public CGLPrimitive{
+class CGDiskLightPrimitive{
 public:
-   CGLDiskLightPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
-class CGLCylinderPrimitive : public CGLPrimitive{
+class CGCylinderPrimitive{
 public:
-   CGLCylinderPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGPhotometricLightPrimitive{

@@ -40,8 +40,8 @@ bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
 // much performance problems, but cleaner,
 // the better
 struct CArnoldAreaLightUserData : public MUserData{
-    static CGLPrimitive* s_primitives[3];
-    CGLPrimitive* p_primitive;
+    static CGPUPrimitive* s_primitives[3];
+    CGPUPrimitive* p_primitive;
     float m_modelMatrix[4][4];
     float m_color[4];
     float m_wireframeColor[4];
@@ -109,7 +109,7 @@ struct CArnoldAreaLightUserData : public MUserData{
     }
 };
 
-CGLPrimitive* CArnoldAreaLightUserData::s_primitives[3] = {0, 0, 0};
+CGPUPrimitive* CArnoldAreaLightUserData::s_primitives[3] = {0, 0, 0};
 
 MHWRender::MPxDrawOverride* CArnoldAreaLightDrawOverride::creator(const MObject& obj)
 {
@@ -218,9 +218,13 @@ void CArnoldAreaLightDrawOverride::initializeGPUResources()
         if (checkProgramError(s_program))
             return;
 
-        CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
+        /*CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
         CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
+        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();*/
+
+        CArnoldAreaLightUserData::s_primitives[0] = CGQuadLightPrimitive::generate(new CGLPrimitive());
+        CArnoldAreaLightUserData::s_primitives[1] = CGDiskLightPrimitive::generate(new CGLPrimitive());
+        CArnoldAreaLightUserData::s_primitives[2] = CGCylinderPrimitive::generate(new CGLPrimitive());
 
         s_modelLoc = glGetUniformLocation(s_program, "model");
         s_viewProjLoc = glGetUniformLocation(s_program, "viewProj");
