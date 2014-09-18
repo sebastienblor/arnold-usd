@@ -230,7 +230,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         dxContext->UpdateSubresource(s_pDXConstantBuffer, 0, 0, &buffer, 0, 0);
         dxContext->VSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
         dxContext->PSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
-        
+
         sp_primitive->draw(dxContext);
 #endif
     }
@@ -243,23 +243,6 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
         MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
         s_isInitialized = true;
         s_isValid = false;
-
-        float vertices[8 * 3] = {
-            0.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f,
-            0.0f, 1.0f, 1.0f
-        };
-
-        unsigned int indices[3 * 4 * 2] = {
-            0, 1, 1, 2, 2, 3, 3, 0,
-            4, 5, 5, 6, 6, 7, 7, 4,
-            0, 4, 1, 5, 2, 6, 3, 7
-        };
 
         if (theRenderer->drawAPIIsOpenGL() && InitializeGLEW())
         {
