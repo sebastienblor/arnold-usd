@@ -230,14 +230,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         dxContext->UpdateSubresource(s_pDXConstantBuffer, 0, 0, &buffer, 0, 0);
         dxContext->VSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
         dxContext->PSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
-
-        // setting up draw buffers and draw
-        /*const unsigned int stride = sizeof(float) * 3;
-        const unsigned int offset = 0;
-        dxContext->IASetVertexBuffers(0, 1, &s_pDXVertexBuffer, &stride, &offset);
-        dxContext->IASetIndexBuffer(s_pDXIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-        dxContext->DrawIndexed(3 * 4 * 2, 0, 0);*/
+        
         sp_primitive->draw(dxContext);
 #endif
     }
