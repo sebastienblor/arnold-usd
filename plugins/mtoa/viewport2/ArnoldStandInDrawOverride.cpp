@@ -305,7 +305,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
 
 void CArnoldStandInDrawOverride::clearGPUResources()
 {
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         if (s_pPrimitive) delete s_pPrimitive;
         glDeleteShader(s_vertexShader);

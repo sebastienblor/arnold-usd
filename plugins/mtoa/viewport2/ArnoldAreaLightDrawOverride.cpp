@@ -34,6 +34,7 @@ namespace {
 #pragma pack()
 #endif
 }
+
 GLuint CArnoldAreaLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_fragmentShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_program = 0;
@@ -184,7 +185,7 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 
 void CArnoldAreaLightDrawOverride::clearGPUResources()
 {
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
@@ -215,7 +216,7 @@ void CArnoldAreaLightDrawOverride::clearGPUResources()
 
 void CArnoldAreaLightDrawOverride::initializeGPUResources()
 {
-    if ((s_isInitialized == false) && InitializeGLEW())
+    if ((s_isInitialized == false))
     {
         MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
         s_isInitialized = true;
