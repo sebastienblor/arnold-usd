@@ -11,7 +11,7 @@
 #include "utils/MayaUtils.h"
 #include "ViewportUtils.h"
 
-namespace{
+namespace {
     const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
 "uniform vec4 scale;"
@@ -324,8 +324,7 @@ void CArnoldStandInDrawOverride::clearGPUResources()
         {
             delete s_pDXShader;
             s_pDXShader = 0;
-        }
-        
+        }        
 #endif
     }
 }
