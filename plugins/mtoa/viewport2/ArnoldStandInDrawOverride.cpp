@@ -25,7 +25,8 @@ namespace {
 "}\n";
 
     const char* fragmentShader =
-"void main() { gl_FragColor = shadeColor;}\n";    
+"void main() { gl_FragColor = shadeColor;}\n";
+
 #ifdef _WIN32
 #pragma pack(1)
     struct SConstantBuffer{
