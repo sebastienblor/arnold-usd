@@ -39,9 +39,9 @@ namespace{
 }
 
 #ifdef _WIN32
-ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXVertexBuffer = 0;
-ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXIndexBuffer = 0;
-ID3D11InputLayout* CArnoldStandInDrawOverride::s_pDXVertexLayout = 0;
+//ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXVertexBuffer = 0;
+//ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXIndexBuffer = 0;
+//ID3D11InputLayout* CArnoldStandInDrawOverride::s_pDXVertexLayout = 0;
 ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
 DXShader* CArnoldStandInDrawOverride::s_pDXShader = 0;
 #endif
@@ -207,7 +207,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         //dxContext->VSSetShader(s_pDXVertexShader, 0, 0);        
         //dxContext->PSSetShader(s_pDXPixelShader, 0, 0);
         s_pDXShader->setShader(dxContext);
-        dxContext->IASetInputLayout(s_pDXVertexLayout);
+        //dxContext->IASetInputLayout(s_pDXVertexLayout);
 
         // filling up constant buffer
         SConstantBuffer buffer;
@@ -232,12 +232,13 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         dxContext->PSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
 
         // setting up draw buffers and draw
-        const unsigned int stride = sizeof(float) * 3;
+        /*const unsigned int stride = sizeof(float) * 3;
         const unsigned int offset = 0;
         dxContext->IASetVertexBuffers(0, 1, &s_pDXVertexBuffer, &stride, &offset);
         dxContext->IASetIndexBuffer(s_pDXIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
         dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-        dxContext->DrawIndexed(3 * 4 * 2, 0, 0);
+        dxContext->DrawIndexed(3 * 4 * 2, 0, 0);*/
+        sp_primitive->draw(dxContext);
 #endif
     }
 }
@@ -324,20 +325,6 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             D3D11_SUBRESOURCE_DATA initData;
             ZeroMemory(&initData, sizeof(initData));
 
-            bd.Usage = D3D11_USAGE_IMMUTABLE;
-            bd.ByteWidth = 8 * 3 * sizeof(float);
-            bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            bd.CPUAccessFlags = 0;
-            initData.pSysMem = vertices;
-            hr = device->CreateBuffer(&bd, &initData, &s_pDXVertexBuffer);
-            if (FAILED(hr)) return;
-
-            bd.ByteWidth = 4 * 3 * 2 * sizeof(unsigned int);
-            bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            initData.pSysMem = indices;
-            hr = device->CreateBuffer(&bd, &initData, &s_pDXIndexBuffer);
-            if (FAILED(hr)) return;
-
             bd.Usage = D3D11_USAGE_DEFAULT;
             bd.ByteWidth = sizeof(SConstantBuffer);
             bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -345,15 +332,10 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             if (FAILED(hr)) return;
 
             s_pDXShader = new DXShader(device, "standInBBox");
-
-            D3D11_INPUT_ELEMENT_DESC layout[] =
-            {
-                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            };
-            int numLayoutElements = sizeof layout/sizeof layout[0];
-            hr = device->CreateInputLayout(layout, numLayoutElements, s_pDXShader->getVertexShaderBlob()->GetBufferPointer(), s_pDXShader->getVertexShaderBlob()->GetBufferSize(), &s_pDXVertexLayout);
-            //vertexShaderBlob->Release();
-            if (FAILED(hr))
+            if (!s_pDXShader->isValid())
+                return;
+            sp_primitive = CGBoxPrimitive::generate(new CDXPrimitive(device));
+            if (!reinterpret_cast<CDXPrimitive*>(sp_primitive)->createInputLayout(s_pDXShader->getVertexShaderBlob()))
                 return;
 
             s_isValid = true;
@@ -374,21 +356,6 @@ void CArnoldStandInDrawOverride::clearGPUResources()
         s_isInitialized = false;
 
 #ifdef _WIN32
-        if (s_pDXVertexBuffer)
-        {
-            s_pDXVertexBuffer->Release();
-            s_pDXVertexBuffer = 0;
-        }
-        if (s_pDXIndexBuffer)
-        {
-            s_pDXIndexBuffer->Release();
-            s_pDXIndexBuffer = 0;
-        }
-        if (s_pDXVertexLayout)
-        {
-            s_pDXVertexLayout->Release();
-            s_pDXVertexLayout = 0;
-        }
         if (s_pDXConstantBuffer)
         {
             s_pDXConstantBuffer->Release();
