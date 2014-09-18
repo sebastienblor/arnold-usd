@@ -37,7 +37,7 @@ private:
 
     // DX11 resources
     #ifdef _WIN32
-    static ID3D11Buffer* s_pDXConstantBuffer;
+    static CDXConstantBuffer* s_pDXConstantBuffer;
     static DXShader* s_pDXShader;
     #endif
 
@@ -50,7 +50,7 @@ private:
     static GLint s_offsetLoc;
     static GLint s_shadeColorLoc;
 
-    static CGPUPrimitive* sp_primitive;
+    static CGPUPrimitive* s_pPrimitive;
 
     static bool s_isValid;
     static bool s_isInitialized;

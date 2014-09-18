@@ -39,10 +39,7 @@ namespace{
 }
 
 #ifdef _WIN32
-//ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXVertexBuffer = 0;
-//ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXIndexBuffer = 0;
-//ID3D11InputLayout* CArnoldStandInDrawOverride::s_pDXVertexLayout = 0;
-ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
+CDXConstantBuffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
 DXShader* CArnoldStandInDrawOverride::s_pDXShader = 0;
 #endif
 
@@ -55,7 +52,7 @@ GLint CArnoldStandInDrawOverride::s_scaleLoc = 0;
 GLint CArnoldStandInDrawOverride::s_offsetLoc = 0;
 GLint CArnoldStandInDrawOverride::s_shadeColorLoc = 0;
 
-CGPUPrimitive* CArnoldStandInDrawOverride::sp_primitive = 0;
+CGPUPrimitive* CArnoldStandInDrawOverride::s_pPrimitive = 0;
 
 bool CArnoldStandInDrawOverride::s_isValid = false;
 bool CArnoldStandInDrawOverride::s_isInitialized = false;
@@ -189,7 +186,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
                 userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
 
-        sp_primitive->draw();
+        s_pPrimitive->draw();
         glUseProgram(0);
     }
     else
@@ -204,10 +201,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
             return;
 
         // setting up shader
-        //dxContext->VSSetShader(s_pDXVertexShader, 0, 0);        
-        //dxContext->PSSetShader(s_pDXPixelShader, 0, 0);
         s_pDXShader->setShader(dxContext);
-        //dxContext->IASetInputLayout(s_pDXVertexLayout);
 
         // filling up constant buffer
         SConstantBuffer buffer;
@@ -227,11 +221,9 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         buffer.color[2] = userData->m_wireframeColor[2];
         buffer.color[3] = userData->m_wireframeColor[3];
 
-        dxContext->UpdateSubresource(s_pDXConstantBuffer, 0, 0, &buffer, 0, 0);
-        dxContext->VSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
-        dxContext->PSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
-
-        sp_primitive->draw(dxContext);
+        s_pDXConstantBuffer->update(dxContext, &buffer);
+        s_pDXConstantBuffer->set(dxContext);
+        s_pPrimitive->draw(dxContext);
 #endif
     }
 }
@@ -277,7 +269,7 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
 
             s_isValid = true;
 
-            sp_primitive = CGBoxPrimitive::generate(new CGLPrimitive());
+            s_pPrimitive = CGBoxPrimitive::generate(new CGLPrimitive());
 
             s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
             s_scaleLoc = glGetUniformLocation(s_program, "scale");
@@ -295,23 +287,14 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             if (!context)
                 return;
 
-            HRESULT hr;
-            D3D11_BUFFER_DESC bd;
-            ZeroMemory(&bd, sizeof(bd));
-            D3D11_SUBRESOURCE_DATA initData;
-            ZeroMemory(&initData, sizeof(initData));
-
-            bd.Usage = D3D11_USAGE_DEFAULT;
-            bd.ByteWidth = sizeof(SConstantBuffer);
-            bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-            hr = device->CreateBuffer(&bd, 0, &s_pDXConstantBuffer);
-            if (FAILED(hr)) return;
-
+            s_pDXConstantBuffer = new CDXConstantBuffer(device, sizeof(SConstantBuffer));
+            if (!s_pDXConstantBuffer->isValid())
+                return;
             s_pDXShader = new DXShader(device, "standInBBox");
             if (!s_pDXShader->isValid())
                 return;
-            sp_primitive = CGBoxPrimitive::generate(new CDXPrimitive(device));
-            if (!reinterpret_cast<CDXPrimitive*>(sp_primitive)->createInputLayout(s_pDXShader->getVertexShaderBlob()))
+            s_pPrimitive = CGBoxPrimitive::generate(new CDXPrimitive(device));
+            if (!reinterpret_cast<CDXPrimitive*>(s_pPrimitive)->createInputLayout(s_pDXShader->getVertexShaderBlob()))
                 return;
 
             s_isValid = true;
@@ -324,7 +307,7 @@ void CArnoldStandInDrawOverride::clearGPUResources()
 {
     if (s_isInitialized)
     {
-        if (sp_primitive) delete sp_primitive;
+        if (s_pPrimitive) delete s_pPrimitive;
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
         glDeleteProgram(s_program);
@@ -334,7 +317,7 @@ void CArnoldStandInDrawOverride::clearGPUResources()
 #ifdef _WIN32
         if (s_pDXConstantBuffer)
         {
-            s_pDXConstantBuffer->Release();
+            delete s_pDXConstantBuffer;
             s_pDXConstantBuffer = 0;
         }
         if (s_pDXShader)

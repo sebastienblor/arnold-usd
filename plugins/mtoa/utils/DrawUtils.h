@@ -160,6 +160,19 @@ public:
    bool createInputLayout(ID3DBlob* vertexShaderBlob);
 };
 
+class CDXConstantBuffer {
+private:
+   ID3D11Buffer* p_buffer;
+public:
+   CDXConstantBuffer(ID3D11Device* device, size_t bufferSize);
+   ~CDXConstantBuffer();
+
+   void update(ID3D11DeviceContext* context, void* data);
+   void set(ID3D11DeviceContext* context);
+   
+   bool isValid() const;
+};
+
 #endif
 
 #endif

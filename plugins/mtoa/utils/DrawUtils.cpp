@@ -778,6 +778,40 @@ bool CDXPrimitive::createInputLayout(ID3DBlob* vertexShaderBlob)
    return true;
 }
 
+CDXConstantBuffer::CDXConstantBuffer(ID3D11Device* device, size_t bufferSize)
+{
+   HRESULT hr;
+   D3D11_BUFFER_DESC bd;
+   ZeroMemory(&bd, sizeof(bd));
+
+   bd.Usage = D3D11_USAGE_DEFAULT;
+   bd.ByteWidth = bufferSize;
+   bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+   hr = device->CreateBuffer(&bd, 0, &p_buffer);
+   if (FAILED(hr)) p_buffer = 0;
+}
+
+CDXConstantBuffer::~CDXConstantBuffer()
+{
+   if (p_buffer) p_buffer->Release();
+}
+
+void CDXConstantBuffer::update(ID3D11DeviceContext* context, void* data)
+{
+   context->UpdateSubresource(p_buffer, 0, 0, data, 0, 0);
+}
+
+void CDXConstantBuffer::set(ID3D11DeviceContext* context)
+{
+   context->VSSetConstantBuffers(0, 1, &p_buffer);
+   context->PSSetConstantBuffers(0, 1, &p_buffer);
+}
+
+bool CDXConstantBuffer::isValid() const
+{
+   return p_buffer != 0;
+}
+
 #endif
 
 #endif
