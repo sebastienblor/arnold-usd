@@ -66,7 +66,7 @@ protected:
    CGPUPrimitive() : m_numLineIndices(0) { }
 public:
    virtual ~CGPUPrimitive() {}
-   virtual void draw() const = 0;
+   virtual void draw(void* platform = 0) const = 0; // passing platform specific data for dx
 
    virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices) = 0;
 };
@@ -87,7 +87,7 @@ public:
    CGLPrimitive();
 
    virtual ~CGLPrimitive();
-   virtual void draw() const;
+   virtual void draw(void* platform = 0) const;
 
    virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
 };
@@ -142,6 +142,24 @@ public:
    void setShader(ID3D11DeviceContext* context);
    bool isValid() const;
 };
+
+class CDXPrimitive : public CGPUPrimitive {
+protected:
+   ID3D11Buffer* p_vertexBuffer;
+   ID3D11Buffer* p_indexBuffer;
+   ID3D11InputLayout* p_vertexLayout;
+   ID3D11Device* p_device;
+public:
+   CDXPrimitive(ID3D11Device* device);
+
+   virtual ~CDXPrimitive();
+   virtual void draw(void* platform = 0) const;
+
+   virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
+
+   bool createInputLayout(ID3DBlob* vertexShaderBlob);
+};
+
 #endif
 
 #endif

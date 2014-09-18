@@ -299,7 +299,7 @@ void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVerti
    m_numLineIndices = numIndices;
 }
 
-void CGLPrimitive::draw() const
+void CGLPrimitive::draw(void* platform) const
 {
    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
    glEnableClientState(GL_VERTEX_ARRAY);
@@ -697,6 +697,85 @@ void DXShader::setShader(ID3D11DeviceContext* context)
 bool DXShader::isValid() const
 {
    return m_isValid;
+}
+
+CDXPrimitive::CDXPrimitive(ID3D11Device* device) : CGPUPrimitive(),
+   p_vertexBuffer(0), p_indexBuffer(0), p_vertexLayout(0), p_device(device)
+{
+
+}
+
+CDXPrimitive::~CDXPrimitive()
+{
+   if (p_vertexBuffer) p_vertexBuffer->Release();
+   if (p_indexBuffer) p_indexBuffer->Release();
+   if (p_vertexLayout) p_vertexLayout->Release();
+}
+
+void CDXPrimitive::draw(void* platform) const
+{
+   ID3D11DeviceContext* context = reinterpret_cast<ID3D11DeviceContext*>(platform);
+
+   const unsigned int stride = sizeof(float) * 3;
+   const unsigned int offset = 0;
+
+   context->IASetInputLayout(p_vertexLayout);
+   context->IASetVertexBuffers(0, 1, &p_vertexBuffer, &stride, &offset);
+   context->IASetIndexBuffer(p_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+   context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+   context->DrawIndexed(m_numLineIndices, 0, 0);
+}
+
+void CDXPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices)
+{
+   HRESULT hr;
+   D3D11_BUFFER_DESC bd;
+   ZeroMemory(&bd, sizeof(bd));
+   D3D11_SUBRESOURCE_DATA initData;
+   ZeroMemory(&initData, sizeof(initData));
+
+   bd.Usage = D3D11_USAGE_IMMUTABLE;
+   bd.ByteWidth = numVertices * sizeof(float);
+   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+   bd.CPUAccessFlags = 0;
+   initData.pSysMem = vertices;
+   hr = p_device->CreateBuffer(&bd, &initData, &p_vertexBuffer);
+   if (FAILED(hr))
+   {
+      p_vertexBuffer = 0;
+      return;
+   }
+
+   bd.ByteWidth = numIndices * sizeof(unsigned int);
+   bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+   initData.pSysMem = indices;
+   hr = p_device->CreateBuffer(&bd, &initData, &p_indexBuffer);
+   if (FAILED(hr))
+   {
+      if (p_vertexBuffer) p_vertexBuffer->Release();
+      p_vertexBuffer = 0;
+      p_indexBuffer = 0;
+      return;
+   }
+
+   m_numLineIndices = numIndices;
+}
+
+bool CDXPrimitive::createInputLayout(ID3DBlob* vertexShaderBlob)
+{
+   if (m_numLineIndices == 0)
+      return false;
+
+   HRESULT hr;
+   D3D11_INPUT_ELEMENT_DESC layout[] =
+   {
+      { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+   };
+   int numLayoutElements = sizeof layout/sizeof layout[0];
+   hr = p_device->CreateInputLayout(layout, numLayoutElements, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &p_vertexLayout);
+   if (FAILED(hr))
+      return false;
+   return true;
 }
 
 #endif
