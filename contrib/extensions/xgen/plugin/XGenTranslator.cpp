@@ -388,7 +388,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    if(!info.hasAlembicFile)
    {
       // Replace namespace ":" invalid caracters in paths for "__ns__"
-      int pos;
+      size_t pos;
       while( (pos = strGeomFile.find(":")) != std::string::npos)
          strGeomFile.replace(pos, 1, "__ns__");
          
