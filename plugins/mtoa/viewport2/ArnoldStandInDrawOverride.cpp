@@ -9,8 +9,9 @@
 #include <ai.h>
 
 #include "utils/MayaUtils.h"
+#include "ViewportUtils.h"
 
-namespace{
+namespace {
     const char* shaderUniforms = "#version 120\n"
 "uniform mat4 modelViewProj;\n"
 "uniform vec4 scale;"
@@ -24,7 +25,8 @@ namespace{
 "}\n";
 
     const char* fragmentShader =
-"void main() { gl_FragColor = shadeColor;}\n";    
+"void main() { gl_FragColor = shadeColor;}\n";
+
 #ifdef _WIN32
 #pragma pack(1)
     struct SConstantBuffer{
@@ -38,10 +40,7 @@ namespace{
 }
 
 #ifdef _WIN32
-ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXVertexBuffer = 0;
-ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXIndexBuffer = 0;
-ID3D11InputLayout* CArnoldStandInDrawOverride::s_pDXVertexLayout = 0;
-ID3D11Buffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
+CDXConstantBuffer* CArnoldStandInDrawOverride::s_pDXConstantBuffer = 0;
 DXShader* CArnoldStandInDrawOverride::s_pDXShader = 0;
 #endif
 
@@ -54,9 +53,7 @@ GLint CArnoldStandInDrawOverride::s_scaleLoc = 0;
 GLint CArnoldStandInDrawOverride::s_offsetLoc = 0;
 GLint CArnoldStandInDrawOverride::s_shadeColorLoc = 0;
 
-GLuint CArnoldStandInDrawOverride::s_VBO = 0;
-GLuint CArnoldStandInDrawOverride::s_IBO = 0;
-GLuint CArnoldStandInDrawOverride::s_VAO = 0;
+CGPUPrimitive* CArnoldStandInDrawOverride::s_pPrimitive = 0;
 
 bool CArnoldStandInDrawOverride::s_isValid = false;
 bool CArnoldStandInDrawOverride::s_isInitialized = false;
@@ -189,11 +186,8 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         glUniform4f(s_offsetLoc, userData->m_offset[0], userData->m_offset[1], userData->m_offset[2], userData->m_offset[3]);
         glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
                 userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-        glBindVertexArray(s_VAO);
 
-        glDrawElements(GL_LINES, 3 * 4 * 2, GL_UNSIGNED_INT, 0);
-
-        glBindVertexArray(0);
+        s_pPrimitive->draw();
         glUseProgram(0);
     }
     else
@@ -208,10 +202,7 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
             return;
 
         // setting up shader
-        //dxContext->VSSetShader(s_pDXVertexShader, 0, 0);        
-        //dxContext->PSSetShader(s_pDXPixelShader, 0, 0);
         s_pDXShader->setShader(dxContext);
-        dxContext->IASetInputLayout(s_pDXVertexLayout);
 
         // filling up constant buffer
         SConstantBuffer buffer;
@@ -231,17 +222,9 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
         buffer.color[2] = userData->m_wireframeColor[2];
         buffer.color[3] = userData->m_wireframeColor[3];
 
-        dxContext->UpdateSubresource(s_pDXConstantBuffer, 0, 0, &buffer, 0, 0);
-        dxContext->VSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
-        dxContext->PSSetConstantBuffers(0, 1, &s_pDXConstantBuffer);
-
-        // setting up draw buffers and draw
-        const unsigned int stride = sizeof(float) * 3;
-        const unsigned int offset = 0;
-        dxContext->IASetVertexBuffers(0, 1, &s_pDXVertexBuffer, &stride, &offset);
-        dxContext->IASetIndexBuffer(s_pDXIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        dxContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-        dxContext->DrawIndexed(3 * 4 * 2, 0, 0);
+        s_pDXConstantBuffer->update(dxContext, &buffer);
+        s_pDXConstantBuffer->set(dxContext);
+        s_pPrimitive->draw(dxContext);
 #endif
     }
 }
@@ -254,27 +237,10 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
         s_isInitialized = true;
         s_isValid = false;
 
-        float vertices[8 * 3] = {
-            0.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f,
-            0.0f, 1.0f, 1.0f
-        };
-
-        unsigned int indices[3 * 4 * 2] = {
-            0, 1, 1, 2, 2, 3, 3, 0,
-            4, 5, 5, 6, 6, 7, 7, 4,
-            0, 4, 1, 5, 2, 6, 3, 7
-        };
-
-        if (theRenderer->drawAPIIsOpenGL())
+        if (theRenderer->drawAPIIsOpenGL() && InitializeGLEW())
         {
             if (!GLEW_VERSION_2_1)
-                return; // right now, only opengl 4.3, we can lower this later
+                return;
 
             // program for wireframe display
 
@@ -302,25 +268,9 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             if (checkProgramError(s_program))
                 return;
 
-            s_isValid = true;            
+            s_isValid = true;
 
-            glGenBuffers(1, &s_VBO);
-            glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-            glBufferData(GL_ARRAY_BUFFER, 8 * 3 * sizeof(float), vertices, GL_STATIC_DRAW);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-            glGenBuffers(1, &s_IBO);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * 2 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-            glGenVertexArrays(1, &s_VAO);
-            glBindVertexArray(s_VAO);
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, s_VBO);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_IBO);
-            glBindVertexArray(0);
+            s_pPrimitive = CGBoxPrimitive::generate(new CGLPrimitive());
 
             s_modelViewProjLoc = glGetUniformLocation(s_program, "modelViewProj");
             s_scaleLoc = glGetUniformLocation(s_program, "scale");
@@ -338,45 +288,16 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
             if (!context)
                 return;
 
-            HRESULT hr;
-            D3D11_BUFFER_DESC bd;
-            ZeroMemory(&bd, sizeof(bd));
-            D3D11_SUBRESOURCE_DATA initData;
-            ZeroMemory(&initData, sizeof(initData));
-
-            bd.Usage = D3D11_USAGE_IMMUTABLE;
-            bd.ByteWidth = 8 * 3 * sizeof(float);
-            bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            bd.CPUAccessFlags = 0;
-            initData.pSysMem = vertices;
-            hr = device->CreateBuffer(&bd, &initData, &s_pDXVertexBuffer);
-            if (FAILED(hr)) return;
-
-            bd.ByteWidth = 4 * 3 * 2 * sizeof(unsigned int);
-            bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            initData.pSysMem = indices;
-            hr = device->CreateBuffer(&bd, &initData, &s_pDXIndexBuffer);
-            if (FAILED(hr)) return;
-
-            bd.Usage = D3D11_USAGE_DEFAULT;
-            bd.ByteWidth = sizeof(SConstantBuffer);
-            bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-            hr = device->CreateBuffer(&bd, 0, &s_pDXConstantBuffer);
-            if (FAILED(hr)) return;
-
+            s_pDXConstantBuffer = new CDXConstantBuffer(device, sizeof(SConstantBuffer));
+            if (!s_pDXConstantBuffer->isValid())
+                return;
             s_pDXShader = new DXShader(device, "standInBBox");
-
-            D3D11_INPUT_ELEMENT_DESC layout[] =
-            {
-                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            };
-            int numLayoutElements = sizeof layout/sizeof layout[0];
-            hr = device->CreateInputLayout(layout, numLayoutElements, s_pDXShader->getVertexShaderBlob()->GetBufferPointer(), s_pDXShader->getVertexShaderBlob()->GetBufferSize(), &s_pDXVertexLayout);
-            //vertexShaderBlob->Release();
-            if (FAILED(hr))
+            if (!s_pDXShader->isValid())
+                return;
+            s_pPrimitive = CGBoxPrimitive::generate(new CDXPrimitive(device));
+            if (!reinterpret_cast<CDXPrimitive*>(s_pPrimitive)->createInputLayout(s_pDXShader->getVertexShaderBlob()))
                 return;
 
-            std::cerr << "Hooray\n";
             s_isValid = true;
 #endif
         }
@@ -385,11 +306,9 @@ void CArnoldStandInDrawOverride::initializeGPUResources()
 
 void CArnoldStandInDrawOverride::clearGPUResources()
 {
-    if (s_isInitialized)
+    if (s_isInitialized && InitializeGLEW())
     {
-        glDeleteBuffers(1, &s_VBO);
-        glDeleteBuffers(1, &s_IBO);
-        glDeleteVertexArrays(1, &s_VAO);
+        if (s_pPrimitive) delete s_pPrimitive;
         glDeleteShader(s_vertexShader);
         glDeleteShader(s_fragmentShader);
         glDeleteProgram(s_program);
@@ -397,32 +316,16 @@ void CArnoldStandInDrawOverride::clearGPUResources()
         s_isInitialized = false;
 
 #ifdef _WIN32
-        if (s_pDXVertexBuffer)
-        {
-            s_pDXVertexBuffer->Release();
-            s_pDXVertexBuffer = 0;
-        }
-        if (s_pDXIndexBuffer)
-        {
-            s_pDXIndexBuffer->Release();
-            s_pDXIndexBuffer = 0;
-        }
-        if (s_pDXVertexLayout)
-        {
-            s_pDXVertexLayout->Release();
-            s_pDXVertexLayout = 0;
-        }
         if (s_pDXConstantBuffer)
         {
-            s_pDXConstantBuffer->Release();
+            delete s_pDXConstantBuffer;
             s_pDXConstantBuffer = 0;
         }
         if (s_pDXShader)
         {
             delete s_pDXShader;
             s_pDXShader = 0;
-        }
-        
+        }        
 #endif
     }
 }

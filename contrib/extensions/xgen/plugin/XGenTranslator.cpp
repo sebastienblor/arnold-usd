@@ -384,6 +384,16 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    }
    // lets check if the  .abc file exists
    info.hasAlembicFile = alembicExists(strGeomFile);
+   
+   if(!info.hasAlembicFile)
+   {
+      // Replace namespace ":" invalid caracters in paths for "__ns__"
+      size_t pos;
+      while( (pos = strGeomFile.find(":")) != std::string::npos)
+         strGeomFile.replace(pos, 1, "__ns__");
+         
+      info.hasAlembicFile = alembicExists(strGeomFile);
+   }
 
    for( unsigned int i=0; i<info.vecPatches.size(); ++i )
    {

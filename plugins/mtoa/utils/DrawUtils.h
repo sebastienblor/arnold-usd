@@ -60,10 +60,21 @@ public:
 
 #ifdef ENABLE_VP2
 
+class CGPUPrimitive {
+protected:
+   unsigned int m_numLineIndices;
+   CGPUPrimitive() : m_numLineIndices(0) { }
+public:
+   virtual ~CGPUPrimitive() {}
+   virtual void draw(void* platform = 0) const = 0; // passing platform specific data for dx
+
+   virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices) = 0;
+};
+
 // TODO unify these two classes later, that can deal both
 // with vbo and the old pipeline and static / dynamic initialization
 // IBO has to contain both wireframe and triangle indices
-class CGLPrimitive {
+class CGLPrimitive : public CGPUPrimitive {
 protected:
    union{
       struct{
@@ -71,34 +82,41 @@ protected:
          unsigned int m_IBO;
       };
       unsigned int m_GLBuffers[2];
-   };
-   unsigned int m_numLineIndices;
+   };   
+public:
    CGLPrimitive();
-   void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
-public:
+
    virtual ~CGLPrimitive();
-   virtual void draw() const;
+   virtual void draw(void* platform = 0) const;
+
+   virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
 };
 
-class CGLQuadLightPrimitive : public CGLPrimitive{
+class CGQuadLightPrimitive{
 public:
-   CGLQuadLightPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
-class CGLDiskLightPrimitive : public CGLPrimitive{
+class CGDiskLightPrimitive{
 public:
-   CGLDiskLightPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
-class CGLCylinderPrimitive : public CGLPrimitive{
+class CGCylinderPrimitive{
 public:
-   CGLCylinderPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
-class CGLPhotometricLightPrimitive : public CGLPrimitive{
+class CGPhotometricLightPrimitive{
 public:
-   CGLPhotometricLightPrimitive();
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
+
+class CGBoxPrimitive{
+public:
+   static CGPUPrimitive* generate(CGPUPrimitive* prim);
+};
+
 
 bool checkShaderError(unsigned int shader);
 bool checkProgramError(unsigned int shader);
@@ -124,6 +142,37 @@ public:
    void setShader(ID3D11DeviceContext* context);
    bool isValid() const;
 };
+
+class CDXPrimitive : public CGPUPrimitive {
+protected:
+   ID3D11Buffer* p_vertexBuffer;
+   ID3D11Buffer* p_indexBuffer;
+   ID3D11InputLayout* p_vertexLayout;
+   ID3D11Device* p_device;
+public:
+   CDXPrimitive(ID3D11Device* device);
+
+   virtual ~CDXPrimitive();
+   virtual void draw(void* platform = 0) const;
+
+   virtual void setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices);
+
+   bool createInputLayout(ID3DBlob* vertexShaderBlob);
+};
+
+class CDXConstantBuffer {
+private:
+   ID3D11Buffer* p_buffer;
+public:
+   CDXConstantBuffer(ID3D11Device* device, size_t bufferSize);
+   ~CDXConstantBuffer();
+
+   void update(ID3D11DeviceContext* context, void* data);
+   void set(ID3D11DeviceContext* context);
+   
+   bool isValid() const;
+};
+
 #endif
 
 #endif

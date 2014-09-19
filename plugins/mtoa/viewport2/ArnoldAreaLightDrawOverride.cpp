@@ -9,19 +9,31 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/M3dView.h>
 
-const char* shaderUniforms = "#version 120\n"
+namespace {
+    const char* shaderUniforms = "#version 120\n"
 "uniform mat4 model;\n"
 "uniform mat4 viewProj;\n"
 "uniform vec4 shadeColor;\n";
 
-const char* vertexShader = 
+    const char* vertexShader = 
 "void main()\n"
 "{\n"
 "gl_Position = viewProj * (model * gl_Vertex);\n"
 "}\n";
 
-const char* fragmentShader =
+    const char* fragmentShader =
 "void main() { gl_FragColor = shadeColor;}\n";
+
+#ifdef _WIN32
+#pragma pack(1)
+    struct SConstantBuffer{
+        float w[4][4];
+        float vp[4][4];
+        float color[4];
+    };
+#pragma pack()
+#endif
+}
 
 GLuint CArnoldAreaLightDrawOverride::s_vertexShader = 0;
 GLuint CArnoldAreaLightDrawOverride::s_fragmentShader = 0;
@@ -34,15 +46,20 @@ GLint CArnoldAreaLightDrawOverride::s_shadeColorLoc = 0;
 bool CArnoldAreaLightDrawOverride::s_isValid = false;
 bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
 
+#ifdef _WIN32
+CDXConstantBuffer* CArnoldAreaLightDrawOverride::s_pDXConstantBuffer = 0;
+DXShader* CArnoldAreaLightDrawOverride::s_pDXShader = 0;
+#endif
+
 // TODO check about delete after use, and
 // how to reuse buffers, rather than always
 // recreating them, this might won't cause
 // much performance problems, but cleaner,
 // the better
 struct CArnoldAreaLightUserData : public MUserData{
-    static CGLPrimitive* s_primitives[3];
-    CGLPrimitive* p_primitive;
-    float m_modelMatrix[4][4];
+    static CGPUPrimitive* s_primitives[3];
+    CGPUPrimitive* p_primitive;
+    MMatrix m_modelMatrix;
     float m_color[4];
     float m_wireframeColor[4];
     CArnoldAreaLightUserData(const MDagPath& objPath) : MUserData(true)
@@ -101,7 +118,7 @@ struct CArnoldAreaLightUserData : public MUserData{
         }
         else p_primitive = s_primitives[0];
         
-        modelMatrix.asMatrix().get(m_modelMatrix);
+        m_modelMatrix = modelMatrix.asMatrix();
     }
 
     ~CArnoldAreaLightUserData()
@@ -109,7 +126,7 @@ struct CArnoldAreaLightUserData : public MUserData{
     }
 };
 
-CGLPrimitive* CArnoldAreaLightUserData::s_primitives[3] = {0, 0, 0};
+CGPUPrimitive* CArnoldAreaLightUserData::s_primitives[3] = {0, 0, 0};
 
 MHWRender::MPxDrawOverride* CArnoldAreaLightDrawOverride::creator(const MObject& obj)
 {
@@ -163,7 +180,7 @@ MUserData* CArnoldAreaLightDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL); // | MHWRender::kDirectX11); TODO support dx11 later
+    return (MHWRender::kOpenGL | MHWRender::kDirectX11); // | MHWRender::kDirectX11); TODO support dx11 later
 }
 
 void CArnoldAreaLightDrawOverride::clearGPUResources()
@@ -181,50 +198,99 @@ void CArnoldAreaLightDrawOverride::clearGPUResources()
         }
         s_isInitialized = false;
         s_isValid = false;
+
+#ifdef _WIN32
+        if (s_pDXConstantBuffer)
+        {
+            delete s_pDXConstantBuffer;
+            s_pDXConstantBuffer = 0;
+        }
+        if (s_pDXShader)
+        {
+            delete s_pDXShader;
+            s_pDXShader = 0;
+        }
+#endif
     }
 }
 
 void CArnoldAreaLightDrawOverride::initializeGPUResources()
 {
-    if ((s_isInitialized == false) && InitializeGLEW())
+    if ((s_isInitialized == false))
     {
+        MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
         s_isInitialized = true;
         s_isValid = false;
 
-        if (!GLEW_VERSION_2_1)
-            return; // right now, only opengl 4.3, we can lower this later 
+        if (theRenderer->drawAPIIsOpenGL() && InitializeGLEW())
+        {
+            if (!GLEW_VERSION_2_1)
+                return;
 
-        s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        const char* stringPointers[2] = {shaderUniforms, vertexShader};
-        glShaderSource(s_vertexShader, 2, stringPointers, 0);
-        glCompileShader(s_vertexShader);
+            s_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+            const char* stringPointers[2] = {shaderUniforms, vertexShader};
+            glShaderSource(s_vertexShader, 2, stringPointers, 0);
+            glCompileShader(s_vertexShader);
 
-        if (checkShaderError(s_vertexShader))
-            return;
+            if (checkShaderError(s_vertexShader))
+                return;
 
-        s_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        stringPointers[1] = fragmentShader;
-        glShaderSource(s_fragmentShader, 2, stringPointers, 0);
-        glCompileShader(s_fragmentShader);
+            s_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+            stringPointers[1] = fragmentShader;
+            glShaderSource(s_fragmentShader, 2, stringPointers, 0);
+            glCompileShader(s_fragmentShader);
 
-        if (checkShaderError(s_fragmentShader))
-            return;
+            if (checkShaderError(s_fragmentShader))
+                return;
 
-        s_program = glCreateProgram();
-        glAttachShader(s_program, s_vertexShader);
-        glAttachShader(s_program, s_fragmentShader);
-        glLinkProgram(s_program);
+            s_program = glCreateProgram();
+            glAttachShader(s_program, s_vertexShader);
+            glAttachShader(s_program, s_fragmentShader);
+            glLinkProgram(s_program);
 
-        if (checkProgramError(s_program))
-            return;
+            if (checkProgramError(s_program))
+                return;
 
-        CArnoldAreaLightUserData::s_primitives[0] = new CGLQuadLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[1] = new CGLDiskLightPrimitive();
-        CArnoldAreaLightUserData::s_primitives[2] = new CGLCylinderPrimitive();
+            CArnoldAreaLightUserData::s_primitives[0] = CGQuadLightPrimitive::generate(new CGLPrimitive());
+            CArnoldAreaLightUserData::s_primitives[1] = CGDiskLightPrimitive::generate(new CGLPrimitive());
+            CArnoldAreaLightUserData::s_primitives[2] = CGCylinderPrimitive::generate(new CGLPrimitive());
 
-        s_modelLoc = glGetUniformLocation(s_program, "model");
-        s_viewProjLoc = glGetUniformLocation(s_program, "viewProj");
-        s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
+            s_modelLoc = glGetUniformLocation(s_program, "model");
+            s_viewProjLoc = glGetUniformLocation(s_program, "viewProj");
+            s_shadeColorLoc = glGetUniformLocation(s_program, "shadeColor");
+        }
+        else
+        {
+#ifdef _WIN32
+            ID3D11Device* device = reinterpret_cast<ID3D11Device*>(theRenderer->GPUDeviceHandle());
+            if (!device)
+                return;
+            ID3D11DeviceContext* dxContext = 0;
+            device->GetImmediateContext(&dxContext);
+            if (!dxContext)
+                return;
+
+            s_pDXConstantBuffer = new CDXConstantBuffer(device, sizeof(SConstantBuffer));
+            if (!s_pDXConstantBuffer->isValid())
+                return;
+
+            s_pDXShader = new DXShader(device, "areaLight");
+            if (!s_pDXShader->isValid())
+                return;
+
+            CArnoldAreaLightUserData::s_primitives[0] = CGQuadLightPrimitive::generate(new CDXPrimitive(device));
+            CArnoldAreaLightUserData::s_primitives[1] = CGDiskLightPrimitive::generate(new CDXPrimitive(device));
+            CArnoldAreaLightUserData::s_primitives[2] = CGCylinderPrimitive::generate(new CDXPrimitive(device));
+            if (!reinterpret_cast<CDXPrimitive*>(CArnoldAreaLightUserData::s_primitives[0])->createInputLayout(s_pDXShader->getVertexShaderBlob()))
+                return;
+            if (!reinterpret_cast<CDXPrimitive*>(CArnoldAreaLightUserData::s_primitives[1])->createInputLayout(s_pDXShader->getVertexShaderBlob()))
+                return;
+            if (!reinterpret_cast<CDXPrimitive*>(CArnoldAreaLightUserData::s_primitives[2])->createInputLayout(s_pDXShader->getVertexShaderBlob()))
+                return;
+
+            s_isValid = true;
+#endif
+        }        
 
         s_isValid = true;
     }
@@ -238,17 +304,49 @@ void CArnoldAreaLightDrawOverride::draw(
         return;
     if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
         return;
-    const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);        
-    glUseProgram(s_program);
+    const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);
 
-    glUniformMatrix4fv(s_modelLoc, 1, GL_FALSE, &userData->m_modelMatrix[0][0]);
-    float mat[4][4];
-    context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
-    glUniformMatrix4fv(s_viewProjLoc, 1, GL_FALSE, &mat[0][0]);
-    glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
-        userData->m_wireframeColor[2], userData->m_wireframeColor[3]);
-    
-    userData->p_primitive->draw();
-    
-    glUseProgram(0);
+    MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
+
+    if (theRenderer->drawAPIIsOpenGL())
+    {
+        float mat[4][4];
+        
+        glUseProgram(s_program);
+        userData->m_modelMatrix.get(mat);
+        glUniformMatrix4fv(s_modelLoc, 1, GL_FALSE, &mat[0][0]);
+        context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
+        glUniformMatrix4fv(s_viewProjLoc, 1, GL_FALSE, &mat[0][0]);
+        glUniform4f(s_shadeColorLoc, userData->m_wireframeColor[0], userData->m_wireframeColor[1],
+            userData->m_wireframeColor[2], userData->m_wireframeColor[3]);    
+        userData->p_primitive->draw();    
+        glUseProgram(0);
+    }
+    else
+    {
+#ifdef _WIN32
+        ID3D11Device* device = reinterpret_cast<ID3D11Device*>(theRenderer->GPUDeviceHandle());
+        if (!device)
+            return;
+        ID3D11DeviceContext* dxContext = 0;
+        device->GetImmediateContext(&dxContext);
+        if (!dxContext)
+            return;
+
+        s_pDXShader->setShader(dxContext);
+
+        // filling up constant buffer
+        SConstantBuffer buffer;
+        context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).transpose().get(buffer.vp);
+        userData->m_modelMatrix.transpose().get(buffer.w);
+        buffer.color[0] = userData->m_wireframeColor[0];
+        buffer.color[1] = userData->m_wireframeColor[1];
+        buffer.color[2] = userData->m_wireframeColor[2];
+        buffer.color[3] = userData->m_wireframeColor[3];
+
+        s_pDXConstantBuffer->update(dxContext, &buffer);
+        s_pDXConstantBuffer->set(dxContext);
+        userData->p_primitive->draw(dxContext);
+#endif
+    }    
 }
