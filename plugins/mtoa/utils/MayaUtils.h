@@ -21,3 +21,5 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
 MStringArray getSourceImagesPath();
 
 MString getProjectFolderPath();
+
+MString replaceInString(const MString& source, const MString& origString, const MString& toReplace);

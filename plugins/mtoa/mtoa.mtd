@@ -20,6 +20,7 @@
 # motion_vector               0x00115D0F
 # image                       0x00115D17
 # physical_sky                0x00115D1E
+# density                     0x00115D21
 
 # options
 
@@ -184,8 +185,8 @@
     maya.id                 INT     0x4449524c
     maya.classification     STRING  "light"
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr angle]
         min                 FLOAT   0.0
@@ -243,8 +244,8 @@
     maya.id                 INT     0x504f4954
     maya.classification     STRING  "light"
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr radius]
         min                 FLOAT   0.0
@@ -303,8 +304,8 @@
     maya.id                 INT     0x5350544c
     maya.classification     STRING  "light"
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr radius]
         min                 FLOAT   0.0
@@ -386,8 +387,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -443,8 +444,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -496,8 +497,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -564,8 +565,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -621,8 +622,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -677,8 +678,8 @@
         softmax             FLOAT   10.0
         maya.channelbox     BOOL    True
     [attr exposure]
-        softmin             FLOAT   0.0
-        softmax             FLOAT   10.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
@@ -712,6 +713,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
+    maya.swatch             BOOL    False
     [attr barndoor_bottom_edge]
         min                 FLOAT   0
         max                 FLOAT   1.0
@@ -756,6 +758,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "spotLight"
     maya.output             INT     0x05
+    maya.swatch             BOOL    False
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -776,6 +779,7 @@
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "directionalLight pointLight spotLight areaLight aiAreaLight aiSkyDomeLight aiPhotometricLight mesh"
     maya.output             INT     0x05
+    maya.swatch             BOOL    False
     [attr density]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -797,6 +801,7 @@
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
     maya.lights             STRING  "pointLight spotLight areaLight aiAreaLight aiPhotometricLight mesh"
+    maya.swatch             BOOL    False
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
@@ -1392,6 +1397,15 @@
         softmin             FLOAT   0.1
         softmax             FLOAT   5.0
         
+[node density]
+    desc                    STRING  "Density"
+    maya.name               STRING  "aiDensity"
+    maya.id                 INT     0x00115D21
+    maya.classification     STRING  "shader/volume"
+    [attr scatter_g]
+        min                 FLOAT   -1.0
+        max                 FLOAT   1.0
+        
 # dag nodes
 
 [node polymesh]
@@ -1422,12 +1436,6 @@
     [attr glossy_visibility]
         maya.name           STRING  "aiGlossyVisibility"
         label               STRING  "Visible In Glossy"
-
-[node density]
-    maya.hide               BOOL    true
-    [attr scatter_g]
-        min                 FLOAT   -1.0
-        max                 FLOAT   1.0
 
 # drivers
 

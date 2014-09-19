@@ -14,6 +14,7 @@
 #define ARNOLD_NODEID_SPHERE_LOCATOR            0x00115C02
 #define ARNOLD_NODEID_DRIVER                    0x00115C03
 #define ARNOLD_NODEID_FILTER                    0x00115C04
+#define ARNOLD_NODEID_VOLUME                    0x00115C05
 
 // Arnold Lights and light filters
 #define ARNOLD_NODEID_BARNDOOR                  0x00115C80
@@ -58,6 +59,7 @@
 #define ARNOLD_NODEID_PHYSICAL_SKY              0x00115D1E
 #define ARNOLD_NODEID_VOLUME_COLLECTOR          0x00115D1F
 #define ARNOLD_NODEID_SKIN_SSS                  0x00115D20
+#define ARNOLD_NODEID_DENSITY                   0x00115D21
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

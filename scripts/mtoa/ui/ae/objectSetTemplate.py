@@ -25,11 +25,8 @@ class AttributeListWindow(object):
         filterText = pm.textField('alf_filter_text', height=20)
         self.filterText = filterText
         pm.textField(self.filterText, edit=True, changeCommand=Callback(self.filterAttributes))
-        if pm.mel.getApplicationVersionAsFloat() < 2013:
-            list = pm.textScrollList('alf_attribute_list', nr=10, ams=True)
-        else:
-            list = pm.textScrollList('alf_attribute_list', ams=True)
-        self.scrollList = list
+        txList = pm.textScrollList('alf_attribute_list', ams=True)
+        self.scrollList = txList
         if mode == 'add':
             cmd = self.addAttrAndHide
         else:
@@ -54,8 +51,8 @@ class AttributeListWindow(object):
         pm.setParent('..')
         
         pm.formLayout(form, edit=True,
-                attachForm=[(filterText, 'top', 5), (filterText, 'left', 5), (filterText, 'right', 5), (list, 'left', 5), (list, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
-                attachControl=[(list, 'bottom', 5, row), (list, 'top', 5, filterText)])
+                attachForm=[(filterText, 'top', 5), (filterText, 'left', 5), (filterText, 'right', 5), (txList, 'left', 5), (txList, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
+                attachControl=[(txList, 'bottom', 5, row), (txList, 'top', 5, filterText)])
 
         pm.showWindow(self.win)
 
@@ -199,9 +196,6 @@ class ObjectSetTemplate(templates.AttributeTemplate):
             args['dataType'] = attributeType            
         else:
             args['attributeType'] = attributeType
-            if pm.mel.getApplicationVersionAsFloat() < 2013:
-                if (args['attributeType'] == 'float3' and not children):
-                    args['attributeType'] = 'typed'
             
         # args['dataType']       = None
         try:

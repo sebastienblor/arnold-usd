@@ -35,6 +35,12 @@ private:
 
     static void initializeGPUResources();
 
+    // DX11 resources
+    #ifdef _WIN32
+    static CDXConstantBuffer* s_pDXConstantBuffer;
+    static DXShader* s_pDXShader;
+    #endif
+
     static GLuint s_vertexShader;
     static GLuint s_fragmentShader;
     static GLuint s_program;
@@ -44,9 +50,7 @@ private:
     static GLint s_offsetLoc;
     static GLint s_shadeColorLoc;
 
-    static GLuint s_VBO;
-    static GLuint s_IBO;
-    static GLuint s_VAO;
+    static CGPUPrimitive* s_pPrimitive;
 
     static bool s_isValid;
     static bool s_isInitialized;

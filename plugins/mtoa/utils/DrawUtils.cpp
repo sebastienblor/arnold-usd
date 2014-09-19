@@ -275,16 +275,13 @@ CPhotometricLightPrimitive::CPhotometricLightPrimitive()
 
 #include <iostream>
 
-CGLPrimitive::CGLPrimitive() : m_VBO(0), m_IBO(0), m_VAO(0),
-   m_numLineIndices(0)
+CGLPrimitive::CGLPrimitive() : CGPUPrimitive(), m_VBO(0), m_IBO(0)
 {
-
 }
 
 CGLPrimitive::~CGLPrimitive()
 {
    glDeleteBuffers(2, m_GLBuffers);
-   glDeleteVertexArrays(1, &m_VAO);
 }
 
 void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices)
@@ -299,26 +296,24 @@ void CGLPrimitive::setPrimitiveData(const float* vertices, unsigned int numVerti
    glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(unsigned int), indices, GL_STATIC_DRAW);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-   glGenVertexArrays(1, &m_VAO);
-   glBindVertexArray(m_VAO);
-   glEnableVertexAttribArray(0);
-   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-   glBindVertexArray(0);
    m_numLineIndices = numIndices;
 }
 
-void CGLPrimitive::draw() const
+void CGLPrimitive::draw(void* platform) const
 {
-   glBindVertexArray(m_VAO);
+   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, (char*)0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
 
    glDrawElements(GL_LINES, m_numLineIndices, GL_UNSIGNED_INT, 0);
 
-   glBindVertexArray(0);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+   glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-CGLQuadLightPrimitive::CGLQuadLightPrimitive()
+CGPUPrimitive* CGQuadLightPrimitive::generate(CGPUPrimitive* prim)
 {
    const float vertices [] = {
       -1.0f, -1.0f, 0.0f,
@@ -339,10 +334,11 @@ CGLQuadLightPrimitive::CGLQuadLightPrimitive()
       4, 5
    };
 
-   setPrimitiveData(vertices, 6 * 3, indices, 7 * 2);
+   prim->setPrimitiveData(vertices, 6 * 3, indices, 7 * 2);
+   return prim;
 }
 
-CGLDiskLightPrimitive::CGLDiskLightPrimitive()
+CGPUPrimitive* CGDiskLightPrimitive::generate(CGPUPrimitive* prim)
 {
    float vertices[22 * 3];
    vertices[0] = 0.0f; vertices[1] = 0.0f; vertices[2] = 0.0f;
@@ -369,10 +365,11 @@ CGLDiskLightPrimitive::CGLDiskLightPrimitive()
       indices[id++] = i + 2;
    }
 
-   setPrimitiveData(vertices, 22 * 3, indices, 20 * 4 + 2);
+   prim->setPrimitiveData(vertices, 22 * 3, indices, 20 * 4 + 2);
+   return prim;
 }
 
-CGLCylinderPrimitive::CGLCylinderPrimitive()
+CGPUPrimitive* CGCylinderPrimitive::generate(CGPUPrimitive* prim)
 {
    float vertices[20 * 6];
    const unsigned int indexDiff = 20 * 3;
@@ -405,10 +402,11 @@ CGLCylinderPrimitive::CGLCylinderPrimitive()
       indices[i2o + 1] = i + 20;
    }
 
-   setPrimitiveData(vertices, 20 * 6, indices, 20 * 6);
+   prim->setPrimitiveData(vertices, 20 * 6, indices, 20 * 6);
+   return prim;
 }
 
-CGLPhotometricLightPrimitive::CGLPhotometricLightPrimitive()
+CGPUPrimitive* CGPhotometricLightPrimitive::generate(CGPUPrimitive* prim)
 {
    unsigned int id = 0;
 
@@ -515,7 +513,31 @@ CGLPhotometricLightPrimitive::CGLPhotometricLightPrimitive()
    indices[id++] = idb + 4; indices[id++] = idb + 5;
    indices[id++] = idb + 6; indices[id++] = idb + 7;
 
-   setPrimitiveData(vertices, numVertices, indices, numIndices);
+   prim->setPrimitiveData(vertices, numVertices, indices, numIndices);
+   return prim;
+}
+
+CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
+{
+   const float vertices [] = {
+      0.0f, 0.0f, 0.0f,
+      1.0f, 0.0f, 0.0f,
+      1.0f, 0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f,
+      0.0f, 1.0f, 0.0f,
+      1.0f, 1.0f, 0.0f,
+      1.0f, 1.0f, 1.0f,
+      0.0f, 1.0f, 1.0f
+   };
+
+   const unsigned int indices[] = {
+      0, 1, 1, 2, 2, 3, 3, 0,
+      4, 5, 5, 6, 6, 7, 7, 4,
+      0, 4, 1, 5, 2, 6, 3, 7
+   };
+
+   prim->setPrimitiveData(vertices, 8 * 3, indices, 4 * 3 * 2);
+   return prim;
 }
 
 bool checkShaderError(unsigned int shader)
@@ -553,5 +575,243 @@ bool checkProgramError(unsigned int program)
    }
    return false;
 }
+
+#ifdef _WIN32
+
+#include "MayaUtils.h"
+#include <windows.h>
+
+DXShader::DXShader(ID3D11Device* device, const MString& shaderName) :
+   p_vertexShader(0), p_pixelShader(0), p_vertexShaderBlob(0), p_pixelShaderBlob(0), m_isValid(false)
+{
+   DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+   ID3DBlob* errorBlob = 0;
+
+   MString effectLocation = replaceInString(MString(getenv("MTOA_PATH")), "\\", "/") + MString("/vp2/") + shaderName + MString(".hlsl");
+
+   HRESULT hr;
+
+#if _MSC_VER < 1700
+   hr = D3DX11CompileFromFile(
+      effectLocation.asChar(),
+      0,
+      0,
+      "mainVS",
+      "vs_5_0",
+      shaderFlags,
+      0,
+      0,
+      &p_vertexShaderBlob,
+      &errorBlob,
+      NULL);
+#else
+   hr = D3DCompileFromFile(
+      effectLocation.asWChar(),
+      0,
+      0,
+      "mainVS",
+      "vs_5_0",
+      shaderFlags,
+      0,
+      &p_vertexShaderBlob,
+      &errorBlob);
+#endif
+   if (FAILED(hr))
+   {                
+      if (errorBlob) errorBlob->Release();
+         return;  
+   }
+
+   if (errorBlob) errorBlob->Release();
+   hr = device->CreateVertexShader(p_vertexShaderBlob->GetBufferPointer(), p_vertexShaderBlob->GetBufferSize(), 0, &p_vertexShader);
+   if (FAILED(hr))
+   {
+      return;
+   }
+#if _MSC_VER < 1700
+   hr = D3DX11CompileFromFile(
+      effectLocation.asChar(),
+      0,
+      0,
+      "mainPS",
+      "ps_5_0",
+      shaderFlags,
+      0,
+      0,
+      &p_pixelShaderBlob,
+      &errorBlob,
+      NULL);
+#else
+   hr = D3DCompileFromFile(
+      effectLocation.asWChar(),
+      0,
+      0,
+      "mainPS",
+      "ps_5_0",
+      0,
+      0,
+      &p_pixelShaderBlob,
+      &errorBlob);
+#endif
+   if (FAILED(hr))
+   {
+      if (errorBlob) errorBlob->Release();
+         return;  
+   } 
+
+   hr = device->CreatePixelShader(p_pixelShaderBlob->GetBufferPointer(), p_pixelShaderBlob->GetBufferSize(), 0, &p_pixelShader);   
+   if (FAILED(hr))
+   {                
+      return;
+   }
+
+   m_isValid = true;
+}
+
+DXShader::~DXShader()
+{
+   if (p_vertexShader)
+      p_vertexShader->Release();
+   if (p_pixelShader)
+      p_pixelShader->Release();
+   if (p_vertexShaderBlob)
+      p_vertexShaderBlob->Release();
+   if (p_pixelShaderBlob)
+      p_pixelShaderBlob->Release();
+}
+
+ID3DBlob* DXShader::getVertexShaderBlob()
+{
+   return p_vertexShaderBlob;   
+}
+
+void DXShader::setShader(ID3D11DeviceContext* context)
+{
+   if (m_isValid)
+   {
+      context->VSSetShader(p_vertexShader, 0, 0);
+      context->PSSetShader(p_pixelShader, 0, 0);
+   }
+}
+
+bool DXShader::isValid() const
+{
+   return m_isValid;
+}
+
+CDXPrimitive::CDXPrimitive(ID3D11Device* device) : CGPUPrimitive(),
+   p_vertexBuffer(0), p_indexBuffer(0), p_vertexLayout(0), p_device(device)
+{
+
+}
+
+CDXPrimitive::~CDXPrimitive()
+{
+   if (p_vertexBuffer) p_vertexBuffer->Release();
+   if (p_indexBuffer) p_indexBuffer->Release();
+   if (p_vertexLayout) p_vertexLayout->Release();
+}
+
+void CDXPrimitive::draw(void* platform) const
+{
+   ID3D11DeviceContext* context = reinterpret_cast<ID3D11DeviceContext*>(platform);
+
+   const unsigned int stride = sizeof(float) * 3;
+   const unsigned int offset = 0;
+
+   context->IASetInputLayout(p_vertexLayout);
+   context->IASetVertexBuffers(0, 1, &p_vertexBuffer, &stride, &offset);
+   context->IASetIndexBuffer(p_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+   context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+   context->DrawIndexed(m_numLineIndices, 0, 0);
+}
+
+void CDXPrimitive::setPrimitiveData(const float* vertices, unsigned int numVertices, const unsigned int* indices, unsigned int numIndices)
+{
+   HRESULT hr;
+   D3D11_BUFFER_DESC bd;
+   ZeroMemory(&bd, sizeof(bd));
+   D3D11_SUBRESOURCE_DATA initData;
+   ZeroMemory(&initData, sizeof(initData));
+
+   bd.Usage = D3D11_USAGE_IMMUTABLE;
+   bd.ByteWidth = numVertices * sizeof(float);
+   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+   bd.CPUAccessFlags = 0;
+   initData.pSysMem = vertices;
+   hr = p_device->CreateBuffer(&bd, &initData, &p_vertexBuffer);
+   if (FAILED(hr))
+   {
+      p_vertexBuffer = 0;
+      return;
+   }
+
+   bd.ByteWidth = numIndices * sizeof(unsigned int);
+   bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+   initData.pSysMem = indices;
+   hr = p_device->CreateBuffer(&bd, &initData, &p_indexBuffer);
+   if (FAILED(hr))
+   {
+      if (p_vertexBuffer) p_vertexBuffer->Release();
+      p_vertexBuffer = 0;
+      p_indexBuffer = 0;
+      return;
+   }
+
+   m_numLineIndices = numIndices;
+}
+
+bool CDXPrimitive::createInputLayout(ID3DBlob* vertexShaderBlob)
+{
+   if (m_numLineIndices == 0)
+      return false;
+
+   HRESULT hr;
+   D3D11_INPUT_ELEMENT_DESC layout[] =
+   {
+      { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+   };
+   int numLayoutElements = sizeof layout/sizeof layout[0];
+   hr = p_device->CreateInputLayout(layout, numLayoutElements, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &p_vertexLayout);
+   if (FAILED(hr))
+      return false;
+   return true;
+}
+
+CDXConstantBuffer::CDXConstantBuffer(ID3D11Device* device, size_t bufferSize)
+{
+   HRESULT hr;
+   D3D11_BUFFER_DESC bd;
+   ZeroMemory(&bd, sizeof(bd));
+
+   bd.Usage = D3D11_USAGE_DEFAULT;
+   bd.ByteWidth = bufferSize;
+   bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+   hr = device->CreateBuffer(&bd, 0, &p_buffer);
+   if (FAILED(hr)) p_buffer = 0;
+}
+
+CDXConstantBuffer::~CDXConstantBuffer()
+{
+   if (p_buffer) p_buffer->Release();
+}
+
+void CDXConstantBuffer::update(ID3D11DeviceContext* context, void* data)
+{
+   context->UpdateSubresource(p_buffer, 0, 0, data, 0, 0);
+}
+
+void CDXConstantBuffer::set(ID3D11DeviceContext* context)
+{
+   context->VSSetConstantBuffers(0, 1, &p_buffer);
+   context->PSSetConstantBuffers(0, 1, &p_buffer);
+}
+
+bool CDXConstantBuffer::isValid() const
+{
+   return p_buffer != 0;
+}
+
+#endif
 
 #endif
