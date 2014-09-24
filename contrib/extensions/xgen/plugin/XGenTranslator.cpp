@@ -388,10 +388,13 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    if(!info.hasAlembicFile)
    {
       // Replace namespace ":" invalid caracters in paths for "__ns__"
-      size_t pos;
-      while( (pos = strGeomFile.find(":")) != std::string::npos)
+      size_t pos = 2;
+      while( (pos = strGeomFile.find(":", pos)) != std::string::npos)
+      {
          strGeomFile.replace(pos, 1, "__ns__");
-         
+         pos += 6;
+      }
+        
       info.hasAlembicFile = alembicExists(strGeomFile);
    }
 
@@ -461,6 +464,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       if (!info.hasAlembicFile) // we don't have the alembic
       {
          AiMsgError("[XGEN]: CAN'T MOTION BLUR,  alembic file-> %s  has not been exported", strGeomFile.c_str());
+
          info.moblur = 2; // turning off xgen motion blur
          info.renderMode = 1; // set to live mode  for good measure
          batchModeOk = false;
@@ -558,10 +562,34 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          strData =  "-debug 1 -warning 1 -stats 1 ";
          sprintf(buf,"%f ",GetExportFrame());
          strData += " -frame "+ std::string(buf);// +" -shutter 0.0"; // Pedro's suggestion was to remove the shutter value, it seemed not to make a diff
-		 strData += " -file " + info.strScene + "__" + info.strPalette + ".xgen";
+         std::string filePallete = info.strPalette;
+         
+         size_t pos = 0;
+         // In XGen file, namespace symbol ":" is replced by "__"
+         while( (pos = filePallete.find(":", pos)) != std::string::npos)
+         {
+            filePallete.replace(pos, 1, "__");
+            pos += 2;
+         }
+         
+         // Internally, XGen needs palette, description and patch without namespace
+         pos = info.strPalette.rfind(":");
+         if(pos != std::string::npos)
+            info.strPalette.erase(0,pos + 1);
+         
+         std::string stringPatch = strPatch;
+         pos = stringPatch.rfind(":");
+         if(pos != std::string::npos)
+            stringPatch.erase(0,pos + 1);
+            
+         pos = info.strDescription.rfind(":");
+         if(pos != std::string::npos)
+            info.strDescription.erase(0,pos + 1);
+         
+		   strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
          strData += " -palette " + info.strPalette;
          strData += " -geom " + strGeomFile;
-         strData += " -patch " + strPatch;
+         strData += " -patch " + stringPatch;
          strData += " -description " + info.strDescription;
          MTime oneSec(1.0, MTime::kSeconds);
          float fps =  (float)oneSec.asUnits(MTime::uiUnit());
