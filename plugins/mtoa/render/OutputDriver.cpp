@@ -489,6 +489,8 @@ void RenderBegin(CDisplayUpdateMessage & msg)
    MGlobal::executeCommand("getPanel -scriptType \"renderWindowPanel\"", commandRet);
    if (commandRet == "")
       s_panel_name = "renderView";
+   else
+      s_panel_name = commandRet;
    // TODO: Implement this...      MStatus status;
    // This is not the most reliable way to get the camera, since it relies on the camera names matching
    // but theoretically, if the camera was exported by mtoa they should match.
