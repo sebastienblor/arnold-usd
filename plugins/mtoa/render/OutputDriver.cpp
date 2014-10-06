@@ -82,11 +82,7 @@ node_initialize
    AtNode* cameraNode = AiUniverseGetCamera();
    if (cameraNode != 0)
       cameraName = AiNodeGetName(cameraNode);
-   MString commandRet;
-   MGlobal::executeCommand("getPanel -scriptType \"renderWindowPanel\"", commandRet);
-   if (commandRet == "")
-      commandRet = "renderView";
-   InitializeDisplayUpdateQueue(cameraName, commandRet);
+   InitializeDisplayUpdateQueue(cameraName, "renderView");
 
    AiDriverInitialize(node, false, NULL);
 
@@ -489,6 +485,12 @@ void InitializeDisplayUpdateQueue(const MString camera, const MString panel)
 
 void RenderBegin(CDisplayUpdateMessage & msg)
 {
+   MString commandRet;
+   MGlobal::executeCommand("getPanel -scriptType \"renderWindowPanel\"", commandRet);
+   if (commandRet == "")
+      s_panel_name = "renderView";
+   else
+      s_panel_name = commandRet;
    // TODO: Implement this...      MStatus status;
    // This is not the most reliable way to get the camera, since it relies on the camera names matching
    // but theoretically, if the camera was exported by mtoa they should match.
