@@ -28,6 +28,7 @@ void CArnoldVolumeTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "volume");
    CShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeMayaVisibilityFlags(helper);
 }
 
 AtNode* CArnoldVolumeTranslator::CreateArnoldNodes()
@@ -248,6 +249,35 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
             }
             AiNodeSetArray( volume, "grids", ary);
          }
+         
+         MString vGrids = m_DagNode.findPlug("velocityGrids").asString();
+         MStringArray vGridList;
+         vGrids.split(' ',vGridList);
+         
+         if (vGridList.length() > 0)
+         {
+            AiNodeDeclare( volume, "velocity_grids", "constant ARRAY STRING" );
+            AtArray *ary = AiArrayAllocate(vGridList.length(), 1, AI_TYPE_STRING);
+            for(unsigned int i = 0; i < vGridList.length(); i++)
+            {
+               AiArraySetStr(ary, i, vGridList[i].asChar());
+            }
+            AiNodeSetArray( volume, "velocity_grids", ary);
+         }
+         
+         
+         AiNodeDeclare( volume, "velocity_scale", "constant FLOAT" );
+         AiNodeSetFlt(volume, "velocity_scale", m_DagNode.findPlug("velocityScale").asFloat());
+         
+         AiNodeDeclare( volume, "velocity_fps", "constant FLOAT" );
+         AiNodeSetFlt(volume, "velocity_fps", m_DagNode.findPlug("velocityFps").asFloat());
+         
+         AiNodeDeclare( volume, "velocity_shutter_start", "constant FLOAT" );
+         AiNodeSetFlt(volume, "velocity_shutter_start", m_DagNode.findPlug("velocityShutterStart").asFloat());
+         
+         AiNodeDeclare( volume, "velocity_shutter_end", "constant FLOAT" );
+         AiNodeSetFlt(volume, "velocity_shutter_end", m_DagNode.findPlug("velocityShutterEnd").asFloat());
+         
       }
 
    }

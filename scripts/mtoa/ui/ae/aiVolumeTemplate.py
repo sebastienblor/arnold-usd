@@ -12,6 +12,13 @@ def ArnoldVolumeTypeChange(nodeName):
     pm.editorTemplate(dimControl=(nodeName, "filename", dim))
     pm.editorTemplate(dimControl=(nodeName, "grids", dim))
     pm.editorTemplate(dimControl=(nodeName, "frame", dim))
+    
+    pm.editorTemplate(dimControl=(nodeName, "velocityGrids", dim))
+    pm.editorTemplate(dimControl=(nodeName, "velocityScale", dim))
+    pm.editorTemplate(dimControl=(nodeName, "velocityFps", dim))
+    pm.editorTemplate(dimControl=(nodeName, "velocityShutterStart", dim))
+    pm.editorTemplate(dimControl=(nodeName, "velocityShutterEnd", dim))
+    
     pm.editorTemplate(dimControl=(nodeName, "dso", not dim))
     pm.editorTemplate(dimControl=(nodeName, "data", not dim))
 
@@ -84,6 +91,34 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl('loadAtInit')
         
         self.addSeparator()
+        
+        self.addControl('velocityGrids')
+        self.addControl('velocityScale')
+        self.addControl('velocityFps')
+        self.addControl('velocityShutterStart')
+        self.addControl('velocityShutterEnd')
+        
+        self.addSeparator()
+        
+        self.endLayout()
+        
+        
+        self.beginLayout('Render Stats', collapse=True)
+        self.beginNoOptimize()
+        self.addControl("castsShadows")
+        self.addControl("receiveShadows")
+        self.addControl("primaryVisibility")
+        self.addControl("visibleInReflections")
+        self.addControl("visibleInRefractions")
+
+        self.addSeparator()
+    
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.addControl("aiTraceSets", label="Trace Sets")
+        
+        self.endNoOptimize()
         
         self.endLayout()
     

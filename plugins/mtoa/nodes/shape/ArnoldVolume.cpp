@@ -60,6 +60,12 @@ MObject CArnoldVolumeShape::s_filename;
 MObject CArnoldVolumeShape::s_grids;
 MObject CArnoldVolumeShape::s_frame;
 
+MObject CArnoldVolumeShape::s_velocity_grids;
+MObject CArnoldVolumeShape::s_velocity_scale;
+MObject CArnoldVolumeShape::s_velocity_fps;
+MObject CArnoldVolumeShape::s_velocity_shutter_start;
+MObject CArnoldVolumeShape::s_velocity_shutter_end;
+
 enum VolumeType{
    VT_CUSTOM,
    VT_OPEN_VDB
@@ -176,6 +182,33 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setHidden(false);
    nAttr.setStorable(true);
    addAttribute(s_frame);
+   
+   
+   
+   s_velocity_grids = tAttr.create("velocityGrids", "vGrids", MFnData::kString);
+   tAttr.setHidden(false);
+   tAttr.setStorable(true);
+   addAttribute(s_velocity_grids);
+   
+   s_velocity_scale = nAttr.create("velocityScale", "vScale", MFnNumericData::kFloat, 1.0f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_velocity_scale);
+   
+   s_velocity_fps = nAttr.create("velocityFps", "vFps", MFnNumericData::kFloat, 24.0f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_velocity_fps);
+   
+   s_velocity_shutter_start = nAttr.create("velocityShutterStart", "vShutterStart", MFnNumericData::kFloat, -0.25f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_velocity_shutter_start);
+   
+   s_velocity_shutter_end = nAttr.create("velocityShutterEnd", "vShutterEnd", MFnNumericData::kFloat, 0.25f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_velocity_shutter_end);
    
    return MStatus::kSuccess;
 }
