@@ -14,11 +14,11 @@ node_parameters
    AiParameterRGB("deep_scatter_color", 0.7f, 0.1f, 0.1f);
    AiParameterFLT("deep_scatter_weight", 1.0f);
    AiParameterFLT("deep_scatter_radius", 0.6f);
-   AiParameterRGB("specular_color", 0.75f, 0.9f, 1.0f);
+   AiParameterRGB("specular_color", 1.0f, 1.0f, 1.0f);
    AiParameterFLT("specular_weight", 0.8f);
    AiParameterFLT("specular_roughness", 0.5f);
    AiParameterFLT("specular_ior", 1.44f);
-   AiParameterRGB("sheen_color", 0.75f, 0.9f, 1.0f);
+   AiParameterRGB("sheen_color", 1.0f, 1.0f, 1.0f);
    AiParameterFLT("sheen_weight", 0.0f);
    AiParameterFLT("sheen_roughness", 0.35f);
    AiParameterFLT("sheen_ior", 1.44f);
