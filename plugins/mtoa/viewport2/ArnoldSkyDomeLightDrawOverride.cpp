@@ -181,6 +181,9 @@ void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& contex
         return;
     const SArnoldSkyDomeLightUserData* userData = reinterpret_cast<const SArnoldSkyDomeLightUserData*>(data);
 
+    if (userData == 0)
+        return;
+
     float mat[4][4];
     context.getMatrix(MHWRender::MDrawContext::kViewProjMtx).get(mat);
 
