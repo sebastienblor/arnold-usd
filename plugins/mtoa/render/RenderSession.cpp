@@ -355,9 +355,10 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    CMayaScene::ExecuteScript(IPRRefinementStarted, false, true);
    renderSession->SetRendering(true);
    int sampling, i;
+   const int sampling_limit = num_aa_samples == 1 ? 0 : 1;
    for (sampling = progressive_start, i=1; sampling <= num_aa_samples; ++sampling, ++i)
    {
-      if (sampling >= 0)
+      if (sampling >= sampling_limit)
          sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
