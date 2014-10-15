@@ -121,5 +121,8 @@ public:
    static MObject s_IPRStepFinishedCallback;
 
    static MObject s_output_overscan;
+
+   static MObject s_render_unit;
+   static MObject s_scene_scale;
    
 };  // class CArnoldOptionsNode
