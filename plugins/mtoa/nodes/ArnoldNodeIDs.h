@@ -5,8 +5,9 @@
 // 0x00116400 - 0x001165FF
 // 0x00116200 - 0x001163FF
 // 0x00116000 - 0x001161FF
-// 0x00115E00 - 0x00115FFF
+// 0x00115E00 - 0x00115FFF Assigned to HtoA
 // Arnolds internal ids are 0x00115C00 - 0x00115DFF
+
 
 // Arnold Nodes in Maya
 #define ARNOLD_NODEID_RENDER_OPTIONS            0x00115C00
