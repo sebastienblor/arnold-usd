@@ -21,6 +21,7 @@
 #include <maya/MDagPathArray.h>
 
 #include <sstream>
+#include <set>
 
 extern AtNodeMethods* batch_progress_driver_mtd;
 
@@ -34,6 +35,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("ofn", "origFileName", MSyntax::kString);
+   syntax.addFlag("seq", "frameSequence", MSyntax::kString);
 
    return syntax;
 }
@@ -258,8 +260,45 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          }
       }
 
-      for (double framerender = startframe; framerender <= endframe; framerender += byframestep)
+      std::set<double> frameSet;
+
+      if (args.isFlagSet("seq"))
       {
+         MString seq;
+         args.getFlagArgument("seq", 0, seq);
+         MStringArray seqArr;
+         if (seq.index(';') == -1)
+            seq.split(' ', seqArr);
+         else
+            seq.split(';', seqArr);
+         for (unsigned int i = 0; i < seqArr.length(); ++i)
+         {
+            MString elem = seqArr[i];
+            const int id = elem.indexW(MString(".."));
+            if (id == -1) // just one frame
+               frameSet.insert(elem.asDouble());
+            else if (id > 0)
+            {
+               const int id2 = elem.index(':');
+               const double startFrame = elem.substring(0, id - 1).asDouble();
+               const double endFrame = elem.substring(id + 2, (id2 == -1) ? (elem.length() - 1) : (id2 - 1)).asDouble();
+               const double step = (id2 == -1) ? 1.0 : elem.substring(id2 + 1, elem.length() - 1).asDouble();
+               for (double frame = startFrame; frame <= endFrame; frame += step)
+                  frameSet.insert(frame);
+            }
+         }
+      }
+
+      if (frameSet.size() == 0)
+      {
+         for (double framerender = startframe; framerender <= endframe; framerender += byframestep)
+            frameSet.insert(framerender);
+      }
+      
+
+      for (std::set<double>::const_iterator frameIt = frameSet.begin(); frameIt != frameSet.end(); ++frameIt)
+      {
+         const double framerender = *frameIt;
          MGlobal::viewFrame(framerender);
          CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
