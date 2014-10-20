@@ -406,8 +406,12 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    // FIXME: focus_distance and aperture_size are animated and should be exported with motion blur
    if (FindMayaPlug("aiEnableDOF").asBool())
    {
-      AiNodeSetFlt(camera, "focus_distance",          FindMayaPlug("aiFocusDistance").asFloat());
-      AiNodeSetFlt(camera, "aperture_size",           FindMayaPlug("aiApertureSize").asFloat());
+      float distance = FindMayaPlug("aiFocusDistance").asFloat();
+      m_session->ScaleDistance(distance);      
+      float apertureSize = FindMayaPlug("aiApertureSize").asFloat();
+      m_session->ScaleDistance(apertureSize);
+      AiNodeSetFlt(camera, "focus_distance",          distance);
+      AiNodeSetFlt(camera, "aperture_size",           apertureSize);
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
       AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
@@ -650,3 +654,10 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInputBoolean(data);
 }
 
+void CCameraTranslator::GetMatrix(AtMatrix& matrix)
+{
+   CDagTranslator::GetMatrix(matrix, m_dagPath, 0);
+   m_session->ScaleDistance(matrix[3][0]);
+   m_session->ScaleDistance(matrix[3][1]);
+   m_session->ScaleDistance(matrix[3][2]);
+}
