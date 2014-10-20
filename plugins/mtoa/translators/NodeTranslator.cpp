@@ -2311,7 +2311,7 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSe
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   GetMatrix(matrix, m_dagPath);
+   GetMatrix(matrix, m_dagPath, m_session);
 }
 
 // this is a utility method which handles the common tasks associated with

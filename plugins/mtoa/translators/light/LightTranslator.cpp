@@ -49,11 +49,20 @@ void CLightTranslator::Export(AtNode* light)
    ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
    ProcessParameter(light, "shadow_color", AI_TYPE_RGB);
 
+   const bool norm = FindMayaPlug("aiNormalize").asBool();
+
+   if (norm)
+   {
+      float intensity = AiNodeGetFlt(light, "intensity");
+      m_session->ScaleArea(intensity);
+      AiNodeSetFlt(light, "intensity", intensity);
+   }
+
    AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
    AiNodeSetFlt(light,  "shadow_density",  FindMayaObjectPlug("aiShadowDensity").asFloat());
    AiNodeSetFlt(light,  "exposure",        FindMayaPlug("aiExposure").asFloat());
    AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
-   AiNodeSetBool(light, "normalize",       FindMayaPlug("aiNormalize").asBool());
+   AiNodeSetBool(light, "normalize",       norm);
    AiNodeSetFlt(light,  "sss",             FindMayaPlug("aiSss").asFloat());
    AiNodeSetFlt(light,  "indirect",        FindMayaPlug("aiIndirect").asFloat());
    AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
