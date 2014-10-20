@@ -1359,27 +1359,31 @@ void CArnoldSession::FormatProceduralPath(MString& proceduralPath)
     m_sessionOptions.FormatProceduralPath(proceduralPath);
 }
 
-void CArnoldSession::ScaleMatrix(MMatrix& matrix) const
+MMatrix& CArnoldSession::ScaleMatrix(MMatrix& matrix) const
 {
    matrix *= m_scaleFactorMMatrix;
+   return matrix;
 }
 
-void CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
+AtMatrix& CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
 {
    AiM4Mult(matrix, m_scaleFactorAtMatrix, matrix);
+   return matrix;
 }
 
-void CArnoldSession::ScaleDistance(float& distance) const
+float& CArnoldSession::ScaleDistance(float& distance) const
 {
    double s = static_cast<double>(distance);
    s *= m_scaleFactor;
    distance = static_cast<float>(s);
+   return distance;
 }
 
-void CArnoldSession::ScaleArea(float& area) const
+float& CArnoldSession::ScaleArea(float& area) const
 {
    double s = static_cast<double>(area);
    s *= m_scaleFactor;
    s *= m_scaleFactor;
    area = static_cast<float>(s);
+   return area;
 }

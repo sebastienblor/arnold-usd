@@ -148,10 +148,10 @@ public:
    void FormatTexturePath(MString& texturePath);
    void FormatProceduralPath(MString& proceduralPath);
 
-   void ScaleMatrix(MMatrix& matrix) const;
-   void ScaleMatrix(AtMatrix& matrix) const;
-   void ScaleDistance(float& distance) const;
-   void ScaleArea(float& area) const;   
+   MMatrix& ScaleMatrix(MMatrix& matrix) const;
+   AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
+   float& ScaleDistance(float& distance) const;
+   float& ScaleArea(float& area) const;   
    
 /*
    bool IsActiveAOV(CAOV &aov) const

@@ -674,7 +674,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       MMatrix mpm;
       mpm = m_dagPath.inclusiveMatrix();
       // convert it to AtMatrix
-      ConvertMatrix (inclMatrix, mpm); // util From CNodeTranslator
+      ConvertMatrix (inclMatrix, mpm, m_session); // util From CNodeTranslator
    }
 
    const unsigned int numMotionSteps = (m_motionDeform && RequiresMotionData()) ? GetNumMotionSteps() : 1;

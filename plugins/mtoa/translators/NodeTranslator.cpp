@@ -46,23 +46,6 @@
 #define new DEBUG_NEW
 #endif
 
-namespace // <anonymous>
-{
-/*
-   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
-   {
-      for (int J = 0; (J < 4); ++J)
-      {
-         for (int I = 0; (I < 4); ++I)
-         {
-            matrix[I][J] = (float) mayaMatrix[I][J];
-         }
-      }
-   }
-*/
-
-} // namespace
-
 MString GetAOVNodeType(int type)
 {
    MString nodeType = "";
@@ -1737,7 +1720,7 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
             MObject matObj = plug.asMObject();
             MFnMatrixData matData(matObj);
             MMatrix mm = matData.matrix();
-            ConvertMatrix(am, mm);
+            ConvertMatrix(am, mm, m_session);
             AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
          }
       }
@@ -1976,7 +1959,7 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
          MObject matObj = elem.asMObject();
          MFnMatrixData matData(matObj);
          MMatrix mm = matData.matrix();
-         ConvertMatrix(am, mm);
+         ConvertMatrix(am, mm, m_session);
          AiArraySetMtx(array, i, am);
       }
       break;
@@ -2315,7 +2298,7 @@ void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
    }
 }
 
-void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
+void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSession* session)
 {
    MStatus stat;
    MMatrix tm = path.inclusiveMatrix(&stat);
@@ -2323,7 +2306,7 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
    {
       AiMsgError("Failed to get transformation matrix for %s",  path.partialPathName().asChar());
    }
-   ConvertMatrix(matrix, tm);
+   ConvertMatrix(matrix, tm, session);
 }
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
