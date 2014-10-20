@@ -4,8 +4,9 @@
 
 #include <ai_msg.h>
 
-#include "maya/MFnDependencyNode.h"
-#include "maya/MPlug.h"
+#include <maya/MFnDependencyNode.h>
+#include <maya/MPlug.h>
+#include <maya/MDistance.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -147,6 +148,8 @@ MStatus CSessionOptions::GetFromMaya()
 
       const short renderUnit = fnArnoldRenderOptions.findPlug("renderUnit").asShort();
 
+      MDistance dist(1.0, MDistance::uiUnit());
+
       switch (renderUnit)
       {
          case RU_USE_MAYA_UNIT:
@@ -154,6 +157,30 @@ MStatus CSessionOptions::GetFromMaya()
             break;
          case RU_USE_CUSTOM_SCALING:
             m_scaleFactor = fnArnoldRenderOptions.findPlug("sceneScale").asDouble();
+            break;
+         case RU_INCH:
+            m_scaleFactor = dist.asInches();
+            break;
+         case RU_FEET:
+            m_scaleFactor = dist.asFeet();
+            break;
+         case RU_YARD:
+            m_scaleFactor = dist.asYards();
+            break;
+         case RU_MILE:
+            m_scaleFactor = dist.asMiles();
+            break;
+         case RU_MILLIMETER:
+            m_scaleFactor = dist.asMillimeters();
+            break;
+         case RU_CENTIMETER:
+            m_scaleFactor = dist.asCentimeters();
+            break;
+         case RU_KILOMETER:
+            m_scaleFactor = dist.asKilometers();
+            break;
+         case RU_METER:
+            m_scaleFactor = dist.asMeters();
             break;
          default:
             m_scaleFactor = 1.0;
