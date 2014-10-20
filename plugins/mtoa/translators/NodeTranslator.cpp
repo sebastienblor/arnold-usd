@@ -570,15 +570,31 @@ void CNodeTranslator::SetArnoldRootNode(AtNode* node)
 }
 
 /// convert from maya matrix to AtMatrix
-void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
+void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession)
 {
-   for (int J = 0; (J < 4); ++J)
+   if (arnoldSession)
    {
-      for (int I = 0; (I < 4); ++I)
+      MMatrix copyMayaMatrix = mayaMatrix;
+      arnoldSession->ScaleMatrix(copyMayaMatrix);
+      for (int J = 0; (J < 4); ++J)
       {
-         matrix[I][J] = (float) mayaMatrix[I][J];
+         for (int I = 0; (I < 4); ++I)
+         {
+            matrix[I][J] = (float) copyMayaMatrix[I][J];
+         }
       }
    }
+   else
+   {
+      for (int J = 0; (J < 4); ++J)
+      {
+         for (int I = 0; (I < 4); ++I)
+         {
+            matrix[I][J] = (float) mayaMatrix[I][J];
+         }
+      }      
+   }
+   
 }
 
 /// Retrieve a node previously created using AddArnoldNode()

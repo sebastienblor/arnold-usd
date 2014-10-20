@@ -11,6 +11,21 @@
 #define new DEBUG_NEW
 #endif
 
+namespace {
+   enum ArnoldRenderUnit {
+      RU_USE_MAYA_UNIT = 0,
+      RU_USE_CUSTOM_SCALING,
+      RU_INCH,
+      RU_FEET,
+      RU_YARD,
+      RU_MILE,
+      RU_MILLIMETER,
+      RU_CENTIMETER,
+      RU_KILOMETER,
+      RU_METER
+   };
+}
+
 void ReplaceSlashes(MString& str, bool isDir = false)
 {
 #ifdef _WIN32
@@ -129,6 +144,20 @@ MStatus CSessionOptions::GetFromMaya()
       }
       else
          m_proceduralSearchPaths.clear();
+
+      const short renderUnit = fnArnoldRenderOptions.findPlug("renderUnit").asShort();
+
+      switch (renderUnit)
+      {
+         case RU_USE_MAYA_UNIT:
+            m_scaleFactor = 1.0;
+            break;
+         case RU_USE_CUSTOM_SCALING:
+            m_scaleFactor = fnArnoldRenderOptions.findPlug("sceneScale").asDouble();
+            break;
+         default:
+            m_scaleFactor = 1.0;
+      }
 
       status = MStatus::kSuccess;
    }

@@ -200,7 +200,7 @@ protected:
    static void NameChangedCallback(MObject& node, const MString& str, void* clientData);
    static void NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
    static void NodeDestroyedCallback(void* clientData);
-   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
 
 protected:
 

@@ -401,6 +401,16 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
    m_is_active = true;
    m_requestUpdate = false;
 
+   m_scaleFactor = options.GetScaleFactor();
+   AtVector s = {static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor)};
+   AiM4Scaling(m_scaleFactorAtMatrix, &s);
+
+   double sc[3] = {m_scaleFactor, m_scaleFactor, m_scaleFactor};
+   m_scaleFactorMMatrix.setToIdentity();
+   MTransformationMatrix trmat(m_scaleFactorMMatrix);
+   trmat.setScale(sc, MSpace::kWorld);
+   m_scaleFactorMMatrix = trmat.asMatrix();
+
    //ProcessAOVs();
    return status;
 }
@@ -1347,4 +1357,29 @@ void CArnoldSession::FormatTexturePath(MString& texturePath)
 void CArnoldSession::FormatProceduralPath(MString& proceduralPath)
 {
     m_sessionOptions.FormatProceduralPath(proceduralPath);
+}
+
+void CArnoldSession::ScaleMatrix(MMatrix& matrix) const
+{
+   matrix *= m_scaleFactorMMatrix;
+}
+
+void CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
+{
+   AiM4Mult(matrix, m_scaleFactorAtMatrix, matrix);
+}
+
+void CArnoldSession::ScaleDistance(float& distance) const
+{
+   double s = static_cast<double>(distance);
+   s *= m_scaleFactor;
+   distance = static_cast<float>(s);
+}
+
+void CArnoldSession::ScaleArea(float& area) const
+{
+   double s = static_cast<double>(area);
+   s *= m_scaleFactor;
+   s *= m_scaleFactor;
+   area = static_cast<float>(s);
 }
