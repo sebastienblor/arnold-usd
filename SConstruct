@@ -160,7 +160,8 @@ if system.os() == 'darwin':
     vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
-if system.os() == 'windows':    
+if system.os() == 'windows':
+    vars.Add(BoolVariable('USE_VISUAL_STUDIO_EXPRESS', 'Use the express version of visual studio. (UNSUPPORTED!)', False))
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
@@ -171,10 +172,14 @@ if system.os() == 'windows':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
     maya_version_base = maya_version[0:4]
+    msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
-        tmp_env['MSVC_VERSION'] = '10.0'
+        msvc_version = '10.0'
     elif int(maya_version_base) >= 2015:
-        tmp_env['MSVC_VERSION'] = '11.0'
+        msvc_version = '11.0'
+    if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
+        msvc_version += 'Exp'
+    tmp_env['MSVC_VERSION'] = msvc_version
     #print tmp_env['MSVC_VERSION']
     env = tmp_env.Clone(tools=['default'])
     # restore as the Clone overrides it
