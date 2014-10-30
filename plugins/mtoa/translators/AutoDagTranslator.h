@@ -1,6 +1,6 @@
 #pragma once
 
-#include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 
 /// A translator for auto-exporting DAG nodes.
 /// This is the default translator for cameras and shapes.  It's like ShaderTranslator

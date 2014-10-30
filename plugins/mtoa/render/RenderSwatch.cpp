@@ -7,6 +7,8 @@
 #include "extension/ExtensionsManager.h"
 #include "utils/time.h"
 
+#include "translators/DagTranslator.h"
+
 #include <maya/MImage.h>
 #include <ai_msg.h>
 #include <ai_node_entry.h>
