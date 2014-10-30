@@ -47,6 +47,294 @@
 #define new DEBUG_NEW
 #endif
 
+namespace {
+   // Utility function to check plug for any incoming connection on it or its childs or elements
+   bool HasIncomingConnection(const MPlug &plug)
+   {
+      MStatus status;
+
+      if (!plug.isNull())
+      {
+         // Is directly connected
+         MPlugArray inConnections;
+         if (plug.connectedTo(inConnections, true, false, &status)
+               && (inConnections.length() > 0))
+         {
+            return true;
+         }
+         // Is compound and has connected childs ?
+         if (plug.isCompound())
+         {
+            unsigned int nc = plug.numChildren();
+            for (unsigned int i=0; i<nc; i++) {
+               if (HasIncomingConnection(plug.child(i)))
+               {
+                  return true;
+               }
+            }
+         }
+         // Is array and has connected elements ?
+         if (plug.isArray() && (plug.numConnectedElements() > 0))
+         {
+            unsigned int ne = plug.numElements();
+            for (unsigned int i=0; i<ne; i++) {
+               if (HasIncomingConnection(plug.elementByPhysicalIndex(i)))
+               {
+                  return true;
+               }
+            }
+         }
+      }
+
+      return false;
+   }
+
+   enum EAttributeDeclarationType{
+      DECLARATION_CONSTANT = 1,
+      DECLARATION_UNIFORM = 2,
+      DECLARATION_VARYING = 3
+   };
+
+   template <signed ATTR>
+   void TExportArrayAttribute(AtArray* arr, MPlug& plug, unsigned int element) { }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_BYTE>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      AiArraySetByte(arr, element, plug[element].asChar());
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_INT>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      AiArraySetInt(arr, element, plug[element].asInt());
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_BOOLEAN>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      AiArraySetBool(arr, element, plug[element].asBool());
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_FLOAT>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      AiArraySetFlt(arr, element, plug[element].asFloat());
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_RGB>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      MPlug p = plug[element];
+      AtRGB rgb = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+      AiArraySetRGB(arr, element, rgb);
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_RGBA>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      MPlug p = plug[element];
+      AtRGBA rgba = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat(), p.child(3).asFloat()};
+      AiArraySetRGBA(arr, element, rgba);
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_VECTOR>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      MPlug p = plug[element];
+      AtVector vec = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+      AiArraySetVec(arr, element, vec);
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_POINT>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      MPlug p = plug[element];
+      AtPoint pnt = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
+      AiArraySetPnt(arr, element, pnt);
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_POINT2>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      MPlug p = plug[element];
+      AtPoint2 pnt2 = {p.child(0).asFloat(), p.child(1).asFloat()};
+      AiArraySetPnt2(arr, element, pnt2);
+   }
+
+   template <>
+   void TExportArrayAttribute<AI_TYPE_STRING>(AtArray* arr, MPlug& plug, unsigned int element)
+   {
+      AiArraySetStr(arr, element, plug[element].asString().asChar());
+   }
+
+   template <signed ATTR>
+   void TExportAttribute(AtNode* node, MPlug& plug, const char* attrName) { }
+
+   template <>
+   void TExportAttribute<AI_TYPE_BYTE>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetByte(node, attrName, plug.asChar());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_INT>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetInt(node, attrName, plug.asInt());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_BOOLEAN>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetBool(node, attrName, plug.asBool());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_FLOAT>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetFlt(node, attrName, plug.asFloat());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_RGB>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetRGB(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_RGBA>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetRGBA(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_VECTOR>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetVec(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_POINT>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetPnt(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_POINT2>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetPnt2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
+   }
+
+   template <>
+   void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* attrName)
+   {
+      AiNodeSetStr(node, attrName, plug.asString().asChar());
+   }
+
+   typedef bool (*declarationPointer)(AtNode*, const char*, unsigned int);
+
+   static declarationPointer declarationPointers[] = {
+      0,
+      AiNodeDeclareConstantArray,
+      AiNodeDeclareUniform,
+      AiNodeDeclareVarying
+   };
+
+   template <signed ATTR>
+   void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+   {
+      if (declarationPointers[declType](node, attrName, ATTR))
+      {
+         const unsigned int numElements = plug.numElements();
+         AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
+         for (unsigned int i = 0; i < numElements; ++i)
+            TExportArrayAttribute<ATTR>(arr, plug, i);
+         AiNodeSetArray(node, attrName, arr);
+      }
+   }
+
+   template <signed ATTR>
+   void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+   {
+      if (plug.isArray())
+         TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
+      else
+      {
+         if (AiNodeDeclareConstant(node, attrName, ATTR))
+            TExportAttribute<ATTR>(node, plug, attrName);
+      }
+   }
+
+   template <signed ATTR, typename T>
+   void TExportUserAttributeData(AtArray* array, T& data, unsigned int element)
+   {
+      
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(AtArray* array, MFnStringArrayData& data, unsigned int element)
+   {
+      AiArraySetStr(array, element, data[element].asChar());
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_FLOAT, MFnDoubleArrayData>(AtArray* array, MFnDoubleArrayData& data, unsigned int element)
+   {
+      AiArraySetFlt(array, element, (float)data[element]);
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(AtArray* array, MFnIntArrayData& data, unsigned int element)
+   {
+      AiArraySetInt(array, element, data[element]);
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
+   {
+      AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+      AiArraySetVec(array, element, vec);
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
+   {
+      AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+      AiArraySetRGB(array, element, rgb);
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
+   {
+      AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+      AiArraySetVec(array, element, vec);
+   }
+
+   template <>
+   void TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
+   {
+      AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
+      AiArraySetRGB(array, element, rgb);
+   }
+
+   template <signed ATTR, typename T>
+   void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
+   {
+      if (!plug.isArray())
+      {
+         if (declarationPointers[declType](node, attrName, ATTR))
+         {
+            T data(plug.asMObject());
+            const unsigned int length = data.length();
+            AtArray* arr = AiArrayAllocate(length, 1, ATTR);
+            for (unsigned int i = 0; i < length; ++i)
+               TExportUserAttributeData<ATTR, T>(arr, data, i);
+            AiNodeSetArray(node, attrName, arr);
+         }
+      }
+   }
+}
+
 MString GetAOVNodeType(int type)
 {
    MString nodeType = "";
@@ -75,49 +363,6 @@ MString GetAOVNodeType(int type)
    }
    return nodeType;
 }
-
-// Utility function to check plug for any incoming connection on it or its childs or elements
-bool HasIncomingConnection(const MPlug &plug)
-{
-   MStatus status;
-
-   if (!plug.isNull())
-   {
-      // Is directly connected
-      MPlugArray inConnections;
-      if (plug.connectedTo(inConnections, true, false, &status)
-            && (inConnections.length() > 0))
-      {
-         return true;
-      }
-      // Is compound and has connected childs ?
-      if (plug.isCompound())
-      {
-         unsigned int nc = plug.numChildren();
-         for (unsigned int i=0; i<nc; i++) {
-            if (HasIncomingConnection(plug.child(i)))
-            {
-               return true;
-            }
-         }
-      }
-      // Is array and has connected elements ?
-      if (plug.isArray() && (plug.numConnectedElements() > 0))
-      {
-         unsigned int ne = plug.numElements();
-         for (unsigned int i=0; i<ne; i++) {
-            if (HasIncomingConnection(plug.elementByPhysicalIndex(i)))
-            {
-               return true;
-            }
-         }
-      }
-   }
-
-   return false;
-}
-
-//------------ CNodeTranslator ------------//
 
 AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool track, CNodeTranslator** outTranslator)
 {
@@ -953,251 +1198,6 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 
    // Pass the update request to the export session
    m_session->RequestUpdate();
-}
-
-enum EAttributeDeclarationType{
-   DECLARATION_CONSTANT = 1,
-   DECLARATION_UNIFORM = 2,
-   DECLARATION_VARYING = 3
-};
-
-template <signed ATTR>
-void TExportArrayAttribute(AtArray* arr, MPlug& plug, unsigned int element) { }
-
-template <>
-void TExportArrayAttribute<AI_TYPE_BYTE>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   AiArraySetByte(arr, element, plug[element].asChar());
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_INT>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   AiArraySetInt(arr, element, plug[element].asInt());
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_BOOLEAN>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   AiArraySetBool(arr, element, plug[element].asBool());
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_FLOAT>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   AiArraySetFlt(arr, element, plug[element].asFloat());
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_RGB>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   MPlug p = plug[element];
-   AtRGB rgb = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
-   AiArraySetRGB(arr, element, rgb);
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_RGBA>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   MPlug p = plug[element];
-   AtRGBA rgba = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat(), p.child(3).asFloat()};
-   AiArraySetRGBA(arr, element, rgba);
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_VECTOR>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   MPlug p = plug[element];
-   AtVector vec = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
-   AiArraySetVec(arr, element, vec);
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_POINT>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   MPlug p = plug[element];
-   AtPoint pnt = {p.child(0).asFloat(), p.child(1).asFloat(), p.child(2).asFloat()};
-   AiArraySetPnt(arr, element, pnt);
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_POINT2>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   MPlug p = plug[element];
-   AtPoint2 pnt2 = {p.child(0).asFloat(), p.child(1).asFloat()};
-   AiArraySetPnt2(arr, element, pnt2);
-}
-
-template <>
-void TExportArrayAttribute<AI_TYPE_STRING>(AtArray* arr, MPlug& plug, unsigned int element)
-{
-   AiArraySetStr(arr, element, plug[element].asString().asChar());
-}
-
-template <signed ATTR>
-void TExportAttribute(AtNode* node, MPlug& plug, const char* attrName) { }
-
-template <>
-void TExportAttribute<AI_TYPE_BYTE>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetByte(node, attrName, plug.asChar());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_INT>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetInt(node, attrName, plug.asInt());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_BOOLEAN>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetBool(node, attrName, plug.asBool());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_FLOAT>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetFlt(node, attrName, plug.asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_RGB>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetRGB(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_RGBA>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetRGBA(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_VECTOR>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetVec(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_POINT>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetPnt(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_POINT2>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetPnt2(node, attrName, plug.child(0).asFloat(), plug.child(1).asFloat());
-}
-
-template <>
-void TExportAttribute<AI_TYPE_STRING>(AtNode* node, MPlug& plug, const char* attrName)
-{
-   AiNodeSetStr(node, attrName, plug.asString().asChar());
-}
-
-typedef bool (*declarationPointer)(AtNode*, const char*, unsigned int);
-
-static declarationPointer declarationPointers[] = {
-   0,
-   AiNodeDeclareConstantArray,
-   AiNodeDeclareUniform,
-   AiNodeDeclareVarying
-};
-
-template <signed ATTR>
-void TExportUserAttributeArray(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
-{
-   if (declarationPointers[declType](node, attrName, ATTR))
-   {
-      const unsigned int numElements = plug.numElements();
-      AtArray* arr = AiArrayAllocate(numElements, 1, ATTR);
-      for (unsigned int i = 0; i < numElements; ++i)
-         TExportArrayAttribute<ATTR>(arr, plug, i);
-      AiNodeSetArray(node, attrName, arr);
-   }
-}
-
-template <signed ATTR>
-void TExportUserAttribute(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
-{
-   if (plug.isArray())
-      TExportUserAttributeArray<ATTR>(node, plug, attrName, declType);
-   else
-   {
-      if (AiNodeDeclareConstant(node, attrName, ATTR))
-         TExportAttribute<ATTR>(node, plug, attrName);
-   }
-}
-
-template <signed ATTR, typename T>
-void TExportUserAttributeData(AtArray* array, T& data, unsigned int element)
-{
-   
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_STRING, MFnStringArrayData>(AtArray* array, MFnStringArrayData& data, unsigned int element)
-{
-   AiArraySetStr(array, element, data[element].asChar());
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_FLOAT, MFnDoubleArrayData>(AtArray* array, MFnDoubleArrayData& data, unsigned int element)
-{
-   AiArraySetFlt(array, element, (float)data[element]);
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_INT, MFnIntArrayData>(AtArray* array, MFnIntArrayData& data, unsigned int element)
-{
-   AiArraySetInt(array, element, data[element]);
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_VECTOR, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
-{
-   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
-   AiArraySetVec(array, element, vec);
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_RGB, MFnVectorArrayData>(AtArray* array, MFnVectorArrayData& data, unsigned int element)
-{
-   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
-   AiArraySetRGB(array, element, rgb);
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_VECTOR, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
-{
-   AtVector vec = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
-   AiArraySetVec(array, element, vec);
-}
-
-template <>
-void TExportUserAttributeData<AI_TYPE_RGB, MFnPointArrayData>(AtArray* array, MFnPointArrayData& data, unsigned int element)
-{
-   AtRGB rgb = {(float)data[element].x, (float)data[element].y, (float)data[element].z};
-   AiArraySetRGB(array, element, rgb);
-}
-
-template <signed ATTR, typename T>
-void TExportUserAttributeData(AtNode* node, MPlug& plug, const char* attrName, EAttributeDeclarationType declType)
-{
-   if (!plug.isArray())
-   {
-      if (declarationPointers[declType](node, attrName, ATTR))
-      {
-         T data(plug.asMObject());
-         const unsigned int length = data.length();
-         AtArray* arr = AiArrayAllocate(length, 1, ATTR);
-         for (unsigned int i = 0; i < length; ++i)
-            TExportUserAttributeData<ATTR, T>(arr, data, i);
-         AiNodeSetArray(node, attrName, arr);
-      }
-   }
 }
 
 void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator)
