@@ -32,7 +32,8 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'shader', 'ShaderTranslator.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
                     os.path.join('translators', 'AutoDagTranslator.cpp'),
-                    os.path.join('translators', 'NodeTranslator.cpp')]
+                    os.path.join('translators', 'NodeTranslator.cpp'),
+                    os.path.join('translators', 'DagTranslator.cpp')]
 include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                         os.path.join('nodes', 'shader', 'ArnoldStandardNode.h'),
                         os.path.join('nodes', 'shader', 'ArnoldSkinShaderNode.h'),
@@ -45,7 +46,8 @@ include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                         os.path.join('translators', 'shader', 'ShaderTranslator.h'),
                         os.path.join('translators', 'shape', 'ShapeTranslator.h'),
                         os.path.join('translators', 'AutoDagTranslator.h'),
-                        os.path.join('translators', 'NodeTranslator.h')]
+                        os.path.join('translators', 'NodeTranslator.h'),
+                        os.path.join('translators', 'DagTranslator.h')]
 
 source_files_rem =  [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'DrawUtils.cpp')]
 
