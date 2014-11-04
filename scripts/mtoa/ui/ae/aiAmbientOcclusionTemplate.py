@@ -19,8 +19,10 @@ class AEaiAmbientOcclusionTemplate(ShaderAETemplate):
         self.addControl('black', label='Black')        
         self.addControl('opacity', label='Opacity')
         self.addSeparator()
+        self.beginNoOptimize()
         self.addControl('invert_normals', label='Invert Normals')
-        self.addControl('self_only', label='Self Only')        
+        self.addControl('self_only', label='Self Only')
+        self.endNoOptimize()
         self.endLayout()
 
         pm.mel.AEdependNodeTemplate(self.nodeName)
