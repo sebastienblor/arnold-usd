@@ -183,6 +183,8 @@ MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* Re
    {
       CNodeTranslator* translator = m_overrideSets[i];
       
+      if (translator == 0)
+          continue;
       // MString setName = translator->GetMayaObjectName();
       // Search only on active translators
       if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())

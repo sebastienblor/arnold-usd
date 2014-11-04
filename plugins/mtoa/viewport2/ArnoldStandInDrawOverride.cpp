@@ -172,6 +172,8 @@ void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, co
     if (!s_isValid)
         return;
     const SArnoldStandInUserData* userData = reinterpret_cast<const SArnoldStandInUserData*>(data);
+    if (userData == 0)
+        return;
 
     MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
 

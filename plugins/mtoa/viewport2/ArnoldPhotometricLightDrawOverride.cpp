@@ -134,6 +134,9 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
         return;
     const SArnoldPhotometricLightUserData* userData = reinterpret_cast<const SArnoldPhotometricLightUserData*>(data);
 
+    if (userData == 0)
+        return;
+
     MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
 
     if (theRenderer->drawAPIIsOpenGL())

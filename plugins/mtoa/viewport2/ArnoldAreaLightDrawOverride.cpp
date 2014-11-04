@@ -306,6 +306,9 @@ void CArnoldAreaLightDrawOverride::draw(
         return;
     const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);
 
+    if (userData == 0)
+        return;
+
     MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
 
     if (theRenderer->drawAPIIsOpenGL())

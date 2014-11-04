@@ -184,6 +184,9 @@ void CArnoldVolumeDrawOverride::draw(const MHWRender::MDrawContext& context, con
         return;
     const SArnoldVolumeUserData* userData = reinterpret_cast<const SArnoldVolumeUserData*>(data);
 
+    if (userData == 0)
+        return;
+
     MHWRender::MRenderer* theRenderer = MHWRender::MRenderer::theRenderer();
 
     if (theRenderer->drawAPIIsOpenGL())
