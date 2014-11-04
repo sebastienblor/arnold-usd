@@ -1387,9 +1387,11 @@
     [attr elevation]
         softmin             FLOAT   0.0
         softmax             FLOAT   90.0
+        linkable            BOOL    True
     [attr azimuth]
         softmin             FLOAT   0.0
         softmax             FLOAT   360.0
+        linkable            BOOL    True
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
