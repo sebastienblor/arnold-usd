@@ -563,8 +563,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          sprintf(buf,"%f ",GetExportFrame());
          strData += " -frame "+ std::string(buf);// +" -shutter 0.0"; // Pedro's suggestion was to remove the shutter value, it seemed not to make a diff
          std::string filePallete = info.strPalette;
+         std::string stringPatch = strPatch;
          
          size_t pos = 0;
+         
          // In XGen file, namespace symbol ":" is replced by "__"
          while( (pos = filePallete.find(":", pos)) != std::string::npos)
          {
@@ -572,23 +574,36 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             pos += 2;
          }
          
-         // Internally, XGen needs palette, description and patch without namespace
-         pos = info.strPalette.rfind(":");
-         if(pos != std::string::npos)
-            info.strPalette.erase(0,pos + 1);
-         
-         std::string stringPatch = strPatch;
-         pos = stringPatch.rfind(":");
-         if(pos != std::string::npos)
-            stringPatch.erase(0,pos + 1);
+         // We only have to remove namespace character ':' if there is a patch cache file
+         if(info.hasAlembicFile)
+         {
+            // Internally, XGen needs palette, description and patch without namespace
+            pos = info.strPalette.rfind(":");
+            if(pos != std::string::npos)
+               info.strPalette.erase(0,pos + 1);
             
-         pos = info.strDescription.rfind(":");
-         if(pos != std::string::npos)
-            info.strDescription.erase(0,pos + 1);
+            pos = stringPatch.rfind(":");
+            if(pos != std::string::npos)
+               stringPatch.erase(0,pos + 1);
+               
+            pos = info.strDescription.rfind(":");
+            if(pos != std::string::npos)
+               info.strDescription.erase(0,pos + 1);
+         }
          
 		   strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
          strData += " -palette " + info.strPalette;
-         strData += " -geom " + strGeomFile;
+         
+         // We only have to remove namespace character ':' if there is a patch cache file
+         if(info.hasAlembicFile)
+         {
+            strData += " -geom " + strGeomFile;
+         }
+         else
+         {
+            strData += " -geom " + info.strScene + "__" + info.strPalette + ".abc";
+         }
+         
          strData += " -patch " + stringPatch;
          strData += " -description " + info.strDescription;
          MTime oneSec(1.0, MTime::kSeconds);
