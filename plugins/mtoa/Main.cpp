@@ -85,7 +85,7 @@ namespace // <anonymous>
    {
 #ifdef WIN32
    #if (_MSC_VER >= 1700) || _DEBUG // checking for vs 2012
-      MGlobal::executePythonCommand(MString("import os;os.environ['")+env+MString("']='")+val+MString("'"));
+      MGlobal::executePythonCommand(MString("import os;os.environ['")+env+MString("']=r'")+val+MString("'"));
    #else
       _putenv_s(env.asChar(), val.asChar());
    #endif
