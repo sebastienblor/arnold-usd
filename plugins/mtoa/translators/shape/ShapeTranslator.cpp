@@ -56,6 +56,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
    ProcessParameter(node, "self_shadows", AI_TYPE_BOOLEAN, "aiSelfShadows");
    ProcessParameter(node, "opaque", AI_TYPE_BOOLEAN, "aiOpaque");
+   ProcessParameter(node, "matte", AI_TYPE_BOOLEAN, "aiMatte");
    ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
    MStatus status;
    plug = FindMayaPlug("aiSssSetname", &status);
@@ -93,6 +94,7 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");
+   helper.MakeInput("matte");
    
    CAttrData data;
    data.stringDefault = "";
