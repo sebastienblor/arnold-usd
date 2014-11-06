@@ -766,6 +766,69 @@ def ArnoldStandInTemplateVisibleInGlossyRowReplace(nodeName):
         cmds.radioButton('standInVisibleInGlossyOff', edit=True, select=True)
         cmds.text('standInVisibleInGlossyLabel', edit=True, enable=True)
         
+# #################################
+# Matte Row
+# #################################
+    
+def ArnoldStandInTemplateSetIgnoreMatte(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideMatte',False)
+    cmds.text('standInMatteLabel', edit=True, enable=False)
+    
+def ArnoldStandInTemplateSetOnMatte(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideMatte',True)
+    cmds.setAttr(node+'.aiMatte',True)
+    cmds.text('standInMatteLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateSetOffMatte(test):
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    cmds.setAttr(node+'.overrideMatte',True)
+    cmds.setAttr(node+'.aiMatte',False)
+    cmds.text('standInMatteLabel', edit=True, enable=True)
+    
+def ArnoldStandInTemplateMatteRowNew(nodeName):
+    nodeName = nodeName.replace('.matteRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideMatte')
+    matte = value=cmds.getAttr(nodeName+'.aiMatte')
+    
+    cmds.rowColumnLayout( numberOfColumns=5, columnAlign=(1, 'right'), columnAttach=[(1, 'right', 0)], columnWidth=[(1,145),(2,20),(3,50),(4,50),(5,50)] )
+    
+    cmds.text('standInMatteLabel', label='Matte')
+    cmds.text('standInMatteOverrideLabel6', label=' ')
+    collection1 = cmds.radioCollection()
+    rb1 = cmds.radioButton('standInMatteIgnore', label=' ', onCommand=ArnoldStandInTemplateSetIgnoreMatte)
+    rb2 = cmds.radioButton('standInMatteOn', label=' ' , onCommand=ArnoldStandInTemplateSetOnMatte)
+    rb3 = cmds.radioButton('standInMatteOff', label=' ' , onCommand=ArnoldStandInTemplateSetOffMatte)
+    if(not override):
+        cmds.radioButton(rb1, edit=True, select=True)
+        cmds.text('standInMatteLabel', edit=True, enable=False)
+    elif(matte):
+        cmds.radioButton(rb2, edit=True, select=True)
+    else:
+        cmds.radioButton(rb3, edit=True, select=True)
+    cmds.setParent( '..' )
+    cmds.setParent( '..' )
+
+def ArnoldStandInTemplateMatteRowReplace(nodeName):
+    nodeName = nodeName.replace('.matteRow','')
+    override = value=cmds.getAttr(nodeName+'.overrideMatte')
+    matte = value=cmds.getAttr(nodeName+'.aiMatte')
+    
+    if(not override):
+        cmds.radioButton('standInMatteIgnore', edit=True, select=True)
+        cmds.text('standInMatteLabel', edit=True, enable=False)
+    elif(matte):
+        cmds.radioButton('standInMatteOn', edit=True, select=True)
+        cmds.text('standInMatteLabel', edit=True, enable=True)
+    else:
+        cmds.radioButton('standInMatteOff', edit=True, select=True)
+        cmds.text('standInMatteLabel', edit=True, enable=True)
+
+        
         
 class AEaiStandInTemplate(ShaderAETemplate):
     def setup(self):
@@ -809,6 +872,7 @@ class AEaiStandInTemplate(ShaderAETemplate):
         self.addCustom('opaqueRow', ArnoldStandInTemplateOpaqueRowNew, ArnoldStandInTemplateOpaqueRowReplace)
         self.addCustom('visibleInDiffuseRow', ArnoldStandInTemplateVisibleInDiffuseRowNew, ArnoldStandInTemplateVisibleInDiffuseRowReplace)
         self.addCustom('visibleInGlossyRow', ArnoldStandInTemplateVisibleInGlossyRowNew, ArnoldStandInTemplateVisibleInGlossyRowReplace)
+        self.addCustom('matteRow', ArnoldStandInTemplateMatteRowNew, ArnoldStandInTemplateMatteRowReplace)
 
         self.endNoOptimize()
         self.endLayout()
