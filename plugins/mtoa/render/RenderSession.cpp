@@ -346,7 +346,9 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
    // set progressive start point on AA
-   const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   if (num_aa_samples == 0)
+      num_aa_samples = 1;
    const int progressive_start = renderSession->m_renderOptions.isProgressive() ? 
                                  MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
                                  : num_aa_samples;
@@ -354,22 +356,21 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    int ai_status(AI_SUCCESS);
    CMayaScene::ExecuteScript(IPRRefinementStarted, false, true);
    renderSession->SetRendering(true);
-   int sampling, i;
-   const int sampling_limit = num_aa_samples == 1 ? 0 : 1;
-   for (sampling = progressive_start, i=1; sampling <= num_aa_samples; ++sampling, ++i)
+   for (int sampling = progressive_start; sampling <= num_aa_samples; ++sampling)
    {
-      if (sampling >= sampling_limit)
+      if (sampling == 0)
+         continue;
+      else if (sampling > 1)
          sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
-      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA (step %d of %d)", sampling, i, steps);
+      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA of %d AA", sampling, num_aa_samples);
       CMayaScene::ExecuteScript(IPRStepStarted, false, true);
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       CMayaScene::ExecuteScript(IPRStepFinished, false, true);
 
       if (ai_status != AI_SUCCESS) break;
-      if (sampling > 0) break;
    }
    // Put this back after we're done interating through.
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
