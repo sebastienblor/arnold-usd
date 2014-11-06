@@ -19,6 +19,8 @@
 #include <maya/MImage.h>
 #include <maya/MAnimControl.h>
 
+#include <tbb/tick_count.h>
+
 #include <time.h>
 time_t s_start_time;
 
@@ -32,7 +34,6 @@ time_t s_start_time;
 
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
-
 enum MayaDisplayDriverParams
 {
    p_gamma,
@@ -45,7 +46,6 @@ static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
 static MString                                 s_camera_name;
 static MString                                 s_panel_name;
-static MCallbackId                             s_timer_cb = 0;
 
 static int s_AA_Samples;
 static int s_GI_diffuse_samples;
@@ -58,6 +58,8 @@ static bool s_firstOpen = false;
 static bool s_newRender = false;
 
 static CCritSec s_driverLock;
+
+static double FPS = 15.0;
 
 /// \name Arnold Output Driver.
 /// \{
@@ -126,10 +128,6 @@ driver_open
       unsigned int imageHeight = display_window.maxy - display_window.miny + 1;
 
       s_outputDriverData.isProgressive = params[p_progressive].BOOL;
-//         cout << data_window.minx << ", " << data_window.maxx << endl;
-//         cout << data_window.miny << ", " << data_window.maxy << endl;
-//         cout << display_window.minx << ", " << display_window.maxx << endl;
-//         cout << display_window.miny << ", " << display_window.maxy << endl;
 
       if (  (data_window.maxx == display_window.maxx) &&
             (data_window.maxy == display_window.maxy) &&
@@ -368,7 +366,7 @@ node_finish
 /// \name Render View and Queue processing.
 /// \{
 
-void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
+void UpdateBucket(CDisplayUpdateMessage & msg)
 {
    // Flip vertically
    const int miny = s_outputDriverData.imageHeight - msg.bucketRect.maxy - 1;
@@ -391,32 +389,18 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
             s_outputDriverData.oldPixels[x + yw] = msg.pixels[i++];
       }
    }
-   if (refresh)
-   {
-      MRenderView::refresh(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy);
-      int progress = MIN((int)(100.f * ((float)s_outputDriverData.renderedPixels / (float)s_outputDriverData.totalPixels)), 100);
-      MString cmd;
-      cmd += "global string $gMainProgressBar;";
-      cmd += "progressBar -edit -progress ";
-      cmd += progress;
-      cmd += " $gMainProgressBar;";
-      MGlobal::executeCommand(cmd, false);
-   }
-   else
-   {
-      // Expand the bounding box for the render view refresh in RefreshRenderViewBBox().
-      if (msg.bucketRect.minx < s_outputDriverData.refresh_bbox.minx)
-         s_outputDriverData.refresh_bbox.minx = msg.bucketRect.minx;
-      
-      if (msg.bucketRect.maxx > s_outputDriverData.refresh_bbox.maxx)
-         s_outputDriverData.refresh_bbox.maxx = msg.bucketRect.maxx;
-      
-      if (miny < s_outputDriverData.refresh_bbox.miny)
-         s_outputDriverData.refresh_bbox.miny = miny;
-      
-      if (maxy > s_outputDriverData.refresh_bbox.maxy)
-         s_outputDriverData.refresh_bbox.maxy = maxy;
-   }
+   // Expand the bounding box for the render view refresh in RefreshRenderViewBBox().
+   if (msg.bucketRect.minx < s_outputDriverData.refresh_bbox.minx)
+      s_outputDriverData.refresh_bbox.minx = msg.bucketRect.minx;
+   
+   if (msg.bucketRect.maxx > s_outputDriverData.refresh_bbox.maxx)
+      s_outputDriverData.refresh_bbox.maxx = msg.bucketRect.maxx;
+   
+   if (miny < s_outputDriverData.refresh_bbox.miny)
+      s_outputDriverData.refresh_bbox.miny = miny;
+   
+   if (maxy > s_outputDriverData.refresh_bbox.maxy)
+      s_outputDriverData.refresh_bbox.maxy = maxy;
 
    if (msg.pixels != NULL)
    {
@@ -681,12 +665,6 @@ void RenderEnd()
    }
    s_driverLock.unlock();
 
-   if (s_timer_cb != 0)
-   {
-      MMessage::removeCallback(s_timer_cb);
-      s_timer_cb = 0;
-   }
-
    s_outputDriverData.rendering = false;
    MRenderView::endRender();
 }
@@ -700,16 +678,6 @@ void ClearDisplayUpdateQueue()
 void BeginImage()
 {
    MStatus status;
-   if (s_timer_cb != 0)
-   {
-      AiMsgWarning("[mtoa] Previous Render View timer callback not properly cleaned up");
-      MMessage::removeCallback(s_timer_cb);
-      s_timer_cb = 0;
-   }
-   s_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 6.0f,
-                                                 RefreshRenderView,
-                                                 NULL,
-                                                 &status);
 
    AtNode* options = AiUniverseGetOptions();
    s_AA_Samples               = AiNodeGetInt(options, "AA_samples");
@@ -806,16 +774,11 @@ void EndImage()
       MGlobal::executeCommandOnIdle(rvInfo, false);
    }
 
-   if (s_timer_cb != 0)
-   {
-      MMessage::removeCallback(s_timer_cb);
-      s_timer_cb = 0;
-   }
    MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;", false);
 }
 
 // return false if render is done
-bool ProcessUpdateMessage(const bool refresh)
+bool ProcessUpdateMessage()
 {
    if (s_displayUpdateQueue.waitForNotEmpty(DISPLAY_QUEUE_WAIT))
    {
@@ -831,7 +794,7 @@ bool ProcessUpdateMessage(const bool refresh)
             // TODO: Implement this...
             break;
          case MSG_BUCKET_UPDATE:
-            UpdateBucket(msg, refresh);
+            UpdateBucket(msg);
             break;
          case MSG_IMAGE_BEGIN:
             BeginImage();
@@ -851,26 +814,23 @@ bool ProcessUpdateMessage(const bool refresh)
    return false;
 }
 
-void RefreshRenderView(float, float, void *)
-{
-   // This will make the render view show any tiles.
-   RefreshRenderViewBBox();
-}
-
 void TransferTilesToRenderView()
 {
-   // Send the tiles to the render view. The false argument
-   // tells it not to display them just yet.
+   static tbb::tick_count past = tbb::tick_count::now(); // this will probably enforce a refresh at the first time... but not a big problem
    unsigned int i = 0;
    while (true)
    {
       ++i;
-      if (!ProcessUpdateMessage(false))
+      if (!ProcessUpdateMessage())
          break;
    }
-   // TODO: determine if calling this improves performance on Linux (We already
-   // know that it degrades performance on Windows)
-   //RefreshRenderViewBBox();
+   tbb::tick_count now = tbb::tick_count::now();
+   const double seconds = (now - past).seconds();
+   if ((seconds > 1.0 / FPS) || (seconds < 0.0)) // second check just to be sure
+   {
+      past = now;
+      RefreshRenderViewBBox();
+   }
 }
 
 /// \}
