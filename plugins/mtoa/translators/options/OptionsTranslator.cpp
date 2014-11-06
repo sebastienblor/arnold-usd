@@ -541,6 +541,11 @@ void COptionsTranslator::Update(AtNode *options)
          {
             AiNodeSetInt(options, "texture_autotile", !FindMayaPlug("autotile").asBool() ? 0 : FindMayaPlug("texture_autotile").asInt());
          }
+         else if (strcmp(paramName, "AA_samples") == 0)
+         {
+            const int AA_samples = FindMayaPlug("AA_samples").asInt();
+            AiNodeSetInt(options, "AA_samples", AA_samples == 0 ? 1 : AA_samples);
+         }
          else
          {
             // Process parameter automatically
