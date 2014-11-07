@@ -156,10 +156,14 @@ shader_evaluate
    float vNoiseFreq = AiShaderEvalParamFlt(p_val_noise_freq);
    bool applyHsvNoise = (hNoiseAmp > 0.0f || sNoiseAmp > 0.0f || vNoiseAmp > 0.0f);
 
-   AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
-   // Will be set to GLOBALS by update if unconnected
-   if (uv.x == UV_GLOBALS) uv.x = sg->u;
-   if (uv.y == UV_GLOBALS) uv.y = sg->v;
+   AtPoint2 uv = {0.0f, 0.0f};
+   if (!AiStateGetMsgPnt2("maya_ramp_uv_override", &uv))
+   {
+      uv = AiShaderEvalParamPnt2(p_uvCoord);
+      // Will be set to GLOBALS by update if unconnected
+      if (uv.x == UV_GLOBALS) uv.x = sg->u;
+      if (uv.y == UV_GLOBALS) uv.y = sg->v;
+   }
 
    if (!IsValidUV(uv))
    {

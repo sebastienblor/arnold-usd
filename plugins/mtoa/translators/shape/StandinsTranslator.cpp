@@ -161,6 +161,14 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
       else
          AiNodeSetByte(node, "sidedness", 0);
    }
+   
+   // for standins, we check
+   plug = FindMayaPlug("overrideMatte");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaPlug("aiMatte");
+      if (!plug.isNull()) AiNodeSetBool(node, "matte", plug.asBool());
+   }
 }
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)

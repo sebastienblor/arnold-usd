@@ -126,7 +126,8 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 
    if (data.type == AI_TYPE_ARRAY)
    {
-      data.type = data.defaultValue.ARRAY->type;
+      const AtParamValue* real = AiParamGetDefault(paramEntry);
+      data.type = real->ARRAY->type;
       bool animatable;
       // if a parameter is marked as animatable, this means that the value can
       // change over the course of a single render. if this is the case, and the
@@ -141,90 +142,48 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          data.isArray = false;
          // since this parameter is not to be treated as an array within maya,
          // change the default value
-         switch (data.type)
-         {
-            case AI_TYPE_BYTE:
-            {
-               data.defaultValue.BYTE = AiArrayGetByte(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_INT:
-            {
-               data.defaultValue.INT = AiArrayGetInt(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_UINT:
-            {
-               data.defaultValue.UINT = AiArrayGetUInt(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_BOOLEAN:
-            {
-               data.defaultValue.BOOL = AiArrayGetBool(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_FLOAT:
-            {
-               data.defaultValue.FLT = AiArrayGetFlt(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_RGB:
-            {
-               data.defaultValue.RGB = AiArrayGetRGB(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_RGBA:
-            {
-               data.defaultValue.RGBA = AiArrayGetRGBA(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_VECTOR:
-            {
-               data.defaultValue.VEC = AiArrayGetVec(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_POINT:
-            {
-               data.defaultValue.PNT = AiArrayGetPnt(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_POINT2:
-            {
-               data.defaultValue.PNT2 = AiArrayGetPnt2(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_STRING:
-            {
-               data.defaultValue.STR = AiArrayGetStr(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_POINTER:
-            {
-               data.defaultValue.PTR = AiArrayGetPtr(data.defaultValue.ARRAY, 0);
-               break;
-            }
-            case AI_TYPE_MATRIX:
-            {
-               // FIXME: doesn't work
-               // AiArrayGetMtx(data.defaultValue.ARRAY, 0, data.defaultValue.pMTX);
-               break;
-            }
-            case AI_TYPE_ENUM:
-            case AI_TYPE_NONE:
-            case AI_TYPE_NODE:
-            {
-               // not supported by arrays
-               break;
-            }
-            default:
-            {
-               AiMsgError("[mtoa.attr] [node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
-               break;
-            }
-         }
       }
       else
+      {
          data.isArray = true;
+      }
+         
+      switch (data.type)
+      {
+         case AI_TYPE_BYTE:
+         case AI_TYPE_INT:
+         case AI_TYPE_UINT:
+         case AI_TYPE_BOOLEAN:
+         case AI_TYPE_FLOAT:
+         case AI_TYPE_RGB:
+         case AI_TYPE_RGBA:
+         case AI_TYPE_VECTOR:
+         case AI_TYPE_POINT:
+         case AI_TYPE_POINT2:
+         case AI_TYPE_STRING:
+         case AI_TYPE_POINTER:
+         {
+            break;
+         }
+         case AI_TYPE_MATRIX:
+         {
+            // FIXME: doesn't work
+            // AiArrayGetMtx(data.defaultValue.ARRAY, 0, data.defaultValue.pMTX);
+            break;
+         }
+         case AI_TYPE_ENUM:
+         case AI_TYPE_NONE:
+         case AI_TYPE_NODE:
+         {
+            // not supported by arrays
+            break;
+         }
+         default:
+         {
+            AiMsgError("[mtoa.attr] [node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
+            break;
+         }
+      }
    }
 
    switch (data.type)

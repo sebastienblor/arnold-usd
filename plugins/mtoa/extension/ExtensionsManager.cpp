@@ -730,19 +730,22 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MObject &object)
    MTypeId typeId = depFn.typeId();
    // MString transName = BUILTIN;
    MString transName = "";
-   MStatus status;
-   MPlug plug = depFn.findPlug("aiTranslator", &status);
-   if (status == MStatus::kSuccess)
+   if (typeName != "objectSet")
    {
-      MObject attr = plug.attribute();
-      if (attr.hasFn(MFn::kEnumAttribute))
+      MStatus status;
+      MPlug plug = depFn.findPlug("aiTranslator", &status);
+      if (status == MStatus::kSuccess)
       {
-         MFnEnumAttribute fnAttr(attr, &status);
-         transName = fnAttr.fieldName(plug.asInt());
-      }
-      else
-      {
-         transName = plug.asString();
+         MObject attr = plug.attribute();
+         if (attr.hasFn(MFn::kEnumAttribute))
+         {
+            MFnEnumAttribute fnAttr(attr, &status);
+            transName = fnAttr.fieldName(plug.asInt());
+         }
+         else
+         {
+            transName = plug.asString();
+         }
       }
    }
 

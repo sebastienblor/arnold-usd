@@ -979,6 +979,9 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
       // We are geting particles World coordinates, so we do not need this
       //m_inheritCacheTxfm = true; // defaults to false
    }
+   
+   // It is needed to call setObject() again so that particles will return world position
+   m_fnParticleSystem.setObject(m_dagPath.node());
 
    uint numParticles = m_fnParticleSystem.count();
 
@@ -1015,8 +1018,8 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
       }
    }
 
-   //m_fnParticleSystem.position(*positionArray);
-   m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
+   m_fnParticleSystem.position(*positionArray);
+   //m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
    MDoubleArray tempDoubleParticleId;
    m_fnParticleSystem.getPerParticleAttribute(MString("particleId"), tempDoubleParticleId);
@@ -1108,7 +1111,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
 void CParticleTranslator::Update(AtNode *anode)
 {
    ProcessRenderFlags(anode);
-   ExportMatrix(anode, 0);
+   //ExportMatrix(anode, 0);
 }
 
 void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)

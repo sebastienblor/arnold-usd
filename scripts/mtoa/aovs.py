@@ -453,10 +453,23 @@ def createAliases(sg):
     aovList = getAOVs()
     sgAttr = sg.aiCustomAOVs
     for aov in aovList:
+        exists = False
+        for at in sgAttr:
+            if at.aovName.get() == aov.name:
+                exists = True
+        if not exists:
+            i = nextAvailableIndex(sgAttr)
+            at = sgAttr[i]
+            at.aovName.set(aov.name)
+       
+    for at in sgAttr:
+        name = at.aovName.get()
         try:
-            pm.aliasAttr('ai_aov_' + aov.name, sgAttr[aov.index])
-        except RuntimeError, err:
-            pass #print err
+            pm.aliasAttr('ai_aov_' + name, at)
+        except RuntimeError as err:
+            pm.aliasAttr(sg + '.ai_aov_' + name, remove=True)
+            pm.aliasAttr('ai_aov_' + name, at)
+
 
 def installCallbacks():
     _sgAliasesCallbacks = callbacks.SceneLoadCallbackQueue()

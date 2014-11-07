@@ -14,8 +14,8 @@ class AEaiPhysicalSkyTemplate(ShaderAETemplate):
         self.addControl("turbidity", label="Turbidity")
         self.addControl("ground_albedo", label="Ground Albedo")
         
-        self.addControl("elevation", label="Elevation")
-        self.addControl("azimuth", label="Azimuth")
+        self.addControl("elevation", label="Elevation", annotation="WARNING : Linking rendertime graphs are not supported!")
+        self.addControl("azimuth", label="Azimuth", annotation="WARNING : Linking rendertime graphs are not supported!")
         self.addControl("intensity", label="Intensity")
         
         self.addSeparator()

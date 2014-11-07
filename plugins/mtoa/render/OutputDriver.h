@@ -82,18 +82,12 @@ void InitializeDisplayUpdateQueue(const MString camera="", const MString panel="
 
 /// Process a message on the queue from Arnold.
 /// \param refresh the render view is slow to refresh, so pass false if possible.
-bool ProcessUpdateMessage(const bool refresh=true);
-
+bool ProcessUpdateMessage();
 void UpdateBucket(RV_PIXEL* pixels, int minx, int miny, int maxx, int maxy, const bool refresh);
-
 void RefreshRenderViewBBox();
-
 void CopyBucketToBuffer(float * to_pixels,
                         CDisplayUpdateMessage & msg);
 
 /// Clear the queue.
 void ClearDisplayUpdateQueue();
-
-void RefreshRenderView(float, float, void *);
-
 void TransferTilesToRenderView();

@@ -880,12 +880,6 @@ def createArnoldPathSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
     
-    pm.attrControlGrp('os_plugins_path',
-                        label="Plug-ins Path",
-                        attribute='defaultArnoldRenderOptions.plugins_path')
-
-    pm.separator()
-
     pm.attrControlGrp('texture_absolute_paths',
                         label='Absolute Texture Paths',
                         attribute='defaultArnoldRenderOptions.absoluteTexturePaths')
