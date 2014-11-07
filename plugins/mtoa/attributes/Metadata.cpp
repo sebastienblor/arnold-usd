@@ -11,7 +11,6 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
    const char* param = AiParamGetName(paramEntry);
    const AtParamValue* real = AiParamGetDefault(paramEntry);
    AtParamValue value;
-   int a = sizeof(AtParamValue);
    memcpy(&value, real, sizeof(AtParamValue));
 
    int type = AiParamGetType(paramEntry);
