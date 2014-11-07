@@ -34,6 +34,8 @@
 #include <maya/M3dView.h>
 #include <maya/MAtomic.h>
 
+#include <tbb/atomic.h>
+
 #include <cstdio>
 #include <assert.h>
 
@@ -57,6 +59,7 @@ namespace{
    static MString IPRRefinementFinished("");
    static MString IPRStepStarted("");
    static MString IPRStepFinished("");
+   static tbb::atomic<bool> s_renderingFinished;
 }
 
 namespace
@@ -291,11 +294,11 @@ void CRenderSession::InterruptRender()
    }
 
    // Wait for the thread to clear.
-   if (m_render_thread != NULL)
+   if (m_render_thread != 0)
    {
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
-      m_render_thread = NULL;	
+      m_render_thread = 0;	
    }
 }
 
@@ -381,11 +384,11 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 
 unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
+   s_renderingFinished = false;
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
    if (renderSession->m_renderOptions.isProgressive())
-      ProgressiveRenderThread(data);
-      
+      ProgressiveRenderThread(data);      
    else
    {
       renderSession->SetRendering(true);
@@ -400,6 +403,7 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
 
    // don't echo, and do on idle
    CMayaScene::ExecuteScript(postMel, false, true);
+   s_renderingFinished = true;
    return 0;
 }
 
@@ -410,12 +414,42 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    // Interrupt existing render and close rendering thread if any
    InterruptRender();
 
-   AddIdleRenderViewCallback(postRenderMel);
+   //
+
+   s_renderingFinished = false;
    
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
                                     AI_PRIORITY_LOW);
    // DEBUG_MEMORY;
+   // Block until the render finishes
+   s_comp = new MComputation();
+   s_comp->beginComputation();
+   while (!s_renderingFinished)
+   {
+      if (s_comp->isInterruptRequested())
+         AiRenderInterrupt();
+      CCritSec::CScopedLock sc(m_render_lock);
+      if (m_renderCallback != 0)
+         m_renderCallback();
+#ifdef WIN32
+      Sleep(0);
+#else
+      sleep(0);
+#endif
+   }
+   s_comp->endComputation();
+   delete s_comp;
+   s_comp = 0;
+
+   if (m_render_thread != 0)
+   {
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+      m_render_thread = 0;
+   } 
+
+   AddIdleRenderViewCallback(postRenderMel);  
 }
 
 
