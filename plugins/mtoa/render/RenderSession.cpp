@@ -414,7 +414,7 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    // Interrupt existing render and close rendering thread if any
    InterruptRender();
 
-   //AddIdleRenderViewCallback(postRenderMel);
+   //
 
    s_renderingFinished = false;
    
@@ -447,7 +447,9 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
       m_render_thread = 0;
-   }   
+   } 
+
+   AddIdleRenderViewCallback(postRenderMel);  
 }
 
 

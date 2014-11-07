@@ -59,7 +59,7 @@ static bool s_newRender = false;
 
 static CCritSec s_driverLock;
 
-static double FPS = 15.0;
+static double FPS = 6.0;
 
 /// \name Arnold Output Driver.
 /// \{
