@@ -11,6 +11,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
    const char* param = AiParamGetName(paramEntry);
    const AtParamValue* real = AiParamGetDefault(paramEntry);
    AtParamValue value;
+   int a = sizeof(AtParamValue);
    memcpy(&value, real, sizeof(AtParamValue));
 
    int type = AiParamGetType(paramEntry);
@@ -29,10 +30,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          int result;
          if (AiMetaDataGetInt(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetInt(value.ARRAY, 0, result);
-            else
                value.INT = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.INT = AiArrayGetInt(value.ARRAY, 0);
          }
          break;
       }
@@ -41,10 +43,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          int result;
          if (AiMetaDataGetInt(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetUInt(value.ARRAY, 0, result);
-            else
                value.UINT = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.UINT = AiArrayGetUInt(value.ARRAY, 0);
          }
          break;
       }
@@ -53,10 +56,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          bool result;
          if (AiMetaDataGetBool(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetBool(value.ARRAY, 0, result);
-            else
                value.BOOL = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.BOOL = AiArrayGetBool(value.ARRAY, 0);
          }
          break;
       }
@@ -65,10 +69,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          float result;
          if (AiMetaDataGetFlt(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetFlt(value.ARRAY, 0, result);
-            else
                value.FLT = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.FLT = AiArrayGetFlt(value.ARRAY, 0);
          }
          break;
       }
@@ -77,10 +82,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          AtPoint result;
          if (AiMetaDataGetPnt(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetPnt(value.ARRAY, 0, result);
-            else
                value.PNT = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.PNT = AiArrayGetPnt(value.ARRAY, 0);
          }
          break;
       }
@@ -89,10 +95,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          AtVector result;
          if (AiMetaDataGetVec(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetVec(value.ARRAY, 0, result);
-            else
                value.VEC = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.VEC = AiArrayGetVec(value.ARRAY, 0);
          }
          break;
       }
@@ -101,10 +108,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          AtPoint2 result;
          if (AiMetaDataGetPnt2(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetPnt2(value.ARRAY, 0, result);
-            else
                value.PNT2 = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.PNT2 = AiArrayGetPnt2(value.ARRAY, 0);
          }
          break;
       }
@@ -114,10 +122,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          AtRGB result;
          if (AiMetaDataGetRGB(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetRGB(value.ARRAY, 0, result);
-            else
                value.RGB = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.RGB = AiArrayGetRGB(value.ARRAY, 0);
          }
          break;
       }
@@ -126,10 +135,11 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          const char* result;
          if (AiMetaDataGetStr(entry, param, "default", &result))
          {
-            if (isArray)
-               AiArraySetStr(value.ARRAY, 0, result);
-            else
                value.STR = result;
+         }
+         else if (isArray && value.ARRAY->nelements > 0)
+         {
+               value.STR = AiArrayGetStr(value.ARRAY, 0);
          }
          break;
       }
