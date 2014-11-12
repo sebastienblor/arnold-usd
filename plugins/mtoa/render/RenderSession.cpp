@@ -395,14 +395,11 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
       AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
-   // get the post-MEL before ending the MayaScene
-   MString postMel = renderSession->m_postRenderMel;
-   renderSession->m_postRenderMel = "";
 
    CMayaScene::End();
 
    // don't echo, and do on idle
-   CMayaScene::ExecuteScript(postMel, false, true);
+   
    s_renderingFinished = true;
    return 0;
 }
@@ -449,7 +446,7 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       m_render_thread = 0;
    } 
 
-   AddIdleRenderViewCallback(postRenderMel);  
+   CMayaScene::ExecuteScript(postRenderMel, false, true);
 }
 
 
