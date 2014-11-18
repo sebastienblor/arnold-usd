@@ -52,7 +52,7 @@ void CLightTranslator::Export(AtNode* light)
 
    const bool norm = FindMayaPlug("aiNormalize").asBool();
 
-   if (norm)
+   if (norm && IsFinite())
    {
       /*float intensity = AiNodeGetFlt(light, "intensity");
       m_session->ScaleArea(intensity);
