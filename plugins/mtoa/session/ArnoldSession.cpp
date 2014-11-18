@@ -1388,3 +1388,11 @@ float& CArnoldSession::ScaleArea(float& area) const
    area = static_cast<float>(s);
    return area;
 }
+
+float& CArnoldSession::ScaleLightExposure(float& exposure) const
+{
+   double e = static_cast<double>(exposure);
+   e += log(m_scaleFactor * m_scaleFactor) / log(2.0);
+   exposure = static_cast<float>(e);
+   return exposure;
+}

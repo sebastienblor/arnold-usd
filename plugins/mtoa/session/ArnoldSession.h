@@ -151,7 +151,8 @@ public:
    MMatrix& ScaleMatrix(MMatrix& matrix) const;
    AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
    float& ScaleDistance(float& distance) const;
-   float& ScaleArea(float& area) const;   
+   float& ScaleArea(float& area) const;
+   float& ScaleLightExposure(float& exposure) const;
    
 /*
    bool IsActiveAOV(CAOV &aov) const
