@@ -34,6 +34,8 @@
 #include <maya/M3dView.h>
 #include <maya/MAtomic.h>
 
+#include <tbb/atomic.h>
+
 #include <cstdio>
 #include <assert.h>
 
@@ -57,6 +59,7 @@ namespace{
    static MString IPRRefinementFinished("");
    static MString IPRStepStarted("");
    static MString IPRStepFinished("");
+   static tbb::atomic<bool> s_renderingFinished;
 }
 
 namespace
@@ -291,11 +294,11 @@ void CRenderSession::InterruptRender()
    }
 
    // Wait for the thread to clear.
-   if (m_render_thread != NULL)
+   if (m_render_thread != 0)
    {
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
-      m_render_thread = NULL;	
+      m_render_thread = 0;	
    }
 }
 
@@ -346,30 +349,30 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 {
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
    // set progressive start point on AA
-   const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   if (num_aa_samples == 0)
+      num_aa_samples = 1;
    const int progressive_start = renderSession->m_renderOptions.isProgressive() ? 
                                  MIN(num_aa_samples, renderSession->m_renderOptions.progressiveInitialLevel())
                                  : num_aa_samples;
-   const int steps = (progressive_start < 0) ? abs(progressive_start) + 1 : 1;
    int ai_status(AI_SUCCESS);
    CMayaScene::ExecuteScript(IPRRefinementStarted, false, true);
    renderSession->SetRendering(true);
-   int sampling, i;
-   const int sampling_limit = num_aa_samples == 1 ? 0 : 1;
-   for (sampling = progressive_start, i=1; sampling <= num_aa_samples; ++sampling, ++i)
+   for (int sampling = progressive_start; sampling <= num_aa_samples; ++sampling)
    {
-      if (sampling >= sampling_limit)
+      if (sampling == 0)
+         continue;
+      else if (sampling > 1)
          sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
-      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA (step %d of %d)", sampling, i, steps);
+      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA of %d AA", sampling, num_aa_samples);
       CMayaScene::ExecuteScript(IPRStepStarted, false, true);
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       CMayaScene::ExecuteScript(IPRStepFinished, false, true);
 
       if (ai_status != AI_SUCCESS) break;
-      if (sampling > 0) break;
    }
    // Put this back after we're done interating through.
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
@@ -381,25 +384,23 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 
 unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
+   s_renderingFinished = false;
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
    if (renderSession->m_renderOptions.isProgressive())
-      ProgressiveRenderThread(data);
-      
+      ProgressiveRenderThread(data);      
    else
    {
       renderSession->SetRendering(true);
       AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
-   // get the post-MEL before ending the MayaScene
-   MString postMel = renderSession->m_postRenderMel;
-   renderSession->m_postRenderMel = "";
 
    CMayaScene::End();
 
    // don't echo, and do on idle
-   CMayaScene::ExecuteScript(postMel, false, true);
+   
+   s_renderingFinished = true;
    return 0;
 }
 
@@ -410,12 +411,42 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    // Interrupt existing render and close rendering thread if any
    InterruptRender();
 
-   AddIdleRenderViewCallback(postRenderMel);
+   //
+
+   s_renderingFinished = false;
    
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
                                     AI_PRIORITY_LOW);
    // DEBUG_MEMORY;
+   // Block until the render finishes
+   s_comp = new MComputation();
+   s_comp->beginComputation();
+   while (!s_renderingFinished)
+   {
+      if (s_comp->isInterruptRequested())
+         AiRenderInterrupt();
+      CCritSec::CScopedLock sc(m_render_lock);
+      if (m_renderCallback != 0)
+         m_renderCallback();
+#ifdef WIN32
+      Sleep(0);
+#else
+      sleep(0);
+#endif
+   }
+   s_comp->endComputation();
+   delete s_comp;
+   s_comp = 0;
+
+   if (m_render_thread != 0)
+   {
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+      m_render_thread = 0;
+   } 
+
+   CMayaScene::ExecuteScript(postRenderMel, false, true);
 }
 
 

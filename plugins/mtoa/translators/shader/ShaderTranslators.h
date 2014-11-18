@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShaderTranslator.h"
+#include "translators/DagTranslator.h"
 #include <string>
 
 #define SHADER_TRANSLATOR(name)\

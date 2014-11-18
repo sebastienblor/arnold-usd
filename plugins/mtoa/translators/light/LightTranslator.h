@@ -1,6 +1,6 @@
 #pragma once
 
-#include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 
 class DLLEXPORT CLightTranslator
    :   public CDagTranslator

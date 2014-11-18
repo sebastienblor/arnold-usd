@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NodeTranslator.h"
+#include "DagTranslator.h"
 #include <maya/MNodeMessage.h>
 
 class DLLEXPORT CObjectSetTranslator : public CNodeTranslator

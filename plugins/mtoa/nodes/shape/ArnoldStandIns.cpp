@@ -1,6 +1,6 @@
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
 #include "utils/MayaUtils.h"
@@ -780,6 +780,20 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'aiVisibleInGlossy' attribute is defined in CDagTranslator::MakeArnoldVisibilityFlags
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideMatte";
+   data.shortName = "overrideMatte";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideMatte";
+   data.shortName = "overrideMatte";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    return MStatus::kSuccess;
 }

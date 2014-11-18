@@ -5,6 +5,7 @@
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
 #include "nodes/ShaderUtils.h"
+#include "translators/DagTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
