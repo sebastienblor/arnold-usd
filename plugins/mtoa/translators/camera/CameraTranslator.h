@@ -52,6 +52,7 @@ protected:
    void ExportCameraMBData(AtNode* camera, unsigned int step);
    static void MakeDefaultAttributes(CExtensionAttrHelper &helper);
    static void MakeDOFAttributes(CExtensionAttrHelper &helper);
+   virtual void GetMatrix(AtMatrix& matrix);
 
 protected:
    MFnCamera m_fnCamera;

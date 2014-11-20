@@ -93,6 +93,8 @@ MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
 MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
 MObject CArnoldOptionsNode::s_IPRStepFinishedCallback;
 MObject CArnoldOptionsNode::s_output_overscan;
+MObject CArnoldOptionsNode::s_render_unit;
+MObject CArnoldOptionsNode::s_scene_scale;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -592,6 +594,28 @@ MStatus CArnoldOptionsNode::initialize()
    s_output_overscan = tAttr.create("outputOverscan", "output_overscan", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_output_overscan);
+
+   s_render_unit = eAttr.create("renderUnit", "render_unit");
+   eAttr.setKeyable(false);
+   eAttr.addField("Use Maya Unit", 0);
+   eAttr.addField("Use Custom Scaling", 1);
+   eAttr.addField("Inch", 2);
+   eAttr.addField("Feet", 3);
+   eAttr.addField("Yard", 4);
+   eAttr.addField("Mile", 5);
+   eAttr.addField("Millimeter", 6);
+   eAttr.addField("Centimeter", 7);
+   eAttr.addField("Kilometer", 8);
+   eAttr.addField("Meter", 9);
+   addAttribute(s_render_unit);
+
+   s_scene_scale = nAttr.create("sceneScale", "scene_scale", MFnNumericData::kDouble);
+   nAttr.setDefault(1.0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   nAttr.setSoftMin(0.01);
+   nAttr.setSoftMax(5.0);
+   addAttribute(s_scene_scale);
 
    return MS::kSuccess;
 }

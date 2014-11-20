@@ -275,7 +275,7 @@ void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
    }
 }
 
-void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
+void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSession* session)
 {
    MStatus stat;
    MMatrix tm = path.inclusiveMatrix(&stat);
@@ -283,12 +283,12 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
    {
       AiMsgError("Failed to get transformation matrix for %s",  path.partialPathName().asChar());
    }
-   ConvertMatrix(matrix, tm);
+   ConvertMatrix(matrix, tm, session);
 }
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   GetMatrix(matrix, m_dagPath);
+   GetMatrix(matrix, m_dagPath, m_session);
 }
 
 // this is a utility method which handles the common tasks associated with

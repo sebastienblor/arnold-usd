@@ -957,7 +957,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          if (exportRefVerts)
          {
             AtMatrix worldMatrix;
-            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
+            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix(), m_session);
             AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)

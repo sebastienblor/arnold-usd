@@ -147,7 +147,12 @@ public:
 
    void FormatTexturePath(MString& texturePath);
    void FormatProceduralPath(MString& proceduralPath);
-   
+
+   MMatrix& ScaleMatrix(MMatrix& matrix) const;
+   AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
+   float& ScaleDistance(float& distance) const;
+   float& ScaleArea(float& area) const;
+   float& ScaleLightExposure(float& exposure) const;
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -229,6 +234,10 @@ private:
    // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
    std::vector<CNodeTranslator*> m_processedTranslatorList;
+
+   double m_scaleFactor;
+   MMatrix m_scaleFactorMMatrix;
+   AtMatrix m_scaleFactorAtMatrix;
 protected:
    ObjectHandleToDagMap m_masterInstances;
 

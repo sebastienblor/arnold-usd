@@ -8,6 +8,8 @@ import maya.cmds as cmds
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
+    flag = pm.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
+    pm.attrControlGrp('os_scene_scale', edit=True, enable=flag)
     
 def updateAutotileSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.autotile')
@@ -299,6 +301,20 @@ def createArnoldRenderSettings():
                         label='Kick Render Flags',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.kickRenderFlags')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_render_unit',
+                        label='Render Unit',
+                        cc=updateRenderSettings,
+                        attribute='defaultArnoldRenderOptions.renderUnit')
+
+    enabled = pm.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
+
+    pm.attrControlGrp('os_scene_scale',
+                        label='Scene Scale',
+                        enable=enabled,
+                        attribute='defaultArnoldRenderOptions.sceneScale')
 
     pm.frameLayout(label='Callbacks', collapse=True)
 

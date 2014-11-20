@@ -134,6 +134,8 @@ private:
    inline bool IsProgressive() const { return m_progressiveRendering; }
    inline void SetProgressive(const bool is_progressive) { m_progressiveRendering = is_progressive; }
 
+   inline double GetScaleFactor() const { return m_scaleFactor; }
+
    MStatus GetFromMaya();
    void FormatTexturePath(MString& texturePath) const;
    void FormatProceduralPath(MString& proceduralPath) const;
@@ -149,6 +151,7 @@ private:
    CMotionBlurOptions   m_motion;
 
    double               m_frame;
+   double               m_scaleFactor;
 
    ArnoldSessionMode    m_mode;
    ArnoldLightLinkMode  m_lightlink;

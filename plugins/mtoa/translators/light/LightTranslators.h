@@ -15,6 +15,8 @@ public:
    {
       return AddArnoldNode("distant_light");
    }
+
+   bool IsFinite() const { return false; }
 };
 
 class CPointLightTranslator : public CLightTranslator
@@ -105,6 +107,8 @@ public:
    {
       return AddArnoldNode("skydome_light");
    }
+
+   bool IsFinite() const { return false; }
 };
 
 class CPhotometricLightTranslator : public CLightTranslator
