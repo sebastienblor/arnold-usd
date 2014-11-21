@@ -444,9 +444,9 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       m_render_thread = 0;
    } 
 
-   CMayaScene::ExecuteScript(postRenderMel, false, true);
-
    CMayaScene::End();
+
+   CMayaScene::ExecuteScript(postRenderMel, false, true);   
 }
 
 
