@@ -316,6 +316,16 @@ def createArnoldRenderSettings():
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.sceneScale')
 
+    pm.separator()
+
+    pm.attrControlGrp('os_offset_origin',
+                        label='Offset Origin',
+                        attribute='defaultArnoldRenderOptions.offsetOrigin')
+
+    #pm.attrControlGrp('os_origin',
+    #                    label='Origin',
+    #                    attribute='defaultArnoldRenderOptions.origin')
+
     pm.frameLayout(label='Callbacks', collapse=True)
 
     pm.attrControlGrp(

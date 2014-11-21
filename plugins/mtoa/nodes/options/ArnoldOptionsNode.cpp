@@ -95,6 +95,8 @@ MObject CArnoldOptionsNode::s_IPRStepFinishedCallback;
 MObject CArnoldOptionsNode::s_output_overscan;
 MObject CArnoldOptionsNode::s_render_unit;
 MObject CArnoldOptionsNode::s_scene_scale;
+MObject CArnoldOptionsNode::s_offset_origin;
+MObject CArnoldOptionsNode::s_origin;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -616,6 +618,15 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMin(0.01);
    nAttr.setSoftMax(5.0);
    addAttribute(s_scene_scale);
+
+   s_offset_origin = nAttr.create("offsetOrigin", "offset_origin", MFnNumericData::kBoolean);
+   nAttr.setDefault(false);
+   nAttr.setKeyable(false);
+   addAttribute(s_offset_origin);
+
+   s_origin = mAttr.create("origin", "orig");
+   mAttr.setKeyable(false);
+   addAttribute(s_origin);
 
    return MS::kSuccess;
 }

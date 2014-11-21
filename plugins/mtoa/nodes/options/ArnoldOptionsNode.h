@@ -124,5 +124,8 @@ public:
 
    static MObject s_render_unit;
    static MObject s_scene_scale;
+
+   static MObject s_offset_origin;
+   static MObject s_origin;
    
 };  // class CArnoldOptionsNode
