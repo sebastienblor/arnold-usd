@@ -395,9 +395,7 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
       AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
-
-   CMayaScene::End();
-
+   
    // don't echo, and do on idle
    
    s_renderingFinished = true;
@@ -446,7 +444,9 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       m_render_thread = 0;
    } 
 
-   CMayaScene::ExecuteScript(postRenderMel, false, true);
+   CMayaScene::End();
+
+   CMayaScene::ExecuteScript(postRenderMel, false, true);   
 }
 
 
