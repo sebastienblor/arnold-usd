@@ -153,6 +153,7 @@ public:
    float& ScaleDistance(float& distance) const;
    float& ScaleArea(float& area) const;
    float& ScaleLightExposure(float& exposure) const;
+   MVector GetOrigin() const;
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -238,6 +239,7 @@ private:
    double m_scaleFactor;
    MMatrix m_scaleFactorMMatrix;
    AtMatrix m_scaleFactorAtMatrix;
+   MVector m_origin;
 protected:
    ObjectHandleToDagMap m_masterInstances;
 

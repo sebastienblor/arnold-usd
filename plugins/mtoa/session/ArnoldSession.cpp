@@ -412,6 +412,8 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
    trmat.setScale(sc, MSpace::kWorld);
    m_scaleFactorMMatrix = trmat.asMatrix();
 
+   m_origin = options.GetOrigin();
+
    //ProcessAOVs();
    return status;
 }
@@ -1395,4 +1397,9 @@ float& CArnoldSession::ScaleLightExposure(float& exposure) const
    e += log(m_scaleFactor * m_scaleFactor) / log(2.0);
    exposure = static_cast<float>(e);
    return exposure;
+}
+
+MVector CArnoldSession::GetOrigin() const
+{
+   return m_origin;
 }

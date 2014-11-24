@@ -7,6 +7,9 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlug.h>
 #include <maya/MDistance.h>
+#include <maya/MPlugArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MTransformationMatrix.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -186,13 +189,37 @@ MStatus CSessionOptions::GetFromMaya()
             m_scaleFactor = 1.0;
       }
 
-      status = MStatus::kSuccess;
+      
+
+      m_origin = MVector(0.0, 0.0, 0.0);
+
+      if (fnArnoldRenderOptions.findPlug("offsetOrigin").asBool())
+      {
+         MPlugArray conns;
+         if (fnArnoldRenderOptions.findPlug("origin").connectedTo(conns, true, false, &status))
+         {
+            if (status && (conns.length() > 0))
+            {
+               MDagPath dgPath;
+               if (MDagPath::getAPathTo(conns[0].node(), dgPath))
+               {
+                  MTransformationMatrix tMat = dgPath.inclusiveMatrix();
+                  m_origin = tMat.getTranslation(MSpace::kWorld);
+               }
+            }
+         }
+      }  
+      status = MStatus::kSuccess;  
    }
    else
    {
       AiMsgError("[mtoa] No known Arnold render options");
       status = MStatus::kFailure;
    }
+
+   
+
+     
 
    return status;
 }

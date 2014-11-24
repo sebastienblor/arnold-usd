@@ -558,7 +558,10 @@ void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix,
 {
    if (arnoldSession)
    {
-      MMatrix copyMayaMatrix = mayaMatrix;
+      MTransformationMatrix trMat = mayaMatrix;
+      trMat.addTranslation((-1.0) * arnoldSession->GetOrigin(), MSpace::kWorld);
+      MMatrix copyMayaMatrix = trMat.asMatrix();
+
       arnoldSession->ScaleMatrix(copyMayaMatrix);
       for (int J = 0; (J < 4); ++J)
       {

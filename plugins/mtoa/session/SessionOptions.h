@@ -7,6 +7,7 @@
 #include <maya/MAnimControl.h>
 #include <maya/MStringArray.h>
 #include <maya/MString.h>
+#include <maya/MVector.h>
 
 // Export
 enum ArnoldSessionMode
@@ -93,6 +94,7 @@ private:
                         m_textureSearchPaths(),
                         m_filter(CMayaExportFilter()),
                         m_motion(CMotionBlurOptions()),
+                        m_origin(0.0, 0.0, 0.0),
                         m_frame(0.0),
                         m_mode(MTOA_SESSION_UNDEFINED),
                         m_lightlink(MTOA_LIGHTLINK_NONE),
@@ -135,6 +137,7 @@ private:
    inline void SetProgressive(const bool is_progressive) { m_progressiveRendering = is_progressive; }
 
    inline double GetScaleFactor() const { return m_scaleFactor; }
+   inline MVector GetOrigin() const { return m_origin; }
 
    MStatus GetFromMaya();
    void FormatTexturePath(MString& texturePath) const;
@@ -149,6 +152,8 @@ private:
 
    CMayaExportFilter    m_filter;
    CMotionBlurOptions   m_motion;
+
+   MVector              m_origin;
 
    double               m_frame;
    double               m_scaleFactor;
