@@ -660,8 +660,36 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
 
 void CCameraTranslator::GetMatrix(AtMatrix& matrix)
 {
-   CDagTranslator::GetMatrix(matrix, m_dagPath, 0);
-   m_session->ScaleDistance(matrix[3][0]);
-   m_session->ScaleDistance(matrix[3][1]);
-   m_session->ScaleDistance(matrix[3][2]);
+   MStatus status;
+   MMatrix mayaMatrix = m_dagPath.inclusiveMatrix(&status);
+   if (status)
+   {
+      if (m_session)
+      {
+         MTransformationMatrix trMat = mayaMatrix;
+         trMat.addTranslation((-1.0) * m_session->GetOrigin(), MSpace::kWorld);
+         MMatrix copyMayaMatrix = trMat.asMatrix();
+         copyMayaMatrix[3][0] = m_session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
+         copyMayaMatrix[3][1] = m_session->ScaleDistance(copyMayaMatrix[3][1]);
+         copyMayaMatrix[3][2] = m_session->ScaleDistance(copyMayaMatrix[3][2]);
+
+         for (int J = 0; (J < 4); ++J)
+         {
+            for (int I = 0; (I < 4); ++I)
+            {
+               matrix[I][J] = (float) copyMayaMatrix[I][J];
+            }
+         }
+      }
+      else
+      {
+         for (int J = 0; (J < 4); ++J)
+         {
+            for (int I = 0; (I < 4); ++I)
+            {
+               matrix[I][J] = (float) mayaMatrix[I][J];
+            }
+         }  
+      }
+   }
 }

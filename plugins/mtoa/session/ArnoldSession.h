@@ -151,6 +151,7 @@ public:
    MMatrix& ScaleMatrix(MMatrix& matrix) const;
    AtMatrix& ScaleMatrix(AtMatrix& matrix) const;
    float& ScaleDistance(float& distance) const;
+   double& ScaleDistance(double& distance) const;
    float& ScaleArea(float& area) const;
    float& ScaleLightExposure(float& exposure) const;
    MVector GetOrigin() const;

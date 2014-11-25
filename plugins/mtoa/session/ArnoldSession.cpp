@@ -1382,6 +1382,13 @@ float& CArnoldSession::ScaleDistance(float& distance) const
    return distance;
 }
 
+double& CArnoldSession::ScaleDistance(double& distance) const
+{
+   distance *= m_scaleFactor;
+   return distance;
+}
+
+
 float& CArnoldSession::ScaleArea(float& area) const
 {
    double s = static_cast<double>(area);
