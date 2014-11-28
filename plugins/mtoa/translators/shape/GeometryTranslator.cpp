@@ -1004,7 +1004,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       // for the first version we always export them
       // since the user might override the subdiv options
       // from a procedural, node processor etc...
-      if (!fnMesh.findPlug("displaySmoothMesh").asBool()))
+      if (!fnMesh.findPlug("displaySmoothMesh").asBool())
       {
          MUintArray creaseEdgeIds;
          MDoubleArray creaseEdgeDatas;
