@@ -22,11 +22,13 @@ MTOA_VERSION = get_mtoa_version(4)
 #   Operating System detection
 ################################################################################
 
+EXTERNAL_PATH = os.path.abspath('external')
+
 if system.os() == 'darwin':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
-    glew_default_lib = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'lib', 'libGLEW.a')
-    glew_default_include = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'include')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
 elif system.os() == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
@@ -36,8 +38,8 @@ elif system.os() == 'linux':
 elif system.os() == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
-    glew_default_lib = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'lib', 'glew32s.lib')
-    glew_default_include = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'include')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'glew32s.lib')
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
 else:
     print "Unknown operating system: %s" % system.os()
     Exit(1)
@@ -78,9 +80,6 @@ vars.AddVariables(
     PathVariable('MAYA_INCLUDE_PATH',
                  'Directory where Maya SDK headers are installed',
                  '.'),
-    PathVariable('EXTERNAL_PATH',
-                 'External dependencies are found here', 
-                 '.', PathVariable.PathIsDir),
     PathVariable('ARNOLD', 
                  'Where to find Arnold installation', 
                  get_default_path('ARNOLD_HOME', 'Arnold')),                   
@@ -220,7 +219,7 @@ if env['MAYA_INCLUDE_PATH'] == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
     else:
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
-EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
+env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
