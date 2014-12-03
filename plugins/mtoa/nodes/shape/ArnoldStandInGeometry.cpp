@@ -202,21 +202,43 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
    }
    
    AtArray* nlist = AiNodeGetArray(node, "nlist");
+   AtArray* nidxs = AiNodeGetArray(node, "nidxs");
    
-   if ((nlist != 0) && nlist->nelements)
+   if ((nlist != 0) && nlist->nelements &&
+       (nidxs != 0) && nidxs->nelements)
    {
       m_nlist.resize(nlist->nelements);
       for (AtUInt32 i = 0; i < nlist->nelements; ++i)
-         m_nlist[i] = AiArrayGetVec(nlist, i);
-   }
+         m_nlist[i] = AiArrayGetVec(nlist, i);     
    
-   AtArray* nidxs = AiNodeGetArray(node, "nidxs");
-   
-   if ((nidxs != 0) && nidxs->nelements)
-   {
       m_nidxs.resize(nidxs->nelements);
-      for (AtUInt32 i = 0; i < nidxs->nelements; ++i)
-         m_nidxs[i] = AiArrayGetUInt(nidxs, i);
+         for (AtUInt32 i = 0; i < nidxs->nelements; ++i)
+            m_nidxs[i] = AiArrayGetUInt(nidxs, i);
+   }
+   else // generate normals
+   {
+      m_nlist.resize(m_nsides.size());
+      m_nidxs.resize(m_vidxs.size());
+
+      const size_t numPolygons = m_nsides.size();
+      size_t id = 0;
+      for (size_t p = 0; p < numPolygons; ++p)
+      {
+         const size_t ns = m_nsides[p];
+         AtVector n = AI_V3_ZERO;
+         for (size_t i = 0; i < (ns - 2); ++i)
+         {
+            const AtVector& v0 = m_vlist[m_vidxs[id]];
+            const AtVector& v1 = m_vlist[m_vidxs[id + i]];
+            const AtVector& v2 = m_vlist[m_vidxs[id + i + 1]];
+            n += AiV3Cross(v1 - v0, v2 - v0);
+         }
+         n = AiV3Normalize(n);
+         m_nlist[p] = n;
+         for (size_t i = 0; i < ns; ++i)
+            m_nidxs[id + i] = p;
+         id += ns;
+      }
    }
 }
 
