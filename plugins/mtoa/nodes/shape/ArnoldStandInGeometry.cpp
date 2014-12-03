@@ -236,7 +236,7 @@ CArnoldPolymeshGeometry::CArnoldPolymeshGeometry(AtNode* node) : CArnoldStandInG
          n = AiV3Normalize(n);
          m_nlist[p] = n;
          for (size_t i = 0; i < ns; ++i)
-            m_nidxs[id + i] = static_cast<size_t>(p);
+            m_nidxs[id + i] = static_cast<unsigned int>(p);
          id += ns;
       }
    }
