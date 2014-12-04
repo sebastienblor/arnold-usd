@@ -262,6 +262,9 @@ driver_open
 
     openPipeCommand(ctx);
 
+    if (ctx->fp == 0)
+        return;
+
     // gather output definitions
     const char *output_name;
     int pixel_type;
