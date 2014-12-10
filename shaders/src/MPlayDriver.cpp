@@ -13,13 +13,7 @@ using namespace std; // TODO : REMOVE IT, THIS IS FUGLY!
 
 AI_DRIVER_NODE_EXPORT_METHODS(MPlayDriverMtd);
 
-/// Cross platform popen() and pclose()
-#ifndef _WIN32
-#define POPEN(cmd) popen(cmd, "w")
-#define PCLOSE(fp) pclose(fp)
-#endif // not _WIN32
-
-/// Array size. Only those 3 pixel size values are supported by Houdini.
+// Array size. Only those 3 pixel size values are supported by Houdini.
 enum ArraySize
 {
     ARRAY_SIZE_SCALAR = 1,
@@ -87,7 +81,7 @@ void openPipeCommand(DriverData* ctx)
 #ifdef _WIN32
     ctx->fp = 0;
 #else
-    ctx->fp = POPEN(cmd.str().c_str());
+    ctx->fp = popen(cmd.str().c_str(), "wb");
 #endif
 
     if (ctx->fp)
@@ -220,7 +214,7 @@ void writeEndOfImage(DriverData* ctx)
     flushData(ctx);
 #ifdef _WIN32
 #else
-    PCLOSE(ctx->fp);
+    pclose(ctx->fp);
 #endif
     ctx->fp = 0;
 }
