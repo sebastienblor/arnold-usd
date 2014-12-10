@@ -102,7 +102,7 @@ void flushData(DriverData* ctx)
 {
 #ifdef _WIN32
 #else
-    fflush(ctx->fp)
+    fflush(ctx->fp);
 #endif
 }
 
@@ -240,7 +240,6 @@ node_initialize
 node_update
 {
     AiMsgDebug("[mplay_driver] node_update");
-    DriverData* ctx = reinterpret_cast<DriverData*>(AiDriverGetLocalData(node));
 }
 
 /// Query driver pixel-type capability
