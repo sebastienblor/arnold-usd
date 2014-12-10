@@ -80,7 +80,6 @@ void openPipeCommand(DriverData* ctx)
     cmd << "\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
 #else
     cmd << "unset LD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
-    std::cerr << cmd.str() << std::endl;
 #endif
     if (ctx->port > 0)
         cmd << " -s " << ctx->port;
