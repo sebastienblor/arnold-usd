@@ -10,6 +10,10 @@
 #include <sstream>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 AI_DRIVER_NODE_EXPORT_METHODS(MPlayDriverMtd);
 
 // Array size. Only those 3 pixel size values are supported by Houdini.
@@ -34,6 +38,8 @@ struct DriverData
 #ifdef _WIN32
     int fp; // string if a process is valid, for compatibility reasons
     PROCESS_INFORMATION process_information;
+    HANDLE write_pipe;
+    HANDLE read_pipe;
 #else
     FILE* fp;               ///< Pipe file descriptor
 #endif
@@ -68,23 +74,63 @@ void openPipeCommand(DriverData* ctx)
         ctx->fp = 0;
         return;
     }
-
+    
+#ifndef _WIN32
     std::stringstream cmd;
-#ifdef _WIN32
-    cmd << "\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
-#else
     #ifdef _LINUX
         cmd << "unset LD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
     #else // DARWIN
         cmd << "unset DYLD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p"; // is this really neccessary?
     #endif
 #endif
-
-    AiMsgDebug("[mplay_driver] Launching pipe command: %s", cmd.str().c_str());
+    
 
 #ifdef _WIN32
+    AiMsgDebug("[mplay_driver] Spawning process : %s from directory : %s", "imdisplay -f -n Arnold -k -p", HB);
     ctx->fp = 0;
+
+    SECURITY_ATTRIBUTES sa_attrs;
+    sa_attrs.nLength = sizeof(SECURITY_ATTRIBUTES); 
+    sa_attrs.bInheritHandle = TRUE; 
+    sa_attrs.lpSecurityDescriptor = NULL;
+    ctx->read_pipe = NULL;
+    ctx->write_pipe = NULL;
+
+    if (CreatePipe(&ctx->read_pipe, &ctx->write_pipe, &sa_attrs, 0))
+        AiMsgWarning("[mplay_driver] Error creating the pipes for the process, error code : %i", GetLastError());
+
+    if (SetHandleInformation(&ctx->write_pipe, HANDLE_FLAG_INHERIT, 0))
+        AiMsgWarning("[mplay_driver] Error setting the write pipe's handle information, error code : %i", GetLastError());
+
+    STARTUPINFO start_info;
+    ZeroMemory(&ctx->process_information, sizeof(PROCESS_INFORMATION));
+    ZeroMemory(&start_info, sizeof(STARTUPINFO));
+
+    start_info.cb = sizeof(STARTUPINFO);
+
+    BOOL success = CreateProcess(
+            NULL,
+            "imdisplay -f -n Arnold -k -p",
+            NULL,
+            NULL,
+            FALSE,
+            0,
+            NULL,
+            HB,
+            &start_info,
+            &ctx->process_information
+        );
+
+    if (success == TRUE)
+        ctx->fp = 1;
+    else
+    {
+        DWORD lastError = GetLastError();
+        AiMsgWarning("[mplay_driver] Error spawning the windows process, code : %i", lastError);
+    }
 #else
+    AiMsgDebug("[mplay_driver] Launching pipe command: %s", cmd.str().c_str());
+
     ctx->fp = popen(cmd.str().c_str(), "wb");
 #endif
 
