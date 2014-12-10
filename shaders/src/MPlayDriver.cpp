@@ -9,7 +9,6 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-using namespace std; // TODO : REMOVE IT, THIS IS FUGLY!
 
 AI_DRIVER_NODE_EXPORT_METHODS(MPlayDriverMtd);
 
@@ -24,14 +23,14 @@ enum ArraySize
 /// Output (AOV) info
 struct Output
 {
-    string name;          ///< AOV name
+    std::string name;          ///< AOV name
     ArraySize array_size; ///< AOV pixel size
 };
 
 /// Driver local data
 struct DriverData
 {
-    vector<Output> outputs;
+    std::vector<Output> outputs;
 #ifdef _WIN32
     int fp; // string if a process is valid, for compatibility reasons
 #else
@@ -69,7 +68,7 @@ void openPipeCommand(DriverData* ctx)
         return;
     }
 
-    stringstream cmd;
+    std::stringstream cmd;
 #ifdef _WIN32
     cmd << "\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
 #else
