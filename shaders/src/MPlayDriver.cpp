@@ -33,6 +33,7 @@ struct DriverData
     std::vector<Output> outputs;
 #ifdef _WIN32
     int fp; // string if a process is valid, for compatibility reasons
+    PROCESS_INFORMATION process_information;
 #else
     FILE* fp;               ///< Pipe file descriptor
 #endif
@@ -72,7 +73,11 @@ void openPipeCommand(DriverData* ctx)
 #ifdef _WIN32
     cmd << "\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
 #else
-    cmd << "unset LD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
+    #ifdef _LINUX
+        cmd << "unset LD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
+    #else // DARWIN
+        cmd << "unset DYLD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p"; // is this really neccessary?
+    #endif
 #endif
 
     AiMsgDebug("[mplay_driver] Launching pipe command: %s", cmd.str().c_str());
