@@ -14,13 +14,10 @@ using namespace std; // TODO : REMOVE IT, THIS IS FUGLY!
 AI_DRIVER_NODE_EXPORT_METHODS(MPlayDriverMtd);
 
 /// Cross platform popen() and pclose()
-#ifdef _WIN32
-#define POPEN(cmd) _popen(cmd, "wb")
-#define PCLOSE(fp) _pclose(fp)
-#else
+#ifndef _WIN32
 #define POPEN(cmd) popen(cmd, "w")
 #define PCLOSE(fp) pclose(fp)
-#endif // _WIN32
+#endif // not _WIN32
 
 /// Array size. Only those 3 pixel size values are supported by Houdini.
 enum ArraySize
@@ -41,8 +38,11 @@ struct Output
 struct DriverData
 {
     vector<Output> outputs;
+#ifdef _WIN32
+    int fp; // string if a process is valid, for compatibility reasons
+#else
     FILE* fp;               ///< Pipe file descriptor
-    unsigned int port;      ///< Socket port
+#endif
 };
 
 /// Pixel size from Arnold type
@@ -76,22 +76,41 @@ void openPipeCommand(DriverData* ctx)
     }
 
     stringstream cmd;
-#ifdef WIN32
+#ifdef _WIN32
     cmd << "\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
 #else
     cmd << "unset LD_LIBRARY_PATH;\"" << HB << "/imdisplay\" -f -n Arnold -k -p";
 #endif
-    if (ctx->port > 0)
-        cmd << " -s " << ctx->port;
 
     AiMsgDebug("[mplay_driver] Launching pipe command: %s", cmd.str().c_str());
 
+#ifdef _WIN32
+    ctx->fp = 0;
+#else
     ctx->fp = POPEN(cmd.str().c_str());
+#endif
 
     if (ctx->fp)
         AiMsgDebug("[mplay_driver] Houdini pipe opened");
     else
         AiMsgWarning("[mplay_driver] Could not open Houdini pipe command");
+}
+
+bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData* ctx)
+{
+#ifdef _WIN32
+    return false;
+#else
+    return fwrite(data, elem_size, elem_count, ctx->fp) != elem_count;
+#endif
+}
+
+void flushData(DriverData* ctx)
+{
+#ifdef _WIN32
+#else
+    fflush(ctx->fp)
+#endif
 }
 
 /// Write bucket
@@ -111,7 +130,7 @@ void writeBucket(DriverData* ctx, int index, int x0, int x1, int y0, int y1,
     bucket_header[3] = 0;
 
     // write plane index
-    if (fwrite(bucket_header, sizeof(int), 4, ctx->fp) != 4)
+    if (writeData(bucket_header, sizeof(int), 4, ctx))
         AiMsgWarning("[mplay_driver] Unable to write plane definition");
 
     // fill out the tile header
@@ -122,14 +141,14 @@ void writeBucket(DriverData* ctx, int index, int x0, int x1, int y0, int y1,
     size_t npixels = (x1 - x0 + 1) * (y1 - y0 + 1);
 
     // write header
-    if (fwrite(bucket_header, sizeof(int), 4, ctx->fp) != 4)
+    if (writeData(bucket_header, sizeof(int), 4, ctx))
         AiMsgWarning("[mplay_driver] Error writing bucket: %d %d %d %d\n", x0, x1, y0, y1);
 
     // write data
-    if (fwrite(pixels, pixel_size * sizeof(float), npixels, ctx->fp) != npixels)
+    if (writeData(pixels, pixel_size * sizeof(float), npixels, ctx))
         AiMsgWarning("[mplay_driver] Error writing data: %d %d %d %d\n", x0, x1, y0, y1);
 
-    fflush(ctx->fp);
+    flushData(ctx);
 }
 
 /// Write image header
@@ -151,7 +170,7 @@ void writeImageHeader(DriverData* ctx)
 
     AiMsgDebug("[mplay_driver] Header: %d x %d x %lu", xres, yres, ctx->outputs.size());
 
-    if (fwrite(header, sizeof(int), 8, ctx->fp) != 8)
+    if (writeData(header, sizeof(int), 8, ctx))
         AiMsgWarning("[mplay_driver] Unable to write header");
 
     // write plane definitions
@@ -165,10 +184,10 @@ void writeImageHeader(DriverData* ctx)
         plane_def[2] = 0;                                           // always float for Arnold
         plane_def[3] = ctx->outputs[i].array_size;                  // Array size of the data
 
-        if (fwrite(plane_def, sizeof(int), 8, ctx->fp) != 8)
+        if (writeData(plane_def, sizeof(int), 8, ctx))
             AiMsgWarning("[mplay_driver] Unable to write plane definition");
 
-        if (fwrite(ctx->outputs[i].name.c_str(), sizeof(char), name_length, ctx->fp) != name_length)
+        if (writeData(ctx->outputs[i].name.c_str(), sizeof(char), name_length, ctx))
             AiMsgWarning("[mplay_driver] Unable to write plane name");
     }
 
@@ -179,7 +198,7 @@ void writeImageHeader(DriverData* ctx)
                     ctx->outputs[i].array_size, pixels);
 
     free(pixels);
-    fflush(ctx->fp);
+    flushData(ctx);
 }
 
 /// Write end of image.
@@ -193,21 +212,22 @@ void writeEndOfImage(DriverData* ctx)
     bucket_header[3] = 0;
 
     // write plane index
-    if (fwrite(bucket_header, sizeof(int), 4, ctx->fp) != 4)
+    if (writeData(bucket_header, sizeof(int), 4, ctx))
         AiMsgWarning("[mplay_driver] Unable to write end of image");
     else
         AiMsgDebug("[mplay_driver] Write end of image");
 
-    fflush(ctx->fp);
+    flushData(ctx);
+#ifdef _WIN32
+#else
     PCLOSE(ctx->fp);
-    ctx->fp = NULL;
+#endif
+    ctx->fp = 0;
 }
 
 /// Driver parameters
 node_parameters
 {
-    AiParameterUINT("port", 0); // IPR socket port, a value of 0 means send to MPlay
-
     AiParameterPTR("swatch", NULL);
     AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
     AiMetaDataSetStr(mds, NULL, "maya.translator", "mplay");
@@ -220,7 +240,7 @@ node_initialize
 {
     AiMsgDebug("[mplay_driver] node_initialize");
     DriverData* ctx = new DriverData;
-    ctx->fp = NULL;
+    ctx->fp = 0;
     AiDriverInitialize(node, true, ctx);
 }
 
@@ -228,7 +248,6 @@ node_update
 {
     AiMsgDebug("[mplay_driver] node_update");
     DriverData* ctx = reinterpret_cast<DriverData*>(AiDriverGetLocalData(node));
-    ctx->port = AiNodeGetUInt(node, "port");
 }
 
 /// Query driver pixel-type capability
@@ -355,13 +374,13 @@ driver_write_bucket
     }
 }
 
-/// Called after rendering is finished
+// Called after rendering is finished
 driver_close
 {
     AiMsgDebug("[mplay_driver] driver_close");
 }
 
-/// Called when driver is destroyed
+// Called when driver is destroyed
 node_finish
 {
     AiMsgDebug("[mplay_driver] node_finish");
