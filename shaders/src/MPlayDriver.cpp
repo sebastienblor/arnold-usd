@@ -143,7 +143,7 @@ void openPipeCommand(DriverData* ctx)
 #else
     AiMsgDebug("[mplay_driver] Launching pipe command: %s", cmd.str().c_str());
 
-    ctx->fp = popen(cmd.str().c_str(), "wb");
+    ctx->fp = popen(cmd.str().c_str(), "w");
 #endif
 
     if (ctx->fp)
@@ -165,7 +165,7 @@ bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData
         return false;
     }
 #else
-    return fwrite(data, elem_size, elem_count, ctx->fp) != elem_count;
+    return fwrite(data, elem_size, elem_count, ctx->fp) == elem_count;
 #endif
 }
 
