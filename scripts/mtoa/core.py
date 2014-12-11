@@ -17,6 +17,7 @@ CATEGORY_TO_RUNTIME_CLASS = {
                 }
 
 MTOA_GLOBALS = {}
+ACTIVE_CAMERA = None
 
 def _processClass(nodeType):
     '''

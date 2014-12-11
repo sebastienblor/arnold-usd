@@ -89,6 +89,7 @@ extern AtNodeMethods* MayaFluidTexture2DMtd;
 extern AtNodeMethods* SkinMtd;
 extern AtNodeMethods* MayaSurfaceLuminanceMtd;
 extern AtNodeMethods* VolumeCollectorMtd;
+extern AtNodeMethods* MPlayDriverMtd;
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -176,7 +177,8 @@ enum{
    SHADER_MAYAFLUIDTEXTURE2D,
    SHADER_SKIN,
    SHADER_VOLUMECOLLECTOR,
-   SHADER_MAYASURFACELUMINANCE
+   SHADER_MAYASURFACELUMINANCE,
+   DRIVER_MPLAY
 };
 
 node_loader
@@ -784,6 +786,13 @@ node_loader
       node->name        = "MayaSurfaceLuminance";
       node->node_type   = AI_NODE_SHADER;
       break;
+
+   case DRIVER_MPLAY:
+      node->methods     = MPlayDriverMtd;
+      node->name        = "driver_mplay";
+      node->node_type   = AI_NODE_DRIVER;
+      break;
+
 
    default:
       return false;

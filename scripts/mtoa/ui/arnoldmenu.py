@@ -1,4 +1,5 @@
 ﻿import pymel.core as pm
+import mtoa.core as core
 from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
@@ -77,10 +78,63 @@ def arnoldLightManager():
     win = mtoa.lightManager.MtoALightManager()
     win.create()
 
+def selectCamera(cam):
+    core.ACTIVE_CAMERA=cam
+
+def populateSelectCamera():
+    # clear camera menu
+    pm.menu('ArnoldSelectCamera', edit=True, deleteAllItems=True)
+
+    # populate camera menu    
+    cameras = cmds.ls(type='camera')
+    if cameras != None:
+        activeCamera = core.ACTIVE_CAMERA
+        if not activeCamera in cameras:
+            activeCamera = None
+        if activeCamera == None:
+            if 'perspShape' in cameras:
+                activeCamera = 'perspShape'
+            elif len(cameras):
+                activeCamera = cameras[i]
+            core.ACTIVE_CAMERA = activeCamera
+        for cam in cameras:
+            pm.menuItem('SelectCameraItem%s' % cam, label=cam, parent='ArnoldSelectCamera',
+                        radioButton=cam == activeCamera,
+                        c='from mtoa.ui.arnoldmenu import selectCamera; selectCamera("%s")' % cam)
+
+def startRender():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
+
+def startIpr():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='start')
+
+def refreshRender():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='refresh')
+
+def stopRender():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='stop')
+
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not pm.about(b=1):
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
+
+        pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
+                    postMenuCommand=lambda *args: populateSelectCamera())
+        pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
+                    c=lambda *args: startRender())
+        pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',
+                    c=lambda *args: startIpr())
+        pm.menuItem('ArnoldRefresh', label='Refresh', parent='ArnoldRender',
+                    c=lambda *args: refreshRender())
+        pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
+                    c=lambda *args: stopRender())
+
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                     c=lambda *args: createStandIn())
@@ -90,6 +144,7 @@ def createArnoldMenu():
                     c=lambda *args: doExportStandin())
         pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     c=lambda *args: doExportOptionsStandin())
+
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
         pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
