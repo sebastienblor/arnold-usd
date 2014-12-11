@@ -126,7 +126,7 @@ shader_evaluate
             sg->out.PNT2.y = val.PNT.y;
          }
          break;
-		 case AI_TYPE_VECTOR:
+         case AI_TYPE_VECTOR:
          if (AiUDataGetVec(name, &val.VEC))
          {
             valid = true;

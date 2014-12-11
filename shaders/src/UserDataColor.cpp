@@ -51,7 +51,7 @@ shader_evaluate
    {
       if (AiUDataGetFlt(name, &val.FLT))
       {
-	     valid = true;
+         valid = true;
          sg->out.RGB.r = sg->out.RGB.g = sg->out.RGB.b = val.FLT;
       }
    }
@@ -89,14 +89,14 @@ shader_evaluate
          break;
          case AI_TYPE_BYTE:
          if (AiUDataGetByte(name, &val.BYTE))
-   	     {
+         {
             valid = true;
             sg->out.RGB.r = sg->out.RGB.g = sg->out.RGB.b = (float)val.BYTE;			
          }
          break;
          case AI_TYPE_INT:
          if (AiUDataGetInt(name, &val.INT))
-   	     {
+         {
             valid = true;
             sg->out.RGB.r = sg->out.RGB.g = sg->out.RGB.b = (float)val.INT;			
          }		 
@@ -110,14 +110,14 @@ shader_evaluate
          break;
          case AI_TYPE_BOOLEAN:
          if (AiUDataGetBool(name, &val.BOOL))
-   	     {
+         {
             valid = true;
             sg->out.RGB.r = sg->out.RGB.g = sg->out.RGB.b = (val.BOOL ? 1.f : 0.f);			
          }
          break;
          case AI_TYPE_POINT:
-         if (AiUDataGetVec(name, &val.PNT))
-   	     {
+         if (AiUDataGetPnt(name, &val.PNT))
+         {
             valid = true;
             sg->out.RGB.r = val.PNT.x;
             sg->out.RGB.g = val.PNT.y;
@@ -126,7 +126,7 @@ shader_evaluate
          break;
          case AI_TYPE_POINT2:
          if (AiUDataGetPnt2(name, &val.PNT2))
-   	     {
+         {
             valid = true;
             sg->out.RGB.r = val.PNT2.x;
             sg->out.RGB.g = val.PNT2.y;
