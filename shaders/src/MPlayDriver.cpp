@@ -87,7 +87,7 @@ void openPipeCommand(DriverData* ctx)
 
 #ifdef _WIN32
     AiMsgDebug("[mplay_driver] Spawning process : %s from directory : %s", "imdisplay -f -n Arnold -k -p", HB);
-    ctx->fp = 0;
+    ctx->fp = 1;
 
     SECURITY_ATTRIBUTES sa_attrs;
     sa_attrs.nLength = sizeof(SECURITY_ATTRIBUTES); 
@@ -96,38 +96,50 @@ void openPipeCommand(DriverData* ctx)
     ctx->read_pipe = NULL;
     ctx->write_pipe = NULL;
 
-    if (CreatePipe(&ctx->read_pipe, &ctx->write_pipe, &sa_attrs, 0))
-        AiMsgWarning("[mplay_driver] Error creating the pipes for the process, error code : %i", GetLastError());
-
-    if (SetHandleInformation(&ctx->write_pipe, HANDLE_FLAG_INHERIT, 0))
-        AiMsgWarning("[mplay_driver] Error setting the write pipe's handle information, error code : %i", GetLastError());
-
-    STARTUPINFO start_info;
-    ZeroMemory(&ctx->process_information, sizeof(PROCESS_INFORMATION));
-    ZeroMemory(&start_info, sizeof(STARTUPINFO));
-
-    start_info.cb = sizeof(STARTUPINFO);
-
-    BOOL success = CreateProcess(
-            NULL,
-            "imdisplay -f -n Arnold -k -p",
-            NULL,
-            NULL,
-            FALSE,
-            0,
-            NULL,
-            HB,
-            &start_info,
-            &ctx->process_information
-        );
-
-    if (success == TRUE)
-        ctx->fp = 1;
-    else
+    if (!CreatePipe(&ctx->read_pipe, &ctx->write_pipe, &sa_attrs, 0))
     {
-        DWORD lastError = GetLastError();
-        AiMsgWarning("[mplay_driver] Error spawning the windows process, code : %i", lastError);
+        ctx->fp = 0;
+        AiMsgWarning("[mplay_driver] Error creating the pipes for the process, error code : %i", GetLastError());
     }
+
+    if ((ctx->fp != 0) && !SetHandleInformation(ctx->write_pipe, HANDLE_FLAG_INHERIT, 0))
+    {
+        ctx->fp = 0;
+        AiMsgWarning("[mplay_driver] Error setting the write pipe's handle information, error code : %i", GetLastError());
+    }
+    
+    if (ctx->fp == 1)
+    {
+        STARTUPINFO start_info;
+        ZeroMemory(&ctx->process_information, sizeof(PROCESS_INFORMATION));
+        ZeroMemory(&start_info, sizeof(STARTUPINFO));
+
+        start_info.hStdInput = ctx->read_pipe;
+        start_info.dwFlags |= STARTF_USESTDHANDLES;
+        start_info.cb = sizeof(STARTUPINFO);
+        start_info.wShowWindow = SW_HIDE;
+
+        BOOL success = CreateProcess(
+                NULL,
+                "imdisplay.exe -f -n Arnold -k -p",
+                NULL,
+                NULL,
+                TRUE,
+                CREATE_NO_WINDOW,
+                NULL,
+                HB,
+                &start_info,
+                &ctx->process_information
+            );
+
+        if (success != TRUE)
+        {
+            ctx->fp = 0;
+            DWORD lastError = GetLastError();
+            AiMsgWarning("[mplay_driver] Error spawning the windows process, code : %i", lastError);
+        }
+    }
+   
 #else
     AiMsgDebug("[mplay_driver] Launching pipe command: %s", cmd.str().c_str());
 
@@ -143,7 +155,15 @@ void openPipeCommand(DriverData* ctx)
 bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData* ctx)
 {
 #ifdef _WIN32
-    return false;
+    DWORD bytesToWrite = static_cast<DWORD>(elem_size * elem_count);
+    DWORD bytesWritten;
+    if (WriteFile(ctx->write_pipe, data, bytesToWrite, &bytesWritten, 0) == TRUE)
+        return true;
+    else
+    {
+        AiMsgWarning("[mplay_driver] Error writing to pipe, error code : %i", GetLastError());
+        return false;
+    }
 #else
     return fwrite(data, elem_size, elem_count, ctx->fp) != elem_count;
 #endif
@@ -174,7 +194,7 @@ void writeBucket(DriverData* ctx, int index, int x0, int x1, int y0, int y1,
     bucket_header[3] = 0;
 
     // write plane index
-    if (writeData(bucket_header, sizeof(int), 4, ctx))
+    if (!writeData(bucket_header, sizeof(int), 4, ctx))
         AiMsgWarning("[mplay_driver] Unable to write plane definition");
 
     // fill out the tile header
@@ -185,11 +205,11 @@ void writeBucket(DriverData* ctx, int index, int x0, int x1, int y0, int y1,
     size_t npixels = (x1 - x0 + 1) * (y1 - y0 + 1);
 
     // write header
-    if (writeData(bucket_header, sizeof(int), 4, ctx))
+    if (!writeData(bucket_header, sizeof(int), 4, ctx))
         AiMsgWarning("[mplay_driver] Error writing bucket: %d %d %d %d\n", x0, x1, y0, y1);
 
     // write data
-    if (writeData(pixels, pixel_size * sizeof(float), npixels, ctx))
+    if (!writeData(pixels, pixel_size * sizeof(float), npixels, ctx))
         AiMsgWarning("[mplay_driver] Error writing data: %d %d %d %d\n", x0, x1, y0, y1);
 
     flushData(ctx);
@@ -214,7 +234,7 @@ void writeImageHeader(DriverData* ctx)
 
     AiMsgDebug("[mplay_driver] Header: %d x %d x %lu", xres, yres, ctx->outputs.size());
 
-    if (writeData(header, sizeof(int), 8, ctx))
+    if (!writeData(header, sizeof(int), 8, ctx))
         AiMsgWarning("[mplay_driver] Unable to write header");
 
     // write plane definitions
@@ -228,10 +248,10 @@ void writeImageHeader(DriverData* ctx)
         plane_def[2] = 0;                                           // always float for Arnold
         plane_def[3] = ctx->outputs[i].array_size;                  // Array size of the data
 
-        if (writeData(plane_def, sizeof(int), 8, ctx))
+        if (!writeData(plane_def, sizeof(int), 8, ctx))
             AiMsgWarning("[mplay_driver] Unable to write plane definition");
 
-        if (writeData(ctx->outputs[i].name.c_str(), sizeof(char), name_length, ctx))
+        if (!writeData(ctx->outputs[i].name.c_str(), sizeof(char), name_length, ctx))
             AiMsgWarning("[mplay_driver] Unable to write plane name");
     }
 
@@ -256,13 +276,18 @@ void writeEndOfImage(DriverData* ctx)
     bucket_header[3] = 0;
 
     // write plane index
-    if (writeData(bucket_header, sizeof(int), 4, ctx))
+    if (!writeData(bucket_header, sizeof(int), 4, ctx))
         AiMsgWarning("[mplay_driver] Unable to write end of image");
     else
         AiMsgDebug("[mplay_driver] Write end of image");
 
     flushData(ctx);
 #ifdef _WIN32
+    CloseHandle(ctx->write_pipe);
+    CloseHandle(ctx->read_pipe);
+    TerminateProcess(ctx->process_information.hProcess, 0);
+    CloseHandle(ctx->process_information.hProcess);
+    CloseHandle(ctx->process_information.hThread);
 #else
     pclose(ctx->fp);
 #endif
