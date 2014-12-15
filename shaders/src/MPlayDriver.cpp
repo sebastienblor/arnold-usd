@@ -152,12 +152,22 @@ void openPipeCommand(DriverData* ctx)
         AiMsgWarning("[mplay_driver] Could not open Houdini pipe command");
 }
 
+#ifdef _WIN32
+
+void writeCompletionCallback(DWORD dwErrorCode, DWORD dwNumberOfBytesTransferred, LPOVERLAPPED lpOverlapped)
+{
+    free(lpOverlapped);
+}
+
+#endif
+
 bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData* ctx)
 {
 #ifdef _WIN32
     DWORD bytesToWrite = static_cast<DWORD>(elem_size * elem_count);
-    DWORD bytesWritten;
-    if (WriteFile(ctx->write_pipe, data, bytesToWrite, &bytesWritten, 0) == TRUE)
+    LPOVERLAPPED pOverlapped = reinterpret_cast<LPOVERLAPPED>(malloc(sizeof(OVERLAPPED)));
+    ZeroMemory(pOverlapped, sizeof(OVERLAPPED));
+    if (WriteFileEx(ctx->write_pipe, data, bytesToWrite, pOverlapped, writeCompletionCallback) == TRUE)
         return true;
     else
     {
@@ -172,8 +182,8 @@ bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData
 void flushData(DriverData* ctx)
 {
 #ifdef _WIN32
-    if (FlushFileBuffers(ctx->write_pipe) != TRUE)
-        AiMSgWarning("Error flushing the write pipe, error code : %i", GetLastError());
+    //if (FlushFileBuffers(ctx->write_pipe) != TRUE)
+    //    AiMsgWarning("Error flushing the write pipe, error code : %i", GetLastError());
 #else
     fflush(ctx->fp);
 #endif
