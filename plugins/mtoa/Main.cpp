@@ -23,6 +23,7 @@
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
 #include "commands/ArnoldFlushCmd.h"
+#include "commands/ArnoldAIRCmd.h"
 
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
@@ -105,7 +106,8 @@ namespace // <anonymous>
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
-      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax}
+      {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
+      {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax}
    };
 
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/areaLight";
