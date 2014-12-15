@@ -172,6 +172,8 @@ bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData
 void flushData(DriverData* ctx)
 {
 #ifdef _WIN32
+    if (FlushFileBuffers(ctx->write_pipe) != TRUE)
+        AiMSgWarning("Error flushing the write pipe, error code : %i", GetLastError());
 #else
     fflush(ctx->fp);
 #endif
