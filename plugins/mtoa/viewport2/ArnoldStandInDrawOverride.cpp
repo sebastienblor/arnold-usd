@@ -112,7 +112,9 @@ struct SArnoldStandInUserData : public MUserData{
     float m_scale[4];
     float m_offset[4];
     
-    SArnoldStandInUserData(const MDagPath& objPath) : MUserData(true)
+    SArnoldStandInUserData() : MUserData(false) {}
+
+    void Update(const MDagPath& objPath)
     {
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
@@ -158,7 +160,13 @@ MUserData* CArnoldStandInDrawOverride::prepareForDraw(
 {
     initializeGPUResources();
     if (s_isValid)
-        return new SArnoldStandInUserData(objPath);
+    {
+        SArnoldStandInUserData* data = reinterpret_cast<SArnoldStandInUserData*>(oldData);
+        if (!data)
+            data = new SArnoldStandInUserData();
+        data->Update(objPath);
+        return data;
+    }
     else return 0;
 }
 
