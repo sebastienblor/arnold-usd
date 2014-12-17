@@ -185,6 +185,40 @@ def createArnoldMenu():
                     
         pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
                     c=lambda *args: arnoldLightManager())
+
+        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
+                    subMenu=True, tearOff=True)
+
+        pm.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Arnold+for+Maya+User+Guide'))
+
+        pm.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/mayatut/Arnold+for+Maya+Tutorials'))
+
+        pm.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMV/Arnold+for+Maya+Videos'))
+
+        pm.menuItem(divider=1, parent='ArnoldHelpMenu')
+
+        pm.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
+
+        pm.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://subscribe.solidangle.com'))
+
+        pm.menuItem('ArnoldAsk', label='Knowledge Base', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://ask.solidangle.com'))
+
+        pm.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
+
+        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+
+        pm.menuItem(divider=1, parent='ArnoldHelpMenu')
+
+        pm.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
