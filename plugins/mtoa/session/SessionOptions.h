@@ -96,6 +96,7 @@ private:
                         m_motion(CMotionBlurOptions()),
                         m_origin(0.0, 0.0, 0.0),
                         m_frame(0.0),
+                        m_scaleFactor(1.0),
                         m_mode(MTOA_SESSION_UNDEFINED),
                         m_lightlink(MTOA_LIGHTLINK_NONE),
                         m_shadowlink(MTOA_SHADOWLINK_NONE),                        
