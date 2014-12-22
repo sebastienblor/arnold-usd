@@ -1208,6 +1208,12 @@
     maya.name               STRING  "aiImage"
     maya.id                 INT     0x00115D17
     maya.classification     STRING  "texture"
+    [attr multiply]
+        linkable            BOOL    True
+        maya.channelbox     BOOL    True
+    [attr offset]
+        linkable            BOOL    True
+        maya.channelbox     BOOL    True
 
 [node motion_vector]
     desc                    STRING  "Motion vectors"
@@ -1384,6 +1390,7 @@
     [attr turbidity]
         softmin             FLOAT   1
         softmax             FLOAT   10
+        linkable            BOOL    True
     [attr elevation]
         softmin             FLOAT   0.0
         softmax             FLOAT   90.0
@@ -1395,9 +1402,20 @@
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
+        linkable            BOOL    True
     [attr sun_size]
         softmin             FLOAT   0.1
         softmax             FLOAT   5.0
+        linkable            BOOL    True
+    [attr sun_tint]
+        linkable            BOOL    True
+        maya.channelbox     BOOL    True
+    [attr sky_tint]
+        linkable            BOOL    True
+        maya.channelbox     BOOL    True
+    [attr ground_albedo]
+        linkable            BOOL    True
+        maya.channelbox     BOOL    True
         
 [node density]
     desc                    STRING  "Density"
