@@ -65,7 +65,3 @@
     aov.type                INT     0x05
     [attr aov_sss]
     aov.type                INT     0x05
-
-[node meshLightMaterial]
-    [attr aov_meshlight_beauty]
-        aov.type            INT     0x05

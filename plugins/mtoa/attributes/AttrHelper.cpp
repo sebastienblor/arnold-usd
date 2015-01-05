@@ -174,6 +174,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          case AI_TYPE_ENUM:
          case AI_TYPE_NONE:
          case AI_TYPE_NODE:
+         case AI_TYPE_ARRAY:
          {
             // not supported by arrays
             break;

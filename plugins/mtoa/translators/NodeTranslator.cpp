@@ -1261,7 +1261,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
          aname += 8;
       }
       else
-         AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_!");
+         AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_ for attribute: %s!", name.asChar());
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          continue;
 

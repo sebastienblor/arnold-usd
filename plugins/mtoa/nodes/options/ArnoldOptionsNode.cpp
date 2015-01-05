@@ -609,6 +609,7 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Centimeter", 7);
    eAttr.addField("Kilometer", 8);
    eAttr.addField("Meter", 9);
+   eAttr.setDefault(0);
    addAttribute(s_render_unit);
 
    s_scene_scale = nAttr.create("sceneScale", "scene_scale", MFnNumericData::kDouble);

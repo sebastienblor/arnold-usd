@@ -19,8 +19,6 @@
 #include <maya/MImage.h>
 #include <maya/MAnimControl.h>
 
-#include <tbb/tick_count.h>
-
 #include <time.h>
 time_t s_start_time;
 
@@ -814,9 +812,43 @@ bool ProcessUpdateMessage()
    return false;
 }
 
+/* http://stackoverflow.com/questions/1861294/how-to-calculate-execution-time-of-a-code-snippet-in-c */
+
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <sys/time.h>
+#include <ctime>
+#endif
+
+AtUInt64 GetTimeMs()
+{
+#ifdef _WIN32
+   FILETIME ft;
+   LARGE_INTEGER li;
+
+   GetSystemTimeAsFileTime(&ft);
+   li.LowPart = ft.dwLowDateTime;
+   li.HighPart = ft.dwHighDateTime;
+
+   AtUInt64 ret = li.QuadPart;
+   ret -= 116444736000000000LL;
+   ret /= 10000;
+
+   return ret;
+#else
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   AtUInt64 ret = tv.tv_usec;
+   ret /= 1000;
+   ret += (tv.tv_sec * 1000);
+   return ret;
+#endif
+}
+
 void TransferTilesToRenderView()
 {
-   static tbb::tick_count past = tbb::tick_count::now(); // this will probably enforce a refresh at the first time... but not a big problem
+   static AtUInt64 past = GetTimeMs();
    unsigned int i = 0;
    while (true)
    {
@@ -824,9 +856,10 @@ void TransferTilesToRenderView()
       if (!ProcessUpdateMessage())
          break;
    }
-   tbb::tick_count now = tbb::tick_count::now();
-   const double seconds = (now - past).seconds();
-   if ((seconds > 1.0 / FPS) || (seconds < 0.0)) // second check just to be sure
+
+   const AtUInt64 now = GetTimeMs();
+   const AtUInt64 mseconds = now - past;
+   if ((mseconds > 1000 / FPS) || (mseconds == 0)) // second check just to be sure
    {
       past = now;
       RefreshRenderViewBBox();

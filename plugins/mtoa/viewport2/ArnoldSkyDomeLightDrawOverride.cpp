@@ -122,7 +122,9 @@ struct SArnoldSkyDomeLightUserData : public MUserData{
     // 1 - Angular
     // 2 - LatLong
     // 3 - Cubic
-    SArnoldSkyDomeLightUserData(const MDagPath& objPath) : MUserData(true)
+    SArnoldSkyDomeLightUserData() : MUserData(false) { }
+    
+    void update(const MDagPath& objPath)
     {
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
@@ -163,7 +165,13 @@ MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
 {
     initializeGPUResources();
     if (s_isValid)
-        return new SArnoldSkyDomeLightUserData(objPath);
+    {
+        SArnoldSkyDomeLightUserData* data = reinterpret_cast<SArnoldSkyDomeLightUserData*>(oldData);
+        if (!data)
+            data = new SArnoldSkyDomeLightUserData();
+        data->update(objPath);
+        return data;
+    }
     else
         return 0;
 }

@@ -908,7 +908,7 @@ MStringArray CExtension::FindLibraries(const MString &path,
       if ((dp  = opendir(dir.asChar())) == NULL)
       {
          // TODO: print more explicit error message than just errno
-         AiMsgError("[mtoa] Error opening %s.", dir.asChar());
+         AiMsgWarning("[mtoa] Error opening %s.", dir.asChar());
          status = MStatus::kFailure;
          continue;
       }
