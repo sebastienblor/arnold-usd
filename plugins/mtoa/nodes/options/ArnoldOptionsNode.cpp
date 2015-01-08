@@ -198,8 +198,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_threads = nAttr.create("threads", "thrds", MFnNumericData::kInt, 1);
    nAttr.setKeyable(false);
    nAttr.setMin(1);
-   nAttr.setSoftMin(1);
-   nAttr.setSoftMax(64);
+   nAttr.setMax(AI_MAX_THREADS);
    addAttribute(s_threads);
 
    s_bucket_scanning = eAttr.create("bucketScanning", "bktsc");
