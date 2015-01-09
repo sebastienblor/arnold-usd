@@ -899,7 +899,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
    AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
    AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
     AiNodeSetStr( nodeCurves, "basis", "b-spline" );
-    //AiNodeSetInt( nodeCurves, "max_subdivs", 1000 );
     AiNodeSetArray( nodeCurves, "num_points", num_points );
     AiNodeSetArray( nodeCurves, "points", points );
    AiNodeSetArray( nodeCurves, "radius", radius );

@@ -344,7 +344,7 @@ if env['COMPILER'] == 'gcc':
     ## Hardcode '.' directory in RPATH in linux
     if system.os() == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
-        env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
+        #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
     ## warning level
     if env['WARN_LEVEL'] == 'none':
@@ -591,9 +591,9 @@ else:
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
         else:
-              cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
+            cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
          
-        if cmd :
+        if cmd:
             p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
             retcode = p.wait()
 

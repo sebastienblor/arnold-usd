@@ -104,5 +104,7 @@ if system.os() == 'darwin':
     local_env.Append(CPPDEFINES = Split('DARWIN'))
     local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
     local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
+elif system.os() == 'linux':
+    local_env.Append(RPATH = local_env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
 Return('MTOA')
