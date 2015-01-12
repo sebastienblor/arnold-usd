@@ -36,6 +36,98 @@ using namespace std;
 
 static bool s_bCleanDescriptionCache = true;
 
+
+static void AiParamArrayConcatenate(AtNode **nodes, size_t num, const char *name)
+{
+   AtArray *first_array = AiNodeGetArray(nodes[0], name);
+
+   // if first array is NULL then assume all are NULL, so nothing to be done.
+   if (first_array == NULL)
+      return;
+
+   // count total number of elements
+   AtUInt32 nelements = 0;
+
+   for (size_t i = 0; i < num; i++)
+   {
+      AtArray *array = AiNodeGetArray(nodes[i], name);
+      nelements += array->nelements;
+   }
+
+   // create new array
+   AtArray *concat_array = AiArrayAllocate(nelements, first_array->nkeys, first_array->type);
+   char *concat_array_data = (char *)concat_array->data;
+
+   size_t type_size = AiParamGetTypeSize(first_array->type);
+   size_t key_size = nelements * type_size;
+   size_t elements_offset = 0;
+
+   for (size_t i = 0; i < num; i++)
+   {
+      AtArray *array = AiNodeGetArray(nodes[i], name);
+      char *array_data = (char *)array->data;
+
+      // copy array data into concatenated array data
+      size_t elements_size = type_size * array->nelements;
+
+      for (int k = 0; k < array->nkeys; k++)
+      {
+         memcpy(concat_array_data + k *key_size + elements_offset, array_data, elements_size);
+
+         // clear memory so we don't double free array of arrays
+         if (first_array->type == AI_TYPE_ARRAY)
+            memset(array_data + k * array->nelements * type_size, 0, elements_size);
+
+         elements_offset += elements_size;
+      }
+   }
+
+   // set new array in first node
+   AiNodeSetArray(nodes[0], name, concat_array);
+}
+
+static void AiCurvesMerge(AtNode **nodes, size_t num)
+{
+   // this assumes "num_points" is per curve in all nodes, and "radius" is per
+   // curve or per point in all nodes. if either of them is per node (so there
+   // is an array of size 1), then the AiParamArrayConcatenate for that parameter
+   // can be left out.
+   if (num <= 1)
+      return;
+
+   // concatenate arrays in built-in parameters into first node
+   AiParamArrayConcatenate(nodes, num, "num_points");
+   AiParamArrayConcatenate(nodes, num, "radius");
+   AiParamArrayConcatenate(nodes, num, "points");
+   AiParamArrayConcatenate(nodes, num, "orientations");
+
+   // concatenate arrays in non-constant user parameters into first node
+   AtUserParamIterator *iter = AiNodeGetUserParamIterator(nodes[0]);
+   while (!AiUserParamIteratorFinished(iter))
+   {
+      const AtUserParamEntry* upentry = AiUserParamIteratorGetNext(iter);
+      if (AiUserParamGetCategory(upentry) != AI_USERDEF_CONSTANT)
+         AiParamArrayConcatenate(nodes, num, AiUserParamGetName(upentry));
+   }
+
+   // destroy all nodes except first
+   /*for (size_t i = 1; i < num; i++)
+      AiNodeDestroy(nodes[i]);*/
+
+   for (size_t i = 1; i < num; i++)
+   {
+      AtArray* num_points = AiArrayAllocate( 0, 1, AI_TYPE_UINT );
+      AtArray* points = AiArrayAllocate( 0, 1, AI_TYPE_POINT );
+      AtArray* radius = AiArrayAllocate( 0, 1, AI_TYPE_FLOAT );
+      AtArray* orientations = AiArrayAllocate( 0, 1, AI_TYPE_VECTOR );
+      AiNodeSetArray( nodes[i], "num_points", num_points );
+      AiNodeSetArray( nodes[i], "radius", radius );
+      AiNodeSetArray( nodes[i], "points", points );
+      AiNodeSetArray( nodes[i], "orientations", orientations );
+   }
+}
+
+
 class XgMutex
 {
 public:
@@ -86,6 +178,7 @@ Procedural::Procedural()
 , m_sphere( NULL )
 , m_shaders( NULL )
 , m_patch( NULL )
+, m_curve_nodes ( false )
 {
    //m_mutex = new XgMutex();
 }
@@ -162,6 +255,7 @@ int Procedural::Init(AtNode* node)
 
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
+   m_curve_nodes = false;
 
    // Cleanup Init
    if( parameters == "cleanup" )
@@ -268,6 +362,19 @@ int Procedural::Init(AtNode* node)
     if( m_faces.size()!=0 )
     {
        render();
+    }
+
+    if(m_curve_nodes == true)
+    {
+      if (m_nodes.size() > 2)
+      {
+         AtNode* tmp1 = m_nodes[0];
+         AtNode* tmp2 = m_nodes[1];
+         AiCurvesMerge(&m_nodes[1], m_nodes.size()-1);
+         m_nodes.clear();
+         m_nodes.push_back(tmp1);
+         m_nodes.push_back(tmp2);
+      }
     }
 
    return 1;
@@ -808,6 +915,7 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
+    m_curve_nodes = true;
     bool bFaceCamera = pc->get( PC(FaceCamera) );
     int mode = AiNodeGetInt( m_node, "ai_mode" );
 
