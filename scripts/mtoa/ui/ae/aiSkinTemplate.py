@@ -30,11 +30,6 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl('aiMatteColor', label='Matte Color')
         self.addControl('aiMatteColorA', label='Matte Opacity')
         self.endLayout()
-
-        self.beginLayout('Transparency', collapse=True)
-        self.addControl('transparency', label='Weight')
-        self.addControl('transparency_color', label='Color')
-        self.endLayout()
         
         self.beginLayout('SSS', collapse=False)
         self.addControl('sss_weight', label='SSS Weight')
@@ -72,6 +67,11 @@ class AEaiSkinTemplate(ShaderAETemplate):
         self.addControl('sheen_weight', label='Weight')
         self.addControl('sheen_roughness', label='Roughness')
         self.addControl('sheen_ior', label='IOR')
+        self.endLayout()
+        
+        self.beginLayout('Opacity', collapse=True)
+        self.addControl('opacity', label='Weight')
+        self.addControl('opacity_color', label='Color')
         self.endLayout()
         
         self.beginLayout('Advanced', collapse=True)
