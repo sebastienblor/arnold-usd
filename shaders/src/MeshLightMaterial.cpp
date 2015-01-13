@@ -27,7 +27,7 @@ node_initialize
 
 node_update
 {
-   AiAOVRegister("meshlight_beauty", AI_TYPE_RGB, AI_AOV_BLEND_NONE);
+   AiAOVRegister("mesh_light_beauty", AI_TYPE_RGB, AI_AOV_BLEND_NONE);
 }
 
 node_finish
@@ -53,5 +53,5 @@ shader_evaluate
    sg->out.RGBA.a = 1.f;
 
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetRGB(sg, "meshlight_beauty", sg->out.RGB); // we should check if this aov exists, could be done in node_update
+      AiAOVSetRGB(sg, "mesh_light_beauty", sg->out.RGB); // we should check if this aov exists, could be done in node_update
 }

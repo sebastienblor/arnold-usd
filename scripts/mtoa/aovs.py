@@ -16,7 +16,7 @@ BUILTIN_AOVS = (
                 ('cputime',             'float'),
                 ('beauty',              'rgba'),
                 ('ID',                  'int'),
-                ('meshlight_beauty',    'rgb'),
+                ('mesh_light_beauty',    'rgb'),
 #                ('A',       'float'),
 #                ('OBJECT',  'node'),
 #                ('SHADER',  'node'),
