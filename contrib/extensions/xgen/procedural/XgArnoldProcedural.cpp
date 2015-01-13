@@ -37,95 +37,80 @@ using namespace std;
 static bool s_bCleanDescriptionCache = true;
 
 
-static void AiParamArrayConcatenate(AtNode **nodes, size_t num, const char *name)
+struct XgMergedData
 {
-   AtArray *first_array = AiNodeGetArray(nodes[0], name);
-
-   // if first array is NULL then assume all are NULL, so nothing to be done.
-   if (first_array == NULL)
-      return;
-
-   // count total number of elements
-   AtUInt32 nelements = 0;
-
-   for (size_t i = 0; i < num; i++)
+   struct Data
    {
-      AtArray *array = AiNodeGetArray(nodes[i], name);
-      nelements += array->nelements;
+      std::string name;
+      std::vector<AtArray*> arrays;
+   };
+   std::vector<Data> data;
+
+   XgMergedData() {}
+
+   ~XgMergedData()
+   {
+      for (size_t i = 0; i < data.size(); i++)
+         for (size_t j = 0; j < data[i].arrays.size(); j++)
+            AiArrayDestroy(data[i].arrays[j]);
    }
 
-   // create new array
-   AtArray *concat_array = AiArrayAllocate(nelements, first_array->nkeys, first_array->type);
-   char *concat_array_data = (char *)concat_array->data;
-
-   size_t type_size = AiParamGetTypeSize(first_array->type);
-   size_t key_size = nelements * type_size;
-   size_t elements_offset = 0;
-
-   for (size_t i = 0; i < num; i++)
+   void add_array(const char *name, AtArray *array)
    {
-      AtArray *array = AiNodeGetArray(nodes[i], name);
-      char *array_data = (char *)array->data;
+      for (size_t i = 0; i < data.size(); i++)
+         if (data[i].name == name)
+            return data[i].arrays.push_back(array);
 
-      // copy array data into concatenated array data
-      size_t elements_size = type_size * array->nelements;
+      Data udata;
+      udata.name = name;
+      udata.arrays.push_back(array);
+      data.push_back(udata);
+   }
 
-      for (int k = 0; k < array->nkeys; k++)
+   void merge_into_node(AtNode *node)
+   {
+      for (size_t i = 0; i < data.size(); i++)
+         merge_arrays(node, data[i].name.c_str(), data[i].arrays);
+   }
+
+   void merge_arrays(AtNode *node, const char *name, std::vector<AtArray*>& arrays)
+   {
+      // count total number of elements
+      AtUInt32 nelements = 0;
+      for (size_t i = 0; i < arrays.size(); i++)
       {
-         memcpy(concat_array_data + k *key_size + elements_offset, array_data, elements_size);
-
-         // clear memory so we don't double free array of arrays
-         if (first_array->type == AI_TYPE_ARRAY)
-            memset(array_data + k * array->nelements * type_size, 0, elements_size);
-
-         elements_offset += elements_size;
+         AtArray *array = arrays[i];
+         nelements += array->nelements;
       }
+
+      // create new array
+      AtArray *first_array = arrays[0];
+      AtArray *concat_array = AiArrayAllocate(nelements, first_array->nkeys, first_array->type);
+      char *concat_array_data = (char *)concat_array->data;
+
+      size_t type_size = AiParamGetTypeSize(first_array->type);
+      size_t key_size = nelements * type_size;
+      size_t elements_offset = 0;
+
+      for (size_t i = 0; i < arrays.size(); i++)
+      {
+         AtArray *array = arrays[i];
+         char *array_data = (char *)array->data;
+
+         // copy array data into concatenated array data
+         size_t elements_size = type_size * array->nelements;
+
+         for (int k = 0; k < array->nkeys; k++)
+         {
+            memcpy(concat_array_data + k *key_size + elements_offset, array_data, elements_size);
+            elements_offset += elements_size;
+         }
+      }
+
+      // set new array in first node
+      AiNodeSetArray(node, name, concat_array);
    }
-
-   // set new array in first node
-   AiNodeSetArray(nodes[0], name, concat_array);
-}
-
-static void AiCurvesMerge(AtNode **nodes, size_t num)
-{
-   // this assumes "num_points" is per curve in all nodes, and "radius" is per
-   // curve or per point in all nodes. if either of them is per node (so there
-   // is an array of size 1), then the AiParamArrayConcatenate for that parameter
-   // can be left out.
-   if (num <= 1)
-      return;
-
-   // concatenate arrays in built-in parameters into first node
-   AiParamArrayConcatenate(nodes, num, "num_points");
-   AiParamArrayConcatenate(nodes, num, "radius");
-   AiParamArrayConcatenate(nodes, num, "points");
-   AiParamArrayConcatenate(nodes, num, "orientations");
-
-   // concatenate arrays in non-constant user parameters into first node
-   AtUserParamIterator *iter = AiNodeGetUserParamIterator(nodes[0]);
-   while (!AiUserParamIteratorFinished(iter))
-   {
-      const AtUserParamEntry* upentry = AiUserParamIteratorGetNext(iter);
-      if (AiUserParamGetCategory(upentry) != AI_USERDEF_CONSTANT)
-         AiParamArrayConcatenate(nodes, num, AiUserParamGetName(upentry));
-   }
-
-   // destroy all nodes except first
-   /*for (size_t i = 1; i < num; i++)
-      AiNodeDestroy(nodes[i]);*/
-
-   for (size_t i = 1; i < num; i++)
-   {
-      AtArray* num_points = AiArrayAllocate( 0, 1, AI_TYPE_UINT );
-      AtArray* points = AiArrayAllocate( 0, 1, AI_TYPE_POINT );
-      AtArray* radius = AiArrayAllocate( 0, 1, AI_TYPE_FLOAT );
-      AtArray* orientations = AiArrayAllocate( 0, 1, AI_TYPE_VECTOR );
-      AiNodeSetArray( nodes[i], "num_points", num_points );
-      AiNodeSetArray( nodes[i], "radius", radius );
-      AiNodeSetArray( nodes[i], "points", points );
-      AiNodeSetArray( nodes[i], "orientations", orientations );
-   }
-}
+};
 
 
 class XgMutex
@@ -178,7 +163,7 @@ Procedural::Procedural()
 , m_sphere( NULL )
 , m_shaders( NULL )
 , m_patch( NULL )
-, m_curve_nodes ( false )
+, m_merged_data ( NULL )
 {
    //m_mutex = new XgMutex();
 }
@@ -364,17 +349,11 @@ int Procedural::Init(AtNode* node)
        render();
     }
 
-    if(m_curve_nodes == true)
+    if( m_merged_data )
     {
-      if (m_nodes.size() > 2)
-      {
-         AtNode* tmp1 = m_nodes[0];
-         AtNode* tmp2 = m_nodes[1];
-         AiCurvesMerge(&m_nodes[1], m_nodes.size()-1);
-         m_nodes.clear();
-         m_nodes.push_back(tmp1);
-         m_nodes.push_back(tmp2);
-      }
+       m_merged_data->merge_into_node(m_nodes[1]);
+       delete m_merged_data;
+       m_merged_data = NULL;
     }
 
    return 1;
@@ -915,7 +894,6 @@ void Procedural::flush(  const char* geomName, PrimitiveCache* pc )
  */
 void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 {
-    m_curve_nodes = true;
     bool bFaceCamera = pc->get( PC(FaceCamera) );
     int mode = AiNodeGetInt( m_node, "ai_mode" );
 
@@ -1001,27 +979,38 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
     char buf[512];
 
-    AtNode* nodeCurves = AiNode("curves");
-    string strParentName = AiNodeGetName( m_node_face );
-   string strID = itoa( (int)m_nodes.size() );
-   AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
-   AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
-    AiNodeSetStr( nodeCurves, "basis", "b-spline" );
-    AiNodeSetArray( nodeCurves, "num_points", num_points );
-    AiNodeSetArray( nodeCurves, "points", points );
-   AiNodeSetArray( nodeCurves, "radius", radius );
-   if( orientations ) AiNodeSetArray( nodeCurves, "orientations", orientations );
-   AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+   // Create only one node, all arrays get merged into it at the end
+   if ( !m_merged_data )
+   {
+      m_merged_data = new XgMergedData();
 
+      AtNode* nodeCurves = AiNode("curves");
+      string strParentName = AiNodeGetName( m_node_face );
+      string strID = itoa( (int)m_nodes.size() );
+      AiNodeSetStr( nodeCurves, "name", getUniqueName(buf,( strParentName + string("_curves_") + strID).c_str()) );
+      AiNodeSetStr( nodeCurves, "mode", (mode == 1? "thick" :( bFaceCamera ? "ribbon" : "oriented")));
+      AiNodeSetStr( nodeCurves, "basis", "b-spline" );
+      AiNodeSetArray( nodeCurves, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
 
-   float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
-   AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
+      float min_pixel_width = AiNodeGetFlt( m_node, "ai_min_pixel_width" );
+      AiNodeSetFlt( nodeCurves, "min_pixel_width", min_pixel_width );
 
-   // Add custom renderer parameters.
-   pushCustomParams( nodeCurves, pc );
+      // Add custom renderer parameters.
+      pushCustomParams( nodeCurves, pc );
 
-   // Keep our new nodes.
-   m_nodes.push_back( nodeCurves );
+      // Keep our new nodes.
+      m_nodes.push_back( nodeCurves );
+   }
+   else
+   {
+      // Add custom renderer uniform parameters to m_merged_data
+      pushCustomParams( NULL, pc );
+   }
+
+   m_merged_data->add_array( "num_points", num_points );
+   m_merged_data->add_array( "points", points );
+   m_merged_data->add_array( "radius", radius );
+   if( orientations ) m_merged_data->add_array( "orientations", orientations );
 }
 
 /**
@@ -1306,31 +1295,41 @@ void Procedural::pushCustomParams( AtNode* in_node, PrimitiveCache* pc , unsigne
             string fixedAttrName = attrName.substr( e.m_xgen.size() );
             unsigned int fixAttrCount = (unsigned int)(attrCount/e.m_components);
 
-            AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
+            // if in_node is NULL it means we are merging multiple nodes into
+            // one and we do not need to declare the same attribute again
+            if ( in_node )
+               AiNodeDeclare( in_node, fixedAttrName.c_str(), e.m_arnold.c_str() );
+
             if(e.m_constant) //constant attribute
             {
-               unsigned int offset = (unsigned int)(cacheCount*e.m_components);
-               switch(e.m_type)
+               if ( in_node )
                {
-                  case AI_TYPE_FLOAT:
-                     AiNodeSetFlt( in_node, fixedAttrName.c_str(), attrValue[offset]);
-                     break;
-                  case AI_TYPE_RGB:
-                     AiNodeSetRGB( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
-                     break;
-                  case AI_TYPE_VECTOR:
-                     AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
-                     break;
-                  case AI_TYPE_POINT:
-                     AiNodeSetPnt( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
-                     break;
+                  unsigned int offset = (unsigned int)(cacheCount*e.m_components);
+                  switch(e.m_type)
+                  {
+                     case AI_TYPE_FLOAT:
+                        AiNodeSetFlt( in_node, fixedAttrName.c_str(), attrValue[offset]);
+                        break;
+                     case AI_TYPE_RGB:
+                        AiNodeSetRGB( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                        break;
+                     case AI_TYPE_VECTOR:
+                        AiNodeSetVec( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                        break;
+                     case AI_TYPE_POINT:
+                        AiNodeSetPnt( in_node, fixedAttrName.c_str(), attrValue[offset+ 0], attrValue[offset+1], attrValue[offset+2] );
+                        break;
+                  }
                }
             }
             else // uniform attribute
             {
                AtArray* a = AiArrayAllocate( fixAttrCount, 1, e.m_type );
                memcpy( a->data, attrValue, e.m_sizeOf*fixAttrCount );
-               AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
+               if ( m_merged_data )
+                  m_merged_data->add_array( fixedAttrName.c_str(), a );
+               else
+                  AiNodeSetArray( in_node, fixedAttrName.c_str(), a );
             }
             break;
          }

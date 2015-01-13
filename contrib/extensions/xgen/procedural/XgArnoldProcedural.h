@@ -23,6 +23,7 @@ using namespace XGenRenderAPI;
 // Forward Decl
 struct AtNode;
 struct AtArray;
+struct XgMergedData;
 class XgMutex;
 
 namespace XGenArnold
@@ -93,7 +94,7 @@ namespace XGenArnold
       std::vector<FaceRenderer*> m_faces;
 
       std::vector<AtNode*> m_nodes;
-      bool m_curve_nodes;
+      XgMergedData *m_merged_data;
 
       mutable std::map<std::string, bbox> m_bboxes;
       
