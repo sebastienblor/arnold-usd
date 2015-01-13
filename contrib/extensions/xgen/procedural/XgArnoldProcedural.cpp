@@ -240,7 +240,6 @@ int Procedural::Init(AtNode* node)
 
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
-   m_curve_nodes = false;
 
    // Cleanup Init
    if( parameters == "cleanup" )
