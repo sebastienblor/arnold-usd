@@ -69,13 +69,15 @@ protected:
    virtual void WriteOutParticle(AtNode* particle);
    virtual bool IsCached();
 
-   virtual void GatherStandardPPData(MVectorArray*   positionArray ,
+   virtual void GatherStandardPPData(MTime           curTime,
+                                     MVectorArray*   positionArray ,
                                      MDoubleArray*   radiusArray ,
                                      MDoubleArray*   spriteScaleXPP ,
                                      MDoubleArray*   spriteScaleYPP ,
                                      MVectorArray*   rgbArray ,
                                      MDoubleArray*   opacityArray,
                                      MVectorArray    &velocityArray,
+                                     MVectorArray    &accelerationArray,
                                      MIntArray        &particleId);
 
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
@@ -120,6 +122,7 @@ protected:
 
 
    MVectorArray m_instantVeloArray;
+   MVectorArray m_instantAcceArray;
    MFnDagNode m_DagNode;
    MFnParticleSystem m_fnParticleSystem;
    int m_particleCount;

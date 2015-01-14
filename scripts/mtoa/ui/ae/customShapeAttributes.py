@@ -23,6 +23,7 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
+        self.addControl("aiInterpolateOffset", label="Interpolate Offset")
         self.addSeparator()
         self.addControl('aiStepSize', label="Volume Step Size")
         self.addSeparator()
