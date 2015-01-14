@@ -303,7 +303,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
-   AtArray* vlist = AiArrayAllocate(m_numVertices, steps, AI_TYPE_POINT);
+   AtArray* vlist = AiArrayAllocate(m_numVertices, IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? steps : 1, AI_TYPE_POINT);
    for (int i = 0; i < m_numVertices; ++i)
       AiArraySetVec(vlist, i, vertices[i]);
 
