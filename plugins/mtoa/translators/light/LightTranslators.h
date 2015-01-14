@@ -116,10 +116,12 @@ class CPhotometricLightTranslator : public CLightTranslator
 public:
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
+
    static void* creator()
    {
       return new CPhotometricLightTranslator();
    }
+
    AtNode* CreateArnoldNodes()
    {
       return AddArnoldNode("photometric_light");
@@ -132,12 +134,14 @@ public:
    CMeshLightTranslator() : m_numVertices(0)
    {
    }
+
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
       return new CMeshLightTranslator();
    }
+
    AtNode* CreateArnoldNodes()
    {
       AddArnoldNode("polymesh", "mesh");
