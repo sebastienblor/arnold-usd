@@ -1,5 +1,6 @@
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
+#include "nodes/options/ArnoldOptionsNode.h"
 #include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
@@ -1113,7 +1114,7 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
          const int localDrawOverride = plug.asShort();
          if (localDrawOverride == 0) // use global settings
          {
-            MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+            MObject ArnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
             if (!ArnoldRenderOptionsNode.isNull())
                drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
          }

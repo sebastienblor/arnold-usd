@@ -22,6 +22,13 @@ MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
 MCallbackId CArnoldOptionsNode::sId;
 
+/*
+   I'm not exactly happy about this approach but seemingly
+   the lookup of the options node using MSelectionList
+   greatly increases the memory usage.
+*/
+
+MObject CArnoldOptionsNode::s_optionsNode = MObject();
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
@@ -133,6 +140,17 @@ void CArnoldOptionsNode::postConstructor()
    setExistWithoutInConnections(true);
    setExistWithoutOutConnections(true);
    CArnoldOptionsNode::sId = MDGMessage::addNodeAddedCallback(CArnoldOptionsNode::createdCallback, "aiOptions");
+   s_optionsNode = thisMObject();
+}
+
+CArnoldOptionsNode::~CArnoldOptionsNode()
+{
+   s_optionsNode = MObject();
+}
+
+MObject CArnoldOptionsNode::getOptionsNode()
+{
+   return s_optionsNode;
 }
 
 MStatus CArnoldOptionsNode::initialize()
