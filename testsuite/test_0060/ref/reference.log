@@ -1,48 +1,68 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0060\test_0060.log', using stdout instead
+Cannot open log file 'C:\solidangle\mtoa\build\windows_x86_64\201506\msvc_opt\testsuite\test_0060\test_0060.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
-mental ray for Maya 2012 
-mental ray: version 3.9.1.48, Dec  7 2011, revision 162457
-
-Error: TypeError: 'bool' object is not iterable
-00:00:00   238MB WARNING | [mtoa] [<built-in>] [node density] Assigning temporary node id 1138176 to associated Maya type name aiDensity.
-ai.dll loaded from non standard location C:\solidangle\releases\latest-windows\bin
+Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
+Initialized VP2.0 renderer {
+  Version : 5.3.2.800. Feature Level 4.
+  Adapter : NVIDIA GeForce GTX 750
+  Vendor ID: 4318. Device ID : 4993
+  Driver : nvoglv64.dll:9.18.13.4052.
+  API : OpenGL V.2.
+  Max texture size : 16384 * 16384.
+  Max tex coords : 8
+  Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
+  Shader compiler profile : (Best card profile)
+  Active stereo support available : 0
+  GPU Memory Limit : 1024 MB.
+  CPU Memory Limit: 31086.4 MB.
+}
+1 error generated.
+Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
+Error: file: C:/ProgramData/Autodesk/ApplicationPlugins/MayaBonusTools/Contents/scripts-2015/bonusToolsMenu.mel line 1546: UI commands can't be run in batch mode.
+
+----------------------------------------------------------
+Time: 2015/1/16 16:58:59
+----------------------------------------------------------
+
+00:00:00   302MB ERROR   | [mtoa.attr] Unable to create static attribute corresponding to procedural.overrideMatte
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1247
+: (kInvalidParameter): Object already exists
+00:00:00   304MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
+00:00:00   305MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   305MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
+00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
+00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
+00:00:00   307MB WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
+00:00:00   308MB WARNING | [mtoa] [skin_sss] [node skin_sss] Assigning temporary node id 1138176 to associated Maya type name aiSkinSss.
+00:00:00   308MB WARNING | [mtoa] Extension xgenTranslator(C:/solidangle/mtoadeploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+00:00:00   308MB WARNING | [mtoa] Extension pgYetiArnoldMtoa(C:/yeti/plug-ins/pgYetiArnoldMtoa.dll) requires Maya plugin pgYetiMaya, registering will be deferred until plugin is loaded.
+ai.dll loaded from non standard location C:\solidangle\releases\Arnold-4.2.2.0-windows\bin
 
 Successfully imported python module 'arnold'
 Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, mayaHIK, mtoa, ikSpringSolver, Mayatomr, decomposeMatrix, tiffFloatReader, shaveNode, VectorRender, studioImport, mayaCharacterization, rotateHelper, MayaMuscle, Substance, OneClick, fbxmaya, stereoCamera, ik2Bsolver
-Maya 2012 importing module pymel 1.0.3 (C:\Program Files\Autodesk\Maya2012\Python\lib\site-packages\pymel\__init__.pyc)
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEbump2dTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEbump2dTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEdisplacementShaderTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEdisplacementShaderTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEfileTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEfileTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEobjectSetTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEobjectSetTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEprojectionTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEprojectionTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\AEshadingEngineTemplate.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/AETemplates/AEshadingEngineTemplate.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/startup/buildShaderMenus.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/hyperShadePanel.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Maya 2012 sourcing MEL override C:\solidangle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-Warning: Overriding failed: Maya is still using C:/Program Files/Autodesk/Maya2012/scripts/others/renderCreateBarUI.mel
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, VectorRender, AutodeskPacketFile, OpenEXRLoader, Unfold3D, mayaCharacterization, mtoa, modelingToolkit, MayaMuscle, rotateHelper, DirectConnect, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, Substance, shaderFXPlugin, bifrostshellnode, ArubaTessellator, stereoCamera, quatNodes, modelingToolkitStd, fbxmaya
+Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.py)
+Warning: [mtoa] Registering UI for unknown translator "myCamera" for Maya node stereoRigCamera. Valid choices are: "cylindrical", "fisheye", "myCamera2", "orthographic", "perspective", "spherical"
+Warning: [mtoa] Registering UI for unknown translator "myCamera" for Maya node camera. Valid choices are: "cylindrical", "fisheye", "orthographic", "perspective", "spherical"
 Successfully registered renderer 'arnold'
-File read in 1 seconds.
-Warning: particleShape1: No cache file found for this object, runup may be needed. Check your workspace particles directory.
-Warning: You will need to rewind and play to see your particles. We recommend you then save the file with a startup cache.
-Warning: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/201217/msvc_opt/testsuite/test_0060/test.ma
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\201217\msvc_opt\testsuite\test_0060\test.ma completed.
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
+Warning: file: C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0060/test.ma line 206: Specified default value '-7889' is out of the range of minValue and maxValue; defaultValue ignored.
+Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+File read in  2.1 seconds.
+Result: C:/solidangle/mtoa/build/windows_x86_64/201506/msvc_opt/testsuite/test_0060/test.ma
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:5) Node entry does not exist
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:12) Found attribute outside a node
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:15) Node entry does not exist
+00:00:00 WARNING |  [metadata] (C:/solidangle/mtoadeploy/2015/shaders/loader2.mtd:22) Found attribute outside a node
+Scene C:\solidangle\mtoa\build\windows_x86_64\201506\msvc_opt\testsuite\test_0060\test.ma completed.
+
+----------------------------------------------------------
+Time: 2015/1/16 16:59:03
+----------------------------------------------------------
+
