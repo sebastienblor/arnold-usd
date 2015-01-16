@@ -33,4 +33,5 @@ public:
    static void NodeInitializer(CAbTranslator context);
 
    virtual bool IsCached();
+   virtual bool IsNParticle();
 };
