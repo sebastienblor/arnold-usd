@@ -123,18 +123,6 @@ def createArnoldMenu():
     if not pm.about(b=1):
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
 
-        pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
-                    postMenuCommand=lambda *args: populateSelectCamera())
-        pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
-                    c=lambda *args: startRender())
-        pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',
-                    c=lambda *args: startIpr())
-        pm.menuItem('ArnoldRefresh', label='Refresh', parent='ArnoldRender',
-                    c=lambda *args: refreshRender())
-        pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
-                    c=lambda *args: stopRender())
-
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                     c=lambda *args: createStandIn())
@@ -219,6 +207,20 @@ def createArnoldMenu():
 
         pm.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
+
+        pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
+
+        pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
+                    postMenuCommand=lambda *args: populateSelectCamera())
+        pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
+                    c=lambda *args: startRender())
+        pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',
+                    c=lambda *args: startIpr())
+        pm.menuItem('ArnoldRefresh', label='Refresh', parent='ArnoldRender',
+                    c=lambda *args: refreshRender())
+        pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
+                    c=lambda *args: stopRender())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
