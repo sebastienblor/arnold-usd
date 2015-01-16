@@ -99,14 +99,15 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.softMax.FLT = 2.f;
    helper.MakeInputFloat(data);
 
-   data.defaultValue.FLT = 0.f;
-   data.name = "aiInterpolateOffset";
-   data.shortName = "ai_interpolate_offset";
-   data.hasMin = false;
+   data.defaultValue.FLT = 1.f;
+   data.name = "aiEvaluateEvery";
+   data.shortName = "ai_evaluate_every";
+   data.hasMin = true;
    data.hasSoftMin = true;
-   data.softMin.FLT = -1.f;
+   data.min.FLT = 0.0001f;
+   data.softMin.FLT = 0.1f;
    data.hasSoftMax = true;
-   data.softMax.FLT = 1.f;
+   data.softMax.FLT = 2.f;
    helper.MakeInputFloat(data);
 }
 
@@ -424,18 +425,21 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       ExportCustomParticleData(particle);
    }
 
-   if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()))
+   if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()) && IsNParticle())
    {
+      const float evaluateEvery = FindMayaPlug("aiEvaluateEvery").asFloat();
+
       MTime curTime = MAnimControl::currentTime();
       MTime finalTime;
 
-      double fra1 = curTime.as(MTime::uiUnit());
-      double diff = 0.0;
+      float fra1 = (float)curTime.as(MTime::uiUnit());
+      float diff = 0.0;
 
-      if(floor(fra1) != fra1)
+      if(fmod(fra1, evaluateEvery) != 0.0f)
       {
-         diff = fra1 - floor(fra1);
-         MTime timeDiff(1.0 - diff, MTime::uiUnit());
+         diff = fmod(fra1, evaluateEvery);
+         MTime timeDiff(evaluateEvery - diff, MTime::uiUnit());
+         diff /= evaluateEvery; //Normalize diff in the 0-1 interval
          finalTime = curTime + timeDiff;
          double fra2 = finalTime.as(MTime::uiUnit());
       }
@@ -452,7 +456,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       for (int j = 0; j < numParticles; j++)
       {
          MVector p0, p1;
-         p0 = (*m_out_positionArrays[0])[j] - velocityArray[j]*dt;
+         p0 = (*m_out_positionArrays[0])[j] - velocityArray[j]*dt*evaluateEvery;
          p1 = (*m_out_positionArrays[0])[j];
             
          MVector result = diff*((2-diff)*diff - 1)*p0;
@@ -523,8 +527,8 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
          }
       }
 
-      MTime oneFrame(1.0, MTime::uiUnit());
-      finalTime += oneFrame;
+      MTime cacheInterval(evaluateEvery, MTime::uiUnit());
+      finalTime += cacheInterval;
 
       MVectorArray   velocityArray3;
       MVectorArray   accelerationArray3;
@@ -809,7 +813,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
 
    MVectorArray   *newPositionArray = new MVectorArray((*m_out_positionArrays[step-1]));
 
-   const float interpolateOffset = FindMayaPlug("aiInterpolateOffset").asFloat();
+   const float evaluateEvery = FindMayaPlug("aiEvaluateEvery").asFloat();
 
 
    if (m_isSprite)
@@ -873,7 +877,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    newRadiusArray = new MDoubleArray((*m_out_radiusArrays[step-1]));
    m_out_radiusArrays.push_back(newRadiusArray);
 
-   double fra1 = curTime.as(MTime::uiUnit());
+   float fra1 = (float) curTime.as(MTime::uiUnit());
+   float diff = 0.0;
 
    for (int j = 0; j < numParticles; j++)
    {
@@ -908,7 +913,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
                (*m_out_positionArrays[k]).append((*positionArray1)[j]);
             }
 
-            if ((k == step) || ((floor(fra1) != fra1)&&(k == step - 1))) //Not if it is a cache frame
+            if ((k == step) || ((fmod(fra1, evaluateEvery) != 0.0f) &&(k == step - 1))) //Not if it is a cache frame
             {
                (*m_out_radiusArrays[k]).append((*radiusArray1)[j]);
             }
@@ -931,21 +936,21 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       }
    }
 
-   
    MTime finalTime;
-
-   double diff = 0.0;
 
    tempMap = m_particleIDMap;
 
-
    // If this is not a cache sample. Interpolate
-   if(floor(fra1) != fra1)
+   if(fmod(fra1, evaluateEvery) != 0.0f)
    {
       MTime oneSec(1.0, MTime::kSeconds);
       double dt = (1/fps);
 
-      diff = fra1 - floor(fra1);
+      diff = fmod(fra1, evaluateEvery);
+      MTime timeDiff(evaluateEvery - diff, MTime::uiUnit());
+      diff /= evaluateEvery; //Normalize diff in the 0-1 interval
+      finalTime = curTime + timeDiff;
+      double fra2 = finalTime.as(MTime::uiUnit());
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -956,7 +961,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
             int pindex = it->second;
 
             MVector p0, p1;
-            p0 = (*positionArray1)[j] - velocityArray1[j]*dt;
+            p0 = (*positionArray1)[j] - velocityArray1[j]*dt*evaluateEvery;
             p1 = (*positionArray1)[j];
             
             MVector result = diff*((2-diff)*diff - 1)*p0;
@@ -965,11 +970,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
             (*newPositionArray)[pindex] = result;
          }
       }
-
-      MTime timeDiff(1.0 - diff, MTime::uiUnit());
-      finalTime = curTime + timeDiff;
-      double fra2 = finalTime.as(MTime::uiUnit());
-
 
       MVectorArray   velocityArray2;
       MVectorArray   accelerationArray2;
@@ -1030,9 +1030,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
          }
       }
 
-
-      MTime oneFrame(1.0, MTime::uiUnit());
-      finalTime += oneFrame;
+      MTime cacheInterval(evaluateEvery, MTime::uiUnit());
+      finalTime += cacheInterval;
 
       MVectorArray   velocityArray3;
       MVectorArray   accelerationArray3;
@@ -1439,6 +1438,11 @@ bool CParticleTranslator::IsCached()
    return (stat == MS::kSuccess && dynGlobalsNode.findPlug("useParticleDiskCache").asBool());
 }
 
+bool CParticleTranslator::IsNParticle()
+{
+   return false;
+}
+
 void CParticleTranslator::GatherStandardPPData( MTime           curTime,
                                                 MVectorArray*   positionArray ,
                                                 MDoubleArray*   radiusArray ,
@@ -1574,7 +1578,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    }
    else
    {
-      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()))
+      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()) && IsNParticle())
          InterpolateBlurSteps(particle, step); // compute all the data from  the first steps  population
       else
          GatherBlurSteps(particle, step); // gather the data from each step

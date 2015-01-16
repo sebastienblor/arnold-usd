@@ -28,3 +28,8 @@ bool CNParticleTranslator::IsCached()
    return !plug.isNull() && plug.asBool();
 }
 
+bool CNParticleTranslator::IsNParticle()
+{
+   return true;
+}
+

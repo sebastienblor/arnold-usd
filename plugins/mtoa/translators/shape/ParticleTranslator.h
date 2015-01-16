@@ -68,6 +68,7 @@ protected:
    virtual void InterpolateBlurSteps(AtNode* particle, unsigned int step);
    virtual void WriteOutParticle(AtNode* particle);
    virtual bool IsCached();
+   virtual bool IsNParticle();
 
    virtual void GatherStandardPPData(MTime           curTime,
                                      MVectorArray*   positionArray ,

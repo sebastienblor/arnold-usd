@@ -22,8 +22,6 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportAttributes", label="Export Attributes")
         self.addSeparator()
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
-        self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
-        self.addControl("aiInterpolateOffset", label="Interpolate Offset")
         self.addSeparator()
         self.addControl('aiStepSize', label="Volume Step Size")
         self.addSeparator()
@@ -31,8 +29,26 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         
 templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
 
-class NParticleTemplate(ParticleTemplate):
-        pass
+class NParticleTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addControl("aiRenderPointsAs", label="Render Points As")
+        self.addControl("aiMinParticleRadius", label="Min Particle Radius")
+        self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
+        self.addControl("aiMaxParticleRadius", label="Max Particle Radius")
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
+        self.addSeparator()   
+        self.addControl("aiExportParticleIDs", label="Export Particle Id")
+        self.addControl("aiExportAttributes", label="Export Attributes")
+        self.addSeparator()
+        self.addControl("aiInterpolateBlur", label="Interpolated Motion Blur")
+        self.addControl("aiEvaluateEvery", label="nCache Evaluation Interval", annotation="Use nCache's \"Evaluate every # frame(s)\" param value")
+        self.addSeparator()
+        self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
+        self.addSeparator()
+        self.addControl('aiStepSize', label="Volume Step Size")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
     
 templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
 
