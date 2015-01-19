@@ -441,7 +441,6 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
          MTime timeDiff(evaluateEvery - diff, MTime::uiUnit());
          diff /= evaluateEvery; //Normalize diff in the 0-1 interval
          finalTime = curTime + timeDiff;
-         double fra2 = finalTime.as(MTime::uiUnit());
       }
       else
          return;
@@ -950,7 +949,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       MTime timeDiff(evaluateEvery - diff, MTime::uiUnit());
       diff /= evaluateEvery; //Normalize diff in the 0-1 interval
       finalTime = curTime + timeDiff;
-      double fra2 = finalTime.as(MTime::uiUnit());
 
       for (int j = 0; j < numParticles; j++)
       {
@@ -1058,8 +1056,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       m_fnParticleSystem.evaluateDynamics(curTime, false);
 
       tempMap = m_particleIDMap;
-
-      int newParticleCount = 0;
 
       for (int j = 0; j < numParticles; j++)
       {
