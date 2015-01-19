@@ -22,11 +22,13 @@ MTOA_VERSION = get_mtoa_version(4)
 #   Operating System detection
 ################################################################################
 
+EXTERNAL_PATH = os.path.abspath('external')
+
 if system.os() == 'darwin':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
-    glew_default_lib = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'lib', 'libGLEW.a')
-    glew_default_include = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'include')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'libGLEW.a')
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
 elif system.os() == 'linux':
     ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
     # linux conventions would be to actually use lib for dynamic libraries!
@@ -36,8 +38,8 @@ elif system.os() == 'linux':
 elif system.os() == 'windows':
     ALLOWED_COMPILERS = ('msvc', 'icc')
     arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
-    glew_default_lib = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'lib', 'glew32s.lib')
-    glew_default_include = os.path.join('$EXTERNAL_PATH', 'glew-1.10.0', 'include')
+    glew_default_lib = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'lib', 'glew32s.lib')
+    glew_default_include = os.path.join(EXTERNAL_PATH, 'glew-1.10.0', 'include')
 else:
     print "Unknown operating system: %s" % system.os()
     Exit(1)
@@ -78,9 +80,6 @@ vars.AddVariables(
     PathVariable('MAYA_INCLUDE_PATH',
                  'Directory where Maya SDK headers are installed',
                  '.'),
-    PathVariable('EXTERNAL_PATH',
-                 'External dependencies are found here', 
-                 '.', PathVariable.PathIsDir),
     PathVariable('ARNOLD', 
                  'Where to find Arnold installation', 
                  get_default_path('ARNOLD_HOME', 'Arnold')),                   
@@ -160,7 +159,8 @@ if system.os() == 'darwin':
     vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
-if system.os() == 'windows':    
+if system.os() == 'windows':
+    vars.Add(BoolVariable('USE_VISUAL_STUDIO_EXPRESS', 'Use the express version of visual studio. (UNSUPPORTED!)', False))
     # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
     # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
     tmp_env = Environment(variables = vars, tools=[])
@@ -171,10 +171,14 @@ if system.os() == 'windows':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
     maya_version_base = maya_version[0:4]
+    msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
-        tmp_env['MSVC_VERSION'] = '10.0'
+        msvc_version = '10.0'
     elif int(maya_version_base) >= 2015:
-        tmp_env['MSVC_VERSION'] = '11.0'
+        msvc_version = '11.0'
+    if tmp_env['USE_VISUAL_STUDIO_EXPRESS']:
+        msvc_version += 'Exp'
+    tmp_env['MSVC_VERSION'] = msvc_version
     #print tmp_env['MSVC_VERSION']
     env = tmp_env.Clone(tools=['default'])
     # restore as the Clone overrides it
@@ -215,7 +219,7 @@ if env['MAYA_INCLUDE_PATH'] == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
     else:
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
-EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
+env['EXTERNAL_PATH'] = EXTERNAL_PATH
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
 ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
@@ -340,7 +344,7 @@ if env['COMPILER'] == 'gcc':
     ## Hardcode '.' directory in RPATH in linux
     if system.os() == 'linux':
         env.Append(LINKFLAGS = Split('-z origin') )
-        env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
+        #env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
     ## warning level
     if env['WARN_LEVEL'] == 'none':
@@ -580,16 +584,14 @@ else:
                                 exports     = 'env')
                                  
     def osx_hardcode_path(target, source, env):
-        cmd = ""
+        cmd = None
 
         if target[0] == MTOA_API[0]:
             cmd = "install_name_tool -id @loader_path/../bin/libmtoa_api.dylib"
         elif target[0] == MTOA[0]:
             cmd = " install_name_tool -add_rpath @loader_path/../bin/"
-        else:
-              cmd = "install_name_tool -id " + str(target[0]).split('/')[-1]
-         
-        if cmd :
+
+        if cmd:
             p = subprocess.Popen(cmd + " " + str(target[0]), shell=True)
             retcode = p.wait()
 
@@ -598,8 +600,8 @@ else:
     if system.os() == 'darwin':
         env.AddPostAction(MTOA_API[0],  Action(osx_hardcode_path, 'Adjusting paths in mtoa_api.dylib ...'))
         env.AddPostAction(MTOA, Action(osx_hardcode_path, 'Adjusting paths in mtoa.boundle ...'))
-        env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
-        env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
+        #env.AddPostAction(MTOA_SHADERS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_shaders ...'))
+        #env.AddPostAction(MTOA_PROCS, Action(osx_hardcode_path, 'Adjusting paths in mtoa_procs ...'))
 
 Depends(MTOA, MTOA_API[0])
 
@@ -1011,7 +1013,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s' % maya_base_version)
+        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, sys.platform))
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))

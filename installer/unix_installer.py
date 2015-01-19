@@ -1,6 +1,14 @@
 import subprocess, zipfile, shutil
 import os, sys
 
+if sys.platform != sys.argv[2]:
+    print('''
+    Installer incompatible with your operating system.
+    Your system is %s , while the installer has been built
+    for %s .
+        ''' % (sys.platform, sys.argv[2]))
+    sys.exit(0)
+
 try: input = raw_input
 except NameError: pass
 

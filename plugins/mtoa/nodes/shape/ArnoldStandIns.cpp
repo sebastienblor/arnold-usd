@@ -1,6 +1,7 @@
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "translators/NodeTranslator.h"
+#include "nodes/options/ArnoldOptionsNode.h"
+#include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
 #include "utils/MayaUtils.h"
@@ -787,6 +788,13 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
+   
+   data.defaultValue.BOOL = false;
+   data.name = "overrideMatte";
+   data.shortName = "overrideMatte";
+   s_attributes.MakeInputBoolean(data);
+
+   //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    return MStatus::kSuccess;
 }
@@ -1106,7 +1114,7 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
          const int localDrawOverride = plug.asShort();
          if (localDrawOverride == 0) // use global settings
          {
-            MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+            MObject ArnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
             if (!ArnoldRenderOptionsNode.isNull())
                drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort();
          }

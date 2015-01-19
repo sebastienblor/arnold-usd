@@ -1,4 +1,5 @@
 ﻿import pymel.core as pm
+import mtoa.core as core
 from mtoa.core import createStandIn, createVolume
 from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 import mtoa.utils as mutils
@@ -77,10 +78,51 @@ def arnoldLightManager():
     win = mtoa.lightManager.MtoALightManager()
     win.create()
 
+def selectCamera(cam):
+    core.ACTIVE_CAMERA=cam
+
+def populateSelectCamera():
+    # clear camera menu
+    pm.menu('ArnoldSelectCamera', edit=True, deleteAllItems=True)
+
+    # populate camera menu    
+    cameras = cmds.ls(type='camera')
+    if cameras != None:
+        activeCamera = core.ACTIVE_CAMERA
+        if not activeCamera in cameras:
+            activeCamera = None
+        if activeCamera == None:
+            if 'perspShape' in cameras:
+                activeCamera = 'perspShape'
+            elif len(cameras):
+                activeCamera = cameras[i]
+            core.ACTIVE_CAMERA = activeCamera
+        for cam in cameras:
+            pm.menuItem('SelectCameraItem%s' % cam, label=cam, parent='ArnoldSelectCamera',
+                        radioButton=cam == activeCamera,
+                        c='from mtoa.ui.arnoldmenu import selectCamera; selectCamera("%s")' % cam)
+
+def startRender():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
+
+def startIpr():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='start')
+
+def refreshRender():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='refresh')
+
+def stopRender():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='stop')
+
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not pm.about(b=1):
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
+
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                     c=lambda *args: createStandIn())
@@ -90,6 +132,7 @@ def createArnoldMenu():
                     c=lambda *args: doExportStandin())
         pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     c=lambda *args: doExportOptionsStandin())
+
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
         pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
@@ -130,6 +173,54 @@ def createArnoldMenu():
                     
         pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
                     c=lambda *args: arnoldLightManager())
+
+        pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
+                    subMenu=True, tearOff=True)
+
+        pm.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Arnold+for+Maya+User+Guide'))
+
+        pm.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/mayatut/Arnold+for+Maya+Tutorials'))
+
+        pm.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMV/Arnold+for+Maya+Videos'))
+
+        pm.menuItem(divider=1, parent='ArnoldHelpMenu')
+
+        pm.menuItem('ArnoldSolidAngle', label='Solid Angle', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com'))
+
+        pm.menuItem('ArnoldMailingLists', label='Mailing Lists', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://subscribe.solidangle.com'))
+
+        pm.menuItem('ArnoldAsk', label='Knowledge Base', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://ask.solidangle.com'))
+
+        pm.menuItem('ArnoldSupportBlog', label='Support Blog', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
+
+        pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+
+        pm.menuItem(divider=1, parent='ArnoldHelpMenu')
+
+        pm.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
+
+        pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
+
+        pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
+                    postMenuCommand=lambda *args: populateSelectCamera())
+        pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
+                    c=lambda *args: startRender())
+        pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',
+                    c=lambda *args: startIpr())
+        pm.menuItem('ArnoldRefresh', label='Refresh', parent='ArnoldRender',
+                    c=lambda *args: refreshRender())
+        pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
+                    c=lambda *args: stopRender())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())

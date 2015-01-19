@@ -93,8 +93,10 @@ bool CArnoldPhotometricLightDrawOverride::disableInternalBoundingBoxDraw() const
 
 struct SArnoldPhotometricLightUserData : public MUserData{
     float m_wireframeColor[4];
+
+    SArnoldPhotometricLightUserData() : MUserData(false) { }
     
-    SArnoldPhotometricLightUserData(const MDagPath& objPath) : MUserData(true)
+    void update(const MDagPath& objPath)
     {
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
@@ -117,7 +119,13 @@ MUserData* CArnoldPhotometricLightDrawOverride::prepareForDraw(
 {
     initializeGPUResources();
     if (s_isValid)
-        return new SArnoldPhotometricLightUserData(objPath);
+    {
+        SArnoldPhotometricLightUserData* data = reinterpret_cast<SArnoldPhotometricLightUserData*>(oldData);
+        if (!data)
+            data = new SArnoldPhotometricLightUserData();
+        data->update(objPath);
+        return data;
+    }
     else return 0;
 }
 

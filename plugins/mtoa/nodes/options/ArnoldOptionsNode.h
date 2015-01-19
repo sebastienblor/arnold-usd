@@ -15,11 +15,14 @@ class CArnoldOptionsNode
 {
 
 public:
+   ~CArnoldOptionsNode();
 
    virtual MStatus compute(const MPlug& plug, MDataBlock& data)
    {
      return MS::kSuccess;
    }
+
+   static MObject getOptionsNode();
 
    static void* creator();
    static MStatus initialize();
@@ -30,6 +33,8 @@ public:
 
    // Attributes
    static CStaticAttrHelper s_attributes;
+
+   static MObject s_optionsNode;
 
    static MObject s_imageFormat;
    static MObject s_aovs;
@@ -121,5 +126,11 @@ public:
    static MObject s_IPRStepFinishedCallback;
 
    static MObject s_output_overscan;
+
+   static MObject s_render_unit;
+   static MObject s_scene_scale;
+
+   static MObject s_offset_origin;
+   static MObject s_origin;
    
 };  // class CArnoldOptionsNode

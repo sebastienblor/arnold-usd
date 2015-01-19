@@ -62,7 +62,10 @@ struct CArnoldAreaLightUserData : public MUserData{
     MMatrix m_modelMatrix;
     float m_color[4];
     float m_wireframeColor[4];
-    CArnoldAreaLightUserData(const MDagPath& objPath) : MUserData(true)
+
+    CArnoldAreaLightUserData() : MUserData(false) { }
+
+    void update(const MDagPath& objPath)
     {
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
@@ -174,7 +177,13 @@ MUserData* CArnoldAreaLightDrawOverride::prepareForDraw(
 {
     initializeGPUResources();
     if (s_isValid)
-        return new CArnoldAreaLightUserData(objPath);
+    {
+        CArnoldAreaLightUserData* data = reinterpret_cast<CArnoldAreaLightUserData*>(oldData);
+        if (!data)
+            data = new CArnoldAreaLightUserData();
+        data->update(objPath);
+        return data;
+    }
     else return 0;
 }
 

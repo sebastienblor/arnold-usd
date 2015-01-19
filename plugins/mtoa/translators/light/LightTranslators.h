@@ -15,6 +15,8 @@ public:
    {
       return AddArnoldNode("distant_light");
    }
+
+   bool IsFinite() const { return false; }
 };
 
 class CPointLightTranslator : public CLightTranslator
@@ -105,6 +107,8 @@ public:
    {
       return AddArnoldNode("skydome_light");
    }
+
+   bool IsFinite() const { return false; }
 };
 
 class CPhotometricLightTranslator : public CLightTranslator
@@ -112,10 +116,12 @@ class CPhotometricLightTranslator : public CLightTranslator
 public:
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
+
    static void* creator()
    {
       return new CPhotometricLightTranslator();
    }
+
    AtNode* CreateArnoldNodes()
    {
       return AddArnoldNode("photometric_light");
@@ -128,12 +134,14 @@ public:
    CMeshLightTranslator() : m_numVertices(0)
    {
    }
+
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
       return new CMeshLightTranslator();
    }
+
    AtNode* CreateArnoldNodes()
    {
       AddArnoldNode("polymesh", "mesh");

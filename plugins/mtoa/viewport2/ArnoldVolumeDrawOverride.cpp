@@ -110,8 +110,10 @@ struct SArnoldVolumeUserData : public MUserData{
     float m_wireframeColor[4];
     float m_scale[4];
     float m_offset[4];
+
+    SArnoldVolumeUserData() : MUserData(false) {}
     
-    SArnoldVolumeUserData(const MDagPath& objPath) : MUserData(true)
+    void update(const MDagPath& objPath)
     {
         MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
         m_wireframeColor[0] = color.r;
@@ -169,7 +171,13 @@ MUserData* CArnoldVolumeDrawOverride::prepareForDraw(
 {
     initializeGPUResources();
     if (s_isValid)
-        return new SArnoldVolumeUserData(objPath);
+    {
+        SArnoldVolumeUserData* data = reinterpret_cast<SArnoldVolumeUserData*>(oldData);
+        if (!data)
+            data = new SArnoldVolumeUserData();
+        data->update(objPath);
+        return data;
+    }
     else return 0;
 }
 

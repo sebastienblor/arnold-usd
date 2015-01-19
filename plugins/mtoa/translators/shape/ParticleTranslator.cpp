@@ -17,6 +17,7 @@
 #include <ai_msg.h>
 #include <ai_nodes.h>
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -94,6 +95,17 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_step_size";
    data.hasMin = true;
    data.min.FLT = 0.f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 2.f;
+   helper.MakeInputFloat(data);
+
+   data.defaultValue.FLT = 1.f;
+   data.name = "aiEvaluateEvery";
+   data.shortName = "ai_evaluate_every";
+   data.hasMin = true;
+   data.hasSoftMin = true;
+   data.min.FLT = 0.0001f;
+   data.softMin.FLT = 0.1f;
    data.hasSoftMax = true;
    data.softMax.FLT = 2.f;
    helper.MakeInputFloat(data);
@@ -359,7 +371,8 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
    // as they are already populated with their most current values
 
    MVectorArray   velocityArray;
-   MIntArray     particleId;
+   MVectorArray   accelerationArray;
+   MIntArray      particleId;
 
    MVectorArray*   positionArray = new MVectorArray;
    MDoubleArray*   radiusArray = new MDoubleArray;
@@ -370,21 +383,23 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
    AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName().asChar());
 
-   GatherStandardPPData( positionArray,
+   GatherStandardPPData( MAnimControl::currentTime(),
+                         positionArray,
                          radiusArray,
                          spriteScaleXPP,
                          spriteScaleYPP,
                          &m_out_colorArray,
                          &m_out_opacityArray,
                          velocityArray,
+                         accelerationArray,
                          particleId);
 
    m_particleCount = positionArray->length();
 
    m_instantVeloArray = velocityArray;
+   m_instantAcceArray = accelerationArray;
 
    // push back a "starter" array for this step
-
    m_out_positionArrays.push_back(positionArray);
 
    if (m_isSprite)
@@ -410,6 +425,186 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       ExportCustomParticleData(particle);
    }
 
+   if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()) && IsNParticle())
+   {
+      const float evaluateEvery = FindMayaPlug("aiEvaluateEvery").asFloat();
+
+      MTime curTime = MAnimControl::currentTime();
+      MTime finalTime;
+
+      float fra1 = (float)curTime.as(MTime::uiUnit());
+      float diff = 0.0;
+
+      if(fmod(fra1, evaluateEvery) != 0.0f)
+      {
+         diff = fmod(fra1, evaluateEvery);
+         MTime timeDiff(evaluateEvery - diff, MTime::uiUnit());
+         diff /= evaluateEvery; //Normalize diff in the 0-1 interval
+         finalTime = curTime + timeDiff;
+      }
+      else
+         return;
+
+      MTime oneSec(1.0, MTime::kSeconds);
+      float fps =  (float)oneSec.asUnits(MTime::uiUnit());
+      double dt = (1/fps);
+
+      int numParticles = m_fnParticleSystem.count();
+
+      //Interpolation using the first two points. That are calculated from first particle data.
+      for (int j = 0; j < numParticles; j++)
+      {
+         MVector p0, p1;
+         p0 = (*m_out_positionArrays[0])[j] - velocityArray[j]*dt*evaluateEvery;
+         p1 = (*m_out_positionArrays[0])[j];
+            
+         MVector result = diff*((2-diff)*diff - 1)*p0;
+         result += (diff*diff*(3*diff - 5) + 2)*p1;
+
+         (*m_out_positionArrays[0])[j] = result;
+
+      }
+
+      MVectorArray   velocityArray2;
+      MVectorArray   accelerationArray2;
+      MIntArray      particleId2;
+
+      MVectorArray*   positionArray2 = new MVectorArray;
+      MDoubleArray*   radiusArray2 = new MDoubleArray;
+      MDoubleArray*   spriteScaleXPP2 = new MDoubleArray;
+      MDoubleArray*   spriteScaleYPP2 = new MDoubleArray;
+
+      GatherStandardPPData( finalTime,
+                            positionArray2,
+                            radiusArray2,
+                            spriteScaleXPP2,
+                            spriteScaleYPP2,
+                            0,
+                            0,
+                            velocityArray2,
+                            accelerationArray2,
+                            particleId2);
+
+      numParticles = m_fnParticleSystem.count();
+
+      std::map <int, int> tempMap = m_particleIDMap;
+      std::map <int, int>::iterator it;
+
+      std::map <int, int> pos2Map;
+      std::map <int, int>::iterator it2;
+
+      for (int j = 0; j < numParticles; j++)
+      {
+         int partId = particleId2[j];
+         it = tempMap.find(partId);
+         if (it != tempMap.end())   // found the particle in the scene already
+         {
+            int pindex = it->second;
+
+            pos2Map[pindex] = j;
+
+            MVector p2;
+            p2 = (*positionArray2)[j];
+            
+            MVector result = diff*((4 - 3*diff)*diff + 1) * p2;
+
+            (*m_out_positionArrays[0])[pindex] += result;
+
+            // to speed up the  search, we remove the particles we've already found..
+            tempMap.erase(it);
+         }
+      }
+
+      // if we still have entries in tempMap, that means the particle died in this frameStep
+      if (tempMap.size() > 0)
+      {
+         for (it = tempMap.begin(); it != tempMap.end(); it++)
+         {
+            // here we Support removing of dead particles via looping and culling by particle map in the final output loop
+            int pindex = it->second;
+            (*m_out_radiusArrays[0])[pindex] = 0.0;
+         }
+      }
+
+      MTime cacheInterval(evaluateEvery, MTime::uiUnit());
+      finalTime += cacheInterval;
+
+      MVectorArray   velocityArray3;
+      MVectorArray   accelerationArray3;
+      MIntArray      particleId3;
+
+      MVectorArray*   positionArray3 = new MVectorArray;
+      MDoubleArray*   radiusArray3 = new MDoubleArray;
+      MDoubleArray*   spriteScaleXPP3 = new MDoubleArray;
+      MDoubleArray*   spriteScaleYPP3 = new MDoubleArray;
+
+      GatherStandardPPData( finalTime,
+                            positionArray3,
+                            radiusArray3,
+                            spriteScaleXPP3,
+                            spriteScaleYPP3,
+                            0,
+                            0,
+                            velocityArray3,
+                            accelerationArray3,
+                            particleId3);
+
+      numParticles = m_fnParticleSystem.count();
+
+      tempMap = m_particleIDMap;
+
+      m_fnParticleSystem.evaluateDynamics(curTime, false);
+
+      for (int j = 0; j < numParticles; j++)
+      {
+         int partId = particleId3[j];
+         it = tempMap.find(partId);
+         if (it != tempMap.end())   // found the particle in the scene already
+         {
+            int pindex = it->second;
+
+            MVector p3;
+            p3 = (*positionArray3)[j];
+            
+            MVector result = (diff - 1) * diff * diff * p3;
+
+            (*m_out_positionArrays[0])[pindex] += result;
+            (*m_out_positionArrays[0])[pindex] *= 0.5;
+
+            // to speed up the  search, we remove the particles we've already found..
+            tempMap.erase(it);
+         }
+      }
+
+      // if we still have entries in tempMap, that means the particle died in this frameStep
+      if (tempMap.size() > 0)
+      {
+         for (it = tempMap.begin(); it != tempMap.end(); it++)
+         {
+            // here we Support removing of dead particles via looping and culling by particle map in the final output loop
+            int pindex = it->second;
+            it2 = pos2Map.find(pindex);
+            if (it2 == pos2Map.end())   // found the particle in the scene already
+            {
+               (*m_out_radiusArrays[0])[pindex] = 0.0;
+            }
+            else
+            {
+               int k = it2->second;
+               MVector p3;
+               // We need to get value from previous step. We do not know value of j in previous step
+               p3 = (*positionArray2)[k];
+            
+               MVector result = (diff - 1) * diff * diff * p3;
+
+               (*m_out_positionArrays[0])[pindex] += result;
+               (*m_out_positionArrays[0])[pindex] *= 0.5;
+            }
+
+         }
+      }
+
+   }
 }// end step == 0
 
 ///
@@ -421,22 +616,25 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
    int numParticles = m_fnParticleSystem.count();
 
    MVectorArray   velocityArray;
+   MVectorArray   accelerationArray;
    MIntArray      particleId;
 
-   bool multipleRadiuses = !(m_minPixelWidth > AI_EPSILON);
+   bool multipleRadiuses = true;//!(m_minPixelWidth > AI_EPSILON);
 
    MVectorArray*   positionArray = new MVectorArray;
    MDoubleArray*   radiusArray = multipleRadiuses ? new MDoubleArray : 0;
    MDoubleArray*   spriteScaleXPP = new MDoubleArray;
    MDoubleArray*   spriteScaleYPP = new MDoubleArray;
 
-   GatherStandardPPData( positionArray,
+   GatherStandardPPData( MAnimControl::currentTime(),
+                         positionArray,
                          radiusArray,
                          spriteScaleXPP,
                          spriteScaleYPP,
                          0,
                          0,
                          velocityArray,
+                         accelerationArray,
                          particleId);
 
    // add in a new vector entry for this step to all the  maps/vectors
@@ -605,9 +803,6 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
    //uint totalSteps = GetNumMotionSteps(); // not needed
 
-   MVectorArray   velocityArray;
-   MIntArray      particleId;
-
    particle = GetArnoldRootNode();
 
 
@@ -616,6 +811,8 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    // these will be modified with the data from this step
 
    MVectorArray   *newPositionArray = new MVectorArray((*m_out_positionArrays[step-1]));
+
+   const float evaluateEvery = FindMayaPlug("aiEvaluateEvery").asFloat();
 
 
    if (m_isSprite)
@@ -626,12 +823,290 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
       m_out_spriteScaleYArrays.push_back(newSSYArray);
    }
 
-   for (int j = 0; j < m_particleCount; j++)
+   
+   //////////////////////////////////////////
+
+   MVectorArray   velocityArray1;
+   MVectorArray   accelerationArray1;
+   MIntArray     particleId1;
+
+   MVectorArray*   positionArray1 = new MVectorArray;
+   MDoubleArray*   radiusArray1 = new MDoubleArray;
+   MDoubleArray*   spriteScaleXPP1 = new MDoubleArray;
+   MDoubleArray*   spriteScaleYPP1 = new MDoubleArray;
+
+   MStatus status;
+
+   AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName().asChar());
+
+   MTime curTime = MAnimControl::currentTime();
+
+   /*double fra1 = curTime.as(MTime::uiUnit());
+   double val = curTime.value();
+
+   if(floor(fra1) != fra1)
    {
-      MVector velocitySubstep = (((m_instantVeloArray[j]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
-      MVector newVeloPosition = (*m_out_positionArrays[step-1])[j] + velocitySubstep;
-      (*newPositionArray)[j] = newVeloPosition;
+      double diff = fra1 - floor(fra1);
+      MTime timeDiff(diff, MTime::uiUnit());
+      MTime finalTime = curTime - diff;
+      double fra2 = finalTime.as(MTime::uiUnit());
+   }*/
+
+   GatherStandardPPData( curTime,
+                           positionArray1,
+                           radiusArray1,
+                           spriteScaleXPP1,
+                           spriteScaleYPP1,
+                           0,
+                           0,
+                           velocityArray1,
+                           accelerationArray1,
+                           particleId1);
+
+   //m_instantAcceArray = accelerationArray;
+
+   //////////////////////////////////////////
+
+   int numParticles = m_fnParticleSystem.count();
+
+   std::map <int, int> tempMap = m_particleIDMap;
+   std::map <int, int>::iterator it;
+
+   MDoubleArray *newRadiusArray =NULL;
+   newRadiusArray = new MDoubleArray((*m_out_radiusArrays[step-1]));
+   m_out_radiusArrays.push_back(newRadiusArray);
+
+   float fra1 = (float) curTime.as(MTime::uiUnit());
+   float diff = 0.0;
+
+   for (int j = 0; j < numParticles; j++)
+   {
+      int partId = particleId1[j];
+      it = tempMap.find(partId);
+      if (it != tempMap.end())   // found the particle in the scene already
+      {
+         int pindex = it->second;
+
+         (*newPositionArray)[pindex] = (*positionArray1)[j];
+         (*m_out_radiusArrays[step])[pindex] = (*radiusArray1)[j];
+
+         // to speed up the  search, we remove the particles we've already found..
+         tempMap.erase(it);
+      }
+      else
+      {
+          //add new particles to the  arrays
+         m_particleIDMap[partId] = (*m_out_positionArrays[step-1]).length();
+
+         // Because we are dealing with a new particle, we need to create all its past step data, so we loop thru steps
+         // here  and fill in the gaps with the current frame's  data and only compute its  position from current velocity
+         for (uint k = 0; k <= step; k++)
+         {
+            // add particle to this steps arrays
+            if (k == step)
+            {
+               (*newPositionArray).append((*positionArray1)[j]);
+            }
+            else
+            {
+               (*m_out_positionArrays[k]).append((*positionArray1)[j]);
+            }
+
+            if ((k == step) || ((fmod(fra1, evaluateEvery) != 0.0f) &&(k == step - 1))) //Not if it is a cache frame
+            {
+               (*m_out_radiusArrays[k]).append((*radiusArray1)[j]);
+            }
+            else
+            {
+               (*m_out_radiusArrays[k]).append(0.0);
+            }
+         }
+      }
    }
+
+   // if we still have entries in tempMap, that means the particle died in this frameStep
+   if (tempMap.size() > 0)
+   {
+      for (it = tempMap.begin(); it != tempMap.end(); it++)
+      {
+         int pindex = it->second;
+         (*newPositionArray)[pindex] = (*m_out_positionArrays[step-1])[pindex];
+         (*m_out_radiusArrays[step])[pindex] = 0.0;
+      }
+   }
+
+   MTime finalTime;
+
+   tempMap = m_particleIDMap;
+
+   // If this is not a cache sample. Interpolate
+   if(fmod(fra1, evaluateEvery) != 0.0f)
+   {
+      MTime oneSec(1.0, MTime::kSeconds);
+      double dt = (1/fps);
+
+      diff = fmod(fra1, evaluateEvery);
+      MTime timeDiff(evaluateEvery - diff, MTime::uiUnit());
+      diff /= evaluateEvery; //Normalize diff in the 0-1 interval
+      finalTime = curTime + timeDiff;
+
+      for (int j = 0; j < numParticles; j++)
+      {
+         int partId = particleId1[j];
+         it = tempMap.find(partId);
+         if (it != tempMap.end())   // found the particle in the scene already
+         {
+            int pindex = it->second;
+
+            MVector p0, p1;
+            p0 = (*positionArray1)[j] - velocityArray1[j]*dt*evaluateEvery;
+            p1 = (*positionArray1)[j];
+            
+            MVector result = diff*((2-diff)*diff - 1)*p0;
+            result += (diff*diff*(3*diff - 5) + 2)*p1;
+
+            (*newPositionArray)[pindex] = result;
+         }
+      }
+
+      MVectorArray   velocityArray2;
+      MVectorArray   accelerationArray2;
+      MIntArray      particleId2;
+
+      MVectorArray*   positionArray2 = new MVectorArray;
+      MDoubleArray*   radiusArray2 = new MDoubleArray;
+      MDoubleArray*   spriteScaleXPP2 = new MDoubleArray;
+      MDoubleArray*   spriteScaleYPP2 = new MDoubleArray;
+
+      GatherStandardPPData( finalTime,
+                              positionArray2,
+                              radiusArray2,
+                              spriteScaleXPP2,
+                              spriteScaleYPP2,
+                              0,
+                              0,
+                              velocityArray2,
+                              accelerationArray2,
+                              particleId2);
+
+      numParticles = m_fnParticleSystem.count();
+
+      tempMap = m_particleIDMap;
+
+      std::map <int, int> pos2Map;
+      std::map <int, int>::iterator it2;
+
+      for (int j = 0; j < numParticles; j++)
+      {
+         int partId = particleId2[j];
+         it = tempMap.find(partId);
+         if (it != tempMap.end())   // found the particle in the scene already
+         {
+            int pindex = it->second;
+            // We need to keep p2 value in case wee need to reuse it in next step because particle dies
+            pos2Map[pindex] = j;
+
+            MVector p2;
+            p2 = (*positionArray2)[j];
+            
+            MVector result = diff*((4 - 3*diff)*diff + 1) * p2;
+
+            (*newPositionArray)[pindex] += result;
+
+            // to speed up the  search, we remove the particles we've already found..
+            tempMap.erase(it);
+         }
+      }
+      // if we still have entries in tempMap, that means the particle died in this frameStep
+      if (tempMap.size() > 0)
+      {
+         for (it = tempMap.begin(); it != tempMap.end(); it++)
+         {
+            int pindex = it->second;
+            (*newPositionArray)[pindex] = (*m_out_positionArrays[step-1])[pindex];
+            (*m_out_radiusArrays[step])[pindex] = 0.0;
+         }
+      }
+
+      MTime cacheInterval(evaluateEvery, MTime::uiUnit());
+      finalTime += cacheInterval;
+
+      MVectorArray   velocityArray3;
+      MVectorArray   accelerationArray3;
+      MIntArray      particleId3;
+
+      MVectorArray*   positionArray3 = new MVectorArray;
+      MDoubleArray*   radiusArray3 = new MDoubleArray;
+      MDoubleArray*   spriteScaleXPP3 = new MDoubleArray;
+      MDoubleArray*   spriteScaleYPP3 = new MDoubleArray;
+
+      GatherStandardPPData( finalTime,
+                              positionArray3,
+                              radiusArray3,
+                              spriteScaleXPP3,
+                              spriteScaleYPP3,
+                              0,
+                              0,
+                              velocityArray3,
+                              accelerationArray3,
+                              particleId3);
+
+      numParticles = m_fnParticleSystem.count();
+
+      m_fnParticleSystem.evaluateDynamics(curTime, false);
+
+      tempMap = m_particleIDMap;
+
+      for (int j = 0; j < numParticles; j++)
+      {
+         int partId = particleId3[j];
+         it = tempMap.find(partId);
+         if (it != tempMap.end())   // found the particle in the scene already
+         {
+            int pindex = it->second;
+
+            MVector p3;
+            p3 = (*positionArray3)[j];
+            
+            MVector result = (diff - 1) * diff * diff * p3;
+
+            (*newPositionArray)[pindex] += result;
+            (*newPositionArray)[pindex] *= 0.5;
+
+            // to speed up the  search, we remove the particles we've already found..
+            tempMap.erase(it);
+         }
+      }
+      // if we still have entries in tempMap, that means the particle died in this frameStep
+      if (tempMap.size() > 0)
+      {
+         // In this case, we only have to set radius to 0 if the particle died in the previous caches.
+         // If the particle dies in this cache. Set position to previous one and calculate position as normal.
+         for (it = tempMap.begin(); it != tempMap.end(); it++)
+         {
+            int pindex = it->second;
+            it2 = pos2Map.find(pindex);
+            if (it2 == pos2Map.end())   // found the particle in the scene already
+            {
+               (*newPositionArray)[pindex] = (*m_out_positionArrays[step-1])[pindex];
+               (*m_out_radiusArrays[step])[pindex] = 0.0;
+            }
+            else
+            {
+               int k = it2->second;
+               MVector p3;
+               // We need to get value from previous step. We do not know value of j in previous step
+               p3 = (*positionArray2)[k];
+            
+               MVector result = (diff - 1) * diff * diff * p3;
+
+               (*newPositionArray)[pindex] += result;
+               (*newPositionArray)[pindex] *= 0.5;
+            }
+         }
+      }
+   }
+
 
    m_out_positionArrays.push_back(newPositionArray);
 }
@@ -674,14 +1149,14 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       MMatrix mpm;
       mpm = m_dagPath.inclusiveMatrix();
       // convert it to AtMatrix
-      ConvertMatrix (inclMatrix, mpm); // util From CNodeTranslator
+      ConvertMatrix (inclMatrix, mpm, m_session); // util From CNodeTranslator
    }
 
    const unsigned int numMotionSteps = (m_motionDeform && RequiresMotionData()) ? GetNumMotionSteps() : 1;
 
    // declare the arrays  now that we have gathered all the particle info from each step
    a_positionArray = AiArrayAllocate(m_particleCount*m_multiCount, numMotionSteps, AI_TYPE_POINT);
-   bool multipleRadiuses = (!(m_minPixelWidth > AI_EPSILON)) && (m_out_radiusArrays.size() > 1);
+   bool multipleRadiuses = /*(!(m_minPixelWidth > AI_EPSILON)) &&*/ (m_out_radiusArrays.size() > 1);
    if (multipleRadiuses)
       a_radiusArray = AiArrayAllocate(m_particleCount * m_multiCount, numMotionSteps, AI_TYPE_FLOAT);
    else
@@ -959,19 +1434,25 @@ bool CParticleTranslator::IsCached()
    return (stat == MS::kSuccess && dynGlobalsNode.findPlug("useParticleDiskCache").asBool());
 }
 
-void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
+bool CParticleTranslator::IsNParticle()
+{
+   return false;
+}
+
+void CParticleTranslator::GatherStandardPPData( MTime           curTime,
+                                                MVectorArray*   positionArray ,
                                                 MDoubleArray*   radiusArray ,
                                                 MDoubleArray*   spriteScaleXPP ,
                                                 MDoubleArray*   spriteScaleYPP ,
                                                 MVectorArray*   rgbArray ,
                                                 MDoubleArray*   opacityArray,
                                                 MVectorArray    &velocityArray,
+                                                MVectorArray    &accelerationArray,
                                                 MIntArray       &particleId)
 {
    // cached particles need special treatment
    if (IsCached())
    {
-      MTime curTime = MAnimControl::currentTime();
       // force an evaluation of particles (don't runupFromStart).
       // Good to do in all cases, but particularly important when motion blur
       // is enabled so that values are correct on other steps
@@ -1021,6 +1502,7 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
    m_fnParticleSystem.position(*positionArray);
    //m_fnParticleSystem.getPerParticleAttribute(MString("worldPosition"),*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
+   m_fnParticleSystem.acceleration(accelerationArray);
    MDoubleArray tempDoubleParticleId;
    m_fnParticleSystem.getPerParticleAttribute(MString("particleId"), tempDoubleParticleId);
    unsigned int particleIdCount = tempDoubleParticleId.length();
@@ -1092,7 +1574,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    }
    else
    {
-      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()))
+      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()) && IsNParticle())
          InterpolateBlurSteps(particle, step); // compute all the data from  the first steps  population
       else
          GatherBlurSteps(particle, step); // gather the data from each step

@@ -34,8 +34,6 @@
 #include <maya/M3dView.h>
 #include <maya/MAtomic.h>
 
-#include <tbb/atomic.h>
-
 #include <cstdio>
 #include <assert.h>
 
@@ -59,7 +57,7 @@ namespace{
    static MString IPRRefinementFinished("");
    static MString IPRStepStarted("");
    static MString IPRStepFinished("");
-   static tbb::atomic<bool> s_renderingFinished;
+   static volatile int s_renderingFinished;
 }
 
 namespace
@@ -384,7 +382,7 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
 
 unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
-   s_renderingFinished = false;
+   MAtomic::set(&s_renderingFinished, 0);
    CRenderSession * renderSession = static_cast< CRenderSession * >(data);
 
    if (renderSession->m_renderOptions.isProgressive())
@@ -395,15 +393,10 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
       AiRender(AI_RENDER_MODE_CAMERA);
       renderSession->SetRendering(false);
    }
-   // get the post-MEL before ending the MayaScene
-   MString postMel = renderSession->m_postRenderMel;
-   renderSession->m_postRenderMel = "";
-
-   CMayaScene::End();
-
+   
    // don't echo, and do on idle
-   CMayaScene::ExecuteScript(postMel, false, true);
-   s_renderingFinished = true;
+   
+   MAtomic::set(&s_renderingFinished, 1);
    return 0;
 }
 
@@ -416,7 +409,7 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
 
    //
 
-   s_renderingFinished = false;
+   MAtomic::set(&s_renderingFinished, 0);
    
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
@@ -425,7 +418,7 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    // Block until the render finishes
    s_comp = new MComputation();
    s_comp->beginComputation();
-   while (!s_renderingFinished)
+   while (MAtomic::compareAndSwap(&s_renderingFinished, 1, 1) != 1)
    {
       if (s_comp->isInterruptRequested())
          AiRenderInterrupt();
@@ -449,7 +442,9 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       m_render_thread = 0;
    } 
 
-   AddIdleRenderViewCallback(postRenderMel);  
+   CMayaScene::End();
+
+   CMayaScene::ExecuteScript(postRenderMel, false, true);   
 }
 
 

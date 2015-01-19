@@ -4,12 +4,31 @@
 
 #include <ai_msg.h>
 
-#include "maya/MFnDependencyNode.h"
-#include "maya/MPlug.h"
+#include <maya/MFnDependencyNode.h>
+#include <maya/MPlug.h>
+#include <maya/MDistance.h>
+#include <maya/MPlugArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MTransformationMatrix.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+namespace {
+   enum ArnoldRenderUnit {
+      RU_USE_MAYA_UNIT = 0,
+      RU_USE_CUSTOM_SCALING,
+      RU_INCH,
+      RU_FEET,
+      RU_YARD,
+      RU_MILE,
+      RU_MILLIMETER,
+      RU_CENTIMETER,
+      RU_KILOMETER,
+      RU_METER
+   };
+}
 
 void ReplaceSlashes(MString& str, bool isDir = false)
 {
@@ -130,13 +149,77 @@ MStatus CSessionOptions::GetFromMaya()
       else
          m_proceduralSearchPaths.clear();
 
-      status = MStatus::kSuccess;
+      const short renderUnit = fnArnoldRenderOptions.findPlug("renderUnit").asShort();
+
+      MDistance dist(1.0, MDistance::uiUnit());
+
+      switch (renderUnit)
+      {
+         case RU_USE_MAYA_UNIT:
+            m_scaleFactor = 1.0;
+            break;
+         case RU_USE_CUSTOM_SCALING:
+            m_scaleFactor = fnArnoldRenderOptions.findPlug("sceneScale").asDouble();
+            break;
+         case RU_INCH:
+            m_scaleFactor = dist.asInches();
+            break;
+         case RU_FEET:
+            m_scaleFactor = dist.asFeet();
+            break;
+         case RU_YARD:
+            m_scaleFactor = dist.asYards();
+            break;
+         case RU_MILE:
+            m_scaleFactor = dist.asMiles();
+            break;
+         case RU_MILLIMETER:
+            m_scaleFactor = dist.asMillimeters();
+            break;
+         case RU_CENTIMETER:
+            m_scaleFactor = dist.asCentimeters();
+            break;
+         case RU_KILOMETER:
+            m_scaleFactor = dist.asKilometers();
+            break;
+         case RU_METER:
+            m_scaleFactor = dist.asMeters();
+            break;
+         default:
+            m_scaleFactor = 1.0;
+      }
+
+      
+
+      m_origin = MVector(0.0, 0.0, 0.0);
+
+      if (fnArnoldRenderOptions.findPlug("offsetOrigin").asBool())
+      {
+         MPlugArray conns;
+         if (fnArnoldRenderOptions.findPlug("origin").connectedTo(conns, true, false, &status))
+         {
+            if (status && (conns.length() > 0))
+            {
+               MDagPath dgPath;
+               if (MDagPath::getAPathTo(conns[0].node(), dgPath))
+               {
+                  MTransformationMatrix tMat = dgPath.inclusiveMatrix();
+                  m_origin = tMat.getTranslation(MSpace::kWorld);
+               }
+            }
+         }
+      }  
+      status = MStatus::kSuccess;  
    }
    else
    {
       AiMsgError("[mtoa] No known Arnold render options");
       status = MStatus::kFailure;
    }
+
+   
+
+     
 
    return status;
 }

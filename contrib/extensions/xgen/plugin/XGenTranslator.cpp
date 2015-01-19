@@ -659,6 +659,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
        
 
       }
+      
+      ExportLightLinking(shape);
    }
 }
 

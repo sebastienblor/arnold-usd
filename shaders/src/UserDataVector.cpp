@@ -39,33 +39,109 @@ node_finish
 
 shader_evaluate
 {
-
    const char* name = 0;
-
-   AtVector v;
-   AtRGB c;
-   float f;
-
    name = AiShaderEvalParamStr(p_vectorAttrName);
-   if (AiUDataGetVec(name, &v))
+   AtParamValue val;
+   bool valid = false;
+   
+   // As of today, if we want to handle the data conversion properly,
+   // it requires 2 calls to userData functions using the attribute name (which is costly)
+   // 1 to get the UserData type, 2 to get the value.
+   // So, compared to previous versions, supporting this would make it longer
+   // for those using the appropriate type (single call).
+   // So here's the compromise we chose :
+   // 1) we try to get the value of the CORRECT type
+   // 2) if it doesn't succeed, then get the type and the value
+
+   if (AiUDataGetVec(name, &val.VEC))
    {
-      sg->out.RGB.r = v.x;
-      sg->out.RGB.g = v.y;
-      sg->out.RGB.b = v.z;
+      valid = true;
+      sg->out.VEC.x = val.VEC.x;
+      sg->out.VEC.y = val.VEC.y;
+      sg->out.VEC.z = val.VEC.z;
+   } else
+   {   
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(name, sg);
+      int valueType = AiUserParamGetType(pentry);
+
+      switch (valueType)
+      {
+         case AI_TYPE_FLOAT:
+         if (AiUDataGetFlt(name, &val.FLT))
+         {
+            valid = true;
+            sg->out.VEC.x = sg->out.VEC.y = sg->out.VEC.z = val.FLT;
+         }
+         break;
+         case AI_TYPE_RGB:
+         if (AiUDataGetRGB(name, &val.RGB))
+         {
+            valid = true;
+            sg->out.VEC.x = val.RGB.r;
+            sg->out.VEC.y = val.RGB.g;
+            sg->out.VEC.z = val.RGB.b;
+         }
+         break;
+         case AI_TYPE_RGBA:
+         if (AiUDataGetRGBA(name, &val.RGBA))
+         {
+            valid = true;
+            sg->out.VEC.x = val.RGBA.r;
+            sg->out.VEC.y = val.RGBA.g;
+            sg->out.VEC.z = val.RGBA.b;
+         }
+         break;
+         case AI_TYPE_BYTE:
+         if (AiUDataGetByte(name, &val.BYTE))
+         {
+            valid = true;
+            sg->out.VEC.x = sg->out.VEC.y = sg->out.VEC.z = (float)val.BYTE;			
+         }
+         break;
+         case AI_TYPE_INT:
+         if (AiUDataGetInt(name, &val.INT))
+         {
+            valid = true;
+            sg->out.VEC.x = sg->out.VEC.y = sg->out.VEC.z = (float)val.INT;			
+         }		 
+         break;
+         case AI_TYPE_UINT:
+         if (AiUDataGetUInt(name, &val.UINT))
+         {
+            valid = true;
+            sg->out.VEC.x = sg->out.VEC.y = sg->out.VEC.z = (float)val.UINT;			
+         }
+         break;
+         case AI_TYPE_BOOLEAN:
+         if (AiUDataGetBool(name, &val.BOOL))
+         {
+            valid = true;
+            sg->out.VEC.x = sg->out.VEC.y = sg->out.VEC.z = (val.BOOL ? 1.f : 0.f);			
+         }
+         break;
+         case AI_TYPE_POINT:
+         if (AiUDataGetPnt(name, &val.PNT))
+         {
+            valid = true;
+            sg->out.VEC.x = val.PNT.x;
+            sg->out.VEC.y = val.PNT.y;
+            sg->out.VEC.z = val.PNT.z;
+         }
+         break;
+         case AI_TYPE_POINT2:
+         if (AiUDataGetPnt2(name, &val.PNT2))
+         {
+            valid = true;
+            sg->out.VEC.x = val.PNT2.x;
+            sg->out.VEC.y = val.PNT2.y;
+            sg->out.VEC.z = 0.f;
+         }
+         break;
+         default:
+         break;
+      }
    }
-   else if (AiUDataGetRGB(name, &c))
-   {
-      sg->out.RGB.r = c.r;
-      sg->out.RGB.g = c.g;
-      sg->out.RGB.b = c.b;
-   }
-   else if (AiUDataGetFlt(name, &f))
-   {
-      sg->out.RGB.r = f;
-      sg->out.RGB.g = f;
-      sg->out.RGB.b = f;
-   }
-   else
+   if (!valid)
    {
       sg->out.VEC = AiShaderEvalParamVec(p_defaultValue);
    }
