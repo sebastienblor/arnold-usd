@@ -67,7 +67,7 @@ ArraySize arraySize(int arnold_type)
 /// Open pipe process
 void openPipeCommand(DriverData* ctx)
 {
-    char* HB = getenv("HB");
+    char* HB = getenv("__HOUDINI_BINARY_FOLDER");
     if (HB == NULL)
     {
         AiMsgWarning("[mplay_driver] This driver can only be used in the Houdini environment");
