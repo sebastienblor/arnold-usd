@@ -85,6 +85,8 @@ def populateSelectCamera():
     # clear camera menu
     pm.menu('ArnoldSelectCamera', edit=True, deleteAllItems=True)
 
+    coll = pm.radioMenuItemCollection(parent='ArnoldSelectCamera')
+
     # populate camera menu    
     cameras = cmds.ls(type='camera')
     if cameras != None:
@@ -99,7 +101,7 @@ def populateSelectCamera():
             core.ACTIVE_CAMERA = activeCamera
         for cam in cameras:
             pm.menuItem('SelectCameraItem%s' % cam, label=cam, parent='ArnoldSelectCamera',
-                        radioButton=cam == activeCamera,
+                        radioButton=cam == activeCamera, cl=coll,
                         c='from mtoa.ui.arnoldmenu import selectCamera; selectCamera("%s")' % cam)
 
 def startRender():
