@@ -8,6 +8,8 @@ import maya.cmds as cmds
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
+    flag = pm.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
+    pm.attrControlGrp('os_scene_scale', edit=True, enable=flag)
     
 def updateAutotileSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.autotile')
@@ -236,6 +238,21 @@ def changeRenderType():
     except:
         pass
 
+def setupOriginText():
+    sel = cmds.listConnections('defaultArnoldRenderOptions.origin', d=0, s=1)
+    if (sel != None) and (len(sel) > 0):
+        tr = sel[0]
+        pm.textField('defaultArnoldRenderOptionsOriginTextField', e=1, text=tr)
+
+def selectOrigin(*args, **kwargs):
+    sel = cmds.ls(sl=1, transforms=1, long=1)
+
+    if (sel != None) and (len(sel) > 0):
+        tr = sel[0]
+        if cmds.objExists('%s.message' % tr):
+            cmds.connectAttr('%s.message' % tr, 'defaultArnoldRenderOptions.origin', force=1)
+    setupOriginText()
+
 def createArnoldRenderSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -299,6 +316,35 @@ def createArnoldRenderSettings():
                         label='Kick Render Flags',
                         enable=enabled,
                         attribute='defaultArnoldRenderOptions.kickRenderFlags')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_render_unit',
+                        label='Render Unit',
+                        cc=updateRenderSettings,
+                        attribute='defaultArnoldRenderOptions.renderUnit')
+
+    enabled = pm.getAttr('defaultArnoldRenderOptions.renderUnit') == 1
+
+    pm.attrControlGrp('os_scene_scale',
+                        label='Scene Scale',
+                        enable=enabled,
+                        attribute='defaultArnoldRenderOptions.sceneScale')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_offset_origin',
+                        label='Offset Origin',
+                        attribute='defaultArnoldRenderOptions.offsetOrigin')
+
+    pm.rowLayout(numberOfColumns=2, adjustableColumn=1, columnWidth2=(200, 80))
+
+    pm.textField('defaultArnoldRenderOptionsOriginTextField', editable=False)
+    pm.button(label='Select Origin', command=selectOrigin)
+
+    setupOriginText()
+
+    pm.setParent('..')
 
     pm.frameLayout(label='Callbacks', collapse=True)
 

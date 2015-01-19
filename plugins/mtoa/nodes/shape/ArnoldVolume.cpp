@@ -1,6 +1,6 @@
 #include "ArnoldVolume.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
 #include "utils/MayaUtils.h"

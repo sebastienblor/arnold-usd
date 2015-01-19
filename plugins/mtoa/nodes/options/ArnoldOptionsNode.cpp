@@ -22,6 +22,13 @@ MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
 MCallbackId CArnoldOptionsNode::sId;
 
+/*
+   I'm not exactly happy about this approach but seemingly
+   the lookup of the options node using MSelectionList
+   greatly increases the memory usage.
+*/
+
+MObject CArnoldOptionsNode::s_optionsNode = MObject();
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
@@ -93,6 +100,10 @@ MObject CArnoldOptionsNode::s_IPRRefinementFinishedCallback;
 MObject CArnoldOptionsNode::s_IPRStepStartedCallback;
 MObject CArnoldOptionsNode::s_IPRStepFinishedCallback;
 MObject CArnoldOptionsNode::s_output_overscan;
+MObject CArnoldOptionsNode::s_render_unit;
+MObject CArnoldOptionsNode::s_scene_scale;
+MObject CArnoldOptionsNode::s_offset_origin;
+MObject CArnoldOptionsNode::s_origin;
 
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
@@ -129,6 +140,17 @@ void CArnoldOptionsNode::postConstructor()
    setExistWithoutInConnections(true);
    setExistWithoutOutConnections(true);
    CArnoldOptionsNode::sId = MDGMessage::addNodeAddedCallback(CArnoldOptionsNode::createdCallback, "aiOptions");
+   s_optionsNode = thisMObject();
+}
+
+CArnoldOptionsNode::~CArnoldOptionsNode()
+{
+   s_optionsNode = MObject();
+}
+
+MObject CArnoldOptionsNode::getOptionsNode()
+{
+   return s_optionsNode;
 }
 
 MStatus CArnoldOptionsNode::initialize()
@@ -194,8 +216,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_threads = nAttr.create("threads", "thrds", MFnNumericData::kInt, 1);
    nAttr.setKeyable(false);
    nAttr.setMin(1);
-   nAttr.setSoftMin(1);
-   nAttr.setSoftMax(64);
+   nAttr.setMax(AI_MAX_THREADS);
    addAttribute(s_threads);
 
    s_bucket_scanning = eAttr.create("bucketScanning", "bktsc");
@@ -592,6 +613,38 @@ MStatus CArnoldOptionsNode::initialize()
    s_output_overscan = tAttr.create("outputOverscan", "output_overscan", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_output_overscan);
+
+   s_render_unit = eAttr.create("renderUnit", "render_unit");
+   eAttr.setKeyable(false);
+   eAttr.addField("Use Maya Unit", 0);
+   eAttr.addField("Use Custom Scaling", 1);
+   eAttr.addField("Inch", 2);
+   eAttr.addField("Feet", 3);
+   eAttr.addField("Yard", 4);
+   eAttr.addField("Mile", 5);
+   eAttr.addField("Millimeter", 6);
+   eAttr.addField("Centimeter", 7);
+   eAttr.addField("Kilometer", 8);
+   eAttr.addField("Meter", 9);
+   eAttr.setDefault(0);
+   addAttribute(s_render_unit);
+
+   s_scene_scale = nAttr.create("sceneScale", "scene_scale", MFnNumericData::kDouble);
+   nAttr.setDefault(1.0);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0.0);
+   nAttr.setSoftMin(0.01);
+   nAttr.setSoftMax(5.0);
+   addAttribute(s_scene_scale);
+
+   s_offset_origin = nAttr.create("offsetOrigin", "offset_origin", MFnNumericData::kBoolean);
+   nAttr.setDefault(false);
+   nAttr.setKeyable(false);
+   addAttribute(s_offset_origin);
+
+   s_origin = mAttr.create("origin", "orig");
+   mAttr.setKeyable(false);
+   addAttribute(s_origin);
 
    return MS::kSuccess;
 }

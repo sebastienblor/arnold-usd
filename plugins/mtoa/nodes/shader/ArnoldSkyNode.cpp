@@ -1,7 +1,7 @@
 #include "ArnoldSkyNode.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 
 #include <ai_ray.h>
 #include <ai_shader_util.h>

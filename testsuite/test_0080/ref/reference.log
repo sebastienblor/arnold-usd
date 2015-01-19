@@ -1,41 +1,44 @@
-Cannot open log file 'C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0080\test_0080.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
-Initialized VP2.0 renderer {
-  Version : 5.3.1.100. Feature Level 5.
-  Adapter : AMD FirePro W8000 (FireGL V)
-  Vendor ID: 4098. Device ID : 26506
-  Driver : aticfx64.dll:13.352.1014.0.
-  API : DirectX V.11.  Max texture size : 16384 * 16384.
-  Max tex coords : 32
-  Shader versions supported (Vertex: 5, Geometry: 5, Pixel 5).
-  Active stereo support available : 0
-  GPU Memory Limit : 4095 MB.
-  CPU Memory Limit: 15523.9 MB.
-}
-1 error generated.
-Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
-00:00:00   319MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
-00:00:00   321MB WARNING | [mtoa] Extension xgenTranslator(C:/work/deploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-ai.dll loaded from non standard location C:\arnold4210\bin
+Starting "/usr/autodesk/maya2013-x64/bin/maya"
 
-Successfully imported python module 'arnold'
-Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, ikSpringSolver, ik2Bsolver, AbcExport, retargeterNodes, VectorRender, AutodeskPacketFile, OpenEXRLoader, Unfold3D, mayaCharacterization, SOuP, mtoa, modelingToolkit, MayaMuscle, rotateHelper, DirectConnect, dx11Shader, matrixNodes, AbcImport, BifrostMain, autoLoader, sceneAssembly, gpuCache, shaderFXPlugin, objExport, bifrostshellnode, ArubaTessellator, quatNodes, fbxmaya
-Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.pyc)
-Successfully registered renderer 'arnold'
-Warning: file: C:/Users/Pal/Documents/maya/2015-x64/scripts/userSetup.mel line 1: Loading plug-in "mtoa" has resulted in changes to the scene that may need to be saved.
+00:00:00   195MB         | log started Mon Jan 12 17:44:04 2015
+00:00:00   195MB         | Arnold 4.2.3.0 linux clang-3.4.0 glibc-2.12 libstdc++-3.4.13 oiio-1.4.14 rlm-11.1.2 2015/01/12 15:05:34
+00:00:00   195MB         | running on localhost.localdomain with pid 8488
+00:00:00   195MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
+00:00:00   195MB         |  (redhat) CentOS release 6.5 (Final), Linux kernel 2.6.32-431.29.2.el6.centos.plus.x86_64
+00:00:00   195MB         |  
+00:00:00   195MB ERROR   | [mtoa.attr] Unable to create static attribute corresponding to procedural.overrideMatte
 
-----------------------------------------------------------
-Time: 2014/9/8 16:18:47
-----------------------------------------------------------
+API error detected in plugins/mtoa/attributes/AttrHelper.cpp at line 1247
+: (kInvalidParameter): Object already exists
+00:00:00   196MB         | [mtoa] [<built-in>] Generated 18 new Maya nodes for Arnold built-in nodes.
+00:00:00   196MB         | [mtoa] [<built-in>] Generated 47 translators for 30 Maya nodes (18 new and 12 existing) for Arnold built-in nodes.
+00:00:00   196MB         | loading plugin: /work/deploy/2013/shaders/mtoa_shaders.so ...
+00:00:00   197MB         | loaded 87 plugins from 1 lib(s) in 0:00.00
+00:00:00   197MB         | [mtoa] [mtoa_shaders] Generated 12 new Maya nodes for Arnold plugin /work/deploy/2013/shaders/mtoa_shaders.so.
+00:00:00   197MB         | [mtoa] [mtoa_shaders] Generated 41 translators for 41 Maya nodes (12 new and 29 existing) for Arnold plugin /work/deploy/2013/shaders/mtoa_shaders.so.
+00:00:00   197MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
+00:00:00   197MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
+00:00:00   197MB         | [mtoa] Registering 2 loaded extensions:
+00:00:00   198MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
+00:00:00   198MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2013/shaders/mtoa_shaders.so.
+libai.so already loaded
 
+00:00:00   201MB         | Successfully imported python module 'arnold'
+00:00:00   201MB         | Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, AbcImport, mayaHIK, mtoa, retargeterNodes
+Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+00:00:00   266MB         |  
+00:00:00   266MB         | releasing resources
+00:00:00   265MB         | Arnold shutdown
+mental ray for Maya 2013 
+mental ray: version 3.10.1.11, Jul 26 2012, revision 177995
+pymel : ERROR : Failed to get controlCommand list from FumeFX
+pymel : ERROR : Failed to get modelEditorCommand list from FumeFX
+pymel : ERROR : Failed to get command list from FumeFX
+pymel : ERROR : Failed to get constraintCommand list from FumeFX
+pymel.core : ERROR : Failed to get depend nodes list from FumeFX
+File read in 1 seconds.
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  1 seconds.
-Result: C:/work/mtoa/build/windows_x86_64/201501/msvc_opt/testsuite/test_0080/test.ma
-Scene C:\work\mtoa\build\windows_x86_64\201501\msvc_opt\testsuite\test_0080\test.ma completed.
-
-----------------------------------------------------------
-Time: 2014/9/8 16:18:49
-----------------------------------------------------------
-
+Result: /work/mtoa/build/linux_x86_64/201303/gcc_opt/testsuite/test_0080/test.ma
+Scene /work/mtoa/build/linux_x86_64/201303/gcc_opt/testsuite/test_0080/test.ma completed.

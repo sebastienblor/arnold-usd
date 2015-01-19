@@ -410,8 +410,12 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    // FIXME: focus_distance and aperture_size are animated and should be exported with motion blur
    if (FindMayaPlug("aiEnableDOF").asBool())
    {
-      AiNodeSetFlt(camera, "focus_distance",          FindMayaPlug("aiFocusDistance").asFloat());
-      AiNodeSetFlt(camera, "aperture_size",           FindMayaPlug("aiApertureSize").asFloat());
+      float distance = FindMayaPlug("aiFocusDistance").asFloat();
+      m_session->ScaleDistance(distance);      
+      float apertureSize = FindMayaPlug("aiApertureSize").asFloat();
+      m_session->ScaleDistance(apertureSize);
+      AiNodeSetFlt(camera, "focus_distance",          distance);
+      AiNodeSetFlt(camera, "aperture_size",           apertureSize);
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
       AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
@@ -654,3 +658,38 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    helper.MakeInputBoolean(data);
 }
 
+void CCameraTranslator::GetMatrix(AtMatrix& matrix)
+{
+   MStatus status;
+   MMatrix mayaMatrix = m_dagPath.inclusiveMatrix(&status);
+   if (status)
+   {
+      if (m_session)
+      {
+         MTransformationMatrix trMat = mayaMatrix;
+         trMat.addTranslation((-1.0) * m_session->GetOrigin(), MSpace::kWorld);
+         MMatrix copyMayaMatrix = trMat.asMatrix();
+         copyMayaMatrix[3][0] = m_session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
+         copyMayaMatrix[3][1] = m_session->ScaleDistance(copyMayaMatrix[3][1]);
+         copyMayaMatrix[3][2] = m_session->ScaleDistance(copyMayaMatrix[3][2]);
+
+         for (int J = 0; (J < 4); ++J)
+         {
+            for (int I = 0; (I < 4); ++I)
+            {
+               matrix[I][J] = (float) copyMayaMatrix[I][J];
+            }
+         }
+      }
+      else
+      {
+         for (int J = 0; (J < 4); ++J)
+         {
+            for (int I = 0; (I < 4); ++I)
+            {
+               matrix[I][J] = (float) mayaMatrix[I][J];
+            }
+         }  
+      }
+   }
+}

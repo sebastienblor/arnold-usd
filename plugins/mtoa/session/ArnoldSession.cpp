@@ -5,6 +5,7 @@
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
 #include "nodes/ShaderUtils.h"
+#include "translators/DagTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -400,6 +401,18 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
 
    m_is_active = true;
    m_requestUpdate = false;
+
+   m_scaleFactor = options.GetScaleFactor();
+   AtVector s = {static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor), static_cast<float>(m_scaleFactor)};
+   AiM4Scaling(m_scaleFactorAtMatrix, &s);
+
+   double sc[3] = {m_scaleFactor, m_scaleFactor, m_scaleFactor};
+   m_scaleFactorMMatrix.setToIdentity();
+   MTransformationMatrix trmat(m_scaleFactorMMatrix);
+   trmat.setScale(sc, MSpace::kWorld);
+   m_scaleFactorMMatrix = trmat.asMatrix();
+
+   m_origin = options.GetOrigin();
 
    //ProcessAOVs();
    return status;
@@ -1347,4 +1360,53 @@ void CArnoldSession::FormatTexturePath(MString& texturePath)
 void CArnoldSession::FormatProceduralPath(MString& proceduralPath)
 {
     m_sessionOptions.FormatProceduralPath(proceduralPath);
+}
+
+MMatrix& CArnoldSession::ScaleMatrix(MMatrix& matrix) const
+{
+   matrix *= m_scaleFactorMMatrix;
+   return matrix;
+}
+
+AtMatrix& CArnoldSession::ScaleMatrix(AtMatrix& matrix) const
+{
+   AiM4Mult(matrix, m_scaleFactorAtMatrix, matrix);
+   return matrix;
+}
+
+float& CArnoldSession::ScaleDistance(float& distance) const
+{
+   double s = static_cast<double>(distance);
+   s *= m_scaleFactor;
+   distance = static_cast<float>(s);
+   return distance;
+}
+
+double& CArnoldSession::ScaleDistance(double& distance) const
+{
+   distance *= m_scaleFactor;
+   return distance;
+}
+
+
+float& CArnoldSession::ScaleArea(float& area) const
+{
+   double s = static_cast<double>(area);
+   s *= m_scaleFactor;
+   s *= m_scaleFactor;
+   area = static_cast<float>(s);
+   return area;
+}
+
+float& CArnoldSession::ScaleLightExposure(float& exposure) const
+{
+   double e = static_cast<double>(exposure);
+   e += log(m_scaleFactor * m_scaleFactor) / log(2.0);
+   exposure = static_cast<float>(e);
+   return exposure;
+}
+
+MVector CArnoldSession::GetOrigin() const
+{
+   return m_origin;
 }

@@ -28,6 +28,8 @@ node_parameters
    AiParameterStr("aov_sheen", "sheen");
    AiParameterStr("aov_sss", "sss");
    AiParameterBool("fresnel_affect_sss", true);
+   AiParameterFLT("opacity", 1.0f);
+   AiParameterRGB("opacity_color", 1.0f, 1.0f, 1.0f);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
@@ -59,7 +61,9 @@ enum SSSParams {
    p_aov_specular,
    p_aov_sheen,
    p_aov_sss,
-   p_fresnel_affect_sss
+   p_fresnel_affect_sss,
+   p_opacity,
+   p_opacity_color
 };
 
 node_initialize
@@ -93,7 +97,10 @@ float SimpleFresnel(float dt, float ior)
 shader_evaluate
 {
    if (sg->Rt & AI_RAY_SHADOW)
+   {
+      sg->out_opacity *= AiColorClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
       return;
+   }
 
    bool sampleOnlySSS = false;
    if ((sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_GLOSSY) && (!AiShaderEvalParamBool(p_specular_in_secondary_rays)))
@@ -202,6 +209,7 @@ shader_evaluate
    }
 
    sg->out.RGB = specular + sheen + sss;
+   sg->out_opacity = AiColorClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
 
    if (sg->Rt & AI_RAY_CAMERA)
    {      

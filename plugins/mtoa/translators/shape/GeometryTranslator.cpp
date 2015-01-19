@@ -3,6 +3,8 @@
 
 #include <maya/MNodeMessage.h>
 #include <maya/MBoundingBox.h>
+#include <maya/MUintArray.h>
+#include <maya/MItMeshEdge.h>
 
 #include <algorithm>
 
@@ -957,7 +959,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          if (exportRefVerts)
          {
             AtMatrix worldMatrix;
-            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
+            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix(), m_session);
             AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)
@@ -995,6 +997,39 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          {
             AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
             ++it;
+         }
+      }
+
+      // exporting crease edges
+      // for the first version we always export them
+      // since the user might override the subdiv options
+      // from a procedural, node processor etc...
+      if (!fnMesh.findPlug("displaySmoothMesh").asBool())
+      {
+         MUintArray creaseEdgeIds;
+         MDoubleArray creaseEdgeDatas;
+
+         if ((fnMesh.getCreaseEdges(creaseEdgeIds, creaseEdgeDatas) == MS::kSuccess) && (creaseEdgeIds.length() > 0))
+         {
+            const unsigned int creaseEdgeIdCount = creaseEdgeIds.length();
+            AtArray* aCreaseEdges = AiArrayAllocate(creaseEdgeIdCount * 2, 1, AI_TYPE_UINT);
+            AtArray* aCreaseData = AiArrayAllocate(creaseEdgeIdCount, 1, AI_TYPE_FLOAT);
+
+            MItMeshEdge edgeIt(m_geometry); // we need this to access the 
+            // connected vertices information
+            int prevId; // junk
+            for (unsigned int i = 0; i < creaseEdgeIdCount; ++i)
+            {
+               const unsigned int edgeId = creaseEdgeIds[i];
+               edgeIt.setIndex(static_cast<int>(edgeId), prevId);
+               AiArraySetUInt(aCreaseEdges, i * 2, static_cast<unsigned int>(edgeIt.index(0)));
+               AiArraySetUInt(aCreaseEdges, i * 2 + 1, static_cast<unsigned int>(edgeIt.index(1)));
+               const double edgeData = creaseEdgeDatas[i];
+               AiArraySetFlt(aCreaseData, i, static_cast<float>(edgeData));
+            }
+
+            AiNodeSetArray(polymesh, "crease_idxs", aCreaseEdges);
+            AiNodeSetArray(polymesh, "crease_sharpness", aCreaseData);
          }
       }
    } // step == 0

@@ -303,7 +303,7 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    int steps = GetNumMotionSteps();
-   AtArray* vlist = AiArrayAllocate(m_numVertices, steps, AI_TYPE_POINT);
+   AtArray* vlist = AiArrayAllocate(m_numVertices, IsMotionBlurEnabled(MTOA_MBLUR_DEFORM) ? steps : 1, AI_TYPE_POINT);
    for (int i = 0; i < m_numVertices; ++i)
       AiArraySetVec(vlist, i, vertices[i]);
 
@@ -529,6 +529,9 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
    {
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
+
+      if (vlist->nkeys == 1)
+         return;
        
       MFnDependencyNode fnDepNode(m_dagPath.node());
       MObject meshObject = GetMeshObject(); // if the returned value is directly given to the
@@ -540,13 +543,23 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
       int numVerts = mesh.numVertices();
       if (numVerts != m_numVertices)
       {
-         AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
-                    GetMayaNodeName().asChar(), m_numVertices, numVerts);
-         return;
+         AiMsgWarning("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
+                    GetMayaNodeName().asChar(), m_numVertices, numVerts); // remove the vlist array and put one with a single key in it's plase
+
+         AtArray* vlist_new = AiArrayAllocate(vlist->nelements, 1, AI_TYPE_POINT);
+
+         for (int i = 0; i < m_numVertices; ++i)
+            AiArraySetVec(vlist_new, i, AiArrayGetVec(vlist, i));
+
+         AiNodeSetArray(meshNode, "vlist", vlist_new);
       }
-      MStatus status;
-      const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-      for (int i = 0, j = m_numVertices * step; i < m_numVertices; ++i, ++j)
-         AiArraySetVec(vlist, j, vertices[i]);
+      else
+      {
+         MStatus status;
+         const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+         for (int i = 0, j = m_numVertices * step; i < m_numVertices; ++i, ++j)
+            AiArraySetVec(vlist, j, vertices[i]);
+      }
+      
    }  
 }

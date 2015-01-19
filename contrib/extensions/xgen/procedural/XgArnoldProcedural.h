@@ -23,6 +23,7 @@ using namespace XGenRenderAPI;
 // Forward Decl
 struct AtNode;
 struct AtArray;
+struct XgMergedData;
 class XgMutex;
 
 namespace XGenArnold
@@ -74,7 +75,7 @@ namespace XGenArnold
       bool getFloatArray( AtNode* in_node, const char* in_name, const float*& out_value, bool in_user=false  ) const;
       bool getMatrixArray( AtNode* in_node, const char* in_name, const AtMatrix*& out_value, bool in_user=false  ) const;
 
-      static void pushCustomParams( AtNode* in_node, PrimitiveCache* pc, unsigned int cacheCount = 0 );
+      void pushCustomParams( AtNode* in_node, PrimitiveCache* pc, unsigned int cacheCount = 0 );
 
       static void convertMatrix( const AtMatrix in_mat, mat44& out_mat );
 
@@ -93,6 +94,7 @@ namespace XGenArnold
       std::vector<FaceRenderer*> m_faces;
 
       std::vector<AtNode*> m_nodes;
+      XgMergedData *m_merged_data;
 
       mutable std::map<std::string, bbox> m_bboxes;
       

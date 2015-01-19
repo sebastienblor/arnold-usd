@@ -292,7 +292,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
          {
             AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
             AtMatrix matrix;
-            ConvertMatrix(matrix, mayaMatrices[j]);
+            ConvertMatrix(matrix, mayaMatrices[j], m_session);
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -360,7 +360,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j]);
+               ConvertMatrix(matrix, mayaMatrices[j], m_session);
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
 
                if (velocities.length() > 0)
@@ -376,7 +376,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 
                AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j]);
+               ConvertMatrix(matrix, mayaMatrices[j], m_session);
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (unsigned int i = 0; i<step; i++)

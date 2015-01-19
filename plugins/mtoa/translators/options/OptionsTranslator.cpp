@@ -458,8 +458,6 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
    
    AiNodeSetBool(options, "texture_per_file_stats", true);
-   
-   AiNodeSetBool(options, "enable_aov_composition", true);
 
    MStatus status;
 
