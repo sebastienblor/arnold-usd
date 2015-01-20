@@ -215,6 +215,7 @@ def createArnoldMenu():
         pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
                     postMenuCommand=lambda *args: populateSelectCamera())
+        populateSelectCamera()
         pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
                     c=lambda *args: startRender())
         pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',
