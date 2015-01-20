@@ -1009,28 +1009,54 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          MUintArray creaseEdgeIds;
          MDoubleArray creaseEdgeDatas;
 
-         if ((fnMesh.getCreaseEdges(creaseEdgeIds, creaseEdgeDatas) == MS::kSuccess) && (creaseEdgeIds.length() > 0))
-         {
-            const unsigned int creaseEdgeIdCount = creaseEdgeIds.length();
-            AtArray* aCreaseEdges = AiArrayAllocate(creaseEdgeIdCount * 2, 1, AI_TYPE_UINT);
-            AtArray* aCreaseData = AiArrayAllocate(creaseEdgeIdCount, 1, AI_TYPE_FLOAT);
+         MUintArray creaseVertexIds;
+         MDoubleArray creaseVertexDatas;
 
-            MItMeshEdge edgeIt(m_geometry); // we need this to access the 
-            // connected vertices information
-            int prevId; // junk
-            for (unsigned int i = 0; i < creaseEdgeIdCount; ++i)
+         unsigned int creaseEdgeIdCount = 0;
+         unsigned int creaseVertexIdCount = 0;
+         
+         if ((fnMesh.getCreaseEdges(creaseEdgeIds, creaseEdgeDatas) == MS::kSuccess) && (creaseEdgeIds.length() > 0))
+            creaseEdgeIdCount = creaseEdgeIds.length();
+
+         if ((fnMesh.getCreaseVertices(creaseVertexIds, creaseVertexDatas) == MS::kSuccess) && (creaseVertexIds.length() > 0))
+            creaseVertexIdCount = creaseVertexIds.length();
+
+         const unsigned int creaseIdCount = creaseEdgeIdCount + creaseVertexIdCount;
+
+         if (creaseIdCount > 0)
+         {
+            AtArray* aCreaseEdges = AiArrayAllocate(creaseIdCount * 2, 1, AI_TYPE_UINT);
+            AtArray* aCreaseData = AiArrayAllocate(creaseIdCount, 1, AI_TYPE_FLOAT);
+
+            if (creaseEdgeIdCount > 0)
             {
-               const unsigned int edgeId = creaseEdgeIds[i];
-               edgeIt.setIndex(static_cast<int>(edgeId), prevId);
-               AiArraySetUInt(aCreaseEdges, i * 2, static_cast<unsigned int>(edgeIt.index(0)));
-               AiArraySetUInt(aCreaseEdges, i * 2 + 1, static_cast<unsigned int>(edgeIt.index(1)));
-               const double edgeData = creaseEdgeDatas[i];
-               AiArraySetFlt(aCreaseData, i, static_cast<float>(edgeData));
+               MItMeshEdge edgeIt(m_geometry); // we need this to access the 
+               // connected vertices information
+               int prevId; // junk
+               for (unsigned int i = 0; i < creaseEdgeIdCount; ++i)
+               {
+                  const unsigned int edgeId = creaseEdgeIds[i];
+                  edgeIt.setIndex(static_cast<int>(edgeId), prevId);
+                  AiArraySetUInt(aCreaseEdges, i * 2, static_cast<unsigned int>(edgeIt.index(0)));
+                  AiArraySetUInt(aCreaseEdges, i * 2 + 1, static_cast<unsigned int>(edgeIt.index(1)));
+                  AiArraySetFlt(aCreaseData, i, static_cast<float>(creaseEdgeDatas[i]));
+               }              
+            }
+
+            if (creaseVertexIdCount > 0)
+            {
+               const unsigned int baseId = creaseEdgeIdCount * 2;
+               for (unsigned int i = 0; i < creaseVertexIdCount; ++i)
+               {
+                  AiArraySetUInt(aCreaseEdges, baseId + i * 2, creaseVertexIds[i]);
+                  AiArraySetUInt(aCreaseEdges, baseId + i * 2 + 1, creaseVertexIds[i]);
+                  AiArraySetFlt(aCreaseData, creaseEdgeIdCount + i, static_cast<float>(creaseVertexDatas[i]));
+               }
             }
 
             AiNodeSetArray(polymesh, "crease_idxs", aCreaseEdges);
             AiNodeSetArray(polymesh, "crease_sharpness", aCreaseData);
-         }
+         }         
       }
    } // step == 0
    else if (!m_useMotionVectors)
