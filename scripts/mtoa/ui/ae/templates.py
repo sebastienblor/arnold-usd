@@ -291,13 +291,13 @@ class BaseMode(object):
     # queries
     @property
     def nodeName(self):
-        "get the active node"
+        # get the active node
         # assert self._nodeName, "%r: nodeName should be set by now" % self
-        return self.tempalte.nodeName
+        return self.template.nodeName
 
     @property
     def attr(self):
-        return self.tempalte.attr
+        return self.template.attr
 
     def nodeType(self):
         self.template.nodeType()
