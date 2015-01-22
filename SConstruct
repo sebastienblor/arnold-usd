@@ -711,6 +711,7 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
               os.path.join('session', 'ArnoldLightLinks.h'),
               os.path.join('render', 'AOV.h'),
               os.path.join('translators', 'NodeTranslator.h'),
+              os.path.join('translators', 'DagTranslator.h'),
               os.path.join('translators', 'shape', 'ShapeTranslator.h'),
               os.path.join('utils', 'Version.h')]
 
