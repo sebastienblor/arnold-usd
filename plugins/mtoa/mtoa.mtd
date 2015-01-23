@@ -805,15 +805,19 @@
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     0
     [attr far_start]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     0
     [attr near_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     0
     [attr near_start]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               0       0
 
 # cameras
 
