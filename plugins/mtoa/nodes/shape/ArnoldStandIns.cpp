@@ -788,13 +788,6 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
-   
-   data.defaultValue.BOOL = false;
-   data.name = "overrideMatte";
-   data.shortName = "overrideMatte";
-   s_attributes.MakeInputBoolean(data);
-
-   //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    return MStatus::kSuccess;
 }
