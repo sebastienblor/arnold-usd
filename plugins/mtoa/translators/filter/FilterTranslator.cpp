@@ -30,18 +30,7 @@ void CFilterTranslator::Export(AtNode *shader)
       const char* paramName = AiParamGetName(paramEntry);
 
       if (strcmp(paramName, "name") != 0)
-      {
          ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
-         if (AiParamGetType(paramEntry) == AI_TYPE_FLOAT)
-         {
-            AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(entry, paramName);
-            while(!AiMetaDataIteratorFinished(miter))
-            {
-               continue;
-            }
-            AiMetaDataIteratorDestroy(miter);
-         }
-      }
    }
    AiParamIteratorDestroy(nodeParam);
 }
