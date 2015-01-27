@@ -3,6 +3,14 @@
 
 #include <assert.h>
 
+/*
+
+   As a quick fix for 1.2.0.3 I'm adding the scaling of the
+   distance like parameters here, instead of to the process parameter.
+   This HAVE to be removed for 1.2.1.0.
+
+*/
+
 AtNode* CFilterTranslator::CreateArnoldNodes()
 {
    assert(AiUniverseIsActive());
@@ -21,7 +29,8 @@ void CFilterTranslator::Export(AtNode *shader)
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
 
-      if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
+      if (strcmp(paramName, "name") != 0)
+         ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
 }

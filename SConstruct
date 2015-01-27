@@ -711,6 +711,7 @@ apiheaders = [os.path.join('platform', 'Platform.h'),
               os.path.join('session', 'ArnoldLightLinks.h'),
               os.path.join('render', 'AOV.h'),
               os.path.join('translators', 'NodeTranslator.h'),
+              os.path.join('translators', 'DagTranslator.h'),
               os.path.join('translators', 'shape', 'ShapeTranslator.h'),
               os.path.join('utils', 'Version.h')]
 
@@ -1013,7 +1014,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, sys.platform))
+        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, platform.system().lower()))
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))

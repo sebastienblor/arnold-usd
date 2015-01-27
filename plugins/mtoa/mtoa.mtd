@@ -796,6 +796,10 @@
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
 
+# scale 1 means it's a distance typed attribute
+# so we are just simply multiplying it with the
+# scene scale option
+
 [node light_decay]
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
@@ -805,15 +809,19 @@
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     1
     [attr far_start]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     1
     [attr near_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     1
     [attr near_start]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0
+        scale               INT     1
 
 # cameras
 

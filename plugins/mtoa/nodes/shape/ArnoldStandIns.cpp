@@ -788,13 +788,6 @@ MStatus CArnoldStandInShape::initialize()
    s_attributes.MakeInputBoolean(data);
 
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
-   
-   data.defaultValue.BOOL = false;
-   data.name = "overrideMatte";
-   data.shortName = "overrideMatte";
-   s_attributes.MakeInputBoolean(data);
-
-   //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    return MStatus::kSuccess;
 }
@@ -1282,16 +1275,11 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       case DM_POLYWIRE: // filled polygon
          glNewList(geom->dList, GL_COMPILE);
          glPushAttrib(GL_CURRENT_BIT);
-         glEnable(GL_POLYGON_OFFSET_FILL);
-         
+         glEnable(GL_POLYGON_OFFSET_FILL);         
          glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-
-         geom->Draw(GM_POLYGONS);
-         
+         geom->Draw(GM_POLYGONS);         
          glPopAttrib();
-
-         geom->Draw(GM_WIREFRAME);
-         
+         geom->Draw(GM_WIREFRAME);         
          glEndList();
          break;
 
@@ -1317,24 +1305,50 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          glPopAttrib();
          break;
       case DM_SHADED_POLYWIRE: // shaded polywire
-         glNewList(geom->dList, GL_COMPILE);
-         glPushAttrib(GL_ALL_ATTRIB_BITS);
-         glEnable(GL_POLYGON_OFFSET_FILL);
-                  
-         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-         geom->Draw(GM_NORMAL_AND_POLYGONS);
-         glPopAttrib();
-         geom->Draw(GM_WIREFRAME);
-         glEndList();         
+         {
+            glNewList(geom->dList, GL_COMPILE);
+            const bool enableLighting = view.displayStyle() == M3dView::kGouraudShaded;
+            if (enableLighting)
+            {
+               glEnable(GL_LIGHTING);
+               glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+               glEnable(GL_COLOR_MATERIAL);
+            }
+            glPushAttrib(GL_CURRENT_BIT);
+            glEnable(GL_POLYGON_OFFSET_FILL);                  
+            glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+            geom->Draw(GM_NORMAL_AND_POLYGONS);
+            glPopAttrib();
+            if (enableLighting)
+            {
+               glDisable(GL_LIGHTING);
+               glDisable(GL_COLOR_MATERIAL);
+            }
+            geom->Draw(GM_WIREFRAME);
+            glEndList();
+         }
          break;
       case DM_SHADED: // shaded
-         glNewList(geom->dList, GL_COMPILE);
-         glPushAttrib(GL_ALL_ATTRIB_BITS);
-         
-         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-         geom->Draw(GM_NORMAL_AND_POLYGONS);
-         glPopAttrib();
-         glEndList();
+         {
+            glNewList(geom->dList, GL_COMPILE);
+            const bool enableLighting = view.displayStyle() == M3dView::kGouraudShaded;
+            if (enableLighting)
+            {
+               glEnable(GL_LIGHTING);
+               glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+               glEnable(GL_COLOR_MATERIAL);
+            }
+            glPushAttrib(GL_ALL_ATTRIB_BITS);         
+            glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+            geom->Draw(GM_NORMAL_AND_POLYGONS);
+            glPopAttrib();
+            if (enableLighting)
+            {
+               glDisable(GL_LIGHTING);
+               glDisable(GL_COLOR_MATERIAL);
+            }
+            glEndList();
+         }
          break;
       }
       geom->Clear();
@@ -1390,23 +1404,8 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       glEnd();
    }
    else if (geom->dList != 0)
-   {
-      const bool enableLighting = ((geom->mode == DM_SHADED) || (geom->mode == DM_SHADED_POLYWIRE))
-                                    && (view.displayStyle() == M3dView::kGouraudShaded);
-      if (enableLighting)
-      {
-         glEnable(GL_LIGHTING);
-         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-         glEnable(GL_COLOR_MATERIAL);
-         glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-      }
-      
+   {      
       glCallList(geom->dList);
-      if (enableLighting)
-      {
-         glDisable(GL_LIGHTING);
-         glDisable(GL_COLOR_MATERIAL);
-      }
       // Draw scaled BBox
       if(geom->deferStandinLoad)
          glCallList(geom->dList+1);
