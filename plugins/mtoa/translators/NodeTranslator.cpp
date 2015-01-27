@@ -1689,7 +1689,23 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
       break;
    case AI_TYPE_FLOAT:
       {
-         AiNodeSetFlt(arnoldNode, arnoldParamName, plug.asFloat());
+         float val = plug.asFloat();
+         // check for scaling
+         const AtNodeEntry* nentry = AiNodeGetNodeEntry(arnoldNode);
+         AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(nentry, arnoldParamName);
+         while(!AiMetaDataIteratorFinished(miter))
+         {
+            const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
+            if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
+            {
+               if (mentry->value.INT == 1) // scale distance
+                  m_session->ScaleDistance(val);
+            }
+            continue;
+         }
+         AiMetaDataIteratorDestroy(miter);
+
+         AiNodeSetFlt(arnoldNode, arnoldParamName, val);
       }
       break;
    case AI_TYPE_POINT2:
