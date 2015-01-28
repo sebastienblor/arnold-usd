@@ -442,7 +442,7 @@ void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds)
    AiParameterFLT ("alphaOffset", 0.0f);
    AiParameterBOOL("alphaIsLuminance", false);
    AiParameterBOOL("invert", false);
-   AiParameterFLT("exposure", 0.0f);
+   AiParameterFLT ("exposure", 0.0f);
 
    AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
    AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
@@ -459,7 +459,7 @@ void MayaColorBalance(AtShaderGlobals* sg,
    const float alphaOffset    = AiShaderEvalParamFuncFlt(sg, node, p_start + 4);  // p_alphaOffset);
    const bool alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start + 5);  // alphaIsLuminance);
    const bool invert = AiShaderEvalParamFuncBool(sg, node, p_start + 6); // p_invert);
-   const float exposure = powf(AiShaderEvalParamFuncFlt(sg, node, p_start + 7), 2.0f); // p_exposure
+   const float exposure = powf(2.0f, AiShaderEvalParamFuncFlt(sg, node, p_start + 7)); // p_exposure
 
    if (invert)
    {
