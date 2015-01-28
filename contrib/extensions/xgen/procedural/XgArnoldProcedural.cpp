@@ -102,7 +102,7 @@ struct XgMergedData
 
          for (int k = 0; k < array->nkeys; k++)
          {
-            memcpy(concat_array_data + k *key_size + elements_offset, array_data, elements_size);
+            memcpy(concat_array_data + k *key_size + elements_offset, array_data + k*key_size, elements_size);
          }
          elements_offset += elements_size;
       }
