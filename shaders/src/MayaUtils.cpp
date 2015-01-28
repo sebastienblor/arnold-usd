@@ -442,6 +442,7 @@ void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds)
    AiParameterFLT ("alphaOffset", 0.0f);
    AiParameterBOOL("alphaIsLuminance", false);
    AiParameterBOOL("invert", false);
+   AiParameterFLT("exposure", 0.0f);
 
    AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
    AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
@@ -452,12 +453,13 @@ void MayaColorBalance(AtShaderGlobals* sg,
                         int p_start,
                         AtRGBA & result)
 {
-   const AtRGB colorGain      = AiShaderEvalParamFuncRGB(sg, node, p_start + 1);  //p_colorGain);
-   const AtRGB colorOffset    = AiShaderEvalParamFuncRGB(sg, node, p_start + 2);  //p_colorOffset);
-   const float alphaGain      = AiShaderEvalParamFuncFlt(sg, node, p_start + 3);  //p_alphaGain);
-   const float alphaOffset    = AiShaderEvalParamFuncFlt(sg, node, p_start + 4);  //p_alphaOffset);
-   const bool alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start+ 5);  //alphaIsLuminance);
-   const bool invert = AiShaderEvalParamFuncBool(sg, node, p_start+ 6); //p_invert);
+   const AtRGB colorGain      = AiShaderEvalParamFuncRGB(sg, node, p_start + 1);  // p_colorGain);
+   const AtRGB colorOffset    = AiShaderEvalParamFuncRGB(sg, node, p_start + 2);  // p_colorOffset);
+   const float alphaGain      = AiShaderEvalParamFuncFlt(sg, node, p_start + 3);  // p_alphaGain);
+   const float alphaOffset    = AiShaderEvalParamFuncFlt(sg, node, p_start + 4);  // p_alphaOffset);
+   const bool alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start + 5);  // alphaIsLuminance);
+   const bool invert = AiShaderEvalParamFuncBool(sg, node, p_start + 6); // p_invert);
+   const float exposure = powf(AiShaderEvalParamFuncFlt(sg, node, p_start + 7), 2.0f); // p_exposure
 
    if (invert)
    {
@@ -472,9 +474,9 @@ void MayaColorBalance(AtShaderGlobals* sg,
       result.a = Luminance(result);
    }
 
-   result.r = result.r * colorGain.r + colorOffset.r;
-   result.g = result.g * colorGain.g + colorOffset.g;
-   result.b = result.b * colorGain.b + colorOffset.b;
+   result.r = result.r * colorGain.r * exposure + colorOffset.r;
+   result.g = result.g * colorGain.g * exposure + colorOffset.g;
+   result.b = result.b * colorGain.b * exposure + colorOffset.b;
    result.a = result.a * alphaGain   + alphaOffset;
 }
 
