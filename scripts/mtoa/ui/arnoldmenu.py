@@ -78,6 +78,13 @@ def arnoldLightManager():
     win = mtoa.lightManager.MtoALightManager()
     win.create()
 
+def arnoldBakeGeo():
+    objFilter = "Obj File (*.obj)"
+    ret = cmds.fileDialog2(cap='Bake Selection as OBJ', fm=0, ff=objFilter)
+    if ret is not None and len(ret):
+        cmds.arnoldBakeGeo(f=ret[0])
+
+
 def selectCamera(cam):
     core.ACTIVE_CAMERA=cam
 
@@ -175,6 +182,10 @@ def createArnoldMenu():
                     
         pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
                     c=lambda *args: arnoldLightManager())
+
+        pm.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldBakeGeo())
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)

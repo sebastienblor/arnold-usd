@@ -182,7 +182,8 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
 
             fBuf <<"f "<<vert_index<<" "<<vert_index+1<<" "<<vert_index+2<<"\n";
             vert_index+=3;
-
+            
+            // Please God forgive me for duplicating the vertices for each triangle
             for (int j = 0; j < 3; ++j)
             {
                // convert local vertices to world              
@@ -201,7 +202,12 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       }
    } 
 
+   std::string outLog = "Exported geometry as ";
+   outLog += filename.asChar();
+   
    fb.close();
+   MGlobal::displayInfo(MString(outLog.c_str()));
+
    AiNodeIteratorDestroy(node_itr);
    AiShaderGlobalsDestroy(sg);
    AiRenderAbort();
