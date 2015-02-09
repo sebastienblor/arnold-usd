@@ -6,6 +6,7 @@ import mtoa.utils as mutils
 import maya.cmds as cmds
 import mtoa.txManager
 import mtoa.lightManager
+import mtoa.renderToTexture
 import arnold as ai
 
 
@@ -84,6 +85,15 @@ def arnoldBakeGeo():
     if ret is not None and len(ret):
         cmds.arnoldBakeGeo(f=ret[0])
 
+def arnoldRenderToTexture():
+    selList = cmds.ls(sl=1)
+    if (len(selList) == 0):
+        cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+        return False
+
+    win = mtoa.renderToTexture.MtoARenderToTexture()
+    win.create()
+    
 
 def selectCamera(cam):
     core.ACTIVE_CAMERA=cam
@@ -186,6 +196,9 @@ def createArnoldMenu():
         pm.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities',
                     c=lambda *args: arnoldBakeGeo())
+        pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldRenderToTexture())
+
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
