@@ -992,6 +992,8 @@ env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
 if system.os() == "windows":
     installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+elif system.os() == "darwin":
+    installer_name = 'MtoA-%s-%s-%s%s.zip' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 else:
     installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
@@ -1021,6 +1023,20 @@ def create_installer(target, source, env):
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
+    elif system.os() == "darwin":
+        import zipfile
+        shutil.copyfile(os.path.abspath('installer/MtoA_'+maya_base_version+'_Installer.pkgproj'), os.path.join(tempdir, 'MtoA_Installer.pkgproj'))
+        shutil.copyfile(os.path.abspath('installer/top.jpg'), os.path.join(tempdir, 'top.jpg'))
+        zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(os.path.join(tempdir, 'solidangle', 'mtoa', maya_base_version))
+        mtoaMod = open(os.path.join(tempdir, 'solidangle', 'mtoa', maya_base_version, 'mtoa.mod'), 'w')
+        installPath = '/Applications/solidangle/mtoa/' + maya_base_version
+        mtoaMod.write('+ mtoa any %s\n' % installPath)
+        mtoaMod.write('PATH +:= bin\n')
+        mtoaMod.close()
+        subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
+        shutil.move(os.path.join(tempdir, 'MtoA_Setup.mpkg'), os.path.join(tempdir, 'tmp', 'MtoA_Setup.mpkg'))
+        os.rename(os.path.join(tempdir, 'tmp', 'MtoA_Setup.mpkg'), os.path.join(tempdir, 'tmp', installer_name[:-4]+'.mpkg'))
+        shutil.make_archive(installer_name[:-4],'zip',os.path.join(tempdir, 'tmp'))
     else:
         shutil.copyfile(os.path.abspath('%s.zip' % package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
