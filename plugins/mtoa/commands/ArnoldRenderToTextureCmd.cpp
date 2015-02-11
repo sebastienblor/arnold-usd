@@ -14,6 +14,8 @@
 #include <maya/MGLobal.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MItDependencyNodes.h>
+#include <maya/MProgressWindow.h>
+
 #include <map>
 #include <string>
 #include <iostream>
@@ -23,6 +25,7 @@
 #include <fstream>
 #include <istream>
 #include <streambuf>
+
 
 CArnoldRenderToTextureCmd::CArnoldRenderToTextureCmd(){}
 
@@ -37,8 +40,6 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("as", "aa_samples", MSyntax::kUnsigned);
    syntax.addFlag("af", "filter", MSyntax::kString);
    syntax.addFlag("afw", "filter_width", MSyntax::kDouble);
-
-
    
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
@@ -217,9 +218,18 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AtNode *driver = AiNode("driver_exr");
    AiNodeSetStr(driver, "name", "defaultArnoldDriver@cameraMapperOutput");
    
+   
+   AtNode* render_view = AiNode("progress_driver");
+   AiNodeSetStr(render_view, "name", "progress_display");
 
-   AtArray *outputs = AiArray(1, 1, AI_TYPE_STRING,
-      "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput" );
+   AtNode* driverFilterNode = AiNode("box_filter");
+   AiNodeSetStr(driverFilterNode, "name", "progress_driver_filter");
+
+
+   AtArray *outputs = AiArray(2, 1, AI_TYPE_STRING,
+         "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput", 
+         "Z FLOAT progress_driver_filter progress_display" );
+     
    // assign it to the render options
    AiNodeSetArray(options_node, "outputs", outputs);
 
@@ -228,8 +238,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
 
+
    for (unsigned int i = 0; i < selected.length(); ++i)  
    {
+      
       MDagPath dagPath;
       if (selected.getDagPath(i, dagPath) == MS::kFailure) continue;
 
@@ -239,9 +251,36 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       }
       MFnDagNode dagNode(dagPath);
       MString meshName = dagNode.partialPathName();
-      
 
-      // if export selection -> export current polymesh
+      if (i == 0)  
+      {
+         MProgressWindow::reserve();
+         MProgressWindow::setProgressRange(0, 100);
+         MProgressWindow::setTitle("Rendering to Texture");
+         MProgressWindow::setInterruptable(true);
+      }
+      if (MProgressWindow::isCancelled()) break;
+
+      MString progressStatus = meshName;
+      progressStatus += " (";
+      progressStatus += (i + 1);
+      progressStatus +="/";
+      progressStatus += selected.length();
+      progressStatus += ")";
+      MProgressWindow::setProgressStatus(progressStatus);
+      
+      if (i == 0) 
+      {
+         MProgressWindow::startProgress();
+         // strange, but I need to change the value once so that it is displayed
+         MProgressWindow::setProgress(1); 
+         MProgressWindow::setProgress(0);
+      } else
+      {
+         MProgressWindow::setProgress(i*100/selected.length());
+      }
+
+
 
       AtNode*input_object = AiNodeLookUpByName(meshName.asChar());
       if (input_object == 0)
@@ -296,6 +335,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       AiNodeDestroy(camera);
    }
+   MProgressWindow::endProgress();
+
    AiEnd();
 
    return MS::kSuccess;

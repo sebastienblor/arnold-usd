@@ -40,6 +40,12 @@ class MtoARenderToTexture(object):
         filter_width = cmds.floatFieldGrp('filterWidth', q=True, v1=True)
         shader = cmds.textFieldGrp('shader', q=True, tx=True)
 
+        selList = cmds.ls(sl=1)
+
+        if (len(selList) == 0):
+            cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+            return False
+
         cmds.arnoldRenderToTexture(folder=outFolder, shader=shader, resolution=resolution, aa_samples=aa_sampling, filter=filter_type, filter_width=filter_width )
 
         cmds.deleteUI(self.window)
@@ -50,7 +56,6 @@ class MtoARenderToTexture(object):
         return True
 
     def browseObjFilename(self):
-        objFilter = "*.obj"
         ret = cmds.fileDialog2(cap='Select Folder',okc='Select',fm=3)
         if ret is not None and len(ret):
             cmds.textFieldButtonGrp('outputFolder', e=True, text=ret[0])
@@ -63,15 +68,9 @@ class MtoARenderToTexture(object):
         if cmds.window(self.window, exists=True):
             cmds.deleteUI(self.window)
         
-        selList = cmds.ls(sl=1)
-        winTitle = "Render To Texture :      "
-        if (len(selList) == 1):
-            winTitle += selList[0]
-        else:
-            winTitle += str(len(selList))
-            winTitle += " Objects"
+        winTitle = "Render To Texture"
 
-        self.window = cmds.window(self.window, widthHeight=(300, 150), title=winTitle)
+        self.window = cmds.window(self.window, widthHeight=(460, 150), title=winTitle)
         self.createUI()
        
 
@@ -95,12 +94,12 @@ class MtoARenderToTexture(object):
         cmds.columnLayout(adjustableColumn=True)
         #cmds.setParent("..")
         cmds.rowLayout(numberOfColumns=1, columnAlign1='left')        
-        cmds.textFieldButtonGrp('outputFolder', label='Output Folder', text="", buttonLabel='...', buttonCommand=lambda *args: self.browseObjFilename())
+        cmds.textFieldButtonGrp('outputFolder', label='Output Folder', cw3=(90,320, 50), text="", buttonLabel='...', buttonCommand=lambda *args: self.browseObjFilename())
 
         cmds.setParent("..")
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
-        cmds.intFieldGrp('resolution', label='Resolution', value1=512, w=200)  
-        cmds.intFieldGrp('aa_samples', label='Camera Samples (AA)', value1=3, w=200)
+        cmds.intFieldGrp('resolution', label='Resolution', value1=512, ct2=('left', 'left'),  cw2=(90,110), w=230)  
+        cmds.intFieldGrp('aa_samples', label='Camera Samples (AA)', cw2=(150,60), value1=3, w=200)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right')) 
@@ -123,19 +122,19 @@ class MtoARenderToTexture(object):
         cmds.menuItem( label='variance' )
         cmds.menuItem( label='video' )
 
-        cmds.optionMenuGrp('filter', e=True, w=200, v='gaussian')
+        cmds.optionMenuGrp('filter', e=True, w=230, ct2=('left', 'left'), cw2=(90,110), v='gaussian')
 
-        cmds.floatFieldGrp('filterWidth', label='Filter Width', w=200, value1=2.0)
+        cmds.floatFieldGrp('filterWidth', label='Filter Width', w=200, ct2=('left', 'left'), cw2=(150,60), value1=2.0)
         cmds.setParent("..")
         cmds.rowLayout(numberOfColumns=1, columnAlign1='both')        
-        cmds.textFieldGrp('shader', label='Shader', text="", w=400)
+        cmds.textFieldGrp('shader', label='Shader Override', ct2=('left', 'left'), cw2=(90,110), text="", w=400)
         cmds.setParent("..")
 
         cmds.rowLayout(numberOfColumns=4, columnAlign4=('left', 'left', 'left', 'right'))     
-        cmds.text( '                                                ')
+        cmds.text( '                                             ')
         
-        cmds.button(label='Ok', al='right', w=85, h=25, command=lambda *args: self.doExport())  
-        cmds.text( '                  ')
+        cmds.button(label='Render', al='right', w=85, h=25, command=lambda *args: self.doExport())  
+        cmds.text( '              ')
         cmds.button(label='Cancel', al='right', w=85, h=25, command=lambda *args: self.doCancel())              
         cmds.setParent("..")
 
