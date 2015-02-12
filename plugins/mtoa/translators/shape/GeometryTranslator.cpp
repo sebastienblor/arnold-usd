@@ -671,11 +671,11 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                {
                   // connections[j] is the MPlug to shadingGroups[J]
                   AtNode *shader = ExportNode(connections[j]);
+                  meshShaders.push_back(shader); // we always have to push back something
+                  // or else indices might go over the bounds
+                  // if it's set to zero, then arnold is going to use the bad shader
                   if (shader != NULL)
-                  {
-                    meshShaders.push_back(shader);
-                    exported = true;
-                  }
+                     exported = true;
                }
             }
          }
