@@ -737,12 +737,15 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          MStatus status = fnMesh.getSmoothMeshDisplayOptions(options);
          
          CHECK_MSTATUS(status);
+
+         if(!fnMesh.findPlug("useSmoothPreviewForRender", false, &status).asBool())
+            options.setDivisions(fnMesh.findPlug("renderSmoothLevel", false, &status).asInt());
          
          divisions = options.divisions();
          if(divisions > 0)
             multiplier = static_cast<int> (pow(4.0f, (divisions-1)));
       }
-      
+
       std::vector<unsigned int> shidxs;
       for (unsigned int i = 0; i < indices.length(); i++)
       {
