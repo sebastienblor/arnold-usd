@@ -711,14 +711,12 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          }
       }
       
-      int numMeshShaders = (int)meshShaders.size();
+      const size_t numMeshShaders = meshShaders.size();
       if (numMeshShaders > 0)
-      { 
          AiNodeSetArray(polymesh, "shader", AiArrayConvert(numMeshShaders, 1, AI_TYPE_NODE, &meshShaders[0]));
-      }
 
-      int numMeshDisps = (int)meshDisps.size();
-      for (int i = 0; i < numMeshDisps; ++i)
+      const size_t numMeshDisps = meshDisps.size();
+      for (size_t i = 0; i < numMeshDisps; ++i)
       {
          if (meshDisps[i] != 0)
          {
@@ -748,19 +746,12 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       std::vector<unsigned int> shidxs;
       for (unsigned int i = 0; i < indices.length(); i++)
       {
-         int subdivisions = multiplier * fnMesh.polygonVertexCount(i);
+         const int subdivisions = multiplier * fnMesh.polygonVertexCount(i);
          // indices[i] == -1 when a Shading Group is not connected
-         if (indices[i] == -1)
-            shidxs.push_back(0);
-         else
-            shidxs.push_back(indices[i]);
+         const unsigned int indexToBePushed = (indices[i] == -1) ? 0 : indices[i];
+         shidxs.push_back(indexToBePushed);
          for (int j = 0; j < subdivisions -1; j++)
-         {
-            if (indices[i] == -1)
-               shidxs.push_back(0);
-            else
-               shidxs.push_back(indices[i]);
-         }
+            shidxs.push_back(indexToBePushed);
       }
 
       int numFaceShaders = (int)shidxs.size();
