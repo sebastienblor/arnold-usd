@@ -43,7 +43,7 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldMercurialID:
         arnoldAboutText += " - " + arnoldMercurialID
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())+"\n\n"
-    arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2014\nSolid Angle SL\n\n"
+    arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2015\nSolid Angle SL\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard,\nYannick Puech, Borja Morales, Nicolas Dumay,\nPedro Fernando Gomez, Pál Mezei\n\n"
     arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, \nLee Griggs, Chad Dombrova, Gaetan Guidet, \nGaël Honorez, Diego Garcés, Kevin Tureski, \nFrédéric Servant"
 
