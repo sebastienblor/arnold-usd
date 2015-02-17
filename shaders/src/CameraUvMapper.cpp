@@ -3,8 +3,13 @@
 #include "MayaUtils.h"
 #include <vector>
 #include <iostream>
-#include <windows.h>
+
 #include <stdio.h>
+#include <stdexcept>
+
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 /**
  *   Camera Shader that "deviates" the eye rays so that they intersect

@@ -42,7 +42,6 @@ driver_extension
 static int g_totalPixels;
 static int g_calculatedPixels;
 static int g_lastReportedPercent;
-static int g_frameNumber = 0;
 
 driver_open
 {

@@ -8,7 +8,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MFnAttribute.h>
 #include <maya/MStringArray.h>
-#include <maya/MGLobal.h>
+#include <maya/MGlobal.h>
 #include <maya/MArgDatabase.h>
 #include <map>
 #include <string>
