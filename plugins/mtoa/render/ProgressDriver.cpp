@@ -42,7 +42,7 @@ driver_extension
 static int g_totalPixels;
 static int g_calculatedPixels;
 static int g_lastReportedPercent;
-static int g_frameNumber = 0;
+
 
 driver_open
 {
@@ -65,6 +65,7 @@ driver_open
       g_totalPixels = (regionMaxX - regionMinX + 1) * (regionMaxY - regionMinY + 1);
    }
    
+
    g_calculatedPixels = 0;
    g_lastReportedPercent = -1;
 
