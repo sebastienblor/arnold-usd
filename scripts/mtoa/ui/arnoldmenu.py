@@ -187,18 +187,15 @@ def createArnoldMenu():
         pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All",
                     c=lambda *args: cmds.arnoldFlushCache(flushall=True))
                     
-        pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldMenu',
-                    c=lambda *args: arnoldTxManager())
-                    
-        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
-                    c=lambda *args: arnoldLightManager())
-
         pm.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities',
                     c=lambda *args: arnoldBakeGeo())
         pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',
                     c=lambda *args: arnoldRenderToTexture())
-
+        pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldTxManager())                    
+        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldLightManager())
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
                     subMenu=True, tearOff=True)
