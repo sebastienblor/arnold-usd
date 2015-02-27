@@ -16,7 +16,7 @@ public:
    
    // Building the database from the lightLinker nodes
    void ClearLightLinks();
-   void ParseLightLinks();
+   void ParseLights();
    // for getting the node name
    // and maybe for a different light linking mode later
    void ExportLightLinking(AtNode* shape, const MDagPath& path);
@@ -28,23 +28,23 @@ private:
    };
    
    const std::vector<AtNode*>& GetObjectsFromObjectSet(MFnDependencyNode& objectSet);
-   void CheckNode(MObject node, size_t& numLinkedLights, size_t& numLinkedShadows,
-      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
-   void AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
-        size_t& numLinkedNodes);
-   void HandleLightLinker(MPlug& conn, 
-      size_t& numLinkedLights, size_t& numLinkedShadows,
-      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
-   bool CheckMessage(MFnDependencyNode& dNode, 
-      size_t& numLinkedLights, size_t& numLinkedShadows,
-      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode);
+   void CheckNode(MObject node);
+   void AppendNodesToList(MFnDependencyNode& targetNode, std::vector<std::string>& nodeList,  const std::vector<std::string> *existingList = 0);
+   void HandleLightLinker(MPlug& conn, bool checkExisting = false);
+   bool CheckMessage(MFnDependencyNode& dNode, bool checkExisting = false);
+   bool FillLights(const std::vector<std::string> &linkList, const std::vector<std::string> &ignoreList);
+
    // saving the lights here for faster access
    std::map<std::string, AtNode*> m_arnoldLights;
    std::map<std::string, std::vector<AtNode*> > m_cachedObjectSets;
    size_t m_numArnoldLights;
    
-   std::vector<AtNode*> m_linkedLights;
-   std::vector<AtNode*> m_linkedShadows;
+   std::vector<std::string> m_linkedLights;
+   std::vector<std::string> m_ignoredLights;
+   std::vector<std::string> m_linkedShadows;
+   std::vector<std::string> m_ignoredShadows;
+   std::vector<AtNode*>     m_groupLights;
+
    
    int m_lightMode;
    int m_shadowMode;
