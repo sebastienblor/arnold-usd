@@ -35,12 +35,24 @@ class AEaiHairTemplate(ShaderAETemplate):
         self.addControl('spec2_color', label='Color')
         self.addControl('spec2_shift', label='Angular Shift')
         self.endLayout()
-        
+
         self.endLayout()
         
+        self.beginLayout('Transmission', collapse=False)
+        self.addControl('transmission', label='Weight')
+        self.addControl('transmission_color', label='Color')
+        self.addControl('transmission_spread', label='Spread')
+        self.endLayout()
+
         self.beginLayout('Opacity', collapse=False)
         self.addControl('opacity', label='Color')
         self.endLayout()
+
+        self.beginLayout('UVs', collapse=True)
+        self.addControl('uparam', label='U Param')
+        self.addControl('vparam', label='V Param')
+        self.endLayout()
+        
 
         self.addAOVLayout()
         
