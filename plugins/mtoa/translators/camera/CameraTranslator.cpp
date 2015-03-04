@@ -575,16 +575,37 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
       minPoint *= zoom;
       maxPoint *= zoom;
 
+      MFnCamera::FilmFit fitResolutionGate = m_fnCamera.filmFit();
+
       double horizontalAperture = m_fnCamera.horizontalFilmAperture();
       double verticalAperture = m_fnCamera.verticalFilmAperture();
 
       double filmAspect = horizontalAperture / verticalAperture;
 
-      if (deviceAspect <= filmAspect)
+      switch (fitResolutionGate)
       {
-         verticalAperture *= deviceAspect / filmAspect;
-         horizontalAperture = verticalAperture * filmAspect;
+         case MFnCamera::kFillFilmFit:
+         if (deviceAspect < filmAspect)
+         {
+            verticalAperture *= deviceAspect / filmAspect;
+            horizontalAperture = verticalAperture * filmAspect;
+         }
+         break;
+         case MFnCamera::kVerticalFilmFit:
+            verticalAperture *= deviceAspect / filmAspect;
+            horizontalAperture = verticalAperture * filmAspect;
+         break;
+         case MFnCamera::kOverscanFilmFit:
+         if (deviceAspect > filmAspect)
+         {
+            horizontalAperture *= deviceAspect / filmAspect;
+            verticalAperture = horizontalAperture / filmAspect;
+         }
+         case MFnCamera::kHorizontalFilmFit:
+         default:
+         break;
       }
+
       double panX = m_fnCamera.findPlug("horizontalPan").asDouble() / horizontalAperture * 2;
       double panY = m_fnCamera.findPlug("verticalPan").asDouble() / verticalAperture * 2;
 
