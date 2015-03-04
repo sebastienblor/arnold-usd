@@ -585,22 +585,23 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
       switch (fitResolutionGate)
       {
          case MFnCamera::kFillFilmFit:
-         if (deviceAspect < filmAspect)
-         {
-            verticalAperture *= deviceAspect / filmAspect;
-            horizontalAperture = verticalAperture * filmAspect;
-         }
+            if (deviceAspect < filmAspect)
+            {
+               verticalAperture *= deviceAspect / filmAspect;
+               horizontalAperture = verticalAperture * filmAspect;
+            }
          break;
          case MFnCamera::kVerticalFilmFit:
             verticalAperture *= deviceAspect / filmAspect;
             horizontalAperture = verticalAperture * filmAspect;
          break;
          case MFnCamera::kOverscanFilmFit:
-         if (deviceAspect > filmAspect)
-         {
-            horizontalAperture *= deviceAspect / filmAspect;
-            verticalAperture = horizontalAperture / filmAspect;
-         }
+            if (deviceAspect > filmAspect)
+            {
+               horizontalAperture *= deviceAspect / filmAspect;
+               verticalAperture = horizontalAperture / filmAspect;
+            }
+         break;
          case MFnCamera::kHorizontalFilmFit:
          default:
          break;
