@@ -9,6 +9,10 @@ import mtoa.lightManager
 import mtoa.renderToTexture
 import arnold as ai
 
+from uuid import getnode as get_mac
+import os
+import shutil
+import sys
 
 def doCreateStandInFile():
     node = createStandIn()
@@ -68,6 +72,135 @@ def arnoldAboutDialog():
     cmds.button( width=150,label='OK', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)') )
     cmds.setParent( '..' )
     
+    cmds.showWindow(w)
+    
+def dotDotDotButtonPush(mData):
+    licenseFilter = 'License Files (*.lic)'
+    ret = cmds.fileDialog2(fileFilter=licenseFilter, 
+                            cap='Load License File',okc='Load',fm=1)
+    if ret is not None and len(ret):
+        cmds.textField(file, edit=True, text=ret[0])
+        
+def installButtonPush(mdata):
+    licenseFile = cmds.textField(file, query=True, text=True)
+    destination = os.path.join(os.environ['MTOA_PATH'],'bin')
+    try:
+        shutil.copy(licenseFile,destination)
+    except:
+        print "Need Admin"
+    
+def arnoldLicenseDialog():
+    if (cmds.window("ArnoldLicense", ex=True)):
+        cmds.deleteUI("ArnoldLicense")
+    w = cmds.window("ArnoldLicense", title="Arnold Node-locked License")
+    cmds.window("ArnoldLicense", edit=True, width=550, height=280)
+    cmds.columnLayout()
+    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,10), (2, 64), (3, 18), (4, 450)] )
+
+    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+
+    arnoldAboutText =  u"A node-locked license is attached to the machine whose system ID the license is keyed to.\n"
+    arnoldAboutText +=  u"The same license can be used in all the plug-ins we provide\n"
+
+    cmds.text(label="")
+    cmds.image(image="licensing_mtoa.png")
+    cmds.text(label="")
+    cmds.text(align="left",label=arnoldAboutText)
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+
+    cmds.setParent( '..' )
+    cmds.separator()
+
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    macText =  u"To issue a license file (.lic) we will need the following MAC address.\n"
+    cmds.text(label="")
+    cmds.text(align="left",label=macText)
+    cmds.setParent( '..' )
+    cmds.separator()
+
+    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,80), (3, 200),(4,40),(5,80),(6,132)] )
+    cmds.text(label="")
+    cmds.text(align="left",label="MAC Address")
+    name = cmds.textField()
+    mac = get_mac()
+    mactext = ("%012X" % mac)
+    cmds.textField(name,  edit=True, text=mactext, editable=False )
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+
+    cmds.setParent( '..' )
+
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    macText =  u"If you already have a license file please select it and click install.\n"
+    cmds.text(label="")
+    cmds.text(align="left",label=macText)
+    cmds.setParent( '..' )
+
+    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,80), (3, 200),(4,7),(5,26),(6,7),(7,80),(8,132)] )
+    cmds.text(label="")
+    cmds.text(align="left",label="License file (.lic)")
+    file = cmds.textField()
+    cmds.text(label="")
+    cmds.button( label='...', command=dotDotDotButtonPush )
+    cmds.text(label="")
+    cmds.button( label='Install', command=installButtonPush )
+    cmds.text(label="")
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.setParent( '..' )
+
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,200),(2,160), (3, 80),(4,20),(5,80)] )
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
+    cmds.text(label="")
+    cmds.text(label="")
+    #cmds.button( label='Help')
+    cmds.text(label="")
+
+    cmds.setParent( '..' )
+
     cmds.showWindow(w)
     
 def arnoldTxManager():
@@ -245,6 +378,9 @@ def createArnoldMenu():
                     c=lambda *args: refreshRender())
         pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
                     c=lambda *args: stopRender())
+                    
+        pm.menuItem('ArnoldLicense', label='License', parent='ArnoldMenu',
+                    c=lambda *args: arnoldLicenseDialog())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
