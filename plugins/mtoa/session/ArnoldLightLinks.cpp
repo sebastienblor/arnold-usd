@@ -146,8 +146,6 @@ void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::ve
       std::string setName = targetNode.name().asChar();
       if (setName.empty()) return; //can this happen ?
 
-      setName = ":" + setName;
-
       if (std::find(nodeList.begin(), nodeList.end(), setName) == nodeList.end())
       {
          if (existingList)
