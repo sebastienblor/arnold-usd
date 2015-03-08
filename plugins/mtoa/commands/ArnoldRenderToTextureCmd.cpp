@@ -11,7 +11,7 @@
 
 #include <maya/MFnAttribute.h>
 #include <maya/MStringArray.h>
-#include <maya/MGLobal.h>
+#include <maya/MGlobal.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MProgressWindow.h>
