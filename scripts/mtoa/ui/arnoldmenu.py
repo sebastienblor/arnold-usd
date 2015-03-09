@@ -74,20 +74,21 @@ def arnoldAboutDialog():
     
     cmds.showWindow(w)
     
-def dotDotDotButtonPush(mData):
+def dotDotDotButtonPush(file):
     licenseFilter = 'License Files (*.lic)'
     ret = cmds.fileDialog2(fileFilter=licenseFilter, 
                             cap='Load License File',okc='Load',fm=1)
     if ret is not None and len(ret):
         cmds.textField(file, edit=True, text=ret[0])
         
-def installButtonPush(mdata):
+def installButtonPush(file):
     licenseFile = cmds.textField(file, query=True, text=True)
     destination = os.path.join(os.environ['MTOA_PATH'],'bin')
     try:
         shutil.copy(licenseFile,destination)
+        cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
     except:
-        print "Need Admin"
+        cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
     
 def arnoldLicenseDialog():
     if (cmds.window("ArnoldLicense", ex=True)):
@@ -99,8 +100,7 @@ def arnoldLicenseDialog():
 
     cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
 
-    arnoldAboutText =  u"A node-locked license is attached to the machine whose system ID the license is keyed to.\n"
-    arnoldAboutText +=  u"The same license can be used in all the plug-ins we provide\n"
+    arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
 
     cmds.text(label="")
     cmds.image(image="licensing_mtoa.png")
@@ -121,7 +121,7 @@ def arnoldLicenseDialog():
     cmds.separator()
 
     cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
-    macText =  u"To issue a license file (.lic) we will need the following MAC address.\n"
+    macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
     cmds.text(label="")
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
@@ -155,7 +155,7 @@ def arnoldLicenseDialog():
     cmds.setParent( '..' )
 
     cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
-    macText =  u"If you already have a license file please select it and click install.\n"
+    macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
     cmds.text(label="")
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
@@ -165,9 +165,9 @@ def arnoldLicenseDialog():
     cmds.text(align="left",label="License file (.lic)")
     file = cmds.textField()
     cmds.text(label="")
-    cmds.button( label='...', command=dotDotDotButtonPush )
+    cmds.button( label='...', command=lambda *args: dotDotDotButtonPush(file) )
     cmds.text(label="")
-    cmds.button( label='Install', command=installButtonPush )
+    cmds.button( label='Install', command=lambda *args: installButtonPush(file) )
     cmds.text(label="")
 
     cmds.text(label="")

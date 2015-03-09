@@ -25,6 +25,7 @@
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
 #include "commands/ArnoldFlushCmd.h"
+#include "commands/ArnoldCopyAsAdminCmd.h"
 #include "commands/ArnoldAIRCmd.h"
 
 #include "nodes/TxTextureFile.h"
@@ -111,6 +112,7 @@ namespace // <anonymous>
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
+      {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
       {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax}
    };
 
