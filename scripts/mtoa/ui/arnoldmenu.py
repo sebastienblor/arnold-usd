@@ -379,9 +379,6 @@ def createArnoldMenu():
         pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
                     c=lambda *args: stopRender())
                     
-        pm.menuItem('ArnoldLicense', label='License', parent='ArnoldMenu',
-                    c=lambda *args: arnoldLicenseDialog())
-                    
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
 
