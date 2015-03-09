@@ -120,10 +120,6 @@ node_update
    // channel
    data->channel = AiNodeGetStr(node, "channel");
 
-   // append * to the channel name
-   if (data->channel.size() > 0 && data->channel[data->channel.size() - 1] != '*')
-       data->channel += '*';
-
    // position offset
    data->position_offset = AiNodeGetVec(node, "position_offset");
 
