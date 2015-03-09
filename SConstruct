@@ -373,6 +373,7 @@ if env['COMPILER'] == 'gcc':
         env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+        env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
 
 elif env['COMPILER'] == 'msvc':
     MSVC_FLAGS  = " /W3"         # Warning level : 3

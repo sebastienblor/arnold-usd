@@ -6,6 +6,10 @@
 #include <ai_universe.h>
 
 #include "scene/MayaScene.h"
+#ifdef _DARWIN
+#include <security/security.h>
+#endif
+
 
 MSyntax CArnoldCopyAsAdminCmd::newSyntax()
 {
@@ -19,11 +23,8 @@ MSyntax CArnoldCopyAsAdminCmd::newSyntax()
 
 MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
 {
-   MStatus status;
+   //MStatus status;
    MArgDatabase args(syntax(), argList);
-
-   const char *src;
-   const char *dst;
    
    MString file = args.flagArgumentString("file", 0);
    MString output = args.flagArgumentString("output", 0);
@@ -34,6 +35,9 @@ MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
    for (int index = output.indexW("/"); index != -1; index = output.indexW("/"))
       output = output.substringW(0, index-1) + "\\" + output.substringW(index + 1, output.numChars());
       
+   const char *src;
+   const char *dst;
+
    src = file.asChar();
    dst = output.asChar();
    
@@ -90,6 +94,12 @@ MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
 #ifdef _DARWIN
    AuthorizationRef authorizationRef;
    OSStatus status;
+
+   const char *src;
+   const char *dst;
+      
+   src = file.asChar();
+   dst = output.asChar();
    
    status = AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authorizationRef);
    if (status != 0)
@@ -99,10 +109,10 @@ MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
    }
 
    char* tool = "/bin/cp";
-   char* args[] = { src, dst, NULL };
+   char* argsCmd[] = { (char *)src, (char *)dst, NULL };
    FILE* pipe = NULL;
 
-   status = AuthorizationExecuteWithPrivileges(authorizationRef, tool, kAuthorizationFlagDefaults, args, &pipe);
+   status = AuthorizationExecuteWithPrivileges(authorizationRef, tool, kAuthorizationFlagDefaults, argsCmd, &pipe);
    if (status != 0)
    {
       // show error message

@@ -83,7 +83,9 @@ def dotDotDotButtonPush(file):
         
 def installButtonPush(file):
     licenseFile = cmds.textField(file, query=True, text=True)
-    destination = os.path.join(os.environ['MTOA_PATH'],'bin')
+    import maya.mel as mel
+    mPath = mel.eval('getenv "MTOA_PATH"')
+    destination = os.path.join(mPath,'bin')
     try:
         shutil.copy(licenseFile,destination)
         cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
@@ -127,7 +129,7 @@ def arnoldLicenseDialog():
     cmds.setParent( '..' )
     cmds.separator()
 
-    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,80), (3, 200),(4,40),(5,80),(6,132)] )
+    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,132)] )
     cmds.text(label="")
     cmds.text(align="left",label="MAC Address")
     name = cmds.textField()
@@ -160,7 +162,7 @@ def arnoldLicenseDialog():
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,80), (3, 200),(4,7),(5,26),(6,7),(7,80),(8,132)] )
+    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90), (3, 190),(4,7),(5,26),(6,7),(7,80),(8,132)] )
     cmds.text(label="")
     cmds.text(align="left",label="License file (.lic)")
     file = cmds.textField()
@@ -195,9 +197,7 @@ def arnoldLicenseDialog():
     cmds.text(label="")
     cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
     cmds.text(label="")
-    cmds.text(label="")
-    #cmds.button( label='Help')
-    cmds.text(label="")
+    cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
 
     cmds.setParent( '..' )
 
@@ -357,7 +357,7 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
 
         pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+                    c=lambda *args: arnoldLicenseDialog())
 
         pm.menuItem(divider=1, parent='ArnoldHelpMenu')
 
