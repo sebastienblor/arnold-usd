@@ -163,12 +163,37 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 
       unsigned int triangleIndex = 0;
       unsigned int vertexIndex = 0;
+      bool no_uvs = false;
 
+      // looping over triangles in (subdivided/displaced) mesh
       while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
       {
-         AiShaderGlobalsGetVertexUVs(sg, uv);
-         AiShaderGlobalsGetVertexNormals(sg, 0, localNormal);
-
+         if (!AiShaderGlobalsGetVertexUVs(sg, uv))
+         {
+            // If I don't have any UVs, how can I ever render this as a texture ?
+            // let's skip this polygon, hoping other ones will have UVs
+            no_uvs = true;
+            sg->fi = ++triangleIndex;
+            continue;
+         }
+         if (!AiShaderGlobalsGetVertexNormals(sg, 0, localNormal))
+         {
+            // no normals (should that happen ?)
+            // so let's compute a geometric normal
+            AtVector edgeU = localPos[1] - localPos[0];
+            AtVector edgeV = localPos[2] - localPos[0];
+            localNormal[0] = AiV3Cross(edgeU, edgeV);
+            float Nlength = AiV3Length(localNormal[0]);
+            if (Nlength > AI_EPSILON) localNormal[0] /= Nlength;
+            else
+            {
+               // ugh... null size triangle. Skip it...
+               sg->fi = ++triangleIndex;
+               continue;
+            }
+            // let's assign the same geometric normal to 3 vertices
+            localNormal[1] = localNormal[2] = localNormal[0];
+         }
          mTriangles.push_back(BakeTriangle(vertexIndex, vertexIndex+1, vertexIndex+2));
          
          // Please God forgive me for duplicating the vertices at each triangle :-/
@@ -210,7 +235,10 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       {
          std::string errLog = "CameraUvMapper : Polymesh";
          errLog += AiNodeGetName(node);
-         errLog += "is empty or hasn't been properly initialized";
+
+         if (no_uvs)  errLog += "doesn't have any valid UVs => Impossible to Render as a Texture";
+         else         errLog += "is empty or hasn't been properly initialized";
+
          AiMsgError(errLog.c_str());
       }
    } else
