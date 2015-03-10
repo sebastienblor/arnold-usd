@@ -95,35 +95,51 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
    {      
       std::vector<AtNode*> lights;
       lights.reserve(m_numArnoldLights);
-      MFnSet mayaObjectSet(objectSet.object());
-      MSelectionList sList;
-      mayaObjectSet.getMembers(sList, true);
-      MStatus status;
-      for (unsigned int i = 0; i < sList.length(); ++i)
+
+      if (setName == "defaultLightSet")
       {
-         MDagPath dgPath;
-         if (!sList.getDagPath(i, dgPath))
-            continue;
-         unsigned int childCount = dgPath.childCount();
-         for (unsigned int child = 0; child < childCount; ++child)
+         // this set is called defaultLightSet
+         // which is Maya's hardcoded name for a set containing ALL lights in the scene.
+         // so instead of parsing all lights from this set, let's just copy our Arnold's Light list.
+         // this list also contains the Mesh Lights, which wouldn't appear in Maya's set list
+         lights.reserve(m_arnoldLights.size());
+         for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
          {
-            MObject childObject = dgPath.child(child);
-            MDagPath childPath;
-            status = MDagPath::getAPathTo(childObject, childPath);
-            if (!status)
-               continue;            
-            MFnDependencyNode linkedLight(childPath.node(), &status);            
-            std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.partialPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-            if (it2 != m_arnoldLights.end())
-               lights.push_back(it2->second);               
+            lights.push_back(it->second);
+         }
+
+      } else
+      {
+         MFnSet mayaObjectSet(objectSet.object());
+         MSelectionList sList;
+         mayaObjectSet.getMembers(sList, true);
+         MStatus status;
+         for (unsigned int i = 0; i < sList.length(); ++i)
+         {
+            MDagPath dgPath;
+            if (!sList.getDagPath(i, dgPath))
+               continue;
+            unsigned int childCount = dgPath.childCount();
+            for (unsigned int child = 0; child < childCount; ++child)
+            {
+               MObject childObject = dgPath.child(child);
+               MDagPath childPath;
+               status = MDagPath::getAPathTo(childObject, childPath);
+               if (!status)
+                  continue;            
+               MFnDependencyNode linkedLight(childPath.node(), &status);            
+               std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.partialPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+               if (it2 != m_arnoldLights.end())
+                  lights.push_back(it2->second);               
+            }
          }
       }
       m_cachedObjectSets.insert(std::make_pair(setName, lights));
@@ -341,6 +357,10 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
    // If no information was stored, we don't need to set anything
    if (linkList.empty() && ignoreList.empty()) return false;
 
+   // if there is only a single link to "defaultLightSet", then our shape
+   // is linked ot all lights in the scene and there's 
+   // no need to use Arnold's light groups
+   if (linkList.size() == 1 && ignoreList.empty() && linkList[0] == "defaultLightSet") return false;
    
    if(linkList.empty())
    {
@@ -414,6 +434,10 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
          if( nodeIt != m_groupLights.end()) LightLinks_fastErase(m_groupLights, nodeIt);
       }
    }
+
+   // maybe we should compare the amount of lights in m_groupLights 
+   // with m_numArnoldLights to return false if they're equal ?
+
    return true;
 }
 
