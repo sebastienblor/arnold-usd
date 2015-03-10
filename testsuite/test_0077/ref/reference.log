@@ -1,94 +1,46 @@
+Cannot open log file 'C:\solidangle\mtoa\build\windows_x86_64\201507\msvc_opt\testsuite\test_0077\test_0077.log', using stdout instead
 
-Starting "/usr/autodesk/maya2015-x64/bin/maya"
-
+Starting "C:\Program Files\Autodesk\Maya2015\bin\mayabatch.exe"
 Initialized VP2.0 renderer {
-  Version : 5.3.1.0. Feature Level 4.
-  Adapter : Quadro 600/PCIe/SSE2
-  Vendor ID: 4318. Device ID : 
-  Driver : 4.4.0 NVIDIA 331.67.
+  Version : 5.3.2.800. Feature Level 4.
+  Adapter : NVIDIA GeForce GTX 750
+  Vendor ID: 4318. Device ID : 4993
+  Driver : nvoglv64.dll:9.18.13.4052.
   API : OpenGL V.2.
   Max texture size : 16384 * 16384.
   Max tex coords : 8
   Shader versions supported (Vertex: 4, Geometry: 4, Pixel 4).
   Shader compiler profile : (Best card profile)
   Active stereo support available : 0
-  GPU Memory Limit : 1024 MB.
-  CPU Memory Limit: 15110.1 MB.
+  GPU Memory Limit : 3938.29 MB.
+  CPU Memory Limit: 31086.4 MB.
 }
-mental ray for Maya 2015 
-mental ray: version 3.12.1.12, Jan 31 2014, revision 213714
-00:00:00   353MB         | log started Wed May 14 16:59:37 2014
-00:00:00   353MB         | Arnold 4.1.3.5 linux icc130 glibc25 libstdc++348 oiio10202 rlm1012 2014/04/09 09:52:44
-00:00:00   353MB         | running on localhost.localdomain
-00:00:00   353MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 15905MB
-00:00:00   353MB         |  CentOS 6.5 (Final), Linux kernel 2.6.32-431.17.1.el6.centos.plus.x86_64
-00:00:00   353MB         |  
-00:00:00   353MB         | [mtoa] [<built-in>] Generated 17 new Maya nodes for Arnold built-in nodes.
-00:00:00   353MB         | [mtoa] [<built-in>] Generated 46 translators for 29 Maya nodes (17 new and 12 existing) for Arnold built-in nodes.
-00:00:00   353MB         | loading plugin: /work/deploy/2015/shaders/mtoa_shaders.so ...
-00:00:00   354MB         | loaded 85 plugins from 1 lib(s) in 0:00.00
-00:00:00   354MB         | [mtoa] [mtoa_shaders] Generated 11 new Maya nodes for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
-00:00:00   354MB         | [mtoa] [mtoa_shaders] Generated 39 translators for 39 Maya nodes (11 new and 28 existing) for Arnold plugin /work/deploy/2015/shaders/mtoa_shaders.so.
-00:00:00   354MB         | [mtoa] [mtoa_shaders] Generated 0 new Maya nodes for Arnold plugin mtoa.
-00:00:00   354MB         | [mtoa] [mtoa_shaders] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin mtoa.
-00:00:00   354MB WARNING | [mtoa] Extension xgen(xgen) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
-00:00:00   354MB         | loading plugin: /work/deploy/renderview/driver/renderview_driver.so ...
-00:00:00   354MB WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00   354MB         | no plugins loaded
-00:00:00   354MB         | [mtoa] [renderview_driver] Generated 0 new Maya nodes for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   354MB         | [mtoa] [renderview_driver] Generated 0 translators for 0 Maya nodes (0 new and 0 existing) for Arnold plugin /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   354MB         | loading plugin: /work/deploy/shaders/Gecko.so ...
-00:00:00   354MB         | loaded 3 plugins from 1 lib(s) in 0:00.00
-00:00:00   354MB WARNING | [mtoa] [Gecko] [node dGecko] Assigning temporary node id 1138176 to associated Maya type name aiDGecko.
-00:00:00   354MB WARNING | [mtoa] [Gecko] [node dArmadillo] Assigning temporary node id 1138177 to associated Maya type name aiDArmadillo.
-00:00:00   354MB WARNING | [mtoa] [Gecko] [node dSubsurface] Assigning temporary node id 1138178 to associated Maya type name aiDSubsurface.
-00:00:00   354MB         | [mtoa] [Gecko] Generated 3 new Maya nodes for Arnold plugin /work/deploy/shaders/Gecko.so.
-00:00:00   354MB         | [mtoa] [Gecko] Generated 3 translators for 3 Maya nodes (3 new and 0 existing) for Arnold plugin /work/deploy/shaders/Gecko.so.
-00:00:00   354MB         | loading plugin: /work/deploy/shaders/testShaders.so ...
-00:00:00   354MB         | loaded 1 plugins from 1 lib(s) in 0:00.00
-00:00:00   354MB WARNING | [mtoa] [testShaders] [node maya_bump2d] Assigning temporary node id 1138179 to associated Maya type name aiMayaBump2d.
-00:00:00   354MB         | [mtoa] [testShaders] Generated 1 new Maya nodes for Arnold plugin /work/deploy/shaders/testShaders.so.
-00:00:00   354MB         | [mtoa] [testShaders] Generated 1 translators for 1 Maya nodes (1 new and 0 existing) for Arnold plugin /work/deploy/shaders/testShaders.so.
-00:00:00   354MB         | [mtoa] Registering 6 loaded extensions:
-00:00:00   355MB         | [mtoa] Registered extension <built-in> provided by <built-in>.
-00:00:00   356MB         | [mtoa] Registered extension mtoa_shaders provided by /work/deploy/2015/shaders/mtoa_shaders.so.
-00:00:00   356MB         | [mtoa] Registered extension renderview_driver provided by /work/deploy/renderview/driver/renderview_driver.so.
-00:00:00   356MB         | [mtoa] Registered extension Gecko provided by /work/deploy/shaders/Gecko.so.
-00:00:00   356MB         | [mtoa] Registered extension testShaders provided by /work/deploy/shaders/testShaders.so.
-libai.so already loaded
+00:00:00   245MB WARNING | [mtoa] [mtoa_shaders] [node volume_collector] Assigning temporary node id 1138176 to associated Maya type name aiVolumeCollector.
+00:00:00   245MB ERROR   | [mtoa] [xgenTranslator] Could not find xgen_procedural in search path $ARNOLD_PLUGIN_PATH
+00:00:00   246MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   246MB ERROR   | [mtoa] Error initializing extension library: No se encontró el proceso especificado.
+.
+00:00:00   248MB WARNING | [mtoa] Extension xgenTranslator(C:/solidangle/mtoadeploy/2015/extensions/xgenTranslator.dll) requires Maya plugin xgenToolkit, registering will be deferred until plugin is loaded.
+00:00:00   248MB WARNING | [mtoa] Extension pgYetiArnoldMtoa(C:/yeti/plug-ins/pgYetiArnoldMtoa.dll) requires Maya plugin pgYetiMaya, registering will be deferred until plugin is loaded.
+ai.dll loaded from non standard location C:\solidangle\releases\Arnold-4.2.4.0-windows\bin
 
-00:00:00   359MB         | Successfully imported python module 'arnold'
-00:00:00   359MB         | Successfully imported python module 'mtoa'
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, Mayatomr, OpenEXRLoader, ikSpringSolver, mayaCharacterization, ik2Bsolver, mtoa, AbcExport, retargeterNodes
-Maya 2015 importing module pymel 1.0.6 (/usr/autodesk/maya2015-x64/lib/python2.7/site-packages/pymel/__init__.py)
-00:00:01   457MB         |  
-00:00:01   457MB         | releasing resources
-00:00:01   457MB         | Arnold shutdown
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
+pymel.core : INFO : Updating pymel with pre-loaded plugins: mayaHIK, tiffFloatReader, bifrostvisplugin, VectorRender, OpenEXRLoader, Unfold3D, ikSpringSolver, mayaCharacterization, ik2Bsolver, mtoa, AbcExport, retargeterNodes
+Maya 2015 importing module pymel 1.0.6 (C:\Program Files\Autodesk\Maya2015\Python\lib\site-packages\pymel\__init__.py)
 1 error generated.
-Error while processing /usr/autodesk/maya2015-x64/plug-ins/bifrost/db/presets/__rootincludeall__.h.
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
+Error while processing C:\Program Files\Autodesk\Maya2015\plug-ins\bifrost\db\presets\__rootincludeall__.h.
+Error: file: C:/ProgramData/Autodesk/ApplicationPlugins/MayaBonusTools/Contents/scripts-2015/bonusToolsMenu.mel line 1546: UI commands can't be run in batch mode.
+
+----------------------------------------------------------
+Time: 2015/3/10 19:26:13
+----------------------------------------------------------
+
 Warning: line 1: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
-File read in  0.46 seconds.
-Result: /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0077/test.ma
-00:00:00 WARNING |  renderview_driver.so was compiled against non-compatible Arnold 4.2.0.0.wip
-Warning: file: /tmp/ASTMPRTBWX9.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Warning: file: /tmp/ASTMPRTBWX9.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
-Scene /work/mtoa/build/linux_x86_64/201501/gcc_opt/testsuite/test_0077/test.ma completed.
-mental ray: wallclock  0:00:08.53 total
-mental ray: CPU usage  0:00:07.48 total
-mental ray: current mem usage 4 MB, max mem usage 8 MB
+File read in  0.49 seconds.
+Result: C:/solidangle/mtoa/build/windows_x86_64/201507/msvc_opt/testsuite/test_0077/test.ma
+Scene C:\solidangle\mtoa\build\windows_x86_64\201507\msvc_opt\testsuite\test_0077\test.ma completed.
+
+----------------------------------------------------------
+Time: 2015/3/10 19:26:15
+----------------------------------------------------------
+
