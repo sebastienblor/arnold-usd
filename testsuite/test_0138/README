@@ -1,0 +1,3 @@
+Simple light-linking scene, with simultaneous "link" and "ignore" messages.
+Left sphere is supposed to appear blue and the right one appears red.
+ticket #2017  https://trac.solidangle.com/mtoa/ticket/2017
