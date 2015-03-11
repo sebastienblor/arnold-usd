@@ -1,25 +1,29 @@
 #pragma once
 
+#include "platform/Platform.h"
+
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 #include <platform/Platform.h>
 
-MString getFileName(MCommonRenderSettingsData::MpathType pathType,
-                     double frameNumber=0,
-                     const MString& sceneFileName="",
-                     const MString& cameraName="",
-                     const MString& fileFormat="",
-                     const MObject& layer=MObject::kNullObj,
-                     const MString& customTokenString="",
-                     bool createDirectory=true,
-                     const MString& fileRuleType="",
-                     const MString& path="",
-                     const bool* isSequence=NULL,
-                     const bool* stricAOVs=NULL);
+DLLEXPORT MString getFileName(
+                            MCommonRenderSettingsData::MpathType pathType,
+                            double frameNumber=0,
+                            const MString& sceneFileName="",
+                            const MString& cameraName="",
+                            const MString& fileFormat="",
+                            const MObject& layer=MObject::kNullObj,
+                            const MString& customTokenString="",
+                            bool createDirectory=true,
+                            const MString& fileRuleType="",
+                            const MString& path="",
+                            const bool* isSequence=NULL,
+                            const bool* stricAOVs=NULL
+                            );
 
-MStringArray getSourceImagesPath();
+DLLEXPORT MStringArray getSourceImagesPath();
 
-MString getProjectFolderPath();
+DLLEXPORT MString getProjectFolderPath();
 
-MString replaceInString(const MString& source, const MString& origString, const MString& toReplace);
+DLLEXPORT MString replaceInString(const MString& source, const MString& origString, const MString& toReplace);

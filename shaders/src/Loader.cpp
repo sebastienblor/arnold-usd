@@ -89,7 +89,11 @@ extern AtNodeMethods* MayaFluidTexture2DMtd;
 extern AtNodeMethods* SkinMtd;
 extern AtNodeMethods* MayaSurfaceLuminanceMtd;
 extern AtNodeMethods* VolumeCollectorMtd;
+extern AtNodeMethods* CameraUvMapperMtd;
 extern AtNodeMethods* MPlayDriverMtd;
+extern AtNodeMethods* VolumeSampleRgbMethods;
+extern AtNodeMethods* VolumeSampleFloatMethods;
+
 
 enum{
    SHADER_MULTIPLYDIVIDE = 0,
@@ -178,6 +182,9 @@ enum{
    SHADER_SKIN,
    SHADER_VOLUMECOLLECTOR,
    SHADER_MAYASURFACELUMINANCE,
+   SHADER_CAMERAUVMAPPER,
+   SHADER_VOLUME_SAMPLE_FLOAT,
+   SHADER_VOLUME_SAMPLE_RGB,
    DRIVER_MPLAY
 };
 
@@ -787,11 +794,33 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case SHADER_CAMERAUVMAPPER:
+      node->methods     = CameraUvMapperMtd;
+      node->output_type = AI_TYPE_UNDEFINED;
+      node->name        = "cameraUvMapper";
+      node->node_type   = AI_NODE_CAMERA;
+      break;
+
+   case SHADER_VOLUME_SAMPLE_FLOAT:
+      node->methods     = VolumeSampleFloatMethods;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "volume_sample_float";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case SHADER_VOLUME_SAMPLE_RGB:
+      node->methods     = VolumeSampleRgbMethods;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "volume_sample_rgb";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
    case DRIVER_MPLAY:
       node->methods     = MPlayDriverMtd;
       node->name        = "driver_mplay";
       node->node_type   = AI_NODE_DRIVER;
       break;
+
 
 
    default:

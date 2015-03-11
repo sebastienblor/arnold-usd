@@ -490,7 +490,7 @@ MStatus CArnoldSession::UpdateLightLinks()
       {
          // Default values except last. We set componentSupport = false
          //status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
-         m_arnoldLightLinks.ParseLightLinks();
+         m_arnoldLightLinks.ParseLights();
       }
 
       if (MS::kSuccess == status)

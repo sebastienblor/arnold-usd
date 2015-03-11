@@ -33,7 +33,7 @@ TYPES = (
     ("point2", arnold.ai_params.AI_TYPE_POINT2),
     ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
-defaultFiltersByName = {'Z' : 'closest'}
+defaultFiltersByName = {'Z' : 'closest', 'motion_vector' : 'closest', 'P' : 'closest', 'N' : 'closest', 'Pref' : 'closest', 'ID' : 'closest'}
 
 GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 

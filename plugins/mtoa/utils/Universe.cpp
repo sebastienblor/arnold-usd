@@ -8,6 +8,7 @@
 #include <maya/MGlobal.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
+extern AtNodeMethods* progress_driver_mtd;
 
 MString g_metafile = "";
 
@@ -37,6 +38,15 @@ void InstallNodes()
                          "mtoa",
                          (AtNodeMethods*) mtoa_driver_mtd,
                          AI_VERSION);
+
+
+      AiNodeEntryInstall(AI_NODE_DRIVER,
+                         AI_TYPE_NONE,
+                         "progress_driver",
+                         "mtoa",
+                         (AtNodeMethods*) progress_driver_mtd,
+                         AI_VERSION);
+        
    }
 }
 

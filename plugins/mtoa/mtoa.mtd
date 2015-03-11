@@ -1313,6 +1313,29 @@
         softmin             FLOAT   7.5
         softmax             FLOAT   15.0
         
+    [attr transmission]
+        desc                STRING  "Transmission Value"
+        label               STRING  "Transmission Weight"
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.0
+    [attr transmission_color]
+        desc                STRING  "Transmission Color"
+        label               STRING  "Transmission Color"
+    
+    [attr transmission_spread]
+        desc                STRING  "Transmission Angular Size"
+        label               STRING  "Transmission Spread"
+        softmin             FLOAT   0.5
+        softmax             FLOAT   5.0
+        default             FLOAT   1.0
+    [attr uparam]
+        desc                STRING  "Name of the U param coordinates "
+        label               STRING  "U Param"
+    [attr vparam]
+        desc                STRING  "Name of the V param coordinates "
+        label               STRING  "V Param"
+        
     # AOVs
     [attr aov_direct_diffuse]
     aov.type                INT     0x05
