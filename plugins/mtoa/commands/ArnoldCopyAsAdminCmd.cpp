@@ -121,5 +121,9 @@ MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
 
    return MS::kSuccess;
 #endif
-}
 
+// just an empty return statement to avoid build errors
+#ifdef _LINUX
+   return MS::kFailure;
+#endif
+}
