@@ -75,7 +75,8 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out
    p_alphaGain,                 \
    p_alphaOffset,               \
    p_alphaIsLuminance,          \
-   p_invert
+   p_invert,                    \
+   p_exposure
 
 void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds);
    

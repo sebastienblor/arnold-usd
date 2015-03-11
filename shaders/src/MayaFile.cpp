@@ -508,8 +508,8 @@ shader_evaluate
    const float oldV = sg->v;   
    const float oldUdx = sg->dudx;
    const float oldUdy = sg->dudy;
-   const float oldVdx = sg->dudx;
-   const float oldVdy = sg->dudy;
+   const float oldVdx = sg->dvdx;
+   const float oldVdy = sg->dvdy;
    if (idata->useCustomUVSet)
    {
       AtPoint2 altuv;

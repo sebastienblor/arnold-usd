@@ -217,41 +217,43 @@ MStatus CSessionOptions::GetFromMaya()
       status = MStatus::kFailure;
    }
 
-   
-
-     
-
    return status;
 }
 
 void CSessionOptions::FormatTexturePath(MString& texturePath) const
 {
    ReplaceSlashes(texturePath);
-   if (m_absoluteTexturePaths)
-      return;
-   for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
+   if (!m_absoluteTexturePaths)
    {
-      const MString& currentSearchPath = m_textureSearchPaths[i];
-      if (texturePath.indexW(currentSearchPath) == 0)
+      for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
       {
-         texturePath = texturePath.substringW(currentSearchPath.length(), texturePath.length());
-         return;
+         const MString& currentSearchPath = m_textureSearchPaths[i];
+         if (texturePath.indexW(currentSearchPath) == 0)
+         {
+            texturePath = texturePath.substringW(currentSearchPath.length(), texturePath.length());
+            break;
+         }
       }
    }
+   // convert to UTF-8
+   texturePath = texturePath.asUTF8();
 }
 
 void CSessionOptions::FormatProceduralPath(MString& proceduralPath) const
 {
    ReplaceSlashes(proceduralPath);
-   if (m_absoluteProceduralPaths)
-      return;
-   for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
+   if (!m_absoluteProceduralPaths)
    {
-      const MString& currentSearchPath = m_proceduralSearchPaths[i];
-      if (proceduralPath.indexW(currentSearchPath) == 0)
+      for (unsigned int i = 0; i < m_proceduralSearchPaths.length(); ++i)
       {
-         proceduralPath = proceduralPath.substringW(currentSearchPath.length(), proceduralPath.length());
-         return;
+         const MString& currentSearchPath = m_proceduralSearchPaths[i];
+         if (proceduralPath.indexW(currentSearchPath) == 0)
+         {
+            proceduralPath = proceduralPath.substringW(currentSearchPath.length(), proceduralPath.length());
+            break;
+         }
       }
    }
+   // convert to UTF-8
+   proceduralPath = proceduralPath.asUTF8();
 }

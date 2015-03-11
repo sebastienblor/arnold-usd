@@ -15,27 +15,56 @@
 #include <algorithm>
 #include <cstring>
 
+// Little trick to speed-up erasure from a vector (at the expense of ordering)
+template <class T>
+static inline
+void LightLinks_fastErase(std::vector<T>& vec, const typename std::vector<T>::iterator& it)
+{
+    std::swap(*it, vec.back());
+    vec.pop_back();
+}
+
+/**
+ *   Clear the vectors used here to store
+ *   Light-linking informations.
+ *   Notice that clearing the std::vector won't actually
+ *   release the memory. So pushing lights in them
+ *   won't allocate memory for each shape
+ **/
 void CArnoldLightLinks::ClearLightLinks()
 {
    m_arnoldLights.clear();
    m_numArnoldLights = 0;
    m_linkedLights.clear();
    m_linkedShadows.clear();
+   m_ignoredLights.clear();
+   m_ignoredShadows.clear();
    m_cachedObjectSets.clear();
+   m_groupLights.clear();
    
    m_lightMode = MTOA_LIGHTLINK_NONE;
-   m_lightMode = MTOA_SHADOWLINK_NONE;
+   m_shadowMode = MTOA_SHADOWLINK_NONE;
 }
 
+/** 
+ *  Set the Linking modes. 
+ *  Light-linking can follow Maya's light-linking or ignore it
+ *  Shadow-linking can either follow Maya's shadow-linking, or ignore it, or match light-linking
+ **/
 void CArnoldLightLinks::SetLinkingMode(int light, int shadow)
 {
    m_lightMode = light;
    m_shadowMode = shadow;
 }
 
-void CArnoldLightLinks::ParseLightLinks()
+/**
+ *   Parse All lights in the Arnold scene, and create
+ *   a hash map to access each AtNode quickly by its name
+ **/
+void CArnoldLightLinks::ParseLights()
 {
    AtNodeIterator* niter = AiUniverseGetNodeIterator(AI_NODE_LIGHT);
+   // loop over all lights
    while(!AiNodeIteratorFinished(niter))
    {
       AtNode* node = AiNodeIteratorGetNext(niter);
@@ -45,11 +74,19 @@ void CArnoldLightLinks::ParseLightLinks()
    m_numArnoldLights = m_arnoldLights.size();
    if (m_numArnoldLights)
    {
-      m_linkedLights.resize(m_numArnoldLights);
-      m_linkedShadows.resize(m_numArnoldLights);
+      // These lists will be cleared and filled for each shape
+      m_linkedLights.reserve(m_numArnoldLights);
+      m_linkedShadows.reserve(m_numArnoldLights);
+      m_ignoredLights.reserve(m_numArnoldLights);
+      m_ignoredShadows.reserve(m_numArnoldLights);
+      m_groupLights.reserve(m_numArnoldLights);
    }
 }
 
+/**
+ *  Provide a LightSet Maya's Node, and return the list of corresponding Arnold Lights.
+ *  Store this list in a hash map, by the group name
+ **/
 const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDependencyNode& objectSet)
 {
    std::string setName = objectSet.name().asChar();
@@ -58,35 +95,51 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
    {      
       std::vector<AtNode*> lights;
       lights.reserve(m_numArnoldLights);
-      MFnSet mayaObjectSet(objectSet.object());
-      MSelectionList sList;
-      mayaObjectSet.getMembers(sList, true);
-      MStatus status;
-      for (unsigned int i = 0; i < sList.length(); ++i)
+
+      if (setName == "defaultLightSet")
       {
-         MDagPath dgPath;
-         if (!sList.getDagPath(i, dgPath))
-            continue;
-         unsigned int childCount = dgPath.childCount();
-         for (unsigned int child = 0; child < childCount; ++child)
+         // this set is called defaultLightSet
+         // which is Maya's hardcoded name for a set containing ALL lights in the scene.
+         // so instead of parsing all lights from this set, let's just copy our Arnold's Light list.
+         // this list also contains the Mesh Lights, which wouldn't appear in Maya's set list
+         lights.reserve(m_arnoldLights.size());
+         for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
          {
-            MObject childObject = dgPath.child(child);
-            MDagPath childPath;
-            status = MDagPath::getAPathTo(childObject, childPath);
-            if (!status)
-               continue;            
-            MFnDependencyNode linkedLight(childPath.node(), &status);            
-            std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.partialPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
-            if (it2 == m_arnoldLights.end())
-               it2 = m_arnoldLights.find(childPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-            if (it2 != m_arnoldLights.end())
-               lights.push_back(it2->second);               
+            lights.push_back(it->second);
+         }
+
+      } else
+      {
+         MFnSet mayaObjectSet(objectSet.object());
+         MSelectionList sList;
+         mayaObjectSet.getMembers(sList, true);
+         MStatus status;
+         for (unsigned int i = 0; i < sList.length(); ++i)
+         {
+            MDagPath dgPath;
+            if (!sList.getDagPath(i, dgPath))
+               continue;
+            unsigned int childCount = dgPath.childCount();
+            for (unsigned int child = 0; child < childCount; ++child)
+            {
+               MObject childObject = dgPath.child(child);
+               MDagPath childPath;
+               status = MDagPath::getAPathTo(childObject, childPath);
+               if (!status)
+                  continue;            
+               MFnDependencyNode linkedLight(childPath.node(), &status);            
+               std::map<std::string, AtNode*>::iterator it2 = m_arnoldLights.find(linkedLight.name().asChar());
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.partialPathName().asChar()); //if the shapeName is not unique we are using the full path name
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.partialPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+               if (it2 == m_arnoldLights.end())
+                  it2 = m_arnoldLights.find(childPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
+               if (it2 != m_arnoldLights.end())
+                  lights.push_back(it2->second);               
+            }
          }
       }
       m_cachedObjectSets.insert(std::make_pair(setName, lights));
@@ -95,42 +148,70 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
    else return it->second;
 }
 
-void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& linkedNodes, std::vector<AtNode*>& nodeList, 
-        size_t& numLinkedNodes)
+void CArnoldLightLinks::AppendNodesToList(MFnDependencyNode& targetNode, std::vector<std::string>& nodeList, const std::vector<std::string> *existingList)
 {
-   if (linkedNodes.typeName() == MString("objectSet"))
+   // we can't directly "flatten" the ObjectSets as a list of lights
+   // because they are considered differently as independent lights 
+   // in the priority order.
+   // So we have to store the group Names
+   // and mess with the logic later
+
+   if (targetNode.typeName() == MString("objectSet"))
    {
-      const std::vector<AtNode*>& lights = GetObjectsFromObjectSet(linkedNodes);
-      for (std::vector<AtNode*>::const_iterator it = lights.begin(); it != lights.end(); ++it)
+
+      std::string setName = targetNode.name().asChar();
+      if (setName.empty()) return; //can this happen ?
+
+      if (std::find(nodeList.begin(), nodeList.end(), setName) == nodeList.end())
       {
-         std::vector<AtNode*>::iterator itEnd = nodeList.begin() + numLinkedNodes;
-         if (std::find(nodeList.begin(), itEnd, *it) == itEnd)
-            nodeList[numLinkedNodes++] = *it;
+         if (existingList)
+         {
+            // if this list is provided
+            // let's check if this item is already present here
+            if (std::find(existingList->begin(), existingList->end(), setName) != existingList->end()) return;
+         }
+
+         nodeList.push_back(setName); 
+
+         // add this objectSet to m_cachedObjectsSet
+         GetObjectsFromObjectSet(targetNode); 
+         
       }
    }
    else
    {
-      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(linkedNodes.name().asChar());
-      if (it == m_arnoldLights.end())
+      std::string lightName = targetNode.name().asChar();
+      if(lightName.empty()) return; // can this happen ?
+
+      if (std::find(nodeList.begin(), nodeList.end(), lightName) == nodeList.end())
       {
-         MDagPath dgPath;
-         MDagPath::getAPathTo(linkedNodes.object(), dgPath);
-         it = m_arnoldLights.find(dgPath.fullPathName().asChar()); //if the shapeName is not unique we are using the full path name
+         if (existingList)
+         {
+            // if this list is provided
+            // let's check if this item is already present here
+            if (std::find(existingList->begin(), existingList->end(), lightName) != existingList->end()) return;
+         }
+         std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
          if (it == m_arnoldLights.end())
-            it = m_arnoldLights.find(dgPath.fullPathName().asChar() + 1); //if the shapeName is not unique we are using the full path name
-      }
-      if (it != m_arnoldLights.end())
-      {
-         std::vector<AtNode*>::iterator itEnd = nodeList.begin() + numLinkedNodes;
-         if (std::find(nodeList.begin(), itEnd, it->second) == itEnd)
-            nodeList[numLinkedNodes++] = it->second;
+         {
+            //if the shapeName is not unique we are testing the full path name
+            MDagPath dgPath;
+            MDagPath::getAPathTo(targetNode.object(), dgPath);
+            lightName = dgPath.fullPathName().asChar();
+            it = m_arnoldLights.find(lightName); 
+            if (it == m_arnoldLights.end())
+            {
+               lightName = (dgPath.fullPathName().asChar() + 1);
+               it = m_arnoldLights.find(lightName); 
+               if (it == m_arnoldLights.end()) return;
+            }
+         }
+         nodeList.push_back(lightName);
       }
    }
 }
 
-void CArnoldLightLinks::HandleLightLinker(MPlug& conn, 
-        size_t& numLinkedLights, size_t& numLinkedShadows,
-        NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
+void CArnoldLightLinks::HandleLightLinker(MPlug& conn, bool checkExisting)
 {
    MPlug parentPlug = conn.parent();
    std::string plugName = parentPlug.partialName(false, false, false, false, false, true).asChar();
@@ -142,45 +223,20 @@ void CArnoldLightLinks::HandleLightLinker(MPlug& conn,
    if (conns2.length() == 0)
       return;
 
-   if (m_lightMode == MTOA_LIGHTLINK_MAYA)
-   {
-      if (!(lightLinkMode == MTOA_NODELINK_IGNORE && numLinkedLights > 0) && (strncmp(plugName.c_str(), "link", 4) == 0)) // linking the light
-      {
-         // check for this being a light set
-         lightLinkMode = MTOA_NODELINK_LINK;
-         MFnDependencyNode linkedLights(conns2[0].node());
-         AppendNodesToList(linkedLights, m_linkedLights, numLinkedLights);
-      }
-      else if (!(lightLinkMode == MTOA_NODELINK_LINK && numLinkedLights > 0) && (strncmp(plugName.c_str(), "ignore", 6) == 0))// ignoring the light
-      {
-         lightLinkMode = MTOA_NODELINK_IGNORE;
-         MFnDependencyNode linkedLights(conns2[0].node());
-         AppendNodesToList(linkedLights, m_linkedLights, numLinkedLights);
-      }
-   }
+   MFnDependencyNode targetNode(conns2[0].node());
 
-   if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
-   {
-      if (!(shadowLinkMode == MTOA_NODELINK_IGNORE && numLinkedShadows > 0) && (strncmp(plugName.c_str(), "shadowLink", 10) == 0)) // linking the shadow
-      {
-         // check for this being a light set
-         shadowLinkMode = MTOA_NODELINK_LINK;
-         MFnDependencyNode linkedShadows(conns2[0].node());
-         AppendNodesToList(linkedShadows, m_linkedShadows, numLinkedShadows);
-      }
-      else if (!(shadowLinkMode == MTOA_NODELINK_LINK && numLinkedShadows > 0) && (strncmp(plugName.c_str(), "shadowIgnore", 12) == 0)) // ignoring the shadow
-      {
-         shadowLinkMode = MTOA_NODELINK_IGNORE;
-         MFnDependencyNode linkedShadows(conns2[0].node());
-         AppendNodesToList(linkedShadows, m_linkedShadows, numLinkedShadows);
-      }
-   }
+   // check the message type 
+   if (strncmp(plugName.c_str(), "link", 4) == 0) AppendNodesToList(targetNode, m_linkedLights, (checkExisting) ? &m_ignoredLights : 0);
+   else if (strncmp(plugName.c_str(), "ignore", 6) == 0) AppendNodesToList(targetNode, m_ignoredLights, (checkExisting) ? &m_linkedLights : 0);
+   else if (strncmp(plugName.c_str(), "shadowLink", 10) == 0) AppendNodesToList(targetNode, m_linkedShadows, (checkExisting) ? &m_ignoredShadows : 0);
+   else if (strncmp(plugName.c_str(), "shadowIgnore", 12) == 0) AppendNodesToList(targetNode, m_ignoredShadows, (checkExisting) ? &m_linkedShadows : 0);
+  
 }
 
-bool CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, 
-        size_t& numLinkedLights, size_t& numLinkedShadows, 
-        NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
+bool CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode, bool checkExisting)
 {
+   // attribute "message" contains the linking information
+   // for this MFnDependencyNode
    MPlug messagePlug = dNode.findPlug("message");
    static MPlugArray conns;
    messagePlug.connectedTo(conns, false, true);
@@ -191,25 +247,24 @@ bool CArnoldLightLinks::CheckMessage(MFnDependencyNode& dNode,
       MPlug conn = conns[i];
       if (conn.node().hasFn(MFn::kLightLink))
       {
-         HandleLightLinker(conn, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
+         // this is a light-linkging / shadow-linking message
+         HandleLightLinker(conn, checkExisting);
          ret = true;
       }
    }
    return ret;
 }
 
-void CArnoldLightLinks::CheckNode(MObject node, size_t& numLinkedLights, size_t& numLinkedShadows,
-      NodeLinkMode& lightLinkMode, NodeLinkMode& shadowLinkMode)
+void CArnoldLightLinks::CheckNode(MObject node)
 {
    static MPlugArray conns;
-   // there are two modes, either ignoring specific nodes
-   // or linking them, but it's always only one of them
+
    MStatus status;     
    MFnDependencyNode dNode(node, &status);
    if (!status)
       return;
    
-   CheckMessage(dNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); // checking the outgoing message
+   CheckMessage(dNode); // checking the outgoing message
    // for the node
    
    MPlug instObjGroupsPlug = dNode.findPlug("instObjGroups", &status);
@@ -248,30 +303,147 @@ void CArnoldLightLinks::CheckNode(MObject node, size_t& numLinkedLights, size_t&
       MObject outObject = conn.node();
       if (outObject.hasFn(MFn::kShadingEngine))
       {
-         MFnDependencyNode shadingEngineNode(outObject);
-         CheckMessage(shadingEngineNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode); 
-         if ((numLinkedShadows + numLinkedLights) != 0)
-            break;
          // checking the outgoing message
          // for the shadingEngine
+         MFnDependencyNode shadingEngineNode(outObject);
+
+         // the flag (checkExsting = TRUE) means that we will skip any item
+         // that has been previously considered.
+         // i.e. if a light is linked to its shape, ignoring it here through 
+         // its shadingEngine must not be taken into account
+         if (CheckMessage(shadingEngineNode, true))
+         {
+            // we don't support per-face light linking
+            // so if anything was set here, let's get out
+            if (!m_linkedLights.empty() || !m_linkedShadows.empty() ||
+               !m_ignoredLights.empty() ||!m_ignoredLights.empty()) break;
+         }
       }
       else
       {
          MFnDependencyNode outObjectNode(outObject);
          if (outObjectNode.typeName() == MString("objectSet"))
          {
-            if (CheckMessage(outObjectNode, numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode))
+            // checking the outgoing message
+            // if it's an objectSet (this is for standins)
+
+            if (CheckMessage(outObjectNode, true)) // should I check here the existing items ?
             {
-               if ((numLinkedShadows + numLinkedLights) != 0)
-                  break;
+               // we don't support per-face light linking
+               // so if anything was set here, let's get out
+               if (!m_linkedLights.empty() || !m_linkedShadows.empty() ||
+               !m_ignoredLights.empty() ||!m_ignoredLights.empty()) break;
             }
          }
-         // checking the outgoing message
-         // if it's an objectSet (this is for standins)
       }
    }
 }
 
+/**
+ * Handle a list of linked lights and ignored lights, where Lights can also be LightSets
+ * with a bunch of priority orders.
+ * After some tests on .ma files here is what how it seems to behave on Maya Software :
+ * - if something is linked to a shape, but also ignored -> ignore wins
+ * - if something is linked/ignored to a shape, but also with the shadingEngine -> shape wins
+ * - if a light is linked/ignored, but also a LightSet containing this light -> individual light information wins
+ * - if something is linked/ignored to a shape, but also to a Group/Set containing it -> shape information wins
+ **/
+
+bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, const std::vector<std::string> &ignoreList)
+{
+   //clear m_groupLights before filling it
+   m_groupLights.clear();
+
+   // If no information was stored, we don't need to set anything
+   if (linkList.empty() && ignoreList.empty()) return false;
+
+   // if there is only a single link to "defaultLightSet", then our shape
+   // is linked ot all lights in the scene and there's 
+   // no need to use Arnold's light groups
+   if (linkList.size() == 1 && ignoreList.empty() && linkList[0] == "defaultLightSet") return false;
+   
+   if(linkList.empty())
+   {
+      // no linked shadows specified, so
+      // consider ALL shadows but the ignored ones
+      m_groupLights.reserve(m_arnoldLights.size());
+      for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+      {
+         m_groupLights.push_back(it->second);
+      }
+   }
+
+   //=== First add the ObjectsSet linked lights
+   for (size_t i = 0; i < linkList.size(); ++i)
+   {
+      const std::string &setName = linkList[i];
+      std::map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
+      if (it == m_cachedObjectSets.end()) continue;
+   
+      // This is an ObjectSet (Sets can't have the same name as Lights)
+      const std::vector<AtNode*> &setLights = it->second;
+      for (unsigned int j = 0; j < setLights.size(); ++j)
+      {
+         if (std::find(m_groupLights.begin(), m_groupLights.end(), setLights[j]) == m_groupLights.end())
+            m_groupLights.push_back(setLights[j]);
+      }
+   }
+
+   //==== Then remove the ObjectsSet ignored lights
+   for (size_t i = 0; i < ignoreList.size(); ++i)
+   {
+      const std::string &setName = ignoreList[i];
+      std::map<std::string, std::vector<AtNode*> >::iterator it = m_cachedObjectSets.find(setName);
+      if (it == m_cachedObjectSets.end()) continue;
+
+      // This is an ObjectSet (Sets can't have the same name as Lights)
+      std::vector<AtNode*> &setLights = it->second;
+      for (size_t j = 0; j < setLights.size(); ++j)
+      {
+         std::vector<AtNode*>::iterator it = std::find(m_groupLights.begin(), m_groupLights.end(), setLights[j]);
+         if (it != m_groupLights.end()) LightLinks_fastErase(m_groupLights, it);
+      }
+   }
+
+   //===== Then add the linked lights
+   for (size_t i = 0; i < linkList.size(); ++i)
+   {
+      const std::string &lightName = linkList[i];
+      // skip objectSets
+      if (m_cachedObjectSets.find(lightName) != m_cachedObjectSets.end()) continue;
+      
+      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
+      if (it != m_arnoldLights.end() &&
+         std::find(m_groupLights.begin(), m_groupLights.end(), it->second) == m_groupLights.end())
+      {
+         m_groupLights.push_back(it->second);
+      }
+   }
+
+   //====== Then remove the ignored lights
+   for (size_t i = 0; i < ignoreList.size(); ++i)
+   {
+      const std::string &lightName = ignoreList[i];
+      //skip ObjectSets
+      if (m_cachedObjectSets.find(lightName) != m_cachedObjectSets.end()) continue;
+
+      std::map<std::string, AtNode*>::iterator it = m_arnoldLights.find(lightName);
+      if (it != m_arnoldLights.end())
+      {
+         std::vector<AtNode*>::iterator nodeIt = std::find(m_groupLights.begin(), m_groupLights.end(), it->second);
+         if( nodeIt != m_groupLights.end()) LightLinks_fastErase(m_groupLights, nodeIt);
+      }
+   }
+
+   // maybe we should compare the amount of lights in m_groupLights 
+   // with m_numArnoldLights to return false if they're equal ?
+
+   return true;
+}
+
+/**
+ *   Export the Light-linking data for current shape
+ **/
 void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
 {
    if ((m_lightMode == MTOA_LIGHTLINK_NONE && m_shadowMode == MTOA_SHADOWLINK_NONE) ||
@@ -279,98 +451,58 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape, const MDagPath& path)
       return;
    MDagPath pathCopy = path;
 
-   NodeLinkMode lightLinkMode = MTOA_NODELINK_LINK;
-   NodeLinkMode shadowLinkMode = MTOA_NODELINK_LINK;
+   // clear all the temporary lists
+   m_linkedLights.clear();
+   m_ignoredLights.clear();
+   m_linkedShadows.clear();
+   m_ignoredShadows.clear();
+   m_groupLights.clear();
 
-   size_t numLinkedLights = 0;
-   size_t numLinkedShadows = 0;
-   
-   CheckNode(pathCopy.node(), numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
+   CheckNode(pathCopy.node());
+   // it looks like here we're checking the same node twice.
+   // we should propably do pathCopy.pop() here
    while (pathCopy.length())
    {
-      CheckNode(pathCopy.transform(), numLinkedLights, numLinkedShadows, lightLinkMode, shadowLinkMode);
-      pathCopy.pop();      
+      CheckNode(pathCopy.transform());
+      pathCopy.pop();
    }
    
    if (m_lightMode == MTOA_LIGHTLINK_MAYA)
    {   
-      if (lightLinkMode == MTOA_NODELINK_IGNORE)
+      // Follow Maya's light linking in Arnold
+      if (FillLights(m_linkedLights, m_ignoredLights))
       {
-         if (numLinkedLights != 0)
+          AiNodeSetBool(shape, "use_light_group", true);
+
+         // m_groupLights contains now the exact list of lights to be applied to current Shape
+         AtArray* lightsArray = AiArrayAllocate((AtUInt32)m_groupLights.size(), 1, AI_TYPE_NODE);
+         for (size_t i = 0; i < m_groupLights.size(); ++i)            
+            AiArraySetPtr(lightsArray, (AtUInt32)i, m_groupLights[i]);
+
+         AiNodeSetArray(shape, "light_group", lightsArray);
+
+         if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
          {
-            AiNodeSetBool(shape, "use_light_group", true);
-            size_t numNonIgnoredLights = m_numArnoldLights - numLinkedLights;
-            AtArray* lights = AiArrayAllocate((AtUInt32)numNonIgnoredLights, 1, AI_TYPE_NODE);
-            AiNodeSetArray(shape, "light_group", lights);
-            if (numNonIgnoredLights)
-            {
-               std::vector<AtNode*>::iterator itEnd = m_linkedLights.begin() + numLinkedLights;
-               for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
-               {
-                  AtNode* light = it->second;
-                  // the light is not ignored, so we can add it to the array                  
-                  if (std::find(m_linkedLights.begin(), itEnd, light) == itEnd)
-                     AiArraySetPtr(lights, (AtUInt32)--numNonIgnoredLights, light);
-               }
-            }
-            if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
-            {
-               AiNodeSetBool(shape, "use_shadow_group", true);
-               AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lights));
-            }
-         }
-      }
-      else
-      {
-         if (numLinkedLights != m_numArnoldLights)
-         {
-            AiNodeSetBool(shape, "use_light_group", true);
-            AtArray* lights = AiArrayAllocate((AtUInt32)numLinkedLights, 1, AI_TYPE_NODE);
-            AiNodeSetArray(shape, "light_group", lights);
-            for (size_t i = 0; i < numLinkedLights; ++i)
-               AiArraySetPtr(lights, (AtUInt32)i, m_linkedLights[i]);
-            if (m_shadowMode == MTOA_SHADOWLINK_LIGHT)
-            {
-               AiNodeSetBool(shape, "use_shadow_group", true);
-               AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lights));
-            }
-         }
+            // copy light linking to shadow linking
+            AiNodeSetBool(shape, "use_shadow_group", true);
+            AiNodeSetArray(shape, "shadow_group", AiArrayCopy(lightsArray));
+         }            
       }
    }
-   
+
    if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
    {
-      if (shadowLinkMode == MTOA_NODELINK_IGNORE)
+      //Follow Shadow linking from Maya
+      if (FillLights(m_linkedShadows, m_ignoredShadows))
       {
-         if (numLinkedShadows != 0)
-         {
-            AiNodeSetBool(shape, "use_shadow_group", true);
-            size_t numNonIgnoredShadows = m_numArnoldLights - numLinkedShadows;
-            AtArray* lights = AiArrayAllocate((AtUInt32)numNonIgnoredShadows, 1, AI_TYPE_NODE);
-            AiNodeSetArray(shape, "shadow_group", lights);
-            if (numNonIgnoredShadows)
-            {
-               std::vector<AtNode*>::iterator itEnd = m_linkedShadows.begin() + numLinkedShadows;
-               for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
-               {
-                  AtNode* light = it->second;
-                  // the light is not ignored, so we can add it to the array                  
-                  if (std::find(m_linkedShadows.begin(), itEnd, light) == itEnd)
-                     AiArraySetPtr(lights, (AtUInt32)--numNonIgnoredShadows, light);
-               }
-            }
-         }
-      }
-      else
-      {
-         if (numLinkedShadows != m_numArnoldLights)
-         {
-            AiNodeSetBool(shape, "use_shadow_group", true);
-            AtArray* lights = AiArrayAllocate((AtUInt32)numLinkedShadows, 1, AI_TYPE_NODE);
-            AiNodeSetArray(shape, "shadow_group", lights);
-            for (size_t i = 0; i < numLinkedShadows; ++i)
-               AiArraySetPtr(lights, (AtUInt32)i, m_linkedShadows[i]);
-         }
+         AiNodeSetBool(shape, "use_shadow_group", true);
+
+         // m_groupLights contains now the exact list of lights to be applied to current Shape
+         AtArray* lightsArray = AiArrayAllocate((AtUInt32)m_groupLights.size(), 1, AI_TYPE_NODE);
+         for (size_t i = 0; i < m_groupLights.size(); ++i)            
+            AiArraySetPtr(lightsArray, (AtUInt32)i, m_groupLights[i]);
+
+         AiNodeSetArray(shape, "shadow_group", lightsArray);
       }
    }
 }

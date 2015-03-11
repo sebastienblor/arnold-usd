@@ -6,8 +6,13 @@ import mtoa.utils as mutils
 import maya.cmds as cmds
 import mtoa.txManager
 import mtoa.lightManager
+import mtoa.renderToTexture
 import arnold as ai
 
+from uuid import getnode as get_mac
+import os
+import shutil
+import sys
 
 def doCreateStandInFile():
     node = createStandIn()
@@ -43,9 +48,9 @@ def arnoldAboutDialog():
     if not '(Master)' in arnoldMercurialID:
         arnoldAboutText += " - " + arnoldMercurialID
     arnoldAboutText += "\nArnold Core "+".".join(ai.AiGetVersion())+"\n\n"
-    arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2014\nSolid Angle SL\n\n"
+    arnoldAboutText += u"(c) 2001-2009 Marcos Fajardo and (c) 2009-2015\nSolid Angle SL\n\n"
     arnoldAboutText += u"Developed by: Ángel Jimenez, Olivier Renouard,\nYannick Puech, Borja Morales, Nicolas Dumay,\nPedro Fernando Gomez, Pál Mezei\n\n"
-    arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, \nChad Dombrova, Gaetan Guidet, Gaël Honorez,\nDiego Garcés, Kevin Tureski, Frédéric Servant"
+    arnoldAboutText += u"Acknowledgements: Javier González, Miguel González, \nLee Griggs, Chad Dombrova, Gaetan Guidet, \nGaël Honorez, Diego Garcés, Kevin Tureski, \nFrédéric Servant"
 
     if (cmds.window("AboutArnold", ex=True)):
         cmds.deleteUI("AboutArnold")
@@ -69,6 +74,135 @@ def arnoldAboutDialog():
     
     cmds.showWindow(w)
     
+def dotDotDotButtonPush(file):
+    licenseFilter = 'License Files (*.lic)'
+    ret = cmds.fileDialog2(fileFilter=licenseFilter, 
+                            cap='Load License File',okc='Load',fm=1)
+    if ret is not None and len(ret):
+        cmds.textField(file, edit=True, text=ret[0])
+        
+def installButtonPush(file):
+    licenseFile = cmds.textField(file, query=True, text=True)
+    import maya.mel as mel
+    mPath = mel.eval('getenv "MTOA_PATH"')
+    destination = os.path.join(mPath,'bin')
+    try:
+        shutil.copy(licenseFile,destination)
+        cmds.confirmDialog(title='Success', message='License Successfully Installed', button=['Ok'], defaultButton='Ok' )
+    except:
+        cmds.arnoldCopyAsAdmin(f=licenseFile,o=destination)
+    
+def arnoldLicenseDialog():
+    if (cmds.window("ArnoldLicense", ex=True)):
+        cmds.deleteUI("ArnoldLicense")
+    w = cmds.window("ArnoldLicense", title="Arnold Node-locked License")
+    cmds.window("ArnoldLicense", edit=True, width=550, height=280)
+    cmds.columnLayout()
+    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,10), (2, 64), (3, 18), (4, 450)] )
+
+    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+
+    arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
+
+    cmds.text(label="")
+    cmds.image(image="licensing_mtoa.png")
+    cmds.text(label="")
+    cmds.text(align="left",label=arnoldAboutText)
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+
+    cmds.setParent( '..' )
+    cmds.separator()
+
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
+    cmds.text(label="")
+    cmds.text(align="left",label=macText)
+    cmds.setParent( '..' )
+    cmds.separator()
+
+    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,132)] )
+    cmds.text(label="")
+    cmds.text(align="left",label="MAC Address")
+    name = cmds.textField()
+    mac = get_mac()
+    mactext = ("%012X" % mac)
+    cmds.textField(name,  edit=True, text=mactext, editable=False )
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+    cmds.separator()
+
+    cmds.setParent( '..' )
+
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
+    cmds.text(label="")
+    cmds.text(align="left",label=macText)
+    cmds.setParent( '..' )
+
+    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90), (3, 190),(4,7),(5,26),(6,7),(7,80),(8,132)] )
+    cmds.text(label="")
+    cmds.text(align="left",label="License file (.lic)")
+    file = cmds.textField()
+    cmds.text(label="")
+    cmds.button( label='...', command=lambda *args: dotDotDotButtonPush(file) )
+    cmds.text(label="")
+    cmds.button( label='Install', command=lambda *args: installButtonPush(file) )
+    cmds.text(label="")
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.text(label="")
+
+    cmds.setParent( '..' )
+
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,200),(2,160), (3, 80),(4,20),(5,80)] )
+    cmds.text(label="")
+    cmds.text(label="")
+    cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
+    cmds.text(label="")
+    cmds.button( label='Help', c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+
+    cmds.setParent( '..' )
+
+    cmds.showWindow(w)
+    
 def arnoldTxManager():
     win = mtoa.txManager.MtoATxManager()
     win.create()
@@ -77,6 +211,22 @@ def arnoldTxManager():
 def arnoldLightManager():
     win = mtoa.lightManager.MtoALightManager()
     win.create()
+
+def arnoldBakeGeo():
+    objFilter = "Obj File (*.obj)"
+    ret = cmds.fileDialog2(cap='Bake Selection as OBJ', fm=0, ff=objFilter)
+    if ret is not None and len(ret):
+        cmds.arnoldBakeGeo(f=ret[0])
+
+def arnoldRenderToTexture():
+    selList = cmds.ls(sl=1)
+    if (len(selList) == 0):
+        cmds.confirmDialog( title='Render To Texture', message='No Geometry Selected', button=['Ok'], defaultButton='Ok', cancelButton='Ok', dismissString='Ok' )
+        return False
+
+    win = mtoa.renderToTexture.MtoARenderToTexture()
+    win.create()
+    
 
 def selectCamera(cam):
     core.ACTIVE_CAMERA=cam
@@ -170,10 +320,14 @@ def createArnoldMenu():
         pm.menuItem('ArnoldFlushAll', parent='ArnoldFlush', label="All",
                     c=lambda *args: cmds.arnoldFlushCache(flushall=True))
                     
-        pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldMenu',
-                    c=lambda *args: arnoldTxManager())
-                    
-        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldMenu',
+        pm.menuItem('ArnoldUtilities', label='Utilities', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldBakeGeo', label='Bake Selected Geometry', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldBakeGeo())
+        pm.menuItem('ArnoldRenderToTexture', label='Render Selection To Texture', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldRenderToTexture())
+        pm.menuItem('ArnoldTxManager', label='Tx Manager', parent='ArnoldUtilities',
+                    c=lambda *args: arnoldTxManager())                    
+        pm.menuItem('ArnoldLightManager', label='Light Manager', parent='ArnoldUtilities',
                     c=lambda *args: arnoldLightManager())
 
         pm.menuItem('ArnoldHelpMenu', label='Help', parent='ArnoldMenu',
@@ -203,7 +357,7 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/blog/arnsupp'))
 
         pm.menuItem('ArnoldLicensing', label='Licensing', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://www.solidangle.com/support/licensing/'))
+                    c=lambda *args: arnoldLicenseDialog())
 
         pm.menuItem(divider=1, parent='ArnoldHelpMenu')
 
@@ -215,6 +369,7 @@ def createArnoldMenu():
         pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
                     postMenuCommand=lambda *args: populateSelectCamera())
+        populateSelectCamera()
         pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
                     c=lambda *args: startRender())
         pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',

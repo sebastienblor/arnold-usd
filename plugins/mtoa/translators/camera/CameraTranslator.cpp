@@ -567,7 +567,7 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
    }
 
    if (m_fnCamera.findPlug("renderPanZoom").asBool() && m_fnCamera.findPlug("panZoomEnabled").asBool())
-   {
+   {      
       double zoom = m_fnCamera.findPlug("zoom").asDouble();
       filmTranslateX *= zoom;
       filmTranslateY *= zoom;
@@ -575,9 +575,41 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
       minPoint *= zoom;
       maxPoint *= zoom;
 
-      double filmAspect = m_fnCamera.horizontalFilmAperture() / m_fnCamera.verticalFilmAperture();
-      double panX = m_fnCamera.findPlug("horizontalPan").asDouble() / m_fnCamera.horizontalFilmAperture() * 2;
-      double panY = m_fnCamera.findPlug("verticalPan").asDouble() / m_fnCamera.verticalFilmAperture() * 2;
+      MFnCamera::FilmFit fitResolutionGate = m_fnCamera.filmFit();
+
+      double horizontalAperture = m_fnCamera.horizontalFilmAperture();
+      double verticalAperture = m_fnCamera.verticalFilmAperture();
+
+      double filmAspect = horizontalAperture / verticalAperture;
+
+      switch (fitResolutionGate)
+      {
+         case MFnCamera::kFillFilmFit:
+            if (deviceAspect < filmAspect)
+            {
+               verticalAperture *= deviceAspect / filmAspect;
+               horizontalAperture = verticalAperture * filmAspect;
+            }
+         break;
+         case MFnCamera::kVerticalFilmFit:
+            verticalAperture *= deviceAspect / filmAspect;
+            horizontalAperture = verticalAperture * filmAspect;
+         break;
+         case MFnCamera::kOverscanFilmFit:
+            if (deviceAspect > filmAspect)
+            {
+               horizontalAperture *= deviceAspect / filmAspect;
+               verticalAperture = horizontalAperture / filmAspect;
+            }
+         break;
+         case MFnCamera::kHorizontalFilmFit:
+         default:
+         break;
+      }
+
+      double panX = m_fnCamera.findPlug("horizontalPan").asDouble() / horizontalAperture * 2;
+      double panY = m_fnCamera.findPlug("verticalPan").asDouble() / verticalAperture * 2;
+
       filmTranslateX += panX;
       filmTranslateY += (panY * (deviceAspect / filmAspect));
    }

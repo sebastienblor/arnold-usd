@@ -357,6 +357,12 @@ void CFileTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+
+   plug = FindMayaPlug("exposure");
+   if (plug.isNull())
+      AiNodeSetFlt(shader, "exposure", 0.0f);
+   else
+      ProcessParameter(shader, "exposure", AI_TYPE_FLOAT, plug);
 }
 
 void CFileTranslator::NodeInitializer(CAbTranslator context)

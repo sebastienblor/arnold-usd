@@ -19,10 +19,13 @@
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
+#include "commands/ArnoldBakeGeoCmd.h"
+#include "commands/ArnoldRenderToTextureCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 #include "commands/ArnoldListAttributesCmd.h"
 #include "commands/ArnoldTemperatureCmd.h"
 #include "commands/ArnoldFlushCmd.h"
+#include "commands/ArnoldCopyAsAdminCmd.h"
 #include "commands/ArnoldAIRCmd.h"
 
 #include "nodes/TxTextureFile.h"
@@ -102,11 +105,14 @@ namespace // <anonymous>
    } mayaCmdList [] = {
       {"arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax},
       {"arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax},
+      {"arnoldBakeGeo", CArnoldBakeGeoCmd::creator, CArnoldBakeGeoCmd::newSyntax},
+      {"arnoldRenderToTexture", CArnoldRenderToTextureCmd::creator, CArnoldRenderToTextureCmd::newSyntax},
       {"arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax},
       {"arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax},
       {"arnoldListAttributes", CArnoldListAttributesCmd::creator, 0},
       {"arnoldTemperatureToColor", CArnoldTemperatureCmd::creator, 0},
       {"arnoldFlushCache", CArnoldFlushCmd::creator, CArnoldFlushCmd::newSyntax},
+      {"arnoldCopyAsAdmin", CArnoldCopyAsAdminCmd::creator, CArnoldCopyAsAdminCmd::newSyntax},
       {"arnoldAIR", CArnoldAIRCmd::creator, CArnoldAIRCmd::newSyntax}
    };
 

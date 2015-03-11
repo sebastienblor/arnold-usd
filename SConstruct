@@ -73,6 +73,9 @@ vars.AddVariables(
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
     ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
+    PathVariable('BUILD_DIR',
+                 'Directory where temporary build files are placed by scons', 
+                 'build'),
 
     PathVariable('MAYA_ROOT',
                  'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
@@ -373,6 +376,7 @@ if env['COMPILER'] == 'gcc':
         env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
+        env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
 
 elif env['COMPILER'] == 'msvc':
     MSVC_FLAGS  = " /W3"         # Warning level : 3
@@ -499,7 +503,7 @@ env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
+BUILD_BASE_DIR = os.path.join(env['BUILD_DIR'], '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 env['BUILD_BASE_DIR'] = BUILD_BASE_DIR
 
 if not env['SHOW_CMDS']:
@@ -525,7 +529,7 @@ if system.os() == 'windows':
     maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
     maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
    
-    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib shell32.lib'))
    
     MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -689,30 +693,50 @@ if env['ENABLE_VP2']:
 
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
-apiheaders = [os.path.join('platform', 'Platform.h'),
-              os.path.join('platform', 'darwin', 'Event.h'),
-              os.path.join('platform', 'linux', 'Event.h'),
-              os.path.join('platform', 'win32', 'Event.h'),
-              os.path.join('platform', 'win32', 'dirent.h'),
-              os.path.join('platform', 'win32', 'Debug.h'),
-              os.path.join('common', 'MObjectCompare.h'),
-              os.path.join('common', 'UtilityFunctions.h'),
-              os.path.join('attributes', 'AttrHelper.h'),
-              os.path.join('extension', 'Extension.h'),
-              os.path.join('extension', 'AbMayaNode.h'),
-              os.path.join('extension', 'AbTranslator.h'),
-              os.path.join('extension', 'PxUtils.h'),
-              os.path.join('extension', 'PxMayaNode.h'),
-              os.path.join('extension', 'PxArnoldNode.h'),  
-              os.path.join('extension', 'PxTranslator.h'),                                        
-              os.path.join('extension', 'PathUtils.h'),
-              os.path.join('session', 'ArnoldSession.h'),
-              os.path.join('session', 'SessionOptions.h'),
-              os.path.join('session', 'ArnoldLightLinks.h'),
-              os.path.join('render', 'AOV.h'),
-              os.path.join('translators', 'NodeTranslator.h'),
-              os.path.join('translators', 'shape', 'ShapeTranslator.h'),
-              os.path.join('utils', 'Version.h')]
+apiheaders = [
+                os.path.join('attributes', 'AttrHelper.h'),
+                os.path.join('attributes', 'Components.h'),
+                os.path.join('common', 'MObjectCompare.h'),
+                os.path.join('common', 'UtilityFunctions.h'),
+                os.path.join('extension', 'Extension.h'),
+                os.path.join('extension', 'ExtensionsManager.h'),
+                os.path.join('extension', 'AbMayaNode.h'),
+                os.path.join('extension', 'AbTranslator.h'),
+                os.path.join('extension', 'PxUtils.h'),
+                os.path.join('extension', 'PxMayaNode.h'),
+                os.path.join('extension', 'PxArnoldNode.h'),
+                os.path.join('extension', 'PxTranslator.h'),
+                os.path.join('extension', 'PathUtils.h'),
+                os.path.join('platform', 'Platform.h'),
+                os.path.join('platform', 'darwin', 'Event.h'),
+                os.path.join('platform', 'linux', 'Event.h'),
+                os.path.join('platform', 'win32', 'Event.h'),
+                os.path.join('platform', 'win32', 'dirent.h'),
+                os.path.join('platform', 'win32', 'Debug.h'),
+                os.path.join('render', 'AOV.h'),
+                os.path.join('render', 'RenderSession.h'),
+                os.path.join('render', 'RenderOptions.h'),
+                os.path.join('scene', 'MayaScene.h'),
+                os.path.join('session', 'ArnoldSession.h'),
+                os.path.join('session', 'SessionOptions.h'),
+                os.path.join('session', 'ArnoldLightLinks.h'),
+                os.path.join('translators', 'NodeTranslator.h'),
+                os.path.join('translators', 'AutoDagTranslator.h'),
+                os.path.join('translators', 'DagTranslator.h'),
+                os.path.join('translators', 'ObjectSetTranslator.h'),
+                os.path.join('translators', 'camera', 'CameraTranslator.h'),
+                os.path.join('translators', 'camera', 'AutoCameraTranslator.h'),
+                os.path.join('translators', 'driver', 'DriverTranslator.h'),
+                os.path.join('translators', 'filter', 'FilterTranslator.h'),
+                os.path.join('translators', 'light', 'LightTranslator.h'),
+                os.path.join('translators', 'options', 'OptionsTranslator.h'),
+                os.path.join('translators', 'shader', 'ShaderTranslator.h'),
+                os.path.join('translators', 'shape', 'ShapeTranslator.h'),
+                os.path.join('utils', 'Version.h'),
+                os.path.join('utils', 'Universe.h'),
+                os.path.join('utils', 'MtoaLog.h'),
+                os.path.join('utils', 'time.h')
+]
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
               [os.path.join(apibasepath, x) for x in apiheaders])
@@ -979,6 +1003,8 @@ env['PACKAGE_FILES'] = PACKAGE_FILES
 installer_name = ''
 if system.os() == "windows":
     installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
+elif system.os() == "darwin":
+    installer_name = 'MtoA-%s-%s-%s%s.zip' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 else:
     installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
@@ -1008,12 +1034,27 @@ def create_installer(target, source, env):
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA.exe'), installer_name)
+    elif system.os() == "darwin":
+        import zipfile
+        maya_version = maya_base_version.replace('20135', '2013.5')
+        shutil.copyfile(os.path.abspath('installer/MtoA_'+maya_version+'_Installer.pkgproj'), os.path.join(tempdir, 'MtoA_Installer.pkgproj'))
+        shutil.copyfile(os.path.abspath('installer/top.jpg'), os.path.join(tempdir, 'top.jpg'))
+        zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(os.path.join(tempdir, 'solidangle', 'mtoa', maya_version))
+        mtoaMod = open(os.path.join(tempdir, 'solidangle', 'mtoa', maya_version, 'mtoa.mod'), 'w')
+        installPath = '/Applications/solidangle/mtoa/' + maya_version
+        mtoaMod.write('+ mtoa any %s\n' % installPath)
+        mtoaMod.write('PATH +:= bin\n')
+        mtoaMod.close()
+        subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
+        shutil.move(os.path.join(tempdir, 'MtoA_Setup.mpkg'), os.path.join(tempdir, 'tmp', 'MtoA_Setup.mpkg'))
+        os.rename(os.path.join(tempdir, 'tmp', 'MtoA_Setup.mpkg'), os.path.join(tempdir, 'tmp', installer_name[:-4]+'.mpkg'))
+        shutil.make_archive(installer_name[:-4],'zip',os.path.join(tempdir, 'tmp'))
     else:
         shutil.copyfile(os.path.abspath('%s.zip' % package_name), os.path.join(tempdir, "package.zip"))
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, sys.platform))
+        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, platform.system().lower()))
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))
