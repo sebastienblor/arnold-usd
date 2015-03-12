@@ -75,7 +75,7 @@ vars.AddVariables(
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
-                 'build', PathVariable.PathIsDir),
+                 'build', PathVariable.PathIsDirCreate),
 
     PathVariable('MAYA_ROOT',
                  'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
