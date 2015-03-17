@@ -40,7 +40,7 @@
 																					<key>GID</key>
 																					<integer>80</integer>
 																					<key>PATH</key>
-																					<string>solidangle/mtoa/2013/arnoldRenderer.xml</string>
+																					<string>2013/arnoldRenderer.xml</string>
 																					<key>PATH_TYPE</key>
 																					<integer>1</integer>
 																					<key>PERMISSIONS</key>
@@ -87,7 +87,7 @@
 																			<key>GID</key>
 																			<integer>80</integer>
 																			<key>PATH</key>
-																			<string>solidangle/mtoa/2013/mtoa.mod</string>
+																			<string>2013/mtoa.mod</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
@@ -632,7 +632,7 @@
 				<key>CONCLUSION_ACTION</key>
 				<integer>0</integer>
 				<key>IDENTIFIER</key>
-				<string>com.solidangle.pkg.MtoA</string>
+				<string>com.solidangle.pkg.MtoAConf2013</string>
 				<key>NAME</key>
 				<string>Configure MtoA Maya 2013</string>
 				<key>OVERWRITE_PERMISSIONS</key>
@@ -659,17 +659,51 @@
 							<array>
 								<dict>
 									<key>CHILDREN</key>
-									<array/>
+									<array>
+										<dict>
+											<key>CHILDREN</key>
+											<array>
+												<dict>
+													<key>CHILDREN</key>
+													<array/>
+													<key>GID</key>
+													<integer>80</integer>
+													<key>PATH</key>
+													<string>2013</string>
+													<key>PATH_TYPE</key>
+													<integer>1</integer>
+													<key>PERMISSIONS</key>
+													<integer>493</integer>
+													<key>TYPE</key>
+													<integer>3</integer>
+													<key>UID</key>
+													<integer>0</integer>
+												</dict>
+											</array>
+											<key>GID</key>
+											<integer>80</integer>
+											<key>PATH</key>
+											<string>mtoa</string>
+											<key>PATH_TYPE</key>
+											<integer>0</integer>
+											<key>PERMISSIONS</key>
+											<integer>509</integer>
+											<key>TYPE</key>
+											<integer>2</integer>
+											<key>UID</key>
+											<integer>0</integer>
+										</dict>
+									</array>
 									<key>GID</key>
 									<integer>80</integer>
 									<key>PATH</key>
 									<string>solidangle</string>
 									<key>PATH_TYPE</key>
-									<integer>1</integer>
+									<integer>0</integer>
 									<key>PERMISSIONS</key>
-									<integer>493</integer>
+									<integer>509</integer>
 									<key>TYPE</key>
-									<integer>3</integer>
+									<integer>2</integer>
 									<key>UID</key>
 									<integer>0</integer>
 								</dict>
@@ -1138,7 +1172,7 @@
 				<key>CONCLUSION_ACTION</key>
 				<integer>0</integer>
 				<key>IDENTIFIER</key>
-				<string>com.mygreatcompany.pkg.untitled-package</string>
+				<string>com.solidangle.pkg.MtoA2013</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
@@ -1146,7 +1180,7 @@
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
-				<string>1.0</string>
+				<string>1.2.1.0</string>
 			</dict>
 			<key>TYPE</key>
 			<integer>0</integer>
@@ -1381,7 +1415,7 @@
 			<key>ADVANCED_OPTIONS</key>
 			<dict/>
 			<key>BUILD_FORMAT</key>
-			<integer>1</integer>
+			<integer>0</integer>
 			<key>BUILD_PATH</key>
 			<dict>
 				<key>PATH</key>
