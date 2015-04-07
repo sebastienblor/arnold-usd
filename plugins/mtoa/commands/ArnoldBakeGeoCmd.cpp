@@ -146,7 +146,6 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AiRender(AI_RENDER_MODE_FREE);
    node_itr = AiUniverseGetNodeIterator(AI_NODE_ALL);
    AtShaderGlobals* sg = AiShaderGlobals();
-   
    int vert_index = 1; // vertex indices must be global to whole obj, starting at 1
 
    while (!AiNodeIteratorFinished(node_itr))
@@ -175,13 +174,14 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          //MGlobal::displayInfo(MString(matrix_str.str().c_str()));
 
          int index = 0;
+         bool valid_uvs = true;
+         bool valid_normals = true;
+
          while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
          {
-            AiShaderGlobalsGetVertexUVs(sg, uv);
-            AiShaderGlobalsGetVertexNormals(sg, 0, localNormal);
+            if (valid_uvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) valid_uvs = false;
+            if (valid_normals && !AiShaderGlobalsGetVertexNormals(sg, 0, localNormal)) valid_normals = false;
 
-            fBuf <<"f "<<vert_index<<" "<<vert_index+1<<" "<<vert_index+2<<"\n";
-            vert_index+=3;
             
             // Please God forgive me for duplicating the vertices for each triangle
             for (int j = 0; j < 3; ++j)
@@ -191,14 +191,35 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
                AiM4VectorByMatrixMult(&worldNormal[j], localToWorld, &localNormal[j]); 
                
                vBuf <<"v "<<(float)worldPos[j].x<< " "<<(float)worldPos[j].y<<" "<<(float)worldPos[j].z<<"\n";
-               nBuf <<"vn "<<(float)worldNormal[j].x<< " "<<(float)worldNormal[j].y<<" "<<(float)worldNormal[j].z<<"\n";
-               uvBuf <<"vt "<<(float)uv[j].x<< " "<<(float)uv[j].y<<"\n";
+               if (valid_normals) nBuf <<"vn "<<(float)worldNormal[j].x<< " "<<(float)worldNormal[j].y<<" "<<(float)worldNormal[j].z<<"\n";
+               if (valid_uvs) uvBuf <<"vt "<<(float)uv[j].x<< " "<<(float)uv[j].y<<"\n";
 
             }
             sg->fi = ++index;
          }
 
-         os <<vBuf.str()<<"\n"<<fBuf.str()<<"\n"<<nBuf.str()<<"\n"<<uvBuf.str()<<"\n";
+         for (int f = 0; f < index; ++f)
+         {
+            fBuf <<"f ";
+            for (int v =0; v < 3; ++v)
+            {
+               fBuf<<vert_index;
+               if (valid_uvs)
+               {
+                  if (valid_normals) fBuf<<"/"<<vert_index<<"/"<<vert_index; // both UVs and normals
+                  else fBuf<<"/"<<vert_index;  // only UVs
+               } else if (valid_normals) fBuf<<"//"<<vert_index; // only normals                  
+               
+               fBuf<<" ";
+               vert_index++;
+            }
+            fBuf<<"\n";
+         }
+         
+         os <<vBuf.str()<<"\n";
+         if (valid_uvs) os<<uvBuf.str()<<"\n";
+         if (valid_normals) os<<nBuf.str()<<"\n";
+         os<<fBuf.str()<<"\n";     
       }
    } 
 
