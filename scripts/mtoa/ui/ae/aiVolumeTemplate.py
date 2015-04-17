@@ -116,6 +116,7 @@ class AEaiVolumeTemplate(ShaderAETemplate):
         self.addControl("aiSelfShadows", label="Self Shadows")
         self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
         self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
+        self.addControl("aiMatte", label="Matte")
         self.addControl("aiTraceSets", label="Trace Sets")
         
         self.endNoOptimize()
