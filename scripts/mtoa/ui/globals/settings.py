@@ -1091,15 +1091,6 @@ def createArnoldLogSettings():
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
 
-
-    pm.separator()
-
-    pm.attrControlGrp('os_shader_nan_checks',
-                        label="Shader NaN Warnings",
-                        annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
-                                    'Enabling this may adversely affect performance.',
-                        attribute='defaultArnoldRenderOptions.shaderNanChecks')
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
