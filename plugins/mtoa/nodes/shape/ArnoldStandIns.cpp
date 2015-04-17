@@ -234,28 +234,50 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       
       if (isAss)
       {
-         AiASSLoad(assfile.asChar());
-         processRead = true;
+         if (fGeometry.drawOverride != 3)
+         {
+            AiASSLoad(assfile.asChar());
+            processRead = true;
+         }
+         else
+         {
+            geom->IsGeomLoaded = false;
+            if (AiUniverseCreated) ArnoldUniverseEnd();
+            return MS::kSuccess;
+         }
       }
       else
       {         
          procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
+         if (fGeometry.drawOverride == 3) 
+            AiNodeSetBool(procedural, "load_at_init", false); 
+
          AtMatrix mtx;
          AiM4Identity(mtx);
          AiNodeSetMatrix(procedural, "matrix", mtx);
-         // If it is a lib file
-         if (isSo)
+         
+         if (fGeometry.drawOverride != 3)
          {
-            if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
-               AiNodeSetBool(procedural, "used_for_maya_display", true);
-            AiNodeSetStr(procedural, "data", dsoData.asChar());
-            CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
-         }
+            // If it is a lib file
+            if (isSo)
+            {
+               if (AiNodeDeclare(procedural, "used_for_maya_display", "constant BOOL"))
+                  AiNodeSetBool(procedural, "used_for_maya_display", true);
+               AiNodeSetStr(procedural, "data", dsoData.asChar());
+               CNodeTranslator::ExportUserAttributes(procedural, thisMObject());
+            }
 
-         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
-            processRead = true;
+            if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+               processRead = true;
+         }
+         else
+         {
+            geom->IsGeomLoaded = false;
+            if (AiUniverseCreated) ArnoldUniverseEnd();
+            return MS::kSuccess;
+         }
       }
 
       if (processRead)
@@ -587,8 +609,8 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
    // Returns the bounding box for the shape.
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
-   MPoint bbMin = geom->bbox.min();
-   MPoint bbMax = geom->bbox.max();
+   MPoint bbMin = geom->BBmin;
+   MPoint bbMax = geom->BBmax;
 
    float minCoords[4];
    float maxCoords[4];
@@ -705,9 +727,10 @@ MStatus CArnoldStandInShape::initialize()
 
    s_drawOverride = eAttr.create("standInDrawOverride", "standin_draw_override");
    eAttr.addField("Use Global Settings", 0);
-   eAttr.addField("Full", 1);
+   eAttr.addField("Use Local Settings", 1);
    eAttr.addField("Bounding Box", 2);
-   eAttr.addField("Off", 3);
+   eAttr.addField("Disable Draw", 3);
+   eAttr.addField("Disable Load", 4);
    eAttr.setDefault(0);
    addAttribute(s_drawOverride);
    
@@ -836,6 +859,27 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    
    plug.setAttribute(s_scale);
    plug.getValue(fGeometry.scale);
+   
+   plug.setAttribute(s_drawOverride); 
+   plug.getValue(fGeometry.drawOverride);
+   
+   float3 f3_value; 
+ 	plug.setAttribute(s_boundingBoxMin); 
+ 	GetPointPlugValue(plug, f3_value); 
+ 	fGeometry.BBmin = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
+
+ 	plug.setAttribute(s_boundingBoxMax); 
+ 	GetPointPlugValue(plug, f3_value); 
+ 	fGeometry.BBmax = MPoint(f3_value[0], f3_value[1], f3_value[2]); 
+
+ 	if (fGeometry.drawOverride == 0) 
+ 	{ 
+      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+      if (!ArnoldRenderOptionsNode.isNull()) 
+         fGeometry.drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort(); 
+ 	} 
+ 	else 
+      fGeometry.drawOverride -= 1;
 
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
@@ -928,12 +972,12 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       }
    }
    
-   if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale)
+   if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale )
    {
       fGeometry.updateBBox = true;
    }
 
-   if (fGeometry.filename != tmpFilename || fGeometry.data != tmpData)
+   if (fGeometry.drawOverride != 3 && (fGeometry.filename != tmpFilename || fGeometry.data != tmpData))
    {
       //refresh bounding box
       if (fGeometry.mode != 0 || !LoadBoundingBox())
@@ -1154,11 +1198,10 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       // Only show scaled BBox in this case
       if(geom->deferStandinLoad)
       {
-         MBoundingBox m_bbox = geom->bbox;
          float minPt[4];
          float maxPt[4];
-         m_bbox.min().get(minPt);
-         m_bbox.max().get(maxPt);
+         geom->BBmin.get(minPt);
+         geom->BBmax.get(maxPt);
          
          // Calculate scaled BBox dimensions
          float halfSize[3] =
@@ -1213,11 +1256,10 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    
    if (geom->updateView)
    {
-      MBoundingBox m_bbox = geom->bbox;
       float minPt[4];
       float maxPt[4];
-      m_bbox.min().get(minPt);
-      m_bbox.max().get(maxPt);
+      geom->BBmin.get(minPt);
+      geom->BBmax.get(maxPt);
       float bottomLeftFront[3] =
       { minPt[0], minPt[1], minPt[2] };
       float topLeftFront[3] =
@@ -1355,13 +1397,13 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       geom->updateView = false;
    }
 
-   if (geom->drawOverride == 1)
+   if (geom->drawOverride == 1 || geom->drawOverride == 3 )
    {
       MBoundingBox m_bbox = geom->bbox;
       float minPt[4];
       float maxPt[4];
-      m_bbox.min().get(minPt);
-      m_bbox.max().get(maxPt);
+      geom->BBmin.get(minPt);
+      geom->BBmax.get(maxPt);
       const float bottomLeftFront[3] =
       { minPt[0], minPt[1], minPt[2] };
       const float topLeftFront[3] =

@@ -987,7 +987,7 @@ def createArnoldMayaintegrationSettings():
                         attribute='defaultArnoldRenderOptions.enable_swatch_render')
 
     pm.attrControlGrp('os_standin_draw_override',
-                        label="StandIn Draw Override",
+                        label="StandIn Viewport Override",
                         attribute='defaultArnoldRenderOptions.standin_draw_override')
 
     pm.setParent('..')

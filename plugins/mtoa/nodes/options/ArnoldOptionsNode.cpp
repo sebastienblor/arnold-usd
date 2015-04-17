@@ -588,9 +588,10 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_version);
 
    s_enable_standin_draw = eAttr.create("standinDrawOverride", "standin_draw_override");
-   eAttr.addField("Full", 0);   
+   eAttr.addField("Use Local Settings", 0);   
    eAttr.addField("Bounding Box", 1);
-   eAttr.addField("Off", 2);
+   eAttr.addField("Disable Draw", 2);
+   eAttr.addField("Disable Load", 3);
    eAttr.setDefault(0);
    addAttribute(s_enable_standin_draw);
 
