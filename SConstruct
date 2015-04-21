@@ -1040,6 +1040,8 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/MtoA_'+maya_version+'_Installer.pkgproj'), os.path.join(tempdir, 'MtoA_Installer.pkgproj'))
         shutil.copyfile(os.path.abspath('installer/top.jpg'), os.path.join(tempdir, 'top.jpg'))
         zipfile.ZipFile(os.path.abspath('%s.zip' % package_name), 'r').extractall(os.path.join(tempdir, maya_version))
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'kick')])
+        subprocess.call(['chmod', 'a+x', os.path.join(tempdir, maya_version, 'bin', 'maketx')])
         mtoaMod = open(os.path.join(tempdir, maya_version, 'mtoa.mod'), 'w')
         installPath = '/Applications/solidangle/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
