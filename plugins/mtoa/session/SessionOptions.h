@@ -130,6 +130,31 @@ private:
    inline double GetExportFrame() const { return m_frame; }
    inline double GetMotionByFrame() const { return m_motion.motion_frames; }
 
+   // if I don't inline this here, some contrib libs fail at linking
+   inline void GetMotionRange(double &motion_start, double &motion_end) const {
+      switch (m_motion.range_type)
+      {
+         case MTOA_MBLUR_TYPE_START:
+            motion_start = 0.;
+            motion_end = m_motion.motion_frames;
+            break;
+         case MTOA_MBLUR_TYPE_CENTER:
+            motion_start = -0.5 * m_motion.motion_frames;
+            motion_end = 0.5 * m_motion.motion_frames;
+            break;
+         case MTOA_MBLUR_TYPE_END:
+            motion_start = -m_motion.motion_frames;
+            motion_end = 0.;
+            break;
+         default:
+         case MTOA_MBLUR_TYPE_CUSTOM:
+            motion_start = m_motion.motion_start;
+            motion_end = m_motion.motion_end;
+            break;
+      }
+   }
+
+
    inline const MObject& GetArnoldRenderOptions() const { return m_options; }
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
 

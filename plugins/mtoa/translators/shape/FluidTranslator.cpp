@@ -347,8 +347,23 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
-   ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
+   if (RequiresMotionData())
+   {
+      // only if deformation motion blur is enabled, translate the parameter "enableDeformationBlur"
+
+      ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
+      AtVector velocity_scale = AiNodeGetVec(fluid_shader, "velocity_scale");
+      double motion_start = 0.;
+      double motion_end = 1.;
+      // multiply the scale by the shutter length (ignoring shutter offset here...)
+      m_session->GetMotionRange(motion_start, motion_end);
+      velocity_scale *= (float)(motion_end - motion_start);
+      
+      AiNodeSetVec(fluid_shader, "velocity_scale", velocity_scale.x, velocity_scale.y, velocity_scale.z);
+   }
    
+   
+
    // support for gradient mode  
    // Exporting fluid data to a shader attached to the shape
    // at the moment this is the best way to store data

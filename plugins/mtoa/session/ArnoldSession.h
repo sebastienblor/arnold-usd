@@ -116,6 +116,8 @@ public:
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
    inline std::vector<double> GetMotionFrames() const { return m_motion_frames; }
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
+   inline void GetMotionRange(double &motion_start, double &motion_end) const {m_sessionOptions.GetMotionRange(motion_start, motion_end); }
+
    inline bool IsProgressive() const { return m_sessionOptions.IsProgressive(); }
 
    // Light linker
