@@ -69,6 +69,11 @@
     [attr aov_sss]
         aov.type                INT     0x05
 
+[node volume_collector]
+    maya.id    INT     0x00115D1F
+    maya.classification     STRING  "shader/volume"
+    maya.swatch             BOOL    False
+        
 [node volume_sample_float]
 
     maya.id    INT     0x00115E51
@@ -101,15 +106,21 @@
     desc STRING "Scale values around the contrast pivot."
 
     [attr contrast_pivot]
+    softmin FLOAT 0
+    softmax FLOAT 1
     desc STRING "The origin of the contrast scaling."
 
     [attr bias]
+    softmin FLOAT 0
+    softmax FLOAT 1
     desc STRING "Push or pull values by altering the slope at the beginning of the "
     "range. Bias values below 0.5 decrease the slope and lower values overall. "
     "Above 0.5, the slope is higher and value grow more quickly. A value of 0.5 has "
     "no effect."
 
     [attr gain]
+    softmin FLOAT 0
+    softmax FLOAT 1
     desc STRING "Increase or decrease the slope of the mid range values. Gain values "
     "below 0.5 increase the contrast whereas values above 0.5 flatten the mid range "
     "values. A value of 0.5 has no effect."
@@ -166,6 +177,8 @@ softmax FLOAT 2
 desc STRING "Scale values around the contrast pivot."
 
 [attr contrast_pivot]
+softmin FLOAT 0
+softmax FLOAT 1
 desc STRING "The origin of the contrast scaling."
 
 [attr exposure]

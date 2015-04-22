@@ -803,7 +803,7 @@ node_loader
 
    case SHADER_VOLUME_SAMPLE_FLOAT:
       node->methods     = VolumeSampleFloatMethods;
-      node->output_type = AI_TYPE_RGB;
+      node->output_type = AI_TYPE_FLOAT;
       node->name        = "volume_sample_float";
       node->node_type   = AI_NODE_SHADER;
       break;
