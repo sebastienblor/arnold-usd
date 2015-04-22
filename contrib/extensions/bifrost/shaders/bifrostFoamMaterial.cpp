@@ -135,9 +135,15 @@ static void initializeDiffuseGradient(AtNode *node, ShaderData *data, AtShaderGl
    {
       GradientDescription<AtRGB> *grad = new GradientDescription<AtRGB>();
       
-      grad->ReadValues(sg->Op, sg, AiNodeGetStr(node, "diffuseColorRemapChannel"), 
+       // get the user data type // SPECIFIC TO POINTS using user data
+      std::string userData = AiNodeGetStr(node, "diffuseColorRemapChannel");
+      int type = AI_TYPE_FLOAT;
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      if (pentry) type = AiUserParamGetType(pentry);
+
+      grad->ReadValues(sg->Op, sg, userData.c_str(), 
             AiNodeGetArray(node, "diffuseColorRemap_Position"), AiNodeGetArray(node, "diffuseColorRemap_Color"), AiNodeGetArray(node, "diffuseColorRemap_Interp"),
-            AiNodeGetFlt(node, "diffuseColorRemapInputMin"), AiNodeGetFlt(node, "diffuseColorRemapInputMax"));
+            AiNodeGetFlt(node, "diffuseColorRemapInputMin"), AiNodeGetFlt(node, "diffuseColorRemapInputMax"), type);
 
       grad->AddScalarRamp(AiNodeGetArray(node, "diffuseColorValueRemap_Position"), AiNodeGetArray(node, "diffuseColorValueRemap_FloatValue"), AiNodeGetArray(node, "diffuseColorValueRemap_Interp"));
       data->diffuseGradient = grad;
@@ -154,9 +160,14 @@ static void initializeScatterGradient(AtNode *node, ShaderData *data, AtShaderGl
    {
       GradientDescription<float> * grad = new GradientDescription<float>();
       
-      grad->ReadValues(sg->Op, sg, AiNodeGetStr(node, "scatterWeightRemapChannel"), 
+      std::string userData = AiNodeGetStr(node, "scatterWeightRemapChannel");
+      int type = AI_TYPE_FLOAT;
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      if (pentry) type = AiUserParamGetType(pentry);
+
+      grad->ReadValues(sg->Op, sg, userData.c_str(), 
          AiNodeGetArray(node, "scatterWeightRemap_Position"), AiNodeGetArray(node, "scatterWeightRemap_FloatValue"), AiNodeGetArray(node, "scatterWeightRemap_Interp"),
-         AiNodeGetFlt(node, "scatterWeightRemapInputMin"), AiNodeGetFlt(node, "scatterWeightRemapInputMax"));
+         AiNodeGetFlt(node, "scatterWeightRemapInputMin"), AiNodeGetFlt(node, "scatterWeightRemapInputMax"), type);
       data->scatterGradient = grad;
 
    }
@@ -169,10 +180,14 @@ static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShade
    if (data->reflectionGradient == 0)
    {
       GradientDescription<float> * grad = new GradientDescription<float>();
+      std::string userData = AiNodeGetStr(node, "reflectionWeightRemapChannel");
+      int type = AI_TYPE_FLOAT;
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      if (pentry) type = AiUserParamGetType(pentry);
 
-      grad->ReadValues(sg->Op, sg, AiNodeGetStr(node, "reflectionWeightRemapChannel"), 
+      grad->ReadValues(sg->Op, sg, userData.c_str(), 
             AiNodeGetArray(node, "reflectionWeightRemap_Position"), AiNodeGetArray(node, "reflectionWeightRemap_FloatValue"), AiNodeGetArray(node, "reflectionWeightRemap_Interp"),
-            AiNodeGetFlt(node, "reflectionWeightRemapInputMin"), AiNodeGetFlt(node, "reflectionWeightRemapInputMax"));
+            AiNodeGetFlt(node, "reflectionWeightRemapInputMin"), AiNodeGetFlt(node, "reflectionWeightRemapInputMax"), type);
       data->reflectionGradient = grad;
 
    }
@@ -185,10 +200,14 @@ static void initializeTransparencyGradient(AtNode *node, ShaderData *data, AtSha
    if (data->transparencyGradient == 0)
    {
       GradientDescription<float> * grad = new GradientDescription<float>();
+      std::string userData = AiNodeGetStr(node, "transparencyWeightRemapChannel");
+      int type = AI_TYPE_FLOAT;
+      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData.c_str(), sg);
+      if (pentry) type = AiUserParamGetType(pentry);
 
-      grad->ReadValues(sg->Op, sg, AiNodeGetStr(node, "transparencyWeightRemapChannel"), 
+      grad->ReadValues(sg->Op, sg, userData.c_str(), 
             AiNodeGetArray(node, "transparencyWeightRemap_Position"), AiNodeGetArray(node, "transparencyWeightRemap_FloatValue"), AiNodeGetArray(node, "transparencyWeightRemap_Interp"),
-            AiNodeGetFlt(node, "transparencyWeightRemapInputMin"), AiNodeGetFlt(node, "transparencyWeightRemapInputMax"));
+            AiNodeGetFlt(node, "transparencyWeightRemapInputMin"), AiNodeGetFlt(node, "transparencyWeightRemapInputMax"), type);
       data->transparencyGradient = grad;
 
    }
@@ -494,18 +513,4 @@ shader_evaluate
    sg->out.RGB += reflection_color * (r_indirect_result + r_direct_result);
 
 
-}
-
-node_loader
-{
-   if (i > 0)
-      return false;
-
-   node->methods      = BifrostFoamMaterialMtd;
-   node->output_type  = AI_TYPE_RGB;
-   node->name         = "bifrostFoamMaterial";
-   node->node_type    = AI_NODE_SHADER;
-
-   strcpy(node->version, AI_VERSION);
-   return true;
 }

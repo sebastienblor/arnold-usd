@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 
+
 template <typename T>
 inline T GetDefaultValue()
 {
@@ -306,8 +307,9 @@ public:
    std::string dataName;
    int type;
    AtNode *points_op;
+   bool voxels;
    
-   GradientDescription() : elements(0), nExtraScalarElements(0), extraScalarElements(0), inputMax(1.f), invInputDelta(1.f), data(0), extraScalarData(0), points_op( 0) 
+   GradientDescription() : elements(0), nExtraScalarElements(0), extraScalarElements(0), inputMax(1.f), invInputDelta(1.f), data(0), extraScalarData(0), points_op( 0), voxels(false) 
    {}
    ~GradientDescription() {Release();}
    
@@ -332,32 +334,55 @@ public:
       T ret = GetDefaultValue<T>();
       float v = 0.f;
 
-      // get the input value from User Data (depending on the attribute type)
-      switch(type)
+      if (voxels)
       {
-         default:
-         case AI_TYPE_FLOAT:
-            if (!AiUDataGetFlt(dataName.c_str(), &v))return ret;
-         break;
+         
+          // get the input value from User Data (depending on the attribute type)
+         switch(type)
          {
-         case AI_TYPE_POINT2:
-            AtPoint2 pnt2;
-            if (!AiUDataGetPnt2(dataName.c_str(), &pnt2)) return ret;
-            v = AiV2Length(pnt2);  // or another formula ?
-         break;
-         }
-         {
-         case AI_TYPE_VECTOR:
-            AtVector vec;
-            if (!AiUDataGetVec(dataName.c_str(), &vec)) return ret;
-            v = AiV3Length(vec); 
+            default:
+            case AI_TYPE_FLOAT:
+               AiVolumeSampleFltFunc (dataName.c_str(), sg, 0, &v);
             break;
+            
+            {
+            case AI_TYPE_VECTOR:
+               AtColor col;
+               AiVolumeSampleRGBFunc (dataName.c_str(), sg, 0, &col);
+               AtVector vec;
+               vec.x = col.r; vec.y = col.g; vec.z = col.b;
+               v = AiV3Length(vec); 
+               break;
+            }
+         }
+      } else
+      {
+         // get the input value from User Data (depending on the attribute type)
+         switch(type)
+         {
+            default:
+            case AI_TYPE_FLOAT:
+               if (!AiUDataGetFlt(dataName.c_str(), &v))return ret;
+            break;
+            {
+            case AI_TYPE_POINT2:
+               AtPoint2 pnt2;
+               if (!AiUDataGetPnt2(dataName.c_str(), &pnt2)) return ret;
+               v = AiV2Length(pnt2);  // or another formula ?
+            break;
+            }
+            {
+            case AI_TYPE_VECTOR:
+               AtVector vec;
+               if (!AiUDataGetVec(dataName.c_str(), &vec)) return ret;
+               v = AiV3Length(vec); 
+               break;
+            }
          }
       }
 
       // remap the user data value from [InputMin,inputMax] to [0,1]
       v = (v - inputMin) * invInputDelta;// RemapInput(v);
-
       ret = BfGradientGetValue<T>(sg, v, elements, nelements, data, resolution, points_op);
 
       if (extraScalarElements)
@@ -369,13 +394,11 @@ public:
       return ret;
    }
 
-
    
    bool ReadValues(AtNode* node, AtShaderGlobals *sg, const char* userData, AtArray* positionsArray, 
-         AtArray* valuesArray, AtArray* interpsArray, float _inputMin, float _inputMax)
+         AtArray* valuesArray, AtArray* interpsArray, float _inputMin, float _inputMax, int _type)
    {
       // release previous values;
-
       Release();
 
       inputMin = _inputMin;
@@ -385,10 +408,7 @@ public:
       points_op = (sg) ? sg->Op : 0;
       dataName = userData;
 
-      // get the user data type
-      const AtUserParamEntry* pentry = AiUserGetParameterFunc(userData, sg);
-      if (pentry == 0) {return false;  } // user data not found
-      type = AiUserParamGetType(pentry);
+      type = _type;
 
       if (positionsArray == 0 || valuesArray == 0 || interpsArray == 0){ 
          return false;
@@ -403,13 +423,14 @@ public:
          bool isConnected = false;
          elements = (GradientDescriptionElement<T>*)AiMalloc(sizeof(GradientDescriptionElement<T>) * nelements);
 
-
          for (AtUInt32 i = 0; i < nelements; ++i)
          {
+            
             elements[i].position = AiArrayGetFlt(positionsArray, i);
             elements[i].interp = AiArrayGetInt(interpsArray, i);
             elements[i].value = ReadFromArray<T>(valuesArray, i);
             elements[i].node = 0;
+            
 
          }
          if (nelements > 1)

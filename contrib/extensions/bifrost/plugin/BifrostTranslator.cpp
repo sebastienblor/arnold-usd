@@ -7,7 +7,9 @@
 #include <maya/MGlobal.h>
 
 #include "BifrostTranslator.h"
-#include "bifrostObjectUserData.h"
+#include "../common/bifrostObjectUserData.h"
+#include "../common/bifrostHelpers.h"
+
 
 #include "session/SessionOptions.h"
 
@@ -20,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+
 
 AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
 {
@@ -48,7 +51,10 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    {
       default:
       case CBIFROST_AERO:
+         return AddArnoldNode("volume");
+
       case CBIFROST_LIQUID:
+         AiMsgError("[BIFROST]: liquid not implemented yet : %s", m_object.c_str());
       // not implemented for now
       break;
 
@@ -305,6 +311,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
       AiNodeSetArray(node, chName[ch].c_str(), channels_array[ch]);  
    }
 
+
    ExportMatrix(node, 0);   
    
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
@@ -312,11 +319,70 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
       ExportBifrostShader();
    ExportLightLinking(node);
 
-
 }
 void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 {
-   // Not implemented
+
+// Check if we have hot data in the current state server
+   BifrostObjectUserData objectRef(m_object, m_file);
+
+   if (!objectRef.objectExists())
+   {
+      // The specified object doesn't exist in the current state server.
+      // Try to load the object from the cache file.
+
+      const float frame = (float)MAnimControl::currentTime().value();
+      const bool loaded = objectRef.loadFromFile(frame);
+
+      if (!loaded || !objectRef.objectExists())
+      {
+         AiMsgError("[BIFROST]: foam data %s  not found", m_object.c_str());
+         return;
+      }
+   }
+   static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/bifrost_procedural.so");
+   AiNodeSetStr(shape, "dso", strDSO.c_str());
+   AiNodeSetBool( shape, "load_at_init", true );
+
+   AiNodeDeclare(shape, "object_name", "constant STRING");
+   AiNodeDeclare(shape, "file_name", "constant STRING");
+
+   AiNodeSetStr(shape, "object_name", m_object.c_str());
+   AiNodeSetStr(shape, "file_name", m_file.c_str());
+
+   double bboxMin[3] = {0.0, 0.0, 0.0}, bboxMax[3] = {0.0, 0.0, 0.0} ;
+
+   Bifrost::API::Channel chnl = objectRef.findVoxelChannel("smoke");
+   ComputeVolumeVoxelBounds(objectRef, chnl, bboxMin, bboxMax);
+
+   // Check if the bounds is valid
+   if (bboxMin[0] >= bboxMax[0] || bboxMin[1] >= bboxMax[1] || bboxMin[2] >= bboxMax[2])
+   {
+      AiMsgError("[BIFROST]: bounds for %s  are not valid", m_object.c_str());
+      return;
+   }
+ 
+   AiNodeSetPnt(shape, "min", (float)bboxMin[0], (float)bboxMin[1], (float)bboxMin[2] );
+   AiNodeSetPnt(shape, "max", (float)bboxMax[0], (float)bboxMax[1], (float)bboxMax[2] );
+
+   AiNodeSetByte(shape, "visibility", 243);
+
+   ExportMatrix(shape, 0);   
+   
+   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
+       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   {
+      ExportBifrostShader();
+      // we need to hack this because a volume shader doesn't work with a 
+      // MayaShadingGroup node in the middle, so I'm bypassing it
+      AtNode *sgNode = (AtNode*)AiNodeGetPtr(shape, "shader");
+      if (sgNode && AiNodeIsLinked(sgNode, "beauty"))
+      {
+         AtNode *shad = AiNodeGetLink(sgNode, "beauty");
+         AiNodeSetPtr(shape, "shader", shad);
+      }
+   }
+   ExportLightLinking(shape);
 }
 void CBfDescriptionTranslator::UpdateLiquid(AtNode *shape)
 {

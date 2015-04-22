@@ -1,5 +1,6 @@
 #include "BifrostTranslator.h"
 #include "BifrostFoamMaterialTranslator.h"
+#include "BifrostAeroMaterialTranslator.h"
 
 #include "extension/Extension.h"
 
@@ -24,6 +25,10 @@ extern "C"
         status = extension.RegisterTranslator ( "bifrostFoamMaterial",
                                                 "",
                                                 CBfFoamMaterialTranslator::creator);
+
+        status = extension.RegisterTranslator ( "bifrostAeroMaterial",
+                                                "",
+                                                CBfAeroMaterialTranslator::creator);
 
        
 
