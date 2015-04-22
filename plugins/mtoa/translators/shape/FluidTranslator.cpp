@@ -55,6 +55,15 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = false;
    helper.MakeInputBoolean(data);
    
+   data.name = "aiMotionVectorScale";
+   data.shortName = "ai_motion_vector_scale";
+   data.defaultValue.FLT = 1.f;
+   data.hasMin = true;
+   data.hasSoftMax = true;
+   data.min.FLT = 0.f;
+   data.softMax.FLT = 1.f;
+   helper.MakeInputFloat(data);
+
    data.name = "aiVolumeTexture";
    data.shortName = "ai_volume_texture";
    helper.MakeInputRGB(data);   
@@ -344,6 +353,7 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "dropoff_shape", AI_TYPE_INT, "dropoffShape");
    ProcessParameter(fluid_shader, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");
    ProcessParameter(fluid_shader, "velocity_scale", AI_TYPE_VECTOR, "velocityScale");
+   ProcessParameter(fluid_shader, "motion_vector_scale", AI_TYPE_FLOAT, "aiMotionVectorScale");
    
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
@@ -352,16 +362,18 @@ void CFluidTranslator::Export(AtNode* fluid)
       // only if deformation motion blur is enabled, translate the parameter "enableDeformationBlur"
 
       ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
-      AtVector velocity_scale = AiNodeGetVec(fluid_shader, "velocity_scale");
+      float mv_scale = AiNodeGetFlt(fluid_shader, "motion_vector_scale");
       double motion_start = 0.;
       double motion_end = 1.;
       // multiply the scale by the shutter length (ignoring shutter offset here...)
       m_session->GetMotionRange(motion_start, motion_end);
-      velocity_scale *= (float)(motion_end - motion_start);
+      mv_scale *= (float)(motion_end - motion_start);
       
-      AiNodeSetVec(fluid_shader, "velocity_scale", velocity_scale.x, velocity_scale.y, velocity_scale.z);
+      AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);
+   } else
+   {
+      AiNodeSetBool(fluid_shader, "enable_deformation_blur", false);
    }
-   
    
 
    // support for gradient mode  
