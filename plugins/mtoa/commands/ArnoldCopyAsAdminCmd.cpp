@@ -23,7 +23,6 @@ MSyntax CArnoldCopyAsAdminCmd::newSyntax()
 
 MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
 {
-   /*
    //MStatus status;
    MArgDatabase args(syntax(), argList);
    
@@ -127,8 +126,4 @@ MStatus CArnoldCopyAsAdminCmd::doIt(const MArgList& argList)
 #ifdef _LINUX
    return MS::kFailure;
 #endif
-
-*/
-      return MS::kFailure;
-
 }
