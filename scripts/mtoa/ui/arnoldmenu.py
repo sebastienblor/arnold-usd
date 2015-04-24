@@ -247,7 +247,7 @@ def populateSelectCamera():
             if 'perspShape' in cameras:
                 activeCamera = 'perspShape'
             elif len(cameras):
-                activeCamera = cameras[i]
+                activeCamera = cameras[0]
             core.ACTIVE_CAMERA = activeCamera
         for cam in cameras:
             pm.menuItem('SelectCameraItem%s' % cam, label=cam, parent='ArnoldSelectCamera',
