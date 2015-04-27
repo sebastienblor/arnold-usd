@@ -126,8 +126,13 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     
     ;Add a mtoa.mod file in the Maya modules folder
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+    ${If} "$%MAYA_VERSION%" == "2016"
+    CreateDirectory "$R1\maya\$%MAYA_VERSION%\modules"
+    FileOpen $0 "$R1\maya\$%MAYA_VERSION%\modules\mtoa.mod" w
+    ${Else}
     CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
     FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
+    ${EndIf}
     FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
     ${If} "$%MAYA_VERSION%" != "2012"
     FileWrite $0 "PATH +:= bin$\r$\n"
@@ -166,7 +171,11 @@ Section "Uninstall"
   
   SetRegView 64
   ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+  ${If} "$%MAYA_VERSION%" == "2016"
+  Delete "$R1\maya\$%MAYA_VERSION%\modules\mtoa.mod"
+  ${Else}
   Delete "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod"
+  ${EndIf}
   
   ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
   StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
