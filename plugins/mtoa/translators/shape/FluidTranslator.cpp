@@ -55,6 +55,15 @@ void CFluidTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = false;
    helper.MakeInputBoolean(data);
    
+   data.name = "aiMotionVectorScale";
+   data.shortName = "ai_motion_vector_scale";
+   data.defaultValue.FLT = 1.f;
+   data.hasMin = true;
+   data.hasSoftMax = true;
+   data.min.FLT = 0.f;
+   data.softMax.FLT = 1.f;
+   helper.MakeInputFloat(data);
+
    data.name = "aiVolumeTexture";
    data.shortName = "ai_volume_texture";
    helper.MakeInputRGB(data);   
@@ -344,11 +353,29 @@ void CFluidTranslator::Export(AtNode* fluid)
    ProcessParameter(fluid_shader, "dropoff_shape", AI_TYPE_INT, "dropoffShape");
    ProcessParameter(fluid_shader, "edge_dropoff", AI_TYPE_FLOAT, "edgeDropoff");
    ProcessParameter(fluid_shader, "velocity_scale", AI_TYPE_VECTOR, "velocityScale");
+   ProcessParameter(fluid_shader, "motion_vector_scale", AI_TYPE_FLOAT, "aiMotionVectorScale");
    
    // first getting a simple color information from the color gradient
    ProcessParameter(fluid_shader, "filter_type", AI_TYPE_INT, "aiFilterType");
-   ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
+   if (RequiresMotionData())
+   {
+      // only if deformation motion blur is enabled, translate the parameter "enableDeformationBlur"
+
+      ProcessParameter(fluid_shader, "enable_deformation_blur", AI_TYPE_BOOLEAN, "aiEnableDeformationBlur");
+      float mv_scale = AiNodeGetFlt(fluid_shader, "motion_vector_scale");
+      double motion_start = 0.;
+      double motion_end = 1.;
+      // multiply the scale by the shutter length (ignoring shutter offset here...)
+      m_session->GetMotionRange(motion_start, motion_end);
+      mv_scale *= (float)(motion_end - motion_start);
+      
+      AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);
+   } else
+   {
+      AiNodeSetBool(fluid_shader, "enable_deformation_blur", false);
+   }
    
+
    // support for gradient mode  
    // Exporting fluid data to a shader attached to the shape
    // at the moment this is the best way to store data
@@ -437,20 +464,79 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    if (fluidMethod != MFnFluid::kZero)
    {
-      float* x; float* y; float* z;
-      mayaFluid.getVelocity(x, y, z);
-      if (x != 0 && y != 0 && z != 0)
+      // Velocity arrays are different than the other ones, as they store data per-face.
+      // X array size is thus (xres + 1) * yres * zres
+      // Y array size is xres * (yres + 1) * zres
+      // and Z array size is xres * yres * (zres + 1)
+
+      int xGridSize[3], yGridSize[3], zGridSize[3];
+      xGridSize[0] = xRes + 1;
+      xGridSize[1] = yRes;
+      xGridSize[2] = zRes;
+
+      yGridSize[0] = xRes;
+      yGridSize[1] = yRes + 1;
+      yGridSize[2] = zRes;
+
+      zGridSize[0] = xRes;
+      zGridSize[1] = yRes;
+      zGridSize[2] = zRes + 1;
+
+      // precompute xRes * yRes (will be used to recover the voxels index)
+      // for each of the 3 arrays
+      int XYRes[3];
+      XYRes[0] = xGridSize[0] * xGridSize[1];
+      XYRes[1] = yGridSize[0] * yGridSize[1];
+      XYRes[2] = zGridSize[0] * zGridSize[1];
+
+
+      // for now we compute the average density at the center of the voxel, 
+      // and provide that value to the fluidData.
+      // But it would be more accurate to store the data as it is, 
+      // and then in MayaFluid use the corresponding per-face interpolation
+
+      int velocityGridSize[3];
+      mayaFluid.velocityGridSizes(velocityGridSize[0], velocityGridSize[1], velocityGridSize[2]);
+      int velRes = velocityGridSize[0] * velocityGridSize[1] * velocityGridSize[2];
+
+      float* xVel; float* yVel; float* zVel;
+      mayaFluid.getVelocity(xVel, yVel, zVel);
+      // velocities seem to be in world space, so we shouldn't have to convert them
+
+      unsigned int i = 0;
+
+      if (xVel != 0 && yVel != 0 && zVel != 0)
       {
-         AtArray* array = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
-         for (unsigned int i = 0; i < numVoxels; ++i)
+         AtArray* velArray = AiArrayAllocate(numVoxels, 1, AI_TYPE_VECTOR);
+
+         for (unsigned int z = 0; z < zRes; ++z)
          {
-            AtVector cVector = {x[i], y[i], z[i]};
-            cVector.x = cVector.x < AI_EPSILON ? 0.f : cVector.x;
-            cVector.y = cVector.y < AI_EPSILON ? 0.f : cVector.y;
-            cVector.z = cVector.z < AI_EPSILON ? 0.f : cVector.z;
-            AiArraySetVec(array, i, cVector);
+            for (unsigned int y = 0; y < yRes; ++y)
+            {
+               for (unsigned int x = 0; x < xRes; ++x, ++i)
+               {
+                  // computing average velocity for output voxel "i" (x, y, z)
+                  AtVector cVector = {0.f, 0.f, 0.f};
+                   //compute this voxel's coordinates for each of the X, Y, Z arrays
+                  int lowCoords[3];
+                  lowCoords[0] = x + y * xGridSize[0] + z * XYRes[0]; 
+                  lowCoords[1] = x + y * yGridSize[0] + z * XYRes[1];
+                  lowCoords[2] = x + y * zGridSize[0] + z * XYRes[2];
+
+                  // Now compute the average velocity at the center of the voxel for 3 components :
+
+                  // next X element in X direction is index + 1
+                  cVector.x = (xVel[lowCoords[0]] + xVel[lowCoords[0]+ 1]) * 0.5f; 
+                  // next Y element in Y direction is index + xRes
+                  cVector.y = (yVel[lowCoords[1]] + yVel[lowCoords[1]+ xRes]) * 0.5f; 
+                  // next Z element in Z direction is index + xRes * yRes (= XYRes[2])
+                  cVector.z = (zVel[lowCoords[2]] + zVel[lowCoords[2]+ XYRes[2]]) * 0.5f; 
+
+                  AiArraySetVec(velArray, i, cVector);
+               }     
+            }
          }
-         AiNodeSetArray(fluid_data, "velocity", array);
+         AiNodeSetArray(fluid_data, "velocity", velArray);
       }
    }
    

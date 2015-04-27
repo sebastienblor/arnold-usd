@@ -77,15 +77,17 @@ class AEaiImageTemplate(ShaderAETemplate):
         
         self.addControl("mipmap_bias", label="Mipmap Bias")
         self.addControl("multiply", label="Multiply")
-        self.addControl("offset", label="Offset")      
+        self.addControl("offset", label="Offset")
+        self.addSeparator()
         
-        self.addControl("cache_texture_handles", label="Cache Texture Handles")
+        self.addControl("ignoreMissingTiles", label="Ignore Missing Tiles")
+        self.addControl("missingTileColor", label="Missing Tile Color")
         self.endLayout()
         
         self.beginLayout("UV Coordinates", collapse=True)
         self.beginNoOptimize()
         self.addCustom('uvset', self.uvsetNew, self.uvsetReplace)
-        self.addSeparator();        
+        self.addSeparator()
         self.addCustom('uvcoords', self.uvcoordsNew, self.uvcoordsReplace)
         
         self.addControl("swrap", label="Wrap U")

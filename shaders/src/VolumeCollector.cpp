@@ -280,7 +280,7 @@ node_update
     if ((!data->emission_intensity_is_linked && data->emission_intensity == 0.0f) ||
         (!data->emission_color_is_linked && AiColorEqual(data->emission_color, AI_RGB_BLACK)))
     {
-        data->emission_from = INPUT_FROM_CACHE;
+        data->emission_from = INPUT_FROM_NONE;
         data->emission = AI_RGB_BLACK;
     }
 }
@@ -319,16 +319,34 @@ shader_evaluate
     // or NaNs will occur in optimized builds (htoa#374)
     AtColor scattering  = AI_RGB_BLACK;
     AtColor attenuation = AI_RGB_BLACK;
-    AtColor emission    = AI_RGB_BLACK;
 
-    switch (data->scattering_from)
+    // scattering
+    if (!(sg->Rt & AI_RAY_SHADOW) || (data->attenuation_from == INPUT_FROM_SCATTERING) || (data->attenuation_mode == ATTENUATION_MODE_ABSORPTION))
     {
-    case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->scattering_channel.c_str(), data->interpolation, &scattering); break;
-    case INPUT_FROM_EVALUATE: scattering = AiShaderEvalParamRGB(p_scattering); break;
-    case INPUT_FROM_CACHE:    scattering = data->scattering; break;
-    default: assert("invalid value for data->scattering_from"); break;
+        switch (data->scattering_from)
+        {
+        case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->scattering_channel.c_str(), data->interpolation, &scattering); break;
+        case INPUT_FROM_EVALUATE: scattering = AiShaderEvalParamRGB(p_scattering); break;
+        case INPUT_FROM_CACHE:    scattering = data->scattering; break;
+        default: assert("invalid value for data->scattering_from"); break;
+        }
+
+       if (!(sg->Rt & AI_RAY_SHADOW) || (data->attenuation_mode == ATTENUATION_MODE_ABSORPTION))
+       {
+            // color, intensity, anisotropy and clipping
+            const AtRGB scattering_color     = data->scattering_color_is_linked     ? AiShaderEvalParamRGB(p_scattering_color)     : data->scattering_color;
+            const float scattering_intensity = data->scattering_intensity_is_linked ? AiShaderEvalParamFlt(p_scattering_intensity) : data->scattering_intensity;
+            const float anisotropy           = data->anisotropy_is_linked           ? AiShaderEvalParamFlt(p_anisotropy)           : data->anisotropy;
+
+            AtRGB scattering_result = scattering * scattering_color * scattering_intensity;
+            AiColorClipToZero(scattering_result);
+
+            // update volume shader globals
+            AiShaderGlobalsSetVolumeScattering(sg, scattering_result, anisotropy);
+       }
     }
 
+    // attenuation
     switch (data->attenuation_from)
     {
     case INPUT_FROM_CHANNEL:    AiVolumeSampleRGB(data->attenuation_channel.c_str(), data->interpolation, &attenuation); break;
@@ -338,43 +356,42 @@ shader_evaluate
     default: assert("invalid value for data->attenuation_from"); break;
     }
 
-    switch (data->emission_from)
-    {
-    case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->emission_channel.c_str(), data->interpolation, &emission); break;
-    case INPUT_FROM_EVALUATE: emission = AiShaderEvalParamRGB(p_emission); break;
-    case INPUT_FROM_CACHE:    emission = data->emission; break;
-    default: assert("invalid value for data->emission_from"); break;
-    }
-
-    const AtRGB scattering_color      = data->scattering_color_is_linked      ? AiShaderEvalParamRGB(p_scattering_color)      : data->scattering_color;
-    const float scattering_intensity  = data->scattering_intensity_is_linked  ? AiShaderEvalParamFlt(p_scattering_intensity)  : data->scattering_intensity;
-    const float anisotropy            = data->anisotropy_is_linked            ? AiShaderEvalParamFlt(p_anisotropy)            : data->anisotropy;
+    // color, intensity and clipping
     const AtRGB attenuation_color     = data->attenuation_color_is_linked     ? AiShaderEvalParamRGB(p_attenuation_color)     : data->attenuation_color;
     const float attenuation_intensity = data->attenuation_intensity_is_linked ? AiShaderEvalParamFlt(p_attenuation_intensity) : data->attenuation_intensity;
-    const AtRGB emission_color        = data->emission_color_is_linked        ? AiShaderEvalParamRGB(p_emission_color)        : data->emission_color;
-    const float emission_intensity    = data->emission_intensity_is_linked    ? AiShaderEvalParamFlt(p_emission_intensity)    : data->emission_intensity;
-
-    // color and intensity
-    scattering  *= scattering_color  * scattering_intensity;
     attenuation *= attenuation_color * attenuation_intensity;
-    emission    *= emission_color    * emission_intensity;
-
-    // clip volume properties
-    AiColorClipToZero(scattering);
     AiColorClipToZero(attenuation);
-    AiColorClipToZero(emission);
 
     // update volume shader globals
-    AiShaderGlobalsSetVolumeScattering(sg, scattering, anisotropy);
-
     switch (data->attenuation_mode)
     {
     case ATTENUATION_MODE_ABSORPTION: AiShaderGlobalsSetVolumeAbsorption(sg, attenuation); break;
     case ATTENUATION_MODE_EXTINCTION: AiShaderGlobalsSetVolumeAttenuation(sg, attenuation); break;
     }
 
-    if (!AiColorIsZero(emission))
-       AiShaderGlobalsSetVolumeEmission(sg, emission);
+    // emission
+    if (!(sg->Rt & AI_RAY_SHADOW) && (data->emission_from != INPUT_FROM_NONE))
+    {
+        AtColor emission = AI_RGB_BLACK;
+
+        switch (data->emission_from)
+        {
+        case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->emission_channel.c_str(), data->interpolation, &emission); break;
+        case INPUT_FROM_EVALUATE: emission = AiShaderEvalParamRGB(p_emission); break;
+        case INPUT_FROM_CACHE:    emission = data->emission; break;
+        default: assert("invalid value for data->emission_from"); break;
+        }
+
+        // color, intensity and clipping
+        const AtRGB emission_color     = data->emission_color_is_linked     ? AiShaderEvalParamRGB(p_emission_color)     : data->emission_color;
+        const float emission_intensity = data->emission_intensity_is_linked ? AiShaderEvalParamFlt(p_emission_intensity) : data->emission_intensity;
+        emission *= emission_color * emission_intensity;
+        AiColorClipToZero(emission);
+
+        // update volume shader globals
+        if (!AiColorIsZero(emission))
+            AiShaderGlobalsSetVolumeEmission(sg, emission);
+    }
 
     // restore sampling position
     if (data->position_offset_from != INPUT_FROM_NONE)

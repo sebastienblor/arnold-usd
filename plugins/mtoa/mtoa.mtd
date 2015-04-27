@@ -238,6 +238,8 @@
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
+    [attr color]
+        linkable            BOOL    False
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -298,6 +300,9 @@
         maya.channelbox     BOOL    True
     [attr cast_volumetric_shadows]
         maya.channelbox     BOOL    True
+    [attr color]
+        linkable            BOOL    False
+
 
 [node spot_light]
     maya.name               STRING  "spotLight"
@@ -372,6 +377,9 @@
         maya.channelbox     BOOL    True
     [attr normalize]
         maya.channelbox     BOOL    True
+    [attr color]
+        linkable            BOOL    False
+
 
 [node skydome_light]
     maya.name               STRING  "aiSkyDomeLight"
@@ -460,7 +468,7 @@
         default             INT     1
         maya.channelbox     BOOL    True
     [attr color]
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr diffuse]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0

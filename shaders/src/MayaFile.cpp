@@ -832,6 +832,9 @@ shader_evaluate
                   sg->u = udim_u;
                   sg->v = udim_v;
                   
+                  texparams.wrap_s = AI_WRAP_MIRROR;
+                  texparams.wrap_t = AI_WRAP_MIRROR;
+                  
                   break;
                }
                case TILE:
