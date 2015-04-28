@@ -37,6 +37,10 @@
 #include <cstdio>
 #include <assert.h>
 
+#ifdef _LINUX
+#include <climits>
+#endif
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
