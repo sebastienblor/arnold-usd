@@ -489,7 +489,6 @@ void CFluidTranslator::Export(AtNode* fluid)
 
       int velocityGridSize[3];
       mayaFluid.velocityGridSizes(velocityGridSize[0], velocityGridSize[1], velocityGridSize[2]);
-      int velRes = velocityGridSize[0] * velocityGridSize[1] * velocityGridSize[2];
 
       float* xVel; float* yVel; float* zVel;
       mayaFluid.getVelocity(xVel, yVel, zVel);
