@@ -304,8 +304,8 @@ void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
    else 
    { 
       MBoundingBox boundingBox = m_DagNode.boundingBox();
-      MPoint bbMin = boundingBox.min();
-      MPoint bbMax = boundingBox.max();
+      bbMin = boundingBox.min();
+      bbMax = boundingBox.max();
    }
    
    float minCoords[4];
