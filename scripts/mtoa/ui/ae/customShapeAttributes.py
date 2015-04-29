@@ -174,6 +174,7 @@ class FLuidShapeTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.addControl("aiStepSize", label="Step Size")
         self.addControl("aiEnableDeformationBlur", label="Enable Deformation Blur")
+        self.addControl("aiMotionVectorScale", label="Motion Vector Scale")
         self.addControl("aiFilterType", label="Filter Type")
         self.addControl("aiPhaseFunc", label="Phase Function Anisotropy")
         self.addSeparator()

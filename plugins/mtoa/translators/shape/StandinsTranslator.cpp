@@ -280,10 +280,34 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
 
 void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
 {
-   MBoundingBox boundingBox = m_DagNode.boundingBox();
-   MPoint bbMin = boundingBox.min();
-   MPoint bbMax = boundingBox.max();
-
+   int drawOverride = m_DagNode.findPlug("standin_draw_override").asShort(); 
+   if (drawOverride == 0) 
+   { 
+      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+      if (!ArnoldRenderOptionsNode.isNull()) 
+         drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort(); 
+   } 
+   else 
+      drawOverride -= 1;
+      
+   MPoint bbMin, bbMax;
+   
+   if (drawOverride == 3) 
+   { 
+      bbMin.x = m_DagNode.findPlug("MinBoundingBox0").asFloat(); 
+      bbMin.y = m_DagNode.findPlug("MinBoundingBox1").asFloat(); 
+      bbMin.z = m_DagNode.findPlug("MinBoundingBox2").asFloat(); 
+      bbMax.x = m_DagNode.findPlug("MaxBoundingBox0").asFloat(); 
+      bbMax.y = m_DagNode.findPlug("MaxBoundingBox1").asFloat(); 
+      bbMax.z = m_DagNode.findPlug("MaxBoundingBox2").asFloat(); 
+   } 
+   else 
+   { 
+      MBoundingBox boundingBox = m_DagNode.boundingBox();
+      bbMin = boundingBox.min();
+      bbMax = boundingBox.max();
+   }
+   
    float minCoords[4];
    float maxCoords[4];
 

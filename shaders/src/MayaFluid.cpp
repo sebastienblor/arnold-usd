@@ -93,6 +93,8 @@ node_parameters
    
    AiParameterFlt("shadow_opacity", 0.5f);
    AiParameterBool("enable_deformation_blur", false);
+   AiParameterFlt("motion_vector_scale", 1.f);
+
 
    InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params);
@@ -156,6 +158,7 @@ enum MayaFluidParams{
    
    p_shadow_opacity,
    p_enable_deformation_blur,
+   p_motion_vector_scale,
 
    p_edge_dropoff  
 };
@@ -248,6 +251,7 @@ node_update
    data->fluidData = new CMayaFluidData<true>(node);
    
    data->velocityScale = AiNodeGetVec(node, "velocity_scale");
+   data->velocityScale *= AiNodeGetFlt(node, "motion_vector_scale");
    
    data->colorGradient.type = AiNodeGetInt(node, "color_gradient_type");   
    data->colorGradient.inputBias = AiNodeGetFlt(node, "color_gradient_input_bias");

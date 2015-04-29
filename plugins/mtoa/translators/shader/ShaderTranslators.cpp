@@ -294,22 +294,34 @@ void CFileTranslator::Export(AtNode* shader)
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
-      MString filename; 
       MString resolvedFilename; 
       MString frameNumber("0"); 
       MStatus status; 
       frameNumber += GetExportFrame() + FindMayaPlug("frameOffset").asInt();
-      MRenderUtil::exactFileTextureName(GetMayaObject(), filename);
-      resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaPlug("useFrameExtension").asBool(), frameNumber, &status);
-      if (status == MStatus::kSuccess) 
-      { 
-         // Cancels above resolution since it ruins tokens
-         resolvedFilename = filename; 
-      } 
-      else 
-      { 
-         resolvedFilename = FindMayaPlug("fileTextureName").asString();
-      } 
+      int tilingMode = FindMayaPlug("uvTilingMode").asInt();
+      if (tilingMode == 0)
+      {
+         MString filename; 
+         MRenderUtil::exactFileTextureName(GetMayaObject(), filename);
+         resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaPlug("useFrameExtension").asBool(), frameNumber, &status);
+         if (status == MStatus::kSuccess) 
+         { 
+            // Cancels above resolution since it ruins tokens
+            resolvedFilename = filename; 
+         } 
+         else 
+         { 
+            resolvedFilename = FindMayaPlug("fileTextureName").asString();
+         }
+      }
+      else
+      {
+         resolvedFilename = FindMayaPlug("fileTextureNamePattern").asString();
+         if (resolvedFilename.length() == 0)
+         {
+            resolvedFilename = FindMayaPlug("computedFileTextureNamePattern").asString();
+         }
+      }
       
       // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
       // or that class eliminated completely 
@@ -328,9 +340,15 @@ void CFileTranslator::Export(AtNode* shader)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
          else
          {
-            tokenPos = tx_filename_tokens.find("<tile>");
+            tokenPos = tx_filename_tokens.find("<UDIM>");
             if (tokenPos != std::string::npos)
-               tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
+               tx_filename_tokens.replace(tokenPos, 6, "1001");
+            else
+            {
+               tokenPos = tx_filename_tokens.find("<tile>");
+               if (tokenPos != std::string::npos)
+                  tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
+            }
          }
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 

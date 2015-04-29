@@ -987,7 +987,7 @@ def createArnoldMayaintegrationSettings():
                         attribute='defaultArnoldRenderOptions.enable_swatch_render')
 
     pm.attrControlGrp('os_standin_draw_override',
-                        label="StandIn Draw Override",
+                        label="StandIn Viewport Override",
                         attribute='defaultArnoldRenderOptions.standin_draw_override')
 
     pm.setParent('..')
@@ -1090,15 +1090,6 @@ def createArnoldLogSettings():
                         label='Max. Warnings',
                         enable=logToConsole or logToFile,
                         attribute='defaultArnoldRenderOptions.log_max_warnings')
-
-
-    pm.separator()
-
-    pm.attrControlGrp('os_shader_nan_checks',
-                        label="Shader NaN Warnings",
-                        annotation='Print a warning when a shader returns a value that is not a number (NaN). ' \
-                                    'Enabling this may adversely affect performance.',
-                        attribute='defaultArnoldRenderOptions.shaderNanChecks')
 
     pm.setParent('..')
 
