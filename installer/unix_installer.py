@@ -57,6 +57,12 @@ else:
 
 installDir = ''
 
+mayaVersionDir = ''
+if sys.argv[1] != '2016':
+    mayaVersionDir = '%s-x64' % sys.argv[1]
+else:
+    mayaVersionDir = sys.argv[1]
+       
 mayaVersion = ''
 if sys.argv[1] != '20135':
     mayaVersion = sys.argv[1]
@@ -160,9 +166,9 @@ if installMode == 1: # do the proper installation
     homeDir = os.path.expanduser(userString)
     mayaBaseDir = ''
     if sys.platform == 'darwin':
-        mayaBaseDir = os.path.join(homeDir, 'Library', 'Preferences', 'Autodesk', 'maya', '%s-x64' % mayaVersion)
+        mayaBaseDir = os.path.join(homeDir, 'Library', 'Preferences', 'Autodesk', 'maya%s' % mayaVersionDir)
     else:
-        mayaBaseDir = os.path.join(homeDir, 'maya', '%s-x64' % mayaVersion)
+        mayaBaseDir = os.path.join(homeDir, 'maya', mayaVersionDir)
     if not os.path.exists(mayaBaseDir):
         os.system('clear')
         print('Home directory for Maya %s does not exists.' % mayaVersion)
@@ -180,9 +186,9 @@ if installMode == 1: # do the proper installation
     # install the renderer description file in the maya dir
     mayaInstallDir = ''
     if sys.platform == 'darwin':
-        mayaInstallDir = os.path.join('/Applications', 'autodesk', 'maya%s' % mayaVersion)
+        mayaInstallDir = os.path.join('/Applications', 'autodesk', 'maya%s' % mayaVersionDir)
     else:
-        mayaInstallDir = os.path.join('/usr', 'autodesk', 'maya%s-x64' % mayaVersion)
+        mayaInstallDir = os.path.join('/usr', 'autodesk', 'maya%s' % mayaVersionDir)
     if not os.path.exists(mayaInstallDir):
         print('''
     Please specify maya installation directory
