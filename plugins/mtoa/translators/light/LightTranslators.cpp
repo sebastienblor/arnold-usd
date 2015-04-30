@@ -39,7 +39,9 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
+   float radius = FindMayaPlug("aiRadius").asFloat(); 
+   m_session->ScaleDistance(radius); 
+   AiNodeSetFlt(light, "radius", radius); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
@@ -72,7 +74,9 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
+   float radius = FindMayaPlug("aiRadius").asFloat(); 
+   m_session->ScaleDistance(radius); 
+   AiNodeSetFlt(light, "radius", radius); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());

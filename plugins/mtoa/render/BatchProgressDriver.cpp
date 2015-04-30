@@ -12,6 +12,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef _LINUX
+#include <climits>
+#endif
+
 #ifndef WIN32
 typedef int SOCKET;
 #endif

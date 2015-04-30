@@ -10,6 +10,9 @@
 #include <maya/MImage.h>
 #include <maya/MAnimControl.h>
 
+#ifdef _LINUX
+#include <climits>
+#endif
 
 AI_DRIVER_NODE_EXPORT_METHODS(progress_driver_mtd);
 

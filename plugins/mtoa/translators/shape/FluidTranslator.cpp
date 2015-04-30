@@ -259,8 +259,6 @@ void CFluidTranslator::Export(AtNode* fluid)
    
    mayaFluid.getCoordinateMode(coordinateMode);
    
-   bool exportCoordinates = false;
-   
    if (FindMayaPlug("aiOverrideTextures").asBool())   
    {
       plug = FindMayaPlug("aiVolumeTexture");
@@ -279,9 +277,6 @@ void CFluidTranslator::Export(AtNode* fluid)
       ProcessParameter(fluid_shader, "texture_affect_incand", AI_TYPE_BOOLEAN, "aiTextureAffectIncand");
       ProcessParameter(fluid_shader, "texture_affect_opacity", AI_TYPE_BOOLEAN, "aiTextureAffectOpacity");
       ProcessParameter(fluid_shader, "coordinate_method", AI_TYPE_INT, "aiTextureCoordinateMethod");
-      const int coordinateMethod = AiNodeGetInt(fluid_shader, "coordinate_method");
-      if ((coordinateMethod == 1) && (coordinateMode == MFnFluid::kGrid))
-         exportCoordinates = true;
    }
    else
    {
@@ -291,9 +286,6 @@ void CFluidTranslator::Export(AtNode* fluid)
 
       ProcessParameter(fluid_shader, "texture_type", AI_TYPE_INT, "textureType");
       ProcessParameter(fluid_shader, "coordinate_method", AI_TYPE_INT, "coordinateMethod");
-      const int coordinateMethod = AiNodeGetInt(fluid_shader, "coordinate_method");
-      if ((coordinateMethod == 1) && (coordinateMode == MFnFluid::kGrid))
-         exportCoordinates = true;
 
       ProcessParameter(fluid_shader, "color_tex_gain", AI_TYPE_FLOAT, "colorTexGain");
       ProcessParameter(fluid_shader, "incand_tex_gain", AI_TYPE_FLOAT, "incandTexGain");
@@ -497,7 +489,6 @@ void CFluidTranslator::Export(AtNode* fluid)
 
       int velocityGridSize[3];
       mayaFluid.velocityGridSizes(velocityGridSize[0], velocityGridSize[1], velocityGridSize[2]);
-      int velRes = velocityGridSize[0] * velocityGridSize[1] * velocityGridSize[2];
 
       float* xVel; float* yVel; float* zVel;
       mayaFluid.getVelocity(xVel, yVel, zVel);

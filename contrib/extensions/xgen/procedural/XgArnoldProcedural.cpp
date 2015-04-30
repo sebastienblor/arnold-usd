@@ -1,15 +1,3 @@
-//-
-// ==================================================================
-// Copyright 2012 Autodesk, Inc.  All rights reserved.
-//
-// This computer source code  and related  instructions and comments are
-// the unpublished confidential and proprietary information of Autodesk,
-// Inc. and are  protected  under applicable  copyright and trade secret
-// law. They may not  be disclosed to, copied or used by any third party
-// without the prior written consent of Autodesk, Inc.
-// ==================================================================
-//+
-
 #define _USE_MATH_DEFINES
 #include <cmath>
 //#define M_PI 3.1415926535897932384626433832795
@@ -25,9 +13,7 @@
 #include <fstream>
 #include <fcntl.h>
 
-#include <xgen/XgRenderAPIUtils.h>
 #include "XgArnoldProcedural.h"
-
 
 
 using namespace XGenRenderAPI::Utils;

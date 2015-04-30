@@ -10,6 +10,10 @@
 #include <security/security.h>
 #endif
 
+#ifdef _WIN32
+#include "shellapi.h"
+#endif
+
 
 MSyntax CArnoldCopyAsAdminCmd::newSyntax()
 {
