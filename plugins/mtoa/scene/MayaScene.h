@@ -81,6 +81,8 @@ public:
    static void Init();
    static void DeInit();
 
+   static void UpdateSceneChanges();
+
 private:
 
    static MStatus SetupIPRCallbacks();

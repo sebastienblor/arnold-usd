@@ -43,6 +43,16 @@ for file_rem in source_files_rem:
 source_files += source_files_add
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
+local_env.Append(LIBS=['opengl32.lib', 'user32.lib', 'gdi32.lib'])
+
+#local_env['QT_ROOT_DIR'] = 'C:/Qt/4.8.5-64'  -> someone please put the appropriate path
+
+qt_include_dir = os.path.join(local_env['QT_ROOT_DIR'], 'include')
+qt_lib_dir = os.path.join(local_env['QT_ROOT_DIR'], 'lib')
+
+local_env.Append(CPPPATH = [qt_include_dir])
+local_env.Append(LIBPATH = [qt_lib_dir])
+local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
 
 MTOA_API = local_env.SharedLibrary('mtoa_api', source_files)
 

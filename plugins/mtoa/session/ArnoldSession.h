@@ -157,6 +157,7 @@ public:
    float& ScaleArea(float& area) const;
    float& ScaleLightExposure(float& exposure) const;
    MVector GetOrigin() const;
+   void allowUpdates(bool b) {m_allowUpdates = b;}
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -188,6 +189,8 @@ private:
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
+      ,  m_allowUpdates(true)
+
    {
    }
 
@@ -220,6 +223,7 @@ private:
    inline bool IsActive() const { return m_is_active; }
    //void ProcessAOVs();
 
+
 private:
 
    CSessionOptions m_sessionOptions;
@@ -248,5 +252,6 @@ protected:
 
    COptionsTranslator*  m_optionsTranslator;
    bool                 m_is_active;
+   bool                 m_allowUpdates;
    //AOVSet m_aovs;
 };  // class CArnoldSession

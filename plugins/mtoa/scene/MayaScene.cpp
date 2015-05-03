@@ -161,7 +161,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    {
       // renderOptions.SetBatch(true);
    }
-   else if (mode == MTOA_SESSION_IPR)
+   else if (mode == MTOA_SESSION_IPR ||mode == MTOA_SESSION_RENDERVIEW)
    {
       // renderOptions.SetBatch(false);
       status = SetupIPRCallbacks();
@@ -357,6 +357,11 @@ MStatus CMayaScene::ExecuteScript(const MString &str, bool echo, bool idle)
 
 MStatus CMayaScene::UpdateIPR()
 {
+   if (s_arnoldSession->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   {
+      s_renderSession->UpdateRenderView();
+      return MS::kSuccess;
+   }
    MStatus status;
    MCallbackId id;
 
@@ -490,6 +495,10 @@ void CMayaScene::IPRIdleCallback(void *)
 
 
 
-
+void CMayaScene::UpdateSceneChanges()
+{
+   s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+   s_arnoldSession->DoUpdate();
+}
 
 

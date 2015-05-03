@@ -44,6 +44,16 @@ source_files += source_files_add
 # add src_base_dir files (Main.cpp...)
 source_files  += find_files(src_base_dir, ['.c', '.cpp'])
 
+#local_env['QT_ROOT_DIR'] = 'C:/Qt/4.8.5-64'  -> someone please put the appropriate path
+qt_include_dir = os.path.join(local_env['QT_ROOT_DIR'], 'include')
+qt_lib_dir = os.path.join(local_env['QT_ROOT_DIR'], 'lib')
+
+local_env.Append(CPPPATH = [qt_include_dir])
+local_env.Append(LIBPATH = [qt_lib_dir])
+
+local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+
+
 if system.os() == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')
 
