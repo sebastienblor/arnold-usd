@@ -118,46 +118,56 @@ namespace { // anonymus namespace
       return defaultOpt;
    }
 
-   inline void AdjustUDIMLookup(AtShaderGlobals *sg,
-                                 float &udim_u, float &udim_v,
-                                 int &col, int &row,
-                                 float eps,
-                                 int udim_dim)
+   static inline void ComputeUDIMLookup(AtShaderGlobals *sg,
+                                        float &udim_u, float &udim_v,
+                                        int &col, int &row,
+                                        int udim_dim)
    {
-      if (udim_u < eps || 1 - udim_u < eps ||
-            udim_v < eps || 1 - udim_v < eps)
+      AtPoint2 uvs[3];
+      if (AiShaderGlobalsGetVertexUVs(sg, uvs))
       {
-         AtPoint2 uvs[3];
-         if (AiShaderGlobalsGetVertexUVs(sg, uvs))
-         {
-            float centroid_u = (uvs[0].x + uvs[1].x + uvs[2].x) * (1 / 3.0f);
-            float centroid_v = (uvs[0].y + uvs[1].y + uvs[2].y) * (1 / 3.0f);
-            int row_centroid = static_cast<int>(ceilf(centroid_v) - 1 );
-            int col_centroid = static_cast<int>(ceilf(centroid_u) - 1 );
-            row_centroid = MAX(row_centroid, 0);
-            col_centroid = CLAMP(col_centroid, 0, udim_dim - 1);
+         // if triangles never crossed a tile boundary we could use the UV centroid for
+         // lookups. Since they might (rare) we make sure by construction that the lookup
+         // is inside the triangle. We nudge the lookup point towards the centroid
+         // to prevent fp errors in case the triangle grazes a tile's edge (#4624 &co)
+         float udim_bu = CLAMP(sg->bu, 0.0f, 1.0f);
+         float udim_bv = CLAMP(sg->bv, 0.0f, 1.0f);
+         float udim_bw = 1.0f - udim_bu - udim_bv;
 
-            if (udim_u < eps && col_centroid < col)
-            {
-               col = col - 1;
-               udim_u = 1;
-            }
-            else if (1 - udim_u < eps && col_centroid > col)
-            {
-               col = col + 1;
-               udim_u = 0;
-            }
-            if (udim_v < eps && row_centroid < row)
-            {
-               row = row - 1;
-               udim_v = 1;
-            }
-            else if (1 - udim_v < eps && row_centroid > row)
-            {
-               row = row + 1;
-               udim_v = 0;
-            }
-         }
+         udim_bu = LERP(AI_EPSILON, udim_bu, (1.0f / 3.0f));
+         udim_bv = LERP(AI_EPSILON, udim_bv, (1.0f / 3.0f));
+         udim_bw = LERP(AI_EPSILON, udim_bw, (1.0f / 3.0f));
+
+         float adjusted_u = udim_bu * uvs[1].x + udim_bv * uvs[2].x + udim_bw * uvs[0].x;
+         float adjusted_v = udim_bu * uvs[1].y + udim_bv * uvs[2].y + udim_bw * uvs[0].y;
+
+         row = static_cast<int>(ceilf(adjusted_v) - 1 );
+         col = static_cast<int>(ceilf(adjusted_u) - 1 );
+         // rows cannot be negative, and there are idata->udim_dim columns
+         row = MAX(row, 0);
+         col = CLAMP(col, 0, udim_dim - 1);
+         udim_u = CLAMP(sg->u - col, 0.0f, 1.0f);
+         udim_v = CLAMP(sg->v - row, 0.0f, 1.0f);
+      }
+      else
+      {
+         // otherwise just use the current uv coordinates (less reliable)
+         udim_u = fmodf(sg->u, 1);
+         udim_v = fmodf(sg->v, 1);
+         row = static_cast<int>(ceilf(sg->v) - 1 );
+         col = static_cast<int>(ceilf(sg->u) - 1 );
+
+         if (udim_u == 0 && sg->u > 0)
+            udim_u = 1;
+         if (udim_v == 0 && sg->v > 0)
+            udim_v = 1;
+
+         // compute tile and (u,v) position for lookup, take into account that
+         // rows cannot be negative, and there are idata->udim_dim columns
+         udim_u = col < 0 ? 0 : (col >= udim_dim ? 1 : udim_u);
+         udim_v = row < 0 ? 0 : udim_v;
+         row = MAX(row, 0);
+         col = CLAMP(col, 0, udim_dim - 1);
       }
    }
 }
@@ -804,7 +814,7 @@ shader_evaluate
                   int* ptr = (int*)token->extra;
                   int dim = *ptr;
                   
-                  float udim_u = fmodf(outU, 1.0f);
+                  /*float udim_u = fmodf(outU, 1.0f);
                   float udim_v = fmodf(outV, 1.0f);
                   int row = static_cast<int>(ceilf(outV) - 1.0f);
                   int col = static_cast<int>(ceilf(outU) - 1.0f);
@@ -816,7 +826,10 @@ shader_evaluate
                   col = CLAMP(col, 0, dim - 1);
 
                   const float eps = static_cast<float>(dim) / 65536.0f;
-                  AdjustUDIMLookup(sg, udim_u, udim_v, col, row, eps, dim);
+                  AdjustUDIMLookup(sg, udim_u, udim_v, col, row, eps, dim);*/
+                  int col, row;
+                  float udim_u, udim_v;
+                  ComputeUDIMLookup(sg, udim_u, udim_v, col, row, dim);
 
                   int mariCode = 1001 + col + (row * dim);
 
