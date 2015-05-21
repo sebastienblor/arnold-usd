@@ -199,7 +199,9 @@ shader_evaluate
       scaled_density =  density * AiShaderEvalParamFlt(p_density_scale);
    }
 
-   float threshold = AiShaderEvalParamFlt(p_density_threshold);
+   // We get very weird results by taking this density into account
+   // why doesn't this happen in MR ?
+   float threshold = 0.f; //AiShaderEvalParamFlt(p_density_threshold);
 
    if (density > threshold)
    {
@@ -219,7 +221,7 @@ shader_evaluate
       {
 
          AiShaderGlobalsSetVolumeEmission(sg, AI_RGB_BLACK);
-         AiShaderGlobalsSetVolumeAttenuation(sg, absorb);
+         AiShaderGlobalsSetVolumeAbsorption(sg, absorb);
          AiShaderGlobalsSetVolumeScattering(sg, AI_RGB_BLACK);
          return;
       }
@@ -241,12 +243,6 @@ shader_evaluate
       emission *= AiShaderEvalParamFlt(p_emission_intensity);
       emission *= scaled_density;
 
-      //AtColor albedo = scatter / (baseScatter + baseAbsorb);
-      
-
-      //AtColor atten = scatter + absorb;
-
-
       AiShaderGlobalsSetVolumeEmission(sg, emission);
       AiShaderGlobalsSetVolumeAbsorption(sg, absorb);
       AiShaderGlobalsSetVolumeScattering(sg, scatter, directionality);
@@ -254,7 +250,7 @@ shader_evaluate
    } else
    {
       AiShaderGlobalsSetVolumeEmission(sg, AI_RGB_BLACK);
-      AiShaderGlobalsSetVolumeAttenuation(sg, AI_RGB_BLACK);
+      AiShaderGlobalsSetVolumeAbsorption(sg, AI_RGB_BLACK);
       AiShaderGlobalsSetVolumeScattering(sg, AI_RGB_BLACK);
    }
 }
