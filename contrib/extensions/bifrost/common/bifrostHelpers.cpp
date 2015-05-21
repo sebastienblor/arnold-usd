@@ -16,7 +16,7 @@
 #include <bifrostapi/bifrost_visitor.h>
 #include <bifrostapi/bifrost_tile.h>
 #include <bifrostapi/bifrost_tileaccessor.h>
-
+#include <bifrostapi/bifrost_array.h>
 #include <algorithm>
 #include <functional>
 #include <limits>
@@ -50,7 +50,7 @@ struct TileBoundsVisitor : Bifrost::API::Visitor
 
 		// Get the voxel space coordinate and dimention info
 		const Bifrost::API::TileCoord	coord	= tile.coord();
-		const Bifrost::API::TileDimInfo	dim		= tile.dimInfo();
+		const Bifrost::API::TileDimInfo	dim		= tile.info().dimInfo;
 
 		// Determine the voxel space bounding box of the tile
 		amino::Math::vec3i tileBoundsMin, tileBoundsMax;
@@ -119,7 +119,7 @@ struct AeroVoxelBoundsVisitor : Bifrost::API::Visitor
 		// Get the voxel space coordinate and dimension info
 		const Bifrost::API::Tile		tile	= accessor.tile(index);
 		const Bifrost::API::TileCoord	coord	= tile.coord();
-		const Bifrost::API::TileDimInfo	dim		= tile.dimInfo();
+		const Bifrost::API::TileDimInfo	dim		= tile.info().dimInfo;
 
 		// Voxel bounding box of this tile
 		amino::Math::vec3i boundsMin = amino::Math::vec3i(
@@ -246,7 +246,8 @@ struct SharpenVoxelsKernel : HaloedVisitor
 		const HaloedTile<float,1>& srcHaloTile = m_srcHaloCache[index.depth].second;
 
 		// run the filter
-		const int kTileWidth = accessor.tile(index).dimInfo().tileWidth;
+		const int kTileWidth = accessor.tile(index).info().dimInfo.tileWidth;
+
 		Bifrost::API::TileData<float> dstTile = m_dst.tileData<float>(index);
 		for(int k = 0; k < kTileWidth; k++) for(int j = 0; j < kTileWidth; j++) for(int i = 0; i < kTileWidth; i++)
 		{

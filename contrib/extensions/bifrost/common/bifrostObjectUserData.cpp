@@ -10,8 +10,6 @@
 #include "bifrostObjectUserData.h"
 #include "rapidjson.h"
 
-#include <bifrostapi/bifrost_refarray.h>
-
 
 #include <map>
 #include <iomanip>

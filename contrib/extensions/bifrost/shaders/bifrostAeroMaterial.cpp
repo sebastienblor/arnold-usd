@@ -217,9 +217,9 @@ shader_evaluate
 
       if (sg->Rt & AI_RAY_SHADOW) 
       {
-         AtColor atten = absorb + scatter;
+
          AiShaderGlobalsSetVolumeEmission(sg, AI_RGB_BLACK);
-         AiShaderGlobalsSetVolumeAbsorption(sg, atten);
+         AiShaderGlobalsSetVolumeAttenuation(sg, absorb);
          AiShaderGlobalsSetVolumeScattering(sg, AI_RGB_BLACK);
          return;
       }
@@ -239,17 +239,17 @@ shader_evaluate
          emission = AiShaderEvalParamRGB(p_emission_color);
       }
       emission *= AiShaderEvalParamFlt(p_emission_intensity);
-
-      AtColor atten = scatter + absorb;
-
-      AtColor albedo = baseScatter / (baseScatter + baseAbsorb);
       emission *= scaled_density;
-      scatter *= scaled_density;
+
+      //AtColor albedo = scatter / (baseScatter + baseAbsorb);
+      
+
+      //AtColor atten = scatter + absorb;
 
 
       AiShaderGlobalsSetVolumeEmission(sg, emission);
-      AiShaderGlobalsSetVolumeAbsorption(sg, atten);
-      AiShaderGlobalsSetVolumeScattering(sg, albedo, directionality);
+      AiShaderGlobalsSetVolumeAbsorption(sg, absorb);
+      AiShaderGlobalsSetVolumeScattering(sg, scatter, directionality);
 
    } else
    {

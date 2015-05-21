@@ -705,7 +705,8 @@ struct HaloedVisitor : Bifrost::API::Visitor
 		int ti=node.coord().i,
 			tj=node.coord().j,
 			tk=node.coord().k;
-		int tw=node.dimInfo().depthWidth;
+		int tw=node.info().dimInfo.depthWidth;
+
 		const Bifrost::API::Tile parent = in_acc.tile(node.parent(), in_depth-1);
 		int pi=parent.coord().i,
 			pj=parent.coord().j,

@@ -15,7 +15,7 @@
 
 #include <bifrostapi/bifrost_component.h>
 #include <bifrostapi/bifrost_pointchannel.h>
-#include <bifrostapi/bifrost_refarray.h>
+
 #include <bifrostapi/bifrost_visitor.h>
 #include <bifrostapi/bifrost_tiledataaccessor.h>
 
