@@ -134,6 +134,18 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         cmds.attrFieldSliderGrp("HairTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
 
+    def indirectDiffuseCreate(self, attrName):
+        cmds.setUITemplate('attributeEditorPresetsTemplate', pushTemplate=True)
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrFieldSliderGrp("HairTemplateIndirectDiffuse", label="Indirect Diffuse",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setUITemplate(popTemplate=True)
+    
+    def indirectDiffuseUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrFieldSliderGrp("HairTemplateIndirectDiffuse", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
     def modeChanged(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
@@ -157,6 +169,7 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addCustom("aiHairShader", self.shaderCreate, self.shaderUpdate)
         self.addSeparator()
         self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addCustom("aiIndirectDiffuse", self.indirectDiffuseCreate, self.indirectDiffuseUpdate)
         self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
@@ -203,7 +216,7 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
         isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
         cmds.attrFieldSliderGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
                             attribute=attrName, enable=isEnabled)
-
+    
     def modeChanged(self, *args):
         try:
             if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
