@@ -135,6 +135,12 @@
         softmin             INT     0
         softmax             INT     16
         maya.orig_shortname STRING  "GI_rrd"
+    [attr GI_volume_depth]
+        maya.keyable        BOOL    False
+        min                 INT     0
+        softmin             INT     0
+        softmax             INT     16
+        maya.orig_shortname STRING  "GI_vd"
     [attr GI_total_depth]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -172,7 +178,6 @@
         maya.keyable        BOOL    False
         min                 INT     0
         softmax             INT     10
-        default             INT     0
     [attr low_light_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
