@@ -70,7 +70,7 @@ protected:
          AtArray*& vidxs,
          AtArray*& nidxs,
          std::vector<AtArray*>& uvidxs,
-         std::vector<MString>& uvNames,
+         const std::vector<MString>& uvNames,
          bool exportNormals,
          bool exportUVs);
    
