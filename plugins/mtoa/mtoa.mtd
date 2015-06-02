@@ -177,7 +177,6 @@
     [attr volume_indirect_samples]
         maya.keyable        BOOL    False
         min                 INT     0
-        default             INT     2
         softmax             INT     10
     [attr low_light_threshold]
         maya.keyable        BOOL    False
