@@ -826,6 +826,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
+      
       // Get Vertex Colors
       MPlug plug = FindMayaPlug("aiMotionVectorSource");
       if (!plug.isNull())
@@ -974,14 +975,20 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       }
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", uvs[0]);
-         AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
-         for (size_t i = 1; i < uvs.size(); ++i)
+         if (uvs.size() > 0 && uvidxs.size() > 0)
          {
-            MString idxsName = uvNames[i] + MString("idxs");
-            AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
-            AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
-            AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+            AiNodeSetArray(polymesh, "uvlist", uvs[0]);
+            AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+            for (size_t i = 1; i < uvs.size(); ++i)
+            {
+               if (uvNames.size() > i && uvidxs.size() > i)
+               {
+                  MString idxsName = uvNames[i] + MString("idxs");
+                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
+                  AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
+                  AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+               }
+            }
          }
       }
       if (exportColors)
