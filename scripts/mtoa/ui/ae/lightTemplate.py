@@ -187,6 +187,7 @@ class LightTemplate(AttributeTemplate, ColorTemperatureTemplate):
         self.addControl("aiSpecular", label="Specular")
         self.addControl("aiSss", label="SSS")
         self.addControl("aiIndirect", label="Indirect")
+        self.addControl("aiVolume", label="Volume")
         self.addControl("aiMaxBounces", label="Max Bounces")
 
         self.lightFiltersLayout()
