@@ -234,6 +234,10 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
+    [attr volume]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
@@ -291,6 +295,10 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr volume]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
@@ -371,6 +379,10 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
+    [attr volume]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
@@ -433,6 +445,10 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
+    [attr volume]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
@@ -487,6 +503,10 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr volume]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
@@ -552,6 +572,10 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
+    [attr volume]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
@@ -606,6 +630,10 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr volume]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
@@ -666,6 +694,10 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
+    [attr volume]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
     [attr volume_samples]
         min                 INT     0
         softmax             INT     10
@@ -713,6 +745,10 @@
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
     [attr indirect]
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        maya.channelbox     BOOL    True
+    [attr volume]
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
         maya.channelbox     BOOL    True
