@@ -182,6 +182,8 @@
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
+    [attr enable_fast_opacity]
+        default             BOOL    True
 
 # lights
 
