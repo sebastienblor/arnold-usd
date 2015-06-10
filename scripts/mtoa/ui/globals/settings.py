@@ -598,6 +598,11 @@ def createArnoldRayDepthSettings():
                         label="Refraction depth",
                         attribute='defaultArnoldRenderOptions.GIRefractionDepth')
     '''
+    
+    pm.attrControlGrp('rs_volume_depth',
+                        label="Volume",
+                        attribute='defaultArnoldRenderOptions.GIVolumeDepth')
+    
     pm.separator(style="none")
 
     pm.attrControlGrp('rs_auto_transparency_depth',

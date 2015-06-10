@@ -88,6 +88,7 @@
     <attr n="ai:glo" s="defaultArnoldRenderOptions.GIGlossyDepth" t="int" h="Set indirect specular depth."/>
     <attr n="ai:rfl" s="defaultArnoldRenderOptions.GIReflectionDepth" t="int" h="Set reflection depth."/>
     <attr n="ai:rfr" s="defaultArnoldRenderOptions.GIRefractionDepth" t="int" h="Set refraction depth."/>
+    <attr n="ai:vol" s="defaultArnoldRenderOptions.GIVolumeDepth" t="int" h="Set volume GI depth."/>
     <attr n="ai:atd" s="defaultArnoldRenderOptions.autoTransparencyDepth" t="int" h="Set auto-transparency depth."/>
     <attr n="ai:att" s="defaultArnoldRenderOptions.autoTransparencyThreshold" t="float" h="Set auto-transparency threshold."/>
     <sep/>

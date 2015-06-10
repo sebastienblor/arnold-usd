@@ -34,6 +34,8 @@ void LightLinks_fastErase(std::vector<T>& vec, const typename std::vector<T>::it
 void CArnoldLightLinks::ClearLightLinks()
 {
    m_arnoldLights.clear();
+   m_arnoldDefaultLights.clear();
+   m_arnoldMeshLights.clear();
    m_numArnoldLights = 0;
    m_linkedLights.clear();
    m_linkedShadows.clear();
@@ -69,6 +71,11 @@ void CArnoldLightLinks::ParseLights()
    {
       AtNode* node = AiNodeIteratorGetNext(niter);
       m_arnoldLights[AiNodeGetName(node)] = node;
+
+      // keep a list of all Mesh-Lights in our scene, 
+      // as they have to be treated in a specific way 
+      // (they don't correspond to a light in maya)
+      if (AiNodeIs(node, "mesh_light")) m_arnoldMeshLights.push_back(node);
    }
    AiNodeIteratorDestroy(niter);
    m_numArnoldLights = m_arnoldLights.size();
@@ -80,6 +87,17 @@ void CArnoldLightLinks::ParseLights()
       m_ignoredLights.reserve(m_numArnoldLights);
       m_ignoredShadows.reserve(m_numArnoldLights);
       m_groupLights.reserve(m_numArnoldLights);
+   }
+
+   // make sure ArnoldDefaultLights list is built before we start
+   MSelectionList slist;
+   slist.add("defaultLightSet");
+   if (!slist.isEmpty())
+   {
+      MObject nodeObj;
+      slist.getDependNode (0, nodeObj);
+      MFnDependencyNode dependNode(nodeObj);
+      GetObjectsFromObjectSet(dependNode);
    }
 }
 
@@ -96,18 +114,14 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
       std::vector<AtNode*> lights;
       lights.reserve(m_numArnoldLights);
 
-      if (setName == "defaultLightSet")
+      if (!m_arnoldDefaultLights.empty() && setName == "defaultLightSet")
       {
          // this set is called defaultLightSet
          // which is Maya's hardcoded name for a set containing ALL lights in the scene.
-         // so instead of parsing all lights from this set, let's just copy our Arnold's Light list.
-         // this list also contains the Mesh Lights, which wouldn't appear in Maya's set list
-         lights.reserve(m_arnoldLights.size());
-         for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
-         {
-            lights.push_back(it->second);
-         }
-
+         // so instead of parsing all lights from this set, let's just copy our Arnold's Default Light list.
+         // this list also contains the Mesh Lights, which wouldn't appear in Maya's set list.
+         // Only do this if the m_defaultArnoldLights list has already been filled
+         lights = m_arnoldDefaultLights;
       } else
       {
          MFnSet mayaObjectSet(objectSet.object());
@@ -140,6 +154,21 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                if (it2 != m_arnoldLights.end())
                   lights.push_back(it2->second);               
             }
+         }
+        
+         // note that lights having illuminate_by_default set to Off won't be in this list
+         // we have to add all mesh lights that are not present in defaultLightSet
+         if (setName == "defaultLightSet")
+         {
+            // append the mesh lights as they're not included in "defaultLightSet"
+            if (!m_arnoldMeshLights.empty()) 
+            {
+               lights.insert(lights.end(), m_arnoldMeshLights.begin(), m_arnoldMeshLights.end());
+            }
+            // if it's the first time defaultLightSet's lights list is filled,
+            // keep the list in m_arnoldDefaultLights
+
+            if (m_arnoldDefaultLights.empty()) m_arnoldDefaultLights = lights;
          }
       }
       m_cachedObjectSets.insert(std::make_pair(setName, lights));
@@ -354,22 +383,32 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
    //clear m_groupLights before filling it
    m_groupLights.clear();
 
+   bool defaultAllLights = (m_arnoldDefaultLights.size() == m_arnoldLights.size());
+
    // If no information was stored, we don't need to set anything
-   if (linkList.empty() && ignoreList.empty()) return false;
+   if (linkList.empty() && ignoreList.empty() &&  defaultAllLights) return false;
 
    // if there is only a single link to "defaultLightSet", then our shape
    // is linked ot all lights in the scene and there's 
    // no need to use Arnold's light groups
-   if (linkList.size() == 1 && ignoreList.empty() && linkList[0] == "defaultLightSet") return false;
+   // Exception : if some lights have illuminate by default set to OFF, then we still need to use light_groups
+   if (linkList.size() == 1 && ignoreList.empty() && linkList[0] == "defaultLightSet" && defaultAllLights) return false;
    
    if(linkList.empty())
    {
-      // no linked shadows specified, so
-      // consider ALL shadows but the ignored ones
-      m_groupLights.reserve(m_arnoldLights.size());
-      for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+      // no linked lights specified, so
+      // consider ALL lights but the ignored ones
+      if (defaultAllLights)
       {
-         m_groupLights.push_back(it->second);
+         m_groupLights.reserve(m_arnoldLights.size());
+
+         for (std::map<std::string, AtNode*>::iterator it = m_arnoldLights.begin(); it != m_arnoldLights.end(); ++it)
+         {
+            m_groupLights.push_back(it->second);
+         }
+      } else
+      {
+         m_groupLights = m_arnoldDefaultLights;
       }
    }
 
