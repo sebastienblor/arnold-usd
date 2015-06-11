@@ -3,6 +3,7 @@
 #include <cmath>
 #include "MayaUtils.h"
 
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaHairMtd);
 
 node_parameters
@@ -19,10 +20,12 @@ node_parameters
    AiParameterFLT("hueRand", .0f);
    AiParameterFLT("satRand", .0f);
    AiParameterFLT("valRand", .0f);
-   
+   AiParameterFLT("indirectDiffuse", 1.0f);
+
    AtArray* dummy = AiArray(2, 1, AI_TYPE_RGB, AI_RGB_WHITE, AI_RGB_WHITE);
    AiParameterArray("hairColorScale", dummy);
    
+
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiMayaHair");
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
@@ -42,8 +45,10 @@ enum MayaHairParams{
    p_hue_rand,
    p_sat_rand,
    p_val_rand,
+   p_indirect_diffuse,
    
-   p_hair_color_scale
+   p_hair_color_scale,
+
 };
 
 node_initialize
@@ -131,9 +136,11 @@ shader_evaluate
    
    const AtVector T = AiV3Normalize(sg->dPdv);
    const AtVector V = -sg->Rd;
-      
+   
    if (!AiColorIsSmall(hairColor)) // diffuse and translucence calculation
    {
+      const float indirectDiffuse = AiShaderEvalParamFlt(p_indirect_diffuse);
+      
       AiLightsPrepare(sg);
       while (AiLightsGetSample(sg))
       {
@@ -145,7 +152,8 @@ shader_evaluate
             diffuse += sg->Li * sg->we * d;
          }
       }
-      diffuse += AiIndirectDiffuse(&V, sg);
+      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(&V, sg) * indirectDiffuse;
+
       diffuse *= hairColor;
    }
    
