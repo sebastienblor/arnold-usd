@@ -828,10 +828,10 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
-      
       // if GetComponentIDs returned false, it means that no polygons were found in the mesh. 
       // In that case uvidxs is empty, so we must not try to export the UVs
       if (!exportCompIDs) exportUVs = false;
+
 
       // Get Vertex Colors
       MPlug plug = FindMayaPlug("aiMotionVectorSource");
