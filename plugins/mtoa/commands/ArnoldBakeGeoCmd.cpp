@@ -148,13 +148,16 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    AtShaderGlobals* sg = AiShaderGlobals();
    int vert_index = 1; // vertex indices must be global to whole obj, starting at 1
 
+   std::vector<AtPoint> vertices;
+   std::vector<AtVector> normals;
+   std::vector<AtPoint2> uvs;
+   
    while (!AiNodeIteratorFinished(node_itr))
    {
       AtNode *node = AiNodeIteratorGetNext(node_itr);
       if (AiNodeIs(node, "polymesh") )
       {
          // MGlobal::displayInfo(MString(AiNodeGetName(node)));
-         std::stringstream vBuf, uvBuf, nBuf, fBuf;
          os <<"o "<<AiNodeGetName(node)<<"\n";
         
          sg->Op = node;
@@ -177,6 +180,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          bool valid_uvs = true;
          bool valid_normals = true;
 
+
          while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
          {
             if (valid_uvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) valid_uvs = false;
@@ -189,37 +193,64 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
                // convert local vertices to world              
                AiM4PointByMatrixMult(&worldPos[j], localToWorld, &localPos[j]); 
                AiM4VectorByMatrixMult(&worldNormal[j], localToWorld, &localNormal[j]); 
-               
-               vBuf <<"v "<<(float)worldPos[j].x<< " "<<(float)worldPos[j].y<<" "<<(float)worldPos[j].z<<"\n";
-               if (valid_normals) nBuf <<"vn "<<(float)worldNormal[j].x<< " "<<(float)worldNormal[j].y<<" "<<(float)worldNormal[j].z<<"\n";
-               if (valid_uvs) uvBuf <<"vt "<<(float)uv[j].x<< " "<<(float)uv[j].y<<"\n";
+               vertices.push_back(AiPoint((float)worldPos[j].x, (float)worldPos[j].y, (float)worldPos[j].z));
+
+               if (valid_normals)
+               {
+                  normals.push_back(AiVector((float)worldNormal[j].x, (float)worldNormal[j].y, (float)worldNormal[j].z));
+               }
+               if (valid_uvs)
+               {
+                  uvs.push_back(AiPoint2((float)uv[j].x, (float)uv[j].y));
+               }
 
             }
             sg->fi = ++index;
          }
 
+         for (size_t i = 0; i < vertices.size(); ++i)
+         {
+            os<<"v "<<vertices[i].x<< " "<<vertices[i].y<<" "<<vertices[i].z<<"\n";
+         }
+         os<<"\n";
+
+         if (valid_uvs)
+         {
+            for (size_t i = 0; i < uvs.size(); ++i)
+            {
+               os<<"vt "<<uvs[i].x<< " "<<uvs[i].y<<"\n";
+            }
+            os<<"\n";
+         }
+
+         if (valid_normals)
+         {
+            for (size_t i = 0; i < normals.size(); ++i)
+            {
+               os<<"vn "<<normals[i].x<< " "<<normals[i].y<<" "<<normals[i].z<<"\n";
+            }
+         }
+
+         // Write the faces
          for (int f = 0; f < index; ++f)
          {
-            fBuf <<"f ";
+            os <<"f ";
             for (int v =0; v < 3; ++v)
             {
-               fBuf<<vert_index;
+               os<<vert_index;
                if (valid_uvs)
                {
-                  if (valid_normals) fBuf<<"/"<<vert_index<<"/"<<vert_index; // both UVs and normals
-                  else fBuf<<"/"<<vert_index;  // only UVs
-               } else if (valid_normals) fBuf<<"//"<<vert_index; // only normals                  
+                  if (valid_normals) os<<"/"<<vert_index<<"/"<<vert_index; // both UVs and normals
+                  else os<<"/"<<vert_index;  // only UVs
+               } else if (valid_normals) os<<"//"<<vert_index; // only normals                  
                
-               fBuf<<" ";
+               os<<" ";
                vert_index++;
             }
-            fBuf<<"\n";
+            os<<"\n";
          }
-         
-         os <<vBuf.str()<<"\n";
-         if (valid_uvs) os<<uvBuf.str()<<"\n";
-         if (valid_normals) os<<nBuf.str()<<"\n";
-         os<<fBuf.str()<<"\n";     
+         os<<"\n";
+
       }
    } 
 
