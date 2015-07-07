@@ -465,6 +465,8 @@ def createAliases(sg):
             at = sgAttr[i]
             at.aovName.set(aov.name)
        
+    if pm.referenceQuery(sg.name(), isNodeReferenced=True):
+        return
     for at in sgAttr:
         name = at.aovName.get()
         try:
