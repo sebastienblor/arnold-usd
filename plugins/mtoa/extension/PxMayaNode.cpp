@@ -161,6 +161,12 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    // handle this, but having access to builting classes for subclassing
    // might be useful to extensions anyway.
    MString drawdbClassification = "";
+   
+   const char* drawdbClassificationMtd;
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.drawdb", &drawdbClassificationMtd))
+   {
+      drawdbClassification = MString(":drawdb/") + MString(drawdbClassificationMtd);
+   }
    if (NULL == creator)
    {      
       if (arnoldNodeTypeName == "light")
@@ -177,21 +183,24 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             creator    = CArnoldStandardNode::creator;
             initialize = CArnoldStandardNode::initialize;
             abstract   = &CArnoldStandardNode::s_abstract;
-            drawdbClassification = ":drawdb/shader/surface/arnold/standard";
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/standard";
          }
          else if (id == ARNOLD_NODEID_SKIN_SSS)
          {
             creator    = CArnoldSkinShaderNode::creator;
             initialize = CArnoldSkinShaderNode::initialize;
             abstract   = &CArnoldSkinShaderNode::s_abstract;
-            drawdbClassification = ":drawdb/shader/surface/arnold/skin";
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/skin";
          }
          else
          {
             creator    = CArnoldShaderNode::creator;
             initialize = CArnoldShaderNode::initialize;
             abstract   = &CArnoldShaderNode::s_abstract;
-            drawdbClassification = ":drawdb/shader/surface/arnold/genericShader";
+            if (drawdbClassification.numChars() == 0)
+               drawdbClassification = ":drawdb/shader/surface/arnold/genericShader";
          }
          type = MPxNode::kDependNode;
       }
