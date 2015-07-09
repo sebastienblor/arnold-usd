@@ -179,8 +179,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          int index = 0;
          bool valid_uvs = true;
          bool valid_normals = true;
-
-
+         
          while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
          {
             if (valid_uvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) valid_uvs = false;
@@ -251,6 +250,9 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          }
          os<<"\n";
 
+         vertices.clear();
+         uvs.clear();
+         normals.clear();
       }
    } 
 
