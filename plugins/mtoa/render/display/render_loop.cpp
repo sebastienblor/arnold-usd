@@ -68,7 +68,6 @@ char          K_ignore_list[K_MAX_IGNORES][256];
 int           K_ignore_list_size;
 int           K_turn;
 int           K_set_filename;
-float         K_gamma;
 AtArray      *K_display_output;
 AtArray      *K_all_outputs;
 EInfoMode     K_info_mode;
@@ -177,7 +176,6 @@ void K_InitGlobalVars(void)
    K_turn = 0;
    K_driver_node = 0;
    K_set_filename = 0;
-   K_gamma = 1.0;
    K_display_output = NULL;
    K_all_outputs = NULL;
    K_info_mode = K_INFO_NONE;

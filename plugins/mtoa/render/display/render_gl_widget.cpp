@@ -9,11 +9,13 @@
 #include <sstream>
 #include <iostream>
 #include "render_gl_widget.h"
+ #include "renderview.h"
+
 
 #pragma warning (disable : 4244)
  
 static const AtRGBA FILL_COLOR = {0.09f, 0.09f, 0.09f, 1.0f};
-static const AtRGBA8 EMPTY_FILL_COLOR = {13, 233, 13, 255};
+static const AtRGBA8 EMPTY_FILL_COLOR = {13, 13, 13, 255};
 
 /* Non-power-of-two texture support */
 
@@ -69,10 +71,13 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    const size_t size = m_width * m_height * sizeof(AtRGBA8);
    m_front_buffer = (AtRGBA8 *)AiMalloc(size);
 
+
    // fill with grey so we can see unfinished buckets
    const size_t fillsize = m_width * m_height;
    for(size_t i = 0; i < fillsize; i++)
+   {
       m_front_buffer[i] = EMPTY_FILL_COLOR;
+   }
 
    m_back_buffer = NULL;
 
@@ -89,6 +94,7 @@ CRenderGLWidget::~CRenderGLWidget()
       AiFree(m_back_buffer);
 
    AiFree(m_front_buffer);
+   
 }
 void CRenderGLWidget::closeEvent(QCloseEvent *event)
 {
@@ -161,8 +167,9 @@ void CRenderGLWidget::paintGL()
    region = sync->front_update_region;
 
    sync->waiting_draw = false;
-   sync->front_update_region.minx = sync->front_update_region.miny = std::numeric_limits<int>::max();
-   sync->front_update_region.maxx = sync->front_update_region.maxy = -std::numeric_limits<int>::max();
+   sync->front_update_region.minx = m_width;
+   sync->front_update_region.miny = m_height;
+   sync->front_update_region.maxx = sync->front_update_region.maxy = -1;
 
    AiCritSecLeave(&sync->lock);
 
@@ -179,8 +186,7 @@ void CRenderGLWidget::paintGL()
    glPushMatrix();
    glLoadIdentity();
 
-   
-   displayBuffer(m_renderview.reg_x, m_renderview.reg_y, &region, m_renderview.color_mode, false);
+   displayBuffer(m_renderview.reg_x, m_renderview.reg_y, &region, m_renderview.m_color_mode, false);
 
    glMatrixMode(GL_PROJECTION);
    glPopMatrix();
@@ -205,7 +211,7 @@ void CRenderGLWidget::copyToBackBuffer()
 
 
 
-void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtKickColorMode color_mode, bool back_buffer)
+void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
 {
 
    kglClearColor(FILL_COLOR.r, FILL_COLOR.g, FILL_COLOR.b, FILL_COLOR.a);
@@ -223,6 +229,7 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
       kglPixelStorei(GL_UNPACK_ROW_LENGTH,  m_width);
       kglPixelStorei(GL_UNPACK_SKIP_PIXELS, update_region->minx);
       kglPixelStorei(GL_UNPACK_SKIP_ROWS,   update_region->miny);
+
 
       if (color_mode == COLOR_MODE_RGBA)
       {

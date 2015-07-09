@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 #ifdef _WIN32
 #include <conio.h>
 #include <io.h>
@@ -26,8 +27,9 @@
 
 #include <QtGui/qevent.h>
 #include <QtGui/qmainwindow.h>
-#include <QtOpenGL/QGLWidget>
-#include <QtOpenGL/QtOpenGL>
+
+#include "render_gl_widget.h"
+#include <QtCore/qbytearray.h>
 
 
 #include <QtCore/qthread.h>
@@ -39,19 +41,26 @@ class CRenderGLWidget;
 
 
 
-enum AtKickColorMode
-{
-   COLOR_MODE_RGBA = 0,
-   COLOR_MODE_R,
-   COLOR_MODE_G,
-   COLOR_MODE_B,
-   COLOR_MODE_A,
-};
 
-struct AtRGBA8
+
+class CRenderView;
+
+class CRenderViewMainWindow : public QMainWindow
 {
-   AtUInt8 r, g, b, a;
+
+Q_OBJECT
+ 
+public:
+   CRenderViewMainWindow(QWidget *parent, CRenderView &rv) : QMainWindow(parent, Qt::WindowStaysOnTopHint), m_renderView(rv){}
+    ~CRenderViewMainWindow() {}
+ 
+private:
+   CRenderView &m_renderView;
+ 
+private slots:
+    void saveImage();
 };
+ 
 
 extern AtNodeMethods *kick_driver_mtd;
 
@@ -64,8 +73,7 @@ public:
 
    ~CRenderView();
 
-   void init(int w, int h);
-
+   
    // request to close the window
    void close();
    void show();
@@ -75,9 +83,11 @@ public:
    int width() { return m_width; }
    int height() { return m_height; }
 
-   AtRGBA8 *getBuffer(); 
-   int getBufferWidth() const;
-   int getBufferHeight() const;
+   AtRGBA *getBuffer() {return m_buffer;} 
+   //AtRGBA *getRGBABuffer(); 
+
+   int getWidth() const {return m_width;}
+   int getHeight() const{return m_height;}
 
    void render();
 
@@ -96,6 +106,7 @@ public:
       box.maxy = ymin + height;
       draw(&box);
    }
+   CRenderGLWidget *getGlWidget() {return m_gl;}
 
    void displaySyncCreate(int width, int height);
    AtDisplaySync *displaySync() {return display_sync;}
@@ -110,27 +121,59 @@ public:
    AtCritSec window_close_lock;
    bool canRefresh() const;
    void refresh();
-   // OpenGL display
    
-
-   // display options
-   bool dither;
-   float gamma;
-   AtKickColorMode color_mode;
-
-   // render syncing
+   void saveImage(const std::string &filename) const;
    
+   // this method doesn't check for boundaries
+   void setPixelColor(int x, int y, const AtRGBA &rgba)
+   {
+      int pixel_index = y * m_width + x;
+
+      m_buffer[pixel_index] = rgba;
+      // Now let'sfill the GLWidget's RGBA8 buffer
+      AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
+      // apply gamma
+      if (m_gamma != 1.0f)
+      {
+         // need to copy the input RGBA for the gamma
+         AtRGBA color = rgba;
+         AtRGB &rgb = color.rgb();
+
+         AiColorClamp(rgb, rgb, 0, 1);
+         AiColorGamma(&rgb, m_gamma);
+         rgba8.r = AiQuantize8bit(x, y, 0, color.r, m_dither);
+         rgba8.g = AiQuantize8bit(x, y, 1, color.g, m_dither);
+         rgba8.b = AiQuantize8bit(x, y, 2, color.b, m_dither);
+         rgba8.a = AiQuantize8bit(x, y, 3, color.a, m_dither);
+
+      } else
+      {  
+         rgba8.r = AiQuantize8bit(x, y, 0, rgba.r, m_dither);
+         rgba8.g = AiQuantize8bit(x, y, 1, rgba.g, m_dither);
+         rgba8.b = AiQuantize8bit(x, y, 2, rgba.b, m_dither);
+         rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, m_dither);
+      }
+   }
+
+   AtRvColorMode m_color_mode;
+
 
 protected:
+   void init();
+
    int m_width;
    int m_height;
-   QMainWindow *m_main_window;
+   CRenderViewMainWindow *m_main_window;
    CRenderGLWidget *m_gl;
    AtDisplaySync *display_sync;
+   bool m_dither;
+   float m_gamma;
+
 
    void *m_render_thread;
 
 
+   AtRGBA *m_buffer;
 };
 
 

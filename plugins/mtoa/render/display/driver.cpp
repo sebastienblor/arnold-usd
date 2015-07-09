@@ -14,35 +14,34 @@
 
 
 #pragma warning (disable : 4244)
-/*
- * Utility Functions
- */
+
 /*
  * Displays a rectangle color based on thread ID
  */
 static void BucketSetThreadColor(CRenderView* rv, int xo, int yo, int xsize, int ysize, int tid)
 {
-   unsigned char R,G,B;
+   AtRGBA rgba;
 
    // pick a color based on thread ID
    switch (tid % 6)
    {
-      case 0: R = 0xFF; G = 0x00; B = 0x00; break;
-      case 1: R = 0x00; G = 0xFF; B = 0x00; break;
-      case 2: R = 0x00; G = 0x00; B = 0xFF; break;
-      case 3: R = 0xFF; G = 0xFF; B = 0x00; break;
-      case 4: R = 0xFF; G = 0x00; B = 0xFF; break;
-      case 5: R = 0x00; G = 0xFF; B = 0xFF; break;
-      default: R = G = B = 0; break; // ?
+
+      case 0: rgba.r = 1.f; rgba.g = 0.f; rgba.b = 0.f; break;
+      case 1: rgba.r = 0.f; rgba.g = 1.f; rgba.b = 0.f; break;
+      case 2: rgba.r = 0.f; rgba.g = 0.f; rgba.b = 1.f; break;
+      case 3: rgba.r = 1.f; rgba.g = 1.f; rgba.b = 0.f; break;
+      case 4: rgba.r = 1.f; rgba.g = 0.f; rgba.b = 1.f; break;
+      case 5: rgba.r = 0.f; rgba.g = 1.f; rgba.b = 1.f; break;
+
+      default: rgba.r = rgba.b = rgba.b = 0.f; break; // ?
    }
+   rgba.a = 1.f;
 
    int min_x = xo;
    int min_y = yo;
    int max_x = xo + xsize;
    int max_y = yo + ysize;
 
-   AtRGBA8 *rgb_buffer =  rv->getBuffer();
-   int buffer_width = rv->getBufferWidth();
 
    // paint in checkerboard (8-pixels wide)
    for (int j = min_y, by = 0; j < max_y; j++, by++)
@@ -53,11 +52,7 @@ static void BucketSetThreadColor(CRenderView* rv, int xo, int yo, int xsize, int
              ((by == 0 || by == ysize - 1) && (5 * bx < xsize || 5 * (xsize - bx - 1) < xsize)))
          {
             // overwrite the color in the corners
-            int out_idx = (j * buffer_width + i);
-            rgb_buffer[out_idx].r = R;
-            rgb_buffer[out_idx].g = G;
-            rgb_buffer[out_idx].b = B;
-            rgb_buffer[out_idx].a = 255;
+            rv->setPixelColor(i, j, rgba);
          }
       }
    }
@@ -72,14 +67,10 @@ static void BucketSetThreadColor(CRenderView* rv, int xo, int yo, int xsize, int
 AI_DRIVER_NODE_EXPORT_METHODS(kick_driver_mtd);
 
 #define _userdata  (params[0].PTR )
-#define _dither    (params[1].BOOL)
-#define _gamma     (params[2].FLT )
 
 node_parameters
 {
    AiParameterPTR ( "userdata", NULL );
-   AiParameterBOOL( "dither"  , true );
-   AiParameterFLT ( "gamma"   , 1.0f );
 }
 
 node_initialize
@@ -157,65 +148,43 @@ driver_process_bucket
    int max_x = MIN(min_x + bucket_size_x, rv->reg_x);
    int max_y = MIN(min_y + bucket_size_y, rv->reg_y);
 
-   AtRGBA8 *rgb_buffer = rv->getBuffer();
-   int buffer_width = rv->getBufferWidth();
-   float gamma = rv->gamma;
-   bool dither = rv->dither;
 
-   // for AA_samples < 0, arnold scales up the image, save time by doing gamma
-   // correction only for every n-th pixel as they have the same value
    int AA_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
    int AA_spacing = 1 << (-AA_samples);
    int spacing = 1;
+   bool has_spacing = false;
 
    if (AA_samples < 0 && (min_x & (AA_spacing-1)) == 0 && (min_y & (AA_spacing-1)) == 0)
+   {
       spacing = AA_spacing;
+      has_spacing = true;
+   }
+
 
    for (int j = min_y; j < max_y; j+=spacing)
    {
-      int in_j = j - min_y;
+      int in_j_offset = (j - min_y) * bucket_size_x;
 
       for (int i = min_x; i < max_x; i+=spacing)
       {
-         AtRGBA rgba;
-
-         // retrieve data from bucket
-         int in_idx = in_j * bucket_size_x + i - min_x;
-
-         if (pixel_type == AI_TYPE_RGB)
-         {
-            rgba.rgb() = ((const AtRGB *)bucket_data)[in_idx];
-            rgba.a = 1.0f;
-         }
-         else
-         {
-            rgba = ((const AtRGBA *)bucket_data)[in_idx];
-         }
-
-         // apply gamma
-         if (gamma != 1.0f)
-         {
-            AtRGB& rgb = rgba.rgb();
-
-            AiColorClamp(rgb, rgb, 0, 1);
-            AiColorGamma(&rgb, gamma);
-         }
-
-         // quantize
-         AtRGBA8 rgba8;
-
-         rgba8.r = AiQuantize8bit(i, j, 0, rgba.r, dither);
-         rgba8.g = AiQuantize8bit(i, j, 1, rgba.g, dither);
-         rgba8.b = AiQuantize8bit(i, j, 2, rgba.b, dither);
-         rgba8.a = AiQuantize8bit(i, j, 3, rgba.a, dither);
+         
+         int in_idx = in_j_offset + i - min_x;
         // write to buffer
-         for (int sj = j; sj < MIN(j + spacing, max_y); sj++)
+         if (has_spacing)
          {
-            for (int si = i; si < MIN(i + spacing, max_x); si++)
+            for (int sj = j; sj < MIN(j + spacing, max_y); sj++)
             {
-               int out_idx = sj * buffer_width + si;
-               rgb_buffer[out_idx] = rgba8;
+               for (int si = i; si < MIN(i + spacing, max_x); si++)
+               {
+                  rv->setPixelColor(si, sj, ((const AtRGBA *)bucket_data)[in_idx]);
+                  
+               }
             }
+         } else
+         {
+            // simpler / faster case
+            rv->setPixelColor(i, j, ((const AtRGBA *)bucket_data)[in_idx]);
+          
          }
       }
    }

@@ -136,7 +136,6 @@ extern int    K_ignore_list_size;
 extern int    K_turn;
 extern const char* K_filename;
 extern int    K_set_filename;
-extern float  K_gamma;
 extern char   K_filter_type[64];
 extern float  K_filter_width;
 extern EInfoMode K_info_mode;

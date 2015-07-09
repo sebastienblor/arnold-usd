@@ -1,3 +1,4 @@
+
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "utils/MtoaLog.h"
@@ -8,6 +9,7 @@
 #include "translators/NodeTranslator.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
+
 #include "display/renderview.h"
 
 
