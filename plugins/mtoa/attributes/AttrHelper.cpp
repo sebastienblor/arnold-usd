@@ -112,10 +112,10 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    else
       data.keyable = false;
 
-   bool linkable;
-   if (!AiMetaDataGetBool(m_nodeEntry, paramName, "linkable", &linkable))
-      linkable = true;   
-   data.linkable = linkable;
+   bool connectable;
+   if (!AiMetaDataGetBool(m_nodeEntry, paramName, "maya.connectable", &connectable))
+      connectable = true;
+   data.linkable = connectable;
 
    bool channelBox;
    if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.channelbox", &channelBox) && channelBox)
