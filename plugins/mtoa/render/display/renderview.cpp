@@ -28,6 +28,9 @@
 #include "renderview.h"
 #include "render_loop.h"
 
+#include "scene/MayaScene.h"
+#include "session/ArnoldSession.h"
+
 //#include <QtGui/qimage.h>
 
 #pragma warning (disable : 4244)
@@ -452,6 +455,20 @@ CRenderViewMainWindow::initMenus()
    action->setCheckable(false);
    action->setStatusTip("Abort the current Render");
    action->setShortcut(Qt::Key_Escape);
+
+   m_action_auto_refresh = m_menu_view->addAction("Continuous Updates");
+   connect(m_action_auto_refresh, SIGNAL(triggered()), this, SLOT(autoRefresh()));
+   m_action_auto_refresh->setCheckable(true);
+   m_action_auto_refresh->setChecked(CMayaScene::GetArnoldSession()->GetContinuousUpdates());
+   m_action_auto_refresh->setStatusTip("Automatically update any change in the scene and restart the rendering");
+
+   action = m_menu_view->addAction("Update");
+   connect(action, SIGNAL(triggered()), this, SLOT(updateRender()));
+   action->setCheckable(false);
+   action->setShortcut(Qt::Key_F5);
+   action->setStatusTip("Update the rendering");
+
+
    
 }
 void
@@ -488,6 +505,24 @@ void CRenderViewMainWindow::showRenderingTiles()
 {
    m_renderView.setShowRenderingTiles(m_action_show_rendering_tiles->isChecked());
 }
+
+
+void CRenderViewMainWindow::updateRender()
+{
+   m_renderView.interruptRender();
+   CMayaScene::UpdateSceneChanges();
+   m_renderView.refresh();
+
+}
+
+void CRenderViewMainWindow::autoRefresh()
+{
+
+
+   CMayaScene::GetArnoldSession()->SetContinuousUpdates(m_action_auto_refresh->isChecked());
+
+}
+
 
 
 // If you add some slots, you'll have to run moc

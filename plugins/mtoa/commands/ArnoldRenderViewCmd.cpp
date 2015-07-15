@@ -80,7 +80,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       bool auto_refresh = args.isFlagSet("refresh") ? args.flagArgumentBool("refresh", 0) : true;
 
-      CMayaScene::GetArnoldSession()->allowUpdates(auto_refresh);
+      CMayaScene::GetArnoldSession()->SetContinuousUpdates(auto_refresh);
       // Start off the render.
       renderSession->RunRenderView();
    } else if (mode == "stop")

@@ -157,7 +157,8 @@ public:
    float& ScaleArea(float& area) const;
    float& ScaleLightExposure(float& exposure) const;
    MVector GetOrigin() const;
-   void allowUpdates(bool b) {m_allowUpdates = b;}
+   void SetContinuousUpdates(bool b);
+   bool GetContinuousUpdates() const { return m_continuousUpdates;}
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -189,7 +190,7 @@ private:
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
-      ,  m_allowUpdates(true)
+      ,  m_continuousUpdates(true)
 
    {
    }
@@ -252,6 +253,6 @@ protected:
 
    COptionsTranslator*  m_optionsTranslator;
    bool                 m_is_active;
-   bool                 m_allowUpdates;
+   bool                 m_continuousUpdates;
    //AOVSet m_aovs;
 };  // class CArnoldSession
