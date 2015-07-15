@@ -110,10 +110,10 @@ driver_needs_bucket
 
 driver_prepare_bucket
 {
-   return;
 
    AtParamValue *params = AiNodeGetParams(node);
    CRenderView *rv = (CRenderView *) _userdata;
+   if (!rv->getShowRenderingTiles()) return;
 
    // translate to local display coordinates (cropped over overscan)
    int min_x = bucket_xo - rv->min_x;

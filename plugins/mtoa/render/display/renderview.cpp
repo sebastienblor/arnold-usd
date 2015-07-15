@@ -56,19 +56,9 @@ CRenderView::CRenderView(int w, int h)
 
    init();
 
-   QMenuBar *menubar = m_main_window->menuBar();
-   QMenu *fileMenu = menubar->addMenu("File");
-
-   QAction *action;
-   action = fileMenu->addAction("Save Image");
-   m_main_window->connect(action, SIGNAL(triggered()), m_main_window, SLOT(saveImage()));
-
-   action->setCheckable(false);
-   action->setStatusTip("Save the Image currently being displayed");
-   QMenu *viewMenu = menubar->addMenu("View");
-   QMenu *renderMenu = menubar->addMenu("Render");
-
+   m_main_window->initMenus();
    m_main_window->show();
+
 }
 
 
@@ -135,6 +125,7 @@ void CRenderView::init()
    m_dither      = false;
    m_color_mode  = COLOR_MODE_RGBA;
    m_gamma       = 1.f; // we'll control that later on
+   m_show_rendering_tiles = false;
 
    K_AA_samples = AiNodeGetInt(options, "AA_samples");
    if (K_AA_samples == 0)
@@ -436,6 +427,34 @@ void CRenderView::saveImage(const std::string &filename) const
 
 
 void
+CRenderViewMainWindow::initMenus()
+{
+
+   QMenuBar *menubar = menuBar();
+   m_menu_file = menubar->addMenu("File");
+
+   QAction *action;
+   action = m_menu_file->addAction("Save Image");
+   connect(action, SIGNAL(triggered()), this, SLOT(saveImage()));
+
+   action->setCheckable(false);
+   action->setStatusTip("Save the Image currently being displayed");
+   m_menu_view = menubar->addMenu("View");
+   m_action_show_rendering_tiles = m_menu_view->addAction("Show Rendering Tiles");
+   connect(m_action_show_rendering_tiles, SIGNAL(triggered()), this, SLOT(showRenderingTiles()));
+   m_action_show_rendering_tiles->setCheckable(true);
+   m_action_show_rendering_tiles->setStatusTip("Display the Tiles being rendered");
+
+   m_menu_render = menubar->addMenu("Render");
+
+   action = m_menu_render->addAction("Abort Render");
+   connect(action, SIGNAL(triggered()), this, SLOT(abortRender()));
+   action->setCheckable(false);
+   action->setStatusTip("Abort the current Render");
+   action->setShortcut(Qt::Key_Escape);
+   
+}
+void
 CRenderViewMainWindow::saveImage()
 {
 
@@ -460,4 +479,16 @@ CRenderViewMainWindow::saveImage()
    m_renderView.saveImage(filename.toStdString());
 }
 
+void CRenderViewMainWindow::abortRender()
+{
+   m_renderView.interruptRender();
+}
+
+void CRenderViewMainWindow::showRenderingTiles()
+{
+   m_renderView.setShowRenderingTiles(m_action_show_rendering_tiles->isChecked());
+}
+
+
+// If you add some slots, you'll have to run moc
 #include "renderview.moc"

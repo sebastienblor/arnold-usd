@@ -38,6 +38,7 @@
 struct AtDisplaySync;
 
 class CRenderGLWidget;
+class QMenu;
 
 
 
@@ -54,11 +55,21 @@ public:
    CRenderViewMainWindow(QWidget *parent, CRenderView &rv) : QMainWindow(parent, Qt::WindowStaysOnTopHint), m_renderView(rv){}
     ~CRenderViewMainWindow() {}
  
+   void initMenus();
 private:
+
    CRenderView &m_renderView;
+   QMenu *m_menu_file;
+   QMenu *m_menu_view;
+   QMenu *m_menu_render;
+
+   QAction *m_action_show_rendering_tiles;
  
 private slots:
     void saveImage();
+    void abortRender();
+    void showRenderingTiles();
+
 };
  
 
@@ -154,7 +165,8 @@ public:
          rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, m_dither);
       }
    }
-
+   void setShowRenderingTiles(bool b) {m_show_rendering_tiles = b;}
+   bool getShowRenderingTiles() const {return m_show_rendering_tiles;}
    AtRvColorMode m_color_mode;
 
 
@@ -168,6 +180,7 @@ protected:
    AtDisplaySync *display_sync;
    bool m_dither;
    float m_gamma;
+   bool m_show_rendering_tiles;
 
 
    void *m_render_thread;
