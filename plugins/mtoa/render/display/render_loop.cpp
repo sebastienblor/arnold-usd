@@ -259,7 +259,7 @@ extern int RenderLoop(int smin, int smax)
 
       K_render_timestamp = CRenderView::time();
 
-      for (i=smin; i<=smax && !K_aborted ; i++)
+      for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        
          int error;
          if (K_aborted)

@@ -40,18 +40,18 @@ public:
    void paintGL();
    void closeEvent(QCloseEvent *event);
 
-   void displayBuffer(int w, int h, const AtBBox2 *update_region,
-             AtRvColorMode color_mode, bool back_buffer);
-
    AtRGBA8 *getBuffer() { return m_front_buffer; }
    
    int width() { return m_width; }
    int height() { return m_height; }
 
    void copyToBackBuffer();
+   void reloadBuffer(AtRvColorMode color_mode);
 
 private:
    void setupTexture();
+   void displayBuffer(int w, int h, const AtBBox2 *update_region,
+             AtRvColorMode color_mode, bool back_buffer);
 
    CRenderView &m_renderview;
 

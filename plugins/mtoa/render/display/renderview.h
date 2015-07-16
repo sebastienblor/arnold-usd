@@ -65,14 +65,21 @@ private:
 
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
+   QAction *m_action_progressive_refinement;
 
  
 private slots:
-    void saveImage();
-    void abortRender();
-    void showRenderingTiles();
-    void autoRefresh();
-    void updateRender();
+   void saveImage();
+   void abortRender();
+   void showRenderingTiles();
+   void autoRefresh();
+   void updateRender();
+   void storeImage();
+   void previousStoredImage();
+   void nextStoredImage();
+   void deleteStoredImage();
+   void progressiveRefinement();
+
 
 };
  
@@ -138,6 +145,11 @@ public:
    void refresh();
    
    void saveImage(const std::string &filename) const;
+   void storeImage();
+   void showPreviousStoredImage();
+   void showNextStoredImage();
+   void deleteStoredImage();
+
    
    // this method doesn't check for boundaries
    void setPixelColor(int x, int y, const AtRGBA &rgba)
@@ -145,8 +157,26 @@ public:
       int pixel_index = y * m_width + x;
 
       m_buffer[pixel_index] = rgba;
-      // Now let'sfill the GLWidget's RGBA8 buffer
-      AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
+
+      if (m_displayedImageIndex < 0)
+      {
+         // Now let'sfill the GLWidget's RGBA8 buffer
+         AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
+         copyToRGBA8(rgba, rgba8, x, y);
+      }
+   }
+   void setShowRenderingTiles(bool b) {m_show_rendering_tiles = b;}
+   bool getShowRenderingTiles() const {return m_show_rendering_tiles;}
+
+   AtRvColorMode m_color_mode;
+
+
+protected:
+   void init();
+   void refreshGLBuffer();
+   
+   void copyToRGBA8(const AtRGBA &rgba, AtRGBA8 &rgba8, int x, int y)
+   {
       // apply gamma
       if (m_gamma != 1.0f)
       {
@@ -169,14 +199,6 @@ public:
          rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, m_dither);
       }
    }
-   void setShowRenderingTiles(bool b) {m_show_rendering_tiles = b;}
-   bool getShowRenderingTiles() const {return m_show_rendering_tiles;}
-
-   AtRvColorMode m_color_mode;
-
-
-protected:
-   void init();
 
    int m_width;
    int m_height;
@@ -186,12 +208,15 @@ protected:
    bool m_dither;
    float m_gamma;
    bool m_show_rendering_tiles;
+   bool m_progressive_refinement;
   
 
    void *m_render_thread;
 
 
    AtRGBA *m_buffer;
+   std::vector<AtRGBA *> m_storedImages;
+   int m_displayedImageIndex;
 };
 
 

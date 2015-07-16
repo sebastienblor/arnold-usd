@@ -83,6 +83,14 @@ CRenderView::~CRenderView()
    AiFree(display_sync);
    display_sync = 0;
    AiFree(m_buffer);
+   if (!m_storedImages.empty())
+   {
+      for (size_t i = 0; i < m_storedImages.size(); ++i)
+      {
+         AiFree(m_storedImages[i]);
+      }
+      m_storedImages.clear();
+   }
 
    delete m_main_window;
 
@@ -244,6 +252,17 @@ void CRenderView::init()
 
    K_InitGlobalVars();
 
+   if (!m_storedImages.empty())
+   {
+      for (size_t i = 0; i < m_storedImages.size(); ++i)
+      {
+         AiFree(m_storedImages[i]);
+      }
+      m_storedImages.clear();
+   }
+   m_displayedImageIndex = -1; // -1 means the current rendering
+   // >= 0 refers to a stored Image
+
 }
 
 void CRenderView::render()
@@ -354,10 +373,13 @@ void CRenderView::draw(AtBBox2 *region)
    }
 
    // immediately draw or wait for timer to run out
-   sync->waiting_draw = true;
+   if (m_displayedImageIndex < 0) sync->waiting_draw = true;
+   else sync->waiting_draw = false;
+   // if we're displayed a previously stored image
+   // we don't want to prevent that we need a draw
    AiCritSecLeave(&sync->lock);
 
-   if ( !already_in_queue) 
+   if ( already_in_queue == false && sync->waiting_draw == true) 
    {
       m_gl->update();
    }
@@ -415,7 +437,7 @@ void CRenderView::saveImage(const std::string &filename) const
 
    // We're using QT stuff, but maybe we should use Maya's instead ?
    QImage outImg(m_width, m_height, QImage::Format_ARGB32 );
-   AtRGBA *buffer = m_buffer;
+   AtRGBA *buffer = (m_displayedImageIndex < 0) ? m_buffer : m_storedImages[m_displayedImageIndex];
 
    for (int j = 0; j < m_height; ++j)
    {
@@ -426,6 +448,94 @@ void CRenderView::saveImage(const std::string &filename) const
       }
    }
    outImg.save(QString(filename.c_str()));
+}
+
+void CRenderView::storeImage()
+{
+   AtRGBA *storedBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
+   memcpy(storedBuffer, m_buffer, m_width * m_height * sizeof(AtRGBA));
+   m_storedImages.push_back(storedBuffer);
+}
+
+void CRenderView::refreshGLBuffer()
+{  
+   AtRGBA *displayedBuffer = (m_displayedImageIndex < 0) ? m_buffer : m_storedImages[m_displayedImageIndex];
+   AtRGBA8 *gl_buffer = m_gl->getBuffer();
+
+   int ind = 0;
+   for (int j = 0; j < m_height; ++j)
+   {
+      for (int i = 0; i < m_width; ++i, ++ind)
+      {
+         copyToRGBA8(displayedBuffer[ind], gl_buffer[ind], i, j);
+      }
+   }
+
+   m_gl->reloadBuffer(m_color_mode);
+}
+void CRenderView::showPreviousStoredImage()
+{
+   if (m_storedImages.empty())
+   {
+      AiMsgError("[mtoa] No Image currently Stored in the Render View");      
+      return;
+   }
+   if (m_displayedImageIndex < 0)
+   {
+      m_gl->copyToBackBuffer();
+      m_displayedImageIndex = m_storedImages.size() - 1;
+   }
+   else m_displayedImageIndex--;
+
+   if (m_displayedImageIndex >= 0)
+   {
+      AtDisplaySync *sync = displaySync();
+      sync->waiting_draw = false;
+   }
+
+   refreshGLBuffer();
+}
+void CRenderView::showNextStoredImage()
+{
+   if (m_storedImages.empty())
+   {
+      AiMsgError("[mtoa] No Image currently Stored in the Render View");      
+      return;
+   }
+   if (m_displayedImageIndex < 0)
+   {
+      m_gl->copyToBackBuffer();
+   }
+
+   if (m_displayedImageIndex >= (int)m_storedImages.size() - 1) m_displayedImageIndex = -1;
+   else m_displayedImageIndex++;
+
+
+   if (m_displayedImageIndex >= 0)
+   {
+      AtDisplaySync *sync = displaySync();
+      sync->waiting_draw = false;
+   }
+
+   refreshGLBuffer();
+
+}
+
+void CRenderView::deleteStoredImage()
+{
+   if (m_storedImages.empty())
+   {
+      AiMsgError("[mtoa] No Image currently Stored in the Render View");      
+      return;
+   }
+   if (m_displayedImageIndex < 0 || m_displayedImageIndex >= (int)m_storedImages.size()) return; // nothing to delete
+
+   AiFree(m_storedImages[m_displayedImageIndex]);
+   m_storedImages.erase(m_storedImages.begin() + m_displayedImageIndex);
+   if (m_displayedImageIndex >= (int)m_storedImages.size()) m_displayedImageIndex--;
+
+   refreshGLBuffer();
+
 }
 
 
@@ -448,7 +558,38 @@ CRenderViewMainWindow::initMenus()
    m_action_show_rendering_tiles->setCheckable(true);
    m_action_show_rendering_tiles->setStatusTip("Display the Tiles being rendered");
 
+   action = m_menu_view->addAction("Store Image in RenderView");
+   connect(action, SIGNAL(triggered()), this, SLOT(storeImage()));
+   action->setCheckable(false);
+   //action->setShortcut(Qt::CTRL + Qt::Key_Plus);
+   action->setStatusTip("Store the displayed Image in memory");
+
+   action = m_menu_view->addAction("Previous Stored Image");
+   connect(action, SIGNAL(triggered()), this, SLOT(previousStoredImage()));
+   action->setCheckable(false);
+   //action->setShortcut(Qt::CTRL + Qt::Key_Left);
+   action->setStatusTip("Display the Previous Image Stored in Memory");
+
+   action = m_menu_view->addAction("Next Stored Image");
+   connect(action, SIGNAL(triggered()), this, SLOT(nextStoredImage()));
+   action->setCheckable(false);
+   //action->setShortcut(Qt::CTRL + Qt::Key_Right);
+   action->setStatusTip("Display the Next Image Stored in Memory");
+
+   action = m_menu_view->addAction("Delete Stored Image");
+   connect(action, SIGNAL(triggered()), this, SLOT(deleteStoredImage()));
+   action->setCheckable(false);
+   //action->setShortcut(Qt::CTRL + Qt::Key_Minus);
+   action->setStatusTip("Delete the Stored Image being currently displayed");
+
+
    m_menu_render = menubar->addMenu("Render");
+
+   action = m_menu_render->addAction("Update Render");
+   connect(action, SIGNAL(triggered()), this, SLOT(updateRender()));
+   action->setCheckable(false);
+   action->setShortcut(Qt::Key_F5);
+   action->setStatusTip("Update the rendering");
 
    action = m_menu_render->addAction("Abort Render");
    connect(action, SIGNAL(triggered()), this, SLOT(abortRender()));
@@ -456,20 +597,20 @@ CRenderViewMainWindow::initMenus()
    action->setStatusTip("Abort the current Render");
    action->setShortcut(Qt::Key_Escape);
 
-   m_action_auto_refresh = m_menu_view->addAction("Continuous Updates");
+   m_action_auto_refresh = m_menu_render->addAction("Continuous Updates");
    connect(m_action_auto_refresh, SIGNAL(triggered()), this, SLOT(autoRefresh()));
    m_action_auto_refresh->setCheckable(true);
    m_action_auto_refresh->setChecked(CMayaScene::GetArnoldSession()->GetContinuousUpdates());
    m_action_auto_refresh->setStatusTip("Automatically update any change in the scene and restart the rendering");
 
-   action = m_menu_view->addAction("Update");
-   connect(action, SIGNAL(triggered()), this, SLOT(updateRender()));
-   action->setCheckable(false);
-   action->setShortcut(Qt::Key_F5);
-   action->setStatusTip("Update the rendering");
-
+   m_action_progressive_refinement = m_menu_render->addAction("Progressive Refinement");
+   connect(m_action_progressive_refinement, SIGNAL(triggered()), this, SLOT(progressiveRefinement()));
+   m_action_progressive_refinement->setCheckable(true);
+   m_action_progressive_refinement->setChecked(true);
+   m_action_progressive_refinement->setStatusTip("Display the Tiles being rendered");
 
    
+
 }
 void
 CRenderViewMainWindow::saveImage()
@@ -517,10 +658,34 @@ void CRenderViewMainWindow::updateRender()
 
 void CRenderViewMainWindow::autoRefresh()
 {
-
-
    CMayaScene::GetArnoldSession()->SetContinuousUpdates(m_action_auto_refresh->isChecked());
+}
 
+void CRenderViewMainWindow::storeImage()
+{
+   m_renderView.storeImage();
+}
+
+void CRenderViewMainWindow::previousStoredImage()
+{
+   m_renderView.showPreviousStoredImage();
+
+}
+void CRenderViewMainWindow::nextStoredImage()
+{
+   m_renderView.showNextStoredImage();
+}
+void CRenderViewMainWindow::deleteStoredImage()
+{
+   m_renderView.deleteStoredImage();
+
+}
+
+void CRenderViewMainWindow::progressiveRefinement()
+{
+   K_progressive = m_action_progressive_refinement->isChecked();
+   m_renderView.interruptRender();
+   m_renderView.refresh();
 }
 
 

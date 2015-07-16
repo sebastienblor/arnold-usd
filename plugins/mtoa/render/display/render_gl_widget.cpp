@@ -153,7 +153,6 @@ void CRenderGLWidget::resizeGL(int width, int height)
 
 void CRenderGLWidget::paintGL()
 {
-   
    AtDisplaySync *sync = m_renderview.displaySync();
 
    if (!sync->waiting_draw) return;
@@ -209,6 +208,34 @@ void CRenderGLWidget::copyToBackBuffer()
    memcpy(m_back_buffer, m_front_buffer, size);
 }
 
+
+void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
+{
+   makeCurrent();
+
+   glMatrixMode(GL_PROJECTION);
+   glPushMatrix();
+   glLoadIdentity();
+
+
+   kglViewport(0, 0, m_width, m_height);
+   kglOrtho(0, m_width, 0, m_height, -1, 1);
+   glMatrixMode(GL_MODELVIEW);
+   glPushMatrix();
+   glLoadIdentity();
+
+   AtBBox2 region;
+   region.minx = region.miny = 0;
+   region.maxx = m_width;
+   region.maxy = m_height;
+   displayBuffer(m_width, m_height, &region, color_mode, false);
+
+   glMatrixMode(GL_PROJECTION);
+   glPopMatrix();
+
+   glMatrixMode(GL_MODELVIEW);
+   glPopMatrix();
+}
 
 
 void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
