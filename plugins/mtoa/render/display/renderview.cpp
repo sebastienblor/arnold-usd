@@ -552,7 +552,44 @@ CRenderViewMainWindow::initMenus()
 
    action->setCheckable(false);
    action->setStatusTip("Save the Image currently being displayed");
+   
    m_menu_view = menubar->addMenu("View");
+
+   m_channel_action_group = new QActionGroup(this);
+
+   action = m_menu_view->addAction("Red Channel");
+   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   action->setCheckable(true);
+   action->setStatusTip("Display the Red Channel");
+   m_channel_action_group->addAction(action);
+
+   action = m_menu_view->addAction("Green Channel");
+   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   action->setCheckable(true);
+   action->setStatusTip("Display the Green Channel");
+   m_channel_action_group->addAction(action);
+
+   action = m_menu_view->addAction("Blue Channel");
+   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   action->setCheckable(true);
+   action->setStatusTip("Display the Blue Channel");
+   m_channel_action_group->addAction(action);
+
+   action = m_menu_view->addAction("Alpha Channel");
+   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   action->setCheckable(true);
+   action->setStatusTip("Display the Alpha Channel");
+   m_channel_action_group->addAction(action);
+
+   action = m_menu_view->addAction("All Channels");
+   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   action->setCheckable(true);
+   action->setChecked(true);
+   action->setStatusTip("Display all channels");
+   m_channel_action_group->addAction(action);
+
+   m_menu_view->addSeparator();
+
    m_action_show_rendering_tiles = m_menu_view->addAction("Show Rendering Tiles");
    connect(m_action_show_rendering_tiles, SIGNAL(triggered()), this, SLOT(showRenderingTiles()));
    m_action_show_rendering_tiles->setCheckable(true);
@@ -688,6 +725,28 @@ void CRenderViewMainWindow::progressiveRefinement()
    m_renderView.refresh();
 }
 
+
+void CRenderViewMainWindow::showChannel()
+{
+   std::string colorMode = m_channel_action_group->checkedAction()->text().toStdString();
+   if (colorMode == "Red Channel")
+   {
+      m_renderView.m_color_mode = COLOR_MODE_R;
+   } else if(colorMode == "Green Channel")
+   {
+      m_renderView.m_color_mode = COLOR_MODE_G;
+   } else if (colorMode == "Blue Channel")
+   {
+      m_renderView.m_color_mode = COLOR_MODE_B;
+   } else if (colorMode == "Alpha Channel")
+   {
+      m_renderView.m_color_mode = COLOR_MODE_A;
+   } else
+   {
+      m_renderView.m_color_mode = COLOR_MODE_RGBA;
+   }
+   m_renderView.getGlWidget()->reloadBuffer(m_renderView.m_color_mode);
+}
 
 
 // If you add some slots, you'll have to run moc

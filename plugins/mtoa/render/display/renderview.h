@@ -66,6 +66,7 @@ private:
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
    QAction *m_action_progressive_refinement;
+   QActionGroup *m_channel_action_group;
 
  
 private slots:
@@ -79,6 +80,7 @@ private slots:
    void nextStoredImage();
    void deleteStoredImage();
    void progressiveRefinement();
+   void showChannel();
 
 
 };
