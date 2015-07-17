@@ -46,6 +46,7 @@ private:
    static MObject s_filename;
    static MObject s_grids;
    static MObject s_frame;
+   static MObject s_padding;
    
    static MObject s_velocity_grids;
    static MObject s_velocity_scale;
@@ -58,6 +59,7 @@ private:
    MString m_data;
    MString m_filename;
    MString m_grids;
+   float m_padding;
    int m_frame;
    
    MBoundingBox m_bbox;
