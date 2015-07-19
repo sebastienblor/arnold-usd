@@ -68,15 +68,14 @@ char          K_ignore_list[K_MAX_IGNORES][256];
 int           K_ignore_list_size;
 int           K_turn;
 int           K_set_filename;
-AtArray      *K_display_output;
-AtArray      *K_all_outputs;
 EInfoMode     K_info_mode;
 int           K_info_sort;
 const char   *K_info_data;
 int           K_wait_keypress;
 int           K_binary_ass;
 int           K_wait_for_changes;
-int K_allow_interruption;
+int           K_allow_interruption;
+int           K_enable_aovs;
 volatile AtUInt64 K_render_timestamp;
 
 
@@ -176,8 +175,7 @@ void K_InitGlobalVars(void)
    K_turn = 0;
    K_driver_node = 0;
    K_set_filename = 0;
-   K_display_output = NULL;
-   K_all_outputs = NULL;
+   
    K_info_mode = K_INFO_NONE;
    K_info_sort = 0;
    K_info_data = NULL;
@@ -189,8 +187,7 @@ void K_InitGlobalVars(void)
 
    K_set_filename = 0;
    K_resave = 0;
-
-
+   K_enable_aovs = true;
 
    for (int i = 0; i < K_MAX_IGNORES; i++)
       strcpy(K_ignore_list[i], "");
@@ -237,23 +234,6 @@ extern int RenderLoop(int smin, int smax)
       while(K_wait_for_changes) {CRenderView::sleep(10);}
 
       /*
-       * skip progressive if there is no display but there are file outputs,
-       * since the render will be cancelled if abort_on_error is true
-       */
-      if ((K_all_outputs && K_all_outputs->nelements > 0) &&
-          !K_render_window &&
-          AiNodeGetBool(AiUniverseGetOptions(), "abort_on_error"))
-      {
-         static bool once = true;
-         if (once)
-         {
-            AiMsgWarning("[kick] skipping progressive render since there are no window display outputs");
-            once = false;
-         }
-         smin = smax;
-      }
-
-      /*
        * begin the render-loop
        */
 
@@ -271,13 +251,7 @@ extern int RenderLoop(int smin, int smax)
          if ((i==0) || (i>1 && i<smax) || (i==smax-1))
             continue;
    
-         /*
-          * Use just the display output for all the intermediate passes
-          */
-         if (i==smin && smin!=smax && K_display_output && K_progressive)
-         {
-            AiNodeSetArray(AiUniverseGetOptions(), "outputs", AiArrayCopy(K_display_output));
-         }
+         
 
          AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", i);
    
@@ -326,16 +300,7 @@ extern int RenderLoop(int smin, int smax)
       }
 
    } while (!K_aborted);
-   if (k_outputs_set == false)
-   {
-      /* 
-       * we need to destroy K_all_outputs manually 
-       * because it was never used in options->outputs
-       * and therefore won't get cleaned-up by the system
-       */
-      AiArrayDestroy(K_all_outputs);
-      K_all_outputs = NULL;
-   }
+   
 
    return exit_code;
 }
@@ -348,6 +313,7 @@ unsigned int kickWindowRender(void *kwin_ptr)
 
   int smin = MIN(-3, K_AA_samples);
   int smax = K_AA_samples;
+
   RenderLoop(smin, smax);
 
   return 0;

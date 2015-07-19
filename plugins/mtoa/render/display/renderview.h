@@ -58,15 +58,20 @@ public:
    void initMenus();
 private:
 
+   void populateAOVsMenu();
+
    CRenderView &m_renderView;
    QMenu *m_menu_file;
    QMenu *m_menu_view;
    QMenu *m_menu_render;
+   QMenu *m_menu_aovs;
 
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
    QAction *m_action_progressive_refinement;
+   QAction *m_action_enable_aovs;
    QActionGroup *m_channel_action_group;
+   QActionGroup *m_aovs_action_group;
 
  
 private slots:
@@ -81,6 +86,8 @@ private slots:
    void deleteStoredImage();
    void progressiveRefinement();
    void showChannel();
+   void enableAOVs();
+   void showAOV();
 
 
 };
@@ -146,7 +153,7 @@ public:
    bool canRefresh() const;
    void refresh();
    
-   void saveImage(const std::string &filename) const;
+   void saveImage(const std::string &filename);
    void storeImage();
    void showPreviousStoredImage();
    void showNextStoredImage();
@@ -160,20 +167,38 @@ public:
 
       m_buffer[pixel_index] = rgba;
 
-      if (m_displayedImageIndex < 0)
+      if (m_displayedImageIndex < 0 && m_displayedAovIndex < 0)
       {
          // Now let'sfill the GLWidget's RGBA8 buffer
          AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
          copyToRGBA8(rgba, rgba8, x, y);
       }
    }
+   // this method doesn't check for boundaries
+   void setAOVPixelColor(int aovIndex, int x, int y, const AtRGBA &rgba)
+   {
+      int pixel_index = y * m_width + x;
+
+      m_aovBuffers[aovIndex][pixel_index] = rgba;
+
+      if (m_displayedAovIndex == aovIndex && m_displayedImageIndex < 0)
+      {
+         // Now let'sfill the GLWidget's RGBA8 buffer
+         AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
+         copyToRGBA8(rgba, rgba8, x, y);
+      }
+   }
+
    void setShowRenderingTiles(bool b) {m_show_rendering_tiles = b;}
    bool getShowRenderingTiles() const {return m_show_rendering_tiles;}
-
+   
    AtRvColorMode m_color_mode;
 
 
 protected:
+
+friend CRenderViewMainWindow;
+
    void init();
    void refreshGLBuffer();
    
@@ -201,6 +226,12 @@ protected:
          rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, m_dither);
       }
    }
+   AtRGBA *getDisplayedBuffer()
+   {
+      return (m_displayedImageIndex < 0) ? 
+               ((m_displayedAovIndex < 0) ? m_buffer : m_aovBuffers[m_displayedAovIndex]) :
+               m_storedImages[m_displayedImageIndex];
+   }
 
    int m_width;
    int m_height;
@@ -218,7 +249,11 @@ protected:
 
    AtRGBA *m_buffer;
    std::vector<AtRGBA *> m_storedImages;
+   std::vector<AtRGBA *> m_aovBuffers;
+   std::vector<std::string> m_aovNames;
+
    int m_displayedImageIndex;
+   int m_displayedAovIndex;
 };
 
 

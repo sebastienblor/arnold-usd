@@ -22,7 +22,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      11,   14, // methods
+      13,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -41,6 +41,8 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      152,   22,   22,   22, 0x08,
      172,   22,   22,   22, 0x08,
      196,   22,   22,   22, 0x08,
+     210,   22,   22,   22, 0x08,
+     223,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -51,7 +53,7 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "autoRefresh()\0updateRender()\0storeImage()\0"
     "previousStoredImage()\0nextStoredImage()\0"
     "deleteStoredImage()\0progressiveRefinement()\0"
-    "showChannel()\0"
+    "showChannel()\0enableAOVs()\0showAOV()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -71,6 +73,8 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 8: _t->deleteStoredImage(); break;
         case 9: _t->progressiveRefinement(); break;
         case 10: _t->showChannel(); break;
+        case 11: _t->enableAOVs(); break;
+        case 12: _t->showAOV(); break;
         default: ;
         }
     }
@@ -109,9 +113,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 11)
+        if (_id < 13)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 11;
+        _id -= 13;
     }
     return _id;
 }

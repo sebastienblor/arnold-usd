@@ -235,6 +235,8 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
 
    glMatrixMode(GL_MODELVIEW);
    glPopMatrix();
+
+   update();
 }
 
 

@@ -9,11 +9,42 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MRenderView.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MDagPath.h>
+#include <maya/MDagPathArray.h>
 
 #include <vector>
 
 #include "../render/display/renderview.h"
 
+
+// Return all renderable cameras
+static int GetRenderCameras(MDagPathArray &cameras)
+{
+   MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
+   MDagPath cameraPath;
+   // MFnCamera cameraNode;
+   MFnDagNode cameraNode;
+   MPlug renderable;
+   MStatus stat;
+   while (!dagIter.isDone())
+   {
+      dagIter.getPath(cameraPath);
+      cameraNode.setObject(cameraPath);
+      renderable = cameraNode.findPlug("renderable", false, &stat);
+      if (stat && renderable.asBool())
+      {
+         cameras.append(cameraPath);
+      }
+      dagIter.next();
+   }
+
+   int size = cameras.length();
+   if (size > 1)
+      MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
+   else if (!size)
+      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
+   return size;
+}
 
 MSyntax CArnoldRenderViewCmd::newSyntax()
 {
@@ -61,7 +92,16 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       MDagPath camera;
       status = sel.getDagPath(0, camera);
 
-      startRenderView(camera, width, height);
+      MDagPathArray cameras;
+      if (camera.isValid())
+      {
+         cameras.append(camera);
+      }
+      else
+      {
+         GetRenderCameras(cameras);
+      }
+      startRenderView(cameras[0], width, height);
 
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->InterruptRender();
@@ -129,8 +169,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
    CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
    CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
-   CMayaScene::GetArnoldSession()->SetExportCamera(camera);
-
+   
 
    if (!renderGlobals.renderAll)
    {
@@ -143,10 +182,13 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
       CMayaScene::Export();
    }
 
+   // SetExportCamera mus be called AFTER CMayaScene::Export
+   CMayaScene::GetArnoldSession()->SetExportCamera(camera);
+
    // Set resolution and camera as passed in.
    CMayaScene::GetRenderSession()->SetResolution(width, height);
    CMayaScene::GetRenderSession()->SetCamera(camera);
-  
+
    CMayaScene::GetRenderSession()->StartRenderView();
 
 

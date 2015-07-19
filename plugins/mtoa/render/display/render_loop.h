@@ -112,6 +112,7 @@ extern char   K_log_filename[K_MAX_FILENAME];
 extern int    K_progressive;
 extern int    K_wait_for_changes;
 extern int 	  K_allow_interruption;
+extern int 	  K_enable_aovs;
 
 /*
  * we appear to need 'volatile' for the empty while() loop after we've
@@ -147,8 +148,7 @@ extern int    K_binary_ass;
 extern char   K_RLM_server_name[HOST_NAME_MAX];
 extern unsigned int K_RLM_server_port;
 
-extern AtArray *K_display_output;
-extern AtArray *K_all_outputs;
+
 extern int      K_AA_samples;
 
 

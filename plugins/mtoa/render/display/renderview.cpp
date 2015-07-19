@@ -147,10 +147,10 @@ void CRenderView::init()
    K_render_window = true;
    K_progressive = true;
 
-   unsigned int i;
+   //unsigned int i;
    AtNode *filter;
    AtNode *driver;
-   char kick_drv[1024];
+   //char kick_drv[1024];
    AtArray *outputs;
 
    AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, K_DISPLAY_NAME,  NULL, kick_driver_mtd , AI_VERSION);
@@ -175,35 +175,64 @@ void CRenderView::init()
    }
    AiNodeSetStr(filter, "name", "kick_display_filter");
 
-   /*
-   * duplicate the old outputs array
-   */
+   
+   // We should support the options changes during a session
+   // duplicate the old outputs array
    outputs = AiNodeGetArray(AiUniverseGetOptions(), "outputs");
 
-   K_all_outputs = AiArrayAllocate(outputs->nelements+1, 1, AI_TYPE_STRING);
-   for (i=0; i < outputs->nelements; i++)
-     AiArraySetStr(K_all_outputs, i, AiArrayGetStr(outputs,i));
-   /*
-   * append our new outputs directive to the existing ones
-   */
-   sprintf(kick_drv, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-   AiArraySetStr(K_all_outputs, outputs->nelements, kick_drv);
+   m_aovBuffers.reserve(outputs->nelements);
+   m_aovNames.reserve(outputs->nelements);
+
+   // list of outputs stored as std::string for 
+   // manipulation simplicity
+   std::vector<std::string> outputValues;
+   outputValues.reserve(outputs->nelements);
+
+   bool foundBeauty = false;
+   for (size_t i = 0; i < outputs->nelements; ++i)
+   {
+      std::string outputStr = AiArrayGetStr(outputs, i);
+      std::string outputName = outputStr.substr(0, outputStr.find_first_of(' '));
+
+      while(outputStr[outputStr.length() - 1] == ' ')
+      {
+         outputStr = outputStr.substr(0, outputStr.length() - 1);
+      }
+      size_t lastStep = outputStr.find_last_of(' ');
+      outputStr = outputStr.substr(0, lastStep);
+      outputStr += " ";
+      outputStr += AiNodeGetName(driver);
+
+      if (outputName == "RGB" || outputName == "RGBA")
+      {
+         // this is my beauty
+         if (foundBeauty) continue; // only 1 beauty please
+
+         foundBeauty = true;
+
+         outputValues.insert(outputValues.begin(), outputStr);
+      } else
+      {
+         outputValues.push_back(outputStr);
+
+         // add the aov name to the list
+         m_aovNames.push_back(outputName);
+         AtRGBA *aovBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
+         memset(aovBuffer, 0, m_width * m_height * sizeof(AtRGBA));
+         //add the aov buffer
+         m_aovBuffers.push_back(aovBuffer);         
+      }
+   }   
 
 
-   /*
-   * create an output with just the display driver, save it for later
-   */
-   K_display_output = AiArray(1, 1, AI_TYPE_STRING, kick_drv);
-   /*
-   * overwrite the old outputs line
-   */
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", AiArrayCopy(K_all_outputs));
-   /*
-   * configure the kick display driver -- make sure it has something
-   * to store local information in
-   */
+   AtArray *allOutputsArray = AiArrayAllocate(outputValues.size(), 1, AI_TYPE_STRING);
+   for (size_t i=0; i < outputValues.size(); i++)
+   {
+      AiArraySetStr(allOutputsArray, i, outputValues[i].c_str());
+   }
+   AiNodeSetArray(AiUniverseGetOptions(), "outputs", allOutputsArray);
+
    AiNodeSetPtr(driver, "userdata", (void *)this);
-
 
    // enlarge resolution to capture overscan data
    AtBBox2 full_window;
@@ -251,7 +280,6 @@ void CRenderView::init()
    }
 
    K_InitGlobalVars();
-
    if (!m_storedImages.empty())
    {
       for (size_t i = 0; i < m_storedImages.size(); ++i)
@@ -260,8 +288,12 @@ void CRenderView::init()
       }
       m_storedImages.clear();
    }
+   
    m_displayedImageIndex = -1; // -1 means the current rendering
    // >= 0 refers to a stored Image
+
+   m_displayedAovIndex = -1; // -1 means we're showing the beauty
+   // >0 refers to an AOV
 
 }
 
@@ -278,6 +310,8 @@ void CRenderView::render()
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
    }  
+
+   // make sure m_aovBuffers is resized to the appropriate amount of AOVs
 
    m_render_thread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
 
@@ -431,13 +465,13 @@ void CRenderView::refresh()
 }
 
 
-void CRenderView::saveImage(const std::string &filename) const
+void CRenderView::saveImage(const std::string &filename)
 {
    // Write down the displayed image
 
    // We're using QT stuff, but maybe we should use Maya's instead ?
    QImage outImg(m_width, m_height, QImage::Format_ARGB32 );
-   AtRGBA *buffer = (m_displayedImageIndex < 0) ? m_buffer : m_storedImages[m_displayedImageIndex];
+   AtRGBA *buffer = getDisplayedBuffer();
 
    for (int j = 0; j < m_height; ++j)
    {
@@ -459,7 +493,8 @@ void CRenderView::storeImage()
 
 void CRenderView::refreshGLBuffer()
 {  
-   AtRGBA *displayedBuffer = (m_displayedImageIndex < 0) ? m_buffer : m_storedImages[m_displayedImageIndex];
+   AtRGBA *displayedBuffer = getDisplayedBuffer();
+
    AtRGBA8 *gl_buffer = m_gl->getBuffer();
 
    int ind = 0;
@@ -555,6 +590,22 @@ CRenderViewMainWindow::initMenus()
    
    m_menu_view = menubar->addMenu("View");
 
+   m_action_enable_aovs = m_menu_view->addAction("Enable AOVs");
+   connect(m_action_enable_aovs, SIGNAL(triggered()), this, SLOT(enableAOVs()));
+   m_action_enable_aovs->setCheckable(true);
+   m_action_enable_aovs->setChecked(K_enable_aovs);
+   m_action_enable_aovs->setStatusTip("Enable AOVs in the RenderView");
+   
+   m_menu_aovs = new QMenu("AOVs");
+   m_menu_view->addMenu(m_menu_aovs);
+   m_menu_aovs->setEnabled(K_enable_aovs);
+
+   m_aovs_action_group = 0;
+
+   populateAOVsMenu();
+
+   m_menu_view->addSeparator();
+   
    m_channel_action_group = new QActionGroup(this);
 
    action = m_menu_view->addAction("Red Channel");
@@ -749,5 +800,78 @@ void CRenderViewMainWindow::showChannel()
 }
 
 
+
+void CRenderViewMainWindow::enableAOVs()
+{
+   K_enable_aovs = m_action_enable_aovs->isChecked();   
+   m_menu_aovs->setEnabled(K_enable_aovs);
+}
+
+
+
+void CRenderViewMainWindow::populateAOVsMenu()
+{
+   if (m_aovs_action_group != 0)
+   {
+      delete m_aovs_action_group;
+      m_aovs_action_group = 0;
+   }
+
+   // clear all previous actions in the menu
+   m_menu_aovs->clear();
+   // if AOVs are not enabled, we don't have anything to show
+   if (!K_enable_aovs) 
+   {
+      //AiMsgError("[mtoa] AOVs must first be enabled to appear in the Render View");
+      return; 
+   }
+   m_aovs_action_group = new QActionGroup(this);
+
+
+   QAction *action = m_menu_aovs->addAction("Beauty");
+   connect(action, SIGNAL(triggered()), this, SLOT(showAOV()));
+   action->setCheckable(true);
+   if (m_renderView.m_displayedAovIndex < 0) action->setChecked(true);
+
+   m_aovs_action_group->addAction(action);
+   m_menu_aovs->addSeparator();
+
+   const std::vector<std::string> &aovNames = m_renderView.m_aovNames;
+
+   for (int i = 0; i < (int)aovNames.size(); ++i)
+   {
+      action = m_menu_aovs->addAction(QString(aovNames[i].c_str()));
+      connect(action, SIGNAL(triggered()), this, SLOT(showAOV()));
+      action->setCheckable(true);
+      if (m_renderView.m_displayedAovIndex == i) action->setChecked(true);
+      m_aovs_action_group->addAction(action);
+   }
+}
+
+
+void CRenderViewMainWindow::showAOV()
+{
+   std::string aovName = m_aovs_action_group->checkedAction()->text().toStdString();
+   if (aovName == "Beauty")
+   {
+      // display the beauty
+      m_renderView.m_displayedAovIndex = -1;
+
+   } else
+   {
+      const std::vector<std::string> &aovNames = m_renderView.m_aovNames;
+      for (size_t i = 0; i < aovNames.size(); ++i)
+      {
+         if (aovNames[i] == aovName)
+         {
+            // found my current AOV
+            m_renderView.m_displayedAovIndex = i;
+            break;
+         }
+      }
+   }      
+   m_renderView.refreshGLBuffer();
+   update();
+}
 // If you add some slots, you'll have to run moc
 #include "renderview.moc"
