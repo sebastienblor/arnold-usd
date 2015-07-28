@@ -31,6 +31,7 @@
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
 
+
 //#include <QtGui/qimage.h>
 
 #pragma warning (disable : 4244)
@@ -137,6 +138,7 @@ void CRenderView::init()
    m_color_mode  = COLOR_MODE_RGBA;
    m_gamma       = 1.f; // we'll control that later on
    m_show_rendering_tiles = false;
+   m_region_crop = false;
 
    K_AA_samples = AiNodeGetInt(options, "AA_samples");
    if (K_AA_samples == 0)
@@ -494,7 +496,6 @@ void CRenderView::storeImage()
 void CRenderView::refreshGLBuffer()
 {  
    AtRGBA *displayedBuffer = getDisplayedBuffer();
-
    AtRGBA8 *gl_buffer = m_gl->getBuffer();
 
    int ind = 0;
@@ -697,8 +698,15 @@ CRenderViewMainWindow::initMenus()
    m_action_progressive_refinement->setChecked(true);
    m_action_progressive_refinement->setStatusTip("Display the Tiles being rendered");
 
-   
+   m_action_crop_region = m_menu_render->addAction("Crop Region");
+   connect(m_action_crop_region, SIGNAL(triggered()), this, SLOT(cropRegion()));
+   m_action_crop_region->setCheckable(true);
+   m_action_crop_region->setChecked(false);
+   m_action_crop_region->setStatusTip("Allow to drag a Crop Render Region");
 
+   setMouseTracking(true);
+   m_leftButtonDown = false;
+   m_regionStart[0] = m_regionStart[1] = -1;
 }
 void
 CRenderViewMainWindow::saveImage()
@@ -807,6 +815,93 @@ void CRenderViewMainWindow::enableAOVs()
    m_menu_aovs->setEnabled(K_enable_aovs);
 }
 
+void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
+{
+   if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
+   
+   int regionEnd[2];
+   regionEnd[0] = MIN(MAX(event->x(), 0), m_renderView.m_width);
+   regionEnd[1] = MIN(MAX(event->y(), 0), m_renderView.m_height);
+
+   if (regionEnd[0] == m_regionStart[0] || regionEnd[1] == m_regionStart[1]) return;
+
+   // drag region from m_regionStart and current Point
+   m_renderView.m_gl->setRegionCrop(m_regionStart[0], m_regionStart[1], regionEnd[0], regionEnd[1]);
+}
+
+void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
+{
+   if (!m_renderView.m_region_crop) return;
+
+   if ((event->button() == Qt::RightButton) && m_leftButtonDown)
+   {
+      // if for example we right-click while we're draggin the region,
+      // just cancel the region
+      m_leftButtonDown = false;
+      m_regionStart[0] = m_regionStart[1] = -1;
+      m_renderView.m_gl->clearRegionCrop();
+      return;
+   }
+
+   if(event->button() != Qt::LeftButton) return;
+
+   m_leftButtonDown = true;
+
+   // get mouse position
+   // set in m_regionStart
+   m_regionStart[0] = MIN(MAX(event->x(), 0), m_renderView.m_width);
+   m_regionStart[1] = MIN(MAX(event->y(), 0), m_renderView.m_height);
+
+
+}
+void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
+{
+   if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
+   
+   if(event->button() != Qt::LeftButton) return;
+
+   m_leftButtonDown = false;
+   int regionEnd[2];
+   regionEnd[0] = MIN(MAX(event->x(), 0), m_renderView.m_width);
+   regionEnd[1] = MIN(MAX(event->y(), 0), m_renderView.m_height);
+
+   if (regionEnd[0] == m_regionStart[0] || regionEnd[1] == m_regionStart[1])
+   {
+      m_regionStart[0] = m_regionStart[1] = -1;
+      m_renderView.m_gl->clearRegionCrop();
+      m_renderView.interruptRender();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
+      AtNode *options = AiUniverseGetOptions();
+      AiNodeSetInt(options, "region_min_x", -1);
+      AiNodeSetInt(options, "region_min_y", -1);
+      AiNodeSetInt(options, "region_max_x", -1);
+      AiNodeSetInt(options, "region_max_y", -1);
+
+      m_renderView.refresh();
+   // tell GL Widget to remove region
+      return;
+   }
+
+   // draw region from m_regionStart and current Point
+   // set region in Arnold
+
+   m_renderView.m_gl->setRegionCrop(m_regionStart[0], m_regionStart[1], regionEnd[0], regionEnd[1]);
+
+   m_renderView.interruptRender();
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   renderSession->SetRegion(m_regionStart[0], m_regionStart[1], regionEnd[0], regionEnd[1]);
+   AtNode *options = AiUniverseGetOptions();
+   AiNodeSetInt(options, "region_min_x", m_regionStart[0]);
+   AiNodeSetInt(options, "region_min_y", m_regionStart[1]);
+   AiNodeSetInt(options, "region_max_x", regionEnd[0]);
+   AiNodeSetInt(options, "region_max_y", regionEnd[1]);
+   
+   m_renderView.refresh();
+
+}
+
+
 
 
 void CRenderViewMainWindow::populateAOVsMenu()
@@ -873,5 +968,11 @@ void CRenderViewMainWindow::showAOV()
    m_renderView.refreshGLBuffer();
    update();
 }
+
+void CRenderViewMainWindow::cropRegion()
+{
+   m_renderView.m_region_crop = m_action_crop_region->isChecked();
+}
+
 // If you add some slots, you'll have to run moc
 #include "renderview.moc"

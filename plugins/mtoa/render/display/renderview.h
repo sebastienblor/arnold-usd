@@ -70,10 +70,19 @@ private:
    QAction *m_action_auto_refresh;
    QAction *m_action_progressive_refinement;
    QAction *m_action_enable_aovs;
+   QAction *m_action_crop_region;
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
 
- 
+protected:
+   void mouseMoveEvent ( QMouseEvent * event );
+   void mousePressEvent ( QMouseEvent * event );
+   void mouseReleaseEvent ( QMouseEvent * event );
+   
+private:
+   bool m_leftButtonDown;
+   int  m_regionStart[2];
+
 private slots:
    void saveImage();
    void abortRender();
@@ -88,6 +97,7 @@ private slots:
    void showChannel();
    void enableAOVs();
    void showAOV();
+   void cropRegion();
 
 
 };
@@ -194,6 +204,7 @@ public:
    
    AtRvColorMode m_color_mode;
 
+   bool getRegionCrop(bool b){m_region_crop = b;}
 
 protected:
 
@@ -242,7 +253,7 @@ friend CRenderViewMainWindow;
    float m_gamma;
    bool m_show_rendering_tiles;
    bool m_progressive_refinement;
-  
+   bool m_region_crop; 
 
    void *m_render_thread;
 

@@ -80,7 +80,8 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    }
 
    m_back_buffer = NULL;
-
+   setMouseTracking(true);
+   clearRegionCrop();
 }
 CRenderGLWidget::~CRenderGLWidget()
 {
@@ -316,6 +317,33 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
    // unset texture attributes
    kglPopClientAttrib();
 
+    // Draw a border to the buffer
+   if (m_regionCrop)
+   {
+      glColor3f(1.0f, 0.1f, 0.1f);
+      glBegin(GL_LINE_LOOP);
+      glVertex2d(m_region.minx, m_height - m_region.maxy);
+      glVertex2d(m_region.maxx, m_height - m_region.maxy);
+      glVertex2d(m_region.maxx, m_height - m_region.miny);
+      glVertex2d(m_region.minx, m_height - m_region.miny);
+      glEnd();
+   }
+
+
    GL_print_error("draw texture");
 }
 
+void CRenderGLWidget::setRegionCrop(int start_x, int start_y, int end_x, int end_y)
+{
+   m_region.minx = (float)start_x;
+   m_region.miny = (float)start_y;
+   m_region.maxx = (float)end_x;
+   m_region.maxy = (float)end_y;  
+   m_regionCrop = true; 
+}
+
+void CRenderGLWidget::clearRegionCrop()
+{
+   m_regionCrop = false;
+   m_region.minx = m_region.miny = m_region.maxx = m_region.maxy = 0;
+}

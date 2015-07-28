@@ -48,6 +48,9 @@ public:
    void copyToBackBuffer();
    void reloadBuffer(AtRvColorMode color_mode);
 
+   void setRegionCrop(int start_x, int start_y, int end_x, int end_y);
+   void clearRegionCrop();
+
 private:
    void setupTexture();
    void displayBuffer(int w, int h, const AtBBox2 *update_region,
@@ -65,5 +68,8 @@ private:
    int m_width, m_height;
    // texture coordinates for drawing
    float m_tx, m_ty;
+
+   bool m_regionCrop;
+   AtBBox2 m_region;
   
 };
