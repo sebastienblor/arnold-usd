@@ -82,6 +82,8 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    m_back_buffer = NULL;
    setMouseTracking(true);
    clearRegionCrop();
+   m_pan[0] = m_pan[1] = 0;
+   m_zoomFactor = 1.f;
 }
 CRenderGLWidget::~CRenderGLWidget()
 {
@@ -175,13 +177,28 @@ void CRenderGLWidget::paintGL()
 
    makeCurrent();
 
+
    glMatrixMode(GL_PROJECTION);
    glPushMatrix();
    glLoadIdentity();
 
+   int imageSize[2];
+   imageSize[0] = int (m_width * m_zoomFactor);
+   imageSize[1] = int(m_height * m_zoomFactor);
 
-   kglViewport(0, 0, m_width, m_height);
+   
+   int zoomOffset[2];
+   zoomOffset[0] = int ((m_width - imageSize[0]) * 0.5);
+   zoomOffset[1] = int ((m_height - imageSize[1]) * 0.5);
+
+
+   int windowSizeOffset[2];
+   windowSizeOffset[0] = int( (parentWidget()->width() - m_width) * 0.5 );
+   windowSizeOffset[1] = int( (parentWidget()->height() - m_height) * 0.5);
+   
+   kglViewport(m_pan[0] + zoomOffset[0] + windowSizeOffset[0],  -m_pan[1] + zoomOffset[1] + windowSizeOffset[1], imageSize[0], imageSize[1]);
    kglOrtho(0, m_width, 0, m_height, -1, 1);
+
    glMatrixMode(GL_MODELVIEW);
    glPushMatrix();
    glLoadIdentity();
@@ -229,6 +246,7 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
    region.minx = region.miny = 0;
    region.maxx = m_width;
    region.maxy = m_height;
+
    displayBuffer(m_width, m_height, &region, color_mode, false);
 
    glMatrixMode(GL_PROJECTION);
@@ -244,6 +262,7 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
 void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
 {
 
+
    kglClearColor(FILL_COLOR.r, FILL_COLOR.g, FILL_COLOR.b, FILL_COLOR.a);
    kglClear(GL_COLOR_BUFFER_BIT);
    GL_print_error("clear buffer");
@@ -254,6 +273,7 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
 
    if (update_region)
    {
+     
       AtRGBA8 *buffer = (back_buffer && m_back_buffer) ? m_back_buffer : m_front_buffer;
 
       kglPixelStorei(GL_UNPACK_ROW_LENGTH,  m_width);
@@ -329,8 +349,39 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
       glEnd();
    }
 
-
    GL_print_error("draw texture");
+}
+
+void CRenderGLWidget::project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp) const
+{
+   int imageSize[2];
+   imageSize[0] = int (m_width * m_zoomFactor);
+   imageSize[1] = int(m_height * m_zoomFactor);
+
+   
+   int zoomOffset[2];
+   zoomOffset[0] = int ((m_width - imageSize[0]) * 0.5);
+   zoomOffset[1] = int ((m_height - imageSize[1]) * 0.5);
+
+
+   int windowSizeOffset[2];
+   windowSizeOffset[0] = int( (parentWidget()->width() - m_width) * 0.5 );
+   windowSizeOffset[1] = int( (parentWidget()->height() - m_height) * 0.5);
+
+
+   int startBuffer[2];
+   startBuffer[0] =   m_pan[0] + zoomOffset[0] + windowSizeOffset[0];
+   startBuffer[1] =  m_pan[1] + zoomOffset[1] + windowSizeOffset[1];
+   
+   bufferX = (windowX - startBuffer[0])/ m_zoomFactor;
+   bufferY = (windowY - startBuffer[1])/ m_zoomFactor;
+
+   if (clamp)
+   {
+      bufferX = MIN(MAX(bufferX, 0), m_width);
+      bufferY = MIN(MAX(bufferY, 0), m_height);
+   }
+
 }
 
 void CRenderGLWidget::setRegionCrop(int start_x, int start_y, int end_x, int end_y)

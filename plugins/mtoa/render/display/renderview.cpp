@@ -642,6 +642,26 @@ CRenderViewMainWindow::initMenus()
 
    m_menu_view->addSeparator();
 
+   action = m_menu_view->addAction("Frame All");
+   connect(action, SIGNAL(triggered()), this, SLOT(frameAll()));
+   action->setCheckable(false);
+   action->setStatusTip("Frame the whole Image to fit the window size");
+   action->setShortcut(Qt::Key_A);
+
+   action = m_menu_view->addAction("Frame Region");
+   connect(action, SIGNAL(triggered()), this, SLOT(frameRegion()));
+   action->setCheckable(false);
+   action->setStatusTip("Frame the Crop Region to fit the window size");
+   action->setShortcut(Qt::Key_F);
+
+   action = m_menu_view->addAction("Real Size");
+   connect(action, SIGNAL(triggered()), this, SLOT(realSize()));
+   action->setCheckable(false);
+   action->setStatusTip("Display image with its real size");
+   action->setShortcut(Qt::Key_O);
+
+   m_menu_view->addSeparator();
+
    m_action_show_rendering_tiles = m_menu_view->addAction("Show Rendering Tiles");
    connect(m_action_show_rendering_tiles, SIGNAL(triggered()), this, SLOT(showRenderingTiles()));
    m_action_show_rendering_tiles->setCheckable(true);
@@ -706,7 +726,9 @@ CRenderViewMainWindow::initMenus()
 
    setMouseTracking(true);
    m_leftButtonDown = false;
-   m_regionStart[0] = m_regionStart[1] = -1;
+   m_pickPoint[0] = m_pickPoint[1] = -1;
+   m_previousPan[0] = m_previousPan[1] = 0;
+   m_previousZoom = 1.f;
 }
 void
 CRenderViewMainWindow::saveImage()
@@ -817,40 +839,87 @@ void CRenderViewMainWindow::enableAOVs()
 
 void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
 {
+   if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier))
+   {
+      if ((event->buttons() & Qt::LeftButton) || (event->buttons() & Qt::MidButton))
+      {
+         m_renderView.m_gl->setPan(event->x() - m_pickPoint[0] + m_previousPan[0], event->y() - m_pickPoint[1] + m_previousPan[1]);
+         m_renderView.draw();
+      }
+      if ((event->buttons() & Qt::RightButton))
+      {
+         float zoomFactor = powf(2.f, ((float)(event->x() - m_pickPoint[0]) / (float)m_renderView.m_width));
+         zoomFactor *= m_previousZoom;
+         m_renderView.m_gl->setZoomFactor(zoomFactor);
+
+         m_renderView.draw();
+
+      }
+      return;
+   }
+
    if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
    
    int regionEnd[2];
-   regionEnd[0] = MIN(MAX(event->x(), 0), m_renderView.m_width);
-   regionEnd[1] = MIN(MAX(event->y(), 0), m_renderView.m_height);
+   regionEnd[0] = event->x();
+   regionEnd[1] = event->y();
 
-   if (regionEnd[0] == m_regionStart[0] || regionEnd[1] == m_regionStart[1]) return;
+   if (regionEnd[0] == m_pickPoint[0] || regionEnd[1] == m_pickPoint[1]) return;
 
-   // drag region from m_regionStart and current Point
-   m_renderView.m_gl->setRegionCrop(m_regionStart[0], m_regionStart[1], regionEnd[0], regionEnd[1]);
+   // drag region from m_pickPoint and current Point
+
+   int bufferStart[2];
+   int bufferEnd[2];
+   m_renderView.m_gl->project(m_pickPoint[0], m_pickPoint[1], bufferStart[0], bufferStart[1], true);
+   m_renderView.m_gl->project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
+
+
+   // -> project in image space
+   m_renderView.m_gl->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
 }
 
 void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
 {
+
+   if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier))
+   {
+      if ((event->buttons() & Qt::LeftButton) || (event->buttons() & Qt::MidButton) || (event->buttons() & Qt::RightButton))
+      {
+         // TRANSLATION
+
+         m_pickPoint[0] = event->x();
+         m_pickPoint[1] = event->y();
+
+         m_renderView.m_gl->getPan(m_previousPan[0], m_previousPan[1]);
+         m_previousZoom = m_renderView.m_gl->getZoomFactor();
+      }
+      return;
+   }
+
+   // simply pressed the mouse
+
    if (!m_renderView.m_region_crop) return;
 
-   if ((event->button() == Qt::RightButton) && m_leftButtonDown)
+/*
+   if ((event->buttons() & Qt::RightButton) && m_leftButtonDown)
    {
       // if for example we right-click while we're draggin the region,
       // just cancel the region
       m_leftButtonDown = false;
-      m_regionStart[0] = m_regionStart[1] = -1;
+      m_pickPoint[0] = m_pickPoint[1] = -1;
       m_renderView.m_gl->clearRegionCrop();
       return;
    }
+*/
 
-   if(event->button() != Qt::LeftButton) return;
+   if(!(event->buttons() & Qt::LeftButton)) return;
 
    m_leftButtonDown = true;
-
+      
    // get mouse position
-   // set in m_regionStart
-   m_regionStart[0] = MIN(MAX(event->x(), 0), m_renderView.m_width);
-   m_regionStart[1] = MIN(MAX(event->y(), 0), m_renderView.m_height);
+   // set in m_pickPoint
+   m_pickPoint[0] = event->x();
+   m_pickPoint[1] = event->y();
 
 
 }
@@ -858,16 +927,15 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
 {
    if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
    
-   if(event->button() != Qt::LeftButton) return;
-
+   
    m_leftButtonDown = false;
    int regionEnd[2];
-   regionEnd[0] = MIN(MAX(event->x(), 0), m_renderView.m_width);
-   regionEnd[1] = MIN(MAX(event->y(), 0), m_renderView.m_height);
+   regionEnd[0] = event->x();
+   regionEnd[1] = event->y();
 
-   if (regionEnd[0] == m_regionStart[0] || regionEnd[1] == m_regionStart[1])
+   if (ABS(regionEnd[0] - m_pickPoint[0]) < 3 || ABS(regionEnd[1] - m_pickPoint[1]) < 3)
    {
-      m_regionStart[0] = m_regionStart[1] = -1;
+      m_pickPoint[0] = m_pickPoint[1] = -1;
       m_renderView.m_gl->clearRegionCrop();
       m_renderView.interruptRender();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -883,25 +951,59 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
       return;
    }
 
-   // draw region from m_regionStart and current Point
+   // draw region from m_pickPoint and current Point
    // set region in Arnold
 
-   m_renderView.m_gl->setRegionCrop(m_regionStart[0], m_regionStart[1], regionEnd[0], regionEnd[1]);
+   int bufferStart[2];
+   int bufferEnd[2];
+   m_renderView.m_gl->project(m_pickPoint[0], m_pickPoint[1], bufferStart[0], bufferStart[1], true);
+   m_renderView.m_gl->project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
 
+   m_renderView.m_gl->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
+
+   
    m_renderView.interruptRender();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   renderSession->SetRegion(m_regionStart[0], m_regionStart[1], regionEnd[0], regionEnd[1]);
+   renderSession->SetRegion(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
    AtNode *options = AiUniverseGetOptions();
-   AiNodeSetInt(options, "region_min_x", m_regionStart[0]);
-   AiNodeSetInt(options, "region_min_y", m_regionStart[1]);
-   AiNodeSetInt(options, "region_max_x", regionEnd[0]);
-   AiNodeSetInt(options, "region_max_y", regionEnd[1]);
+   AiNodeSetInt(options, "region_min_x", bufferStart[0]);
+   AiNodeSetInt(options, "region_min_y", bufferStart[1]);
+   AiNodeSetInt(options, "region_max_x", bufferEnd[0]);
+   AiNodeSetInt(options, "region_max_y", bufferEnd[1]);
    
    m_renderView.refresh();
 
 }
 
+void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
+{
+   const QSize &newSize = event->size();
+   m_renderView.m_gl->resize(newSize.width(), newSize.height());
+   m_renderView.draw();
+}
 
+void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
+{
+   if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) return;
+   
+   float previousZoom = m_renderView.m_gl->getZoomFactor();
+   float zoomFactor = powf(2.f, event->delta() / 240.0);
+
+   int pivot[2];
+   m_renderView.m_gl->project(int(width() * 0.5), int (height() * 0.5), pivot[0], pivot[1], true);
+
+   AtPoint2 regionCenter;
+   // this was the previous image center
+   regionCenter.x = pivot[0] - m_renderView.m_width*0.5;
+   regionCenter.y = pivot[1] - m_renderView.m_height*0.5;
+
+   zoomFactor *= previousZoom;
+   m_renderView.m_gl->setZoomFactor(zoomFactor);
+
+   // I want my image center to be the same as before
+   m_renderView.m_gl->setPan(-regionCenter.x * zoomFactor,-regionCenter.y*zoomFactor);
+   m_renderView.draw();
+}
 
 
 void CRenderViewMainWindow::populateAOVsMenu()
@@ -966,13 +1068,58 @@ void CRenderViewMainWindow::showAOV()
       }
    }      
    m_renderView.refreshGLBuffer();
-   update();
+   m_renderView.draw();
 }
 
 void CRenderViewMainWindow::cropRegion()
 {
    m_renderView.m_region_crop = m_action_crop_region->isChecked();
+   if (!m_renderView.m_region_crop)
+   {
+      m_renderView.m_gl->clearRegionCrop();
+   }
 }
+
+
+void CRenderViewMainWindow::frameRegion()
+{
+   const AtBBox2 *region = m_renderView.m_gl->getRegion();
+   if (region == 0) 
+   {
+      frameAll();
+      return;
+   }
+
+   float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)height() / (region->maxy - region->miny) );
+   m_renderView.m_gl->setZoomFactor(zoomFactor);
+
+   AtPoint2 regionCenter;
+   regionCenter.x = 0.5 * (region->maxx + region->minx);
+   regionCenter.y = 0.5 * (region->maxy + region->miny);
+
+   regionCenter.x -= m_renderView.m_width*0.5;
+   regionCenter.y -= m_renderView.m_height*0.5;
+
+   m_renderView.m_gl->setPan(-regionCenter.x * zoomFactor,-regionCenter.y*zoomFactor);
+   m_renderView.draw();
+}
+
+void CRenderViewMainWindow::frameAll()
+{
+   float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)height() / (float)m_renderView.m_height);
+   m_renderView.m_gl->setZoomFactor(zoomFactor);
+   m_renderView.m_gl->setPan(0, 0);
+   m_renderView.draw();
+}
+
+void CRenderViewMainWindow::realSize()
+{
+   m_renderView.m_gl->setPan (0, 0);
+   m_renderView.m_gl->setZoomFactor(1.f);
+   m_renderView.draw();
+}
+
+
 
 // If you add some slots, you'll have to run moc
 #include "renderview.moc"

@@ -51,6 +51,25 @@ public:
    void setRegionCrop(int start_x, int start_y, int end_x, int end_y);
    void clearRegionCrop();
 
+   void setPan(int x, int y)
+   {
+      m_pan[0] = x; 
+      m_pan[1] = y; 
+   }
+   void getPan(int &x, int &y) const
+   {
+      x = m_pan[0];
+      y = m_pan[1];
+   }
+
+   void setZoomFactor(float z) {m_zoomFactor = z;}
+   float getZoomFactor() const {return m_zoomFactor;}
+
+   const AtBBox2 *getRegion() const {return (m_regionCrop) ? &m_region : NULL;}
+
+   void project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp = false) const;
+   
+
 private:
    void setupTexture();
    void displayBuffer(int w, int h, const AtBBox2 *update_region,
@@ -71,5 +90,10 @@ private:
 
    bool m_regionCrop;
    AtBBox2 m_region;
+
+   int m_pan[2];
+   float m_zoomFactor;
+  
   
 };
+

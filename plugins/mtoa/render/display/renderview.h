@@ -78,10 +78,15 @@ protected:
    void mouseMoveEvent ( QMouseEvent * event );
    void mousePressEvent ( QMouseEvent * event );
    void mouseReleaseEvent ( QMouseEvent * event );
-   
+   void resizeEvent(QResizeEvent *event);
+   void wheelEvent ( QWheelEvent * event );
+
 private:
    bool m_leftButtonDown;
-   int  m_regionStart[2];
+   int  m_pickPoint[2];
+   int  m_previousPan[2];
+   float m_previousZoom;
+
 
 private slots:
    void saveImage();
@@ -98,6 +103,11 @@ private slots:
    void enableAOVs();
    void showAOV();
    void cropRegion();
+   void frameAll();
+   void frameRegion();
+   void realSize();
+   
+
 
 
 };
