@@ -22,7 +22,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      17,   14, // methods
+      18,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -44,9 +44,10 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      210,   22,   22,   22, 0x08,
      223,   22,   22,   22, 0x08,
      233,   22,   22,   22, 0x08,
-     246,   22,   22,   22, 0x08,
-     257,   22,   22,   22, 0x08,
-     271,   22,   22,   22, 0x08,
+     248,   22,   22,   22, 0x08,
+     261,   22,   22,   22, 0x08,
+     272,   22,   22,   22, 0x08,
+     286,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -58,8 +59,8 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "previousStoredImage()\0nextStoredImage()\0"
     "deleteStoredImage()\0progressiveRefinement()\0"
     "showChannel()\0enableAOVs()\0showAOV()\0"
-    "cropRegion()\0frameAll()\0frameRegion()\0"
-    "realSize()\0"
+    "selectCamera()\0cropRegion()\0frameAll()\0"
+    "frameRegion()\0realSize()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -81,10 +82,11 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 10: _t->showChannel(); break;
         case 11: _t->enableAOVs(); break;
         case 12: _t->showAOV(); break;
-        case 13: _t->cropRegion(); break;
-        case 14: _t->frameAll(); break;
-        case 15: _t->frameRegion(); break;
-        case 16: _t->realSize(); break;
+        case 13: _t->selectCamera(); break;
+        case 14: _t->cropRegion(); break;
+        case 15: _t->frameAll(); break;
+        case 16: _t->frameRegion(); break;
+        case 17: _t->realSize(); break;
         default: ;
         }
     }
@@ -123,9 +125,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 17)
+        if (_id < 18)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 17;
+        _id -= 18;
     }
     return _id;
 }

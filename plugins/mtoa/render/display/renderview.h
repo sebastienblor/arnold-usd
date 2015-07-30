@@ -59,12 +59,15 @@ public:
 private:
 
    void populateAOVsMenu();
+   void populateCamerasMenu();
+
 
    CRenderView &m_renderView;
    QMenu *m_menu_file;
    QMenu *m_menu_view;
    QMenu *m_menu_render;
    QMenu *m_menu_aovs;
+   QMenu *m_menu_camera;
 
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
@@ -73,6 +76,12 @@ private:
    QAction *m_action_crop_region;
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
+   QActionGroup *m_cameras_action_group;
+
+   bool m_leftButtonDown;
+   int  m_pickPoint[2];
+   int  m_previousPan[2];
+   float m_previousZoom;
 
 protected:
    void mouseMoveEvent ( QMouseEvent * event );
@@ -82,10 +91,6 @@ protected:
    void wheelEvent ( QWheelEvent * event );
 
 private:
-   bool m_leftButtonDown;
-   int  m_pickPoint[2];
-   int  m_previousPan[2];
-   float m_previousZoom;
 
 
 private slots:
@@ -102,6 +107,7 @@ private slots:
    void showChannel();
    void enableAOVs();
    void showAOV();
+   void selectCamera();
    void cropRegion();
    void frameAll();
    void frameRegion();

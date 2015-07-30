@@ -338,6 +338,11 @@ void CRenderView::show()
 void CRenderView::interruptRender()
 {
    if (AiRendering()) AiRenderInterrupt();
+   
+   // In theory I should wait until the rendering is finished
+   // since the render loop is in another thread.
+   // But we should check if it hurts interactivity
+   //while (AiRendering()) {sleep(10);}
    K_wait_for_changes = true;
 }
 // utilities copied from sync.h and time.h in core
@@ -363,22 +368,6 @@ void CRenderView::sleep(AtUInt64 usecs)
    Sleep(usecs / 1000);
 }
 
-/*
-AtRGBA8 *CRenderView::getBuffer()
-{
-   return m_gl->buffer();
-}
-
-int CRenderView::getBufferWidth() const
-{
-   return m_gl->width();
-}
-
-int CRenderView::getBufferHeight() const
-{
-   return m_gl->height();
-}
-*/
    
 void CRenderView::draw(AtBBox2 *region)  
 {
@@ -464,6 +453,7 @@ void CRenderView::refresh()
    show();
    K_restartLoop = true;
    K_wait_for_changes = false;   
+
 }
 
 
@@ -694,6 +684,7 @@ CRenderViewMainWindow::initMenus()
 
    m_menu_render = menubar->addMenu("Render");
 
+
    action = m_menu_render->addAction("Update Render");
    connect(action, SIGNAL(triggered()), this, SLOT(updateRender()));
    action->setCheckable(false);
@@ -729,6 +720,16 @@ CRenderViewMainWindow::initMenus()
    m_pickPoint[0] = m_pickPoint[1] = -1;
    m_previousPan[0] = m_previousPan[1] = 0;
    m_previousZoom = 1.f;
+
+   m_menu_render->addSeparator();
+
+   m_menu_camera = new QMenu("Camera");
+   m_menu_render->addMenu(m_menu_camera);
+
+   m_cameras_action_group = 0;
+
+   populateCamerasMenu();
+
 }
 void
 CRenderViewMainWindow::saveImage()
@@ -1045,6 +1046,34 @@ void CRenderViewMainWindow::populateAOVsMenu()
    }
 }
 
+void CRenderViewMainWindow::populateCamerasMenu()
+{
+   // don't forget to call this when new cameras are created
+   if (m_cameras_action_group != 0)
+   {
+      delete m_cameras_action_group;
+      m_cameras_action_group = 0;
+   }
+
+   // clear all previous actions in the menu
+   m_menu_camera->clear();
+   m_cameras_action_group = new QActionGroup(this);
+
+   AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_CAMERA);
+   AtNode *currentCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   while (!AiNodeIteratorFinished(iter))
+   {
+      AtNode *node = AiNodeIteratorGetNext(iter);
+
+      QAction *action = m_menu_camera->addAction(QString(AiNodeGetName(node)));
+      connect(action, SIGNAL(triggered()), this, SLOT(selectCamera()));
+      action->setCheckable(true);
+      action->setChecked(node == currentCamera);
+      m_cameras_action_group->addAction(action);
+   }
+   AiNodeIteratorDestroy(iter);
+}
+
 
 void CRenderViewMainWindow::showAOV()
 {
@@ -1071,6 +1100,50 @@ void CRenderViewMainWindow::showAOV()
    m_renderView.draw();
 }
 
+void CRenderViewMainWindow::selectCamera()
+{
+   std::string cameraName = m_cameras_action_group->checkedAction()->text().toStdString();
+   AtNode *camera =  AiNodeLookUpByName (cameraName.c_str());
+   if (camera == NULL)
+   {
+      AiMsgError("Camera Not found");
+      return;
+   }
+
+   m_renderView.interruptRender();
+
+   // Since the Render Loop is rendering in a different thread, we must wait until 
+   // rendering actually stops, otherwise the previous camera can pop back
+
+   // Search for the MDagPath for this camera   
+   MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
+   itDag.reset();
+
+   while (!itDag.isDone())
+   {
+      MDagPath camPath;
+      itDag.getPath(camPath);
+      std::string camName = camPath.partialPathName().asChar();
+      if (camName == cameraName)
+      {
+
+         // Setting export camera in Arnold session will trigger an update and 
+         // block my rendering :-/
+
+//       CMayaScene::GetArnoldSession()->SetExportCamera(camPath);
+         CMayaScene::GetRenderSession()->SetCamera(camPath);
+         break;
+      }      
+      itDag.next();
+   }
+
+
+   while (AiRendering()) {m_renderView.sleep(10);}
+   AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)camera);
+
+   m_renderView.refresh();
+   
+}
 void CRenderViewMainWindow::cropRegion()
 {
    m_renderView.m_region_crop = m_action_crop_region->isChecked();
