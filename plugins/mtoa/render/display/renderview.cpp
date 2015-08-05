@@ -134,9 +134,7 @@ void CRenderView::init()
    bucket_size = bucket_size;
    min_x       = 0; // chec region_min_x ?
    min_y       = 0;
-   m_dither      = false;
    m_color_mode  = COLOR_MODE_RGBA;
-   m_gamma       = 1.f; // we'll control that later on
    m_show_rendering_tiles = false;
    m_region_crop = false;
 
@@ -255,10 +253,8 @@ void CRenderView::init()
    bucket_size = bucket_size;
    min_x       = data_window.minx;
    min_y       = data_window.miny;
-   m_dither      = true;
    m_color_mode  = COLOR_MODE_RGBA;
-   m_gamma       = 1;
-
+   
    // setup syncing
    displaySyncCreate(x_res, y_res);
 
@@ -498,6 +494,7 @@ void CRenderView::refreshGLBuffer()
    }
 
    m_gl->reloadBuffer(m_color_mode);
+   draw();
 }
 void CRenderView::showPreviousStoredImage()
 {
@@ -681,7 +678,13 @@ CRenderViewMainWindow::initMenus()
    //action->setShortcut(Qt::CTRL + Qt::Key_Minus);
    action->setStatusTip("Delete the Stored Image being currently displayed");
 
+   m_menu_view->addSeparator();
 
+   action = m_menu_view->addAction("Color Correction");
+   connect(action, SIGNAL(triggered()), this, SLOT(colorCorrection()));
+   action->setCheckable(false);
+   action->setStatusTip("Apply Color Correction on the displayed image");
+   
    m_menu_render = menubar->addMenu("Render");
 
 
@@ -1097,7 +1100,6 @@ void CRenderViewMainWindow::showAOV()
       }
    }      
    m_renderView.refreshGLBuffer();
-   m_renderView.draw();
 }
 
 void CRenderViewMainWindow::selectCamera()
@@ -1192,6 +1194,148 @@ void CRenderViewMainWindow::realSize()
    m_renderView.draw();
 }
 
+void CRenderViewMainWindow::colorCorrection()
+{
+
+   if (m_cc_window == NULL)
+   {
+      m_cc_window = new CRenderViewCCWindow(this, m_renderView, m_renderView.m_colorCorrectSettings);
+      m_cc_window->init();
+   }
+   m_cc_window->show();
+}
+
+void CRenderViewCCWindow::init()
+{
+   setWindowTitle("Color Correction");
+   
+   int line = 20;
+   m_gamma_edit = new QLineEdit(this);
+   m_gamma_edit->move(80, line);
+
+   m_gamma_edit->resize(40, 20);
+   m_gamma_edit->setValidator( new QDoubleValidator(0., 100., 2, this) );
+   m_gamma_edit->setText(QString::number(m_colorCorrectSettings.gamma));
+   
+
+   m_gamma_slider = new QSlider(Qt::Horizontal, this);
+   m_gamma_slider->move(130, line);
+
+   
+   m_gamma_slider->resize(150, 20);
+   m_gamma_slider->setMinimum(0);
+   m_gamma_slider->setMaximum(500);
+   m_gamma_slider->setValue(m_colorCorrectSettings.gamma * 100);
+
+   QLabel *label = new QLabel(QString("Gamma"), this);
+   label->resize(40, 20);
+   label->move(20, line );
+
+   connect(m_gamma_slider, SIGNAL(valueChanged(int)), this, SLOT(gammaSliderChanged()));
+   connect(m_gamma_edit, SIGNAL(returnPressed()), this, SLOT(gammaTextChanged()));
+
+   line += 30;
+
+   m_brightness_edit = new QLineEdit(this);
+   m_brightness_edit->move(80, line);
+
+   
+   m_brightness_edit->resize(40, 20);
+   m_brightness_edit->setValidator( new QDoubleValidator(0., 100., 2, this) );
+   m_brightness_edit->setText(QString::number(m_colorCorrectSettings.gamma));
+   
+   m_brightness_slider = new QSlider(Qt::Horizontal, this);
+   m_brightness_slider->move(130, line);
+   m_brightness_slider->resize(150, 20);
+   m_brightness_slider->setMinimum(0);
+   m_brightness_slider->setMaximum(500);
+   m_brightness_slider->setValue(m_colorCorrectSettings.gamma * 100);
+   label = new QLabel(QString("Brightness"), this);
+   label->move(20, line);
+   label->resize(55, 20);
+
+   connect(m_brightness_slider, SIGNAL(valueChanged(int)), this, SLOT(brightnessSliderChanged()));
+   connect(m_brightness_edit, SIGNAL(returnPressed()), this, SLOT(brightnessTextChanged()));
+
+   line += 30;
+
+   m_dither_box = new QCheckBox( this);
+   m_dither_box->move(80, line);
+   connect(m_dither_box, SIGNAL( stateChanged(int) ), this, SLOT(ditherChanged()));
+
+   label = new QLabel(QString("Dither"), this);
+   label->move(20, line);
+   label->resize(40, 20);
+
+   line += 30;
+
+   m_srgb_box = new QCheckBox(this);
+   m_srgb_box->move(80, line);
+   label = new QLabel(QString("sRGB"), this);
+   label->move(20, line);
+   label->resize(40, 20);
+
+   connect(m_srgb_box, SIGNAL( stateChanged(int) ), this, SLOT(srgbChanged()));
+
+   line += 50;
+   resize(300, line);
+}
+
+void CRenderViewCCWindow::gammaSliderChanged()
+{
+   m_colorCorrectSettings.gamma = ((float)m_gamma_slider->sliderPosition()) / 100.f;
+
+   m_gamma_edit->blockSignals(true);
+   m_gamma_edit->setText(QString::number(m_colorCorrectSettings.gamma));
+   m_gamma_edit->blockSignals(false);
+   m_renderView.refreshGLBuffer();
+}
+
+void CRenderViewCCWindow::gammaTextChanged()
+{
+
+   QString gamma = m_gamma_edit->text();
+   m_colorCorrectSettings.gamma = gamma.toFloat();
+   m_gamma_slider->blockSignals(true);
+   m_gamma_slider->setValue(m_colorCorrectSettings.gamma * 100);
+   m_gamma_slider->blockSignals(false);
+   m_renderView.refreshGLBuffer();
+}
+
+
+void CRenderViewCCWindow::brightnessSliderChanged()
+{
+   m_colorCorrectSettings.brightness = ((float)m_brightness_slider->sliderPosition()) / 100.f;
+
+   m_brightness_edit->blockSignals(true);
+   m_brightness_edit->setText(QString::number(m_colorCorrectSettings.brightness));
+   m_brightness_edit->blockSignals(false);
+   m_renderView.refreshGLBuffer();
+}
+
+void CRenderViewCCWindow::brightnessTextChanged()
+{
+
+   QString brightness = m_brightness_edit->text();
+   m_colorCorrectSettings.brightness = brightness.toFloat();
+   m_brightness_slider->blockSignals(true);
+   m_brightness_slider->setValue(m_colorCorrectSettings.brightness * 100);
+   m_brightness_slider->blockSignals(false);
+   m_renderView.refreshGLBuffer();
+}
+
+
+void CRenderViewCCWindow::ditherChanged()
+{
+   m_colorCorrectSettings.dither = m_dither_box->isChecked();
+   m_renderView.refreshGLBuffer();
+}
+
+void CRenderViewCCWindow::srgbChanged()
+{
+   m_colorCorrectSettings.srgb = m_srgb_box->isChecked();
+   m_renderView.refreshGLBuffer();
+}
 
 
 // If you add some slots, you'll have to run moc

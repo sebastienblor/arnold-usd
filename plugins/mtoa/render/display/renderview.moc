@@ -16,13 +16,100 @@
 #endif
 
 QT_BEGIN_MOC_NAMESPACE
+static const uint qt_meta_data_CRenderViewCCWindow[] = {
+
+ // content:
+       6,       // revision
+       0,       // classname
+       0,    0, // classinfo
+       6,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+ // slots: signature, parameters, type, tag, flags
+      21,   20,   20,   20, 0x08,
+      42,   20,   20,   20, 0x08,
+      61,   20,   20,   20, 0x08,
+      87,   20,   20,   20, 0x08,
+     111,   20,   20,   20, 0x08,
+     127,   20,   20,   20, 0x08,
+
+       0        // eod
+};
+
+static const char qt_meta_stringdata_CRenderViewCCWindow[] = {
+    "CRenderViewCCWindow\0\0gammaSliderChanged()\0"
+    "gammaTextChanged()\0brightnessSliderChanged()\0"
+    "brightnessTextChanged()\0ditherChanged()\0"
+    "srgbChanged()\0"
+};
+
+void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        Q_ASSERT(staticMetaObject.cast(_o));
+        CRenderViewCCWindow *_t = static_cast<CRenderViewCCWindow *>(_o);
+        switch (_id) {
+        case 0: _t->gammaSliderChanged(); break;
+        case 1: _t->gammaTextChanged(); break;
+        case 2: _t->brightnessSliderChanged(); break;
+        case 3: _t->brightnessTextChanged(); break;
+        case 4: _t->ditherChanged(); break;
+        case 5: _t->srgbChanged(); break;
+        default: ;
+        }
+    }
+    Q_UNUSED(_a);
+}
+
+const QMetaObjectExtraData CRenderViewCCWindow::staticMetaObjectExtraData = {
+    0,  qt_static_metacall 
+};
+
+const QMetaObject CRenderViewCCWindow::staticMetaObject = {
+    { &QMainWindow::staticMetaObject, qt_meta_stringdata_CRenderViewCCWindow,
+      qt_meta_data_CRenderViewCCWindow, &staticMetaObjectExtraData }
+};
+
+#ifdef Q_NO_DATA_RELOCATION
+const QMetaObject &CRenderViewCCWindow::getStaticMetaObject() { return staticMetaObject; }
+#endif //Q_NO_DATA_RELOCATION
+
+const QMetaObject *CRenderViewCCWindow::metaObject() const
+{
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
+}
+
+void *CRenderViewCCWindow::qt_metacast(const char *_clname)
+{
+    if (!_clname) return 0;
+    if (!strcmp(_clname, qt_meta_stringdata_CRenderViewCCWindow))
+        return static_cast<void*>(const_cast< CRenderViewCCWindow*>(this));
+    return QMainWindow::qt_metacast(_clname);
+}
+
+int CRenderViewCCWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = QMainWindow::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 6)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 6;
+    }
+    return _id;
+}
 static const uint qt_meta_data_CRenderViewMainWindow[] = {
 
  // content:
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      18,   14, // methods
+      19,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -48,6 +135,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      261,   22,   22,   22, 0x08,
      272,   22,   22,   22, 0x08,
      286,   22,   22,   22, 0x08,
+     297,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -60,7 +148,7 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "deleteStoredImage()\0progressiveRefinement()\0"
     "showChannel()\0enableAOVs()\0showAOV()\0"
     "selectCamera()\0cropRegion()\0frameAll()\0"
-    "frameRegion()\0realSize()\0"
+    "frameRegion()\0realSize()\0colorCorrection()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -87,6 +175,7 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 15: _t->frameAll(); break;
         case 16: _t->frameRegion(); break;
         case 17: _t->realSize(); break;
+        case 18: _t->colorCorrection(); break;
         default: ;
         }
     }
@@ -125,9 +214,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 18)
+        if (_id < 19)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 18;
+        _id -= 19;
     }
     return _id;
 }
