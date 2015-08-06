@@ -258,6 +258,10 @@ def startRender():
     if core.ACTIVE_CAMERA != None:
         cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
 
+def startRenderView():
+    if core.ACTIVE_CAMERA != None:
+        cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
+
 def startIpr():
     if core.ACTIVE_CAMERA != None:
         cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='start')
@@ -365,6 +369,9 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
 
         pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldRenderView', label='Render View', parent='ArnoldExperimentalMenu',
+                    c=lambda *args: startRenderView())
+
 
         pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
