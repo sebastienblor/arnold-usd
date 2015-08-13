@@ -373,7 +373,26 @@ shader_evaluate
    float w_scatt = 0.f;
    float w_diff = 1.f;
 
-   float fresnelReflectivity = AiFresnelWeight(sg->N, sg->Rd, 0.2f);
+   bool has_reflection = data->has_reflection;
+   
+   // first compute w_refl, since we need it for opacity
+   if( has_reflection )
+   {      
+      if( data->has_reflection_ramp)
+      {
+         if (data->reflectionGradient == 0)
+         {
+            initializeReflectionGradient(node, data, sg);
+         }
+         w_refl = data->reflectionGradient->RemapResult(sg);
+         
+      } else w_refl = AiShaderEvalParamFlt(p_reflection_weight);
+
+      w_refl *= AiFresnelWeight(sg->N, sg->Rd, 0.2f);
+      
+      if (w_refl < AI_EPSILON) has_reflection = false;
+   }
+   
 
    if (data->opaque) sg->out_opacity = AI_RGB_WHITE;
    else
@@ -389,13 +408,15 @@ shader_evaluate
          w_transp = data->transparencyGradient->RemapResult(sg);
       } else w_transp = AiShaderEvalParamFlt(p_transparency_weight);
       
-      w_transp *= (1.f - fresnelReflectivity);
-
+      // reflection attenuates transparency
+      w_transp *= (1.f - w_refl);
+      
       transparency_color *= w_transp;
 
       sg->out_opacity.r = CLAMP( 1.f - transparency_color.r, 0.f, 1.f);
       sg->out_opacity.g = CLAMP( 1.f - transparency_color.g, 0.f, 1.f);
       sg->out_opacity.b = CLAMP( 1.f - transparency_color.b, 0.f, 1.f);
+      AiShaderGlobalsApplyOpacity(sg, sg->out_opacity);
    }
 
    // shadow ray -> nothing else to compute
@@ -406,7 +427,6 @@ shader_evaluate
    if ((sg->out_opacity.r < AI_EPSILON &&
       sg->out_opacity.g < AI_EPSILON &&
       sg->out_opacity.b < AI_EPSILON)) return;
-
 
 
    bool has_diffuse = data->has_diffuse;
@@ -425,38 +445,28 @@ shader_evaluate
          
       } else diffuse_color = AiShaderEvalParamRGB(p_diffuse_color);
 
+      diffuse_color *= 1.f - w_refl;
+
       if ((diffuse_color.r < AI_EPSILON &&
             diffuse_color.g < AI_EPSILON &&
             diffuse_color.b < AI_EPSILON)) has_diffuse = false;
    }
-   
-   bool has_reflection = data->has_reflection;
-   AtColor reflection_color =  AI_RGB_BLACK;
 
-   if( has_reflection )
+   // now handle reflection_color
+   AtColor reflection_color =  AI_RGB_BLACK;
+   if (has_reflection)
    {
       reflection_color = AiShaderEvalParamBool(p_reflection_use_diffuse_color) ? 
-         diffuse_color : AiShaderEvalParamRGB(p_reflection_color);
-      if( data->has_reflection_ramp)
-      {
-         if (data->reflectionGradient == 0)
-         {
-            initializeReflectionGradient(node, data, sg);
-         }
-         w_refl = data->reflectionGradient->RemapResult(sg);
-         
-      } else w_refl = AiShaderEvalParamFlt(p_reflection_weight);
+                     diffuse_color : AiShaderEvalParamRGB(p_reflection_color);
 
       reflection_color *= w_refl;
 
       if ((reflection_color.r < AI_EPSILON &&
-            reflection_color.g < AI_EPSILON &&
-            reflection_color.b < AI_EPSILON)) has_reflection = false;
-
-      
-      if (w_refl < AI_EPSILON) has_reflection = false;
+         reflection_color.g < AI_EPSILON &&
+         reflection_color.b < AI_EPSILON)) has_reflection = false;
    }
-
+   
+/*
    float sum = w_refl + w_diff + w_scatt;
 
    if(sum > 1.f)
@@ -467,7 +477,7 @@ shader_evaluate
       //scatter_color *= invSum;
       
    }
-
+*/
    // only transparency -> no shading to compute
    if (!has_reflection && !has_diffuse) return;
 
