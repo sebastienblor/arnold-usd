@@ -77,6 +77,7 @@ int           K_wait_for_changes;
 int           K_allow_interruption;
 int           K_enable_aovs;
 volatile AtUInt64 K_render_timestamp;
+bool          K_refresh_requested;
 
 
 
@@ -184,6 +185,7 @@ void K_InitGlobalVars(void)
    K_wait_for_changes = false;
    K_allow_interruption = true;
    K_render_timestamp = 0;
+   K_refresh_requested = false;
 
    K_set_filename = 0;
    K_resave = 0;
@@ -238,6 +240,7 @@ extern int RenderLoop(int smin, int smax)
        */
 
       K_render_timestamp = CRenderView::time();
+      K_refresh_requested = false;
 
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        
@@ -247,11 +250,19 @@ extern int RenderLoop(int smin, int smax)
 
          K_restartLoop = false;
 
-   
+   /*
+
+         if (K_refresh_requested)
+         {
+            CRenderSession* renderSession = CMayaScene::GetRenderSession();
+            renderSession->UpdateRenderView();
+            return;
+         }
+  */
+
          if ((i==0) || (i>1 && i<smax) || (i==smax-1))
             continue;
-   
-         
+            
 
          AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", i);
    

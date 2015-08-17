@@ -50,7 +50,7 @@ struct CRenderViewCCSettings
 {
    CRenderViewCCSettings() :  gamma(1.0),
                               brightness(1.f),
-                              srgb(false),
+                              srgb(true),
                               dither(true)
                               {}
    float gamma;
@@ -145,6 +145,7 @@ protected:
    void mouseReleaseEvent ( QMouseEvent * event );
    void resizeEvent(QResizeEvent *event);
    void wheelEvent ( QWheelEvent * event );
+   void closeEvent(QCloseEvent *event);
 
 private:
 
@@ -193,6 +194,8 @@ public:
    void show();
 
    void interruptRender();
+   void finishRender();
+
    // properties
    int width() { return m_width; }
    int height() { return m_height; }
@@ -233,8 +236,9 @@ public:
 
    // OS window handle
    AtCritSec window_close_lock;
-   bool canRefresh() const;
-   void refresh();
+   bool canRestartRender() const;
+   void restartRender();
+   void updateRender();
    
    void saveImage(const std::string &filename);
    void storeImage();
@@ -361,6 +365,9 @@ friend CRenderViewMainWindow;
 };
 
 
+// This structure comes from the Kick API
+// it is not really adapted to Qt
+// so several things here have to be changed / removed
 struct AtDisplaySync
 {
    // spin lock would be better here, but it's not in the API
@@ -389,7 +396,10 @@ struct AtDisplaySync
    
    int previous_AA_samples;
    bool interrupted;
+   
 };
+
+
 
 
  

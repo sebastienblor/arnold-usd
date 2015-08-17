@@ -39,6 +39,7 @@
 
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
+MCallbackId CMayaScene::s_QuitApplicationCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
 AtCritSec CMayaScene::s_lock = NULL;
@@ -181,6 +182,11 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    status = s_renderSession->Begin(renderOptions);
    status = s_arnoldSession->Begin(sessionOptions);
 
+   MStatus quitCbStatus;
+   
+   MCallbackId id = MEventMessage::addEventCallback("quitApplication", QuitApplicationCallback, NULL, &quitCbStatus);
+   if (quitCbStatus == MS::kSuccess) s_QuitApplicationCallbackId = id;
+
    return status;
 }
 
@@ -210,6 +216,12 @@ MStatus CMayaScene::End()
       // status = s_arnoldSession->End(); // Unnecessary it's in the destructor for CArnoldSession already
       delete s_arnoldSession;
       s_arnoldSession = NULL;
+   }
+
+   if (s_QuitApplicationCallbackId)
+   {
+      MMessage::removeCallback(s_QuitApplicationCallbackId);
+      s_QuitApplicationCallbackId = 0;
    }
 
    return status;
@@ -461,6 +473,11 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    arnoldSession->RequestUpdate();
 }
 
+void CMayaScene::QuitApplicationCallback(void *)
+{
+   // something we might want to do when closing maya
+   End();
+}
 
 void CMayaScene::IPRIdleCallback(void *)
 {

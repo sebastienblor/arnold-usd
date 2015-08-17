@@ -9,7 +9,8 @@
 #include <sstream>
 #include <iostream>
 #include "render_gl_widget.h"
- #include "renderview.h"
+#include "renderview.h"
+#include "render_loop.h" 
 
 
 #pragma warning (disable : 4244)
@@ -70,7 +71,6 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    // allocate buffer
    const size_t size = m_width * m_height * sizeof(AtRGBA8);
    m_front_buffer = (AtRGBA8 *)AiMalloc(size);
-
 
    // fill with grey so we can see unfinished buckets
    const size_t fillsize = m_width * m_height;
@@ -156,8 +156,16 @@ void CRenderGLWidget::resizeGL(int width, int height)
 
 void CRenderGLWidget::paintGL()
 {
+   // check time
+   // if higher than low_freq -> continue
+
    AtDisplaySync *sync = m_renderview.displaySync();
 
+   if (K_refresh_requested && m_renderview.canRestartRender())
+   {
+      m_renderview.updateRender();
+      return;
+   }
    if (!sync->waiting_draw) return;
 
    //check timer 
@@ -172,6 +180,7 @@ void CRenderGLWidget::paintGL()
    sync->front_update_region.minx = m_width;
    sync->front_update_region.miny = m_height;
    sync->front_update_region.maxx = sync->front_update_region.maxy = -1;
+
 
    AiCritSecLeave(&sync->lock);
 
@@ -262,7 +271,6 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
 void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
 {
 
-
    kglClearColor(FILL_COLOR.r, FILL_COLOR.g, FILL_COLOR.b, FILL_COLOR.a);
    kglClear(GL_COLOR_BUFFER_BIT);
    GL_print_error("clear buffer");
@@ -273,13 +281,11 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
 
    if (update_region)
    {
-     
       AtRGBA8 *buffer = (back_buffer && m_back_buffer) ? m_back_buffer : m_front_buffer;
 
       kglPixelStorei(GL_UNPACK_ROW_LENGTH,  m_width);
       kglPixelStorei(GL_UNPACK_SKIP_PIXELS, update_region->minx);
       kglPixelStorei(GL_UNPACK_SKIP_ROWS,   update_region->miny);
-
 
       if (color_mode == COLOR_MODE_RGBA)
       {

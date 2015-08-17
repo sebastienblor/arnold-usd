@@ -53,6 +53,7 @@ CRenderView::CRenderView(int w, int h)
 
    m_main_window->resize(w, h+menuHeight);
    m_main_window->setWindowTitle("Arnold Render View");
+
    m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
 
    m_render_thread = NULL;
@@ -68,15 +69,7 @@ CRenderView::CRenderView(int w, int h)
 
 CRenderView::~CRenderView()
 {
-   interruptRender();
-   if (m_render_thread != NULL)
-   {  
-      K_aborted = true;
-      K_wait_for_changes = false;      
-  
-      AiThreadWait(m_render_thread);
-      AiThreadClose(m_render_thread);
-   }  
+   finishRender();
 
 
    AiCritSecClose(&display_sync->event_lock);
@@ -299,6 +292,7 @@ void CRenderView::render()
 {
 
 
+
    interruptRender();
 
    if (m_render_thread != NULL)
@@ -314,12 +308,18 @@ void CRenderView::render()
    m_render_thread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
 
 }
-bool CRenderView::canRefresh() const
+bool CRenderView::canRestartRender() const
 {
-   return true; // for now always return true
-   static AtUInt64 renderView_refresh_time = 1000 / 10   ; // 1/10 seconds
+   if (this == 0) return false;
+
+   return true;
+
+   static AtUInt64 renderView_refresh_time = 2000 ; // 1/10 seconds
    AtUInt64 current_time = time();
-   return (current_time - K_render_timestamp < renderView_refresh_time);
+   if (current_time - K_render_timestamp > renderView_refresh_time){K_refresh_requested = false; return true;}
+
+   K_refresh_requested = true;
+   return false;
 }
 void CRenderView::close()
 {
@@ -331,6 +331,19 @@ void CRenderView::show()
    m_main_window->show();
 }
 
+void CRenderView::finishRender()
+{
+   interruptRender();
+   if (m_render_thread != NULL)
+   {  
+      K_aborted = true;
+      K_wait_for_changes = false;      
+  
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+   }  
+
+}
 void CRenderView::interruptRender()
 {
    if (AiRendering()) AiRenderInterrupt();
@@ -394,7 +407,7 @@ void CRenderView::draw(AtBBox2 *region)
    }
 
    // immediately draw or wait for timer to run out
-   if (m_displayedImageIndex < 0) sync->waiting_draw = true;
+   if (true || m_displayedImageIndex < 0) sync->waiting_draw = true;
    else sync->waiting_draw = false;
    // if we're displayed a previously stored image
    // we don't want to prevent that we need a draw
@@ -411,10 +424,10 @@ void CRenderView::displaySyncCreate(int width, int height)
 {
    // Minimum frames per second at which we will always interrupt and redraw
    // regardless of what has been finished
-   static const float FPS_min = 5.0f;
+   //FPS_min = 5.0f;
    // Maximum frames per second at which we will interrupt and redraw if a
    // a full frame has finished rendering
-   static const float FPS_max = 30.0f;
+   //FPS_max = 30.0f;
 
    AtDisplaySync *sync = (AtDisplaySync *) AiMalloc(sizeof(AtDisplaySync));
 
@@ -442,15 +455,25 @@ void CRenderView::displaySyncCreate(int width, int height)
 }
 
 
+void CRenderView::updateRender()
+{
+   interruptRender();
+   CMayaScene::UpdateSceneChanges();
+   restartRender();
+}
 
 
-void CRenderView::refresh()
+
+
+void CRenderView::restartRender()
 {
    show();
+   K_render_timestamp = time();
    K_restartLoop = true;
    K_wait_for_changes = false;   
 
 }
+
 
 
 void CRenderView::saveImage(const std::string &filename)
@@ -480,7 +503,8 @@ void CRenderView::storeImage()
 }
 
 void CRenderView::refreshGLBuffer()
-{  
+{
+
    AtRGBA *displayedBuffer = getDisplayedBuffer();
    AtRGBA8 *gl_buffer = m_gl->getBuffer();
 
@@ -534,13 +558,16 @@ void CRenderView::showNextStoredImage()
    else m_displayedImageIndex++;
 
 
+/*
    if (m_displayedImageIndex >= 0)
    {
       AtDisplaySync *sync = displaySync();
       sync->waiting_draw = false;
    }
-
+*/
    refreshGLBuffer();
+   m_gl->update();
+
 
 }
 
@@ -558,6 +585,7 @@ void CRenderView::deleteStoredImage()
    if (m_displayedImageIndex >= (int)m_storedImages.size()) m_displayedImageIndex--;
 
    refreshGLBuffer();
+   draw();
 
 }
 
@@ -772,9 +800,7 @@ void CRenderViewMainWindow::showRenderingTiles()
 
 void CRenderViewMainWindow::updateRender()
 {
-   m_renderView.interruptRender();
-   CMayaScene::UpdateSceneChanges();
-   m_renderView.refresh();
+   m_renderView.updateRender();
 
 }
 
@@ -807,7 +833,7 @@ void CRenderViewMainWindow::progressiveRefinement()
 {
    K_progressive = m_action_progressive_refinement->isChecked();
    m_renderView.interruptRender();
-   m_renderView.refresh();
+   m_renderView.restartRender();
 }
 
 
@@ -950,7 +976,7 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
       AiNodeSetInt(options, "region_max_x", -1);
       AiNodeSetInt(options, "region_max_y", -1);
 
-      m_renderView.refresh();
+      m_renderView.restartRender();
    // tell GL Widget to remove region
       return;
    }
@@ -975,7 +1001,7 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
    AiNodeSetInt(options, "region_max_x", bufferEnd[0]);
    AiNodeSetInt(options, "region_max_y", bufferEnd[1]);
    
-   m_renderView.refresh();
+   m_renderView.restartRender();
 
 }
 
@@ -1143,7 +1169,7 @@ void CRenderViewMainWindow::selectCamera()
    while (AiRendering()) {m_renderView.sleep(10);}
    AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)camera);
 
-   m_renderView.refresh();
+   m_renderView.restartRender();
    
 }
 void CRenderViewMainWindow::cropRegion()
@@ -1204,6 +1230,20 @@ void CRenderViewMainWindow::colorCorrection()
    }
    m_cc_window->show();
 }
+void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
+{
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+   {
+      CMayaScene::GetArnoldSession()->SetContinuousUpdates(false);
+      renderSession->SetRendering(false);
+      m_renderView.finishRender(); // this stops the rendering and destroys the render threads
+      CMayaScene::End(); // This will delete my RenderView, along with all my options
+      // I guess people will want to keep their options, stored images, etc... so we'd need to change that
+      AiEnd();
+   }
+   event->accept();
+}
 
 void CRenderViewCCWindow::init()
 {
@@ -1261,6 +1301,8 @@ void CRenderViewCCWindow::init()
 
    m_dither_box = new QCheckBox( this);
    m_dither_box->move(80, line);
+   m_dither_box->setChecked(m_colorCorrectSettings.dither);
+
    connect(m_dither_box, SIGNAL( stateChanged(int) ), this, SLOT(ditherChanged()));
 
    label = new QLabel(QString("Dither"), this);
@@ -1271,6 +1313,7 @@ void CRenderViewCCWindow::init()
 
    m_srgb_box = new QCheckBox(this);
    m_srgb_box->move(80, line);
+   m_srgb_box->setChecked(m_colorCorrectSettings.srgb);
    label = new QLabel(QString("sRGB"), this);
    label->move(20, line);
    label->resize(40, 20);

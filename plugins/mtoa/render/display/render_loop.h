@@ -122,6 +122,7 @@ extern int 	  K_enable_aovs;
 extern volatile int K_aborted;
 extern volatile int K_restartLoop;
 extern volatile AtUInt64  K_render_timestamp;
+extern bool		  K_refresh_requested;
 
 extern int    K_repeat;
 extern int    K_resave;

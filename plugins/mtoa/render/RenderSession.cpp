@@ -612,6 +612,7 @@ void CRenderSession::StartRenderView()
 {
    if (m_renderView != NULL) return;
    m_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
+
 }
 
 
@@ -624,11 +625,13 @@ void CRenderSession::UpdateRenderView()
       s_idle_cb = 0;
    }
 */
-   if(m_renderView->canRefresh()) // for now always return true
+   if(m_renderView != NULL && m_renderView->canRestartRender()) // for now always return true
    {
+      m_renderView->updateRender();
+      /*
       InterruptRender();
       CMayaScene::UpdateSceneChanges();
-      m_renderView->refresh();
+      m_renderView->restartRender();*/
       return;
    }
 
