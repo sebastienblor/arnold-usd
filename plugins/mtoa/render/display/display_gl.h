@@ -8,16 +8,20 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <GL/gl.h>
+// #include <GL/glew.h>
 #else
 #include <GL/gl.h>
 #include <GL/glx.h>
 #endif
+
 
 /* Print OpenGL error messages */
 void GL_print_error(const char *operation);
 
 /* Dynamic loading of OpenGL symbols */
 int GL_dynamic_load_init();
+
+void printGPUState();
 
 /* No dynamic loading on Mac / Windows */
 #if defined(_DARWIN) || defined(_WIN32)
@@ -368,6 +372,20 @@ int GL_dynamic_load_init();
 #define kglXMakeCurrent glXMakeCurrent
 #define kglXSwapBuffers glXSwapBuffers
 #define kglXGetProcAddressARB glXGetProcAddressARB
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #else
 

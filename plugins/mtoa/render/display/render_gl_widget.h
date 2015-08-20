@@ -35,6 +35,7 @@ public:
    CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height);
    virtual ~CRenderGLWidget();
    
+
    void initializeGL();
    void resizeGL(int width, int height);
    void paintGL();
@@ -69,6 +70,7 @@ public:
 
    void project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp = false) const;
    
+   void debugGPUState() {m_printGPUState = true;}
 
 private:
    void setupTexture();
@@ -94,6 +96,8 @@ private:
    int m_pan[2];
    float m_zoomFactor;
   
+
+   bool m_printGPUState;
   
 };
 

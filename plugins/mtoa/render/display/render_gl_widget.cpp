@@ -46,6 +46,7 @@ inline bool support_non_power_of_two_textures(void)
  *************************************************/
 CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height) : QGLWidget(parent), m_renderview(rv)
 {
+   
    resize(width, height);
    // create display buffer
    if (support_non_power_of_two_textures())
@@ -84,6 +85,8 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    clearRegionCrop();
    m_pan[0] = m_pan[1] = 0;
    m_zoomFactor = 1.f;
+
+   m_printGPUState = false;
 }
 CRenderGLWidget::~CRenderGLWidget()
 {
@@ -168,6 +171,16 @@ void CRenderGLWidget::paintGL()
    }
    if (!sync->waiting_draw) return;
 
+
+   if (m_printGPUState) {
+      printGPUState();
+      m_printGPUState = false;
+   }
+
+   GLboolean depthTest = glIsEnabled(GL_DEPTH_TEST);
+   if (depthTest == GL_TRUE)
+      glDisable(GL_DEPTH_TEST);
+
    //check timer 
    //if (!time_out since last paint) return
 
@@ -219,6 +232,9 @@ void CRenderGLWidget::paintGL()
 
    glMatrixMode(GL_MODELVIEW);
    glPopMatrix();
+
+   if (depthTest == GL_TRUE)
+      glEnable(GL_DEPTH_TEST);
 
 }
 
