@@ -3,7 +3,11 @@
 
 const char* CTxTextureFile::fileName = "TxtextureFile";
 
-CTxTextureFile::CTxTextureFile()
+CTxTextureFile::CTxTextureFile():
+   fWidth(0),
+   fHeight(0),
+   fChannels(4),
+   fPathName("")
 {
 }
 
@@ -19,7 +23,8 @@ void* CTxTextureFile::creator()
 MStatus CTxTextureFile::open( MString pathname, MImageFileInfo* info)
 {
    unsigned res_x, res_y;
-   AiTextureGetResolution(pathname.asChar(), &res_x, &res_y);
+   if(!AiTextureGetResolution(pathname.asChar(), &res_x, &res_y))
+      return MS::kFailure;
    
    fWidth = res_x;
    fHeight = res_y;
@@ -43,15 +48,17 @@ MStatus CTxTextureFile::load( MImage& image, unsigned int idx)
    unsigned char* dst = image.pixels();
    
    
-   AiEntireTextureAccess(AtString(fPathName.asChar()), fWidth, fHeight, &data[0]);
+   if(!AiEntireTextureAccess(AtString(fPathName.asChar()), fWidth, fHeight, &data[0]))
+      return MS::kFailure;
+
    for (int y = 0; y < fHeight; ++y)
    {
-      for (unsigned x = 0; x < fWidth; ++x)
+      for (int x = 0; x < fWidth; ++x)
       {
-         *dst++ = (char)(data[y*fWidth+x].r*255);
-         *dst++ = (char)(data[y*fWidth+x].g*255);
-         *dst++ = (char)(data[y*fWidth+x].b*255);
-         *dst++ = (char)(data[y*fWidth+x].a*255);
+         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].r*255.0f+0.5f, 0.0f, 255.0f);
+         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].g*255.0f+0.5f, 0.0f, 255.0f);
+         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].b*255.0f+0.5f, 0.0f, 255.0f);
+         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].a*255.0f+0.5f, 0.0f, 255.0f);
       }
    }
    
