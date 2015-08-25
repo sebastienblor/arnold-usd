@@ -283,6 +283,7 @@ public:
 
    bool getRegionCrop(bool b){m_region_crop = b;}
    void refreshGLBuffer();
+   void checkSceneUpdates();
 
 protected:
 
@@ -352,6 +353,7 @@ friend CRenderViewMainWindow;
    bool m_region_crop; 
 
    void *m_render_thread;
+   bool m_continuous_updates;
 
 
    AtRGBA *m_buffer;

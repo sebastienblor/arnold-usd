@@ -1123,7 +1123,7 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 void CArnoldSession::SetContinuousUpdates(bool b) 
 {
    m_continuousUpdates = b;
-   if (m_continuousUpdates && !m_objectsToUpdate.empty())
+   if (m_continuousUpdates && HasObjectsToUpdate())
    {
       RequestUpdate();
    }

@@ -18,6 +18,8 @@ extern void K_ProcessRenderError(int error);
 
 #include "render_gl_widget.h"
 
+#include "scene/MayaScene.h"
+#include "session/ArnoldSession.h"
 
 #include <iostream>
 
@@ -223,6 +225,9 @@ extern int RenderLoop(int smin, int smax)
    bool k_outputs_set = false;
    int i, exit_code = K_SUCCESS;
    K_wait_for_changes = false;
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+
+   bool continuous = arnoldSession->GetContinuousUpdates();
    
    /*
     * Progressive rendering loop
@@ -240,8 +245,18 @@ extern int RenderLoop(int smin, int smax)
        */
 
       K_render_timestamp = CRenderView::time();
-      K_refresh_requested = false;
+      bool render_timer = false;
+      if (continuous)
+      {
+         // now that a render is starting, let's set continuous updates to false
+         // so that incoming events don't stop this render
+         // after 1/15 seconds, this will be set back by render_gl_widget::paintGL (calling CRenderView::checkSceneUpdates)
+         arnoldSession->SetContinuousUpdates(false);
+      }
 
+
+      K_refresh_requested = false;
+      
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        
          int error;
@@ -250,20 +265,37 @@ extern int RenderLoop(int smin, int smax)
 
          K_restartLoop = false;
 
-   /*
 
-         if (K_refresh_requested)
+/*
+         Commented for now
+         This code triggers a new rendering after the first loop finished
+         in case some changes have been done in the scene
+
+         As opposed to the timer system used in CRenderView::checkSceneUpdates
+         this forces a full rendering of the first step before allowing a new one.
+         Not very convincing in the few tests I did
+
+         if (continuous && i != smin)
          {
-            CRenderSession* renderSession = CMayaScene::GetRenderSession();
-            renderSession->UpdateRenderView();
-            return;
+            
+            if (arnoldSession->HasObjectsToUpdate())
+            {
+               K_wait_for_changes = true;
+               arnoldSession->SetContinuousUpdates(true);
+               K_restartLoop = true;
+               i = smax+1;
+               break;
+            }            
+            arnoldSession->SetContinuousUpdates(true);
          }
-  */
 
+         */
+
+         
          if ((i==0) || (i>1 && i<smax) || (i==smax-1))
             continue;
             
-
+         
          AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", i);
    
          error = AiRender(0); //AI_RENDER_THREADED);

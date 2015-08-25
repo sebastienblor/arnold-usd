@@ -159,6 +159,7 @@ public:
    MVector GetOrigin() const;
    void SetContinuousUpdates(bool b);
    bool GetContinuousUpdates() const { return m_continuousUpdates;}
+   bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -217,6 +218,7 @@ private:
    MStatus ExportDag(MSelectionList* selected = NULL);
 
    inline bool NeedsUpdate() const { return m_requestUpdate; }
+
 
    void DoUpdate();
    void ClearUpdateCallbacks();

@@ -164,11 +164,6 @@ void CRenderGLWidget::paintGL()
 
    AtDisplaySync *sync = m_renderview.displaySync();
 
-   if (K_refresh_requested && m_renderview.canRestartRender())
-   {
-      m_renderview.updateRender();
-      return;
-   }
    if (!sync->waiting_draw) return;
 
 
@@ -235,6 +230,10 @@ void CRenderGLWidget::paintGL()
 
    if (depthTest == GL_TRUE)
       glEnable(GL_DEPTH_TEST);
+
+
+
+   m_renderview.checkSceneUpdates();
 
 }
 

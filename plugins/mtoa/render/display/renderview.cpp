@@ -139,6 +139,7 @@ void CRenderView::init()
 
    K_render_window = true;
    K_progressive = true;
+   m_continuous_updates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
 
    //unsigned int i;
    AtNode *filter;
@@ -314,12 +315,6 @@ bool CRenderView::canRestartRender() const
 
    return true;
 
-   static AtUInt64 renderView_refresh_time = 2000 ; // 1/10 seconds
-   AtUInt64 current_time = time();
-   if (current_time - K_render_timestamp > renderView_refresh_time){K_refresh_requested = false; return true;}
-
-   K_refresh_requested = true;
-   return false;
 }
 void CRenderView::close()
 {
@@ -474,7 +469,24 @@ void CRenderView::restartRender()
 
 }
 
+void CRenderView::checkSceneUpdates()
+{   
+   if (!m_continuous_updates) return;
 
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   if (arnoldSession->HasObjectsToUpdate())
+   {
+      AtUInt64 loop_time = CRenderView::time();
+      // 1 / 15 seconds minimum before restarting a render
+      if (loop_time - K_render_timestamp > (AtUInt64)1000000/15)
+      {
+         K_wait_for_changes = true;
+         // setting continuous updates to true
+         // will trigger the update
+         arnoldSession->SetContinuousUpdates(true);
+      }
+   }
+}
 
 void CRenderView::saveImage(const std::string &filename)
 {
@@ -806,6 +818,7 @@ void CRenderViewMainWindow::updateRender()
 
 void CRenderViewMainWindow::autoRefresh()
 {
+   m_renderView.m_continuous_updates = m_action_auto_refresh->isChecked();
    CMayaScene::GetArnoldSession()->SetContinuousUpdates(m_action_auto_refresh->isChecked());
 }
 
