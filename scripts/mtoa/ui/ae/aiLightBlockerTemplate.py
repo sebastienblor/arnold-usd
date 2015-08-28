@@ -9,6 +9,7 @@ class AEaiLightBlockerTemplate(ShaderAETemplate):
         self.beginLayout('Light Blocker Attributes', collapse=False)
         self.addControl('geometry_type', label='Geometry Type')
         self.addControl('density', label='Density')
+        self.addControl('shader', label='Shader')
         self.addSeparator()
         self.addControl('ramp_axis', label='Ramp Axis')
         self.addControl('ramp', label='Ramp')
