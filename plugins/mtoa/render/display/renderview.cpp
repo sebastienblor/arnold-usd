@@ -43,6 +43,7 @@
  ***************************/
 
 static int menuHeight = 10;
+static int toolbarHeight = 15;
 
 CRenderView::CRenderView(int w, int h)
 {
@@ -51,7 +52,7 @@ CRenderView::CRenderView(int w, int h)
    
    m_main_window = new CRenderViewMainWindow(0, *this);
 
-   m_main_window->resize(w, h+menuHeight);
+   m_main_window->resize(w, h+menuHeight+ toolbarHeight);
    m_main_window->setWindowTitle("Arnold Render View");
 
    m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
@@ -607,11 +608,18 @@ CRenderViewMainWindow::initMenus()
 {
 
    QMenuBar *menubar = menuBar();
+   m_tool_bar =  addToolBar("Arnold");
+   m_tool_bar->setFloatable(false);
+   m_tool_bar->setMovable(false);
+   m_tool_bar->setAutoFillBackground(true);
+   m_tool_bar->setPalette(palette());
+
+
    m_menu_file = menubar->addMenu("File");
 
    QAction *action;
    action = m_menu_file->addAction("Save Image");
-   connect(action, SIGNAL(triggered()), this, SLOT(saveImage()));
+   connect( action, SIGNAL(triggered()), this, SLOT(saveImage()));
 
    action->setCheckable(false);
    action->setStatusTip("Save the Image currently being displayed");
@@ -630,6 +638,10 @@ CRenderViewMainWindow::initMenus()
 
    m_aovs_action_group = 0;
 
+   m_aovs_combo = new QComboBox(this);
+   m_tool_bar->addWidget(m_aovs_combo);
+   m_tool_bar->addSeparator();
+   
    populateAOVsMenu();
 
    m_menu_view->addSeparator();
@@ -771,7 +783,15 @@ CRenderViewMainWindow::initMenus()
 
    m_cameras_action_group = 0;
 
+
+   m_cameras_combo = new QComboBox(this);
+   m_tool_bar->addWidget(m_cameras_combo);
+   
+
    populateCamerasMenu();
+
+
+   
 
 }
 void
@@ -1067,11 +1087,12 @@ void CRenderViewMainWindow::populateAOVsMenu()
    }
    m_aovs_action_group = new QActionGroup(this);
 
-
    QAction *action = m_menu_aovs->addAction("Beauty");
    connect(action, SIGNAL(triggered()), this, SLOT(showAOV()));
    action->setCheckable(true);
    if (m_renderView.m_displayedAovIndex < 0) action->setChecked(true);
+
+   m_aovs_combo->addItem("Beauty");
 
    m_aovs_action_group->addAction(action);
    m_menu_aovs->addSeparator();
@@ -1083,9 +1104,16 @@ void CRenderViewMainWindow::populateAOVsMenu()
       action = m_menu_aovs->addAction(QString(aovNames[i].c_str()));
       connect(action, SIGNAL(triggered()), this, SLOT(showAOV()));
       action->setCheckable(true);
-      if (m_renderView.m_displayedAovIndex == i) action->setChecked(true);
+
+      m_aovs_combo->addItem(QString(aovNames[i].c_str()));
+      if (m_renderView.m_displayedAovIndex == i) 
+      {
+         action->setChecked(true);
+      }
       m_aovs_action_group->addAction(action);
    }
+   m_aovs_combo->setCurrentIndex(m_renderView.m_displayedAovIndex + 1);
+   connect(m_aovs_combo, SIGNAL(activated(int)), this, SLOT(showBoxAOV()));
 }
 
 void CRenderViewMainWindow::populateCamerasMenu()
@@ -1099,10 +1127,15 @@ void CRenderViewMainWindow::populateCamerasMenu()
 
    // clear all previous actions in the menu
    m_menu_camera->clear();
+   m_cameras_combo->clear();
+
    m_cameras_action_group = new QActionGroup(this);
 
    AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_CAMERA);
    AtNode *currentCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
+   int i = 0;
+   int cam_index = 0;
+
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode *node = AiNodeIteratorGetNext(iter);
@@ -1110,9 +1143,23 @@ void CRenderViewMainWindow::populateCamerasMenu()
       QAction *action = m_menu_camera->addAction(QString(AiNodeGetName(node)));
       connect(action, SIGNAL(triggered()), this, SLOT(selectCamera()));
       action->setCheckable(true);
-      action->setChecked(node == currentCamera);
+      
+
+      if (node == currentCamera)
+      {
+         action->setChecked(true);
+         cam_index = i;
+      } else
+         action->setChecked(false);
+      
       m_cameras_action_group->addAction(action);
+      m_cameras_combo->addItem(QString(AiNodeGetName(node)));
+
+      i++;
    }
+
+   connect(m_cameras_combo, SIGNAL(activated(int)), this, SLOT(selectBoxCamera()));
+   if (i > 0) m_cameras_combo->setCurrentIndex(cam_index);
    AiNodeIteratorDestroy(iter);
 }
 
@@ -1137,13 +1184,33 @@ void CRenderViewMainWindow::showAOV()
             break;
          }
       }
-   }      
+   }
+   m_aovs_combo->setCurrentIndex(m_renderView.m_displayedAovIndex + 1);
+   // update the toolbar widget   
    m_renderView.refreshGLBuffer();
 }
-
-void CRenderViewMainWindow::selectCamera()
+void CRenderViewMainWindow::showBoxAOV()
 {
-   std::string cameraName = m_cameras_action_group->checkedAction()->text().toStdString();
+   int index = m_aovs_combo->currentIndex();
+   m_renderView.m_displayedAovIndex = index - 1;
+   std::string aovName = m_aovs_combo->currentText().toStdString();
+   
+   QList<QAction *>  menu_actions = m_aovs_action_group->actions();
+   for (int i = 0; i < menu_actions.length(); ++i)
+   {
+      if (menu_actions.at(i)->text().toStdString() == aovName)
+      {
+         menu_actions.at(i)->setChecked(true);
+         break;
+      }
+   }
+
+   m_renderView.refreshGLBuffer();
+
+}
+
+static void setCamera(CRenderView &renderView, const std::string &cameraName)
+{
    AtNode *camera =  AiNodeLookUpByName (cameraName.c_str());
    if (camera == NULL)
    {
@@ -1151,7 +1218,7 @@ void CRenderViewMainWindow::selectCamera()
       return;
    }
 
-   m_renderView.interruptRender();
+   renderView.interruptRender();
 
    // Since the Render Loop is rendering in a different thread, we must wait until 
    // rendering actually stops, otherwise the previous camera can pop back
@@ -1179,11 +1246,40 @@ void CRenderViewMainWindow::selectCamera()
    }
 
 
-   while (AiRendering()) {m_renderView.sleep(10);}
+   while (AiRendering()) {renderView.sleep(10);}
    AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)camera);
 
-   m_renderView.restartRender();
+   renderView.restartRender();
+}
+
+void CRenderViewMainWindow::selectCamera()
+{
+   std::string cameraName = m_cameras_action_group->checkedAction()->text().toStdString();
+
+   for (int i = 0; i < m_cameras_combo->count(); ++i)
+   {
+      if (m_cameras_combo->itemText(i).toStdString() == cameraName)
+      {
+         m_cameras_combo->setCurrentIndex(i);
+         break;
+      }
+   }
+   setCamera(m_renderView, cameraName);
    
+}
+void CRenderViewMainWindow::selectBoxCamera()
+{
+   std::string cameraName = m_cameras_combo->currentText().toStdString();
+   QList<QAction *>  menu_actions = m_cameras_action_group->actions();
+   for (int i = 0; i < menu_actions.length(); ++i)
+   {
+      if (menu_actions.at(i)->text().toStdString() == cameraName)
+      {
+         menu_actions.at(i)->setChecked(true);
+         break;
+      }
+   }
+   setCamera(m_renderView, cameraName);
 }
 void CRenderViewMainWindow::cropRegion()
 {

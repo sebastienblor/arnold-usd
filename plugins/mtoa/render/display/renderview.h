@@ -123,6 +123,11 @@ private:
    QMenu *m_menu_aovs;
    QMenu *m_menu_camera;
 
+   QToolBar *m_tool_bar;
+   QComboBox *m_aovs_combo;
+   QComboBox *m_cameras_combo;
+
+
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
    QAction *m_action_progressive_refinement;
@@ -164,16 +169,15 @@ private slots:
    void showChannel();
    void enableAOVs();
    void showAOV();
+   void showBoxAOV();
    void selectCamera();
+   void selectBoxCamera();
    void cropRegion();
    void frameAll();
    void frameRegion();
    void realSize();
    void colorCorrection();
    
-
-
-
 };
  
 

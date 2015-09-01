@@ -322,6 +322,8 @@ extern int RenderLoop(int smin, int smax)
 
                if (i == smax)
                {
+                  // setting back continuous updates to its original state
+                  arnoldSession->SetContinuousUpdates(continuous);
                   while (K_aborted == false && K_restartLoop == false) {
                      CRenderView::sleep(1000); // don't want CPU pegged at 100% with useless work
                   }
