@@ -28,7 +28,8 @@ extern "C"
 
         status = extension.RegisterTranslator ( "bifrostAeroMaterial",
                                                 "",
-                                                CBfAeroMaterialTranslator::creator);
+                                                CBfAeroMaterialTranslator::creator,
+                                                CBfAeroMaterialTranslator::NodeInitializer );
 
        
 

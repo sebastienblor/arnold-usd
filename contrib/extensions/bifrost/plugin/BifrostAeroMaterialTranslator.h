@@ -15,7 +15,7 @@ public:
    {
       return new CBfAeroMaterialTranslator();
    }
-  
+   static void NodeInitializer(CAbTranslator context);
 
 private:
 

@@ -418,7 +418,7 @@ void CBfDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
 
 void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
 {
-// do I need this function ?
+   
 }
 
 void CBfDescriptionTranslator::ExportBifrostShader()

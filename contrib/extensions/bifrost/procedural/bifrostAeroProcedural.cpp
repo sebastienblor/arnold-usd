@@ -119,11 +119,11 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
    
    if(shader)
    {
-       data->step_size = AiNodeGetFlt(shader, "miStepSize");
-       data->max_steps = AiNodeGetInt(shader, "miMaxSteps");
-       data->shadowing = AiNodeGetBool(shader, "miShadowing");
-       data->shadowing_step_size = AiNodeGetFlt(shader, "miShadowingStepSize");
-       data->shadowing_max_steps = AiNodeGetInt(shader, "miShadowingMaxSteps");
+       data->step_size = AiNodeGetFlt(shader, "aiStepSize");
+       data->max_steps = AiNodeGetInt(shader, "aiMaxSteps");
+       data->shadowing = AiNodeGetBool(shader, "aiShadowing");
+       data->shadowing_step_size = AiNodeGetFlt(shader, "aiShadowingStepSize");
+       data->shadowing_max_steps = AiNodeGetInt(shader, "aiShadowingMaxSteps");
 
 
    } else

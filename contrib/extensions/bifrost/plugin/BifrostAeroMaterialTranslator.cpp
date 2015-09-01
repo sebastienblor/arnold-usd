@@ -129,12 +129,12 @@ void CBfAeroMaterialTranslator::Export(AtNode* instance)
    AiNodeSetFlt(instance, "scatteringDensityCutoff", bfShaderNode.findPlug("scatteringDensityCutoff").asFloat());
    AiNodeSetFlt(instance, "scatteringDirectionality", bfShaderNode.findPlug("scatteringDirectionality").asFloat());
 
-   AiNodeSetFlt(instance, "miStepSize", bfShaderNode.findPlug("miStepSize").asFloat());
-   AiNodeSetInt(instance, "miMaxSteps", bfShaderNode.findPlug("miMaxSteps").asInt());
-   AiNodeSetBool(instance, "miShadowing", bfShaderNode.findPlug("miShadowing").asBool());
+   AiNodeSetFlt(instance, "aiStepSize", bfShaderNode.findPlug("aiStepSize").asFloat());
+   AiNodeSetInt(instance, "aiMaxSteps", bfShaderNode.findPlug("aiMaxSteps").asInt());
+   AiNodeSetBool(instance, "aiShadowing", bfShaderNode.findPlug("aiShadowing").asBool());
 
-   AiNodeSetFlt(instance, "miShadowingStepSize", bfShaderNode.findPlug("miShadowingStepSize").asFloat());
-   AiNodeSetInt(instance, "miShadowingMaxSteps", bfShaderNode.findPlug("miShadowingMaxSteps").asInt());
+   AiNodeSetFlt(instance, "aiShadowingStepSize", bfShaderNode.findPlug("aiShadowingStepSize").asFloat());
+   AiNodeSetInt(instance, "aiShadowingMaxSteps", bfShaderNode.findPlug("aiShadowingMaxSteps").asInt());
 
    AiNodeSetStr(instance, "densityRemapChannel", bfShaderNode.findPlug("densityRemapChannel").asString().asChar());
    ExportFloatGradient(bfShaderNode.findPlug("densityRemap"), instance, "densityRemap");
@@ -150,3 +150,68 @@ void CBfAeroMaterialTranslator::Export(AtNode* instance)
   
 }
 
+
+void CBfAeroMaterialTranslator::NodeInitializer(CAbTranslator context)
+{
+
+   CExtensionAttrHelper helper(context.maya, "standard");
+
+   CAttrData data;
+
+   data.name = "aiStepSize";
+   data.shortName = "ai_step_size";
+   data.hasSoftMin = true;
+   data.softMin.FLT = 0.f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 1.f;
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasMax = false;
+   data.defaultValue.FLT = 0.1f;
+   helper.MakeInputFloat(data);
+
+
+   data.name = "aiMaxSteps";
+   data.shortName = "ai_max_steps";
+   data.hasMin = true;
+   data.min.INT = 1;
+   data.hasMax = false;
+   data.hasSoftMin = true;
+   data.softMin.INT = 1;
+   data.hasSoftMax = true;
+   data.softMax.INT = 1000000;
+   data.defaultValue.INT = 1000;
+   helper.MakeInputInt(data);
+
+
+   data.name = "aiShadowing";
+   data.shortName = "ai_shadowing";
+   data.defaultValue.BOOL = true;
+   helper.MakeInputBoolean(data);
+
+
+   data.name = "aiShadowingStepSize";
+   data.shortName = "ai_shadowing_step_size";
+   data.hasSoftMin = true;
+   data.softMin.FLT = 0.f;
+   data.hasSoftMax = true;
+   data.softMax.FLT = 5.f;
+   data.hasMin = true;
+   data.min.FLT = 0.f;
+   data.hasMax = false;
+   data.defaultValue.FLT = 1.1f;
+   helper.MakeInputFloat(data);
+
+
+   data.name = "aiShadowingMaxSteps";
+   data.shortName = "ai_shadowing_max_steps";
+   data.hasMin = true;
+   data.min.INT = 1;
+   data.hasMax = false;
+   data.hasSoftMin = true;
+   data.softMin.INT = 1;
+   data.hasSoftMax = true;
+   data.softMax.INT = 1000000;
+   data.defaultValue.INT = 100;
+   helper.MakeInputInt(data);
+}

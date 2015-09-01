@@ -53,12 +53,12 @@ node_parameters
 
    AiParameterFLT("scatteringDensityCutoff", 1.0f);
    AiParameterFLT("scatteringDirectionality", 0.0f);
-   AiParameterFLT("miStepSize", 0.1f);
-   AiParameterInt("miMaxSteps", 1000);
-   AiParameterBool("miShadowing", true);
+   AiParameterFLT("aiStepSize", 0.1f);
+   AiParameterInt("aiMaxSteps", 1000);
+   AiParameterBool("aiShadowing", true);
 
-   AiParameterFLT("miShadowingStepSize", 0.1f);
-   AiParameterInt("miShadowingMaxSteps", 1000);
+   AiParameterFLT("aiShadowingStepSize", 0.1f);
+   AiParameterInt("aiShadowingMaxSteps", 1000);
 
    AiParameterStr("densityRemapChannel", "none");
    AiParameterFLT("densityRemapInputMin", 0.f);
