@@ -44,6 +44,8 @@
 
 static int menuHeight = 10;
 static int toolbarHeight = 15;
+static int statusbarHeight = 10;
+
 
 CRenderView::CRenderView(int w, int h)
 {
@@ -52,7 +54,7 @@ CRenderView::CRenderView(int w, int h)
    
    m_main_window = new CRenderViewMainWindow(0, *this);
 
-   m_main_window->resize(w, h+menuHeight+ toolbarHeight);
+   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight);
    m_main_window->setWindowTitle("Arnold Render View");
 
    m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
@@ -463,10 +465,12 @@ void CRenderView::updateRender()
 
 void CRenderView::restartRender()
 {
+
    show();
    K_render_timestamp = time();
    K_restartLoop = true;
    K_wait_for_changes = false;   
+
 
 }
 
@@ -606,14 +610,16 @@ void CRenderView::deleteStoredImage()
 void
 CRenderViewMainWindow::initMenus()
 {
-
    QMenuBar *menubar = menuBar();
+
    m_tool_bar =  addToolBar("Arnold");
-   m_tool_bar->setFloatable(false);
-   m_tool_bar->setMovable(false);
    m_tool_bar->setAutoFillBackground(true);
    m_tool_bar->setPalette(palette());
 
+   statusBar()->show();
+   statusBar()->showMessage(" ");
+   statusBar()->setAutoFillBackground(true);
+   statusBar()->setPalette(palette()) ;
 
    m_menu_file = menubar->addMenu("File");
 

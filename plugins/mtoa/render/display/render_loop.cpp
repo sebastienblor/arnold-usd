@@ -22,6 +22,7 @@ extern void K_ProcessRenderError(int error);
 #include "session/ArnoldSession.h"
 
 #include <iostream>
+#include <sstream>
 
 /******************************************************************************
    Global variables
@@ -219,13 +220,14 @@ void K_InitGlobalVars(void)
 
 
 
-extern int RenderLoop(int smin, int smax)
+extern int RenderLoop(CRenderView *kwin, int smin, int smax)
 {
 
    bool k_outputs_set = false;
    int i, exit_code = K_SUCCESS;
    K_wait_for_changes = false;
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+
 
    bool continuous = arnoldSession->GetContinuousUpdates();
    
@@ -294,10 +296,25 @@ extern int RenderLoop(int smin, int smax)
          
          if ((i==0) || (i>1 && i<smax) || (i==smax-1))
             continue;
-            
          
          AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", i);
+
+
+         std::stringstream statusStr;
+         statusStr <<"Rendering...  ";
+
+         statusStr<<"Resolution: "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
    
+         statusStr<<"  Sampling: "<<i;
+         statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
+         statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
+         statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_refraction_samples");
+         statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "sss_bssrdf_samples");
+         statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
+        
+         kwin->setStatus(statusStr.str());
+         AtUInt64 loop_time = (i == smax) ? CRenderView::time() : 0;
+
          error = AiRender(0); //AI_RENDER_THREADED);
          switch (error)
          {
@@ -324,6 +341,45 @@ extern int RenderLoop(int smin, int smax)
                {
                   // setting back continuous updates to its original state
                   arnoldSession->SetContinuousUpdates(continuous);
+
+
+                  AtUInt64 end_time = CRenderView::time();
+                  int seconds_count = (end_time - loop_time) / 1000000;
+                  int minutes_count = seconds_count / 60;
+                  seconds_count -= minutes_count * 60;
+                  int hours_count = minutes_count / 60;
+                  minutes_count -= hours_count * 60;
+
+                  std::stringstream statusEndStr;
+
+                  if (hours_count <= 0) statusEndStr <<"00:";
+                  else if (hours_count < 10) statusStr<<"0"<<hours_count<<":";
+                  else statusEndStr <<hours_count<<":";
+
+                  if (minutes_count <= 0) statusEndStr <<"00:";
+                  else if (minutes_count < 10) statusStr<<"0"<<minutes_count<<":";
+                  else statusEndStr <<minutes_count<<":";
+                  
+                  if (seconds_count <= 0) statusEndStr <<"00";
+                  else if (seconds_count < 10) statusStr<<"0"<<seconds_count;
+                  else statusEndStr <<seconds_count;
+                  
+
+                  statusEndStr<<"  Resolution: "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
+   
+
+                  statusEndStr <<"  Sampling: "<<i;
+                  statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
+                  statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
+                  statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_refraction_samples");
+                  statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "sss_bssrdf_samples");
+                  statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
+                 
+                  const float mem_used = (float)AiMsgUtilGetUsedMemory() / 1024.0f / 1024.0f;
+                  statusEndStr<<"  Memory: "<<mem_used<<"MB";
+
+                  kwin->setStatus(statusEndStr.str());
+
                   while (K_aborted == false && K_restartLoop == false) {
                      CRenderView::sleep(1000); // don't want CPU pegged at 100% with useless work
                   }
@@ -346,6 +402,7 @@ extern int RenderLoop(int smin, int smax)
 
    } while (!K_aborted);
    
+   arnoldSession->SetContinuousUpdates(continuous);
 
    return exit_code;
 }
@@ -359,7 +416,7 @@ unsigned int kickWindowRender(void *kwin_ptr)
   int smin = MIN(-3, K_AA_samples);
   int smax = K_AA_samples;
 
-  RenderLoop(smin, smax);
+  RenderLoop(kwin, smin, smax);
 
   return 0;
 }

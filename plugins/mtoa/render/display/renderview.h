@@ -289,6 +289,11 @@ public:
    void refreshGLBuffer();
    void checkSceneUpdates();
 
+   void setStatus (const std::string &status)
+   {
+      m_main_window->statusBar()->showMessage(QString(status.c_str()));
+   }
+
 protected:
 
 friend CRenderViewMainWindow;
