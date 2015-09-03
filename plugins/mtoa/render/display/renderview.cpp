@@ -142,6 +142,7 @@ void CRenderView::init()
    m_show_rendering_tiles = false;
    m_region_crop = false;
    m_status_changed = false;
+   m_restore_continuous = false;
 
    K_AA_samples = AiNodeGetInt(options, "AA_samples");
    if (K_AA_samples == 0)
@@ -315,6 +316,8 @@ void CRenderView::render()
 
    // make sure m_aovBuffers is resized to the appropriate amount of AOVs
 
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   arnoldSession->SetContinuousUpdates(false);
    m_render_thread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
 
 }
@@ -411,13 +414,13 @@ void CRenderView::draw(AtBBox2 *region)
    }
 
    // immediately draw or wait for timer to run out
-   if (true || m_displayedImageIndex < 0) sync->waiting_draw = true;
-   else sync->waiting_draw = false;
+   sync->waiting_draw = true;
+   
    // if we're displayed a previously stored image
    // we don't want to prevent that we need a draw
    AiCritSecLeave(&sync->lock);
 
-   if ( already_in_queue == false && sync->waiting_draw == true) 
+   if ( already_in_queue == false) 
    {
       m_gl->update();
    }
@@ -476,7 +479,10 @@ void CRenderView::restartRender()
    K_render_timestamp = time();
    K_restartLoop = true;
 
-   K_wait_for_changes = false;   
+   K_wait_for_changes = false;
+
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   arnoldSession->SetContinuousUpdates(false);
 
 }
 
@@ -492,6 +498,12 @@ void CRenderView::checkSceneUpdates()
    if (!m_continuous_updates) return;
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+
+   if (m_restore_continuous)
+   {
+      arnoldSession->SetContinuousUpdates(true);
+      m_restore_continuous = false;
+   }
    if (arnoldSession->HasObjectsToUpdate())
    {
       AtUInt64 loop_time = CRenderView::time();
@@ -904,6 +916,8 @@ CRenderViewMainWindow::saveImage()
 void CRenderViewMainWindow::abortRender()
 {
    m_renderView.interruptRender();
+   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
+   if (m_renderView.m_continuous_updates)   arnoldSession->SetContinuousUpdates(true);
 }
 
 void CRenderViewMainWindow::showRenderingTiles()

@@ -80,7 +80,6 @@ int           K_wait_for_changes;
 int           K_allow_interruption;
 int           K_enable_aovs;
 volatile AtUInt64 K_render_timestamp;
-bool          K_refresh_requested;
 
 
 
@@ -188,8 +187,7 @@ void K_InitGlobalVars(void)
    K_wait_for_changes = false;
    K_allow_interruption = true;
    K_render_timestamp = 0;
-   K_refresh_requested = false;
-
+   
    K_set_filename = 0;
    K_resave = 0;
    K_enable_aovs = true;
@@ -228,8 +226,6 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
    K_wait_for_changes = false;
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
 
-
-   bool continuous = arnoldSession->GetContinuousUpdates();
    
    /*
     * Progressive rendering loop
@@ -248,14 +244,6 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
 
       K_render_timestamp = CRenderView::time();
       bool render_timer = false;
-      if (continuous)
-      {
-         // now that a render is starting, let's set continuous updates to false
-         // so that incoming events don't stop this render
-         // after 1/15 seconds, this will be set back by render_gl_widget::paintGL (calling CRenderView::checkSceneUpdates)
-         arnoldSession->SetContinuousUpdates(false);
-      }
-      K_refresh_requested = false;
       
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        
@@ -327,7 +315,6 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                K_restartLoop = true;
                i = smax+1;
                exit_code = error;
-               arnoldSession->SetContinuousUpdates(continuous);
                break;
             }
             case AI_SUCCESS:
@@ -340,7 +327,8 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                if (i == smax)
                {
                   // setting back continuous updates to its original state
-                  arnoldSession->SetContinuousUpdates(continuous);
+                  kwin->restoreContinuous();
+                  
 
 
                   AtUInt64 end_time = CRenderView::time();
@@ -353,15 +341,15 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                   std::stringstream statusEndStr;
 
                   if (hours_count <= 0) statusEndStr <<"00:";
-                  else if (hours_count < 10) statusStr<<"0"<<hours_count<<":";
+                  else if (hours_count < 10) statusEndStr<<"0"<<hours_count<<":";
                   else statusEndStr <<hours_count<<":";
 
                   if (minutes_count <= 0) statusEndStr <<"00:";
-                  else if (minutes_count < 10) statusStr<<"0"<<minutes_count<<":";
+                  else if (minutes_count < 10) statusEndStr<<"0"<<minutes_count<<":";
                   else statusEndStr <<minutes_count<<":";
                   
                   if (seconds_count <= 0) statusEndStr <<"00";
-                  else if (seconds_count < 10) statusStr<<"0"<<seconds_count;
+                  else if (seconds_count < 10) statusEndStr<<"0"<<seconds_count;
                   else statusEndStr <<seconds_count;
                   
 
@@ -379,6 +367,7 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                   statusEndStr<<"  Memory: "<<mem_used<<"MB";
 
                   kwin->setStatus(statusEndStr.str());
+                  kwin->draw();
 
                   while (K_aborted == false && K_restartLoop == false) {
                      CRenderView::sleep(1000); // don't want CPU pegged at 100% with useless work
@@ -395,16 +384,16 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                 */
                K_aborted = 1;
                exit_code = error;
-               arnoldSession->SetContinuousUpdates(continuous);
+               kwin->restoreContinuous();
                break;
             }
          }
       }
 
    } while (!K_aborted);
-   
-   arnoldSession->SetContinuousUpdates(continuous);
 
+
+   kwin->restoreContinuous();
    return exit_code;
 }
 

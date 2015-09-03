@@ -295,6 +295,8 @@ public:
       m_status_changed = true;
    }
 
+   void restoreContinuous() {if (m_continuous_updates)m_restore_continuous = true;}
+
 protected:
 
 friend CRenderViewMainWindow;
@@ -377,6 +379,7 @@ friend CRenderViewMainWindow;
 
    std::string m_status_log;
    bool m_status_changed;
+   bool m_restore_continuous;
 };
 
 
