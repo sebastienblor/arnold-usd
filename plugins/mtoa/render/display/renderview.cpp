@@ -30,6 +30,14 @@
 
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
+#include "icons/SA_logo_32.xpm"
+#include "icons/SA_icon_continuous_off.xpm"
+ #include "icons/SA_icon_continuous_on.xpm"
+#include "icons/SA_icon_play.xpm"
+#include "icons/SA_icon_region_off.xpm"
+#include "icons/SA_icon_region_on.xpm"
+#include "icons/SA_icon_stop.xpm"
+#include "icons/SA_icon_store.xpm"
 
 
 //#include <QtGui/qimage.h>
@@ -612,6 +620,10 @@ CRenderViewMainWindow::initMenus()
 {
    QMenuBar *menubar = menuBar();
 
+   setWindowIcon(QIcon(QPixmap((const char **) SA_logo_32_xpm)));
+
+
+
    m_tool_bar =  addToolBar("Arnold");
    m_tool_bar->setAutoFillBackground(true);
    m_tool_bar->setPalette(palette());
@@ -712,11 +724,11 @@ CRenderViewMainWindow::initMenus()
    m_action_show_rendering_tiles->setCheckable(true);
    m_action_show_rendering_tiles->setStatusTip("Display the Tiles being rendered");
 
-   action = m_menu_view->addAction("Store Image in RenderView");
-   connect(action, SIGNAL(triggered()), this, SLOT(storeImage()));
-   action->setCheckable(false);
+   QAction *store_action = m_menu_view->addAction("Store Image in RenderView");
+   connect(store_action, SIGNAL(triggered()), this, SLOT(storeImage()));
+   store_action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Plus);
-   action->setStatusTip("Store the displayed Image in memory");
+   store_action->setStatusTip("Store the displayed Image in memory");
 
    action = m_menu_view->addAction("Previous Stored Image");
    connect(action, SIGNAL(triggered()), this, SLOT(previousStoredImage()));
@@ -746,23 +758,28 @@ CRenderViewMainWindow::initMenus()
    m_menu_render = menubar->addMenu("Render");
 
 
-   action = m_menu_render->addAction("Update Render");
-   connect(action, SIGNAL(triggered()), this, SLOT(updateRender()));
-   action->setCheckable(false);
-   action->setShortcut(Qt::Key_F5);
-   action->setStatusTip("Update the rendering");
-
-   action = m_menu_render->addAction("Abort Render");
-   connect(action, SIGNAL(triggered()), this, SLOT(abortRender()));
-   action->setCheckable(false);
-   action->setStatusTip("Abort the current Render");
-   action->setShortcut(Qt::Key_Escape);
+   QAction *render_action = m_menu_render->addAction("Render");
+   connect(render_action, SIGNAL(triggered()), this, SLOT(updateRender()));
+   render_action->setCheckable(false);
+   render_action->setShortcut(Qt::Key_F5);
+   render_action->setStatusTip("Render / Update");
+   
+   QAction *abort_action = m_menu_render->addAction("Abort Render");
+   connect(abort_action, SIGNAL(triggered()), this, SLOT(abortRender()));
+   abort_action->setCheckable(false);
+   abort_action->setStatusTip("Abort the current Render");
+   abort_action->setShortcut(Qt::Key_Escape);
 
    m_action_auto_refresh = m_menu_render->addAction("Continuous Updates");
    connect(m_action_auto_refresh, SIGNAL(triggered()), this, SLOT(autoRefresh()));
    m_action_auto_refresh->setCheckable(true);
    m_action_auto_refresh->setChecked(CMayaScene::GetArnoldSession()->GetContinuousUpdates());
    m_action_auto_refresh->setStatusTip("Automatically update any change in the scene and restart the rendering");
+
+//   m_action_auto_refresh->setIcon(QIcon(QPixmap((const char **) SA_continuous_update_xpm)));
+   //m_action_auto_refresh->setIconVisibleInMenu(false);
+   
+   
 
    m_action_progressive_refinement = m_menu_render->addAction("Progressive Refinement");
    connect(m_action_progressive_refinement, SIGNAL(triggered()), this, SLOT(progressiveRefinement()));
@@ -789,15 +806,69 @@ CRenderViewMainWindow::initMenus()
 
    m_cameras_action_group = 0;
 
-
    m_cameras_combo = new QComboBox(this);
    m_tool_bar->addWidget(m_cameras_combo);
    
-
    populateCamerasMenu();
 
+// Now dealing with the ToolButtons   
 
-   
+   setIconSize(QSize(18, 18));
+
+   m_tool_bar->addSeparator();
+   QString style_button = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
+
+   QToolButton *render_button = new QToolButton(m_tool_bar);
+   render_button->setDefaultAction(render_action);
+   m_tool_bar->addWidget(render_button);
+   QIcon render_icon(QPixmap((const char **) SA_icon_play_xpm));
+   render_button->setIcon(render_icon);
+   render_action->setIcon(render_icon);
+   render_action->setIconVisibleInMenu(false);
+   render_button->setStyleSheet(style_button);
+
+   QToolButton *abort_button = new QToolButton(m_tool_bar);
+   abort_button->setDefaultAction(abort_action);
+   m_tool_bar->addWidget(abort_button);
+   QIcon abort_icon(QPixmap((const char **) SA_icon_stop_xpm));
+   abort_button->setIcon(abort_icon);
+   abort_action->setIcon(abort_icon);
+   abort_action->setIconVisibleInMenu(false);
+   abort_button->setStyleSheet(style_button);
+
+   m_tool_bar->addSeparator();
+   QToolButton *refresh_button = new QToolButton(m_tool_bar);
+   refresh_button->setDefaultAction(m_action_auto_refresh);
+   m_tool_bar->addWidget(refresh_button);
+   QIcon refresh_icon;
+   refresh_icon.addPixmap(QPixmap((const char **) SA_icon_continuous_on_xpm), QIcon::Normal, QIcon::On);
+   refresh_icon.addPixmap(QPixmap((const char **) SA_icon_continuous_off_xpm), QIcon::Normal, QIcon::Off);
+   refresh_button->setIcon(refresh_icon);
+   m_action_auto_refresh->setIcon(refresh_icon);
+   m_action_auto_refresh->setIconVisibleInMenu(false);
+   refresh_button->setStyleSheet(style_button);
+
+   QToolButton *region_button = new QToolButton(m_tool_bar);
+   region_button->setDefaultAction(m_action_crop_region);
+   m_tool_bar->addWidget(region_button);
+   QIcon region_icon;
+   region_icon.addPixmap(QPixmap((const char **) SA_icon_region_on_xpm), QIcon::Normal, QIcon::On);
+   region_icon.addPixmap(QPixmap((const char **) SA_icon_region_off_xpm), QIcon::Normal, QIcon::Off);
+   region_button->setIcon(region_icon);
+   m_action_crop_region->setIcon(region_icon);
+   m_action_crop_region->setIconVisibleInMenu(false);
+   region_button->setStyleSheet(style_button);
+
+
+   m_tool_bar->addSeparator();
+   QToolButton *store_button = new QToolButton(m_tool_bar);
+   store_button->setDefaultAction(store_action);
+   m_tool_bar->addWidget(store_button);
+   QIcon store_icon(QPixmap((const char **) SA_icon_store_xpm));
+   store_button->setIcon(store_icon);
+   store_action->setIcon(store_icon);
+   store_action->setIconVisibleInMenu(false);
+   store_button->setStyleSheet(style_button);
 
 }
 void
