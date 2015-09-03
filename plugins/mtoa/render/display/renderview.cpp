@@ -141,6 +141,7 @@ void CRenderView::init()
    m_color_mode  = COLOR_MODE_RGBA;
    m_show_rendering_tiles = false;
    m_region_crop = false;
+   m_status_changed = false;
 
    K_AA_samples = AiNodeGetInt(options, "AA_samples");
    if (K_AA_samples == 0)
@@ -302,9 +303,6 @@ void CRenderView::init()
 
 void CRenderView::render()
 {
-
-
-
    interruptRender();
 
    if (m_render_thread != NULL)
@@ -477,13 +475,20 @@ void CRenderView::restartRender()
    show();
    K_render_timestamp = time();
    K_restartLoop = true;
-   K_wait_for_changes = false;   
 
+   K_wait_for_changes = false;   
 
 }
 
 void CRenderView::checkSceneUpdates()
-{   
+{  
+
+   if (m_status_changed)
+   {
+      m_main_window->statusBar()->showMessage(QString(m_status_log.c_str()));
+      m_status_changed = false;
+   }
+
    if (!m_continuous_updates) return;
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();

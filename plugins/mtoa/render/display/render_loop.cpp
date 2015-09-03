@@ -239,7 +239,7 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
       /*
        * apply any existing node changes
        */
-      
+
       while(K_wait_for_changes) {CRenderView::sleep(10);}
 
       /*
@@ -255,8 +255,6 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
          // after 1/15 seconds, this will be set back by render_gl_widget::paintGL (calling CRenderView::checkSceneUpdates)
          arnoldSession->SetContinuousUpdates(false);
       }
-
-
       K_refresh_requested = false;
       
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
@@ -313,6 +311,7 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
         
          kwin->setStatus(statusStr.str());
+        
          AtUInt64 loop_time = (i == smax) ? CRenderView::time() : 0;
 
          error = AiRender(0); //AI_RENDER_THREADED);
@@ -328,6 +327,7 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                K_restartLoop = true;
                i = smax+1;
                exit_code = error;
+               arnoldSession->SetContinuousUpdates(continuous);
                break;
             }
             case AI_SUCCESS:
@@ -395,6 +395,7 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
                 */
                K_aborted = 1;
                exit_code = error;
+               arnoldSession->SetContinuousUpdates(continuous);
                break;
             }
          }

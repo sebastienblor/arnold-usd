@@ -291,7 +291,8 @@ public:
 
    void setStatus (const std::string &status)
    {
-      m_main_window->statusBar()->showMessage(QString(status.c_str()));
+      m_status_log = status;
+      m_status_changed = true;
    }
 
 protected:
@@ -373,6 +374,9 @@ friend CRenderViewMainWindow;
    int m_displayedImageIndex;
    int m_displayedAovIndex;
    CRenderViewCCSettings m_colorCorrectSettings;
+
+   std::string m_status_log;
+   bool m_status_changed;
 };
 
 
