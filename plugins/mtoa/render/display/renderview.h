@@ -133,6 +133,10 @@ private:
    QAction *m_action_progressive_refinement;
    QAction *m_action_enable_aovs;
    QAction *m_action_crop_region;
+   QAction *m_action_status_bar;
+   QAction *m_action_status_info;
+
+
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
    QActionGroup *m_cameras_action_group;
@@ -177,6 +181,10 @@ private slots:
    void frameRegion();
    void realSize();
    void colorCorrection();
+   void enableStatusBar();
+   void displayPixelInfo();
+
+
    
 };
  
@@ -380,6 +388,8 @@ friend CRenderViewMainWindow;
    std::string m_status_log;
    bool m_status_changed;
    bool m_restore_continuous;
+   bool m_status_bar_enabled;
+   bool m_status_bar_pixel_info;
 };
 
 

@@ -31,15 +31,17 @@
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
 #include "icons/SA_logo_32.xpm"
+#include "icons/SA_logo.xpm"
+
 #include "icons/SA_icon_continuous_off.xpm"
- #include "icons/SA_icon_continuous_on.xpm"
+#include "icons/SA_icon_continuous_on.xpm"
 #include "icons/SA_icon_play.xpm"
 #include "icons/SA_icon_region_off.xpm"
 #include "icons/SA_icon_region_on.xpm"
 #include "icons/SA_icon_stop.xpm"
 #include "icons/SA_icon_store.xpm"
 
-
+#include <sstream>
 //#include <QtGui/qimage.h>
 
 #pragma warning (disable : 4244)
@@ -142,6 +144,8 @@ void CRenderView::init()
    m_show_rendering_tiles = false;
    m_region_crop = false;
    m_status_changed = false;
+   m_status_bar_enabled = true;
+   m_status_bar_pixel_info = false;
    m_restore_continuous = false;
 
    K_AA_samples = AiNodeGetInt(options, "AA_samples");
@@ -261,7 +265,7 @@ void CRenderView::init()
    min_x       = data_window.minx;
    min_y       = data_window.miny;
    m_color_mode  = COLOR_MODE_RGBA;
-   
+      
    // setup syncing
    displaySyncCreate(x_res, y_res);
 
@@ -489,10 +493,28 @@ void CRenderView::restartRender()
 void CRenderView::checkSceneUpdates()
 {  
 
-   if (m_status_changed)
+   if (m_status_bar_enabled)
    {
-      m_main_window->statusBar()->showMessage(QString(m_status_log.c_str()));
-      m_status_changed = false;
+
+      if (m_status_changed)
+      {
+         QString status_log(m_status_log.c_str());
+
+         if (m_status_bar_pixel_info)
+         {
+            // check if previous log had pixel information and leave them         
+            std::string previous_log = m_main_window->statusBar()->currentMessage().toStdString();
+            size_t pixel_pos = previous_log.find("  Pixel");
+            if (pixel_pos != std::string::npos)
+            {
+               previous_log = previous_log.substr(pixel_pos);
+               status_log += QString(previous_log.c_str());
+            }
+         }
+
+         m_main_window->statusBar()->showMessage(status_log);
+         m_status_changed = false;
+      }
    }
 
    if (!m_continuous_updates) return;
@@ -637,7 +659,8 @@ CRenderViewMainWindow::initMenus()
 {
    QMenuBar *menubar = menuBar();
 
-   setWindowIcon(QIcon(QPixmap((const char **) SA_logo_32_xpm)));
+   //setWindowIcon(QIcon(QPixmap((const char **) SA_logo_32_xpm)));
+   setWindowIcon(QIcon(QPixmap((const char **) SA_logo_xpm)));
 
 
 
@@ -771,7 +794,25 @@ CRenderViewMainWindow::initMenus()
    connect(action, SIGNAL(triggered()), this, SLOT(colorCorrection()));
    action->setCheckable(false);
    action->setStatusTip("Apply Color Correction on the displayed image");
-   
+
+   m_menu_view->addSeparator();   
+   QMenu *status_menu = new QMenu("Status Bar");
+   m_menu_view->addMenu(status_menu);
+
+
+   m_action_status_bar = status_menu->addAction("Show Status Bar");
+   connect(m_action_status_bar, SIGNAL(triggered()), this, SLOT(enableStatusBar()));
+   m_action_status_bar->setCheckable(true);
+   m_action_status_bar->setChecked(true);
+   m_action_status_bar->setStatusTip("Display the Status Bar");
+
+   m_action_status_info = status_menu->addAction("Display Pixel Information");
+   connect(m_action_status_info, SIGNAL(triggered()), this, SLOT(displayPixelInfo()));
+   m_action_status_info->setCheckable(true);
+   m_action_status_info->setChecked(false);
+   m_action_status_info->setStatusTip("Display Pixel Information in the Status Bar");
+
+
    m_menu_render = menubar->addMenu("Render");
 
 
@@ -958,6 +999,20 @@ void CRenderViewMainWindow::deleteStoredImage()
 
 }
 
+void CRenderViewMainWindow::enableStatusBar()
+{
+   m_renderView.m_status_bar_enabled = m_action_status_bar->isChecked();
+   if (m_renderView.m_status_bar_enabled) statusBar()->show();
+   else statusBar()->hide();
+
+}
+void CRenderViewMainWindow::displayPixelInfo()
+{
+   m_renderView.m_status_bar_pixel_info = m_action_status_info->isChecked();
+   m_renderView.m_status_changed = true;
+}
+
+
 void CRenderViewMainWindow::progressiveRefinement()
 {
    K_progressive = m_action_progressive_refinement->isChecked();
@@ -1015,6 +1070,30 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
 
       }
       return;
+   }
+
+
+   if( m_renderView.m_status_bar_enabled && m_renderView.m_status_bar_pixel_info)
+   {
+      int x = event->x();
+      int y = event->y();
+      if (x >= 0 && x < m_renderView.m_width && y >= 0 && y < m_renderView.m_height)
+      {
+
+         std::stringstream status_log;
+         status_log << m_renderView.m_status_log;
+         status_log<<"  Pixel: "<<x<<","<<y;
+
+         status_log<<"  RGBA: (";// Get color from this pixel's buffer color !
+
+         AtRGBA *displayedBuffer = m_renderView.getDisplayedBuffer();
+
+         const AtRGBA &pixel_rgba = displayedBuffer[x + m_renderView.m_width*y];
+         status_log<<CEIL(pixel_rgba.r * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.g * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.b * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.a * 1000.f) / 1000.f<<")";
+
+         statusBar()->showMessage(QString(status_log.str().c_str()));
+      }
+
    }
 
    if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
@@ -1383,6 +1462,16 @@ void CRenderViewMainWindow::cropRegion()
    if (!m_renderView.m_region_crop)
    {
       m_renderView.m_gl->clearRegionCrop();
+      m_renderView.interruptRender();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
+      AtNode *options = AiUniverseGetOptions();
+      AiNodeSetInt(options, "region_min_x", -1);
+      AiNodeSetInt(options, "region_min_y", -1);
+      AiNodeSetInt(options, "region_max_x", -1);
+      AiNodeSetInt(options, "region_max_y", -1);
+
+      m_renderView.restartRender();
    }
 }
 
