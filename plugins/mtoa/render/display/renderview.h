@@ -114,6 +114,7 @@ private:
 
    void populateAOVsMenu();
    void populateCamerasMenu();
+   void updateStoredSlider();
 
 
    CRenderView &m_renderView;
@@ -135,12 +136,15 @@ private:
    QAction *m_action_crop_region;
    QAction *m_action_status_bar;
    QAction *m_action_status_info;
+   QAction *m_stored_slider_action;
+   QAction *m_delete_stored_action;
 
 
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
    QActionGroup *m_cameras_action_group;
 
+   QSlider *m_stored_slider;
    CRenderViewCCWindow *m_cc_window;
 
    bool m_leftButtonDown;
@@ -183,6 +187,7 @@ private slots:
    void colorCorrection();
    void enableStatusBar();
    void displayPixelInfo();
+   void storedSliderMoved(int);
 
 
    
@@ -302,6 +307,7 @@ public:
       m_status_log = status;
       m_status_changed = true;
    }
+   void refreshStatusBar(int *mouse_position = NULL);
 
    void restoreContinuous() {if (m_continuous_updates)m_restore_continuous = true;}
 
@@ -361,6 +367,10 @@ friend CRenderViewMainWindow;
                ((m_displayedAovIndex < 0) ? m_buffer : m_aovBuffers[m_displayedAovIndex]) :
                m_storedImages[m_displayedImageIndex];
    }
+   const std::string &getDisplayedStatus() const
+   {
+      return (m_displayedImageIndex < 0) ? m_status_log : m_storedImagesStatus[m_displayedImageIndex];
+   }
 
    int m_width;
    int m_height;
@@ -386,6 +396,7 @@ friend CRenderViewMainWindow;
    CRenderViewCCSettings m_colorCorrectSettings;
 
    std::string m_status_log;
+   std::vector<std::string> m_storedImagesStatus;
    bool m_status_changed;
    bool m_restore_continuous;
    bool m_status_bar_enabled;

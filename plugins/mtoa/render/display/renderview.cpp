@@ -40,6 +40,9 @@
 #include "icons/SA_icon_region_on.xpm"
 #include "icons/SA_icon_stop.xpm"
 #include "icons/SA_icon_store.xpm"
+#include "icons/SA_icon_delete_stored.xpm"
+#include "icons/SA_icon_transparent.xpm"
+
 
 #include <sstream>
 //#include <QtGui/qimage.h>
@@ -498,21 +501,7 @@ void CRenderView::checkSceneUpdates()
 
       if (m_status_changed)
       {
-         QString status_log(m_status_log.c_str());
-
-         if (m_status_bar_pixel_info)
-         {
-            // check if previous log had pixel information and leave them         
-            std::string previous_log = m_main_window->statusBar()->currentMessage().toStdString();
-            size_t pixel_pos = previous_log.find("  Pixel");
-            if (pixel_pos != std::string::npos)
-            {
-               previous_log = previous_log.substr(pixel_pos);
-               status_log += QString(previous_log.c_str());
-            }
-         }
-
-         m_main_window->statusBar()->showMessage(status_log);
+         refreshStatusBar();
          m_status_changed = false;
       }
    }
@@ -564,6 +553,7 @@ void CRenderView::storeImage()
    AtRGBA *storedBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
    memcpy(storedBuffer, m_buffer, m_width * m_height * sizeof(AtRGBA));
    m_storedImages.push_back(storedBuffer);
+   m_storedImagesStatus.push_back(m_status_log);
 }
 
 void CRenderView::refreshGLBuffer()
@@ -583,7 +573,47 @@ void CRenderView::refreshGLBuffer()
 
    m_gl->reloadBuffer(m_color_mode);
    draw();
+   refreshStatusBar();
 }
+void CRenderView::refreshStatusBar(int *mouse_position)
+{
+   QString status_log(getDisplayedStatus().c_str());
+
+   if (m_status_bar_pixel_info)
+   {
+      if (mouse_position != NULL)
+      {
+         // we have mouse position
+         // get information about current pixel
+
+         std::stringstream status_pixel;
+         status_pixel<<"  Pixel: "<<mouse_position[0]<<","<<mouse_position[1];
+         status_pixel<<"  RGBA: ("; // Get color from this pixel's buffer color 
+
+         AtRGBA *displayedBuffer = getDisplayedBuffer();
+
+         const AtRGBA &pixel_rgba = displayedBuffer[mouse_position[0] + m_width*mouse_position[1]];
+         status_pixel<<CEIL(pixel_rgba.r * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.g * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.b * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.a * 1000.f) / 1000.f<<")";
+         status_log += QString(status_pixel.str().c_str());
+
+      } else 
+      {
+         // check if previous log had pixel information and keep it
+         std::string previous_log = m_main_window->statusBar()->currentMessage().toStdString();
+         size_t pixel_pos = previous_log.find("  Pixel");
+         if (pixel_pos != std::string::npos)
+         {
+            previous_log = previous_log.substr(pixel_pos);
+            status_log += QString(previous_log.c_str());
+         }
+      }
+   }
+
+   m_main_window->statusBar()->showMessage(status_log);
+
+
+}
+
 void CRenderView::showPreviousStoredImage()
 {
    if (m_storedImages.empty())
@@ -598,12 +628,13 @@ void CRenderView::showPreviousStoredImage()
    }
    else m_displayedImageIndex--;
 
+/*
    if (m_displayedImageIndex >= 0)
    {
       AtDisplaySync *sync = displaySync();
       sync->waiting_draw = false;
    }
-
+*/
    refreshGLBuffer();
 }
 void CRenderView::showNextStoredImage()
@@ -630,7 +661,7 @@ void CRenderView::showNextStoredImage()
    }
 */
    refreshGLBuffer();
-   m_gl->update();
+   //m_gl->update();
 
 
 }
@@ -646,10 +677,12 @@ void CRenderView::deleteStoredImage()
 
    AiFree(m_storedImages[m_displayedImageIndex]);
    m_storedImages.erase(m_storedImages.begin() + m_displayedImageIndex);
+   m_storedImagesStatus.erase(m_storedImagesStatus.begin() + m_displayedImageIndex);
+
    if (m_displayedImageIndex >= (int)m_storedImages.size()) m_displayedImageIndex--;
 
    refreshGLBuffer();
-   draw();
+   //draw();
 
 }
 
@@ -782,11 +815,11 @@ CRenderViewMainWindow::initMenus()
    //action->setShortcut(Qt::CTRL + Qt::Key_Right);
    action->setStatusTip("Display the Next Image Stored in Memory");
 
-   action = m_menu_view->addAction("Delete Stored Image");
-   connect(action, SIGNAL(triggered()), this, SLOT(deleteStoredImage()));
-   action->setCheckable(false);
+   m_delete_stored_action = m_menu_view->addAction("Delete Stored Image");
+   connect(m_delete_stored_action, SIGNAL(triggered()), this, SLOT(deleteStoredImage()));
+   m_delete_stored_action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Minus);
-   action->setStatusTip("Delete the Stored Image being currently displayed");
+   m_delete_stored_action->setStatusTip("Delete the Stored Image being currently displayed");
 
    m_menu_view->addSeparator();
 
@@ -928,7 +961,35 @@ CRenderViewMainWindow::initMenus()
    store_action->setIconVisibleInMenu(false);
    store_button->setStyleSheet(style_button);
 
+   m_stored_slider = new QSlider(Qt::Horizontal, m_tool_bar);
+   m_stored_slider->setTickInterval(1);
+   m_stored_slider->setTickPosition(QSlider::TicksBothSides);
+   m_stored_slider->resize(100, 10);
+   m_stored_slider->setMaximumWidth(100);
+   m_stored_slider->setMaximumHeight(10);
+
+   m_stored_slider_action = m_tool_bar->addWidget(m_stored_slider);
+   m_stored_slider->resize(100, 10);
+   m_stored_slider->setMaximumWidth(100);
+   m_stored_slider->setMaximumHeight(10);
+   connect(m_stored_slider, SIGNAL(valueChanged(int)), this, SLOT(storedSliderMoved(int)));
+
+   QToolButton *delete_stored_button = new QToolButton(m_tool_bar);
+   delete_stored_button->setDefaultAction(m_delete_stored_action);
+   m_tool_bar->addWidget(delete_stored_button);
+   QIcon delete_stored_icon;
+   delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_delete_stored_xpm), QIcon::Normal, QIcon::Off);
+   delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_transparent_xpm), QIcon::Disabled, QIcon::Off);
+   delete_stored_button->setIcon(delete_stored_icon);
+   m_delete_stored_action->setIcon(delete_stored_icon);
+   m_delete_stored_action->setIconVisibleInMenu(false);
+   delete_stored_button->setStyleSheet(style_button);
+   delete_stored_button->hide();
+
+   updateStoredSlider();
+
 }
+
 void
 CRenderViewMainWindow::saveImage()
 {
@@ -982,22 +1043,53 @@ void CRenderViewMainWindow::autoRefresh()
 void CRenderViewMainWindow::storeImage()
 {
    m_renderView.storeImage();
+   updateStoredSlider();
 }
 
 void CRenderViewMainWindow::previousStoredImage()
 {
    m_renderView.showPreviousStoredImage();
+   updateStoredSlider();
 
 }
 void CRenderViewMainWindow::nextStoredImage()
 {
    m_renderView.showNextStoredImage();
+   updateStoredSlider();
 }
 void CRenderViewMainWindow::deleteStoredImage()
 {
    m_renderView.deleteStoredImage();
+   updateStoredSlider();  
+}
+
+void
+CRenderViewMainWindow::storedSliderMoved(int i)
+{
+   m_renderView.m_displayedImageIndex = i -1;
+   m_renderView.refreshGLBuffer();
 
 }
+
+
+void
+CRenderViewMainWindow::updateStoredSlider()
+{
+   if (m_renderView.m_storedImages.empty())
+   {
+      m_stored_slider_action->setVisible(false);
+      m_delete_stored_action->setVisible(false);
+      return;
+   }
+   m_stored_slider_action->setVisible(true);
+   m_delete_stored_action->setVisible(true);
+
+   m_stored_slider->setMinimum(0);
+   m_stored_slider->setMaximum(m_renderView.m_storedImages.size());   
+
+   m_stored_slider->setSliderPosition(m_renderView.m_displayedImageIndex + 1);
+}
+
 
 void CRenderViewMainWindow::enableStatusBar()
 {
@@ -1075,25 +1167,14 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
 
    if( m_renderView.m_status_bar_enabled && m_renderView.m_status_bar_pixel_info)
    {
-      int x = event->x();
-      int y = event->y();
-      if (x >= 0 && x < m_renderView.m_width && y >= 0 && y < m_renderView.m_height)
+      int mouse_position[2];
+      mouse_position[0] = event->x();
+      mouse_position[1] = event->y();
+
+      if (mouse_position[0] >= 0 && mouse_position[0] < m_renderView.m_width && mouse_position[1] >= 0 && mouse_position[1] < m_renderView.m_height)
       {
-
-         std::stringstream status_log;
-         status_log << m_renderView.m_status_log;
-         status_log<<"  Pixel: "<<x<<","<<y;
-
-         status_log<<"  RGBA: (";// Get color from this pixel's buffer color !
-
-         AtRGBA *displayedBuffer = m_renderView.getDisplayedBuffer();
-
-         const AtRGBA &pixel_rgba = displayedBuffer[x + m_renderView.m_width*y];
-         status_log<<CEIL(pixel_rgba.r * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.g * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.b * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.a * 1000.f) / 1000.f<<")";
-
-         statusBar()->showMessage(QString(status_log.str().c_str()));
+         m_renderView.refreshStatusBar(mouse_position);
       }
-
    }
 
    if (!m_renderView.m_region_crop || !m_leftButtonDown) return;

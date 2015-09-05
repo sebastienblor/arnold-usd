@@ -109,7 +109,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      23,   14, // methods
+      24,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -140,6 +140,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      328,   22,   22,   22, 0x08,
      346,   22,   22,   22, 0x08,
      364,   22,   22,   22, 0x08,
+     383,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -155,7 +156,7 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "selectBoxCamera()\0cropRegion()\0"
     "frameAll()\0frameRegion()\0realSize()\0"
     "colorCorrection()\0enableStatusBar()\0"
-    "displayPixelInfo()\0"
+    "displayPixelInfo()\0storedSliderMoved(int)\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -187,10 +188,10 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 20: _t->colorCorrection(); break;
         case 21: _t->enableStatusBar(); break;
         case 22: _t->displayPixelInfo(); break;
+        case 23: _t->storedSliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
         default: ;
         }
     }
-    Q_UNUSED(_a);
 }
 
 const QMetaObjectExtraData CRenderViewMainWindow::staticMetaObjectExtraData = {
@@ -225,9 +226,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 23)
+        if (_id < 24)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 23;
+        _id -= 24;
     }
     return _id;
 }
