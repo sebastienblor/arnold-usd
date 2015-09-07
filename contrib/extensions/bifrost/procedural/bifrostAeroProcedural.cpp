@@ -156,7 +156,7 @@ bool BifrostAeroVolumePluginCleanupVolume(void* user_ptr, AtVolumeData* data, co
 
 bool BifrostAeroVolumePluginSample(void* user_ptr,
                             const AtVolumeData* data,
-                            const char* channel,
+                            const AtString channel,
                             const AtShaderGlobals* sg,
                             int interp,
                             AtParamValue *value,
