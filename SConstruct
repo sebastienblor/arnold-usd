@@ -957,6 +957,7 @@ if env['ENABLE_XGEN'] == 1:
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
