@@ -106,14 +106,25 @@ class CRenderViewMainWindow : public QMainWindow
 Q_OBJECT
  
 public:
-   CRenderViewMainWindow(QWidget *parent, CRenderView &rv) : QMainWindow(parent, Qt::WindowStaysOnTopHint), m_renderView(rv), m_cc_window(NULL) {}
+   CRenderViewMainWindow(QWidget *parent, CRenderView &rv) : QMainWindow(parent, Qt::Tool/* Qt::WindowStaysOnTopHint*/), 
+      m_renderView(rv), 
+      m_menu_file(NULL),
+      m_menu_view(NULL),
+      m_menu_render(NULL),
+      m_menu_aovs(NULL),
+      m_menu_camera(NULL),
+      m_tool_bar(NULL),
+      m_aovs_combo(NULL),
+      m_cameras_combo(NULL),
+      m_cc_window(NULL) {}
     ~CRenderViewMainWindow() {}
  
    void initMenus();
-private:
-
    void populateAOVsMenu();
    void populateCamerasMenu();
+   
+private:
+
    void updateStoredSlider();
 
 
@@ -242,7 +253,7 @@ public:
    }
    CRenderGLWidget *getGlWidget() {return m_gl;}
 
-   void displaySyncCreate(int width, int height);
+   void displaySyncCreate();
    AtDisplaySync *displaySync() {return display_sync;}
 
    // image parameters
@@ -256,7 +267,8 @@ public:
    bool canRestartRender() const;
    void restartRender();
    void updateRender();
-   
+   void updateRenderOptions();
+
    void saveImage(const std::string &filename);
    void storeImage();
    void showPreviousStoredImage();
@@ -316,6 +328,7 @@ protected:
 friend CRenderViewMainWindow;
 
    void init();
+   void initSize(int w, int h);
    
    
    void copyToRGBA8(const AtRGBA &rgba, AtRGBA8 &rgba8, int x, int y)

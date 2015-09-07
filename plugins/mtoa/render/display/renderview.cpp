@@ -43,6 +43,7 @@
 #include "icons/SA_icon_delete_stored.xpm"
 #include "icons/SA_icon_transparent.xpm"
 
+#include <maya/MQtUtil.h>
 
 #include <sstream>
 //#include <QtGui/qimage.h>
@@ -62,18 +63,21 @@ static int statusbarHeight = 10;
 
 CRenderView::CRenderView(int w, int h)
 {
+   m_render_thread = NULL;
+   display_sync = NULL;
+
    m_width = w;
    m_height = h;
    
-   m_main_window = new CRenderViewMainWindow(0, *this);
+   m_main_window = new CRenderViewMainWindow(MQtUtil::mainWindow(), *this);
 
-   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight);
    m_main_window->setWindowTitle("Arnold Render View");
+   m_gl = NULL;
+   m_buffer = NULL;
 
-   m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
 
-   m_render_thread = NULL;
-   display_sync = NULL;
+
+   initSize(w, h);
 
    init();
 
@@ -86,7 +90,6 @@ CRenderView::CRenderView(int w, int h)
 CRenderView::~CRenderView()
 {
    finishRender();
-
 
    AiCritSecClose(&display_sync->event_lock);
    AiCritSecClose(&display_sync->lock);
@@ -101,13 +104,20 @@ CRenderView::~CRenderView()
       }
       m_storedImages.clear();
    }
-
    delete m_main_window;
-
 }
 
-void CRenderView::init()
+void CRenderView::initSize(int w, int h)
 {
+   m_width = w;
+   m_height = h;
+
+   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight);
+
+   if (m_gl != NULL) delete m_gl;
+
+   m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
+
    m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
 
    const size_t fillsize = m_width * m_height;
@@ -118,6 +128,11 @@ void CRenderView::init()
    }
 
    m_gl->resize(m_width, m_height);
+
+}
+void CRenderView::init()
+{
+
    //m_main_window->show();
 
    if (display_sync != NULL)
@@ -128,21 +143,6 @@ void CRenderView::init()
       display_sync = 0;
    }
 
-   AtNode *options = AiUniverseGetOptions();
-
-
-   // enlarge resolution to capture overscan data
-   int bucket_size = AiNodeGetInt(options, "bucket_size");
-   int xres = AiNodeGetInt(options, "xres");
-   int yres = AiNodeGetInt(options, "yres");
-
-   x_res       = xres;
-   y_res       = yres;
-   reg_x       = xres; // check region_min_x ?
-   reg_y       = yres;
-   bucket_size = bucket_size;
-   min_x       = 0; // chec region_min_x ?
-   min_y       = 0;
    m_color_mode  = COLOR_MODE_RGBA;
    m_show_rendering_tiles = false;
    m_region_crop = false;
@@ -150,10 +150,8 @@ void CRenderView::init()
    m_status_bar_enabled = true;
    m_status_bar_pixel_info = false;
    m_restore_continuous = false;
-
-   K_AA_samples = AiNodeGetInt(options, "AA_samples");
-   if (K_AA_samples == 0)
-   K_AA_samples = 1;
+   m_color_mode  = COLOR_MODE_RGBA;
+   
 
    AiCritSecInit(&window_close_lock);
 
@@ -161,12 +159,10 @@ void CRenderView::init()
    K_progressive = true;
    m_continuous_updates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
 
-   //unsigned int i;
+
    AtNode *filter;
    AtNode *driver;
-   //char kick_drv[1024];
-   AtArray *outputs;
-
+   
    AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, K_DISPLAY_NAME,  NULL, kick_driver_mtd , AI_VERSION);
 
    driver = AiNode(K_DISPLAY_NAME);
@@ -188,11 +184,76 @@ void CRenderView::init()
      filter = AiNode(K_DEFAULT_FILTER);
    }
    AiNodeSetStr(filter, "name", "kick_display_filter");
+   AiNodeSetPtr(driver, "userdata", (void *)this);
 
+
+   m_displayedImageIndex = -1; // -1 means the current rendering
+   // >= 0 refers to a stored Image
+
+   m_displayedAovIndex = -1; // -1 means we're showing the beauty
+   // >0 refers to an AOV
+
+   K_InitGlobalVars();
+   if (!m_storedImages.empty())
+   {
+      for (size_t i = 0; i < m_storedImages.size(); ++i)
+      {
+         AiFree(m_storedImages[i]);
+      }
+      m_storedImages.clear();
+   }
+   
+   // setup syncing
+   displaySyncCreate();
+
+   updateRenderOptions();
+
+
+}
+
+void CRenderView::updateRenderOptions()
+{
+
+   // Parameters we check
+
+   // bucket size
+   // xres
+   // yres
+   // AA_samples
+   // outputs
+
+
+   AtNode *options = AiUniverseGetOptions();
+   // enlarge resolution to capture overscan data
+   int bucket_size = AiNodeGetInt(options, "bucket_size");
+   int xres = AiNodeGetInt(options, "xres");
+   int yres = AiNodeGetInt(options, "yres");
+
+   x_res       = xres;
+   y_res       = yres;
+   reg_x       = xres; // check region_min_x ?
+   reg_y       = yres;
+   bucket_size = bucket_size;
+   min_x       = 0; // chec region_min_x ?
+   min_y       = 0;
+
+   K_AA_samples = AiNodeGetInt(options, "AA_samples");
+   if (K_AA_samples == 0)
+   K_AA_samples = 1;
+   
+   //unsigned int i;
+   //char kick_drv[1024];
+   AtArray *outputs;
    
    // We should support the options changes during a session
    // duplicate the old outputs array
-   outputs = AiNodeGetArray(AiUniverseGetOptions(), "outputs");
+   outputs = AiNodeGetArray(options, "outputs");
+
+   if (!m_aovBuffers.empty()) 
+   {
+      m_aovBuffers.clear();
+      m_aovNames.clear();
+   }
 
    m_aovBuffers.reserve(outputs->nelements);
    m_aovNames.reserve(outputs->nelements);
@@ -202,9 +263,10 @@ void CRenderView::init()
    std::vector<std::string> outputValues;
    outputValues.reserve(outputs->nelements);
 
+
    bool foundBeauty = false;
    for (size_t i = 0; i < outputs->nelements; ++i)
-   {
+   {      
       std::string outputStr = AiArrayGetStr(outputs, i);
       std::string outputName = outputStr.substr(0, outputStr.find_first_of(' '));
 
@@ -215,8 +277,9 @@ void CRenderView::init()
       size_t lastStep = outputStr.find_last_of(' ');
       outputStr = outputStr.substr(0, lastStep);
       outputStr += " ";
-      outputStr += AiNodeGetName(driver);
+      outputStr += "kick_display";
 
+      
       if (outputName == "RGB" || outputName == "RGBA")
       {
          // this is my beauty
@@ -231,8 +294,8 @@ void CRenderView::init()
 
          // add the aov name to the list
          m_aovNames.push_back(outputName);
-         AtRGBA *aovBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
-         memset(aovBuffer, 0, m_width * m_height * sizeof(AtRGBA));
+         AtRGBA *aovBuffer = (AtRGBA *)AiMalloc(xres * yres * sizeof(AtRGBA));
+         memset(aovBuffer, 0, xres * yres * sizeof(AtRGBA));
          //add the aov buffer
          m_aovBuffers.push_back(aovBuffer);         
       }
@@ -244,16 +307,15 @@ void CRenderView::init()
    {
       AiArraySetStr(allOutputsArray, i, outputValues[i].c_str());
    }
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", allOutputsArray);
+   AiNodeSetArray(options, "outputs", allOutputsArray);
 
-   AiNodeSetPtr(driver, "userdata", (void *)this);
-
+   
    // enlarge resolution to capture overscan data
    AtBBox2 full_window;
    AtBBox2 display_window, data_window;
    display_window.minx = display_window.miny = 0;
-   display_window.maxx = m_width;
-   display_window.maxy = m_height;
+   display_window.maxx = xres;
+   display_window.maxy = yres;
 
    // Region data
    data_window = display_window;
@@ -267,12 +329,8 @@ void CRenderView::init()
    bucket_size = bucket_size;
    min_x       = data_window.minx;
    min_y       = data_window.miny;
-   m_color_mode  = COLOR_MODE_RGBA;
-      
-   // setup syncing
-   displaySyncCreate(x_res, y_res);
-
-   AiCritSecInit(&window_close_lock);
+     
+   
 
    // compute number of buckets we need to render the full frame
    if (display_sync)
@@ -285,29 +343,14 @@ void CRenderView::init()
       display_sync->buckets_left = nbx * nby;
 
       // detect if we restarted rendering at the lowesst resolution
-      int AA_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+      int AA_samples = AiNodeGetInt(options, "AA_samples");
       if (AA_samples <= display_sync->previous_AA_samples)
          display_sync->interrupted = false;
       display_sync->previous_AA_samples = AA_samples;
    }
 
-   K_InitGlobalVars();
-   if (!m_storedImages.empty())
-   {
-      for (size_t i = 0; i < m_storedImages.size(); ++i)
-      {
-         AiFree(m_storedImages[i]);
-      }
-      m_storedImages.clear();
-   }
-   
-   m_displayedImageIndex = -1; // -1 means the current rendering
-   // >= 0 refers to a stored Image
-
-   m_displayedAovIndex = -1; // -1 means we're showing the beauty
-   // >0 refers to an AOV
-
 }
+
 
 void CRenderView::render()
 {
@@ -434,7 +477,7 @@ void CRenderView::draw(AtBBox2 *region)
 }
 
 
-void CRenderView::displaySyncCreate(int width, int height)
+void CRenderView::displaySyncCreate()
 {
    // Minimum frames per second at which we will always interrupt and redraw
    // regardless of what has been finished
@@ -472,7 +515,40 @@ void CRenderView::displaySyncCreate(int width, int height)
 void CRenderView::updateRender()
 {
    interruptRender();
+
+
+   // we need to do some special stuff when one of those render settings
+   // parameters have changed
+
+   // bucket / xres / yres / outputs / AA_samples
+   AtNode *options = AiUniverseGetOptions();
+   
+   int bucket_size = AiNodeGetInt(options, "bucket_size");
+   int xres = AiNodeGetInt(options, "xres");
+   int yres = AiNodeGetInt(options, "yres");
+   //K_AA_samples = AiNodeGetInt(options, "AA_samples");
+   AtArray *outputs = AiNodeGetArray(options, "outputs");
+
+   AiNodeSetInt(options, "AA_samples", K_AA_samples); // setting back AA samples to its original value
+
    CMayaScene::UpdateSceneChanges();
+
+   options = AiUniverseGetOptions();
+   AtArray *new_outputs = AiNodeGetArray(options, "outputs");
+   bool size_changed = (xres != AiNodeGetInt(options, "xres") || yres != AiNodeGetInt(options, "yres"));
+
+   if (bucket_size != AiNodeGetInt(options, "bucket_size") ||
+      size_changed ||
+      K_AA_samples != AiNodeGetInt(options, "AA_samples") ||
+      outputs != new_outputs)
+   {
+      if (size_changed) initSize(AiNodeGetInt(options, "xres"), AiNodeGetInt(options, "yres"));
+
+      updateRenderOptions();
+      m_main_window->populateAOVsMenu();
+   }
+
+   // check if amount of cameras have changed
    restartRender();
 }
 
@@ -1327,6 +1403,8 @@ void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
 
 void CRenderViewMainWindow::populateAOVsMenu()
 {
+   if (m_menu_aovs == NULL) return; // not initialized
+
    if (m_aovs_action_group != 0)
    {
       delete m_aovs_action_group;
@@ -1348,13 +1426,13 @@ void CRenderViewMainWindow::populateAOVsMenu()
    action->setCheckable(true);
    if (m_renderView.m_displayedAovIndex < 0) action->setChecked(true);
 
+   m_aovs_combo->clear();
    m_aovs_combo->addItem("Beauty");
 
    m_aovs_action_group->addAction(action);
    m_menu_aovs->addSeparator();
 
    const std::vector<std::string> &aovNames = m_renderView.m_aovNames;
-
    for (int i = 0; i < (int)aovNames.size(); ++i)
    {
       action = m_menu_aovs->addAction(QString(aovNames[i].c_str()));
@@ -1374,6 +1452,8 @@ void CRenderViewMainWindow::populateAOVsMenu()
 
 void CRenderViewMainWindow::populateCamerasMenu()
 {
+   if (m_menu_camera == NULL) return;
+
    // don't forget to call this when new cameras are created
    if (m_cameras_action_group != 0)
    {
