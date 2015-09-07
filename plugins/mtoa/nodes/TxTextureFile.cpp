@@ -1,5 +1,7 @@
 #include "TxTextureFile.h"
 #include <ai_texture.h>
+#include <ai.h>
+#include <stdio.h>
 
 const char* CTxTextureFile::fileName = "TxtextureFile";
 
@@ -22,47 +24,36 @@ void* CTxTextureFile::creator()
 
 MStatus CTxTextureFile::open( MString pathname, MImageFileInfo* info)
 {
-   unsigned res_x, res_y;
+   unsigned int res_x, res_y, channels;
    if(!AiTextureGetResolution(pathname.asChar(), &res_x, &res_y))
       return MS::kFailure;
    
+   if(!AiTextureGetNumChannels(pathname.asChar(), &channels))
+      return MS::kFailure;
+
    fWidth = res_x;
    fHeight = res_y;
+   fChannels = channels;
    fPathName = pathname;
    if(info)
    {
       info->width( res_x);
       info->height( res_y);
-      info->channels( 4);
-      info->pixelType( MImage::kByte);
+      info->channels( channels);
+      info->pixelType( MImage::kFloat);
    }
+
    return MS::kSuccess;
 }
 
 MStatus CTxTextureFile::load( MImage& image, unsigned int idx)
 {
-   AtRGBA *data = new AtRGBA[fHeight*fWidth];
-   
-   image.create( fWidth, fHeight, 4, MImage::kByte);
+   image.create( fWidth, fHeight, fChannels, MImage::kFloat);
 
-   unsigned char* dst = image.pixels();
+   float* dst = image.floatPixels();
    
-   
-   if(!AiEntireTextureAccess(AtString(fPathName.asChar()), fWidth, fHeight, &data[0]))
+   if(!AiTextureLoad(AtString(fPathName.asChar()), true, dst))
       return MS::kFailure;
 
-   for (int y = 0; y < fHeight; ++y)
-   {
-      for (int x = 0; x < fWidth; ++x)
-      {
-         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].r*255.0f+0.5f, 0.0f, 255.0f);
-         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].g*255.0f+0.5f, 0.0f, 255.0f);
-         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].b*255.0f+0.5f, 0.0f, 255.0f);
-         *dst++ = (unsigned char)CLAMP(data[y*fWidth+x].a*255.0f+0.5f, 0.0f, 255.0f);
-      }
-   }
-   
-   delete [] data;
-   
    return MS::kSuccess;
 }
