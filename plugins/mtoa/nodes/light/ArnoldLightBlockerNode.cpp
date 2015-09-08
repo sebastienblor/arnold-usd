@@ -105,9 +105,6 @@ MStatus CArnoldLightBlockerNode::initialize()
    eAttr.addField("x", 0);
    eAttr.addField("y", 1);
    eAttr.addField("z", 2);
-   eAttr.addField("X", 3);
-   eAttr.addField("Y", 4);
-   eAttr.addField("Z", 5);
    eAttr.setDefault(0);
    eAttr.setChannelBox(true);
    addAttribute(s_rampAxis);

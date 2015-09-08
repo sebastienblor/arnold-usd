@@ -11,7 +11,7 @@ class AEaiLightBlockerTemplate(ShaderAETemplate):
         self.addControl('density', label='Density')
         self.addControl('shader', label='Shader')
         self.addSeparator()
-        self.addControl('ramp_axis', label='Ramp Axis')
+        self.addControl('ramp_axis', label='Axis')
         self.addControl('ramp', label='Ramp')
         self.addControl('height_edge', label='Height Edge')
         self.addControl('width_edge', label='Width Edge')
