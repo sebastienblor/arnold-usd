@@ -1523,7 +1523,8 @@
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
-    [attr subdiv_pixel_error]
+    [attr subdiv_adaptive_error]
+        maya.name           STRING  "aiSubdivPixelError"
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
 
