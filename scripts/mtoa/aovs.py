@@ -19,6 +19,8 @@ BUILTIN_AOVS = (
                 ('mesh_light_beauty',   'rgb'),
                 ('volume',              'rgb'),
                 ('volume_opacity',      'rgb'),
+                ('direct_volume',       'rgb'),
+                ('indirect_volume',     'rgb'),
 #                ('A',       'float'),
 #                ('OBJECT',  'node'),
 #                ('SHADER',  'node'),

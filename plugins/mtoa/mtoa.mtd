@@ -1158,6 +1158,10 @@
     aov.type                INT     0x05
     [attr aov_sss]
     aov.type                INT     0x05
+    [attr aov_direct_sss]
+    aov.type                INT     0x05
+    [attr aov_indirect_sss]
+    aov.type                INT     0x05
 
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."
