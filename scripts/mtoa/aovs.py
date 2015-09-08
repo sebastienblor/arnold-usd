@@ -453,6 +453,13 @@ def createAliases(sg):
         return
     if sg.name() == "swatchShadingGroup":
         return
+        
+    if pm.hasAttr(sg, "attributeAliasList"):
+        alias_list = sg.attributeAliasList
+        if alias_list.exists() and alias_list.get() is None:
+            print "Shading Group %s with bad Attribute Alias list detected. Fixing!" % sg.name()
+            alias_list.delete()
+        
     aovList = getAOVs()
     sgAttr = sg.aiCustomAOVs
     for aov in aovList:
