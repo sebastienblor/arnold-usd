@@ -20,7 +20,11 @@
 #include <fstream>
 #include <istream>
 #include <streambuf>
+#ifdef _WIN32
 #include <unordered_map>
+#else
+#include <tr1/unordered_map>
+#endif
 
 // hash function from http://www.cse.yorku.ca/~oz/hash.html
 inline size_t
@@ -133,7 +137,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
 #ifdef _WIN32
    std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
 #else
-   std::unordered_map<std::string, matrixAsFloats>  mtxMap;
+   std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
 #endif
    
    while (!AiNodeIteratorFinished(nodeIter))
@@ -169,8 +173,8 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
    std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
 #else
-   std::unordered_map<size_t, unsigned int>  vertexMap;
-   std::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
+   std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
+   std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
 #endif
    unsigned int vtxOffset = 1;  // OBJ expects vertex indices starting at 1
 

@@ -16,7 +16,7 @@ if system.os() =='windows':
 else:
    common_env.Append(CPPPATH = ['.'])
    common_env.Append(LIBS=Split('bifrostapi'))
-   common_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   common_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 mayaRoot = common_env['MAYA_ROOT']
 if system.os() == 'darwin':
@@ -32,8 +32,8 @@ common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'incl
 common_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'common')])
 common_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
 
-common_object_user_data = common_env.Object(target = os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostObjectUserData.o'), source = os.path.join(src_common_dir, 'bifrostObjectUserData.cpp'))
-common_object_helpers = common_env.Object(target = os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostHelpers.o'), source = os.path.join(src_common_dir, 'bifrostHelpers.cpp'))
+common_object_user_data = common_env.SharedObject(target = os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostObjectUserData.o'), source = os.path.join(src_common_dir, 'bifrostObjectUserData.cpp'))
+common_object_helpers = common_env.SharedObject(target = os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostHelpers.o'), source = os.path.join(src_common_dir, 'bifrostHelpers.cpp'))
 
 ##############################################################
 ####  BIFROST TRANSLATOR
@@ -73,7 +73,7 @@ else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))   
    local_env.Append(LIBS=Split('bifrostapi'))
-   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 EXT = local_env.SharedLibrary('bifrostTranslator', source_files, LIBPREFIX='')
 
@@ -152,7 +152,7 @@ else:
    proc_env.Append(CPPPATH = ['.'])
    proc_env.Append(LIBS=Split('ai'))
    proc_env.Append(LIBS=Split('bifrostapi'))
-   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x')) # hide symbols by default
 
 EXT_PROCS = proc_env.SharedLibrary('bifrost_procedural', source_files, LIBPREFIX='')
 EXT_PROCS.target_type = 'procedural'
