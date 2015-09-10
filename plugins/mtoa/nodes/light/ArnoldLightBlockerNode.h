@@ -26,6 +26,7 @@ private:
    
    static MObject s_geometryType;
    static MObject s_density;
+   static MObject s_shader;
    static MObject s_roundness;
    static MObject s_widthEdge;
    static MObject s_heightEdge;

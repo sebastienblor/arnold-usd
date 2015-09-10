@@ -832,6 +832,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       // In that case uvidxs is empty, so we must not try to export the UVs
       if (!exportCompIDs) exportUVs = false;
 
+
       // Get Vertex Colors
       MPlug plug = FindMayaPlug("aiMotionVectorSource");
       if (!plug.isNull())
@@ -980,14 +981,20 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       }
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", uvs[0]);
-         AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
-         for (size_t i = 1; i < uvs.size(); ++i)
+         if (uvs.size() > 0 && uvidxs.size() > 0)
          {
-            MString idxsName = uvNames[i] + MString("idxs");
-            AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
-            AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
-            AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+            AiNodeSetArray(polymesh, "uvlist", uvs[0]);
+            AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+            for (size_t i = 1; i < uvs.size(); ++i)
+            {
+               if (uvNames.size() > i && uvidxs.size() > i)
+               {
+                  MString idxsName = uvNames[i] + MString("idxs");
+                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
+                  AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
+                  AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+               }
+            }
          }
       }
       if (exportColors)
@@ -1122,7 +1129,8 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
       AiNodeSetByte(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetFlt(polymesh, "subdiv_adaptive_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
 
@@ -1338,7 +1346,8 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("subdiv_type");
    helper.MakeInput("subdiv_iterations");
    helper.MakeInput("subdiv_adaptive_metric");
-   helper.MakeInput("subdiv_pixel_error");
+   helper.MakeInput("subdiv_adaptive_error");
+   helper.MakeInput("subdiv_adaptive_space");
    helper.MakeInput("subdiv_dicing_camera");
    helper.MakeInput("subdiv_uv_smoothing");
    helper.MakeInput("subdiv_smooth_derivs");

@@ -393,7 +393,8 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
          AiNodeSetStr(meshNode, "subdiv_type",           "linear");
       AiNodeSetByte(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(meshNode, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(meshNode, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetFlt(meshNode, "subdiv_adaptive_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(meshNode, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
 

@@ -14,6 +14,7 @@ const MTypeId CArnoldLightBlockerNode::id(ARNOLD_NODEID_LIGHT_BLOCKER);
 
 MObject CArnoldLightBlockerNode::s_geometryType;
 MObject CArnoldLightBlockerNode::s_density;
+MObject CArnoldLightBlockerNode::s_shader;
 MObject CArnoldLightBlockerNode::s_roundness;
 MObject CArnoldLightBlockerNode::s_widthEdge;
 MObject CArnoldLightBlockerNode::s_heightEdge;
@@ -62,6 +63,16 @@ MStatus CArnoldLightBlockerNode::initialize()
    nAttr.setChannelBox(true);
    addAttribute(s_density);
    
+   s_shader = nAttr.createColor("shader", "shad");
+   nAttr.setDefault(0.0f, 0.0f, 0.0f);
+   nAttr.setKeyable(true);
+   nAttr.setConnectable(true);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   nAttr.setChannelBox(true);
+   addAttribute(s_shader);
+   
    s_roundness = nAttr.create("roundness", "rnds", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
@@ -94,9 +105,6 @@ MStatus CArnoldLightBlockerNode::initialize()
    eAttr.addField("x", 0);
    eAttr.addField("y", 1);
    eAttr.addField("z", 2);
-   eAttr.addField("X", 3);
-   eAttr.addField("Y", 4);
-   eAttr.addField("Z", 5);
    eAttr.setDefault(0);
    eAttr.setChannelBox(true);
    addAttribute(s_rampAxis);

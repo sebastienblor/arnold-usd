@@ -107,6 +107,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       return MS::kSuccess;
    }
 
+   // only display progressBar in Interactive sessions
+   // or in batch it might fail
+   bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
+   
    
    AiBegin();
    CMayaScene::Begin(MTOA_SESSION_BATCH);
@@ -218,18 +222,27 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AtNode *driver = AiNode("driver_exr");
    AiNodeSetStr(driver, "name", "defaultArnoldDriver@cameraMapperOutput");
    
-   
-   AtNode* render_view = AiNode("progress_driver");
-   AiNodeSetStr(render_view, "name", "progress_display");
+   AtArray *outputs = 0;
 
-   AtNode* driverFilterNode = AiNode("box_filter");
-   AiNodeSetStr(driverFilterNode, "name", "progress_driver_filter");
+   if (progressBar)
+   {
+      AtNode* render_view = AiNode("progress_driver");
+      AiNodeSetStr(render_view, "name", "progress_display");
 
 
-   AtArray *outputs = AiArray(2, 1, AI_TYPE_STRING,
-         "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput", 
-         "Z FLOAT progress_driver_filter progress_display" );
-     
+      AtNode* driverFilterNode = AiNode("box_filter");
+      AiNodeSetStr(driverFilterNode, "name", "progress_driver_filter");
+
+
+      outputs = AiArray(2, 1, AI_TYPE_STRING,
+            "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput", 
+            "Z FLOAT progress_driver_filter progress_display" );
+   } else
+   {
+      outputs = AiArray(1, 1, AI_TYPE_STRING,
+            "RGBA RGBA defaultArnoldFilter@cameraMapperFilter defaultArnoldDriver@cameraMapperOutput");
+
+   }
    // assign it to the render options
    AiNodeSetArray(options_node, "outputs", outputs);
 
@@ -252,34 +265,37 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       MFnDagNode dagNode(dagPath);
       MString meshName = dagNode.partialPathName();
 
-      if (i == 0)  
+      if (progressBar)
       {
-         MProgressWindow::reserve();
-         MProgressWindow::setProgressRange(0, 100);
-         MProgressWindow::setTitle("Rendering to Texture");
-         MProgressWindow::setInterruptable(true);
-      }
-      if (MProgressWindow::isCancelled()) break;
 
-      MString progressStatus = meshName;
-      progressStatus += " (";
-      progressStatus += (i + 1);
-      progressStatus +="/";
-      progressStatus += selected.length();
-      progressStatus += ")";
-      MProgressWindow::setProgressStatus(progressStatus);
-      
-      if (i == 0) 
-      {
-         MProgressWindow::startProgress();
-         // strange, but I need to change the value once so that it is displayed
-         MProgressWindow::setProgress(1); 
-         MProgressWindow::setProgress(0);
-      } else
-      {
-         MProgressWindow::setProgress(i*100/selected.length());
-      }
+         if (i == 0)  
+         {
+            MProgressWindow::reserve();
+            MProgressWindow::setProgressRange(0, 100);
+            MProgressWindow::setTitle("Rendering to Texture");
+            MProgressWindow::setInterruptable(true);
+         }
+         if (MProgressWindow::isCancelled()) break;
 
+         MString progressStatus = meshName;
+         progressStatus += " (";
+         progressStatus += (i + 1);
+         progressStatus +="/";
+         progressStatus += selected.length();
+         progressStatus += ")";
+         MProgressWindow::setProgressStatus(progressStatus);
+         
+         if (i == 0) 
+         {
+            MProgressWindow::startProgress();
+            // strange, but I need to change the value once so that it is displayed
+            MProgressWindow::setProgress(1); 
+            MProgressWindow::setProgress(0);
+         } else
+         {
+            MProgressWindow::setProgress(i*100/selected.length());
+         }
+      }
 
 
       AtNode*input_object = AiNodeLookUpByName(meshName.asChar());
@@ -335,7 +351,8 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       AiNodeDestroy(camera);
    }
-   MProgressWindow::endProgress();
+
+   if (progressBar)  MProgressWindow::endProgress();
 
    AiEnd();
 
