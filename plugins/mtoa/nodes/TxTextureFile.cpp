@@ -1,8 +1,15 @@
 #include "TxTextureFile.h"
+#include <ai_texture.h>
+#include <ai.h>
+#include <stdio.h>
 
 const char* CTxTextureFile::fileName = "TxtextureFile";
 
-CTxTextureFile::CTxTextureFile()
+CTxTextureFile::CTxTextureFile():
+   fWidth(0),
+   fHeight(0),
+   fChannels(4),
+   fPathName("")
 {
 }
 
@@ -17,29 +24,36 @@ void* CTxTextureFile::creator()
 
 MStatus CTxTextureFile::open( MString pathname, MImageFileInfo* info)
 {
+   unsigned int res_x, res_y, channels;
+   if(!AiTextureGetResolution(pathname.asChar(), &res_x, &res_y))
+      return MS::kFailure;
+   
+   if(!AiTextureGetNumChannels(pathname.asChar(), &channels))
+      return MS::kFailure;
+
+   fWidth = res_x;
+   fHeight = res_y;
+   fChannels = channels;
+   fPathName = pathname;
    if(info)
    {
-      info->width( 512);
-      info->height( 512);
-      info->channels( 4);
-      info->pixelType( MImage::kByte);
+      info->width( res_x);
+      info->height( res_y);
+      info->channels( channels);
+      info->pixelType( MImage::kFloat);
    }
+
    return MS::kSuccess;
 }
 
 MStatus CTxTextureFile::load( MImage& image, unsigned int idx)
 {
-   image.create( 512, 512, 4, MImage::kByte);
+   image.create( fWidth, fHeight, fChannels, MImage::kFloat);
 
-   unsigned char* dst = image.pixels();   
+   float* dst = image.floatPixels();
+   
+   if(!AiTextureLoad(AtString(fPathName.asChar()), true, dst))
+      return MS::kFailure;
 
-   // Create an opaque gray texture
-   for (int y=0; y < 512*512; ++y)
-   {
-      *dst++ = 128;
-      *dst++ = 128;
-      *dst++ = 128;
-      *dst++ = 255;
-   }
    return MS::kSuccess;
 }

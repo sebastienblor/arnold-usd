@@ -55,6 +55,12 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_hair_shader";
    data.defaultValue.RGB = AI_RGB_BLACK;
    helper.MakeInputRGB(data);
+
+   data.defaultValue.FLT = 1.0f;
+   data.name = "aiIndirectDiffuse";
+   data.shortName = "aiIndirectDiffuse";
+   helper.MakeInputFloat(data);
+
 }
 
 AtNode* CHairTranslator::CreateArnoldNodes()
@@ -160,6 +166,7 @@ void CHairTranslator::Update( AtNode *curve )
       {
          shader = AiNode("MayaHair");
          MString hairShaderName = fnDepNodeHair.name();
+
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
          ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
@@ -167,6 +174,8 @@ void CHairTranslator::Update( AtNode *curve )
          ProcessParameter(shader, "translucence", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("translucence"));
          ProcessParameter(shader, "specularColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
          ProcessParameter(shader, "specularPower", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularPower"));
+         
+
          plug = fnDepNodeHair.findPlug("castShadows");
 
          if (plug.asBool())
@@ -211,7 +220,8 @@ void CHairTranslator::Update( AtNode *curve )
             }
             AiNodeSetArray(shader, "hairColorScale", rampArr);
          }
-
+         plug = fnDepNodeHair.findPlug("aiIndirectDiffuse");
+         AiNodeSetFlt(shader, "indirectDiffuse", plug.asFloat());
          shader = ExportRootShader(shader);
       }
       // Assign shader

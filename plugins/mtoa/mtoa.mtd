@@ -1091,6 +1091,9 @@
     [attr refraction_roughness]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+    [attr dispersion_abbe]
+        min                 FLOAT   0.0
+        softmax             FLOAT   100.0
     [attr Ks]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
@@ -1157,6 +1160,10 @@
     [attr aov_refraction_opacity]
     aov.type                INT     0x05
     [attr aov_sss]
+    aov.type                INT     0x05
+    [attr aov_direct_sss]
+    aov.type                INT     0x05
+    [attr aov_indirect_sss]
     aov.type                INT     0x05
 
 [node utility]
@@ -1523,7 +1530,8 @@
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
-    [attr subdiv_pixel_error]
+    [attr subdiv_adaptive_error]
+        maya.name           STRING  "aiSubdivPixelError"
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
 

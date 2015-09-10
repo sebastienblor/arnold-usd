@@ -1,5 +1,7 @@
 #include "ArnoldBakeGeoCmd.h"
 #include "../scene/MayaScene.h"
+#include <ai.h>
+
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -10,26 +12,40 @@
 #include <maya/MStringArray.h>
 #include <maya/MGlobal.h>
 #include <maya/MArgDatabase.h>
-#include <map>
-#include <string>
+
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <ostream>
-#include <ai.h>
 #include <fstream>
 #include <istream>
 #include <streambuf>
+#ifdef _WIN32
+#include <unordered_map>
+#else
+#include <tr1/unordered_map>
+#endif
 
-
+// hash function from http://www.cse.yorku.ca/~oz/hash.html
+inline size_t
+HashFunctionDJB2(const unsigned char *input, size_t size)
+{
+   size_t hash = 5381;
+   int c;
+   while (size--)
+   {
+      c = *input++;
+      hash = ((hash << 5) + hash) + c; //hash * 33 + c
+   }
+   return hash;
+}
 
 CArnoldBakeGeoCmd::CArnoldBakeGeoCmd()
-{
-   
+{   
 }
 
 CArnoldBakeGeoCmd::~CArnoldBakeGeoCmd()
-{
-   
+{   
 }
 
 MSyntax CArnoldBakeGeoCmd::newSyntax()
@@ -103,7 +119,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       return MS::kFailure;  
    }
    std::ostream os(&fb);
-   os << "# Arnold Renderer - OBJ export\n";  // any else we want to dump in the header ?
+   os << "# Arnold Renderer - OBJ export\n";  // anything else we want to dump in the header ?
 
    AiBegin();
    CMayaScene::Begin(MTOA_SESSION_ASS);
@@ -116,16 +132,17 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
 
    //  First, iterate over the geometries to get the matrices
    // Otherwise, as soon as AiRender is called, they are re-initialized
-   AtNodeIterator* node_itr = AiUniverseGetNodeIterator(AI_NODE_ALL);
+   AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
 
-   // not trusting the way AtMatrix are copied
-   // so I'm using a float[16] here
-   // but If I'm wrong we might use a std::map<AtMatrix, std:string> instead
+#ifdef _WIN32
+   std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
+#else
+   std::tr1::unordered_map<std::string, matrixAsFloats>  mtxMap;
+#endif
    
-   std::map<std::string, matrixAsFloats>  mtxMap;
-   while (!AiNodeIteratorFinished(node_itr))
+   while (!AiNodeIteratorFinished(nodeIter))
    {
-      AtNode *node = AiNodeIteratorGetNext(node_itr);
+      AtNode *node = AiNodeIteratorGetNext(nodeIter);
       if (AiNodeIs(node, "polymesh") )
       {
          AtMatrix localToWorld;
@@ -141,20 +158,31 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
          objValue = mtxFlt;
       }
    }
-   AiNodeIteratorDestroy(node_itr);
+   AiNodeIteratorDestroy(nodeIter);
 
    AiRender(AI_RENDER_MODE_FREE);
-   node_itr = AiUniverseGetNodeIterator(AI_NODE_ALL);
+   nodeIter = AiUniverseGetNodeIterator(AI_NODE_ALL);
    AtShaderGlobals* sg = AiShaderGlobals();
-   int vert_index = 1; // vertex indices must be global to whole obj, starting at 1
+   
+   std::vector<AtPoint> vertices;
+   std::vector<AtVector> normals;
+   std::vector<AtPoint2> uvs;
+   std::vector<unsigned int> vertexIds;
+   
+#ifdef _WIN32
+   std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
+   std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
+#else
+   std::tr1::unordered_map<size_t, unsigned int>  vertexMap;
+   std::tr1::unordered_map<size_t, unsigned int>::iterator  vertexMapIter;
+#endif
+   unsigned int vtxOffset = 1;  // OBJ expects vertex indices starting at 1
 
-   while (!AiNodeIteratorFinished(node_itr))
+   while (!AiNodeIteratorFinished(nodeIter))
    {
-      AtNode *node = AiNodeIteratorGetNext(node_itr);
+      AtNode *node = AiNodeIteratorGetNext(nodeIter);
       if (AiNodeIs(node, "polymesh") )
       {
-         // MGlobal::displayInfo(MString(AiNodeGetName(node)));
-         std::stringstream vBuf, uvBuf, nBuf, fBuf;
          os <<"o "<<AiNodeGetName(node)<<"\n";
         
          sg->Op = node;
@@ -171,57 +199,130 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
             for (int k = 0; k < 4; ++k, ++mtxInd)
                localToWorld[j][k] = mtxFlt.elems[mtxInd];
 
-         //MGlobal::displayInfo(MString(matrix_str.str().c_str()));
 
-         int index = 0;
-         bool valid_uvs = true;
-         bool valid_normals = true;
-
+         int triangleIndex = 0;
+         bool validUvs = true;
+         bool validNormals = true;
+         
+         // First try to get roughly the amount of vertices in this mesh
+         // by recursively multiplying the previous value by 2
+         // Let's start with a value of 64
+         sg->fi = (vertices.capacity() == 0) ? 64 : vertices.capacity();
          while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
          {
-            if (valid_uvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) valid_uvs = false;
-            if (valid_normals && !AiShaderGlobalsGetVertexNormals(sg, 0, localNormal)) valid_normals = false;
+            //This mesh has more vertices than my vectors capacity
+            // I keep multiplying this value by 2 until 
+            // this function returns false (meaning that we're > vertexCount)
+            sg->fi *= 2;
+         }
+         if (sg->fi > vertices.capacity())
+         {
+            vertices.reserve(sg->fi);
+            normals.reserve(sg->fi);
+            uvs.reserve(sg->fi);
+            vertexIds.reserve(sg->fi);
+         }
 
-            
-            // Please God forgive me for duplicating the vertices for each triangle
+         // Let's start again for good now,
+         // by reseting the triangle index
+         sg->fi = 0;
+         while (AiShaderGlobalsGetTriangle(sg, 0, localPos))
+         {            
             for (int j = 0; j < 3; ++j)
             {
+               // compute a hash key for this vertex position
+               size_t positionHash = HashFunctionDJB2((const unsigned char *)&localPos[j], sizeof(AtPoint));
+
+               vertexMapIter = vertexMap.find(positionHash);
+               if (vertexMapIter != vertexMap.end())
+               {
+                  // this vertex already exists
+                  vertexIds.push_back(vertexMapIter->second);
+                  // no need to add the vertex / normals / uvs to the list
+                  continue;
+               }
+
+               // this vertex hasn't been found yet
+               unsigned int meshVtxId = (unsigned int)vertices.size() + vtxOffset;
+               vertexMap[positionHash] = meshVtxId;
+               vertexIds.push_back(meshVtxId);
+
+               if (validUvs && !AiShaderGlobalsGetVertexUVs(sg, uv)) validUvs = false;
+               if (validNormals && !AiShaderGlobalsGetVertexNormals(sg, 0, localNormal)) validNormals = false;
+
+
                // convert local vertices to world              
                AiM4PointByMatrixMult(&worldPos[j], localToWorld, &localPos[j]); 
                AiM4VectorByMatrixMult(&worldNormal[j], localToWorld, &localNormal[j]); 
-               
-               vBuf <<"v "<<(float)worldPos[j].x<< " "<<(float)worldPos[j].y<<" "<<(float)worldPos[j].z<<"\n";
-               if (valid_normals) nBuf <<"vn "<<(float)worldNormal[j].x<< " "<<(float)worldNormal[j].y<<" "<<(float)worldNormal[j].z<<"\n";
-               if (valid_uvs) uvBuf <<"vt "<<(float)uv[j].x<< " "<<(float)uv[j].y<<"\n";
+               vertices.push_back(AiPoint((float)worldPos[j].x, (float)worldPos[j].y, (float)worldPos[j].z));
 
-            }
-            sg->fi = ++index;
-         }
-
-         for (int f = 0; f < index; ++f)
-         {
-            fBuf <<"f ";
-            for (int v =0; v < 3; ++v)
-            {
-               fBuf<<vert_index;
-               if (valid_uvs)
+               if (validNormals)
                {
-                  if (valid_normals) fBuf<<"/"<<vert_index<<"/"<<vert_index; // both UVs and normals
-                  else fBuf<<"/"<<vert_index;  // only UVs
-               } else if (valid_normals) fBuf<<"//"<<vert_index; // only normals                  
-               
-               fBuf<<" ";
-               vert_index++;
+                  normals.push_back(AiVector((float)worldNormal[j].x, (float)worldNormal[j].y, (float)worldNormal[j].z));
+               }
+               if (validUvs)
+               {
+                  uvs.push_back(AiPoint2((float)uv[j].x, (float)uv[j].y));
+               }
             }
-            fBuf<<"\n";
+            sg->fi = ++triangleIndex;
          }
-         
-         os <<vBuf.str()<<"\n";
-         if (valid_uvs) os<<uvBuf.str()<<"\n";
-         if (valid_normals) os<<nBuf.str()<<"\n";
-         os<<fBuf.str()<<"\n";     
+
+         for (size_t i = 0; i < vertices.size(); ++i)
+         {
+            os<<"v "<<vertices[i].x<< " "<<vertices[i].y<<" "<<vertices[i].z<<"\n";
+         }
+         os<<"\n";
+
+         if (validUvs)
+         {
+            for (size_t i = 0; i < uvs.size(); ++i)
+            {
+               os<<"vt "<<uvs[i].x<< " "<<uvs[i].y<<"\n";
+            }
+            os<<"\n";
+         }
+
+         if (validNormals)
+         {
+            for (size_t i = 0; i < normals.size(); ++i)
+            {
+               os<<"vn "<<normals[i].x<< " "<<normals[i].y<<" "<<normals[i].z<<"\n";
+            }
+         }
+
+         // Write the faces
+         int triangleVtxId = 0;
+         for (int f = 0; f < triangleIndex; ++f)
+         {
+            os <<"f ";
+            for (int v =0; v < 3; ++v, ++triangleVtxId)
+            {
+               int globalVertexIndex = vertexIds[triangleVtxId];
+               os<<globalVertexIndex;
+               if (validUvs)
+               {
+                  if (validNormals) os<<"/"<<globalVertexIndex<<"/"<<globalVertexIndex; // both UVs and normals
+                  else os<<"/"<<globalVertexIndex;  // only UVs
+               } else if (validNormals) os<<"//"<<globalVertexIndex; // only normals                  
+               
+               os<<" ";
+            }
+            os<<"\n";
+         }
+         os<<"\n";
+
+         // incrementing the global vertex Offset
+         vtxOffset += vertices.size();
+
+         // clear the vectors / containers for the next mesh
+         vertices.clear();
+         uvs.clear();
+         normals.clear();
+         vertexMap.clear();
+         vertexIds.clear();
       }
-   } 
+   }
 
    std::string outLog = "Exported geometry as ";
    outLog += filename.asChar();
@@ -229,7 +330,7 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
    fb.close();
    MGlobal::displayInfo(MString(outLog.c_str()));
 
-   AiNodeIteratorDestroy(node_itr);
+   AiNodeIteratorDestroy(nodeIter);
    AiShaderGlobalsDestroy(sg);
    AiRenderAbort();
 

@@ -16,5 +16,11 @@ public:
    static const char* fileName;
    
    void populateTestImage(unsigned char* pixels, unsigned int w, unsigned int h);
+
+protected:
+   unsigned int fWidth;
+   unsigned int fHeight;
+   unsigned int fChannels;
+   MString fPathName;
    
 }; // class CTxTextureFile

@@ -68,6 +68,13 @@
         aov.type                INT     0x05
     [attr aov_sss]
         aov.type                INT     0x05
+    [attr aov_direct_sss]
+        aov.type                INT     0x05
+    [attr aov_indirect_sss]
+        aov.type                INT     0x05
+    
+    
+
 
 [node volume_collector]
     maya.id    INT     0x00115D1F
