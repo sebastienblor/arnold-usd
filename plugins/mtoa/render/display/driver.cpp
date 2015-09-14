@@ -92,6 +92,7 @@ driver_supports_pixel_type
       case AI_TYPE_FLOAT:
       case AI_TYPE_VECTOR:
       case AI_TYPE_POINT:
+      case AI_TYPE_INT:
          return true;
       default:
          std::string msg = "[RenderView] Driver Type not supported ";
@@ -239,7 +240,18 @@ driver_process_bucket
                               AtRGBA rgba;
                               rgba.r = rgba.g = rgba.b = flt;
                               rgba.a = 1.f;
-
+                              rv->setAOVPixelColor(AOVIndex, si, sj, rgba);
+                              break;
+                           }
+                           {
+                           case AI_TYPE_INT:
+                              const int &int_val = ((const int *)bucket_data)[in_idx];
+                              AtRGBA rgba;
+                              // not a simple cast, because we'll want to get the original 
+                              // int value later (when picking)
+                              *((int*)&rgba.r) = int_val;
+                              rgba.g = rgba.b = rgba.r;
+                              rgba.a = 1.f;
                               rv->setAOVPixelColor(AOVIndex, si, sj, rgba);
                               break;
                            }
@@ -276,7 +288,18 @@ driver_process_bucket
                         AtRGBA rgba;
                         rgba.r = rgba.g = rgba.b = flt;
                         rgba.a = 1.f;
-
+                        rv->setAOVPixelColor(AOVIndex, i, j, rgba);
+                        break;
+                     }
+                     {
+                     case AI_TYPE_INT:
+                        const int &int_val = ((const int *)bucket_data)[in_idx];
+                        AtRGBA rgba;
+                        // not a simple cast, because we'll want to get the original 
+                        // int value later (when picking)
+                        *((int*)&rgba.r) = int_val;
+                        rgba.g = rgba.b = rgba.r;
+                        rgba.a = 1.f;
                         rv->setAOVPixelColor(AOVIndex, i, j, rgba);
                         break;
                      }

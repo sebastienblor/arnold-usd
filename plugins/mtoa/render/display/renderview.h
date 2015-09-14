@@ -334,44 +334,64 @@ friend CRenderViewMainWindow;
    void copyToRGBA8(const AtRGBA &rgba, AtRGBA8 &rgba8, int x, int y)
    {
       const bool &dither = m_colorCorrectSettings.dither;
-      // apply gamma
-      if (true /*m_colorCorrectSettings.gamma != 1.0f*/)
+      if (m_displayID)
       {
-         // need to copy the input RGBA for the gamma
-         AtRGBA color = rgba;
-         AtRGB &rgb = color.rgb();
-         
-         if (m_colorCorrectSettings.brightness != 1.0f)
-         {
-            rgb *= m_colorCorrectSettings.brightness;
-         }
-         if (m_colorCorrectSettings.gamma != 1.0f)
-         {
-
-            AiColorClamp(rgb, rgb, 0, 1);
-            AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
-         }
-
-         if (m_colorCorrectSettings.srgb)
-         {
-            //  (x <= 0.04045) ? x * (1.0 / 12.92) : powf((x + 0.055) * (1.0 / (1 + 0.055)), 2.4);
-
-            rgb.r = (rgb.r <= 0.0031308f) ? rgb.r * 12.92f : (1.055) * powf(rgb.r,1.f/2.4f) - 0.055f;
-            rgb.g = (rgb.g <= 0.0031308f) ? rgb.g * 12.92f : (1.055) * powf(rgb.g,1.f/2.4f) - 0.055f;
-            rgb.b = (rgb.b <= 0.0031308f) ? rgb.b * 12.92f : (1.055) * powf(rgb.b,1.f/2.4f) - 0.055f;
-
-         }
-         rgba8.r = AiQuantize8bit(x, y, 0, color.r, dither);
-         rgba8.g = AiQuantize8bit(x, y, 1, color.g, dither);
-         rgba8.b = AiQuantize8bit(x, y, 2, color.b, dither);
-         rgba8.a = AiQuantize8bit(x, y, 3, color.a, dither);
+         // basic pseudo-random color per ID.
+         // I tried using AiVCellNoise3, but some geometries 
+         // were displayed with the same color. 
+         // For now let's use this dirty hash         
+         unsigned int val;
+         val = *((unsigned int*)&rgba.r);
+         AtRGB tmpCol;
+         tmpCol.r = (float((val+943) % 1257))/1257.f;
+         tmpCol.g = (float((val+189) % 438))/438.f;
+         tmpCol.b = (float((val+789) % 939))/939.f;
+         rgba8.r = AiQuantize8bit(x, y, 0, tmpCol.r, dither);
+         rgba8.g = AiQuantize8bit(x, y, 1, tmpCol.g, dither);
+         rgba8.b = AiQuantize8bit(x, y, 2, tmpCol.b, dither);
 
       } else
-      {  
-         rgba8.r = AiQuantize8bit(x, y, 0, rgba.r, dither);
-         rgba8.g = AiQuantize8bit(x, y, 1, rgba.g, dither);
-         rgba8.b = AiQuantize8bit(x, y, 2, rgba.b, dither);
-         rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, dither);
+      {
+
+         // apply gamma
+         if (true /*m_colorCorrectSettings.gamma != 1.0f*/)
+         {
+            // need to copy the input RGBA for the gamma
+            AtRGBA color = rgba;
+            AtRGB &rgb = color.rgb();
+            
+            if (m_colorCorrectSettings.brightness != 1.0f)
+            {
+               rgb *= m_colorCorrectSettings.brightness;
+            }
+            if (m_colorCorrectSettings.gamma != 1.0f)
+            {
+
+               AiColorClamp(rgb, rgb, 0, 1);
+               AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
+            }
+
+            if (m_colorCorrectSettings.srgb)
+            {
+               //  (x <= 0.04045) ? x * (1.0 / 12.92) : powf((x + 0.055) * (1.0 / (1 + 0.055)), 2.4);
+
+               rgb.r = (rgb.r <= 0.0031308f) ? rgb.r * 12.92f : (1.055) * powf(rgb.r,1.f/2.4f) - 0.055f;
+               rgb.g = (rgb.g <= 0.0031308f) ? rgb.g * 12.92f : (1.055) * powf(rgb.g,1.f/2.4f) - 0.055f;
+               rgb.b = (rgb.b <= 0.0031308f) ? rgb.b * 12.92f : (1.055) * powf(rgb.b,1.f/2.4f) - 0.055f;
+
+            }
+            rgba8.r = AiQuantize8bit(x, y, 0, color.r, dither);
+            rgba8.g = AiQuantize8bit(x, y, 1, color.g, dither);
+            rgba8.b = AiQuantize8bit(x, y, 2, color.b, dither);
+            rgba8.a = AiQuantize8bit(x, y, 3, color.a, dither);
+
+         } else
+         {  
+            rgba8.r = AiQuantize8bit(x, y, 0, rgba.r, dither);
+            rgba8.g = AiQuantize8bit(x, y, 1, rgba.g, dither);
+            rgba8.b = AiQuantize8bit(x, y, 2, rgba.b, dither);
+            rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, dither);
+         }
       }
    }
    AtRGBA *getDisplayedBuffer()
@@ -407,6 +427,8 @@ friend CRenderViewMainWindow;
    int m_displayedImageIndex;
    int m_displayedAovIndex;
    CRenderViewCCSettings m_colorCorrectSettings;
+
+   bool m_displayID;
 
    std::string m_status_log;
    std::vector<std::string> m_storedImagesStatus;

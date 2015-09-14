@@ -151,7 +151,7 @@ void CRenderView::init()
    m_status_bar_pixel_info = false;
    m_restore_continuous = false;
    m_color_mode  = COLOR_MODE_RGBA;
-   
+   m_displayID = false;
 
    AiCritSecInit(&window_close_lock);
 
@@ -167,6 +167,11 @@ void CRenderView::init()
 
    driver = AiNode(K_DISPLAY_NAME);
    AiNodeSetStr(driver, "name", "kick_display");
+
+   AtNode *id_filter = AiNode("closest_filter");
+   AiNodeSetStr(id_filter, "name", "_renderViewDefault@closest_filter");
+
+
 
    if (K_filter_type[0] != 0)
    {
@@ -255,14 +260,13 @@ void CRenderView::updateRenderOptions()
       m_aovNames.clear();
    }
 
-   m_aovBuffers.reserve(outputs->nelements);
-   m_aovNames.reserve(outputs->nelements);
+   m_aovBuffers.reserve(outputs->nelements + 1);
+   m_aovNames.reserve(outputs->nelements + 1);
 
    // list of outputs stored as std::string for 
    // manipulation simplicity
    std::vector<std::string> outputValues;
    outputValues.reserve(outputs->nelements);
-
 
    bool foundBeauty = false;
    for (size_t i = 0; i < outputs->nelements; ++i)
@@ -279,7 +283,9 @@ void CRenderView::updateRenderOptions()
       outputStr += " ";
       outputStr += "kick_display";
 
-      
+      // we'll add the ID AOV below
+      if (outputName == "ID") continue;
+
       if (outputName == "RGB" || outputName == "RGBA")
       {
          // this is my beauty
@@ -297,10 +303,15 @@ void CRenderView::updateRenderOptions()
          AtRGBA *aovBuffer = (AtRGBA *)AiMalloc(xres * yres * sizeof(AtRGBA));
          memset(aovBuffer, 0, xres * yres * sizeof(AtRGBA));
          //add the aov buffer
-         m_aovBuffers.push_back(aovBuffer);         
+         m_aovBuffers.push_back(aovBuffer);      
       }
-   }   
+   }
 
+   m_aovNames.push_back("ID");
+   AtRGBA *aovBuffer = (AtRGBA *)AiMalloc(xres * yres * sizeof(AtRGBA));
+   memset(aovBuffer, 0, xres * yres * sizeof(AtRGBA));
+   m_aovBuffers.push_back(aovBuffer);  
+   outputValues.push_back("ID INT _renderViewDefault@closest_filter kick_display");
 
    AtArray *allOutputsArray = AiArrayAllocate(outputValues.size(), 1, AI_TYPE_STRING);
    for (size_t i=0; i < outputValues.size(); i++)
@@ -329,7 +340,7 @@ void CRenderView::updateRenderOptions()
    bucket_size = bucket_size;
    min_x       = data_window.minx;
    min_y       = data_window.miny;
-     
+   
    
 
    // compute number of buckets we need to render the full frame
@@ -552,16 +563,12 @@ void CRenderView::updateRender()
    restartRender();
 }
 
-
-
-
 void CRenderView::restartRender()
 {
 
    show();
    K_render_timestamp = time();
    K_restartLoop = true;
-
    K_wait_for_changes = false;
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
@@ -634,6 +641,7 @@ void CRenderView::storeImage()
 
 void CRenderView::refreshGLBuffer()
 {
+   m_displayID = (m_displayedImageIndex < 0) && (m_displayedAovIndex == (m_aovNames.size() -1));
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
    AtRGBA8 *gl_buffer = m_gl->getBuffer();
@@ -1253,24 +1261,29 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
       }
    }
 
-   if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
-   
-   int regionEnd[2];
-   regionEnd[0] = event->x();
-   regionEnd[1] = event->y();
+   if (!m_leftButtonDown) return;
 
-   if (regionEnd[0] == m_pickPoint[0] || regionEnd[1] == m_pickPoint[1]) return;
+   // if SHIFT is pressed, region cropping is temporarily enabled
+   if (m_renderView.m_region_crop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
+   {
+      
+      int regionEnd[2];
+      regionEnd[0] = event->x();
+      regionEnd[1] = event->y();
 
-   // drag region from m_pickPoint and current Point
+      if (regionEnd[0] == m_pickPoint[0] || regionEnd[1] == m_pickPoint[1]) return;
 
-   int bufferStart[2];
-   int bufferEnd[2];
-   m_renderView.m_gl->project(m_pickPoint[0], m_pickPoint[1], bufferStart[0], bufferStart[1], true);
-   m_renderView.m_gl->project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
+      // drag region from m_pickPoint and current Point
+
+      int bufferStart[2];
+      int bufferEnd[2];
+      m_renderView.m_gl->project(m_pickPoint[0], m_pickPoint[1], bufferStart[0], bufferStart[1], true);
+      m_renderView.m_gl->project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
 
 
-   // -> project in image space
-   m_renderView.m_gl->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
+      // -> project in image space
+      m_renderView.m_gl->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
+   }
 }
 
 void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
@@ -1281,7 +1294,6 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
       if ((event->buttons() & Qt::LeftButton) || (event->buttons() & Qt::MidButton) || (event->buttons() & Qt::RightButton))
       {
          // TRANSLATION
-
          m_pickPoint[0] = event->x();
          m_pickPoint[1] = event->y();
 
@@ -1291,82 +1303,104 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
       return;
    }
 
-   // simply pressed the mouse
-
-   if (!m_renderView.m_region_crop) return;
-
-/*
-   if ((event->buttons() & Qt::RightButton) && m_leftButtonDown)
+   // if SHIFT is pressed, region cropping is temporarily enabled
+   if (m_renderView.m_region_crop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
    {
-      // if for example we right-click while we're draggin the region,
-      // just cancel the region
-      m_leftButtonDown = false;
-      m_pickPoint[0] = m_pickPoint[1] = -1;
-      m_renderView.m_gl->clearRegionCrop();
+      if(!(event->buttons() & Qt::LeftButton)) return;
+
+      m_leftButtonDown = true;
+         
+      // get mouse position
+      // set in m_pickPoint
+      m_pickPoint[0] = event->x();
+      m_pickPoint[1] = event->y();
       return;
    }
-*/
 
-   if(!(event->buttons() & Qt::LeftButton)) return;
+   // Pick  The Shape
+   
+   int x, y;
+   m_renderView.m_gl->project(event->x(), event->y(), x, y, true);
 
-   m_leftButtonDown = true;
-      
-   // get mouse position
-   // set in m_pickPoint
-   m_pickPoint[0] = event->x();
-   m_pickPoint[1] = event->y();
+   // Get the ID AOV (last one in our list), and get the index value for the given pixel
+   const AtRGBA &id_val = m_renderView.m_aovBuffers.back()[x + y * m_renderView.m_width];
+   int Op_id;
+   Op_id = *((int*)&id_val.r);
 
+   // for now we do a linear search over the Shapes in the scene.
+   // In the future we might want to store the Maya nodes in a map (per ID) for faster lookup
+   AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+   
+   while (!AiNodeIteratorFinished(iter))
+   {
+      AtNode *node = AiNodeIteratorGetNext(iter);
+      int nodeId = AiNodeGetInt(node, "id");
+      if (nodeId == Op_id)
+      {
+         // Selection :
+         // If CTRL is pressed, append the selected node to the list
+         if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kAddToList);
+         else
+            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kReplaceList);
 
+         break;
+      }
+   }
 }
 void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
 {
-   if (!m_renderView.m_region_crop || !m_leftButtonDown) return;
+   if (!m_leftButtonDown) return;
    
-   
-   m_leftButtonDown = false;
-   int regionEnd[2];
-   regionEnd[0] = event->x();
-   regionEnd[1] = event->y();
-
-   if (ABS(regionEnd[0] - m_pickPoint[0]) < 3 || ABS(regionEnd[1] - m_pickPoint[1]) < 3)
+   // if SHIFT is pressed, region cropping is temporarily enabled
+   if (m_renderView.m_region_crop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
    {
-      m_pickPoint[0] = m_pickPoint[1] = -1;
-      m_renderView.m_gl->clearRegionCrop();
+      
+      m_leftButtonDown = false;
+      int regionEnd[2];
+      regionEnd[0] = event->x();
+      regionEnd[1] = event->y();
+
+      if (ABS(regionEnd[0] - m_pickPoint[0]) < 3 || ABS(regionEnd[1] - m_pickPoint[1]) < 3)
+      {
+         m_pickPoint[0] = m_pickPoint[1] = -1;
+         m_renderView.m_gl->clearRegionCrop();
+         m_renderView.interruptRender();
+         CRenderSession* renderSession = CMayaScene::GetRenderSession();
+         renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
+         AtNode *options = AiUniverseGetOptions();
+         AiNodeSetInt(options, "region_min_x", -1);
+         AiNodeSetInt(options, "region_min_y", -1);
+         AiNodeSetInt(options, "region_max_x", -1);
+         AiNodeSetInt(options, "region_max_y", -1);
+
+         m_renderView.restartRender();
+      // tell GL Widget to remove region
+         return;
+      }
+
+      // draw region from m_pickPoint and current Point
+      // set region in Arnold
+
+      int bufferStart[2];
+      int bufferEnd[2];
+      m_renderView.m_gl->project(m_pickPoint[0], m_pickPoint[1], bufferStart[0], bufferStart[1], true);
+      m_renderView.m_gl->project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
+
+      m_renderView.m_gl->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
+
+      
       m_renderView.interruptRender();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
+      renderSession->SetRegion(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
       AtNode *options = AiUniverseGetOptions();
-      AiNodeSetInt(options, "region_min_x", -1);
-      AiNodeSetInt(options, "region_min_y", -1);
-      AiNodeSetInt(options, "region_max_x", -1);
-      AiNodeSetInt(options, "region_max_y", -1);
-
+      AiNodeSetInt(options, "region_min_x", bufferStart[0]);
+      AiNodeSetInt(options, "region_min_y", bufferStart[1]);
+      AiNodeSetInt(options, "region_max_x", bufferEnd[0]);
+      AiNodeSetInt(options, "region_max_y", bufferEnd[1]);
+      
       m_renderView.restartRender();
-   // tell GL Widget to remove region
-      return;
    }
-
-   // draw region from m_pickPoint and current Point
-   // set region in Arnold
-
-   int bufferStart[2];
-   int bufferEnd[2];
-   m_renderView.m_gl->project(m_pickPoint[0], m_pickPoint[1], bufferStart[0], bufferStart[1], true);
-   m_renderView.m_gl->project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
-
-   m_renderView.m_gl->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
-
-   
-   m_renderView.interruptRender();
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   renderSession->SetRegion(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
-   AtNode *options = AiUniverseGetOptions();
-   AiNodeSetInt(options, "region_min_x", bufferStart[0]);
-   AiNodeSetInt(options, "region_min_y", bufferStart[1]);
-   AiNodeSetInt(options, "region_max_x", bufferEnd[0]);
-   AiNodeSetInt(options, "region_max_y", bufferEnd[1]);
-   
-   m_renderView.restartRender();
 
 }
 
