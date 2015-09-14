@@ -34,6 +34,7 @@
 
 #include <QtCore/qthread.h>
 #include <iostream>
+#include "manipulators.h"
 
 struct AtDisplaySync;
 
@@ -58,6 +59,7 @@ struct CRenderViewCCSettings
    bool  srgb;
    bool  dither;
 };
+
 
 class CRenderViewCCWindow : public QMainWindow
 {
@@ -116,8 +118,9 @@ public:
       m_tool_bar(NULL),
       m_aovs_combo(NULL),
       m_cameras_combo(NULL),
-      m_cc_window(NULL) {}
-    ~CRenderViewMainWindow() {}
+      m_cc_window(NULL),
+      m_manipulator(NULL) {}
+    ~CRenderViewMainWindow();
  
    void initMenus();
    void populateAOVsMenu();
@@ -160,9 +163,9 @@ private:
 
    bool m_leftButtonDown;
    int  m_pickPoint[2];
-   int  m_previousPan[2];
-   float m_previousZoom;
 
+   CRenderViewManipulator *m_manipulator;
+   
 protected:
    void mouseMoveEvent ( QMouseEvent * event );
    void mousePressEvent ( QMouseEvent * event );
@@ -274,6 +277,7 @@ public:
    void showPreviousStoredImage();
    void showNextStoredImage();
    void deleteStoredImage();
+   CRenderViewMainWindow *getMainWindow() {return m_main_window;}
 
    
    // this method doesn't check for boundaries
@@ -436,6 +440,7 @@ friend CRenderViewMainWindow;
    bool m_restore_continuous;
    bool m_status_bar_enabled;
    bool m_status_bar_pixel_info;
+
 };
 
 
