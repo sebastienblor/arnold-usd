@@ -74,6 +74,7 @@ CRenderView::CRenderView(int w, int h)
    m_main_window->setWindowTitle("Arnold Render View");
    m_gl = NULL;
    m_buffer = NULL;
+   m_picked_id = NULL;
 
    initSize(w, h);
    init();
@@ -577,6 +578,75 @@ void CRenderView::restartRender()
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    arnoldSession->SetContinuousUpdates(false);
+
+}
+
+void CRenderView::pickShape(int px, int py)
+{
+   int x, y;
+   m_gl->project(px, py, x, y, false);
+   
+   // picking out of image bounds...
+   if (x < 0 || x >= m_width || y < 0 || y >= m_height) return; 
+
+
+   // Get the ID AOV (last one in our list), and get the index value for the given pixel
+   const AtRGBA *IdAov = (m_aovBuffers.back());
+   const AtRGBA &id_val = IdAov[x + y * m_width];
+   int Op_id;
+   Op_id = *((int*)&id_val.r);
+   m_picked_id = new int(Op_id);
+
+   AtRGBA *displayedBuffer = getDisplayedBuffer();
+   AtRGBA *idBuffer = m_aovBuffers.back();
+   AtRGBA8 *gl_buffer = m_gl->getBuffer();
+
+   int ind = 0;
+   for (int j = 0; j < m_height; ++j)
+   {
+      for (int i = 0; i < m_width; ++i, ++ind)
+      {
+         int int_id = *((int*)&idBuffer[ind].r);
+         if (int_id != Op_id) continue;
+         copyToRGBA8(displayedBuffer[ind], gl_buffer[ind], i, j);
+      }
+   }
+
+   m_gl->reloadBuffer(m_color_mode);
+   draw();
+
+
+   // for now we do a linear search over the Shapes in the scene.
+   // In the future we might want to store the Maya nodes in a map (per ID) for faster lookup
+   AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+   
+   while (!AiNodeIteratorFinished(iter))
+   {
+      AtNode *node = AiNodeIteratorGetNext(iter);
+      int nodeId = AiNodeGetInt(node, "id");
+      if (nodeId == Op_id)
+      {
+         // Selection :
+         // If CTRL is pressed, append the selected node to the list
+         if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kAddToList);
+         else
+            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kReplaceList);
+
+         break;
+      }
+   }
+}
+void CRenderView::clearPicking()
+{
+   // search in the ID Aov all the pixels corresponding to given ID and refresh them
+   // (less expensive than calling refreshGLBuffer())
+ 
+   int Op_id = *m_picked_id;
+   delete m_picked_id;
+   m_picked_id = NULL;
+
+   refreshGLBuffer();
 
 }
 
@@ -1254,9 +1324,12 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
    
    if( m_renderView.m_status_bar_enabled && m_renderView.m_status_bar_pixel_info)
    {
+      int x = event->x();
+      int y = event->y();
+
       int mouse_position[2];
-      mouse_position[0] = event->x();
-      mouse_position[1] = event->y();
+      
+      m_renderView.m_gl->project(x, y, mouse_position[0], mouse_position[1], false);
 
       if (mouse_position[0] >= 0 && mouse_position[0] < m_renderView.m_width && mouse_position[1] >= 0 && mouse_position[1] < m_renderView.m_height)
       {
@@ -1291,48 +1364,21 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
    }
 
    // Pick the Shape
-   
-   int x, y;
-   m_renderView.m_gl->project(event->x(), event->y(), x, y, true);
-   
-   // picking out of image bounds...
-   if (x < 0 || x >= m_renderView.m_width || y < 0 || y >= m_renderView.m_height) return; 
+   m_renderView.pickShape(event->x(), event->y());
 
-   // Get the ID AOV (last one in our list), and get the index value for the given pixel
-   const AtRGBA &id_val = m_renderView.m_aovBuffers.back()[x + y * m_renderView.m_width];
-   int Op_id;
-   Op_id = *((int*)&id_val.r);
-
-   // for now we do a linear search over the Shapes in the scene.
-   // In the future we might want to store the Maya nodes in a map (per ID) for faster lookup
-   AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
-   
-   while (!AiNodeIteratorFinished(iter))
-   {
-      AtNode *node = AiNodeIteratorGetNext(iter);
-      int nodeId = AiNodeGetInt(node, "id");
-      if (nodeId == Op_id)
-      {
-         // Selection :
-         // If CTRL is pressed, append the selected node to the list
-         if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
-            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kAddToList);
-         else
-            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kReplaceList);
-
-         break;
-      }
-   }
 }
 void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
 {
+   if (m_renderView.m_picked_id)
+   {
+      m_renderView.clearPicking();
+   }
+
    if (m_manipulator == NULL) return;
 
    m_manipulator->mouseRelease(event->x(), event->y());
    delete m_manipulator;
    m_manipulator = NULL;
-
-
 }
 
 void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)

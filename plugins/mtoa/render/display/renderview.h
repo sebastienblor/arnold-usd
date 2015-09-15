@@ -270,6 +270,7 @@ public:
       box.maxy = ymin + height;
       draw(&box);
    }
+
    CRenderGLWidget *getGlWidget() {return m_gl;}
 
    void displaySyncCreate();
@@ -342,6 +343,8 @@ public:
    void refreshStatusBar(int *mouse_position = NULL);
 
    void restoreContinuous() {if (m_continuous_updates)m_restore_continuous = true;}
+   void pickShape(int x, int y);
+   void clearPicking();
 
 protected:
 
@@ -400,6 +403,20 @@ friend CRenderViewMainWindow;
                rgb.b = (rgb.b <= 0.0031308f) ? rgb.b * 12.92f : (1.055) * powf(rgb.b,1.f/2.4f) - 0.055f;
 
             }
+
+            // if picking in progress, compare the picked ID with the ID AOV
+            if (m_picked_id)
+            {
+               int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
+
+               if ( pixel_id == *m_picked_id )
+               {
+                  // mix the color with white (50%)
+                  rgb *= 0.5f;
+                  rgb += 0.5f;
+               }
+            }
+
             rgba8.r = AiQuantize8bit(x, y, 0, color.r, dither);
             rgba8.g = AiQuantize8bit(x, y, 1, color.g, dither);
             rgba8.b = AiQuantize8bit(x, y, 2, color.b, dither);
@@ -450,12 +467,14 @@ friend CRenderViewMainWindow;
 
    bool m_displayID;
 
+   int *m_picked_id;
    std::string m_status_log;
    std::vector<std::string> m_storedImagesStatus;
    bool m_status_changed;
    bool m_restore_continuous;
    bool m_status_bar_enabled;
    bool m_status_bar_pixel_info;
+
 
 };
 
