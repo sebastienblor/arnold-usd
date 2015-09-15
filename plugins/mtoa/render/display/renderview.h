@@ -125,6 +125,17 @@ public:
    void initMenus();
    void populateAOVsMenu();
    void populateCamerasMenu();
+
+   void enableMenus(bool b)
+   {
+      if (b == m_active_menus) return;
+
+      m_render_action->setEnabled(b);
+      m_action_auto_refresh->setEnabled(b);
+      m_action_crop_region->setEnabled(b);
+      m_active_menus = b;
+   }
+
    
 private:
 
@@ -152,6 +163,10 @@ private:
    QAction *m_action_status_info;
    QAction *m_stored_slider_action;
    QAction *m_delete_stored_action;
+   QAction *m_render_action;
+   QAction *m_abort_action;
+
+
 
 
    QActionGroup *m_channel_action_group;
@@ -165,6 +180,7 @@ private:
    int  m_pickPoint[2];
 
    CRenderViewManipulator *m_manipulator;
+   bool  m_active_menus;
    
 protected:
    void mouseMoveEvent ( QMouseEvent * event );

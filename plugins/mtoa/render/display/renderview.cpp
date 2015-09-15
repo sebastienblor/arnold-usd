@@ -81,6 +81,7 @@ CRenderView::CRenderView(int w, int h)
    m_main_window->initMenus();
    m_main_window->show();
 
+   m_main_window->enableMenus(false);
 }
 
 
@@ -481,6 +482,11 @@ void CRenderView::draw(AtBBox2 *region)
    if ( already_in_queue == false) 
    {
       m_gl->update();
+
+      // now that buckets are being painted
+      // we can turn the menus as active again
+
+      m_main_window->enableMenus(true);
    }
 }
 
@@ -522,6 +528,7 @@ void CRenderView::displaySyncCreate()
 
 void CRenderView::updateRender()
 {
+
    interruptRender();
 
 
@@ -777,12 +784,11 @@ CRenderViewMainWindow::~CRenderViewMainWindow()
 void
 CRenderViewMainWindow::initMenus()
 {
+   m_active_menus = false;
    QMenuBar *menubar = menuBar();
 
    //setWindowIcon(QIcon(QPixmap((const char **) SA_logo_32_xpm)));
    setWindowIcon(QIcon(QPixmap((const char **) SA_logo_xpm)));
-
-
 
    m_tool_bar =  addToolBar("Arnold");
    m_tool_bar->setAutoFillBackground(true);
@@ -936,17 +942,17 @@ CRenderViewMainWindow::initMenus()
    m_menu_render = menubar->addMenu("Render");
 
 
-   QAction *render_action = m_menu_render->addAction("Render");
-   connect(render_action, SIGNAL(triggered()), this, SLOT(updateRender()));
-   render_action->setCheckable(false);
-   render_action->setShortcut(Qt::Key_F5);
-   render_action->setStatusTip("Render / Update");
+   m_render_action = m_menu_render->addAction("Render");
+   connect(m_render_action, SIGNAL(triggered()), this, SLOT(updateRender()));
+   m_render_action->setCheckable(false);
+   m_render_action->setShortcut(Qt::Key_F5);
+   m_render_action->setStatusTip("Render / Update");
    
-   QAction *abort_action = m_menu_render->addAction("Abort Render");
-   connect(abort_action, SIGNAL(triggered()), this, SLOT(abortRender()));
-   abort_action->setCheckable(false);
-   abort_action->setStatusTip("Abort the current Render");
-   abort_action->setShortcut(Qt::Key_Escape);
+   m_abort_action = m_menu_render->addAction("Abort Render");
+   connect(m_abort_action, SIGNAL(triggered()), this, SLOT(abortRender()));
+   m_abort_action->setCheckable(false);
+   m_abort_action->setStatusTip("Abort the current Render");
+   m_abort_action->setShortcut(Qt::Key_Escape);
 
    m_action_auto_refresh = m_menu_render->addAction("Continuous Updates");
    connect(m_action_auto_refresh, SIGNAL(triggered()), this, SLOT(autoRefresh()));
@@ -993,21 +999,21 @@ CRenderViewMainWindow::initMenus()
    QString style_button = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
 
    QToolButton *render_button = new QToolButton(m_tool_bar);
-   render_button->setDefaultAction(render_action);
+   render_button->setDefaultAction(m_render_action);
    m_tool_bar->addWidget(render_button);
    QIcon render_icon(QPixmap((const char **) SA_icon_play_xpm));
    render_button->setIcon(render_icon);
-   render_action->setIcon(render_icon);
-   render_action->setIconVisibleInMenu(false);
+   m_render_action->setIcon(render_icon);
+   m_render_action->setIconVisibleInMenu(false);
    render_button->setStyleSheet(style_button);
 
    QToolButton *abort_button = new QToolButton(m_tool_bar);
-   abort_button->setDefaultAction(abort_action);
+   abort_button->setDefaultAction(m_abort_action);
    m_tool_bar->addWidget(abort_button);
    QIcon abort_icon(QPixmap((const char **) SA_icon_stop_xpm));
    abort_button->setIcon(abort_icon);
-   abort_action->setIcon(abort_icon);
-   abort_action->setIconVisibleInMenu(false);
+   m_abort_action->setIcon(abort_icon);
+   m_abort_action->setIconVisibleInMenu(false);
    abort_button->setStyleSheet(style_button);
 
    m_tool_bar->addSeparator();
@@ -1071,6 +1077,13 @@ CRenderViewMainWindow::initMenus()
 
    updateStoredSlider();
 
+
+   m_render_action->setEnabled(false);
+   m_action_auto_refresh->setEnabled(false);
+   m_action_crop_region->setEnabled(false);
+   m_active_menus = false;
+
+
 }
 
 void
@@ -1113,6 +1126,10 @@ void CRenderViewMainWindow::showRenderingTiles()
 
 void CRenderViewMainWindow::updateRender()
 {
+   // re-render has been manually triggered
+   // let's disable the menus until the first buckets 
+   // are painted
+   enableMenus(false);
    m_renderView.updateRender();
 
 }
@@ -1273,10 +1290,13 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
       return;
    }
 
-   // Pick  The Shape
+   // Pick the Shape
    
    int x, y;
    m_renderView.m_gl->project(event->x(), event->y(), x, y, true);
+   
+   // picking out of image bounds...
+   if (x < 0 || x >= m_renderView.m_width || y < 0 || y >= m_renderView.m_height) return; 
 
    // Get the ID AOV (last one in our list), and get the index value for the given pixel
    const AtRGBA &id_val = m_renderView.m_aovBuffers.back()[x + y * m_renderView.m_width];
@@ -1319,7 +1339,25 @@ void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
 {
    const QSize &newSize = event->size();
    m_renderView.m_gl->resize(newSize.width(), newSize.height());
-   m_renderView.draw();
+
+   AtDisplaySync *sync = m_renderView.display_sync;
+
+   // Lock to update the region
+   AiCritSecEnter(&sync->lock);
+
+   bool already_in_queue = sync->waiting_draw;
+   // immediately draw or wait for timer to run out
+   sync->waiting_draw = true;
+   
+   // if we're displayed a previously stored image
+   // we don't want to prevent that we need a draw
+   AiCritSecLeave(&sync->lock);
+
+   if ( already_in_queue == false) 
+   {
+      m_renderView.m_gl->update();
+   }
+
 }
 
 void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
@@ -1327,7 +1365,6 @@ void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
    if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) return;
 
    CRenderView2DZoom::wheel(m_renderView, event->delta());
-
 }
 
 
