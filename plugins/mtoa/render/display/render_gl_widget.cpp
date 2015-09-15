@@ -164,7 +164,11 @@ void CRenderGLWidget::paintGL()
 
    AtDisplaySync *sync = m_renderview.displaySync();
 
-   if (!sync->waiting_draw) return;
+//  commenting this line for now.
+//  it looks like we should not block paintGL, as Qt can call it 
+//  in some situations (resizing, menus appearing/disappearing).
+//  We've had some buffers disappearing until waiting_draw was set back to true.
+//   if (!sync->waiting_draw) return;
 
 
    if (m_printGPUState) {
