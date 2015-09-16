@@ -30,6 +30,9 @@
 
 #include <iostream>
 
+#include <maya/MFnCamera.h>
+#include <maya/MMatrix.h>
+
 
 class QMenu;
 class CRenderView;
@@ -68,7 +71,21 @@ public:
 
 };
 
-class CRenderView2DPan : public CRenderViewManipulator
+
+class CRenderView2DManipulator : public CRenderViewManipulator
+{
+public:
+   CRenderView2DManipulator(CRenderView &rv, int x, int y);
+   virtual ~CRenderView2DManipulator();
+
+
+protected:
+   int  m_previousPan[2];
+   float m_previousZoom;
+
+};
+
+class CRenderView2DPan : public CRenderView2DManipulator
 {
 public:
    CRenderView2DPan(CRenderView &rv, int x, int y);
@@ -78,14 +95,12 @@ public:
    virtual void mouseMove(int x, int y);
    virtual void mouseRelease(int x, int y);
 
-protected:
-   int  m_previousPan[2];
-   float m_previousZoom;
+
 
 };
 
 
-class CRenderView2DZoom : public CRenderViewManipulator
+class CRenderView2DZoom : public CRenderView2DManipulator
 {
 public:
    CRenderView2DZoom(CRenderView &rv, int x, int y);
@@ -97,9 +112,82 @@ public:
 
    static void wheel(CRenderView &renderView, float delta);
 
-protected:
-   int  m_previousPan[2];
-   float m_previousZoom;
 
 };
 
+
+
+class CRenderView3DManipulator : public CRenderViewManipulator
+{
+public:
+   CRenderView3DManipulator(CRenderView &rv, int x, int y);
+   virtual ~CRenderView3DManipulator();
+
+
+   virtual void mouseMove(int x, int y);
+   virtual void mouseRelease(int x, int y);
+
+protected:
+
+   MFnCamera m_camera;
+   
+   MMatrix m_original_matrix;
+   MPoint m_original_position;
+};
+
+
+
+
+class CRenderView3DPan : public CRenderView3DManipulator
+{
+public:
+   CRenderView3DPan(CRenderView &rv, int x, int y);
+   virtual ~CRenderView3DPan();
+
+
+   virtual void mouseMove(int x, int y);
+
+protected : 
+   MVector  m_up_direction;
+   MVector  m_right_direction;
+   MVector  m_view_direction;
+};
+
+
+class CRenderView3DZoom : public CRenderView3DManipulator
+{
+public:
+   CRenderView3DZoom(CRenderView &rv, int x, int y);
+   virtual ~CRenderView3DZoom();
+
+
+   virtual void mouseMove(int x, int y);
+
+   static void wheel(CRenderView &renderView, float delta);
+
+protected:
+   MVector  m_view_direction;
+   MVector  m_up_direction;
+   MPoint   m_center;
+};
+
+
+
+class CRenderView3DRotate : public CRenderView3DManipulator
+{
+public:
+   CRenderView3DRotate(CRenderView &rv, int x, int y);
+   virtual ~CRenderView3DRotate();
+
+
+   virtual void mouseMove(int x, int y);
+
+protected:
+   MPoint m_center;
+   MVector m_up_direction;
+   float m_center_dist;
+   float m_orig_lon;
+   float m_orig_lat;
+   MVector m_view_direction;
+   MVector m_orig_rotation;
+};

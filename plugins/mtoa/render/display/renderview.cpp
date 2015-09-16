@@ -43,7 +43,12 @@
 #include "icons/SA_icon_delete_stored.xpm"
 #include "icons/SA_icon_transparent.xpm"
 
+#include "manipulators.h"
 #include <maya/MQtUtil.h>
+#include <maya/MBoundingBox.h>
+#include <maya/MFloatMatrix.h>
+
+
 
 #include <sstream>
 //#include <QtGui/qimage.h>
@@ -941,7 +946,7 @@ CRenderViewMainWindow::initMenus()
    action->setStatusTip("Frame the whole Image to fit the window size");
    action->setShortcut(Qt::Key_A);
 
-   action = m_menu_view->addAction("Frame Region");
+   action = m_menu_view->addAction("Frame Selection");
    connect(action, SIGNAL(triggered()), this, SLOT(frameRegion()));
    action->setCheckable(false);
    action->setStatusTip("Frame the Crop Region to fit the window size");
@@ -992,6 +997,17 @@ CRenderViewMainWindow::initMenus()
    action->setStatusTip("Apply Color Correction on the displayed image");
 
    m_menu_view->addSeparator();   
+
+   m_3d_manipulation = false;
+
+   m_3d_manipulation_action = m_menu_view->addAction("3d Manipulation");
+   connect(m_3d_manipulation_action, SIGNAL(triggered()), this, SLOT(toggleManipulationMode()));
+   m_3d_manipulation_action->setCheckable(true);
+   m_3d_manipulation_action->setChecked(m_3d_manipulation);
+   m_3d_manipulation_action->setStatusTip("Manipulate the rendered image in 3D");
+   
+
+   m_menu_view->addSeparator();      
    QMenu *status_menu = new QMenu("Status Bar");
    m_menu_view->addMenu(status_menu);
 
@@ -1305,12 +1321,67 @@ void CRenderViewMainWindow::showChannel()
    m_renderView.getGlWidget()->reloadBuffer(m_renderView.m_color_mode);
 }
 
+void CRenderViewMainWindow::toggleManipulationMode()
+{
+   m_3d_manipulation = m_3d_manipulation_action->isChecked();
+   frameAll();
+}
+
 
 
 void CRenderViewMainWindow::enableAOVs()
 {
    K_enable_aovs = m_action_enable_aovs->isChecked();   
    m_menu_aovs->setEnabled(K_enable_aovs);
+}
+
+
+void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
+{
+
+   if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier))
+   {
+      if (m_3d_manipulation)
+      {
+         if (event->buttons() & Qt::LeftButton)
+         {
+            m_manipulator = new CRenderView3DRotate(m_renderView, event->x(), event->y());
+         } else if (event->buttons() & Qt::RightButton)
+         {
+            m_manipulator = new CRenderView3DZoom(m_renderView, event->x(), event->y());
+         } else if (event->buttons() & Qt::MidButton)
+         {
+            m_manipulator = new CRenderView3DPan(m_renderView, event->x(), event->y());
+         }
+
+      } else
+      {
+         if ((event->buttons() & Qt::LeftButton) || (event->buttons() & Qt::MidButton))
+         {
+            m_manipulator = new CRenderView2DPan(m_renderView, event->x(), event->y());
+
+         } else if (event->buttons() & Qt::RightButton)
+         {            
+            m_manipulator = new CRenderView2DZoom(m_renderView, event->x(), event->y());
+         }
+
+      }
+      
+      return;
+   }
+
+   // if SHIFT is pressed, region cropping is temporarily enabled
+   if (m_renderView.m_region_crop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
+   {
+      if(!(event->buttons() & Qt::LeftButton)) return;
+
+      m_manipulator = new CRenderViewCropRegion(m_renderView, event->x(), event->y());
+      return;
+   }
+
+   // Pick the Shape
+   m_renderView.pickShape(event->x(), event->y());
+
 }
 
 void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
@@ -1338,35 +1409,6 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
    }
 }
 
-void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
-{
-
-   if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier))
-   {
-      if ((event->buttons() & Qt::LeftButton) || (event->buttons() & Qt::MidButton))
-      {
-         m_manipulator = new CRenderView2DPan(m_renderView, event->x(), event->y());
-
-      } else if (event->buttons() & Qt::RightButton)
-      {
-         m_manipulator = new CRenderView2DZoom(m_renderView, event->x(), event->y());
-      }
-      return;
-   }
-
-   // if SHIFT is pressed, region cropping is temporarily enabled
-   if (m_renderView.m_region_crop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
-   {
-      if(!(event->buttons() & Qt::LeftButton)) return;
-
-      m_manipulator = new CRenderViewCropRegion(m_renderView, event->x(), event->y());
-      return;
-   }
-
-   // Pick the Shape
-   m_renderView.pickShape(event->x(), event->y());
-
-}
 void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
 {
    if (m_renderView.m_picked_id)
@@ -1385,6 +1427,8 @@ void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
 {
    const QSize &newSize = event->size();
    m_renderView.m_gl->resize(newSize.width(), newSize.height());
+
+   if (m_3d_manipulation) frameAll();
 
    AtDisplaySync *sync = m_renderView.display_sync;
 
@@ -1410,7 +1454,13 @@ void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
 {
    if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) return;
 
-   CRenderView2DZoom::wheel(m_renderView, event->delta());
+   if (m_3d_manipulation)
+   {
+      CRenderView3DZoom::wheel(m_renderView, event->delta());
+   } else
+   {
+      CRenderView2DZoom::wheel(m_renderView, event->delta());
+   }
 }
 
 
@@ -1652,29 +1702,117 @@ void CRenderViewMainWindow::cropRegion()
 
 void CRenderViewMainWindow::frameRegion()
 {
-   const AtBBox2 *region = m_renderView.m_gl->getRegion();
-   if (region == 0) 
+   if (m_3d_manipulation)
    {
-      frameAll();
-      return;
+      // Frame the selected geometries bounding box
+      MSelectionList selected; 
+      MBoundingBox globalBox;
+
+      MGlobal::getActiveSelectionList(selected);
+      for (unsigned int i = 0; i < selected.length(); ++i)
+      {
+         MDagPath dagPath;
+         if (selected.getDagPath(i, dagPath) != MS::kSuccess) continue;
+         MStatus status;
+         MFnDagNode dagShape(dagPath, &status);
+         if (status != MS::kSuccess) continue;
+
+         MBoundingBox boundingBox = dagShape.boundingBox(&status);
+         if (status != MS::kSuccess) continue;
+
+         globalBox.expand(boundingBox);
+      }
+      AtNode *arnold_camera = AiUniverseGetCamera();
+      if (arnold_camera == NULL) return;
+      
+      MSelectionList camList;
+      camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+
+      MDagPath camDag;
+      camList.getDagPath(0, camDag);
+
+      if (!camDag.isValid()) return;
+      MObject camNode = camDag.node();
+      MFnCamera camera;
+      camera.setObject(camDag);
+      MMatrix camToWorld = camDag.inclusiveMatrix();
+
+      // don't want to change the viewDirection & upDirection
+      MVector view_direction = camera.viewDirection(MSpace::kWorld);
+      MVector up_direction = camera.upDirection(MSpace::kWorld);
+      MPoint eye_point = camera.eyePoint(MSpace::kWorld);
+      MPoint center_interest = camera.centerOfInterestPoint(MSpace::kWorld);
+
+      MPoint center = globalBox.center();
+      MFloatMatrix projectionMatrix = camera.projectionMatrix();
+
+      MPoint new_pos = eye_point + center - center_interest;
+      float center_dist = center.distanceTo(new_pos);
+
+      camToWorld[3][0] = new_pos.x;
+      camToWorld[3][1] = new_pos.y;
+      camToWorld[3][2] = new_pos.z;
+
+      MMatrix worldToCam = camToWorld.inverse();
+
+      globalBox.transformUsing(worldToCam);
+
+      MPoint minBox = globalBox.min(); // in camera space
+      MPoint maxBox = globalBox.max(); // in camera space
+
+      MMatrix proj;
+      for (int i =0; i < 4; ++i)
+      {
+         for (int j = 0; j < 4; ++j)
+         {
+            proj[i][j] = projectionMatrix[i][j];
+         }
+      }
+      minBox = minBox * proj;
+      maxBox = maxBox * proj;
+      minBox.x /= minBox.z;
+      minBox.y /= minBox.z;
+      maxBox.x /= maxBox.z;
+      maxBox.y /= maxBox.z;
+      
+      float maxScreen = MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y)));
+      // if maxScreen == 1 -> don't zoom
+      // > 1 need to zoom out
+      // < 1 need to zoom in
+
+      new_pos = center;
+      new_pos -=  view_direction * center_dist * maxScreen;
+      camera.set(new_pos, view_direction, up_direction, camera.horizontalFieldOfView(), camera.aspectRatio());
+      camera.setCenterOfInterestPoint(center, MSpace::kWorld);
+
+   } else
+   {
+      const AtBBox2 *region = m_renderView.m_gl->getRegion();
+      if (region == 0) 
+      {
+         frameAll();
+         return;
+      }
+
+      float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)height() / (region->maxy - region->miny) );
+      m_renderView.m_gl->setZoomFactor(zoomFactor);
+
+      AtPoint2 regionCenter;
+      regionCenter.x = 0.5 * (region->maxx + region->minx);
+      regionCenter.y = 0.5 * (region->maxy + region->miny);
+
+      regionCenter.x -= m_renderView.m_width*0.5;
+      regionCenter.y -= m_renderView.m_height*0.5;
+
+      m_renderView.m_gl->setPan(-regionCenter.x * zoomFactor,-regionCenter.y*zoomFactor);
+      m_renderView.draw();
    }
-
-   float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)height() / (region->maxy - region->miny) );
-   m_renderView.m_gl->setZoomFactor(zoomFactor);
-
-   AtPoint2 regionCenter;
-   regionCenter.x = 0.5 * (region->maxx + region->minx);
-   regionCenter.y = 0.5 * (region->maxy + region->miny);
-
-   regionCenter.x -= m_renderView.m_width*0.5;
-   regionCenter.y -= m_renderView.m_height*0.5;
-
-   m_renderView.m_gl->setPan(-regionCenter.x * zoomFactor,-regionCenter.y*zoomFactor);
-   m_renderView.draw();
 }
 
 void CRenderViewMainWindow::frameAll()
 {
+   if (m_3d_manipulation) return; // we should frame the global bounding box
+
    float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)height() / (float)m_renderView.m_height);
    m_renderView.m_gl->setZoomFactor(zoomFactor);
    m_renderView.m_gl->setPan(0, 0);

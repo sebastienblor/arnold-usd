@@ -34,10 +34,10 @@
 
 #include <QtCore/qthread.h>
 #include <iostream>
-#include "manipulators.h"
+
 
 struct AtDisplaySync;
-
+class CRenderViewManipulator;
 class CRenderGLWidget;
 class QMenu;
 
@@ -135,12 +135,10 @@ public:
       m_action_crop_region->setEnabled(b);
       m_active_menus = b;
    }
-
    
 private:
 
    void updateStoredSlider();
-
 
    CRenderView &m_renderView;
    QMenu *m_menu_file;
@@ -153,7 +151,6 @@ private:
    QComboBox *m_aovs_combo;
    QComboBox *m_cameras_combo;
 
-
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
    QAction *m_action_progressive_refinement;
@@ -165,13 +162,12 @@ private:
    QAction *m_delete_stored_action;
    QAction *m_render_action;
    QAction *m_abort_action;
-
-
-
+   QAction *m_3d_manipulation_action;
 
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
    QActionGroup *m_cameras_action_group;
+   
 
    QSlider *m_stored_slider;
    CRenderViewCCWindow *m_cc_window;
@@ -181,6 +177,7 @@ private:
 
    CRenderViewManipulator *m_manipulator;
    bool  m_active_menus;
+   bool  m_3d_manipulation;
    
 protected:
    void mouseMoveEvent ( QMouseEvent * event );
@@ -191,7 +188,6 @@ protected:
    void closeEvent(QCloseEvent *event);
 
 private:
-
 
 private slots:
    void saveImage();
@@ -218,8 +214,11 @@ private slots:
    void enableStatusBar();
    void displayPixelInfo();
    void storedSliderMoved(int);
+   void toggleManipulationMode();
 
-
+// If you add a slot to this class,
+// don't forget to run
+// moc  renderview.h -o renderview.moc
    
 };
  

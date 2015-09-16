@@ -109,7 +109,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      24,   14, // methods
+      25,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -141,6 +141,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      346,   22,   22,   22, 0x08,
      364,   22,   22,   22, 0x08,
      383,   22,   22,   22, 0x08,
+     406,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -157,6 +158,7 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "frameAll()\0frameRegion()\0realSize()\0"
     "colorCorrection()\0enableStatusBar()\0"
     "displayPixelInfo()\0storedSliderMoved(int)\0"
+    "toggleManipulationMode()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -189,6 +191,7 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 21: _t->enableStatusBar(); break;
         case 22: _t->displayPixelInfo(); break;
         case 23: _t->storedSliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 24: _t->toggleManipulationMode(); break;
         default: ;
         }
     }
@@ -226,9 +229,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 24)
+        if (_id < 25)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 24;
+        _id -= 25;
     }
     return _id;
 }
