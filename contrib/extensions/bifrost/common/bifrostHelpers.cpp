@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
-#include <random>
+
 #include "ai.h"
 
 
@@ -280,7 +280,7 @@ struct SharpenVoxelsKernel : HaloedVisitor
 		return new SharpenVoxelsKernel(*this);
 	}
 };
-
+/*
 void AddPerturbation(const BifrostObjectUserData& objectRef, double bboxMin[3], double bboxMax[3])
 {
 	// Add perturbation to the bounding box. The perturbation is required for
@@ -302,7 +302,7 @@ void AddPerturbation(const BifrostObjectUserData& objectRef, double bboxMin[3], 
 		bboxMax[i] += bboxMax[i] * perturbation() + perturbation();
 	}
 }
-
+*/
 } // anonymous namespace
 
 //==============================================================================
@@ -336,7 +336,7 @@ void ComputeIsosurfaceVoxelBounds(const BifrostObjectUserData& objectRef, const 
 		}
 	}
 
-	AddPerturbation(objectRef, bboxMin, bboxMax);
+//	AddPerturbation(objectRef, bboxMin, bboxMax);
 }
 
 //==============================================================================
@@ -370,7 +370,7 @@ void ComputeVolumeVoxelBounds(const BifrostObjectUserData& objectRef, const Bifr
 		}
 	}
 
-	AddPerturbation(objectRef, bboxMin, bboxMax);
+	//AddPerturbation(objectRef, bboxMin, bboxMax);
 }
 
 //==============================================================================
