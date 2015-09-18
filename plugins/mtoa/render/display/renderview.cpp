@@ -47,13 +47,15 @@
 #include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
-
-
+#include <maya/MGlobal.h>
+#include <maya/MEventMessage.h>
 
 #include <sstream>
 //#include <QtGui/qimage.h>
 
 #pragma warning (disable : 4244)
+
+static MCallbackId    rv_selection_cb = NULL;
 
 /*****************************
  *
@@ -88,6 +90,7 @@ CRenderView::CRenderView(int w, int h)
    m_main_window->show();
 
    m_main_window->enableMenus(false);
+
 }
 
 
@@ -156,6 +159,7 @@ void CRenderView::init()
    m_restore_continuous = false;
    m_color_mode  = COLOR_MODE_RGBA;
    m_displayID = false;
+   m_debug_shading = RV_DBG_SHAD_DISABLED;
 
    AiCritSecInit(&window_close_lock);
 
@@ -406,6 +410,7 @@ void CRenderView::show()
 void CRenderView::finishRender()
 {
    interruptRender();
+   while (AiRendering()) {sleep(1000);}
    if (m_render_thread != NULL)
    {  
       K_aborted = true;
@@ -413,8 +418,7 @@ void CRenderView::finishRender()
   
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
-   }  
-
+   }
 }
 void CRenderView::interruptRender()
 {
@@ -552,6 +556,10 @@ void CRenderView::updateRender()
 
    AiNodeSetInt(options, "AA_samples", K_AA_samples); // setting back AA samples to its original value
 
+
+   // should I wait until rendering is really finished ?
+   while (AiRendering()) CRenderView::sleep(1000);
+
    CMayaScene::UpdateSceneChanges();
 
    options = AiUniverseGetOptions();
@@ -569,6 +577,11 @@ void CRenderView::updateRender()
       m_main_window->populateAOVsMenu();
    }
 
+   if(m_debug_shading != RV_DBG_SHAD_DISABLED)
+   {
+      m_shading_manager.applyDebugShading(m_debug_shading);
+   }
+
    // check if amount of cameras have changed
    restartRender();
 }
@@ -584,6 +597,69 @@ void CRenderView::restartRender()
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    arnoldSession->SetContinuousUpdates(false);
 
+}
+
+// For "Isolate Selected" debug shading mode,
+// we need to receive the events that current
+// Selection has changed
+void CRenderView::SelectionChangedCallback(void *data)
+{
+   MSelectionList activeList;
+   MGlobal::getActiveSelectionList(activeList);
+   if( activeList.isEmpty()) return;
+
+   MObject depNode;
+   activeList.getDependNode(0, depNode);
+   if (depNode.hasFn(MFn::kTransform))
+   {
+      // from Transform to Shape
+      MDagPath dagPath;
+      activeList.getDagPath(0, dagPath);
+      depNode = dagPath.child(0);
+   }
+
+   MFnDependencyNode nodeFn( depNode );
+
+
+   AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
+
+   CRenderView *rv = ((CRenderView*)data);
+
+   // selection is valid
+   rv->m_shading_manager.setShaderName(nodeFn.name().asChar());
+   
+   rv->updateRender();
+}
+
+
+void CRenderView::setDebugShading(RenderViewDebugShading d)
+{
+   if (d == m_debug_shading) return;
+
+   interruptRender();
+   while(AiRendering())
+   {
+      CRenderView::sleep(1000);
+   }
+   if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
+   {
+      MMessage::removeCallback(rv_selection_cb);
+   }
+   m_debug_shading = d; 
+   
+   if (m_debug_shading == RV_DBG_SHAD_DISABLED)
+   {
+      m_shading_manager.restore();
+
+   } else if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
+   {
+      rv_selection_cb = MEventMessage::addEventCallback("SelectionChanged",
+                                                  CRenderView::SelectionChangedCallback,
+                                                  (void*)this);
+
+   }
+
+   updateRender();
 }
 
 void CRenderView::pickShape(int px, int py)
@@ -641,6 +717,7 @@ void CRenderView::pickShape(int px, int py)
          break;
       }
    }
+   AiNodeIteratorDestroy(iter);
 }
 void CRenderView::clearPicking()
 {
@@ -655,12 +732,16 @@ void CRenderView::clearPicking()
 
 }
 
+void CRenderView::ObjectNameChanged(const std::string &new_name, const std::string &old_name)
+{
+   m_shading_manager.objectNameChanged(new_name, old_name);
+}
+
 void CRenderView::checkSceneUpdates()
 {  
 
    if (m_status_bar_enabled)
    {
-
       if (m_status_changed)
       {
          refreshStatusBar();
@@ -1077,6 +1158,77 @@ CRenderViewMainWindow::initMenus()
    
    populateCamerasMenu();
 
+   m_menu_render->addSeparator();
+   QMenu *debug_shading_menu = new QMenu("Debug Shading");
+   m_menu_render->addMenu(debug_shading_menu);
+   m_debug_shading_action_group = new QActionGroup(this);
+
+   action = debug_shading_menu->addAction("Disabled");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Regular rendering");
+   action->setChecked(true);
+   m_debug_shading_action_group->addAction(action);
+
+   debug_shading_menu->addSeparator();
+
+   action = debug_shading_menu->addAction("Basic");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Basic Shading (ndoteye)");
+   m_debug_shading_action_group->addAction(action);
+
+   action = debug_shading_menu->addAction("Occlusion");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Occlusion Rendering");
+   m_debug_shading_action_group->addAction(action);
+
+   action = debug_shading_menu->addAction("Wireframe");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Wireframe Rendering");
+   m_debug_shading_action_group->addAction(action);
+
+   action = debug_shading_menu->addAction("Normal");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Normal display");
+
+   m_debug_shading_action_group->addAction(action);
+   action = debug_shading_menu->addAction("UV");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("UV Display");
+   m_debug_shading_action_group->addAction(action);
+
+   action = debug_shading_menu->addAction("Primitive ID");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Display per-primitive color");
+   m_debug_shading_action_group->addAction(action);
+
+   action = debug_shading_menu->addAction("Barycentric");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Barycentric coordinates");
+   m_debug_shading_action_group->addAction(action);
+
+   action = debug_shading_menu->addAction("Object");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Per-Object Color");
+   m_debug_shading_action_group->addAction(action);
+
+   debug_shading_menu->addSeparator();
+
+   action = debug_shading_menu->addAction("Isolate Selected");
+   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action->setCheckable(true);
+   action->setStatusTip("Isolate the selected shader");
+   m_debug_shading_action_group->addAction(action);
+
+
 // Now dealing with the ToolButtons   
 
    setIconSize(QSize(18, 18));
@@ -1325,6 +1477,65 @@ void CRenderViewMainWindow::toggleManipulationMode()
 {
    m_3d_manipulation = m_3d_manipulation_action->isChecked();
    frameAll();
+}
+void CRenderViewMainWindow::debugShading()
+{
+   std::string debug_shading = m_debug_shading_action_group->checkedAction()->text().toStdString();
+   if (debug_shading == "Basic")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_BASIC);
+   } else if (debug_shading == "Occlusion")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_OCCLUSION);
+   } else if (debug_shading == "Wireframe")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_WIREFRAME);
+   } else if (debug_shading == "Normal")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_NORMAL);
+   } else if (debug_shading == "UV")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_UV);
+   } else if (debug_shading == "Primitive ID")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_PRIMITIVE_ID);
+   } else if (debug_shading == "Barycentric")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_BARY);
+   } else if (debug_shading == "Object")
+   {
+      m_renderView.setDebugShading(RV_DBG_SHAD_OBJECT);
+   } else if (debug_shading == "Isolate Selected")
+   {
+      MSelectionList activeList;
+      MGlobal::getActiveSelectionList(activeList);
+      if( !activeList.isEmpty())
+      {
+         MObject depNode;
+         activeList.getDependNode(0, depNode);
+         if (depNode.hasFn(MFn::kTransform))
+         {
+            // from Transform to Shape
+            MDagPath dagPath;
+            activeList.getDagPath(0, dagPath);
+            depNode = dagPath.child(0);
+         }
+         MFnDependencyNode nodeFn( depNode );
+
+         // selection is valid
+         m_renderView.m_shading_manager.setShaderName(nodeFn.name().asChar());
+         // connect to selection changed
+      } else
+      {
+         m_renderView.m_shading_manager.setShaderName("");
+      }
+      m_renderView.setDebugShading(RV_DBG_SHAD_ISOLATE_SELECTED);
+   }
+   else
+   {
+
+      m_renderView.setDebugShading(RV_DBG_SHAD_DISABLED);
+   }
 }
 
 

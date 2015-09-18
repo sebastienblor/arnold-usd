@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "shading_manager.h"
 
 #ifdef _WIN32
 #include <conio.h>
@@ -31,18 +32,15 @@
 #include "render_gl_widget.h"
 #include <QtCore/qbytearray.h>
 
-
 #include <QtCore/qthread.h>
 #include <iostream>
+
 
 
 struct AtDisplaySync;
 class CRenderViewManipulator;
 class CRenderGLWidget;
 class QMenu;
-
-
-
 
 
 class CRenderView;
@@ -167,6 +165,7 @@ private:
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
    QActionGroup *m_cameras_action_group;
+   QActionGroup *m_debug_shading_action_group;
    
 
    QSlider *m_stored_slider;
@@ -215,6 +214,7 @@ private slots:
    void displayPixelInfo();
    void storedSliderMoved(int);
    void toggleManipulationMode();
+   void debugShading();
 
 // If you add a slot to this class,
 // don't forget to run
@@ -344,7 +344,11 @@ public:
    void restoreContinuous() {if (m_continuous_updates)m_restore_continuous = true;}
    void pickShape(int x, int y);
    void clearPicking();
+   void setDebugShading(RenderViewDebugShading d);
+   void ObjectNameChanged(const std::string &new_name, const std::string &old_name);
 
+   static void SelectionChangedCallback(void *);
+   
 protected:
 
 friend CRenderViewMainWindow;
@@ -473,8 +477,10 @@ friend CRenderViewMainWindow;
    bool m_restore_continuous;
    bool m_status_bar_enabled;
    bool m_status_bar_pixel_info;
+   CRvShadingManager  m_shading_manager;
+   RenderViewDebugShading m_debug_shading;
 
-
+   
 };
 
 

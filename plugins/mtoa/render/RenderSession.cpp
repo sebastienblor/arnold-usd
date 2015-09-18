@@ -651,6 +651,21 @@ void CRenderSession::UpdateRenderView()
 
 }
 
+void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
+{
+   if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;
+
+   // in renderView mode, we must advert the renderview that an object name has changed
+   if (m_renderView != NULL)
+   {
+      MFnDependencyNode fnNode(node);
+      std::string newName = fnNode.name().asChar();
+      std::string oldName = str.asChar();
+      m_renderView->ObjectNameChanged(newName, oldName);
+   }
+
+}
+
 
 void CRenderSession::StopIPR()
 {

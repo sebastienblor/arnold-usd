@@ -110,6 +110,8 @@ public:
    void StartRenderView();
    void UpdateRenderView();
 
+   void ObjectNameChanged(MObject& node, const MString& str);
+
 
    /// Get memory usage from Arnold.
    /// \return memory used in MB.

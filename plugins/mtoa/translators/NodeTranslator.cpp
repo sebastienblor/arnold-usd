@@ -916,6 +916,8 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    {
       AiMsgWarning("[mtoa.translator.ipr] %-30s | NameChangedCallback: no translator in client data: %p.", translator->GetMayaNodeName().asChar(), clientData);
    }
+
+   CMayaScene::GetRenderSession()->ObjectNameChanged(node, str);
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
