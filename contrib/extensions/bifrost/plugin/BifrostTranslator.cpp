@@ -168,6 +168,10 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
       AiNodeDeclare(node, ch_name.c_str(), user_data_declaration.c_str());
    }
+   // get fps
+   static const MTime sec(1.0, MTime::kSeconds);
+   double fps = sec.as(MTime::uiUnit());
+   float inv_fps = 1.f / (float)fps;
 
    // can we go directly to maxDepth instead of looping ?
    for (Bifrost::API::TreeIndex::Depth d = 0; d < layout.depthCount(); d++)
@@ -203,6 +207,9 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
             part_vel.x = velocity[0];
             part_vel.y = velocity[1];
             part_vel.z = velocity[2];
+
+            // velocity is in seconds, needs to be expressed in frames
+            part_vel *= inv_fps;
 
             points.push_back(part_pos);
             velocities.push_back(part_vel);
@@ -346,9 +353,17 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
    AiNodeDeclare(shape, "object_name", "constant STRING");
    AiNodeDeclare(shape, "file_name", "constant STRING");
+   AiNodeDeclare(shape, "inv_fps", "constant FLOAT");
 
    AiNodeSetStr(shape, "object_name", m_object.c_str());
    AiNodeSetStr(shape, "file_name", m_file.c_str());
+
+
+   static const MTime sec(1.0, MTime::kSeconds);
+   double fps = sec.as(MTime::uiUnit());
+   float inv_fps = 1.f / (float)fps;
+
+   AiNodeSetFlt(shape, "inv_fps", inv_fps);
 
    double bboxMin[3] = {0.0, 0.0, 0.0}, bboxMax[3] = {0.0, 0.0, 0.0} ;
 
