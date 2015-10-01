@@ -21,6 +21,7 @@ protected:
    unsigned int fWidth;
    unsigned int fHeight;
    unsigned int fChannels;
+   unsigned int fMiplevel;
    MString fPathName;
    
 }; // class CTxTextureFile
