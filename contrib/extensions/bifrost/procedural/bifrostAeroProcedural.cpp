@@ -51,6 +51,8 @@ struct BfVolumeUserData {
    float shadowing_step_size;
    int shadowing_max_steps;
 
+   float inv_fps;
+
 };
 
 
@@ -117,6 +119,7 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
 
    AtNode *shader = (AtNode*)AiNodeGetPtr(node, "shader");
    
+
    if(shader)
    {
        data->step_size = AiNodeGetFlt(shader, "aiStepSize");
@@ -137,6 +140,7 @@ bool BifrostAeroVolumePluginCreateVolume(void* user_ptr,
 
    out_data->auto_step_size = data->step_size;
    out_data->private_info = user_ptr;
+   data->inv_fps = AiNodeLookUpUserParameter(node, "inv_fps") ? AiNodeGetFlt(node, "inv_fps") : 1.f; 
    //AiAddMemUsage((AtInt64)grid->memoryUsage(), "BifrostAero volume plugin data");
 
 
@@ -220,9 +224,14 @@ bool BifrostAeroVolumePluginSample(void* user_ptr,
      }
      *type = AI_TYPE_RGB;
      amino::Math::vec3f col = thread_sampler->sample<amino::Math::vec3f>(pos);
+
+     // velocity is expressed in seconds, need to convert to frames
      value->RGB.r = col[0]; 
      value->RGB.g = col[1]; 
      value->RGB.b = col[2]; 
+
+     value->RGB *= volData->inv_fps;
+     
      return true;
    }
    return false;
