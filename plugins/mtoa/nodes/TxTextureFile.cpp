@@ -60,9 +60,9 @@ MStatus CTxTextureFile::open( MString pathname, MImageFileInfo* info)
    }      
    
    
-   if (res_x > targetRes)
+   if (res_x > (unsigned int)targetRes)
    {
-      fMiplevel = log(res_x / targetRes) / log(2);
+      fMiplevel = (unsigned int)(log((float)res_x / (float)targetRes) / log(2.f));
       fWidth = res_x >> fMiplevel;
       fHeight = res_y >> fMiplevel;
    }
