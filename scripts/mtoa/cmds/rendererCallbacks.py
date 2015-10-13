@@ -78,7 +78,7 @@ def aiExport( self, objs, filename, lod, materialNS ):
     prevTime = cmds.currentTime( query=True )
 
     for obj in objs:
-        objFilename = filename + "_" + obj + lod
+        objFilename = filename + "_" + obj.replace("|", "_").replace(":", "_") + lod
         cmds.select( obj, r=True )
 
         filenames = []

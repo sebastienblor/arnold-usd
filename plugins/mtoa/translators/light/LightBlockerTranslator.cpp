@@ -30,11 +30,12 @@ void CLightBlockerTranslator::Export(AtNode* blocker)
    
    ProcessParameter(blocker, "geometry_type", AI_TYPE_INT, "geometryType");
    ProcessParameter(blocker, "density", AI_TYPE_FLOAT, "density");
+   ProcessParameter(blocker, "shader", AI_TYPE_RGB, "shader");
    ProcessParameter(blocker, "roundness", AI_TYPE_FLOAT, "roundness");
    ProcessParameter(blocker, "width_edge", AI_TYPE_FLOAT, "widthEdge");
    ProcessParameter(blocker, "height_edge", AI_TYPE_FLOAT, "heightEdge");
    ProcessParameter(blocker, "ramp", AI_TYPE_FLOAT, "ramp");
-   ProcessParameter(blocker, "ramp_axis", AI_TYPE_INT, "rampAxis");
+   ProcessParameter(blocker, "axis", AI_TYPE_INT, "rampAxis");
 
    if ((ComputeVisibility() & AI_RAY_CAMERA) == 0) AiNodeSetFlt(blocker, "density", 0.0f);
 }

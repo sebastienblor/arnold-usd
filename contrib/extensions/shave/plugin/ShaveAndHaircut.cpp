@@ -239,7 +239,6 @@ void CShaveTranslator::Update(AtNode* curve)
    // beginning and end of each strand in arnold curves, which are not considered in the "radius" array.
    // Shave does not include these extra knots in its HairInfo.vertices array.
    AtArray* curveWidths = AiArrayAllocate(m_hairInfo.numHairVertices, 1, AI_TYPE_FLOAT);
-
    int numPointsInterpolation = m_hairInfo.numHairVertices + (m_hairInfo.numHairs * 2);
 
    AtArray* curvePoints = NULL;
@@ -335,6 +334,7 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
    int curveLineInterpStartsIdx = 0;
    int curveLineStartsIdx       = 0;
 
+   int nanCount = 0;
    // Process all hair lines
    for (int strand = 0; strand < m_hairInfo.numHairs; ++strand)
    {
@@ -352,21 +352,97 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
       // It's incremement in the for loop below.
       shaveAPI::Vertex * vertex = &(m_hairInfo.vertices[m_hairInfo.hairStartIndices[strand]]);
 
+      if(!AiIsFinite(vertex->x) || !AiIsFinite(vertex->y) || !AiIsFinite(vertex->z))
+      {
+         nanCount++;
+         // the root point is NaN
+         // not good...
+         AtPoint previousPoint;
+         AiV3Create(previousPoint, 0.f, 0.f, 0.f);
+         bool searchPoint = true;
+
+         // search for the first valid point we can find in our full list
+         // and repeat this position as the amount of points in this strand
+         for (int tmpStrand = 0; (tmpStrand < m_hairInfo.numHairs) && searchPoint; ++tmpStrand)
+         {
+            shaveAPI::Vertex * tmpVertex = &(m_hairInfo.vertices[m_hairInfo.hairStartIndices[tmpStrand]]);
+            for (int j = m_hairInfo.hairStartIndices[tmpStrand];
+                 j < m_hairInfo.hairEndIndices[tmpStrand];
+                 ++j, ++tmpVertex)
+            {
+               if (AiIsFinite(tmpVertex->x) && AiIsFinite(tmpVertex->y) && AiIsFinite(tmpVertex->z))
+               {
+                  // found a valid point in this hair system
+                  searchPoint = false;
+                  AiV3Create(previousPoint, tmpVertex->x, tmpVertex->y, tmpVertex->z);
+                  break;
+               }
+            }
+         }
+
+         // copy this position for all points in this strand
+         // yes, we'll loose this strand.... 
+         // if we wanted to completely remove this strand, it would require 
+         // a deeper rewriting of this code
+         for (int j = 0; j < m_hairInfo.hairEndIndices[strand] - m_hairInfo.hairStartIndices[strand] + 2; ++j)
+         {
+            AiArraySetPnt(curvePoints,
+                    (curveLineInterpStartsIdx + j  + (step * numPointsPerStep)),
+                    previousPoint);
+
+         }
+         if (step == 0)
+         {
+            // fill the strand width (as NULL)
+            for (int j = 0; j < m_hairInfo.hairEndIndices[strand] - m_hairInfo.hairStartIndices[strand]; ++j)
+            {         
+               AiArraySetFlt(curveWidths, (j + curveLineStartsIdx) , AI_EPSILON);
+            }
+         }
+         curveLineInterpStartsIdx += numHairPoints +2;
+         curveLineStartsIdx += numHairPoints;
+         continue;
+      }
+      
+
       AtPoint arnoldCurvePoint;
       AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
-      
+     
+
       // Create a first point on the curve. Start and end are duplicated vertices.
       AiArraySetPnt(curvePoints,
                     (curveLineInterpStartsIdx + (step * numPointsPerStep)),
                     arnoldCurvePoint);
       
+      bool nanFound = false; // says if we found an invalid value on this strand
+
       // Loop through all the hair strand indices.
       for (int j = m_hairInfo.hairStartIndices[strand];
            j < m_hairInfo.hairEndIndices[strand];
            ++j, ++index, ++vertex)
       {
+
          // Add the point.
          AiV3Create(arnoldCurvePoint, vertex->x, vertex->y, vertex->z);
+
+         shaveAPI::Vertex * tmpVertex = vertex;
+         int tmpIndex = index;
+         while(!AiIsFinite(arnoldCurvePoint.x) || !AiIsFinite(arnoldCurvePoint.y) || !AiIsFinite(arnoldCurvePoint.z))
+         {
+            if (!nanFound) nanCount++;
+
+            nanFound = true;
+            tmpVertex--;
+            tmpIndex--;
+            if (tmpIndex < 0) 
+            {
+               // this should never happen since the root point is valid
+               AiV3Create(arnoldCurvePoint, 0.f, 0.f, 0.f);
+               break;
+            }
+            AiV3Create(arnoldCurvePoint, tmpVertex->x, tmpVertex->y, tmpVertex->z);
+         }
+
          AiArraySetPnt(curvePoints,
                        ((index+1) + curveLineInterpStartsIdx + (step * numPointsPerStep)),
                        arnoldCurvePoint);
@@ -387,6 +463,10 @@ void CShaveTranslator::ProcessHairLines(const unsigned int step,
 
       curveLineInterpStartsIdx += numHairPoints +2;
       curveLineStartsIdx += numHairPoints;
+   }
+   if (nanCount > 0)
+   {
+      AiMsgError("[SHAVE]: %d invalid strands were found", nanCount);
    }
 }
 

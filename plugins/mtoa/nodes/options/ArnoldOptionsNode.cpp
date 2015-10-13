@@ -336,8 +336,11 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_glossy_depth");
    s_attributes.MakeInput("GI_reflection_depth");
    s_attributes.MakeInput("GI_refraction_depth");
+   s_attributes.MakeInput("GI_volume_depth");
    s_attributes.MakeInput("GI_total_depth");
 
+   s_attributes.MakeInput("enable_fast_opacity");
+   
    s_attributes.MakeInput("auto_transparency_depth");
    s_attributes.MakeInput("auto_transparency_threshold");
 

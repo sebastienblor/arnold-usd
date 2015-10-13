@@ -36,6 +36,8 @@ private:
 
    // saving the lights here for faster access
    std::map<std::string, AtNode*> m_arnoldLights;
+   std::vector<AtNode *> m_arnoldDefaultLights;
+   std::vector<AtNode *> m_arnoldMeshLights;
    std::map<std::string, std::vector<AtNode*> > m_cachedObjectSets;
    size_t m_numArnoldLights;
    

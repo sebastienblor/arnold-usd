@@ -11,7 +11,7 @@ class AEaiVolumeSampleFloatTemplate(ShaderAETemplate):
         self.addControl('interpolation')
         self.endLayout()
         
-        self.beginLayout('Adjustement Attributes', collapse=False)
+        self.beginLayout('Remap Attributes', collapse=False)
         
         self.addControl('input_min')
         self.addControl('input_max')

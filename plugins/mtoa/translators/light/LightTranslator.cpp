@@ -69,6 +69,7 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "normalize",       norm);
    AiNodeSetFlt(light,  "sss",             FindMayaPlug("aiSss").asFloat());
    AiNodeSetFlt(light,  "indirect",        FindMayaPlug("aiIndirect").asFloat());
+   AiNodeSetFlt(light,  "volume",          FindMayaPlug("aiVolume").asFloat());
    AiNodeSetInt(light,  "max_bounces",     FindMayaPlug("aiMaxBounces").asInt());
    AiNodeSetInt(light,  "volume_samples",  FindMayaPlug("aiVolumeSamples").asInt());
    
@@ -113,6 +114,7 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("specular");
    helper.MakeInput("sss");
    helper.MakeInput("indirect");
+   helper.MakeInput("volume");
    helper.MakeInput("max_bounces");
    helper.MakeInput("volume_samples");
    

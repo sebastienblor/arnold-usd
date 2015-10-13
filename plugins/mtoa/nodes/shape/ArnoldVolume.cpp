@@ -59,6 +59,7 @@ MObject CArnoldVolumeShape::s_boundingBoxMax;
 MObject CArnoldVolumeShape::s_filename;
 MObject CArnoldVolumeShape::s_grids;
 MObject CArnoldVolumeShape::s_frame;
+MObject CArnoldVolumeShape::s_padding;
 
 MObject CArnoldVolumeShape::s_velocity_grids;
 MObject CArnoldVolumeShape::s_velocity_scale;
@@ -80,6 +81,7 @@ CArnoldVolumeShape::CArnoldVolumeShape()
    m_filename = "";
    m_grids = "";
    m_frame = 0;
+   m_padding = 0.0f;
    
    m_bbox = MBoundingBox(MPoint(1, 1, 1), MPoint(-1, -1, -1));
 }
@@ -183,6 +185,13 @@ MStatus CArnoldVolumeShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_frame);
    
+   s_padding = nAttr.create("padding", "padd", MFnNumericData::kFloat, 0.0f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   nAttr.setSoftMin(0.0);
+   nAttr.setSoftMax(1.0);
+   addAttribute(s_padding);
+   
    
    
    s_velocity_grids = tAttr.create("velocityGrids", "vGrids", MFnData::kString);
@@ -222,6 +231,7 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    MString tmpFilename = m_filename;
    MString tmpGrids = m_grids;
    int tmpFrame = m_frame;
+   float tmpPadding = m_padding;
 
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_type);
@@ -242,9 +252,12 @@ MBoundingBox* CArnoldVolumeShape::geometry()
    plug.setAttribute(s_frame);
    plug.getValue(m_frame);
    
+   plug.setAttribute(s_padding);
+   plug.getValue(m_padding);
+   
    
    if (m_type != tmpType || m_dso != tmpDso || m_data != tmpData || m_filename != tmpFilename ||
-       m_grids != tmpGrids || m_frame != tmpFrame)
+       m_grids != tmpGrids || m_frame != tmpFrame || m_padding != tmpPadding)
    {
       if (AiUniverseIsActive())
          return &m_bbox;

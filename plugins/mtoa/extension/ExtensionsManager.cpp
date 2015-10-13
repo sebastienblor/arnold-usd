@@ -642,7 +642,7 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    {
       MayaNodesSet::iterator node = rnodeIt++;
       if (node->provider == extension->GetExtensionName()
-            && node->file == extension->GetExtensionFile())
+            &&( (node->file == extension->GetExtensionFile()) || (node->file == extension->GetExtensionName())) )
       {
          MStatus nodeStatus = DeregisterMayaNode(*node);
          if (MStatus::kSuccess == nodeStatus)

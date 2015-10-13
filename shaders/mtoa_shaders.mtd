@@ -68,6 +68,13 @@
         aov.type                INT     0x05
     [attr aov_sss]
         aov.type                INT     0x05
+    [attr aov_direct_sss]
+        aov.type                INT     0x05
+    [attr aov_indirect_sss]
+        aov.type                INT     0x05
+    
+    
+
 
 [node volume_collector]
     maya.id    INT     0x00115D1F
@@ -77,7 +84,7 @@
 [node volume_sample_float]
 
     maya.id    INT     0x00115E51
-    maya.classification     STRING  "shader/surface"
+    maya.classification     STRING  "shader/volume"
     maya.swatch             BOOL    False
 
     [attr channel]
@@ -91,26 +98,31 @@
     desc STRING "The voxel interpolation used when sampling the channel."
 
     [attr input_min]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 2
     desc STRING "The minimum value of the input range."
 
     [attr input_max]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 2
     desc STRING "The maximum value of the input range."
 
     [attr contrast]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 2
     desc STRING "Scale values around the contrast pivot."
 
     [attr contrast_pivot]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 1
     desc STRING "The origin of the contrast scaling."
 
     [attr bias]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 1
     desc STRING "Push or pull values by altering the slope at the beginning of the "
@@ -119,6 +131,7 @@
     "no effect."
 
     [attr gain]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 1
     desc STRING "Increase or decrease the slope of the mid range values. Gain values "
@@ -126,24 +139,28 @@
     "values. A value of 0.5 has no effect."
 
     [attr output_min]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 2
     desc STRING "The minimum value of the output range, input_min will be mapped to this value."
 
     [attr output_max]
+    linkable BOOL True
     softmin FLOAT 0
     softmax FLOAT 2
     desc STRING "The maximum value of the input range, input_max will be mapped to this value."
 
     [attr clamp_min]
+    linkable BOOL True
     desc STRING "Clamp the result to the min_output value."
 
     [attr clamp_max]
+    linkable BOOL True
     desc STRING "Clamp the result to the max_output value."
 
 [node volume_sample_rgb]
 maya.id                 INT     0x00115E52
-maya.classification     STRING  "shader/surface"
+maya.classification     STRING  "shader/volume"
 maya.swatch             BOOL    False
 
 [attr channel]
@@ -157,41 +174,49 @@ desc STRING "An offset added to the sampling position, in order to displace or "
 desc STRING "The voxel interpolation used when sampling the channel."
 
 [attr hue_shift]
+linkable BOOL True
 softmin FLOAT -1
 softmax FLOAT 1
 desc STRING "Rotate the color hue, a value of 1 means a full rotation."
 
 [attr saturation]
+linkable BOOL True
 softmin FLOAT 0
 softmax FLOAT 2
 desc STRING "Scale the saturation by this factor."
 
 [attr add]
+linkable BOOL True
 softmin FLOAT -1
 softmax FLOAT 1
 desc STRING "Add this value to the color."
 
 [attr contrast]
+linkable BOOL True
 softmin FLOAT 0
 softmax FLOAT 2
 desc STRING "Scale values around the contrast pivot."
 
 [attr contrast_pivot]
+linkable BOOL True
 softmin FLOAT 0
 softmax FLOAT 1
 desc STRING "The origin of the contrast scaling."
 
 [attr exposure]
+linkable BOOL True
 softmin FLOAT -10
 softmax FLOAT 10
 desc STRING "Multiply the color using a photo f-stop scale, where an increment of 1 doubles the luminosity."
 
 [attr multiply]
+linkable BOOL True
 softmin FLOAT 0
 softmax FLOAT 2
 desc STRING "Multiply the color by this factor."
 
 [attr gamma]
+linkable BOOL True
 softmin FLOAT 0
 softmax FLOAT 3
 desc STRING "Apply a gamma correction to the color."

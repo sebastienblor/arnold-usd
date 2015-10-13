@@ -247,6 +247,8 @@ PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 env['ENABLE_XGEN'] = 0
 env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
+env['ENABLE_BIFROST'] = 0
+
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -254,10 +256,16 @@ maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MT
 maya_version_base = maya_version[0:4]
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
+if int(maya_version) >= 201600:
+    env['ENABLE_BIFROST'] = 1
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
+        
+#Disabling Bifrost for OSX by now
+if system.os() == 'darwin':
+    env['ENABLE_BIFROST'] = 0
 
 mercurial_id = ""
 try:
@@ -488,6 +496,8 @@ if env['ENABLE_XGEN'] == 1:
 
 if env['ENABLE_VP2'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_VP2'))
+if env['ENABLE_BIFROST'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
 
 ## platform related defines
 if system.os() == 'windows':
@@ -835,7 +845,7 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen')):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):        
@@ -843,6 +853,7 @@ for ext in os.listdir(ext_base_dir):
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                              duplicate   = 0,
                              exports     = ['ext_env', 'env'])
+
         if len(EXT) >= 2:
             EXT_SHADERS = EXT[1] 
         if len(EXT) == 3:
@@ -946,7 +957,12 @@ if env['ENABLE_XGEN'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
-    
+
+if env['ENABLE_BIFROST'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
 elif system.os() == 'linux':

@@ -2,23 +2,39 @@
 
 AI_SHADER_NODE_EXPORT_METHODS(SkinMtd);
 
+struct SkinData
+{
+    AtString aov_specular;
+    AtString aov_sheen;
+    AtString aov_sss;
+    AtString aov_direct_sss;
+    AtString aov_indirect_sss;
+    bool     specular_in_secondary_rays;
+    bool     fresnel_affect_sss;
+};
+
 node_parameters
 {
    AiParameterFLT("sss_weight", 1.0f);
    AiParameterRGB("shallow_scatter_color", 1.0f, 0.909f, 0.769f);
+   AiMetaDataSetBool(mds, "shallow_scatter_color", "always_linear", true);
    AiParameterFLT("shallow_scatter_weight", 0.5f);
    AiParameterFLT("shallow_scatter_radius", 0.15f);
    AiParameterRGB("mid_scatter_color", 0.949f, 0.714f, 0.56f);
+   AiMetaDataSetBool(mds, "mid_scatter_color", "always_linear", true);
    AiParameterFLT("mid_scatter_weight", 0.25f);
    AiParameterFLT("mid_scatter_radius", 0.25f);
    AiParameterRGB("deep_scatter_color", 0.7f, 0.1f, 0.1f);
+   AiMetaDataSetBool(mds, "deep_scatter_color", "always_linear", true);
    AiParameterFLT("deep_scatter_weight", 1.0f);
    AiParameterFLT("deep_scatter_radius", 0.6f);
    AiParameterRGB("specular_color", 1.0f, 1.0f, 1.0f);
+   AiMetaDataSetBool(mds, "specular_color", "always_linear", true);
    AiParameterFLT("specular_weight", 0.8f);
    AiParameterFLT("specular_roughness", 0.5f);
    AiParameterFLT("specular_ior", 1.44f);
    AiParameterRGB("sheen_color", 1.0f, 1.0f, 1.0f);
+   AiMetaDataSetBool(mds, "sheen_color", "always_linear", true);
    AiParameterFLT("sheen_weight", 0.0f);
    AiParameterFLT("sheen_roughness", 0.35f);
    AiParameterFLT("sheen_ior", 1.44f);
@@ -27,16 +43,27 @@ node_parameters
    AiParameterStr("aov_specular", "specular");
    AiParameterStr("aov_sheen", "sheen");
    AiParameterStr("aov_sss", "sss");
+   AiParameterStr("aov_direct_sss", "direct_sss");
+   AiParameterStr("aov_indirect_sss", "indirect_sss");
    AiParameterBool("fresnel_affect_sss", true);
    AiParameterFLT("opacity", 1.0f);
    AiParameterRGB("opacity_color", 1.0f, 1.0f, 1.0f);
+   AiMetaDataSetBool(mds, "opacity_color", "always_linear", true);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
    AiMetaDataSetBool(mds, NULL, "maya.swatch", true);
-}
 
+    // unlinkable parameters
+   AiMetaDataSetBool(mds, "specular_in_secondary_rays", "linkable", false);
+   AiMetaDataSetBool(mds, "fresnel_affect_sss", "linkable", false);
+   AiMetaDataSetBool(mds, "aov_specular", "linkable", false);
+   AiMetaDataSetBool(mds, "aov_sheen", "linkable", false);
+   AiMetaDataSetBool(mds, "aov_sss", "linkable", false);
+   AiMetaDataSetBool(mds, "aov_direct_sss", "linkable", false);
+   AiMetaDataSetBool(mds, "aov_indirect_sss", "linkable", false);
+}
 enum SSSParams {
    p_sss_weight,
    p_shallow_scatter_color,
@@ -61,26 +88,42 @@ enum SSSParams {
    p_aov_specular,
    p_aov_sheen,
    p_aov_sss,
+   p_aov_direct_sss,
+   p_aov_indirect_sss,
    p_fresnel_affect_sss,
    p_opacity,
-   p_opacity_color
+   p_opacity_color   
 };
 
 node_initialize
 {
-
+   AiNodeSetLocalData(node, AiMalloc(sizeof(SkinData)));
 }
 
 node_update
 {
-   AiAOVRegister(AiNodeGetStr(node, "aov_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_sheen"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister(AiNodeGetStr(node, "aov_sss"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   SkinData *data = (SkinData*)AiNodeGetLocalData(node);
+
+   data->aov_specular     = AiNodeGetStr(node, AtString("aov_specular"));
+   data->aov_sheen        = AiNodeGetStr(node, AtString("aov_sheen"));
+   data->aov_sss          = AiNodeGetStr(node, AtString("aov_sss"));
+   data->aov_direct_sss   = AiNodeGetStr(node, AtString("aov_direct_sss"));
+   data->aov_indirect_sss = AiNodeGetStr(node, AtString("aov_indirect_sss"));
+
+   data->specular_in_secondary_rays = AiNodeGetBool(node, AtString("specular_in_secondary_rays"));
+   data->fresnel_affect_sss         = AiNodeGetBool(node, AtString("fresnel_affect_sss"));
+
+   AiAOVRegister(data->aov_specular, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(data->aov_sheen, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(data->aov_sss, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(data->aov_direct_sss, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(data->aov_indirect_sss, AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+
 }
 
 node_finish
 {
-
+   AiFree(AiNodeGetLocalData(node));
 }
 
 float SimpleFresnel(float dt, float ior)
@@ -102,8 +145,9 @@ shader_evaluate
       return;
    }
 
+   SkinData *data = (SkinData*)AiNodeGetLocalData(node);
    bool sampleOnlySSS = false;
-   if ((sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_GLOSSY) && (!AiShaderEvalParamBool(p_specular_in_secondary_rays)))
+   if ((sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_GLOSSY) && (!data->specular_in_secondary_rays))
       sampleOnlySSS = true;
 
    float minRoughness = 0.0f;
@@ -185,10 +229,10 @@ shader_evaluate
       }
    }
 
-   AtRGB sss = AI_RGB_BLACK;
+   AtRGB sss = AI_RGB_BLACK, directSSS = AI_RGB_BLACK, indirectSSS = AI_RGB_BLACK;
 
    float sssWeight = AiShaderEvalParamFlt(p_sss_weight);
-   if (AiShaderEvalParamBool(p_fresnel_affect_sss))
+   if (data->fresnel_affect_sss)
       sssWeight *= (1.0f - specularFresnel) * (1.0f - sheenFresnel);
    const bool enableSSS = sssWeight > AI_EPSILON;
    if (enableSSS)
@@ -205,7 +249,9 @@ shader_evaluate
          AiShaderEvalParamFlt(p_deep_scatter_radius) * globalSSSRadiusMultiplier
       };
 
-      sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
+      AiBSSRDFCubicSeparate(sg, directSSS, indirectSSS, radiuses, colorWeights, 3);
+      sss = directSSS + indirectSSS;
+      // sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
    }
 
    sg->out.RGB = specular + sheen + sss;
@@ -213,8 +259,10 @@ shader_evaluate
 
    if (sg->Rt & AI_RAY_CAMERA)
    {      
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_specular), specular);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sheen), sheen);
-      AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sss), sss);
+      AiAOVSetRGB(sg, data->aov_specular, specular);
+      AiAOVSetRGB(sg, data->aov_sheen, sheen);
+      AiAOVSetRGB(sg, data->aov_sss, sss);
+      AiAOVSetRGB(sg, data->aov_direct_sss, directSSS);
+      AiAOVSetRGB(sg, data->aov_indirect_sss, indirectSSS);
    }
 }

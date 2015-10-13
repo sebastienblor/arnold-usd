@@ -492,74 +492,76 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
       AtArray*& vidxs,
       AtArray*& nidxs,
       std::vector<AtArray*>& uvidxs,
-      std::vector<MString>& uvNames,
+      const std::vector<MString>& uvNames,
       bool exportNormals,
       bool exportUVs)
 {
+
    MFnMesh fnMesh(geometry);
 
    int uv_id = 0;
    // Traverse all polygons to export vidxs, uvindxs and nsides
    unsigned int np = fnMesh.numPolygons();
    size_t numUVSets = uvNames.size();
-   if (np > 0)
+
+   //While calling this function we assume that returning false
+   // means "no polygons in this mesh"
+   if (np == 0) return false;
+
+   nsides = AiArrayAllocate(np, 1, AI_TYPE_UINT);
+   unsigned int polygonVertexCount = 0; // for counting the number of ids
+   for (unsigned int p(0); p < np; ++p)
    {
-      nsides = AiArrayAllocate(np, 1, AI_TYPE_UINT);
-      unsigned int polygonVertexCount = 0; // for counting the number of ids
-      for (unsigned int p(0); p < np; ++p)
+      int numPolygonVertexCount = fnMesh.polygonVertexCount(p);
+      polygonVertexCount += numPolygonVertexCount;
+      // Num points/sides to the poly.
+      AiArraySetUInt(nsides, p, (unsigned int)numPolygonVertexCount);
+   }
+   vidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+   if (exportUVs)
+   {
+      uvidxs.resize(numUVSets);
+      for (size_t i = 0; i < numUVSets; ++i)
+         uvidxs[i] = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+   }
+   // Vertex indicies.
+   MIntArray p_vidxs;
+   unsigned int id = 0;
+   for (unsigned int p(0); p < np; ++p)
+   {
+      fnMesh.getPolygonVertices(p, p_vidxs);
+      for(uint v(0); v < p_vidxs.length(); ++v, ++id)
       {
-         int numPolygonVertexCount = fnMesh.polygonVertexCount(p);
-         polygonVertexCount += numPolygonVertexCount;
-         // Num points/sides to the poly.
-         AiArraySetUInt(nsides, p, (unsigned int)numPolygonVertexCount);
-      }
-      vidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
-      if (exportUVs)
-      {
-         uvidxs.resize(numUVSets);
-         for (size_t i = 0; i < numUVSets; ++i)
-            uvidxs[i] = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
-      }
-      // Vertex indicies.
-      MIntArray p_vidxs;
-      unsigned int id = 0;
-      for (unsigned int p(0); p < np; ++p)
-      {
-         fnMesh.getPolygonVertices(p, p_vidxs);
-         for(uint v(0); v < p_vidxs.length(); ++v, ++id)
+         AiArraySetUInt(vidxs, id, p_vidxs[v]);
+         // UVs
+         if (exportUVs)
          {
-            AiArraySetUInt(vidxs, id, p_vidxs[v]);
-            // UVs
-            if (exportUVs)
+            for (size_t i = 0; i < numUVSets; ++i)
             {
-               for (size_t i = 0; i < numUVSets; ++i)
+               if (fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]) != MS::kSuccess)
                {
-                  if (fnMesh.getPolygonUVid(p, v, uv_id, &uvNames[i]) != MS::kSuccess)
-                  {
-                     uv_id = 0;
-                     AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
-                                  uvNames[i].asChar(), p, v, fnMesh.name().asChar());
-                  }
-                  AiArraySetUInt(uvidxs[i], id, uv_id);
+                  uv_id = 0;
+                  AiMsgWarning("[MtoA] No uv coordinate exists for uv set %s at polygon %i at vertex %i on mesh %s.",
+                               uvNames[i].asChar(), p, v, fnMesh.name().asChar());
                }
+               AiArraySetUInt(uvidxs[i], id, uv_id);
             }
          }
       }
-
-      MIntArray vertex_counts, normal_ids;
-      // Normals.
-      if (exportNormals)
-      {
-         nidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
-         id = 0;
-         fnMesh.getNormalIds(vertex_counts, normal_ids);
-         for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(nidxs, id, normal_ids[n]);
-      }
-
-      return true;
    }
 
-   return false;
+   MIntArray vertex_counts, normal_ids;
+   // Normals.
+   if (exportNormals)
+   {
+      nidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+      id = 0;
+      fnMesh.getNormalIds(vertex_counts, normal_ids);
+      for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(nidxs, id, normal_ids[n]);
+   }
+
+   return true;
+
 }
 
 void CGeometryTranslator::ExportShaders()
@@ -826,6 +828,11 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, uvNames, exportNormals, exportUVs);
+      // if GetComponentIDs returned false, it means that no polygons were found in the mesh. 
+      // In that case uvidxs is empty, so we must not try to export the UVs
+      if (!exportCompIDs) exportUVs = false;
+
+
       // Get Vertex Colors
       MPlug plug = FindMayaPlug("aiMotionVectorSource");
       if (!plug.isNull())
@@ -974,14 +981,20 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       }
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", uvs[0]);
-         AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
-         for (size_t i = 1; i < uvs.size(); ++i)
+         if (uvs.size() > 0 && uvidxs.size() > 0)
          {
-            MString idxsName = uvNames[i] + MString("idxs");
-            AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
-            AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
-            AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+            AiNodeSetArray(polymesh, "uvlist", uvs[0]);
+            AiNodeSetArray(polymesh, "uvidxs", uvidxs[0]);
+            for (size_t i = 1; i < uvs.size(); ++i)
+            {
+               if (uvNames.size() > i && uvidxs.size() > i)
+               {
+                  MString idxsName = uvNames[i] + MString("idxs");
+                  AiNodeDeclare(polymesh, uvNames[i].asChar(), "indexed POINT2");
+                  AiNodeSetArray(polymesh, uvNames[i].asChar(), uvs[i]);
+                  AiNodeSetArray(polymesh, idxsName.asChar(), uvidxs[i]);
+               }
+            }
          }
       }
       if (exportColors)
@@ -1116,7 +1129,8 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
       AiNodeSetByte(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
       AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetFlt(polymesh, "subdiv_adaptive_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
       AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
 
@@ -1332,7 +1346,8 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("subdiv_type");
    helper.MakeInput("subdiv_iterations");
    helper.MakeInput("subdiv_adaptive_metric");
-   helper.MakeInput("subdiv_pixel_error");
+   helper.MakeInput("subdiv_adaptive_error");
+   helper.MakeInput("subdiv_adaptive_space");
    helper.MakeInput("subdiv_dicing_camera");
    helper.MakeInput("subdiv_uv_smoothing");
    helper.MakeInput("subdiv_smooth_derivs");

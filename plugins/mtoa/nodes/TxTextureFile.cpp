@@ -1,8 +1,19 @@
 #include "TxTextureFile.h"
+#include <ai_texture.h>
+#include <ai.h>
+#include <stdio.h>
+#include <math.h>
+
+#include <maya/MGlobal.h>
 
 const char* CTxTextureFile::fileName = "TxtextureFile";
 
-CTxTextureFile::CTxTextureFile()
+CTxTextureFile::CTxTextureFile():
+   fWidth(0),
+   fHeight(0),
+   fChannels(4),
+   fMiplevel(0),
+   fPathName("")
 {
 }
 
@@ -17,29 +28,64 @@ void* CTxTextureFile::creator()
 
 MStatus CTxTextureFile::open( MString pathname, MImageFileInfo* info)
 {
+   unsigned int res_x, res_y, channels;
+   if(!AiTextureGetResolution(pathname.asChar(), &res_x, &res_y))
+      return MS::kFailure;
+   
+   if(!AiTextureGetNumChannels(pathname.asChar(), &channels))
+      return MS::kFailure;
+
+   fWidth = res_x;
+   fHeight = res_y;
+   fChannels = channels;
+   fPathName = pathname;
+   
+   int targetRes = 1024;
+   
+   int clampTexture = 0;
+   int exists = 0;
+   MGlobal::executeCommand("objExists hardwareRenderingGlobals.enableTextureMaxRes", exists);
+   if (exists == 1)
+   {
+      MGlobal::executeCommand("getAttr \"hardwareRenderingGlobals.enableTextureMaxRes\"", clampTexture);
+   }
+      
+   if (clampTexture == 1)
+   {
+      MGlobal::executeCommand("objExists hardwareRenderingGlobals.textureMaxResolution", exists);
+      if (exists == 1)
+      {
+         MGlobal::executeCommand("getAttr \"hardwareRenderingGlobals.textureMaxResolution\"", targetRes);
+      }
+   }      
+   
+   
+   if (res_x > (unsigned int)targetRes)
+   {
+      fMiplevel = (unsigned int)(log((float)res_x / (float)targetRes) / log(2.f));
+      fWidth = res_x >> fMiplevel;
+      fHeight = res_y >> fMiplevel;
+   }
+   
    if(info)
    {
-      info->width( 512);
-      info->height( 512);
-      info->channels( 4);
-      info->pixelType( MImage::kByte);
+      info->width( fWidth);
+      info->height( fHeight);
+      info->channels( fChannels);
+      info->pixelType( MImage::kFloat);
    }
+   
    return MS::kSuccess;
 }
 
 MStatus CTxTextureFile::load( MImage& image, unsigned int idx)
 {
-   image.create( 512, 512, 4, MImage::kByte);
+   image.create( fWidth, fHeight, fChannels, MImage::kFloat);
 
-   unsigned char* dst = image.pixels();   
-
-   // Create an opaque gray texture
-   for (int y=0; y < 512*512; ++y)
-   {
-      *dst++ = 128;
-      *dst++ = 128;
-      *dst++ = 128;
-      *dst++ = 255;
-   }
+   float* dst = image.floatPixels();
+   
+   if(!AiTextureLoad(AtString(fPathName.asChar()), true, fMiplevel, dst))
+      return MS::kFailure;
+      
    return MS::kSuccess;
 }

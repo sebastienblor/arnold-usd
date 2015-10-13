@@ -5,13 +5,13 @@ class AEaiVolumeSampleRgbTemplate(ShaderAETemplate):
     def setup(self):
         self.beginScrollLayout()
         
-        self.beginLayout('Volume Sample Float Attributes', collapse=False)
+        self.beginLayout('Volume Sample RGB Attributes', collapse=False)
         self.addControl('channel')
         self.addControl('position_offset')
         self.addControl('interpolation')
         self.endLayout()
         
-        self.beginLayout('Adjustement Attributes', collapse=False)
+        self.beginLayout('Color Correction Attributes', collapse=False)
         
         self.addControl('gamma')
         self.addControl('hue_shift')

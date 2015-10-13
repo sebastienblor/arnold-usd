@@ -42,7 +42,7 @@
 #include <assert.h>
 
 #ifdef _LINUX
-#include <climits>
+#include <unistd.h>
 #endif
 
 #ifdef _DEBUG
