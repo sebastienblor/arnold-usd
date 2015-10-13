@@ -40,6 +40,8 @@
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 MCallbackId CMayaScene::s_QuitApplicationCallbackId = 0;
+MCallbackId CMayaScene::s_FileOpenCallbackId = 0;
+
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CArnoldSession* CMayaScene::s_arnoldSession = NULL;
 AtCritSec CMayaScene::s_lock = NULL;
@@ -182,10 +184,13 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    status = s_renderSession->Begin(renderOptions);
    status = s_arnoldSession->Begin(sessionOptions);
 
-   MStatus quitCbStatus;
+   MStatus cbStatus;
    
-   MCallbackId id = MEventMessage::addEventCallback("quitApplication", QuitApplicationCallback, NULL, &quitCbStatus);
-   if (quitCbStatus == MS::kSuccess) s_QuitApplicationCallbackId = id;
+   MCallbackId id = MEventMessage::addEventCallback("quitApplication", QuitApplicationCallback, NULL, &cbStatus);
+   if (cbStatus == MS::kSuccess) s_QuitApplicationCallbackId = id;
+   
+   id = MEventMessage::addEventCallback("PreFileNewOrOpened", FileOpenCallback, NULL, &cbStatus);
+   if (cbStatus == MS::kSuccess) s_FileOpenCallbackId = id;
 
    return status;
 }
@@ -222,6 +227,12 @@ MStatus CMayaScene::End()
    {
       MMessage::removeCallback(s_QuitApplicationCallbackId);
       s_QuitApplicationCallbackId = 0;
+   }
+
+   if (s_FileOpenCallbackId)
+   {
+      MMessage::removeCallback(s_FileOpenCallbackId);
+      s_FileOpenCallbackId = 0;
    }
 
    return status;
@@ -469,9 +480,21 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    {
       arnoldSession->QueueForUpdate(node);
    }
-
    arnoldSession->RequestUpdate();
 }
+
+void CMayaScene::FileOpenCallback(void *)
+{
+   // something we might want to do when a new file is opened
+
+   // for now we only call End() for the RenderView
+   // as IPR already handles it by calling IPR "stop"
+   if (s_arnoldSession && s_arnoldSession->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   {
+      End();
+   }
+}
+
 
 void CMayaScene::QuitApplicationCallback(void *)
 {
