@@ -425,7 +425,7 @@ elif env['COMPILER'] == 'msvc':
     if env['MODE'] == 'debug':
         env.Append(CPPDEFINES = Split('_DEBUG'))
         # for MSVC memory tracking 
-        env.Append(CPPDEFINES = Split('_CRTDBG_MAP_ALLOC'))
+        #env.Append(CPPDEFINES = Split('_CRTDBG_MAP_ALLOC'))
 
     env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
 elif env['COMPILER'] == 'icc':
