@@ -68,6 +68,9 @@ void CRenderViewCropRegion::mouseMove(int x, int y)
    glWidget->project(m_start_x, m_start_y, bufferStart[0], bufferStart[1], true);
    glWidget->project(x, y, bufferEnd[0], bufferEnd[1], true);
    glWidget->setRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
+
+   glWidget->reloadBuffer(m_renderView.m_color_mode);
+   // refresh the Region
 }
 
 void CRenderViewCropRegion::mouseRelease(int x, int y)

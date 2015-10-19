@@ -11,7 +11,7 @@
 #include <maya/MRenderUtil.h>
 #include <maya/MDagPath.h>
 #include <maya/MDagPathArray.h>
-
+#include <maya/M3dView.h>
 #include <vector>
 
 #include "../render/display/renderview.h"
@@ -20,6 +20,17 @@
 // Return all renderable cameras
 static int GetRenderCameras(MDagPathArray &cameras)
 {
+
+   M3dView view;
+   MDagPath activeCameraPath;
+   MStatus viewStatus;
+   view = M3dView::active3dView(&viewStatus);
+   if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+   {
+      cameras.append(activeCameraPath);
+      return 1;
+   }
+
    MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
    MDagPath cameraPath;
    // MFnCamera cameraNode;
@@ -87,20 +98,22 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "render")
    {
-      MSelectionList sel;
-      args.getFlagArgument("camera", 0, sel);
-      MDagPath camera;
-      status = sel.getDagPath(0, camera);
-
       MDagPathArray cameras;
-      if (camera.isValid())
+
+      if (args.isFlagSet("camera"))
       {
-         cameras.append(camera);
+         MSelectionList sel;
+         args.getFlagArgument("camera", 0, sel);
+         MDagPath camera;
+         status = sel.getDagPath(0, camera);
+
+         if (camera.isValid())
+         {
+            cameras.append(camera);
+         }
       }
-      else
-      {
-         GetRenderCameras(cameras);
-      }
+      
+      GetRenderCameras(cameras);      
       startRenderView(cameras[0], width, height);
 
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -113,7 +126,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       }
       renderSession->SetResolution(width, height);
       // Set the render session camera.
-      renderSession->SetCamera(camera);
+      renderSession->SetCamera(cameras[0]);
 
       if (is_region)
          renderSession->SetRegion(region[0], region[1], region[2], region[3]);

@@ -538,9 +538,7 @@ void CRenderView::displaySyncCreate()
 
 void CRenderView::updateRender()
 {
-
    interruptRender();
-
 
    // we need to do some special stuff when one of those render settings
    // parameters have changed
@@ -556,9 +554,8 @@ void CRenderView::updateRender()
 
    AiNodeSetInt(options, "AA_samples", K_AA_samples); // setting back AA samples to its original value
 
-
    // should I wait until rendering is really finished ?
-   while (AiRendering()) CRenderView::sleep(1000);
+   //while (AiRendering()) CRenderView::sleep(1000);
 
    CMayaScene::UpdateSceneChanges();
 
@@ -590,6 +587,16 @@ void CRenderView::restartRender()
 {
 
    show();
+
+   if (!K_progressive)
+   {
+      // clear the buffer
+      memset(m_buffer, 0, m_width * m_height * sizeof(AtRGBA));
+      AtRGBA8 *gl_buffer = m_gl->getBuffer();
+      memset(gl_buffer, 0, m_width * m_height * sizeof(AtRGBA8));
+      m_gl->reloadBuffer(m_color_mode);
+   }
+
    K_render_timestamp = time();
    K_restartLoop = true;
    K_wait_for_changes = false;
@@ -664,11 +671,15 @@ void CRenderView::setDebugShading(RenderViewDebugShading d)
 
 void CRenderView::pickShape(int px, int py)
 {
+   if (m_displayedImageIndex >= 0) return; // I can't pick a stored image
+
    int x, y;
    m_gl->project(px, py, x, y, false);
    
    // picking out of image bounds...
    if (x < 0 || x >= m_width || y < 0 || y >= m_height) return; 
+
+   // check if we are picking the toolbar
 
 
    // Get the ID AOV (last one in our list), and get the index value for the given pixel
@@ -762,7 +773,7 @@ void CRenderView::checkSceneUpdates()
    {
       AtUInt64 loop_time = CRenderView::time();
       // 1 / 15 seconds minimum before restarting a render
-      if (loop_time - K_render_timestamp > (AtUInt64)1000000/15)
+      if (loop_time - K_render_timestamp > (AtUInt64)1000000/20)
       {
          K_wait_for_changes = true;
          // setting continuous updates to true
@@ -979,7 +990,9 @@ CRenderViewMainWindow::initMenus()
    m_aovs_action_group = 0;
 
    m_aovs_combo = new QComboBox(this);
+   
    m_tool_bar->addWidget(m_aovs_combo);
+   m_aovs_combo->setMinimumWidth(90);
    m_tool_bar->addSeparator();
    
    populateAOVsMenu();
@@ -1160,6 +1173,7 @@ CRenderViewMainWindow::initMenus()
 
    m_menu_render->addSeparator();
    QMenu *debug_shading_menu = new QMenu("Debug Shading");
+   debug_shading_menu->setTearOffEnabled(true);
    m_menu_render->addMenu(debug_shading_menu);
    m_debug_shading_action_group = new QActionGroup(this);
 
@@ -1844,7 +1858,7 @@ static void setCamera(CRenderView &renderView, const std::string &cameraName)
       std::string camName = camPath.partialPathName().asChar();
       if (camName == cameraName)
       {
-
+         
          // Setting export camera in Arnold session will trigger an update and 
          // block my rendering :-/
 
@@ -1931,6 +1945,9 @@ void CRenderViewMainWindow::frameRegion()
          MBoundingBox boundingBox = dagShape.boundingBox(&status);
          if (status != MS::kSuccess) continue;
 
+         MMatrix mtx = dagPath.inclusiveMatrix();
+   
+         boundingBox.transformUsing(mtx);
          globalBox.expand(boundingBox);
       }
       AtNode *arnold_camera = AiUniverseGetCamera();
@@ -2128,14 +2145,21 @@ void CRenderViewCCWindow::init()
 
    line += 30;
 
-   m_srgb_box = new QCheckBox(this);
-   m_srgb_box->move(80, line);
-   m_srgb_box->setChecked(m_colorCorrectSettings.srgb);
-   label = new QLabel(QString("sRGB"), this);
-   label->move(20, line);
-   label->resize(40, 20);
+   m_space_combo = new QComboBox(this);
+   m_space_combo->resize(90, 20);
+   
+   m_space_combo->move(80, line);
 
-   connect(m_srgb_box, SIGNAL( stateChanged(int) ), this, SLOT(srgbChanged()));
+   m_space_combo->addItem("Linear");
+   m_space_combo->addItem("sRGB");
+   m_space_combo->addItem("Rec709");
+   m_space_combo->setCurrentIndex(1);
+
+   label = new QLabel(QString("Color Space"), this);
+   label->move(20, line);
+   label->resize(70, 20);
+
+   connect(m_space_combo, SIGNAL( activated(int) ), this, SLOT(colorSpaceChanged()));
 
    line += 50;
    resize(300, line);
@@ -2191,10 +2215,10 @@ void CRenderViewCCWindow::ditherChanged()
    m_renderView.refreshGLBuffer();
 }
 
-void CRenderViewCCWindow::srgbChanged()
+void CRenderViewCCWindow::colorSpaceChanged()
 {
-   m_colorCorrectSettings.srgb = m_srgb_box->isChecked();
-   m_renderView.refreshGLBuffer();
+   m_colorCorrectSettings.space = (CRenderViewColorSpace)m_space_combo->currentIndex();
+   m_renderView.refreshGLBuffer();  
 }
 
 

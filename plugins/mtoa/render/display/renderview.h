@@ -45,16 +45,24 @@ class QMenu;
 
 class CRenderView;
 
+enum CRenderViewColorSpace
+{
+   RV_COLOR_SPACE_NONE,
+   RV_COLOR_SPACE_SRGB,
+   RV_COLOR_SPACE_REC709
+};
+
+
 struct CRenderViewCCSettings
 {
    CRenderViewCCSettings() :  gamma(1.0),
                               brightness(1.f),
-                              srgb(true),
+                              space(RV_COLOR_SPACE_SRGB),
                               dither(true)
                               {}
    float gamma;
    float brightness;
-   bool  srgb;
+   CRenderViewColorSpace  space;
    bool  dither;
 };
 
@@ -86,7 +94,7 @@ private:
    QSlider *m_brightness_slider;
 
    QCheckBox *m_dither_box;
-   QCheckBox *m_srgb_box;
+   QComboBox *m_space_combo;
 
 
 
@@ -96,7 +104,7 @@ private slots:
    void brightnessSliderChanged();
    void brightnessTextChanged();
    void ditherChanged();
-   void srgbChanged();
+   void colorSpaceChanged();
 };
 
 
@@ -397,7 +405,7 @@ friend CRenderViewMainWindow;
                AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
             }
 
-            if (m_colorCorrectSettings.srgb)
+            if (m_colorCorrectSettings.space == RV_COLOR_SPACE_SRGB)
             {
                //  (x <= 0.04045) ? x * (1.0 / 12.92) : powf((x + 0.055) * (1.0 / (1 + 0.055)), 2.4);
 
@@ -405,7 +413,21 @@ friend CRenderViewMainWindow;
                rgb.g = (rgb.g <= 0.0031308f) ? rgb.g * 12.92f : (1.055) * powf(rgb.g,1.f/2.4f) - 0.055f;
                rgb.b = (rgb.b <= 0.0031308f) ? rgb.b * 12.92f : (1.055) * powf(rgb.b,1.f/2.4f) - 0.055f;
 
+            } else if (m_colorCorrectSettings.space == RV_COLOR_SPACE_REC709)
+            {
+               rgb.r = (rgb.r >= 0.018f) ? (1.099 * (powf(rgb.r, 0.45f))) - 0.099 : (4.5f * rgb.r);
+               rgb.g = (rgb.g >= 0.018f) ? (1.099 * (powf(rgb.g, 0.45f))) - 0.099 : (4.5f * rgb.g);
+               rgb.b = (rgb.b >= 0.018f) ? (1.099 * (powf(rgb.b, 0.45f))) - 0.099 : (4.5f * rgb.b);
+
+               /*
+                  Reverse : From Rec709 To Lin
+                  if value >= 0.081:
+                  return ((value + 0.099) / 1.099) ** (1/0.45)
+                  else:
+                  return value / 4.5
+               */
             }
+
 
             // if picking in progress, compare the picked ID with the ID AOV
             if (m_picked_id)

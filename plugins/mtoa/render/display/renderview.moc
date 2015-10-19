@@ -44,7 +44,7 @@ static const char qt_meta_stringdata_CRenderViewCCWindow[] = {
     "CRenderViewCCWindow\0\0gammaSliderChanged()\0"
     "gammaTextChanged()\0brightnessSliderChanged()\0"
     "brightnessTextChanged()\0ditherChanged()\0"
-    "srgbChanged()\0"
+    "colorSpaceChanged()\0"
 };
 
 void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -58,7 +58,7 @@ void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
         case 2: _t->brightnessSliderChanged(); break;
         case 3: _t->brightnessTextChanged(); break;
         case 4: _t->ditherChanged(); break;
-        case 5: _t->srgbChanged(); break;
+        case 5: _t->colorSpaceChanged(); break;
         default: ;
         }
     }
