@@ -178,7 +178,7 @@ MUserData* CArnoldSkyDomeLightDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldSkyDomeLightDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL); // | MHWRender::kDirectX11); TODO support dx11 later
+    return (MHWRender::kAllDevices);
 }
 
 void CArnoldSkyDomeLightDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)
