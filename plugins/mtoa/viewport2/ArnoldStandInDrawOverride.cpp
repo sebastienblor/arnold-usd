@@ -172,7 +172,7 @@ MUserData* CArnoldStandInDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldStandInDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL | MHWRender::kDirectX11);
+    return (MHWRender::kAllDevices);
 }
 
 void CArnoldStandInDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)

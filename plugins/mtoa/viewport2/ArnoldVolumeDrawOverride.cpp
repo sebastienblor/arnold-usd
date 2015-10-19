@@ -183,7 +183,7 @@ MUserData* CArnoldVolumeDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldVolumeDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL | MHWRender::kDirectX11);
+    return (MHWRender::kAllDevices);
 }
 
 void CArnoldVolumeDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)
