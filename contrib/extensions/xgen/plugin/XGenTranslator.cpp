@@ -118,20 +118,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 {
    //AiMsgInfo("[CXgDescriptionTranslator] Update()");
 
-   // Export the transform matrix
-   //ExportMatrix(instance, 0);
-
-   // Get the visibiliy and render flags set.
-   //ProcessRenderFlags(instance);
-
    // Build the path to the procedural dso
-   //string path = string(getenv("MTOA_EXTENSIONS_PATH"));
-   //unsigned int pluginPathLength = path.length();
-   //string basepath = path.substr(0,pluginPathLength-11);
-   //string(getenv("MTOA_EXTENSIONS_PATH")) + string("/procedurals/libXgArnoldProcedural.so");
    static std::string strDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgen_procedural.so");
-   //static string strDSO = basepath + string("/procedurals/xgen_procedural.so");
-   //static string strDSO = string("C:/solidangle/mtoadeploy/2014/procedurals/xgen_procedural.dll");
 
    // Get strings based on the current scene name.
    std::string strScenePath; // The path to the directory containing the scene.
@@ -440,7 +428,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
       //AiNodeSetPtr( shape, "shader", rootShader );
 
-	  //  MOTION BLUR COMPUTATION STUFF 
+   //  MOTION BLUR COMPUTATION STUFF 
 
    /// TODO THINK MORE: in the GUI, LIVE mode seems to rely on  ENV variable  MI_MAYA_BATCH
    ///             if it does not exist it tries to use whats "cached" in the xgen data blob inside maya.
@@ -448,7 +436,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    ///             If at all possible we want to use the alembic geo if it exists which will allow for motion blur if desired
    ///            Fallback order is as follows in the comments:
 
-		
+
 
       std::string mbSamplesString;
       MFloatArray steps;
@@ -463,7 +451,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // check if we don't have an alembic
       if (!info.hasAlembicFile) // we don't have the alembic
       {
-         AiMsgError("[XGEN]: CAN'T MOTION BLUR,  alembic file-> %s  has not been exported", strGeomFile.c_str());
+         AiMsgError("[xgen] Can't motion blur, alembic file '%s' has not been exported", strGeomFile.c_str());
 
          info.moblur = 2; // turning off xgen motion blur
          info.renderMode = 1; // set to live mode  for good measure
@@ -472,12 +460,12 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       
       if (batchModeOk)
       {
-         AiMsgInfo("[XGEN]: All batch mode tests passed! proceeding with Xgeneration... using alembic patch cache");
+         AiMsgInfo("[xgen] All batch mode tests passed! proceeding with Xgeneration... using alembic patch cache");
          SetEnv("MI_MAYA_BATCH", "1");  // this is apparently the magic that forces xgen to batch mode vs live
       }
       else
       {
-         AiMsgWarning("[XGEN]: Batch mode tests failed! proceeding with Xgeneration... using live scene data");
+         AiMsgWarning("[xgen] Batch mode tests failed! proceeding with Xgeneration... using live scene data");
       }
       
       // if motion blur is enabled
@@ -510,7 +498,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             }
             else
             {
-               AiMsgWarning("[XGEN]: Motion blur sample settings cannot be aquired from Arnold Render Globals");
+               AiMsgWarning("[xgen] Motion blur sample settings cannot be acquired from Arnold Render Globals");
                mbSamplesString += std::string("0.0 ");
             }
          }
@@ -553,7 +541,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          mbSamplesString += std::string("0.0 ");
       }
 
-	  /// TODO XGEN:  make these args real  arnold arguments and make the procedural  build this string itself from the passed arguments 
+      /// TODO XGEN:  make these args real  arnold arguments and make the procedural  build this string itself from the passed arguments 
 
       // Set the procedural arguments
       {
@@ -591,7 +579,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
                info.strDescription.erase(0,pos + 1);
          }
          
-		   strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
+         strData += " -file " + info.strScene + "__" + filePallete + ".xgen";
          strData += " -palette " + info.strPalette;
          
          // We only have to remove namespace character ':' if there is a patch cache file
@@ -609,9 +597,9 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          MTime oneSec(1.0, MTime::kSeconds);
          float fps =  (float)oneSec.asUnits(MTime::uiUnit());
          sprintf(buf,"%f ",fps);
-		 strData += " -fps " + std::string(buf);
-		 strData += " -motionSamplesLookup "+ mbSamplesString;
-		 strData += " -motionSamplesPlacement "+ mbSamplesString;
+         strData += " -fps " + std::string(buf);
+         strData += " -motionSamplesLookup "+ mbSamplesString;
+         strData += " -motionSamplesPlacement "+ mbSamplesString;
 
          strData += strUnitConvMat;
 
@@ -646,11 +634,11 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          sprintf(buf,"%f", info.fCamRatio );
          AiNodeSetStr( shape, "irRenderCamRatio", buf );
 
-		 AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
+       AiNodeDeclare( shape, "xgen_renderMethod", "constant STRING" );
        sprintf(buf,"%i",info.renderMode);
-		 AiNodeSetStr( shape, "xgen_renderMethod", buf );
+       AiNodeSetStr( shape, "xgen_renderMethod", buf );
        
- 		 
+       
        AiNodeDeclare( shape, "ai_mode", "constant INT");
        AiNodeSetInt(shape, "ai_mode", info.aiMode);
        
@@ -687,50 +675,50 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "render_mode";
    helper.MakeInputInt ( data );
 
-    data.defaultValue.INT = 0;
-    data.name = "motionBlurOverride";
-    data.shortName = "motion_blur_override";
-    helper.MakeInputInt ( data );
+   data.defaultValue.INT = 0;
+   data.name = "motionBlurOverride";
+   data.shortName = "motion_blur_override";
+   helper.MakeInputInt ( data );
 
-	MStringArray  enumNames;
-    enumNames.append ( "Start On Frame" );
-    enumNames.append ( "Center On Frame" );
-    enumNames.append ( "End On Frame" );
-	enumNames.append ( "Use RenderGlobals" );
-    data.defaultValue.INT = 3;
-    data.name = "motionBlurMode";
-    data.shortName = "motion_blur_mode";
-    data.enums= enumNames;
-    helper.MakeInputEnum ( data );
+   MStringArray  enumNames;
+   enumNames.append ( "Start On Frame" );
+   enumNames.append ( "Center On Frame" );
+   enumNames.append ( "End On Frame" );
+   enumNames.append ( "Use RenderGlobals" );
+   data.defaultValue.INT = 3;
+   data.name = "motionBlurMode";
+   data.shortName = "motion_blur_mode";
+   data.enums= enumNames;
+   helper.MakeInputEnum ( data );
 
-	data.defaultValue.INT = 3;
-    data.name = "motionBlurSteps";
-    data.shortName = "motion_blur_steps";
-    helper.MakeInputInt ( data );
+   data.defaultValue.INT = 3;
+   data.name = "motionBlurSteps";
+   data.shortName = "motion_blur_steps";
+   helper.MakeInputInt ( data );
 
-    data.defaultValue.FLT = 1.0;
-    data.name = "motionBlurFactor";
-    data.shortName = "motion_blur_factor";
-    helper.MakeInputFloat ( data );
+   data.defaultValue.FLT = 1.0;
+   data.name = "motionBlurFactor";
+   data.shortName = "motion_blur_factor";
+   helper.MakeInputFloat ( data );
 
-    data.defaultValue.FLT = 1.0;
-    data.name = "motionBlurMult";
-    data.shortName = "motion_blur_mult";
-    helper.MakeInputFloat ( data );
+   data.defaultValue.FLT = 1.0;
+   data.name = "motionBlurMult";
+   data.shortName = "motion_blur_mult";
+   helper.MakeInputFloat ( data );
 
-	data.defaultValue.FLT = 0.0;
-	data.name = "aiMinPixelWidth";
-	data.shortName = "ai_min_pixel_width";
-	helper.MakeInputFloat ( data );
+   data.defaultValue.FLT = 0.0;
+   data.name = "aiMinPixelWidth";
+   data.shortName = "ai_min_pixel_width";
+   helper.MakeInputFloat ( data );
 
-	MStringArray  curveTypeEnum;
-    curveTypeEnum.append ( "Ribbon" );
-    curveTypeEnum.append ( "Thick" );
-    data.defaultValue.INT = 0;
-    data.name = "aiMode";
-    data.shortName = "ai_mode";
-    data.enums= curveTypeEnum;
-    helper.MakeInputEnum ( data );
+   MStringArray  curveTypeEnum;
+   curveTypeEnum.append ( "Ribbon" );
+   curveTypeEnum.append ( "Thick" );
+   data.defaultValue.INT = 0;
+   data.name = "aiMode";
+   data.shortName = "ai_mode";
+   data.enums= curveTypeEnum;
+   helper.MakeInputEnum ( data );
 
    data.defaultValue.BOOL = false;
    data.name = "aiUseAuxRenderPatch";
