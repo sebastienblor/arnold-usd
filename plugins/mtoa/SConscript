@@ -2,7 +2,7 @@
 
 ## load our own python modules
 import system
-from build_tools import find_files_recursive, find_files
+from build_tools import find_files_recursive, find_files, get_maya_version
 
 import os
 
@@ -44,11 +44,37 @@ source_files += source_files_add
 # add src_base_dir files (Main.cpp...)
 source_files  += find_files(src_base_dir, ['.c', '.cpp'])
 
-#local_env['QT_ROOT_DIR'] = 'C:/Qt/4.8.5-64'  -> someone please put the appropriate path
-qt_include_dir = os.path.join(local_env['QT_ROOT_DIR'], 'include')
-qt_lib_dir = os.path.join(local_env['QT_ROOT_DIR'], 'lib')
+MAYA_ROOT = local_env.subst(local_env['MAYA_ROOT'])
+MAYA_INCLUDE_PATH = local_env.subst(local_env['MAYA_INCLUDE_PATH'])
+if MAYA_INCLUDE_PATH == '.':
+    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+# check in Maya directory if the tar.gz has been extracted
 
-local_env.Append(CPPPATH = [qt_include_dir])
+maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+maya_version_base = maya_version[0:4]
+mayaQtFolder = ""
+if (int(maya_version_base) == 2014):
+    mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-include')
+elif (int(maya_version_base) == 2015):
+    mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.5-include')
+elif (int(maya_version_base) >= 2016):
+    mayaQtFolder = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.6-include') 
+
+if not os.path.isdir(mayaQtFolder):
+    qtTarGz = mayaQtFolder + '.tar.gz'
+    if os.path.exists(qtTarGz):
+        print "Extracting Qt Files..."
+        import tarfile
+        tfile = tarfile.open(qtTarGz, 'r:gz')
+        tfile.extractall(mayaQtFolder)
+    else:
+        print "Error : Qt Files not Found"
+
+
+local_env['QT_ROOT_DIR'] = mayaQtFolder
+
+local_env.Append(CPPPATH = [mayaQtFolder])
+qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
 local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])

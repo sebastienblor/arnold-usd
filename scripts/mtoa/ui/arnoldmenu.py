@@ -259,8 +259,11 @@ def startRender():
         cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
 
 def startRenderView():
-    if core.ACTIVE_CAMERA != None:
-        cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
+    # core.ACTIVE_CAMERA is not set, anything we could do here ?
+    #if core.ACTIVE_CAMERA != None:
+    #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
+    # so instead we're calling it without any argument
+    cmds.arnoldRenderView()
 
 def startIpr():
     if core.ACTIVE_CAMERA != None:
