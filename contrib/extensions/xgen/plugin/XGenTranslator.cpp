@@ -348,11 +348,51 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // Hardcoded values for now.
       //float s = 100000.f * fUnitConvFactor;
       //info.setBoundingBox( -s,-s,-s, s, s, s );
-      info.bCameraOrtho = false;
-      info.setCameraPos( -48.4233f, 29.8617f, -21.2033f );
-      info.fCameraFOV = 54.432224f;
-      info.setCameraInvMat( -0.397148f,0.446873f,0.80161f,0.f,5.55112e-17f,0.873446f,-0.48692f,0.f,0.917755f,0.193379f,0.346887f,0.f,0.228188f,-0.343197f,60.712f,1.f );
-      info.fCamRatio = 1.0f;
+
+      if(CMayaScene::GetArnoldSession())
+      {
+         MDagPath camera = m_session->GetExportCamera();
+
+         if (camera.isValid())
+         {
+            MStatus status;
+            MFnDependencyNode fnNode(camera.node());
+            MFnCamera fnCamera(camera.node());
+
+            // info.bCameraOrtho
+            MPlug plug = fnNode.findPlug("aiTranslator", status);
+            if (status && !plug.isNull())
+            {
+               if (plug.asString() == MString("orthographic"))
+                  info.bCameraOrtho = true;
+               else if(plug.asString() == MString("perspective"))
+                  info.bCameraOrtho = false;
+               else
+                  info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
+            }
+            else
+               info.bCameraOrtho = FindMayaPlug("orthographic").asBool();
+
+            // info.setCameraPos
+            MMatrix tm = camera.inclusiveMatrix(&status);
+            info.setCameraPos( tm[3][0], tm[3][1], tm[3][2] );
+
+            // info.fCameraFOV
+            info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * 57.295779513082323f;
+
+            // info.setCameraInvMat
+            // This is correct. Maya expects a mix of the inverted and not inverted matrix
+            //  values, and also with translation values in a different place.
+            MMatrix tmi = camera.inclusiveMatrixInverse(&status);
+            info.setCameraInvMat(tm[0][0], tm[1][0], tm[2][0], tm[0][3],
+                                 tm[0][1], tm[1][1], tm[2][1], tm[1][3],
+                                 tm[0][2], tm[1][2], tm[2][2], tm[2][3],
+                                 tmi[3][0], tmi[3][1], tmi[3][2], tm[3][3]);
+
+            // info.fCamRatio
+            info.fCamRatio = (float)fnCamera.aspectRatio(&status);
+         }
+      }
    }
 
    char buf[512];
@@ -621,7 +661,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          sprintf(buf,"%s,%f,%f,%f", info.bCameraOrtho? "true":"false", info.fCameraPos[0], info.fCameraPos[1], info.fCameraPos[2] );
          AiNodeSetStr( shape, "irRenderCam", buf );
 
-         sprintf(buf,"%f", info.fCameraFOV );
+         sprintf(buf,"%f,%f", info.fCameraFOV, info.fCameraFOV  / info.fCamRatio);
          AiNodeSetStr( shape, "irRenderCamFOV",buf );
 
          sprintf(buf,"%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f",
