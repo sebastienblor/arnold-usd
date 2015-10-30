@@ -220,12 +220,8 @@ void K_InitGlobalVars(void)
 
 extern int RenderLoop(CRenderView *kwin, int smin, int smax)
 {
-
-   bool k_outputs_set = false;
    int i, exit_code = K_SUCCESS;
    K_wait_for_changes = false;
-   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-
    
    /*
     * Progressive rendering loop
@@ -243,7 +239,6 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
        */
 
       K_render_timestamp = CRenderView::time();
-      bool render_timer = false;
       
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        

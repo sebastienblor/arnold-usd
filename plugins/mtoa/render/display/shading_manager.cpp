@@ -6,7 +6,6 @@
 #include "shading_manager.h"
 
 
-
 static AtNode *getShaderUtilityBlack()
 {
    AtNode *utility_shader = AiNodeLookUpByName("_rvdbg_black");
@@ -23,6 +22,8 @@ static AtNode *getShaderUtilityBlack()
    return utility_shader;
 
 }
+
+/*
 static AtNode *getShaderUtilityWhite()
 {
    AtNode *utility_shader = AiNodeLookUpByName("_rvdbg_white");
@@ -39,6 +40,7 @@ static AtNode *getShaderUtilityWhite()
    return utility_shader;
 
 }
+*/
 
 
 bool CRvShadingManager::checkShaderConnections(const AtNode *start, const AtNode *end)
@@ -95,7 +97,11 @@ void CRvShadingManager::restoreShaders()
          if(shader == NULL) continue;
 
          map_key = shape_name;
-         map_key += "#" + std::to_string(g);
+
+         char intBuf[512];
+         sprintf(intBuf,"%i", g);
+         map_key += "#";
+         map_key += intBuf;
 
          AtNode *original_shader = AiNodeLookUpByName(m_shader_map[map_key].c_str());
          if (original_shader == NULL) continue;
@@ -207,7 +213,11 @@ void CRvShadingManager::isolateSelected()
          shader_name = AiNodeGetStr(shader, "name");
          
          map_key = shape_name;
-         map_key += "#" + std::to_string(g);
+         char intBuf[512];
+         sprintf(intBuf,"%i", g);
+         map_key += "#";
+         map_key += intBuf;
+
 
          // check if this is not already a debug shader !!!
          if (shader_name == m_debug_shader_name || (shader_name.length() > 7 && shader_name[0] == '_' && shader_name.substr(0, 7) == "_rvdbg_"))
@@ -229,8 +239,11 @@ void CRvShadingManager::isolateSelected()
          {
             // now let's assign our debug shader
             map_key = shape_name;
-            map_key += "#" + std::to_string(g);
-            
+            char intBuf[512];
+            sprintf(intBuf,"%i", g);
+            map_key += "#";
+            map_key += intBuf;
+
             if(all_black == false && checkShaderConnections(AiNodeLookUpByName(m_shader_map[map_key].c_str()), debug_shader))
             {
                AiArraySetPtr(shape_shaders, g, debug_shader);
@@ -347,7 +360,7 @@ void CRvShadingManager::objectNameChanged(const std::string &new_name, const std
             if (shader_key.substr(0, shader_key.find('#')) == old_name)
             {
                std::string group_index_str = shader_key.substr(shader_key.find('#') + 1);
-               unsigned int group_index = std::stoi(group_index_str);
+               unsigned int group_index = atoi(group_index_str.c_str());
                AtArray *ar = AiNodeGetArray(node, "shader");
                if (group_index >= 0 && group_index < ar->nelements)
                {
@@ -365,7 +378,7 @@ void CRvShadingManager::objectNameChanged(const std::string &new_name, const std
          std::tr1::unordered_map<std::string, std::string>::iterator iter = m_shader_map.begin();
          for ( ; iter != m_shader_map.end(); iter++)
          {
-            const std::string &shader_key = (*iter).first;
+            //const std::string &shader_key = (*iter).first;
             std::string &shader_name = (*iter).second;
 
             if (shader_name == old_name)
@@ -434,7 +447,10 @@ void CRvShadingManager::setDebugShader(AtNode *debug_shader)
             // in future situations we're not thinking of right now
 
             map_key = shape_name;
-            map_key += "#" + std::to_string(g);
+            char intBuf[512];
+            sprintf(intBuf,"%i", g);
+            map_key += "#";
+            map_key += intBuf;
 
             m_shader_map[map_key] = AiNodeGetName(shader);
             // Stored !!!

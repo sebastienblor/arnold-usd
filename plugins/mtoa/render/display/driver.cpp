@@ -14,8 +14,6 @@
 #include <iostream>
 
 
-#pragma warning (disable : 4244)
-
 /*
  * Displays a rectangle color based on thread ID
  */
@@ -249,7 +247,9 @@ driver_process_bucket
                               AtRGBA rgba;
                               // not a simple cast, because we'll want to get the original 
                               // int value later (when picking)
-                              *((int*)&rgba.r) = int_val;
+
+                              //*((int*)&rgba.r) = int_val;
+                              rgba.r = reinterpret_type<int, float>(int_val);
                               rgba.g = rgba.b = rgba.r;
                               rgba.a = 1.f;
                               rv->setAOVPixelColor(AOVIndex, si, sj, rgba);
@@ -297,7 +297,8 @@ driver_process_bucket
                         AtRGBA rgba;
                         // not a simple cast, because we'll want to get the original 
                         // int value later (when picking)
-                        *((int*)&rgba.r) = int_val;
+                        //*((int*)&rgba.r) = int_val;
+                        rgba.r = reinterpret_type<int, float>(int_val);
                         rgba.g = rgba.b = rgba.r;
                         rgba.a = 1.f;
                         rv->setAOVPixelColor(AOVIndex, i, j, rgba);

@@ -43,7 +43,6 @@ for file_rem in source_files_rem:
 source_files += source_files_add
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
-local_env.Append(LIBS=['opengl32.lib', 'user32.lib', 'gdi32.lib'])
 
 
 
@@ -81,8 +80,10 @@ local_env.Append(CPPPATH = [mayaQtFolder])
 qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
-local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
-
+if system.os() == 'windows':
+    local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+else:
+    local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
 
 
 MTOA_API = local_env.SharedLibrary('mtoa_api', source_files)

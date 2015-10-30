@@ -66,6 +66,13 @@ struct CRenderViewCCSettings
    bool  dither;
 };
 
+template <typename IN_T, typename OUT_T>
+inline OUT_T reinterpret_type(const IN_T in)
+{
+   union { IN_T in; OUT_T out; } u;
+   u.in = in;
+   return u.out;
+}
 
 class CRenderViewCCWindow : public QMainWindow
 {
@@ -338,7 +345,6 @@ public:
    
    AtRvColorMode m_color_mode;
 
-   bool getRegionCrop(bool b){m_region_crop = b;}
    void refreshGLBuffer();
    void checkSceneUpdates();
 
@@ -359,7 +365,7 @@ public:
    
 protected:
 
-friend CRenderViewMainWindow;
+friend class CRenderViewMainWindow;
 
    void init();
    void initSize(int w, int h);
@@ -375,7 +381,8 @@ friend CRenderViewMainWindow;
          // were displayed with the same color. 
          // For now let's use this dirty hash         
          unsigned int val;
-         val = *((unsigned int*)&rgba.r);
+         //val = *((unsigned int*)&rgba.r);
+         val = reinterpret_type<float, unsigned int>(rgba.r);
          AtRGB tmpCol;
          tmpCol.r = (float((val+943) % 1257))/1257.f;
          tmpCol.g = (float((val+189) % 438))/438.f;
@@ -432,7 +439,8 @@ friend CRenderViewMainWindow;
             // if picking in progress, compare the picked ID with the ID AOV
             if (m_picked_id)
             {
-               int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
+               //int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
+               int pixel_id = reinterpret_type<float, int>(m_aovBuffers.back()[x + y * m_width].r);
 
                if ( pixel_id == *m_picked_id )
                {
@@ -541,6 +549,3 @@ struct AtDisplaySync
 };
 
 
-
-
- 

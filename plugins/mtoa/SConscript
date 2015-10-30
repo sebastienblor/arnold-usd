@@ -77,7 +77,10 @@ local_env.Append(CPPPATH = [mayaQtFolder])
 qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
-local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+if system.os() == 'windows':
+    local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+else:
+    local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
 
 
 if system.os() == 'darwin':

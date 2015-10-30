@@ -67,7 +67,6 @@
 #define fileno(s) _fileno(s)
 #endif
 
-#pragma warning (disable : 4244)
 enum EInfoMode
 {
    K_INFO_NONE,

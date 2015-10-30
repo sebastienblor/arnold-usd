@@ -7,6 +7,7 @@
 #include <sys/timeb.h>
 #include <deque>
 
+#ifdef _WIN64
 // Assume Windows XP as the build target
 #define _WIN32_WINNT    0x501
 #define _WIN32_WINDOWS  0x501
@@ -15,23 +16,15 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
+#include <intrin.h>
+#endif
 
 #include "manipulators.h"
-
-
-
 #include "utility.h"
 #include <emmintrin.h>
-#include <intrin.h>
-
 #include "renderview.h"
-
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
-
-
-#pragma warning (disable : 4244)
-
 
 
 void CRenderViewManipulator::mouseMove(int x, int y)
@@ -193,7 +186,7 @@ void CRenderView2DZoom::wheel(CRenderView &renderView, float delta)
    glWidget->setZoomFactor(zoomFactor);
 
    // I want my image center to be the same as before
-   glWidget->setPan(-regionCenter.x * zoomFactor,-regionCenter.y*zoomFactor);
+   glWidget->setPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
    renderView.draw();
 
 }
@@ -257,8 +250,8 @@ void CRenderView3DPan::mouseMove(int x, int y)
    int deltaY = y - m_start_y;
 
    // arbitrary multiplier 
-   deltaX *= -0.1f;
-   deltaY *= 0.1f;
+   deltaX = int(-0.1f * deltaX);
+   deltaY = int(0.1f * deltaY);
 
    MPoint new_position = m_original_position + m_right_direction * deltaX + m_up_direction * deltaY;
    m_camera.set(new_position, m_view_direction, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
@@ -282,9 +275,9 @@ CRenderView3DZoom::~CRenderView3DZoom()
 void CRenderView3DZoom::mouseMove(int x, int y)
 {
    int deltaX = x - m_start_x;
-   int deltaY = y - m_start_y;
+   //int deltaY = y - m_start_y;
 
-   int delta = deltaX * 0.2f;
+   int delta = int(deltaX * 0.2f);
 
    MPoint new_position = m_original_position + m_view_direction * delta;
    m_camera.set(new_position, m_view_direction, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
@@ -343,8 +336,8 @@ void CRenderView3DRotate::mouseMove(int x, int y)
    int deltaY = y - m_start_y;
 
    // arbitrary multiplier 
-   deltaX *= -0.1f;
-   deltaY *= 0.1f;
+   deltaX = int(-0.1f * deltaX);
+   deltaY = int(0.1f * deltaY);
 
    MPoint new_position = m_original_position + m_camera.rightDirection(MSpace::kWorld) * deltaX + m_up_direction * deltaY;
    MVector dir = new_position - m_center;

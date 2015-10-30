@@ -1,3 +1,6 @@
+#ifndef _WIN64
+#include "../render/display/renderview.h"
+#endif
 
 #include "ArnoldRenderViewCmd.h"
 #include "scene/MayaScene.h"
@@ -14,7 +17,11 @@
 #include <maya/M3dView.h>
 #include <vector>
 
+#ifdef _WIN64
 #include "../render/display/renderview.h"
+#endif
+
+
 
 
 // Return all renderable cameras

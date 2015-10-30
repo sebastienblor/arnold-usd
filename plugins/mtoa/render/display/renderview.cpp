@@ -2,12 +2,17 @@
  * Windows window and event handling
  */
 
+#ifndef _WIN64
+#include "render_gl_widget.h"
+#endif
+
+
 #include <time.h>
 #include <string.h>
 #include <sys/timeb.h>
 #include <deque>
 
-// Assume Windows XP as the build target
+#ifdef _WIN64
 #define _WIN32_WINNT    0x501
 #define _WIN32_WINDOWS  0x501
 
@@ -15,22 +20,29 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <windowsx.h>
+#include <intrin.h>
+#else
+#include <sys/time.h>
+#endif
 
 #include "display_gl.h"
+
+#ifdef _WIN64
 #include "render_gl_widget.h"
+#endif
 
 
 
 #include "utility.h"
 #include <emmintrin.h>
-#include <intrin.h>
+
 
 #include "renderview.h"
 #include "render_loop.h"
 
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
-#include "icons/SA_logo_32.xpm"
+//#include "icons/SA_logo_32.xpm"
 #include "icons/SA_logo.xpm"
 
 #include "icons/SA_icon_continuous_off.xpm"
@@ -53,9 +65,10 @@
 #include <sstream>
 //#include <QtGui/qimage.h>
 
-#pragma warning (disable : 4244)
-
-static MCallbackId    rv_selection_cb = NULL;
+//#ifdef _MSC_VER
+//#pragma warning (disable : 4244)
+//#endif
+static MCallbackId rv_selection_cb = 0;
 
 /*****************************
  *
@@ -415,10 +428,11 @@ void CRenderView::finishRender()
    {  
       K_aborted = true;
       K_wait_for_changes = false;      
-  
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
+      m_render_thread = NULL;
    }
+   
 }
 void CRenderView::interruptRender()
 {
@@ -432,6 +446,7 @@ void CRenderView::interruptRender()
 }
 // utilities copied from sync.h and time.h in core
 
+#ifdef _WIN64
 AtUInt64 CRenderView::time()
 {
    LARGE_INTEGER PerformanceCount;
@@ -443,14 +458,30 @@ AtUInt64 CRenderView::time()
    return (AtUInt64) (PerformanceCount.QuadPart / (Frequency.QuadPart * 1e-6));
 }
 
-void CRenderView::syncPause()
+void CRenderView::sleep(AtUInt64 usecs)
 {
-   _mm_pause();
+   Sleep(usecs / 1000);
+}
+#else
+
+AtUInt64 CRenderView::time()
+{
+   struct timeval tp;
+   gettimeofday(&tp, NULL);
+   return ((AtUInt64) tp.tv_sec * 1000000) + ((AtUInt64) tp.tv_usec);
 }
 
 void CRenderView::sleep(AtUInt64 usecs)
 {
-   Sleep(usecs / 1000);
+   usleep(usecs);
+}
+
+#endif
+
+
+void CRenderView::syncPause()
+{
+   _mm_pause();
 }
 
    
@@ -628,7 +659,7 @@ void CRenderView::SelectionChangedCallback(void *data)
    MFnDependencyNode nodeFn( depNode );
 
 
-   AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
+   //AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
 
    CRenderView *rv = ((CRenderView*)data);
 
@@ -685,8 +716,8 @@ void CRenderView::pickShape(int px, int py)
    // Get the ID AOV (last one in our list), and get the index value for the given pixel
    const AtRGBA *IdAov = (m_aovBuffers.back());
    const AtRGBA &id_val = IdAov[x + y * m_width];
-   int Op_id;
-   Op_id = *((int*)&id_val.r);
+   //int Op_id = *((int*)&id_val.r);
+   int Op_id = reinterpret_type<float, int>(id_val.r);
    m_picked_id = new int(Op_id);
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
@@ -698,7 +729,8 @@ void CRenderView::pickShape(int px, int py)
    {
       for (int i = 0; i < m_width; ++i, ++ind)
       {
-         int int_id = *((int*)&idBuffer[ind].r);
+         //int int_id = *((int*)&idBuffer[ind].r);
+         int int_id = reinterpret_type<float, int>(idBuffer[ind].r);
          if (int_id != Op_id) continue;
          copyToRGBA8(displayedBuffer[ind], gl_buffer[ind], i, j);
       }
@@ -735,7 +767,7 @@ void CRenderView::clearPicking()
    // search in the ID Aov all the pixels corresponding to given ID and refresh them
    // (less expensive than calling refreshGLBuffer())
  
-   int Op_id = *m_picked_id;
+   //int Op_id = *m_picked_id;
    delete m_picked_id;
    m_picked_id = NULL;
 
@@ -796,7 +828,7 @@ void CRenderView::saveImage(const std::string &filename)
       for (int i = 0; i < m_width; ++i, ++buffer)
       {
          AtRGBA &color = *buffer;
-         outImg.setPixel(i, j, qRgba((int)255*(color.r), (int)255*(color.g), (int)255*(color.b), (int)255*(color.a)));
+         outImg.setPixel(i, j, qRgba(int(255*(color.r)), int(255*(color.g)), int(255*(color.b)), int(255*(color.a))));
       }
    }
    outImg.save(QString(filename.c_str()));
@@ -812,7 +844,7 @@ void CRenderView::storeImage()
 
 void CRenderView::refreshGLBuffer()
 {
-   m_displayID = (m_displayedImageIndex < 0) && (m_displayedAovIndex == (m_aovNames.size() -1));
+   m_displayID = (m_displayedImageIndex < 0) && (m_displayedAovIndex == (int(m_aovNames.size()) -1));
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
    AtRGBA8 *gl_buffer = m_gl->getBuffer();
@@ -2032,7 +2064,7 @@ void CRenderViewMainWindow::frameRegion()
       regionCenter.x -= m_renderView.m_width*0.5;
       regionCenter.y -= m_renderView.m_height*0.5;
 
-      m_renderView.m_gl->setPan(-regionCenter.x * zoomFactor,-regionCenter.y*zoomFactor);
+      m_renderView.m_gl->setPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
       m_renderView.draw();
    }
 }
@@ -2099,7 +2131,7 @@ void CRenderViewCCWindow::init()
    m_gamma_slider->resize(150, 20);
    m_gamma_slider->setMinimum(0);
    m_gamma_slider->setMaximum(500);
-   m_gamma_slider->setValue(m_colorCorrectSettings.gamma * 100);
+   m_gamma_slider->setValue(int(m_colorCorrectSettings.gamma * 100));
 
    QLabel *label = new QLabel(QString("Gamma"), this);
    label->resize(40, 20);
@@ -2123,7 +2155,7 @@ void CRenderViewCCWindow::init()
    m_brightness_slider->resize(150, 20);
    m_brightness_slider->setMinimum(0);
    m_brightness_slider->setMaximum(500);
-   m_brightness_slider->setValue(m_colorCorrectSettings.gamma * 100);
+   m_brightness_slider->setValue(int(m_colorCorrectSettings.gamma * 100));
    label = new QLabel(QString("Brightness"), this);
    label->move(20, line);
    label->resize(55, 20);
@@ -2181,7 +2213,7 @@ void CRenderViewCCWindow::gammaTextChanged()
    QString gamma = m_gamma_edit->text();
    m_colorCorrectSettings.gamma = gamma.toFloat();
    m_gamma_slider->blockSignals(true);
-   m_gamma_slider->setValue(m_colorCorrectSettings.gamma * 100);
+   m_gamma_slider->setValue(int(m_colorCorrectSettings.gamma * 100));
    m_gamma_slider->blockSignals(false);
    m_renderView.refreshGLBuffer();
 }
@@ -2203,7 +2235,7 @@ void CRenderViewCCWindow::brightnessTextChanged()
    QString brightness = m_brightness_edit->text();
    m_colorCorrectSettings.brightness = brightness.toFloat();
    m_brightness_slider->blockSignals(true);
-   m_brightness_slider->setValue(m_colorCorrectSettings.brightness * 100);
+   m_brightness_slider->setValue(int(m_colorCorrectSettings.brightness * 100));
    m_brightness_slider->blockSignals(false);
    m_renderView.refreshGLBuffer();
 }
