@@ -58,13 +58,11 @@ public:
 
    void restore();
    void isolateSelected();
-   void applyDebugShading(RenderViewDebugShading d);
-
+   
    void setShaderName(const std::string &name);
    void objectNameChanged(const std::string &new_name, const std::string &old_name);
 
 private:
-   void setDebugShader(AtNode *debug_shader);
    static bool checkShaderConnections(const AtNode *, const AtNode *);
    void restoreShaders();
    void restoreLights();
@@ -72,7 +70,7 @@ private:
    std::tr1::unordered_map<std::string, std::string> m_shader_map;
    std::tr1::unordered_map<std::string, float> m_light_intensities;
 
-   
+   std::vector<std::string> m_disabled_shaders;
    std::string  m_debug_shader_name;
    
 };

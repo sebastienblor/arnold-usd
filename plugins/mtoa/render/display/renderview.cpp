@@ -605,9 +605,9 @@ void CRenderView::updateRender()
       m_main_window->populateAOVsMenu();
    }
 
-   if(m_debug_shading != RV_DBG_SHAD_DISABLED)
+   if(m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
-      m_shading_manager.applyDebugShading(m_debug_shading);
+      m_shading_manager.isolateSelected();
    }
 
    // check if amount of cameras have changed
@@ -679,22 +679,89 @@ void CRenderView::setDebugShading(RenderViewDebugShading d)
    {
       CRenderView::sleep(1000);
    }
+
+   // if previous shading mode was "isolate selected"
+   // I need the remove the "selection change" callback
+   // and also restore the specific stuff done by the shading manager
    if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
       MMessage::removeCallback(rv_selection_cb);
+      m_shading_manager.restore();
    }
    m_debug_shading = d; 
-   
+
+   // for debug modes like basic, occlusion, wireframe, etc...   
+   // we can set options.ignore_shaders to TRUE
+   // and edit the default shader (ai_default_reflection_shader)
+
+   // for isolate selected :
+   // set the default shader to black, and for all non-visible 
+   // shaders set AiNodeSetDisabled(AtNode* node, bool disabled) to false
+   // so that they use this default black matte
+
+   // if selection is a light, call AiNodeSetDisabled(AtNode* node, bool disabled)
+   // to  all other lights
+
+   // don't forget to restore all this later
+   AtNode *options = AiUniverseGetOptions();
    if (m_debug_shading == RV_DBG_SHAD_DISABLED)
    {
-      m_shading_manager.restore();
+      AiNodeSetBool(options, "ignore_shaders", false);
 
    } else if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
+      AiNodeSetBool(options, "ignore_shaders", false);
       rv_selection_cb = MEventMessage::addEventCallback("SelectionChanged",
                                                   CRenderView::SelectionChangedCallback,
                                                   (void*)this);
 
+      AtNode *utility_shader = AiNodeLookUpByName("ai_default_reflection_shader");
+      AiNodeSetStr(utility_shader, "color_mode", "color");
+      AiNodeSetStr(utility_shader, "shade_mode", "flat");
+      AiNodeSetRGB(utility_shader, "color", 0.f, 0.f, 0.f);
+
+   } else
+   {
+      AiNodeSetBool(options, "ignore_shaders", true);
+      // all shapes will now be shaded with arnold default shader (ai_default_reflection_shader)
+      AtNode *utility_shader = AiNodeLookUpByName("ai_default_reflection_shader");
+      AiNodeSetRGB(utility_shader, "color", 1.f, 1.f, 1.f);
+
+      switch (m_debug_shading)
+      {
+         case RV_DBG_SHAD_WIREFRAME:
+            AiNodeSetStr(utility_shader, "color_mode", "polywire");
+            AiNodeSetStr(utility_shader, "shade_mode", "ndoteye");
+         break;
+         case RV_DBG_SHAD_BASIC:
+            AiNodeSetStr(utility_shader, "color_mode", "color");
+            AiNodeSetStr(utility_shader, "shade_mode", "ndoteye");
+         break;
+         case RV_DBG_SHAD_OCCLUSION:
+            AiNodeSetStr(utility_shader, "color_mode", "color");
+            AiNodeSetStr(utility_shader, "shade_mode", "ambocc");
+         break;   
+         case RV_DBG_SHAD_UV:
+            AiNodeSetStr(utility_shader, "color_mode", "uv");
+            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+         break;
+         case RV_DBG_SHAD_NORMAL:
+            AiNodeSetStr(utility_shader, "color_mode", "n");
+            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+         break;
+         case RV_DBG_SHAD_PRIMITIVE_ID:
+            AiNodeSetStr(utility_shader, "color_mode", "prims");
+            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+         break;
+         case RV_DBG_SHAD_OBJECT:
+            AiNodeSetStr(utility_shader, "color_mode", "obj");
+            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+         break;
+         case RV_DBG_SHAD_BARY:
+            AiNodeSetStr(utility_shader, "color_mode", "bary");
+            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+         break;
+      }
    }
 
    updateRender();
