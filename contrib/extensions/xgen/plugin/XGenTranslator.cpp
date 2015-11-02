@@ -378,7 +378,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             info.setCameraPos( tm[3][0], tm[3][1], tm[3][2] );
 
             // info.fCameraFOV
-            info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * 57.295779513082323f;
+            info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * AI_RTOD;
 
             // info.setCameraInvMat
             // This is correct. Maya expects a mix of the inverted and not inverted matrix
