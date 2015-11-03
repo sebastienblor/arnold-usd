@@ -834,28 +834,45 @@ deepexrEnableFilteringTemplates = []
 
 class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
     def __init__(self, nodeType):
+        
         aovs.addAOVChangedCallback(self.updateLayerTolerance, 'DeepEXRDriverTranslatorUITolerance')
         aovs.addAOVChangedCallback(self.updateLayerHalfPrecision, 'DeepEXRDriverTranslatorUIHalfPrecision')
         aovs.addAOVChangedCallback(self.updateLayerEnableFiltering, 'DeepEXRDriverTranslatorUIEnableFiltering')
         super(DeepEXRDriverTranslatorUI, self).__init__(nodeType)
 
     def updateLayerTolerance(self):
+
         aovList = aovs.getAOVs(enabled=True)
-        
+
         deepexrToleranceTemplates[:] = [tup for tup in deepexrToleranceTemplates if cmds.columnLayout(tup, exists=True)]
         for templateName in deepexrToleranceTemplates:
+            
+            driverName = self.nodeName
+
+            # note that this function may be called to fill the defaultArnoldDriver exposed params
+            # but with self != defaultArnoldDriver
+            # this is because we might want to add this aov name in the default layers* list
+            
+            # in the render settings window I only want to display the defaultArnoldDriver params
+            if templateName[:26] == "unifiedRenderGlobalsWindow":
+                driverName = "defaultArnoldDriver"
+
             cmds.setParent(templateName)
             for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
                 cmds.deleteUI(child)
                 
-            cmds.attrFieldSliderGrp(label='alpha' , at='defaultArnoldDriver.alphaTolerance' )
-            cmds.attrFieldSliderGrp(label='depth' , at='defaultArnoldDriver.depthTolerance' )
-            cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]' )
-            for i in range(0,len(aovList)):
-                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
-                    labelStr = aovList[i].name
-                    attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
-                    cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
+            cmds.attrFieldSliderGrp(label='alpha' , at=driverName + '.alphaTolerance' )
+            cmds.attrFieldSliderGrp(label='depth' , at=driverName + '.depthTolerance' )
+
+            if driverName == "defaultArnoldDriver":
+                cmds.attrFieldSliderGrp(label='beauty' , at='defaultArnoldDriver.layerTolerance[0]')
+                for i in range(0,len(aovList)):
+                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                        labelStr = aovList[i].name
+                        attrStr = 'defaultArnoldDriver.layerTolerance['+str(i+1)+']'
+                        cmds.attrFieldSliderGrp(label=labelStr , at=attrStr )
+            else:
+                cmds.attrFieldSliderGrp(label='layer' , at=driverName + '.layerTolerance[0]' )
             
     def updateLayerHalfPrecision(self):
         aovList = aovs.getAOVs(enabled=True)
@@ -863,39 +880,73 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         deepexrHalfPrecisionTemplates[:] = [tup for tup in deepexrHalfPrecisionTemplates if cmds.columnLayout(tup, exists=True)]
         for templateName in deepexrHalfPrecisionTemplates:
             cmds.setParent(templateName)
+
+            driverName = self.nodeName
+
+            # note that this function may be called to fill the defaultArnoldDriver exposed params
+            # but with self != defaultArnoldDriver
+            # this is because we might want to add this aov name in the default layers* list
+            
+            # in the render settings window I only want to display the defaultArnoldDriver params
+            if templateName[:26] == "unifiedRenderGlobalsWindow":
+                driverName = "defaultArnoldDriver"
+
             for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
                 cmds.deleteUI(child)
-            cmds.attrControlGrp(label='alpha' , a='defaultArnoldDriver.alphaHalfPrecision' )
-            cmds.attrControlGrp(label='depth' , a='defaultArnoldDriver.depthHalfPrecision' )
-            cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerHalfPrecision[0]' )
-            for i in range(0,len(aovList)):
-                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
-                    labelStr = aovList[i].name
-                    attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
-                    cmds.attrControlGrp(label=labelStr , a=attrStr )
-        
+
+            cmds.attrControlGrp(label='alpha' , a=driverName+'.alphaHalfPrecision' )
+            cmds.attrControlGrp(label='depth' , a=driverName+'.depthHalfPrecision' )
+
+            if driverName == "defaultArnoldDriver":
+                cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerHalfPrecision[0]' )
+           
+                for i in range(0,len(aovList)):
+                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                        labelStr = aovList[i].name
+                        attrStr = 'defaultArnoldDriver.layerHalfPrecision['+str(i+1)+']'
+                        cmds.attrControlGrp(label=labelStr , a=attrStr )
+            else:
+                cmds.attrControlGrp(label='layer' , a=driverName+'.layerHalfPrecision[0]' )
+
+
     def updateLayerEnableFiltering(self):
         aovList = aovs.getAOVs(enabled=True)
         
         deepexrEnableFilteringTemplates[:] = [tup for tup in deepexrEnableFilteringTemplates if cmds.columnLayout(tup, exists=True)]
         for templateName in deepexrEnableFilteringTemplates:
             cmds.setParent(templateName)
+
+            # note that this function may be called to fill the defaultArnoldDriver exposed params
+            # but with self != defaultArnoldDriver
+            # this is because we might want to add this aov name in the default layers* list
+            
+            # in the render settings window I only want to display the defaultArnoldDriver params
+            driverName = self.nodeName
+            if templateName[:26] == "unifiedRenderGlobalsWindow":
+                driverName = "defaultArnoldDriver"
+
             for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
                 cmds.deleteUI(child)
-            cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
-            for i in range(0,len(aovList)):
-                if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
-                    labelStr = aovList[i].name
-                    attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
-                    cmds.attrControlGrp(label=labelStr , a=attrStr )
+
+            if driverName == "defaultArnoldDriver":
+                cmds.attrControlGrp(label='beauty' , a='defaultArnoldDriver.layerEnableFiltering[0]' )
+                for i in range(0,len(aovList)):
+                    if aovList[i].node.attr('outputs')[0].driver.inputs()[0].name() == 'defaultArnoldDriver':
+                        labelStr = aovList[i].name
+                        attrStr = 'defaultArnoldDriver.layerEnableFiltering['+str(i+1)+']'
+                        cmds.attrControlGrp(label=labelStr , a=attrStr )
+            else:
+                cmds.attrControlGrp(label='layer' , a=driverName +'.layerEnableFiltering[0]' )
      
     def layerToleranceNew(self, nodeName):
         layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
         deepexrToleranceTemplates.append(layout)
+        
         self.updateLayerTolerance()
         cmds.setParent( '..' )
         
     def layerToleranceReplace(self, nodeName):
+
         self.updateLayerTolerance()
         cmds.setParent( '..' )
         
