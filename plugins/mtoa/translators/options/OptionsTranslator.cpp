@@ -527,9 +527,9 @@ void COptionsTranslator::Update(AtNode *options)
                AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
          }
-         else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
+         else if (strcmp(paramName, "GI_sss_samples") == 0)
          {
-            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+            CNodeTranslator::ProcessParameter(options, "GI_sss_samples", AI_TYPE_INT);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {

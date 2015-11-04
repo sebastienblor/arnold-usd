@@ -11,6 +11,7 @@ public:
    virtual void Export(AtNode* shape);
    virtual void Update(AtNode* shape);
    void ExportMotion(AtNode*, unsigned int);
+   virtual bool DependsOnExportCamera() {return true;}
 
    static void* creator()
    {
