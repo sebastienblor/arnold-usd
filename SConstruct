@@ -262,10 +262,6 @@ if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
-        
-#Disabling Bifrost for OSX by now
-if system.os() == 'darwin':
-    env['ENABLE_BIFROST'] = 0
 
 mercurial_id = ""
 try:
