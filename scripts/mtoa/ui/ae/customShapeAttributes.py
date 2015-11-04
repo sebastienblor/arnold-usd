@@ -919,6 +919,138 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         self.updateLayerEnableFiltering()
         cmds.setParent( '..' )
 
+    def changeAttrName(self, nodeName, attrNameText, index):
+        # Get the attribute name, type and value
+        attrName = nodeName+'['+str(index)+']'
+        metadata = cmds.getAttr(attrName)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        
+        # Get the new name
+        name = cmds.textField(attrNameText, query=True, text=True)
+        
+        # Update the name in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeName", edit=True, text=name.replace(" ", ""))
+        
+        # Update the metadata value
+        metadata = result[0]+" "+name.replace(" ", "")+" "+result[2]
+        cmds.setAttr(attrName, metadata, type="string")
+    
+    def changeAttrType(self, nodeName, menu, index):
+        # Get the attribute name, type and value
+        attrName = nodeName+'['+str(index)+']'
+        metadata = cmds.getAttr(attrName)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        
+        # Get the new type
+        typeNumber = cmds.optionMenu(menu, query=True, select=True)
+        type = cmds.optionMenu(menu, query=True, value=True)
+        
+        # Update the type in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.optionMenu(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeType", edit=True, select=typeNumber)
+            
+        # Update the metadata value
+        metadata = type+" "+result[1]+" "+result[2]
+        cmds.setAttr(attrName, metadata, type="string")
+        
+    def changeAttrValue(self, nodeName, attrValueText, index):
+        # Get the attribute name, type and value
+        attrName = nodeName+'['+str(index)+']'
+        metadata = cmds.getAttr(attrName)
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+
+        # Get the new value
+        value = cmds.textField(attrValueText, query=True, text=True)
+        
+        # Update the value in all the templates
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.textField(templateName+"|mtoa_exrMetadataRow_"+str(index)+"|MtoA_exrMAttributeValue", edit=True, text=value)
+        
+        # Update the metadata value
+        metadata = result[0]+" "+result[1]+" "+value
+        cmds.setAttr(attrName, metadata, type="string")
+        
+    def removeAttribute(self, nodeName, index):
+        cmds.removeMultiInstance(nodeName+'['+str(index)+']')
+        self.updatedMetadata(nodeName)
+        
+    def addAttribute(self, nodeName):
+        next = 0
+        if cmds.getAttr(nodeName, multiIndices=True):
+            next = cmds.getAttr(nodeName, multiIndices=True)[-1] + 1
+        cmds.setAttr(nodeName+'['+str(next)+']', "INT", type="string")
+        self.updatedMetadata(nodeName)
+        
+    def updateLine(self, nodeName, metadata, index):
+        # Attribute controls will be created with the current metadata content
+        result = metadata.split(' ', 2 )
+        result += [""] * (3-len(result))
+        
+        # Attribute Name
+        attrNameText = cmds.textField("MtoA_exrMAttributeName", text=result[1])
+        cmds.textField(attrNameText, edit=True, changeCommand=pm.Callback(self.changeAttrName, nodeName, attrNameText, index))
+        
+        # Attribute Type
+        menu = cmds.optionMenu("MtoA_exrMAttributeType")
+        cmds.menuItem( label='INT', data=0)
+        cmds.menuItem( label='FLOAT', data=1)
+        cmds.menuItem( label='POINT2', data=2)
+        cmds.menuItem( label='MATRIX', data=3)
+        cmds.menuItem( label='STRING', data=4)
+        if result[0] == 'INT':
+            cmds.optionMenu(menu, edit=True, select=1)
+        elif result[0] == 'FLOAT':
+            cmds.optionMenu(menu, edit=True, select=2)
+        elif result[0] == 'POINT2':
+            cmds.optionMenu(menu, edit=True, select=3)
+        elif result[0] == 'MATRIX':
+            cmds.optionMenu(menu, edit=True, select=4)
+        elif result[0] == 'STRING':
+            cmds.optionMenu(menu, edit=True, select=5)
+        cmds.optionMenu(menu, edit=True, changeCommand=pm.Callback(self.changeAttrType, nodeName, menu, index))
+        
+        # Attribute Value
+        attrValueText = cmds.textField("MtoA_exrMAttributeValue", text=result[2])
+        cmds.textField(attrValueText, edit=True, changeCommand=pm.Callback(self.changeAttrValue, nodeName, attrValueText, index))
+        
+        # Remove button
+        cmds.symbolButton(image="SP_TrashIcon.png", command=pm.Callback(self.removeAttribute, nodeName, index))
+        
+    def updatedMetadata(self, nodeName):
+        templatesNames[:] = [tup for tup in templatesNames if cmds.columnLayout(tup, exists=True)]
+        for templateName in templatesNames:
+            cmds.setParent(templateName)
+            #Remove all attributes controls and rebuild them again with the metadata updated content
+            for child in cmds.columnLayout(templateName, query=True, childArray=True) or []:
+                cmds.deleteUI(child)
+            for index in cmds.getAttr(nodeName, multiIndices=True) or []:
+                attrName = nodeName+'['+str(index)+']'
+                metadata = cmds.getAttr(attrName)
+                if metadata:
+                    cmds.rowLayout('mtoa_exrMetadataRow_'+str(index),nc=4, cw4=(120,80,120,20), cl4=('center', 'center', 'center', 'right'))
+                    self.updateLine(nodeName, metadata, index)
+                    cmds.setParent('..')
+        
+    def metadataNew(self, nodeName):
+        cmds.rowLayout(nc=2, cw2=(200,140), cl2=('center', 'center'))
+        cmds.button( label='Add New Attribute', command=pm.Callback(self.addAttribute, 'defaultArnoldDriver.custom_attributes'))
+        cmds.setParent( '..' )
+        layout = cmds.columnLayout(rowSpacing=5, columnWidth=340)
+        # This template could be created more than once in different panels
+        templatesNames.append(layout)
+        self.updatedMetadata('defaultArnoldDriver.custom_attributes')
+        cmds.setParent( '..' )
+
+    def metadataReplace(self, nodeName):
+        pass
+        
     def setup(self):
         #self.addControl('tiled', label='Tiled')
         self.addControl('subpixelMerge', label='Subpixel Merge')
@@ -933,6 +1065,10 @@ class DeepEXRDriverTranslatorUI(templates.AttributeTemplate):
         
         self.beginLayout("Enable Filtering", collapse=False)
         self.addCustom('layerEnableFilteringSection', self.layerEnableFilteringNew, self.layerEnableFilteringReplace)
+        self.endLayout()
+        
+        self.beginLayout("Metadata (name, type, value)", collapse=True)
+        self.addCustom('custom_attributes', self.metadataNew, self.metadataReplace)
         self.endLayout()
 
 templates.registerTranslatorUI(DeepEXRDriverTranslatorUI, 'aiAOVDriver', 'deepexr')
