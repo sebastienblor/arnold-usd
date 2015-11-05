@@ -31,6 +31,7 @@
 #include <iostream>
 
 #include <maya/MFnCamera.h>
+#include <maya/MDagPath.h>
 #include <maya/MMatrix.h>
 
 
@@ -129,6 +130,7 @@ public:
 
 protected:
 
+   MDagPath m_cameraPath;
    MFnCamera m_camera;
    
    MMatrix m_original_matrix;
@@ -190,4 +192,5 @@ protected:
    float m_orig_lat;
    MVector m_view_direction;
    MVector m_orig_rotation;
+   
 };

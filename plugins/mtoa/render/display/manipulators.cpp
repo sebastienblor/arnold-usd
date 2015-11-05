@@ -26,6 +26,8 @@
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
 
+#include <maya/MEulerRotation.h>
+#include <maya/MFnTransform.h>
 
 void CRenderViewManipulator::mouseMove(int x, int y)
 {
@@ -198,21 +200,19 @@ CRenderView3DManipulator::CRenderView3DManipulator(CRenderView &rv, int x, int y
 {
    AtNode *arnold_camera = AiUniverseGetCamera();
    if (arnold_camera == NULL) return;
-
    
    MSelectionList camList;
    camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
 
-   MDagPath camDag;
-   camList.getDagPath(0, camDag);
+   camList.getDagPath(0, m_cameraPath);
 
-   if (!camDag.isValid()) return;
-   MObject camNode = camDag.node();
+   if (!m_cameraPath.isValid()) return;
 
-    m_camera.setObject(camDag);
-      
+   MObject camNode = m_cameraPath.node();
 
-   m_original_matrix = camDag.inclusiveMatrix();
+   m_camera.setObject(m_cameraPath);      
+
+   m_original_matrix = m_cameraPath.inclusiveMatrix();
    MStatus status;
    m_original_position = m_camera.eyePoint(MSpace::kWorld, &status);
    
@@ -284,7 +284,6 @@ void CRenderView3DZoom::mouseMove(int x, int y)
    m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
 }
 
-
 void CRenderView3DZoom::wheel(CRenderView &renderView, float delta)
 {
    AtNode *arnold_camera = AiUniverseGetCamera();
@@ -324,98 +323,54 @@ CRenderView3DRotate::CRenderView3DRotate(CRenderView &rv, int x, int y) : CRende
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
    m_center_dist = m_center.distanceTo(m_original_position);
    m_up_direction = m_camera.upDirection(MSpace::kWorld);
-}
-CRenderView3DRotate::~CRenderView3DRotate()
-{
-
-}
-
-void CRenderView3DRotate::mouseMove(int x, int y)
-{
-   int deltaX = x - m_start_x;
-   int deltaY = y - m_start_y;
-
-   // arbitrary multiplier 
-   deltaX = int(-0.1f * deltaX);
-   deltaY = int(0.1f * deltaY);
-
-   MPoint new_position = m_original_position + m_camera.rightDirection(MSpace::kWorld) * deltaX + m_up_direction * deltaY;
-   MVector dir = new_position - m_center;
-   dir.normalize();
-   new_position = m_center;
-   new_position += m_center_dist * dir;
-
-   m_camera.set(new_position, -dir, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
-   m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
-}
-
-
-/*
-
-CRenderView3DRotate::CRenderView3DRotate(CRenderView &rv, int x, int y) : CRenderView3DManipulator(rv, x, y)
-{
-   m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   m_center_dist = m_center.distanceTo(m_original_position);
-   m_up_direction = m_camera.upDirection(MSpace::kWorld);
-   m_view_direction = m_original_position - m_center;
-
-   // startO = m_view_direction
-   // r = m_center_dist
-
-
-
-      if (!m_view_direction.z)
-      {
-         m_orig_lon = m_original_position.x > 0.0 ? AI_PI/2.0 : AI_PI * 3.0 / 2.0;
-      }
-      else
-      {
-         m_orig_lon = atan(m_view_direction.x / -m_view_direction.z);
-         if (m_view_direction.z > 0.0) m_orig_lon += AI_PI;
-         if (m_view_direction.z < 0.0 && m_view_direction.x < 0.0) m_orig_lon += 2*AI_PI;
-      }
-      m_orig_lat = acos(m_view_direction.y / m_center_dist);
-
-}
-CRenderView3DRotate::~CRenderView3DRotate()
-{
-
-}
-
-void CRenderView3DRotate::mouseMove(int x, int y)
-{
-   int deltaX = x - m_start_x;
-   int deltaY = y - m_start_y;
-
-   // arbitrary multiplier 
-   deltaX *= -0.01f;
-   deltaY *= 0.01f;
-
-
-   float newLon = m_orig_lon - deltaX;
-   float newLat = m_orig_lat - deltaY;
-            
-   MVector newO;
-   newO.x = m_center_dist * sin(newLat) * sin(newLon);
-   newO.y = m_center_dist * cos(newLat);
-   newO.z = -(m_center_dist * sin(newLat) * cos(newLon));
-
-   MVector newPos = m_original_position + newO - m_view_direction;
-   MVector dir = newPos - m_center;
-   dir.normalize();
-   newPos = m_center;
-   newPos += dir * m_center_dist;
-
-
-
-   MPoint new_position = m_original_position + m_camera.rightDirection(MSpace::kWorld) * deltaX + m_up_direction * deltaY;
-   dir = new_position - m_center;
-   dir.normalize();
-   new_position = m_center;
-   new_position += m_center_dist * dir;
    
-   m_camera.set(newPos, -dir, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
+}
+CRenderView3DRotate::~CRenderView3DRotate()
+{
 
 }
 
-*/
+void CRenderView3DRotate::mouseMove(int x, int y)
+{
+
+   MStatus status;
+   MDagPath camTransform = m_cameraPath;
+   camTransform.pop();
+   MFnTransform transformPath(camTransform, &status);
+   if (status != MS::kSuccess) 
+      return;
+   
+
+   MVector right_direction = m_camera.rightDirection(MSpace::kWorld);
+   MVector fElevationAxis = -right_direction;
+   fElevationAxis.normalize();
+
+   MPoint previousRp = transformPath.rotatePivot(MSpace::kWorld);
+   MVector previousRt = transformPath.rotatePivotTranslation (MSpace::kWorld);
+
+   MPoint fPivotPoint = m_center;
+   transformPath.setRotatePivot(fPivotPoint, MSpace::kWorld, true);
+   MMatrix matrix = camTransform.inclusiveMatrix();
+   
+   MEulerRotation rot;
+
+   transformPath.getRotation(rot);
+   
+   rot.incrementalRotateBy (fElevationAxis, .01f * (y - m_start_y));
+   
+   rot.incrementalRotateBy (MGlobal::upAxis(), - .01f * (x - m_start_x));
+
+   // start_x being "previous_x" here
+   m_start_x = x;
+   m_start_y = y;
+
+   transformPath.setRotation(rot);
+
+   transformPath.setRotatePivot (previousRp, MSpace::kWorld, true);
+   MVector nextRt = transformPath.rotatePivotTranslation (MSpace::kWorld);
+
+   transformPath.translateBy(nextRt - previousRt, MSpace::kWorld);
+   transformPath.setRotatePivotTranslation(previousRt, MSpace::kWorld);
+   m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
+  
+}
