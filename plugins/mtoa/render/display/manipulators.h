@@ -153,6 +153,7 @@ protected :
    MVector  m_up_direction;
    MVector  m_right_direction;
    MVector  m_view_direction;
+   float    m_dist_factor;
 };
 
 

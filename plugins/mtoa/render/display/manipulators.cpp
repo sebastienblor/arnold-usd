@@ -239,6 +239,18 @@ CRenderView3DPan::CRenderView3DPan(CRenderView &rv, int x, int y) : CRenderView3
    m_right_direction = m_camera.rightDirection(MSpace::kWorld);
    m_view_direction = m_camera.viewDirection(MSpace::kWorld);
 
+   m_dist_factor = 1.f;
+   AtNode *cam = AiUniverseGetCamera ();
+   if (cam == NULL) return; // can this happen ?....
+   
+   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(cam)), "persp_camera") != 0) return;
+
+   MPoint original_position = m_camera.eyePoint(MSpace::kWorld);
+   MPoint center = m_camera.centerOfInterestPoint(MSpace::kWorld);
+   float center_dist = center.distanceTo(original_position);
+
+   m_dist_factor = center_dist * tanf(AiNodeGetFlt(cam, "fov") * AI_DTOR);
+
 }
 CRenderView3DPan::~CRenderView3DPan()
 {
@@ -246,16 +258,21 @@ CRenderView3DPan::~CRenderView3DPan()
 
 void CRenderView3DPan::mouseMove(int x, int y)
 {
-   int deltaX = x - m_start_x;
-   int deltaY = y - m_start_y;
 
-   // arbitrary multiplier 
-   deltaX = int(-0.1f * deltaX);
-   deltaY = int(0.1f * deltaY);
+   // get the start and current mouse coordinates in image space
+   int imageStart[2];
+   int imagePoint[2];
+   CRenderGLWidget *glWidget = m_renderView.getGlWidget();
+   glWidget->project(m_start_x, m_start_y, imageStart[0], imageStart[1], true);
+   glWidget->project(x, y, imagePoint[0], imagePoint[1], true);
 
-   MPoint new_position = m_original_position + m_right_direction * deltaX + m_up_direction * deltaY;
+   // get the delta factor relative to the width 
+   int delta[2];
+   delta[0] = int(-m_dist_factor * (imagePoint[0] - imageStart[0]) / (m_renderView.width()));
+   delta[1] = int(m_dist_factor * (imagePoint[1] - imageStart[1]) / (m_renderView.width()));
+
+   MPoint new_position = m_original_position + m_right_direction * delta[0] + m_up_direction * delta[1];
    m_camera.set(new_position, m_view_direction, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
- 
 }
 
 
