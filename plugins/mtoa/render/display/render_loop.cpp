@@ -83,10 +83,6 @@ volatile AtUInt64 K_render_timestamp;
 
 
 
-// forward for render loop
-int RenderLoop(int smin, int smax);
-
-
 
 /******************************************************************************
    Helper functions
@@ -218,7 +214,7 @@ void K_InitGlobalVars(void)
 
 
 
-extern int RenderLoop(CRenderView *kwin, int smin, int smax)
+extern int RenderLoop(CRenderView *kwin)
 {
    int i, exit_code = K_SUCCESS;
    K_wait_for_changes = false;
@@ -238,6 +234,9 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
        * begin the render-loop
        */
 
+      int smin = MIN(-3, K_AA_samples);
+      int smax = K_AA_samples;
+
       K_render_timestamp = CRenderView::time();
       
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
@@ -247,7 +246,6 @@ extern int RenderLoop(CRenderView *kwin, int smin, int smax)
             break;
 
          K_restartLoop = false;
-
 
 /*
          Commented for now
@@ -398,10 +396,7 @@ unsigned int kickWindowRender(void *kwin_ptr)
   CRenderView *kwin = (CRenderView*)kwin_ptr;
   kwin->show();
 
-  int smin = MIN(-3, K_AA_samples);
-  int smax = K_AA_samples;
-
-  RenderLoop(kwin, smin, smax);
+  RenderLoop(kwin);
 
   return 0;
 }
