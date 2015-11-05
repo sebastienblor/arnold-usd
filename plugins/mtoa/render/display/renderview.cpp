@@ -484,7 +484,8 @@ void CRenderView::syncPause()
    _mm_pause();
 }
 
-   
+// This function is called by each of the Render threads
+// Beware not to do any Qt UI stuff here
 void CRenderView::draw(AtBBox2 *region)  
 {
    bool already_in_queue = false;
@@ -522,12 +523,9 @@ void CRenderView::draw(AtBBox2 *region)
 
    if ( already_in_queue == false) 
    {
+      // update() can be called by any threads
+      // after that, the paintGL will be called "soon" from the main (UI) thread
       m_gl->update();
-
-      // now that buckets are being painted
-      // we can turn the menus as active again
-
-      m_main_window->enableMenus(true);
    }
 }
 
@@ -847,8 +845,14 @@ void CRenderView::ObjectNameChanged(const std::string &new_name, const std::stri
    m_shading_manager.objectNameChanged(new_name, old_name);
 }
 
+// this function is being called by renderview_gl::paintGL
+// so we're in the main (UI) thread here
+// here we can do any stuff related to UI
 void CRenderView::checkSceneUpdates()
 {  
+   // now that buckets are being painted
+   // we can turn the menus as active again
+   m_main_window->enableMenus(true);
 
    if (m_status_bar_enabled)
    {
