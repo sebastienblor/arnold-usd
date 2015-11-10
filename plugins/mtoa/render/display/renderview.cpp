@@ -232,6 +232,11 @@ void CRenderView::init()
    // setup syncing
    displaySyncCreate();
 
+
+   K_AA_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   if (K_AA_samples == 0)
+   K_AA_samples = 1;
+
    updateRenderOptions();
 
 
@@ -262,10 +267,6 @@ void CRenderView::updateRenderOptions()
    bucket_size = bucket_size;
    min_x       = 0; // chec region_min_x ?
    min_y       = 0;
-
-   K_AA_samples = AiNodeGetInt(options, "AA_samples");
-   if (K_AA_samples == 0)
-   K_AA_samples = 1;
    
    //unsigned int i;
    //char kick_drv[1024];
@@ -581,7 +582,8 @@ void CRenderView::updateRender()
    //K_AA_samples = AiNodeGetInt(options, "AA_samples");
    AtArray *outputs = AiNodeGetArray(options, "outputs");
 
-   AiNodeSetInt(options, "AA_samples", K_AA_samples); // setting back AA samples to its original value
+//   AiNodeSetInt(options, "AA_samples", K_AA_samples); // setting back AA samples to its original value
+
 
    // should I wait until rendering is really finished ?
    //while (AiRendering()) CRenderView::sleep(1000);
@@ -592,9 +594,21 @@ void CRenderView::updateRender()
    AtArray *new_outputs = AiNodeGetArray(options, "outputs");
    bool size_changed = (xres != AiNodeGetInt(options, "xres") || yres != AiNodeGetInt(options, "yres"));
 
+ 
+   // Since we're manually modifying the Options AA_samples parameter in the Render Loop
+   // and in parallel our Translator is setting AA_samples from Maya's value
+   // it's better to come back to Maya's value here to make sure
+   // we're having the right AA samples
+   MSelectionList activeList;
+   activeList.add(MString("defaultArnoldRenderOptions"));
+   MObject optObject;
+   activeList.getDependNode(0, optObject);
+   MFnDependencyNode fnOpt(optObject);
+   K_AA_samples = fnOpt.findPlug("AASamples", true).asInt();
+   AiNodeSetInt(options, "AA_samples", K_AA_samples);
+
    if (bucket_size != AiNodeGetInt(options, "bucket_size") ||
       size_changed ||
-      K_AA_samples != AiNodeGetInt(options, "AA_samples") ||
       outputs != new_outputs)
    {
       if (size_changed) initSize(AiNodeGetInt(options, "xres"), AiNodeGetInt(options, "yres"));
