@@ -221,7 +221,7 @@ void CRenderGLWidget::paintGL()
    glPushMatrix();
    glLoadIdentity();
 
-   displayBuffer(m_renderview.reg_x, m_renderview.reg_y, &region, m_renderview.m_color_mode, false);
+   displayBuffer(m_renderview.m_reg_x, m_renderview.m_reg_y, &region, m_renderview.m_color_mode, false);
 
    glMatrixMode(GL_PROJECTION);
    glPopMatrix();

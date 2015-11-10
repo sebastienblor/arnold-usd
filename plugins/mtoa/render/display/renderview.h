@@ -291,13 +291,15 @@ public:
    AtDisplaySync *displaySync() {return display_sync;}
 
    // image parameters
-   int x_res, y_res;        // window and image size
-   int bucket_size;
-   int min_x, min_y;        // region window offset
-   int reg_x, reg_y;        // region window size
+   int m_x_res, m_y_res;        // window and image size
+   int m_bucket_size;
+   int m_min_x, m_min_y;        // region window offset
+   int m_reg_x, m_reg_y;        // region window size
 
    // OS window handle
-   AtCritSec window_close_lock;
+   AtCritSec m_window_close_lock;
+   AtCritSec m_pick_lock;
+
    bool canRestartRender() const;
    void restartRender();
    void updateRender();
@@ -439,15 +441,17 @@ friend class CRenderViewMainWindow;
             // if picking in progress, compare the picked ID with the ID AOV
             if (m_picked_id)
             {
+               AiCritSecEnter(&m_pick_lock);
                //int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
                int pixel_id = reinterpret_type<float, int>(m_aovBuffers.back()[x + y * m_width].r);
 
-               if ( pixel_id == *m_picked_id )
+               if ( m_picked_id && pixel_id == *m_picked_id )
                {
                   // mix the color with white (50%)
                   rgb *= 0.5f;
                   rgb += 0.5f;
                }
+               AiCritSecLeave(&m_pick_lock);
             }
 
             rgba8.r = AiQuantize8bit(x, y, 0, color.r, dither);

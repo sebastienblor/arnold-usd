@@ -124,6 +124,9 @@ CRenderView::~CRenderView()
       }
       m_storedImages.clear();
    }
+   AiCritSecClose(&m_window_close_lock);
+   AiCritSecClose(&m_pick_lock);
+
    delete m_main_window;
 }
 
@@ -174,7 +177,8 @@ void CRenderView::init()
    m_displayID = false;
    m_debug_shading = RV_DBG_SHAD_DISABLED;
 
-   AiCritSecInit(&window_close_lock);
+   AiCritSecInit(&m_window_close_lock);
+   AiCritSecInit(&m_pick_lock);
 
    K_render_window = true;
    K_progressive = true;
@@ -260,13 +264,13 @@ void CRenderView::updateRenderOptions()
    int xres = AiNodeGetInt(options, "xres");
    int yres = AiNodeGetInt(options, "yres");
 
-   x_res       = xres;
-   y_res       = yres;
-   reg_x       = xres; // check region_min_x ?
-   reg_y       = yres;
-   bucket_size = bucket_size;
-   min_x       = 0; // chec region_min_x ?
-   min_y       = 0;
+   m_x_res       = xres;
+   m_y_res       = yres;
+   m_reg_x       = xres; // check region_min_x ?
+   m_reg_y       = yres;
+   m_bucket_size = bucket_size;
+   m_min_x       = 0; // chec region_min_x ?
+   m_min_y       = 0;
    
    //unsigned int i;
    //char kick_drv[1024];
@@ -355,13 +359,13 @@ void CRenderView::updateRenderOptions()
 
    AiBBox2Union(full_window, display_window, data_window);
 
-   x_res       = full_window.maxx - full_window.minx + 1;
-   y_res       = full_window.maxy - full_window.miny + 1;
-   reg_x       = data_window.maxx - data_window.minx + 1;
-   reg_y       = data_window.maxy - data_window.miny + 1;
-   bucket_size = bucket_size;
-   min_x       = data_window.minx;
-   min_y       = data_window.miny;
+   m_x_res       = full_window.maxx - full_window.minx + 1;
+   m_y_res       = full_window.maxy - full_window.miny + 1;
+   m_reg_x       = data_window.maxx - data_window.minx + 1;
+   m_reg_y       = data_window.maxy - data_window.miny + 1;
+   m_bucket_size = bucket_size;
+   m_min_x       = data_window.minx;
+   m_min_y       = data_window.miny;
    
    
 
@@ -510,8 +514,8 @@ void CRenderView::draw(AtBBox2 *region)
 
       sync->back_update_region.minx = 0;
       sync->back_update_region.miny = 0;
-      sync->back_update_region.maxx = reg_x;
-      sync->back_update_region.maxy = reg_y;
+      sync->back_update_region.maxx = m_reg_x;
+      sync->back_update_region.maxy = m_reg_y;
       sync->back_buffer_ready = true;
    }
 
@@ -797,7 +801,11 @@ void CRenderView::pickShape(int px, int py)
    const AtRGBA &id_val = IdAov[x + y * m_width];
    //int Op_id = *((int*)&id_val.r);
    int Op_id = reinterpret_type<float, int>(id_val.r);
+
+   AiCritSecEnter(&m_pick_lock);
+   if (m_picked_id) delete m_picked_id;
    m_picked_id = new int(Op_id);
+   AiCritSecLeave(&m_pick_lock);
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
    AtRGBA *idBuffer = m_aovBuffers.back();
@@ -846,12 +854,12 @@ void CRenderView::clearPicking()
    // search in the ID Aov all the pixels corresponding to given ID and refresh them
    // (less expensive than calling refreshGLBuffer())
  
-   //int Op_id = *m_picked_id;
+   AiCritSecEnter(&m_pick_lock);
    delete m_picked_id;
    m_picked_id = NULL;
+   AiCritSecLeave(&m_pick_lock);
 
    refreshGLBuffer();
-
 }
 
 void CRenderView::ObjectNameChanged(const std::string &new_name, const std::string &old_name)

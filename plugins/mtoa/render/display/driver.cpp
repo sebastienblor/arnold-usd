@@ -122,10 +122,10 @@ driver_prepare_bucket
    if (!rv->getShowRenderingTiles()) return;
 
    // translate to local display coordinates (cropped over overscan)
-   int min_x = bucket_xo - rv->min_x;
-   int min_y = bucket_yo - rv->min_y;
-   int max_x = MIN(min_x + bucket_size_x, rv->reg_x);
-   int max_y = MIN(min_y + bucket_size_y, rv->reg_y);
+   int min_x = bucket_xo - rv->m_min_x;
+   int min_y = bucket_yo - rv->m_min_y;
+   int max_x = MIN(min_x + bucket_size_x, rv->m_reg_x);
+   int max_y = MIN(min_y + bucket_size_y, rv->m_reg_y);
 
    // submit a 'prepare-bucket' event into our queue
    BucketSetThreadColor(rv,
@@ -147,10 +147,10 @@ driver_process_bucket
 
 
    // translate to local display coordinates (cropped over overscan)
-   int min_x = bucket_xo - rv->min_x;
-   int min_y = bucket_yo - rv->min_y;
-   int max_x = MIN(min_x + bucket_size_x, rv->reg_x);
-   int max_y = MIN(min_y + bucket_size_y, rv->reg_y);
+   int min_x = bucket_xo - rv->m_min_x;
+   int min_y = bucket_yo - rv->m_min_y;
+   int max_x = MIN(min_x + bucket_size_x, rv->m_reg_x);
+   int max_y = MIN(min_y + bucket_size_y, rv->m_reg_y);
 
 
    int AA_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
