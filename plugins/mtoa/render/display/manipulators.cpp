@@ -267,9 +267,9 @@ void CRenderView3DPan::mouseMove(int x, int y)
    glWidget->project(x, y, imagePoint[0], imagePoint[1], true);
 
    // get the delta factor relative to the width 
-   int delta[2];
-   delta[0] = int(-m_dist_factor * (imagePoint[0] - imageStart[0]) / (m_renderView.width()));
-   delta[1] = int(m_dist_factor * (imagePoint[1] - imageStart[1]) / (m_renderView.width()));
+   float delta[2];
+   delta[0] = (-m_dist_factor * (imagePoint[0] - imageStart[0]) / (m_renderView.width()));
+   delta[1] = (m_dist_factor * (imagePoint[1] - imageStart[1]) / (m_renderView.width()));
 
    MPoint new_position = m_original_position + m_right_direction * delta[0] + m_up_direction * delta[1];
    m_camera.set(new_position, m_view_direction, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
@@ -294,7 +294,6 @@ CRenderView3DZoom::~CRenderView3DZoom()
 void CRenderView3DZoom::mouseMove(int x, int y)
 {
    int deltaX = x - m_start_x;
-   //int deltaY = y - m_start_y;
 
    float delta = (float)deltaX / (float)m_renderView.width();
    if (delta > 0.9f)
@@ -318,7 +317,6 @@ void CRenderView3DZoom::wheel(CRenderView &renderView, float delta)
 {
    AtNode *arnold_camera = AiUniverseGetCamera();
    if (arnold_camera == NULL) return;
-
    
    MSelectionList camList;
    camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
