@@ -172,6 +172,7 @@ protected:
    MVector  m_view_direction;
    MVector  m_up_direction;
    MPoint   m_center;
+   float    m_dist;
 };
 
 

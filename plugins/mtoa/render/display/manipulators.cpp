@@ -283,7 +283,9 @@ CRenderView3DZoom::CRenderView3DZoom(CRenderView &rv, int x, int y) : CRenderVie
    m_view_direction = m_camera.viewDirection(MSpace::kWorld);
    m_up_direction = m_camera.upDirection(MSpace::kWorld);
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
+   m_dist = m_center.distanceTo(m_original_position);
 }
+
 CRenderView3DZoom::~CRenderView3DZoom()
 {
 
@@ -294,7 +296,18 @@ void CRenderView3DZoom::mouseMove(int x, int y)
    int deltaX = x - m_start_x;
    //int deltaY = y - m_start_y;
 
-   int delta = int(deltaX * 0.2f);
+   float delta = (float)deltaX / (float)m_renderView.width();
+   if (delta > 0.9f)
+   {
+      float diff = delta - 0.9f;
+      delta = 0.9f;
+      while (diff > 0.f)
+      {
+         delta += MIN(diff, 1.f) * (1.f - delta) * 0.5f;
+         diff -= 1.f;
+      }
+   }
+   delta *= m_dist;   
 
    MPoint new_position = m_original_position + m_view_direction * delta;
    m_camera.set(new_position, m_view_direction, m_up_direction, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
