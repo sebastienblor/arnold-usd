@@ -40,19 +40,68 @@ enum CRenderViewColorSpace
 };
 
 
+// CubeLUT.h
+// code obtainted from "Cube-Lut- Specifications"  http://wwwimages.adobe.com/content/dam/Adobe/en/products/speedgrade/cc/pdfs/cube-lut-specification-1.0.pdf
+
+#include <string>
+#include <vector>
+#include <fstream>
+using namespace std;
+class CubeLUT 
+{
+public:
+   typedef AtRGB tableRow;
+   typedef vector <tableRow> table1D;
+   typedef vector <table1D> table2D;
+   typedef vector <table2D> table3D;
+   enum LUTState { OK = 0, NotInitialized = 1, ReadError = 10, WriteError, PrematureEndOfFile, LineError,
+                  UnknownOrRepeatedKeyword = 20, TitleMissingQuote, DomainBoundsReversed,
+                  LUTSizeOutOfRange, CouldNotParseTableData };
+   LUTState status;
+   string title;
+   tableRow domainMin;
+   tableRow domainMax;
+   table1D LUT1D;
+   table3D LUT3D;
+   float invRes;
+   float res;
+   bool is3d;
+
+   CubeLUT ( void ) { status = NotInitialized; invRes = 1.f; is3d = false;res = 1.f;};
+   LUTState LoadCubeFile ( ifstream & infile );
+   LUTState SaveCubeFile ( ofstream & outfile );
+
+   void applyLUT(AtRGB &rgb);
+
+private:
+   string ReadLine ( ifstream & infile, char lineSeparator);
+   tableRow ParseTableRow ( const string & lineOfText );
+};
+
+// end CubeLUT.h
+
+
 struct CRenderViewCCSettings
 {
    CRenderViewCCSettings() :  gamma(1.0),
                               exposure(0.f),
                               exposureFactor(1.f),
                               space(RV_COLOR_SPACE_SRGB),
-                              dither(true)
+                              dither(true),
+                              lut3d(NULL)
                               {}
+
+   ~CRenderViewCCSettings() {
+      if (lut3d) delete lut3d;
+
+
+   }
    float gamma;
    float exposure;
    float exposureFactor;
    CRenderViewColorSpace  space;
    bool  dither;
+   CubeLUT *lut3d;
 };
 
 template <typename IN_T, typename OUT_T>
@@ -91,6 +140,7 @@ private:
    QCheckBox *m_dither_box;
    QComboBox *m_space_combo;
 
+   QLineEdit *m_lut_file_edit;
 
 
 private slots:
@@ -100,6 +150,9 @@ private slots:
    void exposureTextChanged();
    void ditherChanged();
    void colorSpaceChanged();
+   void browseLutFile();
+   void lutFileTextChanged();
+
 };
 
 

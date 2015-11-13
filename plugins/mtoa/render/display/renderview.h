@@ -416,6 +416,10 @@ friend class CRenderViewMainWindow;
       
       AtRGB &rgb = color.rgb();
      
+      if (m_colorCorrectSettings.lut3d)
+      {
+         m_colorCorrectSettings.lut3d->applyLUT(rgb);
+      }
       if (m_colorCorrectSettings.exposure != 0.f)
       {
          rgb *= m_colorCorrectSettings.exposureFactor;
