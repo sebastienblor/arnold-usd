@@ -252,11 +252,10 @@ public:
 
       if (m_displayedImageIndex < 0 && m_displayedAovIndex < 0)
       {
-         // Now let'sfill the GLWidget's RGBA8 buffer
-         AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
-         copyToRGBA8(rgba, rgba8, x, y);
+         fillGLPixel(rgba, x, y, pixel_index);
       }
    }
+
    // this method doesn't check for boundaries
    void setAOVPixelColor(int aovIndex, int x, int y, const AtRGBA &rgba)
    {
@@ -266,9 +265,74 @@ public:
 
       if (m_displayedAovIndex == aovIndex && m_displayedImageIndex < 0)
       {
-         // Now let'sfill the GLWidget's RGBA8 buffer
-         AtRGBA8 &rgba8 = m_gl->getBuffer()[pixel_index];
-         copyToRGBA8(rgba, rgba8, x, y);
+         fillGLPixel(rgba, x, y, pixel_index);
+      }
+   }
+
+
+   void setPixelsBlock(int minx, int miny, int maxx, int maxy, const AtRGBA &rgba, int aovIndex = -1)
+   {
+      // Apply LUTs just once for the whole block of pixels
+      AtRGBA outColor(rgba);
+      AtRGBA *rgbaBuffer = (aovIndex < 0) ? m_buffer : m_aovBuffers[aovIndex];
+
+      // is this buffer being currently displayed ?
+      bool displayGL = (m_displayedImageIndex < 0 && m_displayedAovIndex == aovIndex);
+      
+      if (displayGL)
+      {
+         applyLUTs(outColor);
+
+         // if picking in progress, compare the picked ID with the ID AOV
+         if (m_picked_id)
+         {
+            AiCritSecEnter(&m_pick_lock);
+            //int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
+            int pixel_id = reinterpret_type<float, int>(m_aovBuffers.back()[minx + miny * m_width].r);
+
+            if ( m_picked_id && pixel_id == *m_picked_id )
+            {
+               // mix the color with white (50%)
+               outColor.rgb() *= 0.5f;
+               outColor.rgb() += 0.5f;
+            }
+            AiCritSecLeave(&m_pick_lock);
+         }
+
+         AtRGBA8 rgba8;
+         rgba8.r = AiQuantize8bit(minx, miny, 0, outColor.r, m_colorCorrectSettings.dither);
+         rgba8.g = AiQuantize8bit(minx, miny, 1, outColor.g, m_colorCorrectSettings.dither);
+         rgba8.b = AiQuantize8bit(minx, miny, 2, outColor.b, m_colorCorrectSettings.dither);
+         rgba8.a = AiQuantize8bit(minx, miny, 2, outColor.a, m_colorCorrectSettings.dither);
+
+         AtRGBA8 *glBuffer = m_gl->getBuffer();      
+         int pixelIndex;
+         for (int y = miny; y < maxy; ++y)
+         {
+            pixelIndex = minx + (y * m_width);
+            for (int x = minx; x < maxx; ++x, pixelIndex++)
+            {
+               // original color
+               rgbaBuffer[pixelIndex] = rgba;
+
+               // Color-Corrected RGBA8 color
+               glBuffer[pixelIndex] = rgba8;            
+            }
+         }
+      } else
+      {
+         // This buffer is not being displayed
+         // so just fill RgbaBuffer with the original, unmodified color
+         int pixelIndex;
+         for (int y = miny; y < maxy; ++y)
+         {
+            pixelIndex = minx + (y * m_width);
+            for (int x = minx; x < maxx; ++x, pixelIndex++)
+            {
+               // original color
+               rgbaBuffer[pixelIndex] = rgba;
+            }
+         }
       }
    }
 
@@ -301,11 +365,40 @@ friend class CRenderViewMainWindow;
 
    void init();
    void initSize(int w, int h);
-   
-   
-   void copyToRGBA8(const AtRGBA &rgba, AtRGBA8 &rgba8, int x, int y)
+
+   void fillGLPixel(const AtRGBA &color, int x, int y, int pixelIndex)
    {
-      const bool &dither = m_colorCorrectSettings.dither;
+      AtRGBA outColor(color);
+      applyLUTs(outColor);
+      
+      // if picking in progress, compare the picked ID with the ID AOV
+      if (m_picked_id)
+      {
+         AiCritSecEnter(&m_pick_lock);
+         //int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
+         int pixel_id = reinterpret_type<float, int>(m_aovBuffers.back()[pixelIndex].r);
+
+         if ( m_picked_id && pixel_id == *m_picked_id )
+         {
+            // mix the color with white (50%)
+            outColor.rgb() *= 0.5f;
+            outColor.rgb() += 0.5f;
+         }
+         AiCritSecLeave(&m_pick_lock);
+      
+      }
+
+      // Now let'sfill the GLWidget's RGBA8 buffer
+      AtRGBA8 &rgba8 = m_gl->getBuffer()[pixelIndex];
+      rgba8.r = AiQuantize8bit(x, y, 0, outColor.r, m_colorCorrectSettings.dither);
+      rgba8.g = AiQuantize8bit(x, y, 1, outColor.g, m_colorCorrectSettings.dither);
+      rgba8.b = AiQuantize8bit(x, y, 2, outColor.b, m_colorCorrectSettings.dither);
+      rgba8.a = AiQuantize8bit(x, y, 2, outColor.a, m_colorCorrectSettings.dither);
+
+   }
+
+   void applyLUTs(AtRGBA &color)
+   {
       if (m_displayID)
       {
          // basic pseudo-random color per ID.
@@ -314,90 +407,51 @@ friend class CRenderViewMainWindow;
          // For now let's use this dirty hash         
          unsigned int val;
          //val = *((unsigned int*)&rgba.r);
-         val = reinterpret_type<float, unsigned int>(rgba.r);
-         AtRGB tmpCol;
-         tmpCol.r = (float((val+943) % 1257))/1257.f;
-         tmpCol.g = (float((val+189) % 438))/438.f;
-         tmpCol.b = (float((val+789) % 939))/939.f;
-         rgba8.r = AiQuantize8bit(x, y, 0, tmpCol.r, dither);
-         rgba8.g = AiQuantize8bit(x, y, 1, tmpCol.g, dither);
-         rgba8.b = AiQuantize8bit(x, y, 2, tmpCol.b, dither);
-
-      } else
+         val = reinterpret_type<float, unsigned int>(color.r);
+         color.r = (float((val+943) % 1257))/1257.f;
+         color.g = (float((val+189) % 438))/438.f;
+         color.b = (float((val+789) % 939))/939.f;
+         return;
+      }        
+      
+      AtRGB &rgb = color.rgb();
+     
+      if (m_colorCorrectSettings.exposure != 0.f)
+      {
+         rgb *= m_colorCorrectSettings.exposureFactor;
+      }
+      if (m_colorCorrectSettings.gamma != 1.0f)
       {
 
-         // apply gamma
-         if (true /*m_colorCorrectSettings.gamma != 1.0f*/)
-         {
-            // need to copy the input RGBA for the gamma
-            AtRGBA color = rgba;
-            AtRGB &rgb = color.rgb();
-            
-            if (m_colorCorrectSettings.exposure != 0.f)
-            {
-               rgb *= m_colorCorrectSettings.exposureFactor;
-            }
-            if (m_colorCorrectSettings.gamma != 1.0f)
-            {
+         AiColorClamp(rgb, rgb, 0, 1);
+         AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
+      }
 
-               AiColorClamp(rgb, rgb, 0, 1);
-               AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
-            }
+      if (m_colorCorrectSettings.space == RV_COLOR_SPACE_SRGB)
+      {
+         //  (x <= 0.04045) ? x * (1.0 / 12.92) : powf((x + 0.055) * (1.0 / (1 + 0.055)), 2.4);
 
-            if (m_colorCorrectSettings.space == RV_COLOR_SPACE_SRGB)
-            {
-               //  (x <= 0.04045) ? x * (1.0 / 12.92) : powf((x + 0.055) * (1.0 / (1 + 0.055)), 2.4);
+         rgb.r = (rgb.r <= 0.0031308f) ? rgb.r * 12.92f : (1.055) * powf(rgb.r,1.f/2.4f) - 0.055f;
+         rgb.g = (rgb.g <= 0.0031308f) ? rgb.g * 12.92f : (1.055) * powf(rgb.g,1.f/2.4f) - 0.055f;
+         rgb.b = (rgb.b <= 0.0031308f) ? rgb.b * 12.92f : (1.055) * powf(rgb.b,1.f/2.4f) - 0.055f;
 
-               rgb.r = (rgb.r <= 0.0031308f) ? rgb.r * 12.92f : (1.055) * powf(rgb.r,1.f/2.4f) - 0.055f;
-               rgb.g = (rgb.g <= 0.0031308f) ? rgb.g * 12.92f : (1.055) * powf(rgb.g,1.f/2.4f) - 0.055f;
-               rgb.b = (rgb.b <= 0.0031308f) ? rgb.b * 12.92f : (1.055) * powf(rgb.b,1.f/2.4f) - 0.055f;
+      } else if (m_colorCorrectSettings.space == RV_COLOR_SPACE_REC709)
+      {
+         rgb.r = (rgb.r >= 0.018f) ? (1.099 * (powf(rgb.r, 0.45f))) - 0.099 : (4.5f * rgb.r);
+         rgb.g = (rgb.g >= 0.018f) ? (1.099 * (powf(rgb.g, 0.45f))) - 0.099 : (4.5f * rgb.g);
+         rgb.b = (rgb.b >= 0.018f) ? (1.099 * (powf(rgb.b, 0.45f))) - 0.099 : (4.5f * rgb.b);
 
-            } else if (m_colorCorrectSettings.space == RV_COLOR_SPACE_REC709)
-            {
-               rgb.r = (rgb.r >= 0.018f) ? (1.099 * (powf(rgb.r, 0.45f))) - 0.099 : (4.5f * rgb.r);
-               rgb.g = (rgb.g >= 0.018f) ? (1.099 * (powf(rgb.g, 0.45f))) - 0.099 : (4.5f * rgb.g);
-               rgb.b = (rgb.b >= 0.018f) ? (1.099 * (powf(rgb.b, 0.45f))) - 0.099 : (4.5f * rgb.b);
-
-               /*
-                  Reverse : From Rec709 To Lin
-                  if value >= 0.081:
-                  return ((value + 0.099) / 1.099) ** (1/0.45)
-                  else:
-                  return value / 4.5
-               */
-            }
-
-
-            // if picking in progress, compare the picked ID with the ID AOV
-            if (m_picked_id)
-            {
-               AiCritSecEnter(&m_pick_lock);
-               //int pixel_id = *((int*)(&m_aovBuffers.back()[x + y * m_width].r));
-               int pixel_id = reinterpret_type<float, int>(m_aovBuffers.back()[x + y * m_width].r);
-
-               if ( m_picked_id && pixel_id == *m_picked_id )
-               {
-                  // mix the color with white (50%)
-                  rgb *= 0.5f;
-                  rgb += 0.5f;
-               }
-               AiCritSecLeave(&m_pick_lock);
-            }
-
-            rgba8.r = AiQuantize8bit(x, y, 0, color.r, dither);
-            rgba8.g = AiQuantize8bit(x, y, 1, color.g, dither);
-            rgba8.b = AiQuantize8bit(x, y, 2, color.b, dither);
-            rgba8.a = AiQuantize8bit(x, y, 3, color.a, dither);
-
-         } else
-         {  
-            rgba8.r = AiQuantize8bit(x, y, 0, rgba.r, dither);
-            rgba8.g = AiQuantize8bit(x, y, 1, rgba.g, dither);
-            rgba8.b = AiQuantize8bit(x, y, 2, rgba.b, dither);
-            rgba8.a = AiQuantize8bit(x, y, 3, rgba.a, dither);
-         }
+         /*
+            Reverse : From Rec709 To Lin
+            if value >= 0.081:
+            return ((value + 0.099) / 1.099) ** (1/0.45)
+            else:
+            return value / 4.5
+         */
       }
    }
+   
+
    AtRGBA *getDisplayedBuffer()
    {
       return (m_displayedImageIndex < 0) ? 

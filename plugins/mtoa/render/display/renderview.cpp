@@ -809,8 +809,7 @@ void CRenderView::pickShape(int px, int py)
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
    AtRGBA *idBuffer = m_aovBuffers.back();
-   AtRGBA8 *gl_buffer = m_gl->getBuffer();
-
+   
    int ind = 0;
    for (int j = 0; j < m_height; ++j)
    {
@@ -819,7 +818,8 @@ void CRenderView::pickShape(int px, int py)
          //int int_id = *((int*)&idBuffer[ind].r);
          int int_id = reinterpret_type<float, int>(idBuffer[ind].r);
          if (int_id != Op_id) continue;
-         copyToRGBA8(displayedBuffer[ind], gl_buffer[ind], i, j);
+
+         fillGLPixel(displayedBuffer[ind], i, j, ind);
       }
    }
 
@@ -940,14 +940,13 @@ void CRenderView::refreshGLBuffer()
    m_displayID = (m_displayedImageIndex < 0) && (m_displayedAovIndex == (int(m_aovNames.size()) -1));
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
-   AtRGBA8 *gl_buffer = m_gl->getBuffer();
 
    int ind = 0;
    for (int j = 0; j < m_height; ++j)
    {
       for (int i = 0; i < m_width; ++i, ++ind)
       {
-         copyToRGBA8(displayedBuffer[ind], gl_buffer[ind], i, j);
+         fillGLPixel(displayedBuffer[ind], i, j, ind);
       }
    }
 

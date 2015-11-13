@@ -179,18 +179,11 @@ driver_process_bucket
         // write to buffer
          if (has_spacing)
          {
-            for (int sj = j; sj < MIN(j + spacing, max_y); sj++)
-            {
-               for (int si = i; si < MIN(i + spacing, max_x); si++)
-               {
-                  rv->setPixelColor(si, sj, ((const AtRGBA *)bucket_data)[in_idx]);
-               }
-            }
+            rv->setPixelsBlock(i, j, MIN(i + spacing, max_x), MIN(j + spacing, max_y), ((const AtRGBA *)bucket_data)[in_idx]);
          } else
          {
             // simpler / faster case
             rv->setPixelColor(i, j, ((const AtRGBA *)bucket_data)[in_idx]);
-          
          }
       }
    }
@@ -209,57 +202,51 @@ driver_process_bucket
               // write to buffer
                if (has_spacing)
                {
-                  for (int sj = j; sj < MIN(j + spacing, max_y); sj++)
+                  switch(pixel_type)
                   {
-                     for (int si = i; si < MIN(i + spacing, max_x); si++)
+                     case AI_TYPE_RGBA:
+                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), ((const AtRGBA *)bucket_data)[in_idx], AOVIndex);
+                        break;
+
                      {
-                        switch(pixel_type)
-                        {
-                           case AI_TYPE_RGBA:
-                              rv->setAOVPixelColor(AOVIndex, si, sj, ((const AtRGBA *)bucket_data)[in_idx]);
-                              break;
-                           {
-                           case AI_TYPE_RGB:
-                           case AI_TYPE_VECTOR:
-                           case AI_TYPE_POINT:
-                              const AtRGB &rgb = ((const AtRGB *)bucket_data)[in_idx];
-                              AtRGBA rgba;
-                              rgba.r = rgb.r;
-                              rgba.g = rgb.g;
-                              rgba.b = rgb.b;
-                              rgba.a = 1.f;
-                              rv->setAOVPixelColor(AOVIndex, si, sj, rgba);
-                              break;
-                           }
-
-                           {
-                           case AI_TYPE_FLOAT:
-                              const float &flt = ((const float *)bucket_data)[in_idx];
-                              AtRGBA rgba;
-                              rgba.r = rgba.g = rgba.b = flt;
-                              rgba.a = 1.f;
-                              rv->setAOVPixelColor(AOVIndex, si, sj, rgba);
-                              break;
-                           }
-                           {
-                           case AI_TYPE_INT:
-                              const int &int_val = ((const int *)bucket_data)[in_idx];
-                              AtRGBA rgba;
-                              // not a simple cast, because we'll want to get the original 
-                              // int value later (when picking)
-
-                              //*((int*)&rgba.r) = int_val;
-                              rgba.r = reinterpret_type<int, float>(int_val);
-                              rgba.g = rgba.b = rgba.r;
-                              rgba.a = 1.f;
-                              rv->setAOVPixelColor(AOVIndex, si, sj, rgba);
-                              break;
-                           }
-                           default:
-                              break;
-
-                        }
+                     case AI_TYPE_RGB:
+                     case AI_TYPE_VECTOR:
+                     case AI_TYPE_POINT:
+                        const AtRGB &rgb = ((const AtRGB *)bucket_data)[in_idx];
+                        AtRGBA rgba;
+                        rgba.r = rgb.r;
+                        rgba.g = rgb.g;
+                        rgba.b = rgb.b;
+                        rgba.a = 1.f;
+                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), rgba, AOVIndex);
+                        break;
                      }
+                     {
+                     case AI_TYPE_FLOAT:
+                        const float &flt = ((const float *)bucket_data)[in_idx];
+                        AtRGBA rgba;
+                        rgba.r = rgba.g = rgba.b = flt;
+                        rgba.a = 1.f;
+                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), rgba, AOVIndex);
+                        break;
+                     }
+                     {
+                        case AI_TYPE_INT:
+                        const int &int_val = ((const int *)bucket_data)[in_idx];
+                        AtRGBA rgba;
+                        // not a simple cast, because we'll want to get the original 
+                        // int value later (when picking)
+
+                        //*((int*)&rgba.r) = int_val;
+                        rgba.r = reinterpret_type<int, float>(int_val);
+                        rgba.g = rgba.b = rgba.r;
+                        rgba.a = 1.f;
+                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), rgba, AOVIndex);
+                        break;
+                     }
+                     default:
+                        break;
+
                   }
                } else
                {
