@@ -34,7 +34,7 @@
 
 #include <QtCore/qthread.h>
 #include <iostream>
-
+#include "luts.h"
 
 
 struct AtDisplaySync;
@@ -44,76 +44,6 @@ class QMenu;
 
 
 class CRenderView;
-
-enum CRenderViewColorSpace
-{
-   RV_COLOR_SPACE_NONE,
-   RV_COLOR_SPACE_SRGB,
-   RV_COLOR_SPACE_REC709
-};
-
-
-struct CRenderViewCCSettings
-{
-   CRenderViewCCSettings() :  gamma(1.0),
-                              brightness(1.f),
-                              space(RV_COLOR_SPACE_SRGB),
-                              dither(true)
-                              {}
-   float gamma;
-   float brightness;
-   CRenderViewColorSpace  space;
-   bool  dither;
-};
-
-template <typename IN_T, typename OUT_T>
-inline OUT_T reinterpret_type(const IN_T in)
-{
-   union { IN_T in; OUT_T out; } u;
-   u.in = in;
-   return u.out;
-}
-
-class CRenderViewCCWindow : public QMainWindow
-{
-Q_OBJECT
-
-public:
-   CRenderViewCCWindow(QWidget *parent, CRenderView &rv, CRenderViewCCSettings &ccSettings) : 
-      QMainWindow(parent), 
-      m_renderView(rv),
-      m_colorCorrectSettings(ccSettings)
-      {}
-
-   virtual ~CRenderViewCCWindow() {}
-
-
-   void init();
-
-private:
-   CRenderView &m_renderView;
-   CRenderViewCCSettings &m_colorCorrectSettings;
-
-   QLineEdit *m_gamma_edit;
-   QSlider *m_gamma_slider;
-
-   QLineEdit *m_brightness_edit;
-   QSlider *m_brightness_slider;
-
-   QCheckBox *m_dither_box;
-   QComboBox *m_space_combo;
-
-
-
-private slots:
-   void gammaSliderChanged();
-   void gammaTextChanged();
-   void brightnessSliderChanged();
-   void brightnessTextChanged();
-   void ditherChanged();
-   void colorSpaceChanged();
-};
-
 
 class CRenderViewMainWindow : public QMainWindow
 {
@@ -403,9 +333,9 @@ friend class CRenderViewMainWindow;
             AtRGBA color = rgba;
             AtRGB &rgb = color.rgb();
             
-            if (m_colorCorrectSettings.brightness != 1.0f)
+            if (m_colorCorrectSettings.exposure != 0.f)
             {
-               rgb *= m_colorCorrectSettings.brightness;
+               rgb *= m_colorCorrectSettings.exposureFactor;
             }
             if (m_colorCorrectSettings.gamma != 1.0f)
             {
