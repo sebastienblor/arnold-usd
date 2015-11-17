@@ -1327,9 +1327,13 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
       if (translator != NULL)
       {
          // Interrupt render before exporting shaders
-         CMayaScene::GetRenderSession()->InterruptRender();
+         if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
+         {
+            CMayaScene::GetRenderSession()->InterruptRender();
+         }
          // Export the new shaders.
          translator->ExportShaders();
+
          // Update Arnold without passing a translator, this just forces a redraw.
          translator->RequestUpdate();
       }

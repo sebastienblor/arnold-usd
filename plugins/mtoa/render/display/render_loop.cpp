@@ -239,6 +239,12 @@ extern int RenderLoop(CRenderView *kwin)
 
       K_render_timestamp = CRenderView::time();
       
+      if (AiRendering())
+      {
+         AiRenderInterrupt();
+         while (AiRendering()){CRenderView::sleep(10);}
+      }
+      
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        
          int error;
@@ -362,7 +368,8 @@ extern int RenderLoop(CRenderView *kwin)
                   kwin->setStatus(statusEndStr.str());
                   kwin->draw();
 
-                  while (K_aborted == false && K_restartLoop == false) {
+                  while (K_aborted == false && K_restartLoop == false) 
+                  {
                      CRenderView::sleep(1000); // don't want CPU pegged at 100% with useless work
                   }
                 }

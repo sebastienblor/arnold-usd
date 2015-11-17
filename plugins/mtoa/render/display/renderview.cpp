@@ -447,7 +447,10 @@ void CRenderView::interruptRender()
    // since the render loop is in another thread.
    // But we should check if it hurts interactivity
    //while (AiRendering()) {sleep(10);}
-   K_wait_for_changes = true;
+   
+   // I'm already trying to restart the render loop
+   // so let's not interfere with it
+   if (!K_restartLoop) K_wait_for_changes = true;
 }
 // utilities copied from sync.h and time.h in core
 
@@ -628,6 +631,7 @@ void CRenderView::updateRender()
 
    // check if amount of cameras have changed
    restartRender();
+
 }
 
 void CRenderView::restartRender()

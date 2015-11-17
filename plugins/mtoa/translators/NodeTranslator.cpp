@@ -889,8 +889,11 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       const char* arnoldType = translator->GetArnoldTypeName();
       if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
       {
-         CMayaScene::GetRenderSession()->InterruptRender();
-         AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+         if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
+         {
+            CMayaScene::GetRenderSession()->InterruptRender();
+            AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+         }
       }
          
       translator->RequestUpdate(clientData);
