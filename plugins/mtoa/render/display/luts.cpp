@@ -3,6 +3,9 @@
  */
 
 
+#include "renderview.h"
+
+
 #include <time.h>
 #include <string.h>
 #include <sys/timeb.h>
@@ -28,7 +31,6 @@
 #include <emmintrin.h>
 
 
-#include "renderview.h"
 #include <iostream>
 #include <sstream>
 #include <fstream> 
@@ -201,8 +203,8 @@ void CRenderViewCCWindow::browseLutFile()
    QString lutFilename = QFileDialog::getOpenFileName(this, tr("Load LUT (.cube) file"), QString(), tr("CUBE Files (*.cube)"));
    if (lutFilename == "") return;
 
-
-   std::ifstream infile(lutFilename.toStdString());
+   std::string lutFilenameStr = lutFilename.toStdString();
+   std::ifstream infile(lutFilenameStr.c_str());
    if(!infile.good())
    {
       std::cerr<<"Error : CUBE File not found"<<std::endl;
@@ -228,7 +230,8 @@ void CRenderViewCCWindow::browseLutFile()
 void CRenderViewCCWindow::lutFileTextChanged()
 {
    QString lutFilename(m_lut_file_edit->text());
-   std::ifstream infile(lutFilename.toStdString());
+   std::string lutFilenameStr = lutFilename.toStdString();
+   std::ifstream infile(lutFilenameStr.c_str());
    if(!infile.good())
    {
       std::cerr<<"Error : CUBE File not found"<<std::endl;
