@@ -252,6 +252,28 @@ void CRenderViewCCWindow::lutFileTextChanged()
 
 }
 
+void CRenderViewCCWindow::adjustPosition()
+{
+
+   QPoint position = parentWidget()->pos();
+   m_moving = true;
+   move(position.x() + parentWidget()->width() + 15, position.y());
+   setFixedSize(300, parentWidget()->height() -2);  
+   m_moving = false;
+}
+
+
+void CRenderViewCCWindow::moveEvent(QMoveEvent *event)
+{
+   if (m_moving) return;
+
+   m_moving = true;
+   adjustPosition();
+   m_moving = false;
+}
+
+
+
 using namespace std;
 
 void CubeLUT::applyLUT(AtRGB &rgb)

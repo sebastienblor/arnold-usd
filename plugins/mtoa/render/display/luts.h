@@ -118,14 +118,19 @@ Q_OBJECT
 
 public:
    CRenderViewCCWindow(QWidget *parent, CRenderView &rv, CRenderViewCCSettings &ccSettings) : 
-      QMainWindow(parent), 
+      QMainWindow(parent, Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint), 
       m_renderView(rv),
-      m_colorCorrectSettings(ccSettings)
+      m_colorCorrectSettings(ccSettings),
+      m_moving(false)
       {}
 
    virtual ~CRenderViewCCWindow() {}
 
    void init();
+   void adjustPosition();
+protected:
+   void moveEvent(QMoveEvent *event);
+   
 
 private:
    CRenderView &m_renderView;
@@ -141,6 +146,7 @@ private:
    QComboBox *m_space_combo;
 
    QLineEdit *m_lut_file_edit;
+   bool m_moving;
 
 
 private slots:

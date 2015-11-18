@@ -32,7 +32,7 @@ static void BucketSetThreadColor(CRenderView* rv, int xo, int yo, int xsize, int
       case 4: rgba.r = 1.f; rgba.g = 0.f; rgba.b = 1.f; break;
       case 5: rgba.r = 0.f; rgba.g = 1.f; rgba.b = 1.f; break;
 
-      default: rgba.r = rgba.b = rgba.b = 0.f; break; // ?
+      default: rgba.r = rgba.g = rgba.b = 0.f; break; // ?
    }
    rgba.a = 1.f;
 

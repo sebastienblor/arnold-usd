@@ -106,6 +106,7 @@ private:
    QAction *m_render_action;
    QAction *m_abort_action;
    QAction *m_3d_manipulation_action;
+   QAction *m_lut_action;
 
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
@@ -128,6 +129,7 @@ protected:
    void mousePressEvent ( QMouseEvent * event );
    void mouseReleaseEvent ( QMouseEvent * event );
    void resizeEvent(QResizeEvent *event);
+   void moveEvent(QMoveEvent *event);
    void wheelEvent ( QWheelEvent * event );
    void closeEvent(QCloseEvent *event);
 

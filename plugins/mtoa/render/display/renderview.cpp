@@ -54,6 +54,9 @@
 #include "icons/SA_icon_store.xpm"
 #include "icons/SA_icon_delete_stored.xpm"
 #include "icons/SA_icon_transparent.xpm"
+#include "icons/SA_icon_lut_off.xpm"
+#include "icons/SA_icon_lut_on.xpm"
+
 
 #include "manipulators.h"
 #include <maya/MQtUtil.h>
@@ -781,6 +784,8 @@ void CRenderView::setDebugShading(RenderViewDebugShading d)
             AiNodeSetStr(utility_shader, "color_mode", "bary");
             AiNodeSetStr(utility_shader, "shade_mode", "flat");
          break;
+         default:
+         break;
       }
    }
 
@@ -1213,10 +1218,11 @@ CRenderViewMainWindow::initMenus()
 
    m_menu_view->addSeparator();
 
-   action = m_menu_view->addAction("LUT / Color Correction");
-   connect(action, SIGNAL(triggered()), this, SLOT(colorCorrection()));
-   action->setCheckable(false);
-   action->setStatusTip("Apply Color Correction on the displayed image");
+   m_lut_action = m_menu_view->addAction("LUT / Color Correction");
+   connect(m_lut_action, SIGNAL(triggered()), this, SLOT(colorCorrection()));
+   m_lut_action->setCheckable(true);
+   m_lut_action->setChecked(false);
+   m_lut_action->setStatusTip("Apply Color Correction on the displayed image");
 
    m_menu_view->addSeparator();   
 
@@ -1419,8 +1425,19 @@ CRenderViewMainWindow::initMenus()
    m_action_crop_region->setIconVisibleInMenu(false);
    region_button->setStyleSheet(style_button);
 
+   QToolButton *lut_button = new QToolButton(m_tool_bar);
+   lut_button->setDefaultAction(m_lut_action);
+   m_tool_bar->addWidget(lut_button);
+   QIcon lut_icon;
+   lut_icon.addPixmap(QPixmap((const char **) SA_icon_lut_on_xpm), QIcon::Normal, QIcon::On);
+   lut_icon.addPixmap(QPixmap((const char **) SA_icon_lut_off_xpm), QIcon::Normal, QIcon::Off);
+   lut_button->setIcon(lut_icon);
+   m_lut_action->setIcon(lut_icon);
+   m_lut_action->setIconVisibleInMenu(false);
+   lut_button->setStyleSheet(style_button);
 
    m_tool_bar->addSeparator();
+
    QToolButton *store_button = new QToolButton(m_tool_bar);
    store_button->setDefaultAction(store_action);
    m_tool_bar->addWidget(store_button);
@@ -1775,6 +1792,10 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
    delete m_manipulator;
    m_manipulator = NULL;
 }
+void CRenderViewMainWindow::moveEvent(QMoveEvent *event)
+{
+   if (m_cc_window) m_cc_window->adjustPosition();
+}
 
 void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
 {
@@ -1800,6 +1821,7 @@ void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
    {
       m_renderView.m_gl->update();
    }
+   if (m_cc_window) m_cc_window->adjustPosition();
 
 }
 
@@ -2184,13 +2206,21 @@ void CRenderViewMainWindow::realSize()
 
 void CRenderViewMainWindow::colorCorrection()
 {
-
-   if (m_cc_window == NULL)
+   if (m_lut_action->isChecked())
    {
-      m_cc_window = new CRenderViewCCWindow(this, m_renderView, m_renderView.m_colorCorrectSettings);
-      m_cc_window->init();
+      if (m_cc_window == NULL)
+      {
+         m_cc_window = new CRenderViewCCWindow(this, m_renderView, m_renderView.m_colorCorrectSettings);
+         m_cc_window->init();
+         m_cc_window->adjustPosition();
+                
+      }
+      m_cc_window->show();
+   } else if(m_cc_window)
+   {
+      delete m_cc_window;
+      m_cc_window = NULL;
    }
-   m_cc_window->show();
 }
 void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
 {
