@@ -64,6 +64,7 @@
 #include <maya/MFloatMatrix.h>
 #include <maya/MGlobal.h>
 #include <maya/MEventMessage.h>
+ #include <maya/MImage.h>
 
 #include <sstream>
 //#include <QtGui/qimage.h>
@@ -858,6 +859,7 @@ void CRenderView::pickShape(int px, int py)
    }
    AiNodeIteratorDestroy(iter);
 }
+
 void CRenderView::clearPicking()
 {
    // search in the ID Aov all the pixels corresponding to given ID and refresh them
@@ -921,6 +923,22 @@ void CRenderView::saveImage(const std::string &filename)
 {
    // Write down the displayed image
 
+   size_t dotPos = filename.find_last_of('.');
+   
+   std::string extension = (dotPos == std::string::npos) ? "jpg" : filename.substr(dotPos + 1);
+
+   MImage outImg;
+   outImg.create(m_width, m_height, 4 );
+   
+   AtRGBA8 *buffer = m_gl->getBuffer();
+   outImg.setPixels((unsigned char*)buffer, m_width, m_height);
+   outImg.verticalFlip();
+   MString fname(filename.c_str());
+   
+   outImg.writeToFile(fname, MString(extension.c_str()));
+      
+
+   /*
    // We're using QT stuff, but maybe we should use Maya's instead ?
    QImage outImg(m_width, m_height, QImage::Format_ARGB32 );
    AtRGBA *buffer = getDisplayedBuffer();
@@ -934,6 +952,8 @@ void CRenderView::saveImage(const std::string &filename)
       }
    }
    outImg.save(QString(filename.c_str()));
+
+   */
 }
 
 void CRenderView::storeImage()
@@ -1495,7 +1515,7 @@ CRenderViewMainWindow::saveImage()
    dialog.setWindowTitle("Save Image As");
 
    QStringList filters;
-   filters <<"Image files (*.bmp, *.jpg, *.jpeg, *.png, *.ppm, *.xbm, *.xpm)"
+   filters <<"Image files (*.bmp, *.jpg, *.cin, *.png, *.gif, *.als, *.rla, *.sgi, *.tga, *.tif, *.iff)"
          << "Any files (*)";
    dialog.setNameFilters(filters);
 
