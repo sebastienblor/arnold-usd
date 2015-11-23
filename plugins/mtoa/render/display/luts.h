@@ -36,7 +36,9 @@ enum CRenderViewColorSpace
 {
    RV_COLOR_SPACE_NONE,
    RV_COLOR_SPACE_SRGB,
-   RV_COLOR_SPACE_REC709
+   RV_COLOR_SPACE_REC709,
+   RV_COLOR_SPACE_LUT_FILE
+
 };
 
 
@@ -145,9 +147,29 @@ private:
    QCheckBox *m_dither_box;
    QComboBox *m_space_combo;
 
+   QLabel *m_lut_file_label;
    QLineEdit *m_lut_file_edit;
-   bool m_moving;
+   QPushButton *m_lut_file_button;
 
+   QComboBox *m_bg_combo;
+   QLineEdit *m_bg_file_edit;
+   QPushButton *m_bg_file_button;
+   QLabel *m_bg_file_label;
+
+   QLabel *m_scale_label;
+   QLineEdit *m_scale_x_edit;   
+   QLineEdit *m_scale_y_edit;
+   QLabel *m_offset_label;
+   QLineEdit *m_offset_x_edit;
+   QLineEdit *m_offset_y_edit;
+
+   QPushButton *m_bg_color_button;
+   QLabel *m_bg_color_label;
+
+   void updateBackground();
+   void updateBgUI();
+
+   bool m_moving;
 
 private slots:
    void gammaSliderChanged();
@@ -158,6 +180,13 @@ private slots:
    void colorSpaceChanged();
    void browseLutFile();
    void lutFileTextChanged();
+   void bgChanged();
+   void browseBgFile();
+   void bgFileTextChanged();
+   void bgScaleChanged();
+   void bgOffsetChanged();
+   void pickBgColor();
+
 
 };
 

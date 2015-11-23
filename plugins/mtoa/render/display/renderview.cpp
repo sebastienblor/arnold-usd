@@ -64,7 +64,7 @@
 #include <maya/MFloatMatrix.h>
 #include <maya/MGlobal.h>
 #include <maya/MEventMessage.h>
- #include <maya/MImage.h>
+#include <maya/MImage.h>
 
 #include <sstream>
 //#include <QtGui/qimage.h>
@@ -1094,6 +1094,8 @@ void CRenderView::deleteStoredImage()
 
 }
 
+
+
 CRenderViewMainWindow::~CRenderViewMainWindow()
 {
    delete m_manipulator;
@@ -1515,7 +1517,7 @@ CRenderViewMainWindow::saveImage()
    dialog.setWindowTitle("Save Image As");
 
    QStringList filters;
-   filters <<"Image files (*.bmp, *.jpg, *.cin, *.png, *.gif, *.als, *.rla, *.sgi, *.tga, *.tif, *.iff)"
+   filters <<"Image files (*.bmp *.jpg *.cin *.png *.gif *.als *.rla *.sgi *.tga *.tif *.iff)"
          << "Any files (*)";
    dialog.setNameFilters(filters);
 
@@ -2256,7 +2258,6 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
    }
    event->accept();
 }
-
 
 
 // If you add some slots, you'll have to run moc

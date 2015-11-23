@@ -32,6 +32,28 @@ struct AtRGBA8
 class CRenderGLWidget : public QGLWidget {
   
 public:
+
+   struct BackgroundData
+   {
+      BackgroundData() : bgBuffer(NULL), bgWidth(0), bgHeight(0), textureId(0) {
+         scale.x = scale.y = 1.f;
+         offset.x = offset.y = 0.f;
+      }
+      ~BackgroundData() {
+         if (bgBuffer) AiFree(bgBuffer);
+         if (textureId) glDeleteTextures(1, &textureId);
+      }
+
+
+      AtRGBA8 *bgBuffer;
+      unsigned int bgWidth;
+      unsigned int bgHeight;
+      GLuint textureId;
+      AtPoint2 scale;
+      AtPoint2 offset;
+
+   };
+
    CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height);
    virtual ~CRenderGLWidget();
    
@@ -71,6 +93,12 @@ public:
    void project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp = false) const;
    
    void debugGPUState() {m_printGPUState = true;}
+   void setBackgroundImage(const std::string &filename);
+   void setBackgroundChecker();
+   void setBackgroundColor (const AtRGBA &c) {m_bg_color = c;}
+   const AtRGBA &getBackgroundColor() const {return m_bg_color;}
+
+   BackgroundData *getBackgroundData() {return m_bg_data;}
 
 private:
    void setupTexture();
@@ -96,6 +124,8 @@ private:
    int m_pan[2];
    float m_zoomFactor;
   
+   BackgroundData *m_bg_data;
+   AtRGBA m_bg_color;
 
    bool m_printGPUState;
   

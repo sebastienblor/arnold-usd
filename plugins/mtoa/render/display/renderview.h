@@ -302,10 +302,13 @@ public:
          }
 
          AtRGBA8 rgba8;
-         rgba8.r = AiQuantize8bit(minx, miny, 0, outColor.r, m_colorCorrectSettings.dither);
-         rgba8.g = AiQuantize8bit(minx, miny, 1, outColor.g, m_colorCorrectSettings.dither);
-         rgba8.b = AiQuantize8bit(minx, miny, 2, outColor.b, m_colorCorrectSettings.dither);
-         rgba8.a = AiQuantize8bit(minx, miny, 2, outColor.a, m_colorCorrectSettings.dither);
+
+         // forcing dithering to FALSE during progressive AA steps
+         bool dither = false; //m_colorCorrectSettings.dither;
+         rgba8.r = AiQuantize8bit(minx, miny, 0, outColor.r, dither);
+         rgba8.g = AiQuantize8bit(minx, miny, 1, outColor.g, dither);
+         rgba8.b = AiQuantize8bit(minx, miny, 2, outColor.b, dither);
+         rgba8.a = AiQuantize8bit(minx, miny, 2, outColor.a, dither);
 
          AtRGBA8 *glBuffer = m_gl->getBuffer();      
          int pixelIndex;
@@ -361,6 +364,7 @@ public:
 
    static void SelectionChangedCallback(void *);
    
+   
 protected:
 
 friend class CRenderViewMainWindow;
@@ -371,6 +375,7 @@ friend class CRenderViewMainWindow;
    void fillGLPixel(const AtRGBA &color, int x, int y, int pixelIndex)
    {
       AtRGBA outColor(color);
+
       applyLUTs(outColor);
       
       // if picking in progress, compare the picked ID with the ID AOV
@@ -390,6 +395,8 @@ friend class CRenderViewMainWindow;
       
       }
 
+
+      
       // Now let'sfill the GLWidget's RGBA8 buffer
       AtRGBA8 &rgba8 = m_gl->getBuffer()[pixelIndex];
       rgba8.r = AiQuantize8bit(x, y, 0, outColor.r, m_colorCorrectSettings.dither);
@@ -417,20 +424,14 @@ friend class CRenderViewMainWindow;
       }        
       
       AtRGB &rgb = color.rgb();
-     
-      if (m_colorCorrectSettings.lut3d)
+      
+      // un-premult for the color correction
+      static float one_minus_epsilon = 1.f - AI_EPSILON;
+      bool unpremult = (color.a < one_minus_epsilon  && color.a > AI_EPSILON);
+      if (unpremult)
       {
-         m_colorCorrectSettings.lut3d->applyLUT(rgb);
-      }
-      if (m_colorCorrectSettings.exposure != 0.f)
-      {
-         rgb *= m_colorCorrectSettings.exposureFactor;
-      }
-      if (m_colorCorrectSettings.gamma != 1.0f)
-      {
-
-         AiColorClamp(rgb, rgb, 0, 1);
-         AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
+         float invAlpha = 1.f / color.a;
+         rgb *= invAlpha;
       }
 
       if (m_colorCorrectSettings.space == RV_COLOR_SPACE_SRGB)
@@ -454,6 +455,25 @@ friend class CRenderViewMainWindow;
             else:
             return value / 4.5
          */
+      } else if (m_colorCorrectSettings.space == RV_COLOR_SPACE_LUT_FILE && m_colorCorrectSettings.lut3d != NULL)
+      {
+         m_colorCorrectSettings.lut3d->applyLUT(rgb);
+      }
+      if (m_colorCorrectSettings.exposure != 0.f)
+      {
+         rgb *= m_colorCorrectSettings.exposureFactor;
+      }
+      if (m_colorCorrectSettings.gamma != 1.0f)
+      {
+
+         AiColorClamp(rgb, rgb, 0, 1);
+         AiColorGamma(&rgb, m_colorCorrectSettings.gamma);
+      }
+
+
+      if (unpremult)
+      {
+         rgb *= color.a;
       }
    }
    

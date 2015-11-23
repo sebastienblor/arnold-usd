@@ -22,7 +22,7 @@ static const uint qt_meta_data_CRenderViewCCWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-       8,   14, // methods
+      14,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -38,6 +38,12 @@ static const uint qt_meta_data_CRenderViewCCWindow[] = {
      123,   20,   20,   20, 0x08,
      143,   20,   20,   20, 0x08,
      159,   20,   20,   20, 0x08,
+     180,   20,   20,   20, 0x08,
+     192,   20,   20,   20, 0x08,
+     207,   20,   20,   20, 0x08,
+     227,   20,   20,   20, 0x08,
+     244,   20,   20,   20, 0x08,
+     262,   20,   20,   20, 0x08,
 
        0        // eod
 };
@@ -47,7 +53,10 @@ static const char qt_meta_stringdata_CRenderViewCCWindow[] = {
     "gammaTextChanged()\0exposureSliderChanged()\0"
     "exposureTextChanged()\0ditherChanged()\0"
     "colorSpaceChanged()\0browseLutFile()\0"
-    "lutFileTextChanged()\0"
+    "lutFileTextChanged()\0bgChanged()\0"
+    "browseBgFile()\0bgFileTextChanged()\0"
+    "bgScaleChanged()\0bgOffsetChanged()\0"
+    "pickBgColor()\0"
 };
 
 void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -64,6 +73,12 @@ void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
         case 5: _t->colorSpaceChanged(); break;
         case 6: _t->browseLutFile(); break;
         case 7: _t->lutFileTextChanged(); break;
+        case 8: _t->bgChanged(); break;
+        case 9: _t->browseBgFile(); break;
+        case 10: _t->bgFileTextChanged(); break;
+        case 11: _t->bgScaleChanged(); break;
+        case 12: _t->bgOffsetChanged(); break;
+        case 13: _t->pickBgColor(); break;
         default: ;
         }
     }
@@ -102,9 +117,9 @@ int CRenderViewCCWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 8)
+        if (_id < 14)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 14;
     }
     return _id;
 }

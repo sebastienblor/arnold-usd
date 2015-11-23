@@ -610,7 +610,12 @@ void CRenderSession::RunRenderView()
 
 void CRenderSession::StartRenderView()
 {
-   if (m_renderView != NULL) return;
+   if (m_renderView != NULL) 
+   {
+      m_renderView->show();
+      m_renderView->updateRender();
+      return;
+   }
    m_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
 
 }

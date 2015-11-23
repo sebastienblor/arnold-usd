@@ -12,6 +12,8 @@
 #include "renderview.h"
 #include "render_loop.h" 
 
+#include <maya/MImage.h>
+
 
 static const AtRGBA FILL_COLOR = {0.09f, 0.09f, 0.09f, 1.0f};
 static const AtRGBA8 EMPTY_FILL_COLOR = {13, 13, 13, 255};
@@ -82,7 +84,10 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    m_zoomFactor = 1.f;
 
    m_printGPUState = false;
+   m_bg_data = NULL;
+   m_bg_color = AI_RGBA_BLACK;
 }
+
 CRenderGLWidget::~CRenderGLWidget()
 {
    if (m_texture)
@@ -286,19 +291,116 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
 
 void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
 {
-
    glClearColor(FILL_COLOR.r, FILL_COLOR.g, FILL_COLOR.b, FILL_COLOR.a);
+   //glClearColor(m_bg_color.r, m_bg_color.g, m_bg_color.b, m_bg_color.a);
    glClear(GL_COLOR_BUFFER_BIT);
    GL_print_error("clear buffer");
 
    // bind and update texture
    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-   glBindTexture(GL_TEXTURE_2D, m_texture);
 
+   if (m_bg_data)
+   {
+      glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+      glPushMatrix();
+
+      glTranslatef(m_bg_data->offset.x, m_bg_data->offset.y, 0.f);
+      glScalef(m_bg_data->scale.x, m_bg_data->scale.y, 1.f);
+
+      if (update_region)
+      {
+         AtRGBA8 *buffer = m_bg_data->bgBuffer;
+
+         glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bg_data->bgWidth);
+         glPixelStorei(GL_UNPACK_SKIP_PIXELS, update_region->minx);
+         glPixelStorei(GL_UNPACK_SKIP_ROWS,   update_region->miny);
+
+         if (color_mode == COLOR_MODE_RGBA)
+         {
+            
+            if (update_region->maxx > update_region->minx && update_region->maxy > update_region->miny)
+            {
+               glTexSubImage2D(GL_TEXTURE_2D, 0,
+                  update_region->minx, update_region->miny,
+                  update_region->maxx - update_region->minx,
+                  update_region->maxy - update_region->miny,
+                  GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+            }
+         }
+         else
+         {
+            glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+
+            AtUInt8 *tmp_buffer = (AtUInt8 *)AiMalloc(sizeof(AtUInt8) * m_bg_data->bgWidth * m_bg_data->bgHeight);
+            AtUInt8 *src_buffer = (AtUInt8 *)buffer;
+            
+            if (color_mode == COLOR_MODE_R) src_buffer += 0;
+            else if (color_mode == COLOR_MODE_G) src_buffer += 1;
+            else if (color_mode == COLOR_MODE_B) src_buffer += 2;
+            else if (color_mode == COLOR_MODE_A) src_buffer += 3;
+
+            for (unsigned int i = 0; i < m_bg_data->bgWidth * m_bg_data->bgHeight; i++)
+               tmp_buffer[i] = src_buffer[i*4];
+
+            glTexSubImage2D(GL_TEXTURE_2D, 0,
+               update_region->minx, update_region->miny,
+               update_region->maxx - update_region->minx,
+               update_region->maxy - update_region->miny,
+               GL_LUMINANCE, GL_UNSIGNED_BYTE, tmp_buffer);
+
+            AiFree(tmp_buffer);
+         }
+         
+         GL_print_error("update texture pixels");
+      }
+
+
+
+      // draw texture mapped quad with fixed function pipeline
+      glEnable(GL_TEXTURE_2D);
+      glColor3f(1, 1, 1);
+
+      glBegin(GL_QUADS);
+         glTexCoord2f(0.0f, 0.0f);
+         glVertex2f(0, h);
+
+         glTexCoord2f(0.0f, m_ty);
+         glVertex2f(0, 0);
+
+         glTexCoord2f(m_tx, m_ty);
+         glVertex2f(w, 0);
+
+         glTexCoord2f(m_tx, 0.0f);
+         glVertex2f(w, h);
+      glEnd();
+
+
+      glPopMatrix();
+
+      glDisable(GL_TEXTURE_2D);
+      glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+   } else if (m_bg_color.r > AI_EPSILON || m_bg_color.g > AI_EPSILON || m_bg_color.b > AI_EPSILON )
+   {
+      glEnable(GL_BLEND);
+      glDisable(GL_TEXTURE_2D);
+      glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);   
+      glColor3f(m_bg_color.r, m_bg_color.g, m_bg_color.b);
+      glBegin(GL_QUADS);
+         glVertex2f(0, h);
+         glVertex2f(0, 0);
+         glVertex2f(w, 0);
+         glVertex2f(w, h);
+      glEnd();
+   }
+   glBindTexture(GL_TEXTURE_2D, m_texture);
    if (update_region)
    {
       AtRGBA8 *buffer = (back_buffer && m_back_buffer) ? m_back_buffer : m_front_buffer;
-
+      
       glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_width);
       glPixelStorei(GL_UNPACK_SKIP_PIXELS, update_region->minx);
       glPixelStorei(GL_UNPACK_SKIP_ROWS,   update_region->miny);
@@ -314,13 +416,18 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
                update_region->maxx - update_region->minx,
                update_region->maxy - update_region->miny,
                GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
          }
       }
       else
       {
+
+         glBindTexture(GL_TEXTURE_2D, m_texture);
+
          AtUInt8 *tmp_buffer = (AtUInt8 *)AiMalloc(sizeof(AtUInt8) * m_width * m_height);
          AtUInt8 *src_buffer = (AtUInt8 *)buffer;
 
+         
          if (color_mode == COLOR_MODE_R) src_buffer += 0;
          else if (color_mode == COLOR_MODE_G) src_buffer += 1;
          else if (color_mode == COLOR_MODE_B) src_buffer += 2;
@@ -337,10 +444,9 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
 
          AiFree(tmp_buffer);
       }
-
       GL_print_error("update texture pixels");
    }
-
+   glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);  
    // draw texture mapped quad with fixed function pipeline
    glEnable(GL_TEXTURE_2D);
    glColor3f(1, 1, 1);
@@ -358,10 +464,8 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
       glTexCoord2f(m_tx, 0.0f);
       glVertex2f(w, h);
    glEnd();
-
    glDisable(GL_TEXTURE_2D);
 
-   // unset texture attributes
    glPopClientAttrib();
 
     // Draw a border to the buffer
@@ -389,7 +493,6 @@ void CRenderGLWidget::project(int windowX, int windowY, int& bufferX, int &buffe
    int zoomOffset[2];
    zoomOffset[0] = int ((m_width - imageSize[0]) * 0.5);
    zoomOffset[1] = int ((m_height - imageSize[1]) * 0.5);
-
 
    int windowSizeOffset[2];
    windowSizeOffset[0] = int( (parentWidget()->width() - m_width) * 0.5 );
@@ -424,4 +527,129 @@ void CRenderGLWidget::clearRegionCrop()
 {
    m_regionCrop = false;
    m_region.minx = m_region.miny = m_region.maxx = m_region.maxy = 0;
+}
+
+
+void CRenderGLWidget::setBackgroundImage(const std::string &filename)
+{
+   MImage bgImg;
+   MStatus status = bgImg.readFromFile(MString(filename.c_str()));
+   if (m_bg_data)
+   {
+      delete m_bg_data;
+      m_bg_data = NULL;
+   }
+
+   if (status != MS::kSuccess) return;
+   
+   m_bg_data = new BackgroundData();
+
+   bgImg.getSize(m_bg_data->bgWidth, m_bg_data->bgHeight);
+   bgImg.verticalFlip();
+   m_bg_data->bgBuffer = (AtRGBA8 *)AiMalloc(m_bg_data->bgWidth * m_bg_data->bgHeight * sizeof(AtRGBA8));
+
+   unsigned char *pixels = bgImg.pixels();
+   unsigned int size = m_bg_data->bgWidth * m_bg_data->bgHeight;
+
+   for (unsigned int i = 0; i < size; ++i)
+   {
+      
+      AtRGBA8 &bufferPixel = m_bg_data->bgBuffer[i];
+      bufferPixel.r = *pixels;pixels++;
+      bufferPixel.g = *pixels;pixels++;
+      bufferPixel.b = *pixels;pixels++;
+      bufferPixel.a = *pixels;pixels++;
+   }
+   // create texture
+   glGenTextures(1, &m_bg_data->textureId);
+   GL_print_error("create texture");
+
+   glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+   GL_print_error("set texture parameter");
+
+   // describe texture layout
+   glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+   glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bg_data->bgWidth);
+   glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+   glPixelStorei(GL_UNPACK_SKIP_ROWS,   0);
+   GL_print_error("set pixel store");
+
+   // set texture data
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_bg_data->bgWidth, m_bg_data->bgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bg_data->bgBuffer);
+   GL_print_error("set texture pixels");
+
+   glPopClientAttrib();
+
+}
+
+void CRenderGLWidget::setBackgroundChecker()
+{
+   if (m_bg_data)
+   {
+      delete m_bg_data;
+      m_bg_data = NULL;
+   }
+   
+   m_bg_data = new BackgroundData();
+
+   m_bg_data->bgWidth = m_width;
+   m_bg_data->bgHeight = m_height;
+
+   m_bg_data->bgBuffer = (AtRGBA8 *)AiMalloc(m_width * m_height * sizeof(AtRGBA8));
+
+   int pixelIndex = 0;
+   int checkerSize = 20;
+   int xChecker;
+   int yChecker;
+
+   for (int y = 0; y < m_height; ++y)
+   {
+      for (int x = 0; x < m_width; ++x, ++pixelIndex)
+      {
+         AtRGBA8 &bufferPixel = m_bg_data->bgBuffer[pixelIndex];
+         xChecker = x/checkerSize;
+         yChecker = y/checkerSize;
+
+         if (((xChecker)%2) == ((yChecker)%2))
+         {
+            bufferPixel.r = bufferPixel.g = bufferPixel.b = 250;
+         } else
+         {
+            bufferPixel.r = bufferPixel.g = bufferPixel.b = 190;
+         }
+
+         bufferPixel.a = 0;
+      }
+   }
+      
+   // create texture
+   glGenTextures(1, &m_bg_data->textureId);
+   GL_print_error("create texture");
+
+   glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+   glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+   GL_print_error("set texture parameter");
+
+   // describe texture layout
+   glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
+   glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bg_data->bgWidth);
+   glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+   glPixelStorei(GL_UNPACK_SKIP_ROWS,   0);
+   GL_print_error("set pixel store");
+
+   // set texture data
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_bg_data->bgWidth, m_bg_data->bgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bg_data->bgBuffer);
+   GL_print_error("set texture pixels");
+
+   glPopClientAttrib();
+
 }
