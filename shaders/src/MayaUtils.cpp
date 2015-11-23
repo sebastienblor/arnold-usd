@@ -525,15 +525,15 @@ AtVector RGBtoHSV(AtRGB inRgb)
    {
       if (rgbMax == 0)
       {
-        output.x = 60.0f * (inRgb.g - inRgb.b) / (max - min);
+        output.x = 60.0f * ((inRgb.g - inRgb.b) / (max - min));
       }
       else if (rgbMax == 1)
       {
-        output.x = 60.0f * (inRgb.b - inRgb.r) / (max - min) + 120.0f;
+        output.x = 60.0f * ((inRgb.b - inRgb.r) / (max - min)) + 120.0f;
       }
       else if (rgbMax == 2)
       {
-        output.x = 60.0f * (inRgb.r - inRgb.g) / (max - min) + 240.0f;
+        output.x = 60.0f * ((inRgb.r - inRgb.g) / (max - min)) + 240.0f;
       }
 
       while (output.x < 0.0f)
