@@ -105,6 +105,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "render")
    {
+      if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
+      {
+         CMayaScene::GetRenderSession()->StartRenderView();
+         return MS::kSuccess;
+      }
       MDagPathArray cameras;
 
       if (args.isFlagSet("camera"))
@@ -118,8 +123,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          {
             cameras.append(camera);
          }
-      }
-      
+      }      
       GetRenderCameras(cameras);      
       startRenderView(cameras[0], width, height);
 
@@ -190,7 +194,7 @@ void CArnoldRenderViewCmd::startRenderView(const MDagPath &camera, int width, in
 
    CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
    
-
+   
    if (!renderGlobals.renderAll)
    {
       MSelectionList selected;
