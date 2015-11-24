@@ -8,11 +8,11 @@
 #include <string.h>
 #include <sstream>
 #include <iostream>
+
+#include <maya/MImage.h>
 #include "render_gl_widget.h"
 #include "renderview.h"
 #include "render_loop.h" 
-
-#include <maya/MImage.h>
 
 
 static const AtRGBA FILL_COLOR = {0.09f, 0.09f, 0.09f, 1.0f};
