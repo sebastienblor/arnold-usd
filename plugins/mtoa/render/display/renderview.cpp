@@ -1214,11 +1214,11 @@ CRenderViewMainWindow::initMenus()
    m_action_show_rendering_tiles->setCheckable(true);
    m_action_show_rendering_tiles->setStatusTip("Display the Tiles being rendered");
 
-   QAction *store_action = m_menu_view->addAction("Store Image in RenderView");
-   connect(store_action, SIGNAL(triggered()), this, SLOT(storeImage()));
-   store_action->setCheckable(false);
+   m_store_action = m_menu_view->addAction("Store Image in RenderView");
+   connect(m_store_action, SIGNAL(triggered()), this, SLOT(storeImage()));
+   m_store_action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Plus);
-   store_action->setStatusTip("Store the displayed Image in memory");
+   m_store_action->setStatusTip("Store the displayed Image in memory");
 
    action = m_menu_view->addAction("Previous Stored Image");
    connect(action, SIGNAL(triggered()), this, SLOT(previousStoredImage()));
@@ -1461,12 +1461,12 @@ CRenderViewMainWindow::initMenus()
    m_tool_bar->addSeparator();
 
    QToolButton *store_button = new QToolButton(m_tool_bar);
-   store_button->setDefaultAction(store_action);
+   store_button->setDefaultAction(m_store_action);
    m_tool_bar->addWidget(store_button);
    QIcon store_icon(QPixmap((const char **) SA_icon_store_xpm));
    store_button->setIcon(store_icon);
-   store_action->setIcon(store_icon);
-   store_action->setIconVisibleInMenu(false);
+   m_store_action->setIcon(store_icon);
+   m_store_action->setIconVisibleInMenu(false);
    store_button->setStyleSheet(style_button);
 
    m_stored_slider = new QSlider(Qt::Horizontal, m_tool_bar);
@@ -1485,9 +1485,11 @@ CRenderViewMainWindow::initMenus()
    QToolButton *delete_stored_button = new QToolButton(m_tool_bar);
    delete_stored_button->setDefaultAction(m_delete_stored_action);
    m_tool_bar->addWidget(delete_stored_button);
-   QIcon delete_stored_icon;
-   delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_delete_stored_xpm), QIcon::Normal, QIcon::Off);
+   QIcon delete_stored_icon = QApplication::style()->standardIcon(QStyle::SP_TrashIcon);
+   //delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_delete_stored_xpm), QIcon::Normal, QIcon::Off);
    delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_transparent_xpm), QIcon::Disabled, QIcon::Off);
+
+   
    delete_stored_button->setIcon(delete_stored_icon);
    m_delete_stored_action->setIcon(delete_stored_icon);
    m_delete_stored_action->setIconVisibleInMenu(false);
@@ -1585,7 +1587,10 @@ void CRenderViewMainWindow::deleteStoredImage()
 void
 CRenderViewMainWindow::storedSliderMoved(int i)
 {
-   m_renderView.m_displayedImageIndex = i -1;
+   m_renderView.m_displayedImageIndex = (i == m_renderView.m_storedImages.size()) ? -1 : i;
+
+   m_delete_stored_action->setVisible(m_renderView.m_displayedImageIndex >= 0);
+   m_store_action->setEnabled(m_renderView.m_displayedImageIndex < 0);
    m_renderView.refreshGLBuffer();
 
 }
@@ -1596,17 +1601,20 @@ CRenderViewMainWindow::updateStoredSlider()
 {
    if (m_renderView.m_storedImages.empty())
    {
+      m_store_action->setEnabled(true);
       m_stored_slider_action->setVisible(false);
       m_delete_stored_action->setVisible(false);
       return;
    }
+
    m_stored_slider_action->setVisible(true);
-   m_delete_stored_action->setVisible(true);
+   m_delete_stored_action->setVisible(m_renderView.m_displayedImageIndex >= 0);
+   m_store_action->setEnabled(m_renderView.m_displayedImageIndex < 0);
 
    m_stored_slider->setMinimum(0);
    m_stored_slider->setMaximum(m_renderView.m_storedImages.size());   
 
-   m_stored_slider->setSliderPosition(m_renderView.m_displayedImageIndex + 1);
+   m_stored_slider->setSliderPosition((m_renderView.m_displayedImageIndex < 0) ? m_renderView.m_storedImages.size() : m_renderView.m_displayedImageIndex);
 }
 
 

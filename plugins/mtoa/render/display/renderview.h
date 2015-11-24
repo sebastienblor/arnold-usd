@@ -103,6 +103,7 @@ private:
    QAction *m_action_status_info;
    QAction *m_stored_slider_action;
    QAction *m_delete_stored_action;
+   QAction *m_store_action;
    QAction *m_render_action;
    QAction *m_abort_action;
    QAction *m_3d_manipulation_action;
