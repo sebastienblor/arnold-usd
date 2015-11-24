@@ -1,3 +1,4 @@
+
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "utils/MtoaLog.h"
@@ -8,6 +9,9 @@
 #include "translators/NodeTranslator.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
+
+#include "display/renderview.h"
+
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -190,6 +194,13 @@ MStatus CRenderSession::End()
       }
    }
    m_is_active = false;
+
+   if (m_renderView != NULL)
+   {
+      delete m_renderView;
+      m_renderView = 0;
+   }
+
    // Restore "out of rendering" logging
    MtoaSetupLogging();
    return status;
@@ -247,6 +258,12 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 ///  process the method provided to CRenderSession::SetCallback() in the driver.
 void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime, void *data)
 {
+   if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW) && data != 0)
+   {
+      ((CRenderSession*)data)->UpdateRenderView();
+      return;
+   }
+
    const bool rendering = AiRendering();
    if (rendering)
    {
@@ -290,11 +307,12 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
 
 void CRenderSession::InterruptRender()
 {
-   if (IsRendering() && AiRendering())
+   if (m_renderView != NULL) 
    {
-      AiRenderInterrupt();
+      m_renderView->interruptRender();
    }
-
+   if (IsRendering() && AiRendering()) AiRenderInterrupt();
+      
    // Wait for the thread to clear.
    if (m_render_thread != 0)
    {
@@ -384,6 +402,8 @@ unsigned int CRenderSession::ProgressiveRenderThread(void* data)
    return ai_status;
 }
 
+
+
 unsigned int CRenderSession::InteractiveRenderThread(void* data)
 {
    MAtomic::set(&s_renderingFinished, 0);
@@ -414,7 +434,6 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    //
 
    MAtomic::set(&s_renderingFinished, 0);
-   
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
                                     AI_PRIORITY_LOW);
@@ -580,6 +599,78 @@ void CRenderSession::DoIPRRender()
 
    }
 }
+
+void CRenderSession::RunRenderView()
+{
+   InterruptRender(); // clear the previous thread  
+
+   SetRendering(true);
+   m_renderView->render();
+}
+
+void CRenderSession::StartRenderView()
+{
+   if (m_renderView != NULL) 
+   {
+      m_renderView->show();
+      m_renderView->updateRender();
+      return;
+   }
+   m_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
+
+}
+
+
+void CRenderSession::UpdateRenderView()
+{  
+/*
+   if (s_idle_cb)
+   {
+      MMessage::removeCallback(s_idle_cb);
+      s_idle_cb = 0;
+   }
+*/
+   if(m_renderView != NULL && m_renderView->canRestartRender()) // for now always return true
+   {
+      m_renderView->updateRender();
+      /*
+      InterruptRender();
+      CMayaScene::UpdateSceneChanges();
+      m_renderView->restartRender();*/
+      return;
+   }
+
+   // if not, raise a flag (needs update), and call idle
+   /*
+   MStatus status;
+   float remaining_time = float(renderView_refresh_time + m_renderView->renderTimestamp() - current_time) * 0.001f;
+
+   CMayaScene::UpdateSceneChanges();
+
+   s_idle_cb = MTimerMessage::addTimerCallback(remaining_time,
+                                               CRenderSession::InteractiveRenderCallback,
+                                               this,
+                                               &status);
+
+                                               */
+
+}
+
+void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
+{
+   if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;
+
+   // in renderView mode, we must advert the renderview that an object name has changed
+   if (m_renderView != NULL)
+   {
+      MFnDependencyNode fnNode(node);
+      std::string newName = fnNode.name().asChar();
+      std::string oldName = str.asChar();
+      m_renderView->ObjectNameChanged(newName, oldName);
+   }
+
+}
+
 
 void CRenderSession::StopIPR()
 {

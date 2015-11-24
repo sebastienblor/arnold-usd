@@ -889,8 +889,11 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       const char* arnoldType = translator->GetArnoldTypeName();
       if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
       {
-         CMayaScene::GetRenderSession()->InterruptRender();
-         AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+         if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
+         {
+            CMayaScene::GetRenderSession()->InterruptRender();
+            AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+         }
       }
          
       translator->RequestUpdate(clientData);
@@ -916,6 +919,8 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    {
       AiMsgWarning("[mtoa.translator.ipr] %-30s | NameChangedCallback: no translator in client data: %p.", translator->GetMayaNodeName().asChar(), clientData);
    }
+
+   CMayaScene::GetRenderSession()->ObjectNameChanged(node, str);
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,

@@ -169,8 +169,13 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
    if (node != MObject::kNullObj)
    {
       MPlugArray conns;
-      MFnDependencyNode fnArnoldRenderOptions(node);
+      MFnDependencyNode fnArnoldRenderOptions(node, &status);
 
+      if (status != MStatus::kSuccess)
+      {
+         AiMsgError("[mtoa] Invalid Arnold render options node");
+         return status;
+      }
       m_progressive_rendering     = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();

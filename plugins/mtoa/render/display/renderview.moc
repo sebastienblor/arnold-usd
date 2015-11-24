@@ -1,0 +1,153 @@
+/****************************************************************************
+** Meta object code from reading C++ file 'renderview.h'
+**
+** Created by: The Qt Meta Object Compiler version 63 (Qt 4.8.5)
+**
+** WARNING! All changes made in this file will be lost!
+*****************************************************************************/
+
+#include "renderview.h"
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#error "The header file 'renderview.h' doesn't include <QObject>."
+#elif Q_MOC_OUTPUT_REVISION != 63
+#error "This file was generated using the moc from 4.8.5. It"
+#error "cannot be used with the include files from this version of Qt."
+#error "(The moc has changed too much.)"
+#endif
+
+QT_BEGIN_MOC_NAMESPACE
+static const uint qt_meta_data_CRenderViewMainWindow[] = {
+
+ // content:
+       6,       // revision
+       0,       // classname
+       0,    0, // classinfo
+      26,   14, // methods
+       0,    0, // properties
+       0,    0, // enums/sets
+       0,    0, // constructors
+       0,       // flags
+       0,       // signalCount
+
+ // slots: signature, parameters, type, tag, flags
+      23,   22,   22,   22, 0x08,
+      35,   22,   22,   22, 0x08,
+      49,   22,   22,   22, 0x08,
+      70,   22,   22,   22, 0x08,
+      84,   22,   22,   22, 0x08,
+      99,   22,   22,   22, 0x08,
+     112,   22,   22,   22, 0x08,
+     134,   22,   22,   22, 0x08,
+     152,   22,   22,   22, 0x08,
+     172,   22,   22,   22, 0x08,
+     196,   22,   22,   22, 0x08,
+     210,   22,   22,   22, 0x08,
+     223,   22,   22,   22, 0x08,
+     233,   22,   22,   22, 0x08,
+     246,   22,   22,   22, 0x08,
+     261,   22,   22,   22, 0x08,
+     279,   22,   22,   22, 0x08,
+     292,   22,   22,   22, 0x08,
+     303,   22,   22,   22, 0x08,
+     317,   22,   22,   22, 0x08,
+     328,   22,   22,   22, 0x08,
+     346,   22,   22,   22, 0x08,
+     364,   22,   22,   22, 0x08,
+     383,   22,   22,   22, 0x08,
+     406,   22,   22,   22, 0x08,
+     431,   22,   22,   22, 0x08,
+
+       0        // eod
+};
+
+static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
+    "CRenderViewMainWindow\0\0saveImage()\0"
+    "abortRender()\0showRenderingTiles()\0"
+    "autoRefresh()\0updateRender()\0storeImage()\0"
+    "previousStoredImage()\0nextStoredImage()\0"
+    "deleteStoredImage()\0progressiveRefinement()\0"
+    "showChannel()\0enableAOVs()\0showAOV()\0"
+    "showBoxAOV()\0selectCamera()\0"
+    "selectBoxCamera()\0cropRegion()\0"
+    "frameAll()\0frameRegion()\0realSize()\0"
+    "colorCorrection()\0enableStatusBar()\0"
+    "displayPixelInfo()\0storedSliderMoved(int)\0"
+    "toggleManipulationMode()\0debugShading()\0"
+};
+
+void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+{
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        Q_ASSERT(staticMetaObject.cast(_o));
+        CRenderViewMainWindow *_t = static_cast<CRenderViewMainWindow *>(_o);
+        switch (_id) {
+        case 0: _t->saveImage(); break;
+        case 1: _t->abortRender(); break;
+        case 2: _t->showRenderingTiles(); break;
+        case 3: _t->autoRefresh(); break;
+        case 4: _t->updateRender(); break;
+        case 5: _t->storeImage(); break;
+        case 6: _t->previousStoredImage(); break;
+        case 7: _t->nextStoredImage(); break;
+        case 8: _t->deleteStoredImage(); break;
+        case 9: _t->progressiveRefinement(); break;
+        case 10: _t->showChannel(); break;
+        case 11: _t->enableAOVs(); break;
+        case 12: _t->showAOV(); break;
+        case 13: _t->showBoxAOV(); break;
+        case 14: _t->selectCamera(); break;
+        case 15: _t->selectBoxCamera(); break;
+        case 16: _t->cropRegion(); break;
+        case 17: _t->frameAll(); break;
+        case 18: _t->frameRegion(); break;
+        case 19: _t->realSize(); break;
+        case 20: _t->colorCorrection(); break;
+        case 21: _t->enableStatusBar(); break;
+        case 22: _t->displayPixelInfo(); break;
+        case 23: _t->storedSliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 24: _t->toggleManipulationMode(); break;
+        case 25: _t->debugShading(); break;
+        default: ;
+        }
+    }
+}
+
+const QMetaObjectExtraData CRenderViewMainWindow::staticMetaObjectExtraData = {
+    0,  qt_static_metacall 
+};
+
+const QMetaObject CRenderViewMainWindow::staticMetaObject = {
+    { &QMainWindow::staticMetaObject, qt_meta_stringdata_CRenderViewMainWindow,
+      qt_meta_data_CRenderViewMainWindow, &staticMetaObjectExtraData }
+};
+
+#ifdef Q_NO_DATA_RELOCATION
+const QMetaObject &CRenderViewMainWindow::getStaticMetaObject() { return staticMetaObject; }
+#endif //Q_NO_DATA_RELOCATION
+
+const QMetaObject *CRenderViewMainWindow::metaObject() const
+{
+    return QObject::d_ptr->metaObject ? QObject::d_ptr->metaObject : &staticMetaObject;
+}
+
+void *CRenderViewMainWindow::qt_metacast(const char *_clname)
+{
+    if (!_clname) return 0;
+    if (!strcmp(_clname, qt_meta_stringdata_CRenderViewMainWindow))
+        return static_cast<void*>(const_cast< CRenderViewMainWindow*>(this));
+    return QMainWindow::qt_metacast(_clname);
+}
+
+int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+{
+    _id = QMainWindow::qt_metacall(_c, _id, _a);
+    if (_id < 0)
+        return _id;
+    if (_c == QMetaObject::InvokeMetaMethod) {
+        if (_id < 26)
+            qt_static_metacall(this, _c, _id, _a);
+        _id -= 26;
+    }
+    return _id;
+}
+QT_END_MOC_NAMESPACE
