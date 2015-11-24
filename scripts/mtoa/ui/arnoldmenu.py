@@ -263,6 +263,8 @@ def startRenderView():
     #if core.ACTIVE_CAMERA != None:
     #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
     # so instead we're calling it without any argument
+    core.createOptions()
+
     cmds.arnoldRenderView()
 
 def startIpr():
