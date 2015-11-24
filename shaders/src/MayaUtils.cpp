@@ -494,62 +494,27 @@ AtVector RGBtoHSV(AtRGB inRgb)
 {
    AtVector output(AI_V3_ZERO);
 
-   float min = 0.0f;
-   float max = 0.0f;
-   int rgbMax = 0;
+   const float min = MIN3(inRgb.r, inRgb.g, inRgb.b);
+   const float max = MAX3(inRgb.r, inRgb.g, inRgb.b);
 
-   min = MIN(inRgb.r, inRgb.g);
-   min = MIN(min, inRgb.b);
-
-   max = MAX(inRgb.r, inRgb.g);
-   max = MAX(max, inRgb.b);
-
-   if (fabs(max - inRgb.r) < AI_EPSILON)
+   if (max > min)
    {
-      rgbMax = 0;
-   }
-   else if (fabs(max - inRgb.g) < AI_EPSILON)
-   {
-      rgbMax = 1;
-   }
-   else
-   {
-      rgbMax = 2;
-   }
-
-   if (max - min < AI_EPSILON)
-   {
-      output.x = 0.0f;
-   }
-   else
-   {
-      if (rgbMax == 0)
+      if (max == inRgb.r)
       {
-        output.x = 60.0f * ((inRgb.g - inRgb.b) / (max - min));
+        output.x = (inRgb.g - inRgb.b) / (max - min);
+        if (output.x < 0)
+           output.x += 6;
       }
-      else if (rgbMax == 1)
-      {
-        output.x = 60.0f * ((inRgb.b - inRgb.r) / (max - min)) + 120.0f;
-      }
-      else if (rgbMax == 2)
-      {
-        output.x = 60.0f * ((inRgb.r - inRgb.g) / (max - min)) + 240.0f;
-      }
+      else if (max == inRgb.g)
+        output.x = (inRgb.b - inRgb.r) / (max - min) + 2;
+      else
+        output.x = (inRgb.r - inRgb.g) / (max - min) + 4;
 
-      while (output.x < 0.0f)
-      {
-         output.x += 360.0f;
-      }
+      output.x *= 60;
    }
 
-   if (max < AI_EPSILON)
-   {
-      output.y = 0.0f;
-   }
-   else
-   {
+   if (max >= AI_EPSILON)
       output.y = (max - min) / max;
-   }
 
    output.z = max;
 
@@ -560,53 +525,31 @@ AtVector RGBtoHSL(AtRGB inRgb)
 {
    AtVector output(AI_V3_ZERO);
 
-   float min = 0.0f;
-   float max = 0.0f;
-   int rgbMax = 0;
-
-   min = MIN(inRgb.r, inRgb.g);
-   min = MIN(min, inRgb.b);
-
-   max = MAX(inRgb.r, inRgb.g);
-   max = MAX(max, inRgb.b);
-
-   if (fabs(max - inRgb.r) < AI_EPSILON)
-   {
-      rgbMax = 0;
-   }
-   else if (fabs(max - inRgb.g) < AI_EPSILON)
-   {
-      rgbMax = 1;
-   }
-   else
-   {
-      rgbMax = 2;
-   }
+   const float min = MIN3(inRgb.r, inRgb.g, inRgb.b);
+   const float max = MAX3(inRgb.r, inRgb.g, inRgb.b);
 
    // L
    output.z = 0.5f * (min + max);
 
    // S
-   float d = max - min;
+   const float d = max - min;
 
-   if (d >= AI_EPSILON)
+   if (d != 0)
    {
       output.y = d / (output.z <= 0.5f ? (max + min) : (2.0f - max - min));
 
-      d = 1.0f / d;
-
       // H
-      if (rgbMax == 0)
+      if (max == inRgb.r)
       {
-         output.x = d * (inRgb.g - inRgb.b);
+         output.x = (inRgb.g - inRgb.b) / d;
       }
-      else if (rgbMax == 1)
+      else if (max == inRgb.g)
       {
-         output.x = 2.0f + d * (inRgb.b - inRgb.r);
+         output.x = 2.0f + (inRgb.b - inRgb.r) / d;
       }
       else
       {
-         output.x = 4.0f + d * (inRgb.r - inRgb.g);
+         output.x = 4.0f + (inRgb.r - inRgb.g) / d;
       }
 
       output.x /= 6.0f;
