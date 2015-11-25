@@ -49,7 +49,7 @@
 #define new DEBUG_NEW
 #endif
 
-static CRenderView  *CRenderSession::s_renderView = NULL;
+static CRenderView  *s_renderView = NULL;
 
 extern AtNodeMethods* mtoa_driver_mtd;
 

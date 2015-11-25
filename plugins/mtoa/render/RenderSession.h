@@ -215,7 +215,6 @@ private:
    static MComputation*   s_comp;
    MString        m_postRenderMel;
 
-   static CRenderView* s_renderView;
    //CRenderView  *m_renderView;
    
 }; // class CRenderSession
