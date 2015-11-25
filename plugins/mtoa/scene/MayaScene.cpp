@@ -400,7 +400,10 @@ MStatus CMayaScene::UpdateIPR()
 
 void CMayaScene::Init() {AiCritSecInit((void**)&s_lock);}
 
-void CMayaScene::DeInit()  {AiCritSecClose((void**)&s_lock);}
+void CMayaScene::DeInit()  {
+   AiCritSecClose((void**)&s_lock);
+   CRenderSession::DeleteRenderView();
+}
 
 // Private Methods
 

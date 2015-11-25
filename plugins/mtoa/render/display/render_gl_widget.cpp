@@ -45,6 +45,33 @@ inline bool support_non_power_of_two_textures(void)
  *************************************************/
 CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height) : QGLWidget(parent), m_renderview(rv)
 {
+   m_texture = 0;
+   m_front_buffer = NULL;
+   m_back_buffer = NULL;
+   initSize(width, height);
+}
+
+CRenderGLWidget::~CRenderGLWidget()
+{
+   if (m_texture)
+   {
+      glDeleteTextures(1, &m_texture);
+      GL_print_error("delete texture");
+   }
+
+   if (m_back_buffer)
+      AiFree(m_back_buffer);
+
+   AiFree(m_front_buffer);
+   
+}
+void CRenderGLWidget::closeEvent(QCloseEvent *event)
+{
+   
+}
+
+void CRenderGLWidget::initSize(int width, int height)
+{
    resize(width, height);
    // create display buffer
    
@@ -68,6 +95,11 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    m_ty = (float)height / (float)m_height;
    // allocate buffer
    const size_t size = m_width * m_height * sizeof(AtRGBA8);
+
+   if (m_back_buffer) AiFree(m_back_buffer);
+
+
+   if (m_front_buffer) AiFree(m_front_buffer);
    m_front_buffer = (AtRGBA8 *)AiMalloc(size);
 
    // fill with grey so we can see unfinished buckets
@@ -87,30 +119,13 @@ CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, in
    m_bg_data = NULL;
    m_bg_color = AI_RGBA_BLACK;
 }
-
-CRenderGLWidget::~CRenderGLWidget()
+void CRenderGLWidget::setupTexture()
 {
    if (m_texture)
    {
       glDeleteTextures(1, &m_texture);
-      GL_print_error("delete texture");
+      m_texture = 0;
    }
-
-   if (m_back_buffer)
-      AiFree(m_back_buffer);
-
-   AiFree(m_front_buffer);
-   
-}
-void CRenderGLWidget::closeEvent(QCloseEvent *event)
-{
-   
-}
-
-
-void CRenderGLWidget::setupTexture()
-{
-   m_texture = 0;
 
    // create texture
    glGenTextures(1, &m_texture);
@@ -288,9 +303,9 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
    update();
 }
 
-
 void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
 {
+
    glClearColor(FILL_COLOR.r, FILL_COLOR.g, FILL_COLOR.b, FILL_COLOR.a);
    //glClearColor(m_bg_color.r, m_bg_color.g, m_bg_color.b, m_bg_color.a);
    glClear(GL_COLOR_BUFFER_BIT);

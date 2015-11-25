@@ -237,6 +237,7 @@ public:
    void restartRender();
    void updateRender();
    void updateRenderOptions();
+   void initRender(int w, int h);
 
    void saveImage(const std::string &filename);
    void storeImage();
@@ -371,8 +372,7 @@ protected:
 friend class CRenderViewMainWindow;
 
    void init();
-   void initSize(int w, int h);
-
+   
    void fillGLPixel(const AtRGBA &color, int x, int y, int pixelIndex)
    {
       AtRGBA outColor(color);

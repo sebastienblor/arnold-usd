@@ -63,6 +63,8 @@ public:
    static void SetCallback(RenderCallbackType callback);
    static void ClearCallback();
    static RenderCallbackType GetCallback();
+
+   static void DeleteRenderView();
    
 
    // Render Methods.
@@ -171,7 +173,7 @@ private:
       , m_is_active(false)
       , m_render_thread(NULL)
       , m_rendering(0)
-      , m_renderView(NULL)
+      //, m_renderView(NULL)
    {
    }
 
@@ -213,6 +215,7 @@ private:
    static MComputation*   s_comp;
    MString        m_postRenderMel;
 
-   CRenderView  *m_renderView;
+   static CRenderView* s_renderView;
+   //CRenderView  *m_renderView;
    
 }; // class CRenderSession

@@ -57,7 +57,7 @@ public:
    CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height);
    virtual ~CRenderGLWidget();
    
-
+   void initSize(int width, int height);
    void initializeGL();
    void resizeGL(int width, int height);
    void paintGL();
@@ -91,7 +91,7 @@ public:
    const AtBBox2 *getRegion() const {return (m_regionCrop) ? &m_region : NULL;}
 
    void project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp = false) const;
-   
+
    void debugGPUState() {m_printGPUState = true;}
    void setBackgroundImage(const std::string &filename);
    void setBackgroundChecker();

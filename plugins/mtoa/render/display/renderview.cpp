@@ -100,10 +100,12 @@ CRenderView::CRenderView(int w, int h)
    m_buffer = NULL;
    m_picked_id = NULL;
 
-   initSize(w, h);
+
+   initRender(w, h);
    init();
 
    m_main_window->initMenus();
+   
    m_main_window->show();
 
    m_main_window->enableMenus(false);
@@ -134,33 +136,6 @@ CRenderView::~CRenderView()
    delete m_main_window;
 }
 
-void CRenderView::initSize(int w, int h)
-{
-   m_width = w;
-   m_height = h;
-
-   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight);
-
-   if (m_gl != NULL) delete m_gl;
-
-   m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
-
-   m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
-
-   const size_t fillsize = m_width * m_height;
-
-   for(size_t i = 0; i < fillsize; i++)
-   {
-      m_buffer[i] = AI_RGBA_BLACK;
-   }
-
-#if defined(_DARWIN)
-   // why do we have to move the GL widget on OSX ?
-   m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight + 10);
-#endif 
-   m_gl->resize(m_width, m_height);
-
-}
 void CRenderView::init()
 {
 
@@ -193,6 +168,66 @@ void CRenderView::init()
    m_continuous_updates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
 
 
+   m_displayedImageIndex = -1; // -1 means the current rendering
+   // >= 0 refers to a stored Image
+
+   m_displayedAovIndex = -1; // -1 means we're showing the beauty
+   // >0 refers to an AOV
+
+   K_InitGlobalVars();
+   if (!m_storedImages.empty())
+   {
+      for (size_t i = 0; i < m_storedImages.size(); ++i)
+      {
+         AiFree(m_storedImages[i]);
+      }
+      m_storedImages.clear();
+   }
+
+   // setup syncing
+   displaySyncCreate();
+
+}
+
+void CRenderView::initRender(int w, int h)
+{
+   m_width = w;
+   m_height = h;
+   
+
+   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight);
+
+   if (m_gl != NULL)
+   {
+      m_gl->initSize(m_width, m_height);
+      m_gl->initializeGL();
+   }
+   else  m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
+
+   if (m_buffer != NULL) AiFree(m_buffer);
+   m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
+
+   const size_t fillsize = m_width * m_height;
+
+   for(size_t i = 0; i < fillsize; i++)
+   {
+      m_buffer[i] = AI_RGBA_BLACK;
+   }
+
+#if defined(_DARWIN)
+   // why do we have to move the GL widget on OSX ?
+   m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight + 10);
+#endif 
+   
+   m_gl->resize(m_width, m_height);
+//  m_main_window->setCentralWidget(m_gl);
+
+
+
+   updateRenderOptions();
+
+   if (AiNodeLookUpByName("kick_display")) return;
+
    AtNode *filter;
    AtNode *driver;
    
@@ -203,7 +238,6 @@ void CRenderView::init()
 
    AtNode *id_filter = AiNode("closest_filter");
    AiNodeSetStr(id_filter, "name", "_renderViewDefault@closest_filter");
-
 
 
    if (K_filter_type[0] != 0)
@@ -224,32 +258,9 @@ void CRenderView::init()
    AiNodeSetStr(filter, "name", "kick_display_filter");
    AiNodeSetPtr(driver, "userdata", (void *)this);
 
-
-   m_displayedImageIndex = -1; // -1 means the current rendering
-   // >= 0 refers to a stored Image
-
-   m_displayedAovIndex = -1; // -1 means we're showing the beauty
-   // >0 refers to an AOV
-
-   K_InitGlobalVars();
-   if (!m_storedImages.empty())
-   {
-      for (size_t i = 0; i < m_storedImages.size(); ++i)
-      {
-         AiFree(m_storedImages[i]);
-      }
-      m_storedImages.clear();
-   }
-   
-   // setup syncing
-   displaySyncCreate();
-
-
    K_AA_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
    if (K_AA_samples == 0)
    K_AA_samples = 1;
-
-   updateRenderOptions();
 
 
 }
@@ -399,6 +410,7 @@ void CRenderView::updateRenderOptions()
 
 void CRenderView::render()
 {
+
    interruptRender();
 
    if (m_render_thread != NULL)
@@ -407,12 +419,15 @@ void CRenderView::render()
       K_wait_for_changes = false;      
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
+
    }  
 
    // make sure m_aovBuffers is resized to the appropriate amount of AOVs
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    arnoldSession->SetContinuousUpdates(false);
+
+   K_aborted = false;
    m_render_thread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
 
 }
@@ -423,9 +438,12 @@ bool CRenderView::canRestartRender() const
    return true;
 
 }
+
+
 void CRenderView::close()
 {
-   delete m_main_window;
+   m_main_window->hide();
+   //delete m_main_window;
 }
 
 void CRenderView::show()
@@ -435,7 +453,9 @@ void CRenderView::show()
 
 void CRenderView::finishRender()
 {
+   K_aborted = true;
    interruptRender();
+
    while (AiRendering()) {sleep(1000);}
    if (m_render_thread != NULL)
    {  
@@ -445,8 +465,8 @@ void CRenderView::finishRender()
       AiThreadClose(m_render_thread);
       m_render_thread = NULL;
    }
-   
 }
+
 void CRenderView::interruptRender()
 {
    if (AiRendering()) AiRenderInterrupt();
@@ -504,6 +524,7 @@ void CRenderView::syncPause()
 // Beware not to do any Qt UI stuff here
 void CRenderView::draw(AtBBox2 *region)  
 {
+
    bool already_in_queue = false;
    AtDisplaySync *sync = display_sync;
 
@@ -548,6 +569,14 @@ void CRenderView::draw(AtBBox2 *region)
 
 void CRenderView::displaySyncCreate()
 {
+   if (display_sync != NULL)
+   {
+      AiCritSecClose(&display_sync->event_lock);
+      AiCritSecClose(&display_sync->lock);
+      AiFree(display_sync);
+      display_sync = 0;
+   }
+
    // Minimum frames per second at which we will always interrupt and redraw
    // regardless of what has been finished
    //FPS_min = 5.0f;
@@ -626,7 +655,7 @@ void CRenderView::updateRender()
       size_changed ||
       outputs != new_outputs)
    {
-      if (size_changed) initSize(AiNodeGetInt(options, "xres"), AiNodeGetInt(options, "yres"));
+      if (size_changed) initRender(AiNodeGetInt(options, "xres"), AiNodeGetInt(options, "yres"));
 
       updateRenderOptions();
       m_main_window->populateAOVsMenu();
@@ -903,7 +932,7 @@ void CRenderView::checkSceneUpdates()
    if (!m_continuous_updates) return;
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-
+   if (arnoldSession == NULL) return;
    if (m_restore_continuous)
    {
       arnoldSession->SetContinuousUpdates(true);
@@ -2264,8 +2293,8 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
       CMayaScene::GetArnoldSession()->SetContinuousUpdates(false);
       renderSession->SetRendering(false);
       m_renderView.finishRender(); // this stops the rendering and destroys the render threads
-      CMayaScene::End(); // This will delete my RenderView, along with all my options
-      // I guess people will want to keep their options, stored images, etc... so we'd need to change that
+      
+      CMayaScene::End();
       AiEnd();
    }
    event->accept();

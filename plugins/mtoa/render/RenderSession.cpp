@@ -49,6 +49,8 @@
 #define new DEBUG_NEW
 #endif
 
+static CRenderView  *CRenderSession::s_renderView = NULL;
+
 extern AtNodeMethods* mtoa_driver_mtd;
 
 MComputation*                       CRenderSession::s_comp = NULL;
@@ -174,10 +176,17 @@ MStatus CRenderSession::End()
    MStatus status = MStatus::kSuccess;
 
    if (IsRendering())
+   {
       // IsRendering check prevents thread lock when CMayaScene::End is called
       // from InteractiveRenderThread
       InterruptRender();
-
+      if (s_renderView)
+      {
+         s_renderView->finishRender();
+         s_renderView->close();
+      }
+   }
+   
    if (!AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] No active Arnold Universe present.");
@@ -195,15 +204,18 @@ MStatus CRenderSession::End()
    }
    m_is_active = false;
 
-   if (m_renderView != NULL)
-   {
-      delete m_renderView;
-      m_renderView = 0;
-   }
-
+   
    // Restore "out of rendering" logging
    MtoaSetupLogging();
    return status;
+}
+void CRenderSession::DeleteRenderView()
+{
+   if (s_renderView != NULL)
+   {
+      delete s_renderView;
+      s_renderView = NULL;
+   }
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -307,9 +319,9 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
 
 void CRenderSession::InterruptRender()
 {
-   if (m_renderView != NULL) 
+   if (s_renderView != NULL) 
    {
-      m_renderView->interruptRender();
+      s_renderView->interruptRender();
    }
    if (IsRendering() && AiRendering()) AiRenderInterrupt();
       
@@ -603,20 +615,23 @@ void CRenderSession::DoIPRRender()
 void CRenderSession::RunRenderView()
 {
    InterruptRender(); // clear the previous thread  
-
    SetRendering(true);
-   m_renderView->render();
+   s_renderView->render();
 }
 
 void CRenderSession::StartRenderView()
 {
-   if (m_renderView != NULL) 
+   if (s_renderView != NULL) 
    {
-      m_renderView->show();
-      m_renderView->updateRender();
+      if (AiRendering()) s_renderView->interruptRender();
+
+      s_renderView->initRender(m_renderOptions.width(), m_renderOptions.height());
+      s_renderView->show();
+
+      s_renderView->updateRender();
       return;
    }
-   m_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
+   s_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
 
 }
 
@@ -630,20 +645,20 @@ void CRenderSession::UpdateRenderView()
       s_idle_cb = 0;
    }
 */
-   if(m_renderView != NULL && m_renderView->canRestartRender()) // for now always return true
+   if(s_renderView != NULL && s_renderView->canRestartRender()) // for now always return true
    {
-      m_renderView->updateRender();
+      s_renderView->updateRender();
       /*
       InterruptRender();
       CMayaScene::UpdateSceneChanges();
-      m_renderView->restartRender();*/
+      s_renderView->restartRender();*/
       return;
    }
 
    // if not, raise a flag (needs update), and call idle
    /*
    MStatus status;
-   float remaining_time = float(renderView_refresh_time + m_renderView->renderTimestamp() - current_time) * 0.001f;
+   float remaining_time = float(renderView_refresh_time + s_renderView->renderTimestamp() - current_time) * 0.001f;
 
    CMayaScene::UpdateSceneChanges();
 
@@ -661,12 +676,12 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
    if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return;
 
    // in renderView mode, we must advert the renderview that an object name has changed
-   if (m_renderView != NULL)
+   if (s_renderView != NULL)
    {
       MFnDependencyNode fnNode(node);
       std::string newName = fnNode.name().asChar();
       std::string oldName = str.asChar();
-      m_renderView->ObjectNameChanged(newName, oldName);
+      s_renderView->ObjectNameChanged(newName, oldName);
    }
 
 }
