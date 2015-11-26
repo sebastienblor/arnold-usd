@@ -504,6 +504,10 @@ void CRenderGLWidget::project(int windowX, int windowY, int& bufferX, int &buffe
    imageSize[0] = int (m_width * m_zoomFactor);
    imageSize[1] = int(m_height * m_zoomFactor);
 
+   // need to remove the margin (toolbar, menu, etc..)
+   // but we need to consider what would happen if we undock the toolbar !!
+   windowY -= 42;
+
    
    int zoomOffset[2];
    zoomOffset[0] = int ((m_width - imageSize[0]) * 0.5);

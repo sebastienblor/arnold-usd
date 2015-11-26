@@ -493,6 +493,7 @@ friend class CRenderViewMainWindow;
    int m_width;
    int m_height;
    CRenderViewMainWindow *m_main_window;
+   QWidget *m_central_widget;
    CRenderGLWidget *m_gl;
    AtDisplaySync *display_sync;
    

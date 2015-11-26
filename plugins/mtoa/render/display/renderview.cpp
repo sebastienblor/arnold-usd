@@ -85,6 +85,7 @@ static int toolbarHeight = 15;
 static int statusbarHeight = 10;
 
 
+
 CRenderView::CRenderView(int w, int h)
 {
    m_render_thread = NULL;
@@ -100,16 +101,18 @@ CRenderView::CRenderView(int w, int h)
    m_buffer = NULL;
    m_picked_id = NULL;
 
-
-   initRender(w, h);
    init();
 
+   m_central_widget = new QWidget(m_main_window);
+   m_main_window->setCentralWidget(m_central_widget);
+   m_central_widget->resize(w, h + toolbarHeight + statusbarHeight);
+
    m_main_window->initMenus();
+   initRender(w, h);
    
    m_main_window->show();
 
    m_main_window->enableMenus(false);
-
 }
 
 
@@ -195,14 +198,14 @@ void CRenderView::initRender(int w, int h)
    m_height = h;
    
 
-   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight);
+   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight + 26);
 
    if (m_gl != NULL)
    {
       m_gl->initSize(m_width, m_height);
       m_gl->initializeGL();
    }
-   else  m_gl = new CRenderGLWidget(m_main_window, *this, m_width, m_height);
+   else  m_gl = new CRenderGLWidget(m_central_widget, *this, m_width, m_height);
 
    if (m_buffer != NULL) AiFree(m_buffer);
    m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
@@ -217,9 +220,11 @@ void CRenderView::initRender(int w, int h)
 #if defined(_DARWIN)
    // why do we have to move the GL widget on OSX ?
    m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight + 10);
-#endif 
-   
+#endif
+   //m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight);
    m_gl->resize(m_width, m_height);
+
+   m_gl->move(0, 0);
 //  m_main_window->setCentralWidget(m_gl);
 
 
@@ -1139,6 +1144,8 @@ CRenderViewMainWindow::~CRenderViewMainWindow()
 void
 CRenderViewMainWindow::initMenus()
 {
+
+
    m_active_menus = false;
    QMenuBar *menubar = menuBar();
 
@@ -1538,6 +1545,7 @@ CRenderViewMainWindow::initMenus()
    m_active_menus = false;
 
 
+
 }
 
 void
@@ -1863,7 +1871,8 @@ void CRenderViewMainWindow::moveEvent(QMoveEvent *event)
 void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
 {
    const QSize &newSize = event->size();
-   m_renderView.m_gl->resize(newSize.width(), newSize.height());
+   m_renderView.m_gl->resize(newSize.width(), newSize.height() - (menuHeight + toolbarHeight + statusbarHeight + 26));
+
 
    if (m_3d_manipulation) frameAll();
 
@@ -2235,7 +2244,7 @@ void CRenderViewMainWindow::frameRegion()
          return;
       }
 
-      float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)height() / (region->maxy - region->miny) );
+      float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)(height() - (menuHeight + toolbarHeight + statusbarHeight + 26) )/ (region->maxy - region->miny) );
       m_renderView.m_gl->setZoomFactor(zoomFactor);
 
       AtPoint2 regionCenter;
@@ -2254,7 +2263,7 @@ void CRenderViewMainWindow::frameAll()
 {
    if (m_3d_manipulation) return; // we should frame the global bounding box
 
-   float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)height() / (float)m_renderView.m_height);
+   float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)(height()- (menuHeight + toolbarHeight + statusbarHeight + 26))  / (float)m_renderView.m_height );
    m_renderView.m_gl->setZoomFactor(zoomFactor);
    m_renderView.m_gl->setPan(0, 0);
    m_renderView.draw();

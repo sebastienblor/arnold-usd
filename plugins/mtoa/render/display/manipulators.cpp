@@ -176,19 +176,22 @@ void CRenderView2DZoom::wheel(CRenderView &renderView, float delta)
    float previousZoom = glWidget->getZoomFactor();
    float zoomFactor = powf(2.f, delta / 240.0);
 
-   int pivot[2];
-   glWidget->project(int(renderView.getMainWindow()->width() * 0.5), int (renderView.getMainWindow()->height() * 0.5), pivot[0], pivot[1], true);
+//   int pivot[2];
+//   glWidget->project(int(renderView.getMainWindow()->width() * 0.5), int (renderView.getMainWindow()->height() * 0.5), pivot[0], pivot[1], true);
 
-   AtPoint2 regionCenter;
-   // this was the previous image center
-   regionCenter.x = pivot[0] - renderView.width()*0.5;
-   regionCenter.y = pivot[1] - renderView.height()*0.5;
-
+   
    zoomFactor *= previousZoom;
    glWidget->setZoomFactor(zoomFactor);
 
+/*
+   AtPoint2 regionCenter;
+   // this was the previous image center
+   regionCenter.x = pivot[0] - renderView.width()*0.5;
+   regionCenter.y = pivot[1] - (renderView.height())*0.5;
+
    // I want my image center to be the same as before
    glWidget->setPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
+   */
    renderView.draw();
 
 }
