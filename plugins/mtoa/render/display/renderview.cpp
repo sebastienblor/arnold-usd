@@ -1254,29 +1254,29 @@ CRenderViewMainWindow::initMenus()
    m_action_show_rendering_tiles->setCheckable(true);
    m_action_show_rendering_tiles->setStatusTip("Display the Tiles being rendered");
 
-   m_store_action = m_menu_view->addAction("Store Image in RenderView");
+   m_store_action = m_menu_view->addAction("Store Snapshot");
    connect(m_store_action, SIGNAL(triggered()), this, SLOT(storeImage()));
    m_store_action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Plus);
-   m_store_action->setStatusTip("Store the displayed Image in memory");
+   m_store_action->setStatusTip("Stores a snapshot of the displayed Image in memory");
 
-   action = m_menu_view->addAction("Previous Stored Image");
+   action = m_menu_view->addAction("Previous Snapshot");
    connect(action, SIGNAL(triggered()), this, SLOT(previousStoredImage()));
    action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Left);
-   action->setStatusTip("Display the Previous Image Stored in Memory");
+   action->setStatusTip("Display the Previous Snapshot Stored in the RenderView");
 
-   action = m_menu_view->addAction("Next Stored Image");
+   action = m_menu_view->addAction("Next Snapshot");
    connect(action, SIGNAL(triggered()), this, SLOT(nextStoredImage()));
    action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Right);
-   action->setStatusTip("Display the Next Image Stored in Memory");
+   action->setStatusTip("Display the Next Snapshot Stored in the RenderView");
 
-   m_delete_stored_action = m_menu_view->addAction("Delete Stored Image");
+   m_delete_stored_action = m_menu_view->addAction("Delete Snapshot");
    connect(m_delete_stored_action, SIGNAL(triggered()), this, SLOT(deleteStoredImage()));
    m_delete_stored_action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Minus);
-   m_delete_stored_action->setStatusTip("Delete the Stored Image being currently displayed");
+   m_delete_stored_action->setStatusTip("Delete the Stored Snapshot being currently displayed");
 
    m_menu_view->addSeparator();
 
