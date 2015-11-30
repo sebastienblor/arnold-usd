@@ -1122,23 +1122,23 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 
 void CArnoldSession::SetContinuousUpdates(bool b) 
 {
+   //if (b == m_continuousUpdates) return;
    m_continuousUpdates = b;
    if (m_continuousUpdates && HasObjectsToUpdate())
    {
       RequestUpdate();
    }
 }
-void CArnoldSession::RequestUpdate()
+void CArnoldSession::RequestUpdate(bool forceUpdate)
 {
-   if (!m_continuousUpdates) return;
-   
+   if (!forceUpdate && !m_continuousUpdates) return;
+
    m_requestUpdate = true;
    CMayaScene::UpdateIPR();
 }
 
 void CArnoldSession::DoUpdate()
 {
-   
    MStatus status;
    assert(AiUniverseIsActive());
 

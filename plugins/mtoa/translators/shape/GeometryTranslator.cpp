@@ -1326,16 +1326,28 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
       CGeometryTranslator * translator = static_cast< CGeometryTranslator* >(clientData);
       if (translator != NULL)
       {
-         // Interrupt render before exporting shaders
-         if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
+         // Problem ! If a rendering is in progress, I can't create these new nodes
+         // so I need to interrupt the rendering, even if Continuous Updates are OFF
+         if (!AiRendering())
          {
-            CMayaScene::GetRenderSession()->InterruptRender();
+            translator->ExportShaders();
+            translator->RequestUpdate();
+         } else
+         {
+            CMayaScene::GetRenderSession()->InterruptRender(true);
+            // Export the new shaders.
+            translator->ExportShaders();
+   		
+            // Update Arnold without passing a translator, this just forces a redraw.
+            if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
+            {
+               translator->RequestUpdate();
+            } else
+            {
+               translator->RequestUpdate();
+               CMayaScene::GetArnoldSession()->RequestUpdate(true);
+            }
          }
-         // Export the new shaders.
-         translator->ExportShaders();
-
-         // Update Arnold without passing a translator, this just forces a redraw.
-         translator->RequestUpdate();
       }
    }
 }

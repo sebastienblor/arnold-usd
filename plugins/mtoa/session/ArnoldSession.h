@@ -134,7 +134,7 @@ public:
    // Updates
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
-   void RequestUpdate();
+   void RequestUpdate(bool forceUpdate = false);
 
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};

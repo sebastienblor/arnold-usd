@@ -98,7 +98,7 @@ public:
    static void InteractiveRenderCallback(float, float, void* data);
 
    /// Stop a render, leaving Arnold univierse active.
-   void InterruptRender();
+   void InterruptRender(bool waitFinished = false);
 
    void RunRenderView();
    /// Start and IPR render.
@@ -164,6 +164,7 @@ public:
 
    static void ClearIdleRenderViewCallback();
    
+   static void sleep(AtUInt64 usecs);
 
 
 private:

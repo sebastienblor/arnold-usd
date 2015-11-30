@@ -317,7 +317,7 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
    }
 }
 
-void CRenderSession::InterruptRender()
+void CRenderSession::InterruptRender(bool waitFinished)
 {
    if (s_renderView != NULL) 
    {
@@ -325,6 +325,10 @@ void CRenderSession::InterruptRender()
    }
    if (IsRendering() && AiRendering()) AiRenderInterrupt();
       
+   if (waitFinished)
+   {
+      while(AiRendering()) sleep(1000);
+   }
    // Wait for the thread to clear.
    if (m_render_thread != 0)
    {
@@ -635,6 +639,19 @@ void CRenderSession::StartRenderView()
 
 }
 
+#ifdef _WIN64
+void CRenderSession::sleep(AtUInt64 usecs)
+{
+   Sleep(usecs / 1000);
+}
+#else
+
+void CRenderView::sleep(AtUInt64 usecs)
+{
+   usleep(usecs);
+}
+
+#endif
 
 void CRenderSession::UpdateRenderView()
 {  

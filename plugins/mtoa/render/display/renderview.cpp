@@ -493,7 +493,7 @@ void CRenderView::interruptRender()
    
    // I'm already trying to restart the render loop
    // so let's not interfere with it
-   if (!K_restartLoop) K_wait_for_changes = true;
+   if (!K_restartLoop) {K_wait_for_changes = true;}
 }
 // utilities copied from sync.h and time.h in core
 
@@ -645,10 +645,9 @@ void CRenderView::updateRender()
 
 
    // should I wait until rendering is really finished ?
-   //while (AiRendering()) CRenderView::sleep(1000);
+   while (AiRendering()) CRenderView::sleep(1000);
 
    CMayaScene::UpdateSceneChanges();
-
    options = AiUniverseGetOptions();
    AtArray *new_outputs = AiNodeGetArray(options, "outputs");
    bool size_changed = (xres != AiNodeGetInt(options, "xres") || yres != AiNodeGetInt(options, "yres"));
@@ -688,7 +687,6 @@ void CRenderView::updateRender()
 
 void CRenderView::restartRender()
 {
-
    show();
 
    if (!K_progressive)
@@ -703,7 +701,7 @@ void CRenderView::restartRender()
    K_render_timestamp = time();
    K_restartLoop = true;
    K_wait_for_changes = false;
-
+   
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    arnoldSession->SetContinuousUpdates(false);
 

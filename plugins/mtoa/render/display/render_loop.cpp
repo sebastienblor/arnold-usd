@@ -227,9 +227,8 @@ extern int RenderLoop(CRenderView *kwin)
       /*
        * apply any existing node changes
        */
-
-      while(K_wait_for_changes) {CRenderView::sleep(10);}
-
+      while(K_wait_for_changes) {CRenderView::sleep(1000);}
+      
       /*
        * begin the render-loop
        */
@@ -242,7 +241,7 @@ extern int RenderLoop(CRenderView *kwin)
       if (AiRendering())
       {
          AiRenderInterrupt();
-         while (AiRendering()){CRenderView::sleep(10);}
+         while (AiRendering()){CRenderView::sleep(1000);}
       }
       
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
@@ -300,7 +299,6 @@ extern int RenderLoop(CRenderView *kwin)
          kwin->setStatus(statusStr.str());
         
          AtUInt64 loop_time = (i == smax) ? CRenderView::time() : 0;
-
          error = AiRender(0); //AI_RENDER_THREADED);
          switch (error)
          {
@@ -314,6 +312,8 @@ extern int RenderLoop(CRenderView *kwin)
                K_restartLoop = true;
                i = smax+1;
                exit_code = error;
+               // if we uncommenting this, we get like strobes when moving the cam
+               //kwin->restoreContinuous();
                break;
             }
             case AI_SUCCESS:
@@ -367,17 +367,15 @@ extern int RenderLoop(CRenderView *kwin)
 
                   kwin->setStatus(statusEndStr.str());
                   kwin->draw();
-
                   while (K_aborted == false && K_restartLoop == false) 
                   {
                      CRenderView::sleep(1000); // don't want CPU pegged at 100% with useless work
                   }
-                }
+               }
                break;
             }
             default:
             {
-              
                /*
                 * then there was some sort of rendering error or abort
                 * signal -- terminate the render loop
