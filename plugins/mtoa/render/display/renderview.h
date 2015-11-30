@@ -108,12 +108,12 @@ private:
    QAction *m_abort_action;
    QAction *m_3d_manipulation_action;
    QAction *m_lut_action;
+   QAction *m_debug_shading_action_disabled;
 
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
    QActionGroup *m_cameras_action_group;
-   QActionGroup *m_debug_shading_action_group;
-   
+   QActionGroup *m_debug_shading_action_group;   
 
    QSlider *m_stored_slider;
    CRenderViewCCWindow *m_cc_window;
@@ -371,7 +371,17 @@ protected:
 
 friend class CRenderViewMainWindow;
 
+   struct StoredSnapshot {
+      StoredSnapshot() : buffer(NULL), width(0), height(0) {}
+      ~StoredSnapshot() {/*if (buffer) AiFree(buffer);*/}
+      AtRGBA* buffer;
+      int width;
+      int height;
+      std::string status;
+   };
+
    void init();
+   void manageDebugShading();
    
    void fillGLPixel(const AtRGBA &color, int x, int y, int pixelIndex)
    {
@@ -483,11 +493,11 @@ friend class CRenderViewMainWindow;
    {
       return (m_displayedImageIndex < 0) ? 
                ((m_displayedAovIndex < 0) ? m_buffer : m_aovBuffers[m_displayedAovIndex]) :
-               m_storedImages[m_displayedImageIndex];
+               m_storedSnapshots[m_displayedImageIndex].buffer;
    }
    const std::string &getDisplayedStatus() const
    {
-      return (m_displayedImageIndex < 0) ? m_status_log : m_storedImagesStatus[m_displayedImageIndex];
+      return (m_displayedImageIndex < 0) ? m_status_log : m_storedSnapshots[m_displayedImageIndex].status;
    }
 
    int m_width;
@@ -506,7 +516,7 @@ friend class CRenderViewMainWindow;
 
 
    AtRGBA *m_buffer;
-   std::vector<AtRGBA *> m_storedImages;
+   std::vector<StoredSnapshot> m_storedSnapshots;
    std::vector<AtRGBA *> m_aovBuffers;
    std::vector<std::string> m_aovNames;
 
@@ -518,7 +528,6 @@ friend class CRenderViewMainWindow;
 
    int *m_picked_id;
    std::string m_status_log;
-   std::vector<std::string> m_storedImagesStatus;
    bool m_status_changed;
    bool m_restore_continuous;
    bool m_status_bar_enabled;

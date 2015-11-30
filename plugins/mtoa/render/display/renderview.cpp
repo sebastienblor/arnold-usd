@@ -125,17 +125,23 @@ CRenderView::~CRenderView()
    AiFree(display_sync);
    display_sync = 0;
    AiFree(m_buffer);
-   if (!m_storedImages.empty())
+   if (!m_storedSnapshots.empty())
    {
-      for (size_t i = 0; i < m_storedImages.size(); ++i)
+      for (size_t i = 0; i < m_storedSnapshots.size(); ++i)
       {
-         AiFree(m_storedImages[i]);
+         AiFree(m_storedSnapshots[i].buffer);
+         m_storedSnapshots[i].buffer = NULL;
       }
-      m_storedImages.clear();
+      m_storedSnapshots.clear();
    }
    AiCritSecClose(&m_window_close_lock);
    AiCritSecClose(&m_pick_lock);
 
+   if (rv_selection_cb)
+   {
+      MMessage::removeCallback(rv_selection_cb);
+      rv_selection_cb;
+   }
    delete m_main_window;
 }
 
@@ -178,13 +184,14 @@ void CRenderView::init()
    // >0 refers to an AOV
 
    K_InitGlobalVars();
-   if (!m_storedImages.empty())
+   if (!m_storedSnapshots.empty())
    {
-      for (size_t i = 0; i < m_storedImages.size(); ++i)
+      for (size_t i = 0; i < m_storedSnapshots.size(); ++i)
       {
-         AiFree(m_storedImages[i]);
+         AiFree(m_storedSnapshots[i].buffer);
+         m_storedSnapshots[i].buffer = NULL;
       }
-      m_storedImages.clear();
+      m_storedSnapshots.clear();
    }
 
    // setup syncing
@@ -264,6 +271,9 @@ void CRenderView::initRender(int w, int h)
    K_AA_samples = 1;
 
 
+   // handle all other arnold nodes created by this renderView
+   // like debug shading
+   manageDebugShading();
 }
 
 void CRenderView::updateRenderOptions()
@@ -738,16 +748,24 @@ void CRenderView::setDebugShading(RenderViewDebugShading d)
       CRenderView::sleep(1000);
    }
 
+
    // if previous shading mode was "isolate selected"
    // I need the remove the "selection change" callback
    // and also restore the specific stuff done by the shading manager
    if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
       MMessage::removeCallback(rv_selection_cb);
+      rv_selection_cb = 0;
       m_shading_manager.restore();
    }
    m_debug_shading = d; 
 
+   manageDebugShading();
+   updateRender();
+}
+
+void CRenderView::manageDebugShading()
+{
    // for debug modes like basic, occlusion, wireframe, etc...   
    // we can set options.ignore_shaders to TRUE
    // and edit the default shader (ai_default_reflection_shader)
@@ -769,6 +787,8 @@ void CRenderView::setDebugShading(RenderViewDebugShading d)
    } else if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
       AiNodeSetBool(options, "ignore_shaders", false);
+      if (rv_selection_cb) MMessage::removeCallback(rv_selection_cb);
+
       rv_selection_cb = MEventMessage::addEventCallback("SelectionChanged",
                                                   CRenderView::SelectionChangedCallback,
                                                   (void*)this);
@@ -824,7 +844,6 @@ void CRenderView::setDebugShading(RenderViewDebugShading d)
       }
    }
 
-   updateRender();
 }
 
 void CRenderView::pickShape(int px, int py)
@@ -994,8 +1013,11 @@ void CRenderView::storeImage()
 {
    AtRGBA *storedBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
    memcpy(storedBuffer, m_buffer, m_width * m_height * sizeof(AtRGBA));
-   m_storedImages.push_back(storedBuffer);
-   m_storedImagesStatus.push_back(m_status_log);
+   m_storedSnapshots.push_back(StoredSnapshot());
+   m_storedSnapshots.back().buffer = storedBuffer;
+   m_storedSnapshots.back().width = m_width;
+   m_storedSnapshots.back().height = m_height;
+   m_storedSnapshots.back().status = m_status_log;
 }
 
 void CRenderView::refreshGLBuffer()
@@ -1004,12 +1026,32 @@ void CRenderView::refreshGLBuffer()
 
    AtRGBA *displayedBuffer = getDisplayedBuffer();
 
-   int ind = 0;
-   for (int j = 0; j < m_height; ++j)
+   int width = m_width;
+   int height = m_height;
+   if (m_displayedImageIndex >= 0 && 
+      (m_width != m_storedSnapshots[m_displayedImageIndex].width || m_height != m_storedSnapshots[m_displayedImageIndex].height))
    {
-      for (int i = 0; i < m_width; ++i, ++ind)
+      width = MIN(m_width, m_storedSnapshots[m_displayedImageIndex].width);
+      height = MIN(m_height, m_storedSnapshots[m_displayedImageIndex].height);
+
+      memset(m_gl->getBuffer(), 0, m_width * m_height * sizeof(AtRGBA8));
+      for (int j = 0; j < height; ++j)
       {
-         fillGLPixel(displayedBuffer[ind], i, j, ind);
+         int storedIndex = j * m_storedSnapshots[m_displayedImageIndex].width;
+         int glIndex = j * m_width;
+         for (int i = 0; i < width; ++i, ++glIndex, ++storedIndex)
+         {
+            fillGLPixel(displayedBuffer[storedIndex], i, j, glIndex);
+         }
+      }
+   } else {
+      int ind = 0;
+      for (int j = 0; j < height; ++j)
+      {
+         for (int i = 0; i < width; ++i, ++ind)
+         {
+            fillGLPixel(displayedBuffer[ind], i, j, ind);
+         }
       }
    }
 
@@ -1058,7 +1100,7 @@ void CRenderView::refreshStatusBar(int *mouse_position)
 
 void CRenderView::showPreviousStoredImage()
 {
-   if (m_storedImages.empty())
+   if (m_storedSnapshots.empty())
    {
       AiMsgError("[mtoa] No Image currently Stored in the Render View");      
       return;
@@ -1066,7 +1108,7 @@ void CRenderView::showPreviousStoredImage()
    if (m_displayedImageIndex < 0)
    {
       m_gl->copyToBackBuffer();
-      m_displayedImageIndex = m_storedImages.size() - 1;
+      m_displayedImageIndex = m_storedSnapshots.size() - 1;
    }
    else m_displayedImageIndex--;
 
@@ -1081,7 +1123,7 @@ void CRenderView::showPreviousStoredImage()
 }
 void CRenderView::showNextStoredImage()
 {
-   if (m_storedImages.empty())
+   if (m_storedSnapshots.empty())
    {
       AiMsgError("[mtoa] No Image currently Stored in the Render View");      
       return;
@@ -1091,7 +1133,7 @@ void CRenderView::showNextStoredImage()
       m_gl->copyToBackBuffer();
    }
 
-   if (m_displayedImageIndex >= (int)m_storedImages.size() - 1) m_displayedImageIndex = -1;
+   if (m_displayedImageIndex >= (int)m_storedSnapshots.size() - 1) m_displayedImageIndex = -1;
    else m_displayedImageIndex++;
 
 
@@ -1110,18 +1152,19 @@ void CRenderView::showNextStoredImage()
 
 void CRenderView::deleteStoredImage()
 {
-   if (m_storedImages.empty())
+   if (m_storedSnapshots.empty())
    {
       AiMsgError("[mtoa] No Image currently Stored in the Render View");      
       return;
    }
-   if (m_displayedImageIndex < 0 || m_displayedImageIndex >= (int)m_storedImages.size()) return; // nothing to delete
+   if (m_displayedImageIndex < 0 || m_displayedImageIndex >= (int)m_storedSnapshots.size()) return; // nothing to delete
 
-   AiFree(m_storedImages[m_displayedImageIndex]);
-   m_storedImages.erase(m_storedImages.begin() + m_displayedImageIndex);
-   m_storedImagesStatus.erase(m_storedImagesStatus.begin() + m_displayedImageIndex);
+   AiFree(m_storedSnapshots[m_displayedImageIndex].buffer);
+   m_storedSnapshots[m_displayedImageIndex].buffer = NULL;
 
-   if (m_displayedImageIndex >= (int)m_storedImages.size()) m_displayedImageIndex--;
+   m_storedSnapshots.erase(m_storedSnapshots.begin() + m_displayedImageIndex);
+   
+   if (m_displayedImageIndex >= (int)m_storedSnapshots.size()) m_displayedImageIndex--;
 
    refreshGLBuffer();
    //draw();
@@ -1369,12 +1412,12 @@ CRenderViewMainWindow::initMenus()
    m_menu_render->addMenu(debug_shading_menu);
    m_debug_shading_action_group = new QActionGroup(this);
 
-   action = debug_shading_menu->addAction("Disabled");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
-   action->setCheckable(true);
-   action->setStatusTip("Regular rendering");
-   action->setChecked(true);
-   m_debug_shading_action_group->addAction(action);
+   m_debug_shading_action_disabled = debug_shading_menu->addAction("Disabled");
+   connect(m_debug_shading_action_disabled, SIGNAL(triggered()), this, SLOT(debugShading()));
+   m_debug_shading_action_disabled->setCheckable(true);
+   m_debug_shading_action_disabled->setStatusTip("Regular rendering");
+   m_debug_shading_action_disabled->setChecked(true);
+   m_debug_shading_action_group->addAction(m_debug_shading_action_disabled);
 
    debug_shading_menu->addSeparator();
 
@@ -1624,7 +1667,7 @@ void CRenderViewMainWindow::deleteStoredImage()
 void
 CRenderViewMainWindow::storedSliderMoved(int i)
 {
-   m_renderView.m_displayedImageIndex = (i == m_renderView.m_storedImages.size()) ? -1 : i;
+   m_renderView.m_displayedImageIndex = (i == m_renderView.m_storedSnapshots.size()) ? -1 : i;
 
    m_delete_stored_action->setVisible(m_renderView.m_displayedImageIndex >= 0);
    m_store_action->setEnabled(m_renderView.m_displayedImageIndex < 0);
@@ -1636,7 +1679,7 @@ CRenderViewMainWindow::storedSliderMoved(int i)
 void
 CRenderViewMainWindow::updateStoredSlider()
 {
-   if (m_renderView.m_storedImages.empty())
+   if (m_renderView.m_storedSnapshots.empty())
    {
       m_store_action->setEnabled(true);
       m_stored_slider_action->setVisible(false);
@@ -1649,9 +1692,9 @@ CRenderViewMainWindow::updateStoredSlider()
    m_store_action->setEnabled(m_renderView.m_displayedImageIndex < 0);
 
    m_stored_slider->setMinimum(0);
-   m_stored_slider->setMaximum(m_renderView.m_storedImages.size());   
+   m_stored_slider->setMaximum(m_renderView.m_storedSnapshots.size());   
 
-   m_stored_slider->setSliderPosition((m_renderView.m_displayedImageIndex < 0) ? m_renderView.m_storedImages.size() : m_renderView.m_displayedImageIndex);
+   m_stored_slider->setSliderPosition((m_renderView.m_displayedImageIndex < 0) ? m_renderView.m_storedSnapshots.size() : m_renderView.m_displayedImageIndex);
 }
 
 
@@ -2298,7 +2341,17 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
       CMayaScene::GetArnoldSession()->SetContinuousUpdates(false);
       renderSession->SetRendering(false);
       m_renderView.finishRender(); // this stops the rendering and destroys the render threads
-      
+      if (rv_selection_cb)
+      {
+         MMessage::removeCallback(rv_selection_cb);
+         rv_selection_cb = 0;
+         m_renderView.m_shading_manager.restore();
+         m_renderView.m_debug_shading = RV_DBG_SHAD_DISABLED;
+         m_debug_shading_action_disabled->blockSignals(true);
+         m_debug_shading_action_disabled->setChecked(true);
+         m_debug_shading_action_disabled->blockSignals(false);
+
+      }
       CMayaScene::End();
       AiEnd();
    }
