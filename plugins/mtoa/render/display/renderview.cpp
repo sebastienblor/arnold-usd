@@ -416,6 +416,10 @@ void CRenderView::updateRenderOptions()
       display_sync->previous_AA_samples = AA_samples;
    }
 
+   // Now that AOVs have changed, 
+   // let's update the AOVs menu
+   m_main_window->populateAOVsMenu();
+
 }
 
 
@@ -1092,10 +1096,7 @@ void CRenderView::refreshStatusBar(int *mouse_position)
          }
       }
    }
-
    m_main_window->statusBar()->showMessage(status_log);
-
-
 }
 
 void CRenderView::showPreviousStoredImage()
