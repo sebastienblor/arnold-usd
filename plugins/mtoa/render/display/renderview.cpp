@@ -217,10 +217,6 @@ void CRenderView::initRender(int w, int h)
       m_buffer[i] = AI_RGBA_BLACK;
    }
 
-#if defined(_DARWIN)
-   // why do we have to move the GL widget on OSX ?
-   m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight + 10);
-#endif
    //m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight);
    m_gl->resize(m_width, m_height);
 

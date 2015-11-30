@@ -159,7 +159,7 @@ vars.AddVariables(
 )
 
 if system.os() == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10')))
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os() == 'windows':
