@@ -56,6 +56,11 @@
 #include "icons/SA_icon_transparent.xpm"
 #include "icons/SA_icon_lut_off.xpm"
 #include "icons/SA_icon_lut_on.xpm"
+#include "icons/SA_icon_ch_rgba.xpm"
+#include "icons/SA_icon_ch_red.xpm"
+#include "icons/SA_icon_ch_green.xpm"
+#include "icons/SA_icon_ch_blue.xpm"
+#include "icons/SA_icon_ch_alpha.xpm"
 
 
 #include "manipulators.h"
@@ -1234,36 +1239,36 @@ CRenderViewMainWindow::initMenus()
    
    m_channel_action_group = new QActionGroup(this);
 
-   action = m_menu_view->addAction("Red Channel");
-   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   action->setCheckable(true);
-   action->setStatusTip("Display the Red Channel");
-   m_channel_action_group->addAction(action);
+   m_channel_red_action = m_menu_view->addAction("Red Channel");
+   connect(m_channel_red_action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   m_channel_red_action->setCheckable(true);
+   m_channel_red_action->setStatusTip("Display the Red Channel");
+   m_channel_action_group->addAction(m_channel_red_action);
 
-   action = m_menu_view->addAction("Green Channel");
-   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   action->setCheckable(true);
-   action->setStatusTip("Display the Green Channel");
-   m_channel_action_group->addAction(action);
+   m_channel_green_action = m_menu_view->addAction("Green Channel");
+   connect(m_channel_green_action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   m_channel_green_action->setCheckable(true);
+   m_channel_green_action->setStatusTip("Display the Green Channel");
+   m_channel_action_group->addAction(m_channel_green_action);
 
-   action = m_menu_view->addAction("Blue Channel");
-   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   action->setCheckable(true);
-   action->setStatusTip("Display the Blue Channel");
-   m_channel_action_group->addAction(action);
+   m_channel_blue_action = m_menu_view->addAction("Blue Channel");
+   connect(m_channel_blue_action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   m_channel_blue_action->setCheckable(true);
+   m_channel_blue_action->setStatusTip("Display the Blue Channel");
+   m_channel_action_group->addAction(m_channel_blue_action);
 
-   action = m_menu_view->addAction("Alpha Channel");
-   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   action->setCheckable(true);
-   action->setStatusTip("Display the Alpha Channel");
-   m_channel_action_group->addAction(action);
+   m_channel_alpha_action = m_menu_view->addAction("Alpha Channel");
+   connect(m_channel_alpha_action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   m_channel_alpha_action->setCheckable(true);
+   m_channel_alpha_action->setStatusTip("Display the Alpha Channel");
+   m_channel_action_group->addAction(m_channel_alpha_action);
 
-   action = m_menu_view->addAction("All Channels");
-   connect(action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   action->setCheckable(true);
-   action->setChecked(true);
-   action->setStatusTip("Display all channels");
-   m_channel_action_group->addAction(action);
+   m_channel_rgba_action = m_menu_view->addAction("All Channels");
+   connect(m_channel_rgba_action, SIGNAL(triggered()), this, SLOT(showChannel()));
+   m_channel_rgba_action->setCheckable(true);
+   m_channel_rgba_action->setChecked(true);
+   m_channel_rgba_action->setStatusTip("Display all channels");
+   m_channel_action_group->addAction(m_channel_rgba_action);
 
    m_menu_view->addSeparator();
 
@@ -1484,6 +1489,18 @@ CRenderViewMainWindow::initMenus()
    m_tool_bar->addSeparator();
    QString style_button = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
 
+   m_rgba_button = new QToolButton(m_tool_bar);
+   m_tool_bar->addWidget(m_rgba_button);
+   QIcon rgba_icon;
+   rgba_icon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
+   m_rgba_button->setIcon(rgba_icon);
+   m_rgba_button->setStyleSheet(style_button);
+
+   connect(m_rgba_button, SIGNAL(clicked()), this, SLOT(rgbaClicked()));
+
+   m_tool_bar->addSeparator();
+
+
    QToolButton *render_button = new QToolButton(m_tool_bar);
    render_button->setDefaultAction(m_render_action);
    m_tool_bar->addWidget(render_button);
@@ -1537,7 +1554,7 @@ CRenderViewMainWindow::initMenus()
    lut_button->setStyleSheet(style_button);
 
    m_tool_bar->addSeparator();
-
+   
    QToolButton *store_button = new QToolButton(m_tool_bar);
    store_button->setDefaultAction(m_store_action);
    m_tool_bar->addWidget(store_button);
@@ -1722,22 +1739,31 @@ void CRenderViewMainWindow::progressiveRefinement()
 void CRenderViewMainWindow::showChannel()
 {
    std::string colorMode = m_channel_action_group->checkedAction()->text().toStdString();
+   QIcon channel_icon;
    if (colorMode == "Red Channel")
    {
       m_renderView.m_color_mode = COLOR_MODE_R;
+      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_red_xpm));
    } else if(colorMode == "Green Channel")
    {
+      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_green_xpm));
       m_renderView.m_color_mode = COLOR_MODE_G;
    } else if (colorMode == "Blue Channel")
    {
+      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_blue_xpm));
       m_renderView.m_color_mode = COLOR_MODE_B;
    } else if (colorMode == "Alpha Channel")
    {
+      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_alpha_xpm));
       m_renderView.m_color_mode = COLOR_MODE_A;
    } else
    {
       m_renderView.m_color_mode = COLOR_MODE_RGBA;
+      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
    }
+      
+   m_rgba_button->setIcon(channel_icon);
+
    m_renderView.getGlWidget()->reloadBuffer(m_renderView.m_color_mode);
 }
 
@@ -2365,6 +2391,29 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
    }
    event->accept();
 
+}
+
+void CRenderViewMainWindow::rgbaClicked()
+{
+   if (m_channel_red_action->isChecked())
+   {
+      m_channel_green_action->setChecked(true);
+   } else if (m_channel_green_action->isChecked())
+   {
+      m_channel_blue_action->setChecked(true);
+
+   } else if (m_channel_blue_action->isChecked())
+   {
+      m_channel_alpha_action->setChecked(true);
+
+   } else if (m_channel_alpha_action->isChecked())
+   {
+      m_channel_rgba_action->setChecked(true);
+   } else
+   {
+      m_channel_red_action->setChecked(true);
+   }
+   showChannel();
 }
 
 

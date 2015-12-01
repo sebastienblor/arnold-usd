@@ -93,6 +93,7 @@ private:
    QToolBar *m_tool_bar;
    QComboBox *m_aovs_combo;
    QComboBox *m_cameras_combo;
+   QToolButton *m_rgba_button;
 
    QAction *m_action_show_rendering_tiles;
    QAction *m_action_auto_refresh;
@@ -109,6 +110,12 @@ private:
    QAction *m_3d_manipulation_action;
    QAction *m_lut_action;
    QAction *m_debug_shading_action_disabled;
+   QAction *m_channel_rgba_action;
+   QAction *m_channel_red_action;
+   QAction *m_channel_green_action;
+   QAction *m_channel_blue_action;
+   QAction *m_channel_alpha_action;
+
 
    QActionGroup *m_channel_action_group;
    QActionGroup *m_aovs_action_group;
@@ -163,6 +170,7 @@ private slots:
    void storedSliderMoved(int);
    void toggleManipulationMode();
    void debugShading();
+   void rgbaClicked();
 
 // If you add a slot to this class,
 // don't forget to run
