@@ -2334,6 +2334,15 @@ void CRenderViewMainWindow::colorCorrection()
 }
 void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
 {
+   if (m_cc_window)
+   {
+      delete m_cc_window;
+      m_cc_window = NULL;
+      m_lut_action->blockSignals(true);
+      m_lut_action->setChecked(false);
+      m_lut_action->blockSignals(false);
+   }
+
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {
@@ -2355,6 +2364,7 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
       AiEnd();
    }
    event->accept();
+
 }
 
 
