@@ -1083,6 +1083,49 @@ void CRenderView::refreshStatusBar(int *mouse_position)
       status_log += " ("+zoomStr+")";
    }
 
+
+   // add eventual information about debug shading
+   if (m_debug_shading != RV_DBG_SHAD_DISABLED)
+   {
+      std::string debugShadingStr;
+
+      switch (m_debug_shading)
+      {
+
+         case RV_DBG_SHAD_WIREFRAME:
+            debugShadingStr = "[WIREFRAME] ";
+         break;
+         case RV_DBG_SHAD_BASIC:
+            debugShadingStr = "[BASIC] ";
+         break;
+         case RV_DBG_SHAD_OCCLUSION:
+            debugShadingStr = "[OCCLUSION] ";
+         break;   
+         case RV_DBG_SHAD_UV:
+            debugShadingStr = "[UV] ";
+         break;
+         case RV_DBG_SHAD_NORMAL:
+            debugShadingStr = "[NORMAL] ";
+         break;
+         case RV_DBG_SHAD_PRIMITIVE_ID:
+            debugShadingStr = "[PRIMITIVE ID] ";
+         break;
+         case RV_DBG_SHAD_OBJECT:
+            debugShadingStr = "[OBJECT] ";
+         break;
+         case RV_DBG_SHAD_BARY:
+            debugShadingStr = "[BARYCENTRIC] ";
+         break;
+         case RV_DBG_SHAD_ISOLATE_SELECTED:
+            debugShadingStr = "["+m_shading_manager.getShaderName()+"] ";
+         break;         
+         default:
+         break;
+      }
+      status_log = debugShadingStr.c_str() + status_log;
+
+   }
+
    if (m_status_bar_pixel_info)
    {
       if (mouse_position != NULL)

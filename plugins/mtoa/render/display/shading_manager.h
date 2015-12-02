@@ -62,6 +62,7 @@ public:
    void isolateSelected();
    
    void setShaderName(const std::string &name);
+   const std::string &getShaderName() const {return m_debug_shader_name;}
    void objectNameChanged(const std::string &new_name, const std::string &old_name);
 
 private:
