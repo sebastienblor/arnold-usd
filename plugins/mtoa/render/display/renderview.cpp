@@ -72,7 +72,6 @@
 #include <maya/MImage.h>
 
 #include <sstream>
-//#include <QtGui/qimage.h>
 
 //#ifdef _MSC_VER
 //#pragma warning (disable : 4244)
@@ -1944,6 +1943,16 @@ void CRenderViewMainWindow::enableAOVs()
    m_menu_aovs->setEnabled(K_enable_aovs);
 }
 
+void CRenderViewMainWindow::keyPressEvent(QKeyEvent* ke)
+{
+   if (ke->key() == Qt::Key_Shift)
+   {
+      m_action_crop_region->setChecked(true);
+      cropRegion();
+   }
+        
+   QMainWindow::keyPressEvent(ke);
+}
 
 void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
 {
@@ -2015,6 +2024,7 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
          m_renderView.refreshStatusBar(mouse_position);
       }
    }
+
 }
 
 void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
@@ -2025,10 +2035,18 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
    }
 
    if (m_manipulator == NULL) return;
-
    m_manipulator->mouseRelease(event->x(), event->y());
    delete m_manipulator;
    m_manipulator = NULL;
+
+   // once mouse button is down, we remove the crop region
+   if (m_action_crop_region->isChecked()) 
+   {
+      m_action_crop_region->setChecked(false);
+      m_renderView.m_region_crop = false;
+      // not calling cropRegion(), otherwise it would clear my region
+   }
+
 }
 void CRenderViewMainWindow::moveEvent(QMoveEvent *event)
 {
@@ -2518,6 +2536,7 @@ void CRenderViewMainWindow::rgbaClicked()
    }
    showChannel();
 }
+
 
 
 // If you add some slots, you'll have to run moc
