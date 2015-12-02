@@ -68,6 +68,7 @@ public:
    void initMenus();
    void populateAOVsMenu();
    void populateCamerasMenu();
+   void updateCamerasMenu();
 
    void enableMenus(bool b)
    {
@@ -171,6 +172,7 @@ private slots:
    void toggleManipulationMode();
    void debugShading();
    void rgbaClicked();
+   void showCamerasMenu();
 
 // If you add a slot to this class,
 // don't forget to run

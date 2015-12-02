@@ -1182,7 +1182,19 @@ CRenderViewMainWindow::~CRenderViewMainWindow()
    delete m_manipulator;
 }
 
+class CRvCameraComboBox : public QComboBox{
+public:
+   CRvCameraComboBox(CRenderViewMainWindow &rv, QWidget*w) : QComboBox(w), m_rv(rv) {}
+   virtual ~CRvCameraComboBox() {}
+   virtual void mousePressEvent(QMouseEvent * e)
+   {
+   
+      m_rv.updateCamerasMenu();
+      QComboBox::mousePressEvent(e);
+   }
 
+   CRenderViewMainWindow &m_rv;
+};
 
 void
 CRenderViewMainWindow::initMenus()
@@ -1405,10 +1417,12 @@ CRenderViewMainWindow::initMenus()
 
    m_cameras_action_group = 0;
 
-   m_cameras_combo = new QComboBox(this);
+   m_cameras_combo = new CRvCameraComboBox(*this, this);
    m_tool_bar->addWidget(m_cameras_combo);
    
    populateCamerasMenu();
+
+   connect(m_menu_camera, SIGNAL(aboutToShow()), this, SLOT(showCamerasMenu()));
 
    m_menu_render->addSeparator();
    QMenu *debug_shading_menu = new QMenu("Debug Shading");
@@ -1598,9 +1612,6 @@ CRenderViewMainWindow::initMenus()
    m_action_auto_refresh->setEnabled(false);
    m_action_crop_region->setEnabled(false);
    m_active_menus = false;
-
-
-
 }
 
 void
@@ -1771,6 +1782,42 @@ void CRenderViewMainWindow::toggleManipulationMode()
 {
    m_3d_manipulation = m_3d_manipulation_action->isChecked();
    frameAll();
+}
+
+void CRenderViewMainWindow::updateCamerasMenu()
+{
+   // we're opening the camera menu, or the toolbar's combo box
+   // let's check if the camera list has changed in my scene
+
+   AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_CAMERA);
+   int camerasCount = 0;
+   bool newCamera = false;
+
+   // loop over Arnold Cameras
+   while (!AiNodeIteratorFinished(iter))
+   {
+      AtNode *node = AiNodeIteratorGetNext(iter);
+      // check if this camera name is already in my combo box list
+      if (m_cameras_combo->findText(QString(AiNodeGetName(node))) < 0)
+      {
+         // this camera wasn't in my list !
+         newCamera = true;
+         break;
+      }
+      camerasCount++;
+   }
+
+   // also check if the camera amount has changed to
+   // track deleted cameras
+   if (newCamera || (camerasCount != m_cameras_combo->count()))
+   {
+      // re-populate the menu AND the combo box
+      populateCamerasMenu();
+   }
+}
+void CRenderViewMainWindow::showCamerasMenu()
+{
+   updateCamerasMenu();
 }
 void CRenderViewMainWindow::debugShading()
 {
