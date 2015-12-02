@@ -548,6 +548,13 @@ void CRenderGLWidget::clearRegionCrop()
    m_region.minx = m_region.miny = m_region.maxx = m_region.maxy = 0;
 }
 
+void CRenderGLWidget::setZoomFactor(float z)
+{
+   m_zoomFactor = z;
+   // this will dirty the status_changed flag
+   // and force a status bar refresh (so that zoom factor appears)
+   m_renderview.dirtyStatusBar();
+}
 
 void CRenderGLWidget::setBackgroundImage(const std::string &filename)
 {

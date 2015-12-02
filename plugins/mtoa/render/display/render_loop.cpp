@@ -296,6 +296,7 @@ extern int RenderLoop(CRenderView *kwin)
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "sss_bssrdf_samples");
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
         
+         statusStr<<"  Camera "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
          kwin->setStatus(statusStr.str());
         
          AtUInt64 loop_time = (i == smax) ? CRenderView::time() : 0;

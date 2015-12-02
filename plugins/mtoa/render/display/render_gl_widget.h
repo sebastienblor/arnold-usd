@@ -85,7 +85,7 @@ public:
       y = m_pan[1];
    }
 
-   void setZoomFactor(float z) {m_zoomFactor = z;}
+   void setZoomFactor(float z);
    float getZoomFactor() const {return m_zoomFactor;}
 
    const AtBBox2 *getRegion() const {return (m_regionCrop) ? &m_region : NULL;}

@@ -1070,6 +1070,19 @@ void CRenderView::refreshStatusBar(int *mouse_position)
 {
    QString status_log(getDisplayedStatus().c_str());
 
+   // add the zoom factor
+   int zoomPercent = int(m_gl->getZoomFactor() * 100.f);
+   if (zoomPercent == 100)
+   {
+      status_log +=" (1:1)";
+   } else
+   {
+      QString zoomStr;
+      zoomStr.setNum(zoomPercent);
+      zoomStr += "%";
+      status_log += " ("+zoomStr+")";
+   }
+
    if (m_status_bar_pixel_info)
    {
       if (mouse_position != NULL)
@@ -1943,7 +1956,6 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
       m_manipulator->mouseMove(event->x(), event->y());
       return;
    }
-
    
    if( m_renderView.m_status_bar_enabled && m_renderView.m_status_bar_pixel_info)
    {
@@ -2357,7 +2369,7 @@ void CRenderViewMainWindow::frameRegion()
 
       float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)(height() - (menuHeight + toolbarHeight + statusbarHeight + 26) )/ (region->maxy - region->miny) );
       m_renderView.m_gl->setZoomFactor(zoomFactor);
-
+      
       AtPoint2 regionCenter;
       regionCenter.x = 0.5 * (region->maxx + region->minx);
       regionCenter.y = 0.5 * (region->maxy + region->miny);

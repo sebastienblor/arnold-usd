@@ -364,8 +364,13 @@ public:
    void setStatus (const std::string &status)
    {
       m_status_log = status;
-      m_status_changed = true;
+      dirtyStatusBar();
    }
+   void dirtyStatusBar()
+   {
+      m_status_changed = true;  
+   }
+
    void refreshStatusBar(int *mouse_position = NULL);
 
    void restoreContinuous() {if (m_continuous_updates)m_restore_continuous = true;}
