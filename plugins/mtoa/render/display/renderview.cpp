@@ -1421,8 +1421,6 @@ CRenderViewMainWindow::initMenus()
    m_action_crop_region->setChecked(false);
    m_action_crop_region->setStatusTip("Allow to drag a Crop Render Region");
 
-   setMouseTracking(true);
-
    m_menu_render->addSeparator();
 
    m_menu_camera = new QMenu("Camera");
@@ -1746,9 +1744,12 @@ void CRenderViewMainWindow::enableStatusBar()
 
 }
 void CRenderViewMainWindow::displayPixelInfo()
-{
+{   
    m_renderView.m_status_bar_pixel_info = m_action_status_info->isChecked();
    m_renderView.m_status_changed = true;
+   setMouseTracking(m_renderView.m_status_bar_pixel_info);
+   m_renderView.m_gl->setMouseTracking(m_renderView.m_status_bar_pixel_info);
+   m_renderView.m_central_widget->setMouseTracking(m_renderView.m_status_bar_pixel_info);
 }
 
 
