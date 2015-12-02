@@ -362,9 +362,11 @@ extern int RenderLoop(CRenderView *kwin)
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_refraction_samples");
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "sss_bssrdf_samples");
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
+
+                  statusStr<<" Camera "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
                  
                   const float mem_used = (float)AiMsgUtilGetUsedMemory() / 1024.0f / 1024.0f;
-                  statusEndStr<<"  Memory: "<<mem_used<<"MB";
+                  statusEndStr<<" Memory: "<<mem_used<<"MB";
 
                   kwin->setStatus(statusEndStr.str());
                   kwin->draw();
