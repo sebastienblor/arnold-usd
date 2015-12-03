@@ -12,13 +12,13 @@
 #endif
 
 /**
- *   Camera Shader that "deviates" the eye rays so that they intersect
- *   the points in polymesh with desired UVs
- *   Adapted from Kettle Bake shader  https://bitbucket.org/Kettle/kettle_uber/wiki/Kettle_Bake
- *
- *   Note that to work correctly, the polymesh triangle data must have been previously 
- *   initialized. Otherwise, the triangles won't be stored properly during node_initialize
- */
+*   Camera Shader that "deviates" the eye rays so that they intersect
+*   the points in polymesh with desired UVs
+*   Adapted from Kettle Bake shader  https://bitbucket.org/Kettle/kettle_uber/wiki/Kettle_Bake
+*
+*   Note that to work correctly, the polymesh triangle data must have been previously
+*   initialized. Otherwise, the triangles won't be stored properly during node_initialize
+*/
 AI_CAMERA_NODE_EXPORT_METHODS(CameraUvMapperMtd);
 
 class PolymeshUvMapper{
@@ -28,19 +28,19 @@ public:
    ~PolymeshUvMapper();
 
    struct BakeTriangle {
-      BakeTriangle(unsigned int i, unsigned int j, unsigned int k) 
+      BakeTriangle(unsigned int i, unsigned int j, unsigned int k)
       {
          idx[0] = i;
          idx[1] = j;
          idx[2] = k;
       }
-      // current triangle's vertex indices. Will be really useful when we stop 
+      // current triangle's vertex indices. Will be really useful when we stop
       // duplicating the vertices for each triangle :-/
       unsigned int idx[3];
    };
    struct BakeVertex {
-      BakeVertex(const AtPoint& p, const AtVector& n, const AtVector2& u ) :
-         position(p), normal(n), uv(u) {}
+      BakeVertex(const AtPoint& p, const AtVector& n, const AtVector2& u) :
+      position(p), normal(n), uv(u) {}
 
       AtPoint position;
       AtVector normal;
@@ -53,30 +53,30 @@ public:
       const unsigned int mGridSize;
       std::vector<std::vector<unsigned int> > mElements;
    };
-   
 
-   bool intersect(const unsigned int& element, 
+
+   bool intersect(const unsigned int& element,
       const AtVector2& uv, AtPoint& pout, AtVector& nout) const
    {
-      const BakeTriangle &tri= mTriangles[element];
+      const BakeTriangle &tri = mTriangles[element];
       const AtPoint2& A = mVertices[tri.idx[0]].uv;
       const AtPoint2& B = mVertices[tri.idx[1]].uv;
       const AtPoint2& C = mVertices[tri.idx[2]].uv;
 
-      const AtVector2 v0 = {C.x - A.x, C.y - A.y};
-      const AtVector2 v1 = {B.x - A.x, B.y - A.y};
-      const AtVector2 v2 = {uv.x - A.x, uv.y - A.y};
+      const AtVector2 v0 = { C.x - A.x, C.y - A.y };
+      const AtVector2 v1 = { B.x - A.x, B.y - A.y };
+      const AtVector2 v2 = { uv.x - A.x, uv.y - A.y };
 
       const float dot00 = AiV2Dot(v0, v0);
       const float dot01 = AiV2Dot(v0, v1);
       const float dot02 = AiV2Dot(v0, v2);
       const float dot11 = AiV2Dot(v1, v1);
       const float dot12 = AiV2Dot(v1, v2);
-      
+
       const float denom = (dot00 * dot11 - dot01 * dot01);
-      if(denom == 0.0f)
+      if (denom == 0.0f)
          return false;
-      
+
       const float invDenom = 1.0f / denom;
       AtPoint2 bary;
       bary.x = (dot11 * dot02 - dot01 * dot12) * invDenom;
@@ -86,10 +86,10 @@ public:
       {
          float w = 1.f - bary.x - bary.y;
          pout = mVertices[tri.idx[0]].position * w + mVertices[tri.idx[1]].position * bary.y
-                  + mVertices[tri.idx[2]].position * bary.x;
+            + mVertices[tri.idx[2]].position * bary.x;
 
          nout = mVertices[tri.idx[0]].normal * w + mVertices[tri.idx[1]].normal * bary.y
-                  + mVertices[tri.idx[2]].normal * bary.x;
+            + mVertices[tri.idx[2]].normal * bary.x;
          AiV3Normalize(nout, nout);
 
          return true;
@@ -106,25 +106,25 @@ public:
       const float grid_f = (float)mGrid->mGridSize;
 
       // get index in the grid for given UV coordinates
-      const int grid_coord =  CLAMP((int)(uv.x * grid_f), 0, (int)grid_max)
-          + CLAMP((int)(uv.y * grid_f), 0, (int)grid_max) * mGrid->mGridSize;
+      const int grid_coord = CLAMP((int)(uv.x * grid_f), 0, (int)grid_max)
+         + CLAMP((int)(uv.y * grid_f), 0, (int)grid_max) * mGrid->mGridSize;
 
-      // looping over the triangles overlapping this grid element 
-      for(std::vector<unsigned int>::const_iterator it = mGrid->mElements[grid_coord].begin(); it != mGrid->mElements[grid_coord].end(); ++it)
-      {      
+      // looping over the triangles overlapping this grid element
+      for (std::vector<unsigned int>::const_iterator it = mGrid->mElements[grid_coord].begin(); it != mGrid->mElements[grid_coord].end(); ++it)
+      {
          if (intersect(*it, uv, pout, nout))
-         {  
+         {
             return true;
          }
       }
       return false;
    }
 
-   static void* operator new(size_t s) {return AiMalloc(s);} 
-   static void operator delete(void* p){AiFree(p);}
+   static void* operator new(size_t s){ return AiMalloc(s); }
+   static void operator delete(void* p){ AiFree(p); }
 
 private:
-   
+
    std::vector<BakeTriangle>  mTriangles;
    std::vector<BakeVertex> mVertices;
    Grid2DAccel* mGrid;
@@ -134,17 +134,19 @@ private:
 
 PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 {
-   if(node != 0 && AiNodeIs(node, "polymesh"))
+   if (node != 0 && AiNodeIs(node, "polymesh"))
    {
       AtMatrix localToWorld;
       AiNodeGetMatrix(node, "matrix", localToWorld);
 
       int gridSize = AiNodeGetInt(camera_node, "grid_size");
+      float u_offset = AiNodeGetFlt(camera_node, "u_offset");
+      float v_offset = AiNodeGetFlt(camera_node, "v_offset");
       mGrid = new Grid2DAccel(gridSize);
 
       const unsigned int gridCount = gridSize * gridSize;
       mGrid->mElements.resize(gridCount);
-      
+
       float bbox[4];
       unsigned int coords[4];
       const unsigned int grid_max = gridSize - 1;
@@ -153,10 +155,10 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       AtShaderGlobals* sg = AiShaderGlobals();
       sg->Op = node;
       sg->fi = 0;
-      sg->tid = 0;      
+      sg->tid = 0;
       sg->Rt = AI_RAY_CAMERA;
-      sg->time = 0.f;             
-   
+      sg->time = 0.f;
+
       AtPoint localPos[3], worldPos[3];
       AtVector localNormal[3], worldNormal[3];
       AtPoint2 uv[3];
@@ -176,6 +178,12 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
             sg->fi = ++triangleIndex;
             continue;
          }
+         uv[0].x += u_offset;
+         uv[1].x += u_offset;
+         uv[2].x += u_offset;
+         uv[0].y += v_offset;
+         uv[1].y += v_offset;
+         uv[2].y += v_offset;
          if (!AiShaderGlobalsGetVertexNormals(sg, 0, localNormal))
          {
             // no normals (should that happen ?)
@@ -194,12 +202,12 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
             // let's assign the same geometric normal to 3 vertices
             localNormal[1] = localNormal[2] = localNormal[0];
          }
-         mTriangles.push_back(BakeTriangle(vertexIndex, vertexIndex+1, vertexIndex+2));
-         
+         mTriangles.push_back(BakeTriangle(vertexIndex, vertexIndex + 1, vertexIndex + 2));
+
          // Please God forgive me for duplicating the vertices at each triangle :-/
          for (int j = 0; j < 3; ++j)
          {
-            // convert local vertices to world              
+            // convert local vertices to world
             AiM4PointByMatrixMult(&worldPos[j], localToWorld, &localPos[j]);
             AiM4VectorByMatrixMult(&worldNormal[j], localToWorld, &localNormal[j]);
             mVertices.push_back(BakeVertex(worldPos[j], worldNormal[j], uv[j]));
@@ -216,11 +224,11 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          coords[1] = (unsigned int)CLAMP((int)((bbox[1] - 0.001f) * grid_f), 0, (int)grid_max);
          coords[2] = (unsigned int)CLAMP((int)((bbox[2] + 0.001f) * grid_f), 0, (int)grid_max) + 1;
          coords[3] = (unsigned int)CLAMP((int)((bbox[3] + 0.001f) * grid_f), 0, (int)grid_max) + 1;
-        
-         for(unsigned int y = coords[1]; y < coords[3]; ++y)
+
+         for (unsigned int y = coords[1]; y < coords[3]; ++y)
          {
             unsigned int gridIndex = y * gridSize + coords[0];
-            for(unsigned int x = coords[0]; x < coords[2]; ++x, ++gridIndex)
+            for (unsigned int x = coords[0]; x < coords[2]; ++x, ++gridIndex)
             {
                mGrid->mElements[gridIndex].push_back(triangleIndex);
             }
@@ -229,7 +237,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          vertexIndex += 3;
          sg->fi = ++triangleIndex;
       }
-      
+
       AiShaderGlobalsDestroy(sg);
       if (triangleIndex == 0)
       {
@@ -241,12 +249,13 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 
          AiMsgError(errLog.c_str());
       }
-   } else
+   }
+   else
       throw(std::runtime_error("Object is not a polymesh"));
 }
- 
+
 PolymeshUvMapper::~PolymeshUvMapper()
-{ 
+{
    delete mGrid;
 }
 
@@ -256,14 +265,16 @@ node_parameters
    AiParameterSTR("polymesh", "");
    AiParameterFLT("offset", 0.1f);
    AiParameterINT("grid_size", 16);
+   AiParameterFLT("u_offset", 0.0f);
+   AiParameterFLT("v_offset", 0.0f);
 }
 
-struct CameraUvMapperData{ 
+struct CameraUvMapperData{
    PolymeshUvMapper* uvMapper;
    float p_offset;
    CameraUvMapperData() : uvMapper(0), p_offset(0.001f){}
 
-   ~CameraUvMapperData(){clearUvMapper();}
+   ~CameraUvMapperData(){ clearUvMapper(); }
 
    void allocateUvMapper(AtNode* polymesh, AtNode* camera) {
       clearUvMapper();
@@ -277,32 +288,32 @@ struct CameraUvMapperData{
          uvMapper = 0;
       }
    }
-   static void* operator new(size_t s) {return AiMalloc((unsigned long)s);} 
-   static void operator delete(void* p){AiFree(p);}   
+   static void* operator new(size_t s){ return AiMalloc((unsigned long)s); }
+   static void operator delete(void* p){ AiFree(p); }
 };
 
 node_initialize
 {
-   // Unfortunately at this stage we're not sure that 
+   // Unfortunately at this stage we're not sure that
    // the polymesh triangles have been correctly initialized
    // Until we find a solution, we need to run first a Free render,
    // and then abort it. We also need to make sure that preserve_scene_data
    // is TRUE.
 
-   CameraUvMapperData* data = new CameraUvMapperData();  
+   CameraUvMapperData* data = new CameraUvMapperData();
    AiCameraInitialize(node, data);
 
    const char* polymesh = AiNodeGetStr(node, "polymesh");
    AtNode* input_node = AiNodeLookUpByName(polymesh);
 
-   if(!AiNodeGetBool(AiUniverseGetOptions(), "preserve_scene_data"))
+   if (!AiNodeGetBool(AiUniverseGetOptions(), "preserve_scene_data"))
    {
       data->clearUvMapper();
       AiMsgError("Preserve Scene Data is not set!");
    }
    else
    {
-      if(input_node == 0)
+      if (input_node == 0)
       {
          AiMsgError("The input object can't be found!");
          AiMsgError(polymesh);
@@ -315,7 +326,7 @@ node_initialize
             data->allocateUvMapper(input_node, node);
             data->p_offset = AiNodeGetFlt(node, "offset");
          }
-         catch(std::exception ex)
+         catch (std::exception ex)
          {
             data->clearUvMapper();
             AiMsgError("[CameraUvMapper] Exception caught at Node Initialize %s", ex.what());
@@ -325,31 +336,31 @@ node_initialize
 }
 
 node_update
-{   
+{
 }
 
 node_finish
 {
-   CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node);  
+   CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node);
    delete data;
    AiCameraDestroy(node);
 }
 
-camera_create_ray 
+camera_create_ray
 {
 
-   CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node); 
+   CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node);
    output->weight = 0.0f;
 
-   if(data->uvMapper == 0)
+   if (data->uvMapper == 0)
       return;
 
-   const AtPoint2 screen_uv = {(input->sx + 1.0f) * 0.5f, (input->sy + 1.0f) * 0.5f};
+   const AtPoint2 screen_uv = { (input->sx + 1.0f) * 0.5f, (input->sy + 1.0f) * 0.5f };
 
    AtPoint position;
    AtVector normal;
 
-   if(data->uvMapper->findSurfacePoint(screen_uv, position, normal))
+   if (data->uvMapper->findSurfacePoint(screen_uv, position, normal))
    {
       output->dir = -normal;
       output->origin = position + data->p_offset * normal;
