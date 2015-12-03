@@ -1728,8 +1728,7 @@ void CRenderViewMainWindow::DisplayPixelInfo()
 void CRenderViewMainWindow::ProgressiveRefinement()
 {
    K_progressive = m_actionProgressiveRefinement->isChecked();
-   m_renderView.InterruptRender();
-   m_renderView.RestartRender();
+   m_renderView.UpdateRender();
 }
 
 

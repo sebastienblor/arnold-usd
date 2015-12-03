@@ -69,7 +69,7 @@ void CRenderViewCCWindow::Init()
    label->move(20, line );
 
    connect(m_gammaSlider, SIGNAL(valueChanged(int)), this, SLOT(GammaSliderChanged()));
-   connect(m_gammaEdit, SIGNAL(returnPressed()), this, SLOT(GammaTextChanged()));
+   connect(m_gammaEdit, SIGNAL(editingFinished()), this, SLOT(GammaTextChanged()));
 
    line += 30;
 
@@ -92,7 +92,7 @@ void CRenderViewCCWindow::Init()
    label->resize(55, 20);
 
    connect(m_exposureSlider, SIGNAL(valueChanged(int)), this, SLOT(ExposureSliderChanged()));
-   connect(m_exposureEdit, SIGNAL(returnPressed()), this, SLOT(ExposureTextChanged()));
+   connect(m_exposureEdit, SIGNAL(editingFinished()), this, SLOT(ExposureTextChanged()));
 
    line += 30;
 /*
@@ -135,12 +135,12 @@ void CRenderViewCCWindow::Init()
    m_lutFileEdit->move(80, line);
    m_lutFileEdit->resize(180, 20);
 
-   connect(m_lutFileEdit, SIGNAL(returnPressed()), this, SLOT(LutFileTextChanged()));
+   connect(m_lutFileEdit, SIGNAL(editingFinished()), this, SLOT(LutFileTextChanged()));
 
    m_lutFileButton = new QPushButton("...", scrollWidget);
    m_lutFileButton->move(260, line);
    m_lutFileButton->resize(30, 20);
-   connect(m_lutFileButton, SIGNAL( clicked() ), this, SLOT(browseLutFile()));
+   connect(m_lutFileButton, SIGNAL( clicked() ), this, SLOT(BrowseLutFile()));
    line += 30;
 
    m_lutFileButton->setEnabled(false);
@@ -199,7 +199,7 @@ void CRenderViewCCWindow::Init()
    m_bgFileEdit =  new QLineEdit(bgBox);
    m_bgFileEdit->move(80 - 5, line- bgLine);
    m_bgFileEdit->resize(170, 20);
-   connect(m_bgFileEdit, SIGNAL(returnPressed()), this, SLOT(BgFileTextChanged()));
+   connect(m_bgFileEdit, SIGNAL(editingFinished()), this, SLOT(BgFileTextChanged()));
 
    m_bgFileButton = new QPushButton("...", bgBox);
    m_bgFileButton->move(250 - 5, line- bgLine);
@@ -224,8 +224,8 @@ void CRenderViewCCWindow::Init()
    m_scaleEditY->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
    m_scaleEditY->setText("1");
 
-   connect(m_scaleEditX, SIGNAL(returnPressed()), this, SLOT(BgScaleChanged()));
-   connect(m_scaleEditY, SIGNAL(returnPressed()), this, SLOT(BgScaleChanged()));
+   connect(m_scaleEditX, SIGNAL(editingFinished()), this, SLOT(BgScaleChanged()));
+   connect(m_scaleEditY, SIGNAL(editingFinished()), this, SLOT(BgScaleChanged()));
 
 
    line += 30;
@@ -246,8 +246,8 @@ void CRenderViewCCWindow::Init()
    m_offsetEditY->setText("0");
    
 
-   connect(m_offsetEditX, SIGNAL(returnPressed()), this, SLOT(BgOffsetChanged()));
-   connect(m_offsetEditY, SIGNAL(returnPressed()), this, SLOT(BgOffsetChanged()));
+   connect(m_offsetEditX, SIGNAL(editingFinished()), this, SLOT(BgOffsetChanged()));
+   connect(m_offsetEditY, SIGNAL(editingFinished()), this, SLOT(BgOffsetChanged()));
    line += 30;
    bgBox->resize(280, line - bgLine);
 
