@@ -73,7 +73,7 @@ public:
    LUTState LoadCubeFile ( ifstream & infile );
    LUTState SaveCubeFile ( ofstream & outfile );
 
-   void applyLUT(AtRGB &rgb);
+   void ApplyLUT(AtRGB &rgb);
 
 private:
    string ReadLine ( ifstream & infile, char lineSeparator);
@@ -128,8 +128,8 @@ public:
 
    virtual ~CRenderViewCCWindow() {}
 
-   void init();
-   void adjustPosition();
+   void Init();
+   void AdjustPosition();
 protected:
    void moveEvent(QMoveEvent *event);
    
@@ -138,55 +138,54 @@ private:
    CRenderView &m_renderView;
    CRenderViewCCSettings &m_colorCorrectSettings;
 
-   QLineEdit *m_gamma_edit;
-   QSlider *m_gamma_slider;
+   QLineEdit *m_gammaEdit;
+   QSlider *m_gammaSlider;
 
-   QLineEdit *m_exposure_edit;
-   QSlider *m_exposure_slider;
+   QLineEdit *m_exposureEdit;
+   QSlider *m_exposureSlider;
 
-   QCheckBox *m_dither_box;
-   QComboBox *m_space_combo;
+   QCheckBox *m_ditherBox;
+   QComboBox *m_spaceCombo;
 
-   QLabel *m_lut_file_label;
-   QLineEdit *m_lut_file_edit;
-   QPushButton *m_lut_file_button;
+   QLabel *m_lutFileLabel;
+   QLineEdit *m_lutFileEdit;
+   QPushButton *m_lutFileButton;
 
-   QComboBox *m_bg_combo;
-   QLineEdit *m_bg_file_edit;
-   QPushButton *m_bg_file_button;
-   QLabel *m_bg_file_label;
+   QComboBox *m_bgCombo;
+   QLineEdit *m_bgFileEdit;
+   QPushButton *m_bgFileButton;
+   QLabel *m_bgFileLabel;
 
-   QLabel *m_scale_label;
-   QLineEdit *m_scale_x_edit;   
-   QLineEdit *m_scale_y_edit;
-   QLabel *m_offset_label;
-   QLineEdit *m_offset_x_edit;
-   QLineEdit *m_offset_y_edit;
+   QLabel *m_scaleLabel;
+   QLineEdit *m_scaleEditX;
+   QLineEdit *m_scaleEditY;
+   QLabel *m_offsetLabel;
+   QLineEdit *m_offsetEditX;
+   QLineEdit *m_offsetEditY;
 
-   QPushButton *m_bg_color_button;
-   QLabel *m_bg_color_label;
+   QPushButton *m_bgColorButton;
+   QLabel *m_bgColorLabel;
 
-   void updateBackground();
-   void updateBgUI();
+   void UpdateBackground();
+   void UpdateBgUI();
 
    bool m_moving;
 
 private slots:
-   void gammaSliderChanged();
-   void gammaTextChanged();
-   void exposureSliderChanged();
-   void exposureTextChanged();
-   void ditherChanged();
-   void colorSpaceChanged();
-   void browseLutFile();
-   void lutFileTextChanged();
-   void bgChanged();
-   void browseBgFile();
-   void bgFileTextChanged();
-   void bgScaleChanged();
-   void bgOffsetChanged();
-   void pickBgColor();
-
+   void GammaSliderChanged();
+   void GammaTextChanged();
+   void ExposureSliderChanged();
+   void ExposureTextChanged();
+   void DitherChanged();
+   void ColorSpaceChanged();
+   void BrowseLutFile();
+   void LutFileTextChanged();
+   void BgChanged();
+   void BrowseBgFile();
+   void BgFileTextChanged();
+   void BgScaleChanged();
+   void BgOffsetChanged();
+   void PickBgColor();
 
 };
 

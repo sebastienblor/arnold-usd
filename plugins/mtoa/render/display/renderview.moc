@@ -63,19 +63,19 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
 };
 
 static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
-    "CRenderViewMainWindow\0\0saveImage()\0"
-    "abortRender()\0showRenderingTiles()\0"
-    "autoRefresh()\0updateRender()\0storeImage()\0"
-    "previousStoredImage()\0nextStoredImage()\0"
-    "deleteStoredImage()\0progressiveRefinement()\0"
-    "showChannel()\0enableAOVs()\0showAOV()\0"
-    "showBoxAOV()\0selectCamera()\0"
-    "selectBoxCamera()\0cropRegion()\0"
-    "frameAll()\0frameRegion()\0realSize()\0"
-    "colorCorrection()\0enableStatusBar()\0"
-    "displayPixelInfo()\0storedSliderMoved(int)\0"
-    "toggleManipulationMode()\0debugShading()\0"
-    "rgbaClicked()\0showCamerasMenu()\0"
+    "CRenderViewMainWindow\0\0SaveImage()\0"
+    "AbortRender()\0ShowRenderingTiles()\0"
+    "AutoRefresh()\0UpdateRender()\0StoreImage()\0"
+    "PreviousStoredImage()\0NextStoredImage()\0"
+    "DeleteStoredImage()\0ProgressiveRefinement()\0"
+    "ShowChannel()\0EnableAOVs()\0ShowAOV()\0"
+    "ShowBoxAOV()\0SelectCamera()\0"
+    "SelectBoxCamera()\0CropRegion()\0"
+    "FrameAll()\0FrameRegion()\0RealSize()\0"
+    "ColorCorrection()\0EnableStatusBar()\0"
+    "DisplayPixelInfo()\0StoredSliderMoved(int)\0"
+    "ToggleManipulationMode()\0DebugShading()\0"
+    "RgbaClicked()\0ShowCamerasMenu()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -84,34 +84,34 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         Q_ASSERT(staticMetaObject.cast(_o));
         CRenderViewMainWindow *_t = static_cast<CRenderViewMainWindow *>(_o);
         switch (_id) {
-        case 0: _t->saveImage(); break;
-        case 1: _t->abortRender(); break;
-        case 2: _t->showRenderingTiles(); break;
-        case 3: _t->autoRefresh(); break;
-        case 4: _t->updateRender(); break;
-        case 5: _t->storeImage(); break;
-        case 6: _t->previousStoredImage(); break;
-        case 7: _t->nextStoredImage(); break;
-        case 8: _t->deleteStoredImage(); break;
-        case 9: _t->progressiveRefinement(); break;
-        case 10: _t->showChannel(); break;
-        case 11: _t->enableAOVs(); break;
-        case 12: _t->showAOV(); break;
-        case 13: _t->showBoxAOV(); break;
-        case 14: _t->selectCamera(); break;
-        case 15: _t->selectBoxCamera(); break;
-        case 16: _t->cropRegion(); break;
-        case 17: _t->frameAll(); break;
-        case 18: _t->frameRegion(); break;
-        case 19: _t->realSize(); break;
-        case 20: _t->colorCorrection(); break;
-        case 21: _t->enableStatusBar(); break;
-        case 22: _t->displayPixelInfo(); break;
-        case 23: _t->storedSliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 24: _t->toggleManipulationMode(); break;
-        case 25: _t->debugShading(); break;
-        case 26: _t->rgbaClicked(); break;
-        case 27: _t->showCamerasMenu(); break;
+        case 0: _t->SaveImage(); break;
+        case 1: _t->AbortRender(); break;
+        case 2: _t->ShowRenderingTiles(); break;
+        case 3: _t->AutoRefresh(); break;
+        case 4: _t->UpdateRender(); break;
+        case 5: _t->StoreImage(); break;
+        case 6: _t->PreviousStoredImage(); break;
+        case 7: _t->NextStoredImage(); break;
+        case 8: _t->DeleteStoredImage(); break;
+        case 9: _t->ProgressiveRefinement(); break;
+        case 10: _t->ShowChannel(); break;
+        case 11: _t->EnableAOVs(); break;
+        case 12: _t->ShowAOV(); break;
+        case 13: _t->ShowBoxAOV(); break;
+        case 14: _t->SelectCamera(); break;
+        case 15: _t->SelectBoxCamera(); break;
+        case 16: _t->CropRegion(); break;
+        case 17: _t->FrameAll(); break;
+        case 18: _t->FrameRegion(); break;
+        case 19: _t->RealSize(); break;
+        case 20: _t->ColorCorrection(); break;
+        case 21: _t->EnableStatusBar(); break;
+        case 22: _t->DisplayPixelInfo(); break;
+        case 23: _t->StoredSliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 24: _t->ToggleManipulationMode(); break;
+        case 25: _t->DebugShading(); break;
+        case 26: _t->RgbaClicked(); break;
+        case 27: _t->ShowCamerasMenu(); break;
         default: ;
         }
     }

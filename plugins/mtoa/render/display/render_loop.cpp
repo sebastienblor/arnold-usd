@@ -25,7 +25,7 @@ extern void K_ProcessRenderError(int error);
 #include <sstream>
 
 /******************************************************************************
-   Global variables
+   Global variables (coming from Kick code)
 ******************************************************************************/
 
 int           K_argc;
@@ -216,7 +216,7 @@ void K_InitGlobalVars(void)
 
 extern int RenderLoop(CRenderView *kwin)
 {
-   int i, exit_code = K_SUCCESS;
+   int i, exitCode = K_SUCCESS;
    K_wait_for_changes = false;
    
    /*
@@ -227,7 +227,7 @@ extern int RenderLoop(CRenderView *kwin)
       /*
        * apply any existing node changes
        */
-      while(K_wait_for_changes) {CRenderView::sleep(1000);}
+      while(K_wait_for_changes) {CRenderView::Sleep(1000);}
       
       /*
        * begin the render-loop
@@ -236,12 +236,12 @@ extern int RenderLoop(CRenderView *kwin)
       int smin = MIN(-3, K_AA_samples);
       int smax = K_AA_samples;
 
-      K_render_timestamp = CRenderView::time();
+      K_render_timestamp = CRenderView::Time();
       
       if (AiRendering())
       {
          AiRenderInterrupt();
-         while (AiRendering()){CRenderView::sleep(1000);}
+         while (AiRendering()){CRenderView::Sleep(1000);}
       }
       
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
@@ -297,9 +297,9 @@ extern int RenderLoop(CRenderView *kwin)
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
         
          statusStr<<"  Camera "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
-         kwin->setStatus(statusStr.str());
+         kwin->SetStatus(statusStr.str());
         
-         AtUInt64 loop_time = (i == smax) ? CRenderView::time() : 0;
+         AtUInt64 loopTime = (i == smax) ? CRenderView::Time() : 0;
          error = AiRender(0); //AI_RENDER_THREADED);
          switch (error)
          {
@@ -312,7 +312,7 @@ extern int RenderLoop(CRenderView *kwin)
                
                K_restartLoop = true;
                i = smax+1;
-               exit_code = error;
+               exitCode = error;
                // if we uncommenting this, we get like strobes when moving the cam
                //kwin->restoreContinuous();
                break;
@@ -327,34 +327,31 @@ extern int RenderLoop(CRenderView *kwin)
                if (i == smax)
                {
                   // setting back continuous updates to its original state
-                  kwin->restoreContinuous();
+                  kwin->RestoreContinuous();
                   
 
-
-                  AtUInt64 end_time = CRenderView::time();
-                  int seconds_count = (end_time - loop_time) / 1000000;
-                  int minutes_count = seconds_count / 60;
-                  seconds_count -= minutes_count * 60;
-                  int hours_count = minutes_count / 60;
-                  minutes_count -= hours_count * 60;
+                  AtUInt64 endTime = CRenderView::Time();
+                  int secondsCount = (endTime - loopTime) / 1000000;
+                  int minutesCount = secondsCount / 60;
+                  secondsCount -= minutesCount * 60;
+                  int hoursCount = minutesCount / 60;
+                  minutesCount -= hoursCount * 60;
 
                   std::stringstream statusEndStr;
 
-                  if (hours_count <= 0) statusEndStr <<"00:";
-                  else if (hours_count < 10) statusEndStr<<"0"<<hours_count<<":";
-                  else statusEndStr <<hours_count<<":";
+                  if (hoursCount <= 0) statusEndStr <<"00:";
+                  else if (hoursCount < 10) statusEndStr<<"0"<<hoursCount<<":";
+                  else statusEndStr <<hoursCount<<":";
 
-                  if (minutes_count <= 0) statusEndStr <<"00:";
-                  else if (minutes_count < 10) statusEndStr<<"0"<<minutes_count<<":";
-                  else statusEndStr <<minutes_count<<":";
+                  if (minutesCount <= 0) statusEndStr <<"00:";
+                  else if (minutesCount < 10) statusEndStr<<"0"<<minutesCount<<":";
+                  else statusEndStr <<minutesCount<<":";
                   
-                  if (seconds_count <= 0) statusEndStr <<"00";
-                  else if (seconds_count < 10) statusEndStr<<"0"<<seconds_count;
-                  else statusEndStr <<seconds_count;
-                  
+                  if (secondsCount <= 0) statusEndStr <<"00";
+                  else if (secondsCount < 10) statusEndStr<<"0"<<secondsCount;
+                  else statusEndStr <<secondsCount;
 
                   statusEndStr<<"  Resolution: "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
-   
 
                   statusEndStr <<"  Sampling: "<<i;
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
@@ -365,14 +362,14 @@ extern int RenderLoop(CRenderView *kwin)
 
                   statusStr<<" Camera "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
                  
-                  const float mem_used = (float)AiMsgUtilGetUsedMemory() / 1024.0f / 1024.0f;
-                  statusEndStr<<" Memory: "<<mem_used<<"MB";
+                  const float memUsed = (float)AiMsgUtilGetUsedMemory() / 1024.0f / 1024.0f;
+                  statusEndStr<<" Memory: "<<memUsed<<"MB";
 
-                  kwin->setStatus(statusEndStr.str());
-                  kwin->draw();
+                  kwin->SetStatus(statusEndStr.str());
+                  kwin->Draw();
                   while (K_aborted == false && K_restartLoop == false) 
                   {
-                     CRenderView::sleep(1000); // don't want CPU pegged at 100% with useless work
+                     CRenderView::Sleep(1000); // don't want CPU pegged at 100% with useless work
                   }
                }
                break;
@@ -384,8 +381,8 @@ extern int RenderLoop(CRenderView *kwin)
                 * signal -- terminate the render loop
                 */
                K_aborted = 1;
-               exit_code = error;
-               kwin->restoreContinuous();
+               exitCode = error;
+               kwin->RestoreContinuous();
                break;
             }
          }
@@ -394,15 +391,15 @@ extern int RenderLoop(CRenderView *kwin)
    } while (!K_aborted);
 
 
-   kwin->restoreContinuous();
-   return exit_code;
+   kwin->RestoreContinuous();
+   return exitCode;
 }
 
 
 unsigned int kickWindowRender(void *kwin_ptr)
 {
   CRenderView *kwin = (CRenderView*)kwin_ptr;
-  kwin->show();
+  kwin->Show();
 
   RenderLoop(kwin);
 

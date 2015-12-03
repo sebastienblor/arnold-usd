@@ -31,8 +31,6 @@
 #include "render_gl_widget.h"
 #endif
 
-
-
 #include "utility.h"
 #include <emmintrin.h>
 
@@ -76,7 +74,7 @@
 //#ifdef _MSC_VER
 //#pragma warning (disable : 4244)
 //#endif
-static MCallbackId rv_selection_cb = 0;
+static MCallbackId rvSelectionCb = 0;
 
 /*****************************
  *
@@ -92,42 +90,40 @@ static int statusbarHeight = 10;
 
 CRenderView::CRenderView(int w, int h)
 {
-   m_render_thread = NULL;
-   display_sync = NULL;
+   m_renderThread = NULL;
+   displaySync = NULL;
 
    m_width = w;
    m_height = h;
    
-   m_main_window = new CRenderViewMainWindow(MQtUtil::mainWindow(), *this);
+   m_mainWindow = new CRenderViewMainWindow(MQtUtil::mainWindow(), *this);
 
-   m_main_window->setWindowTitle("Arnold Render View");
+   m_mainWindow->setWindowTitle("Arnold Render View");
    m_gl = NULL;
    m_buffer = NULL;
-   m_picked_id = NULL;
+   m_pickedId = NULL;
 
-   init();
+   Init();
 
-   m_central_widget = new QWidget(m_main_window);
-   m_main_window->setCentralWidget(m_central_widget);
-   m_central_widget->resize(w, h + toolbarHeight + statusbarHeight);
+   m_centralWidget = new QWidget(m_mainWindow);
+   m_mainWindow->setCentralWidget(m_centralWidget);
+   m_centralWidget->resize(w, h + toolbarHeight + statusbarHeight);
 
-   m_main_window->initMenus();
-   initRender(w, h);
-   
-   m_main_window->show();
-
-   m_main_window->enableMenus(false);
+   m_mainWindow->InitMenus();
+   InitRender(w, h);   
+   m_mainWindow->show();
+   m_mainWindow->EnableMenus(false);
 }
 
 
 CRenderView::~CRenderView()
 {
-   finishRender();
+   FinishRender();
 
-   AiCritSecClose(&display_sync->event_lock);
-   AiCritSecClose(&display_sync->lock);
-   AiFree(display_sync);
-   display_sync = 0;
+   AiCritSecClose(&displaySync->eventLock);
+   AiCritSecClose(&displaySync->lock);
+   AiFree(displaySync);
+   displaySync = 0;
    AiFree(m_buffer);
    if (!m_storedSnapshots.empty())
    {
@@ -138,47 +134,45 @@ CRenderView::~CRenderView()
       }
       m_storedSnapshots.clear();
    }
-   AiCritSecClose(&m_window_close_lock);
-   AiCritSecClose(&m_pick_lock);
+   AiCritSecClose(&m_windowCloseLock);
+   AiCritSecClose(&m_pickLock);
 
-   if (rv_selection_cb)
+   if (rvSelectionCb)
    {
-      MMessage::removeCallback(rv_selection_cb);
-      rv_selection_cb;
+      MMessage::removeCallback(rvSelectionCb);
+      rvSelectionCb;
    }
-   delete m_main_window;
+   delete m_mainWindow;
 }
 
-void CRenderView::init()
+void CRenderView::Init()
 {
 
-   //m_main_window->show();
-
-   if (display_sync != NULL)
+   if (displaySync != NULL)
    {
-      AiCritSecClose(&display_sync->event_lock);
-      AiCritSecClose(&display_sync->lock);
-      AiFree(display_sync);
-      display_sync = 0;
+      AiCritSecClose(&displaySync->eventLock);
+      AiCritSecClose(&displaySync->lock);
+      AiFree(displaySync);
+      displaySync = 0;
    }
 
-   m_color_mode  = COLOR_MODE_RGBA;
-   m_show_rendering_tiles = false;
-   m_region_crop = false;
-   m_status_changed = false;
-   m_status_bar_enabled = true;
-   m_status_bar_pixel_info = false;
-   m_restore_continuous = false;
-   m_color_mode  = COLOR_MODE_RGBA;
+   m_colorMode  = COLOR_MODE_RGBA;
+   m_showRenderingTiles = false;
+   m_regionCrop = false;
+   m_statusChanged = false;
+   m_statusBarEnabled = true;
+   m_statusBarPixelInfo = false;
+   m_restoreContinuous = false;
+   m_colorMode  = COLOR_MODE_RGBA;
    m_displayID = false;
-   m_debug_shading = RV_DBG_SHAD_DISABLED;
+   m_debugShading = RV_DBG_SHAD_DISABLED;
 
-   AiCritSecInit(&m_window_close_lock);
-   AiCritSecInit(&m_pick_lock);
+   AiCritSecInit(&m_windowCloseLock);
+   AiCritSecInit(&m_pickLock);
 
    K_render_window = true;
    K_progressive = true;
-   m_continuous_updates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
+   m_continuousUpdates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
 
 
    m_displayedImageIndex = -1; // -1 means the current rendering
@@ -199,24 +193,22 @@ void CRenderView::init()
    }
 
    // setup syncing
-   displaySyncCreate();
-
+   DisplaySyncCreate();
 }
 
-void CRenderView::initRender(int w, int h)
+void CRenderView::InitRender(int w, int h)
 {
    m_width = w;
-   m_height = h;
-   
+   m_height = h;   
 
-   m_main_window->resize(w, h+menuHeight + toolbarHeight + statusbarHeight + 26);
+   m_mainWindow->resize(w, h+menuHeight + toolbarHeight + statusbarHeight + 26);
 
    if (m_gl != NULL)
    {
-      m_gl->initSize(m_width, m_height);
+      m_gl->InitSize(m_width, m_height);
       m_gl->initializeGL();
    }
-   else  m_gl = new CRenderGLWidget(m_central_widget, *this, m_width, m_height);
+   else  m_gl = new CRenderGLWidget(m_centralWidget, *this, m_width, m_height);
 
    if (m_buffer != NULL) AiFree(m_buffer);
    m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
@@ -228,15 +220,10 @@ void CRenderView::initRender(int w, int h)
       m_buffer[i] = AI_RGBA_BLACK;
    }
 
-   //m_gl->move(0, menuHeight + toolbarHeight + statusbarHeight);
    m_gl->resize(m_width, m_height);
-
    m_gl->move(0, 0);
-//  m_main_window->setCentralWidget(m_gl);
 
-
-
-   updateRenderOptions();
+   UpdateRenderOptions();
 
    if (AiNodeLookUpByName("kick_display")) return;
 
@@ -248,9 +235,8 @@ void CRenderView::initRender(int w, int h)
    driver = AiNode(K_DISPLAY_NAME);
    AiNodeSetStr(driver, "name", "kick_display");
 
-   AtNode *id_filter = AiNode("closest_filter");
-   AiNodeSetStr(id_filter, "name", "_renderViewDefault@closest_filter");
-
+   AtNode *idFilter = AiNode("closest_filter");
+   AiNodeSetStr(idFilter, "name", "_renderViewDefault@closest_filter");
 
    if (K_filter_type[0] != 0)
    {
@@ -274,37 +260,27 @@ void CRenderView::initRender(int w, int h)
    if (K_AA_samples == 0)
    K_AA_samples = 1;
 
-
    // handle all other arnold nodes created by this renderView
    // like debug shading
-   manageDebugShading();
+   ManageDebugShading();
 }
 
-void CRenderView::updateRenderOptions()
+void CRenderView::UpdateRenderOptions()
 {
-
-   // Parameters we check
-
-   // bucket size
-   // xres
-   // yres
-   // AA_samples
-   // outputs
-
 
    AtNode *options = AiUniverseGetOptions();
    // enlarge resolution to capture overscan data
-   int bucket_size = AiNodeGetInt(options, "bucket_size");
+   int bucketSize = AiNodeGetInt(options, "bucket_size");
    int xres = AiNodeGetInt(options, "xres");
    int yres = AiNodeGetInt(options, "yres");
 
-   m_x_res       = xres;
-   m_y_res       = yres;
-   m_reg_x       = xres; // check region_min_x ?
-   m_reg_y       = yres;
-   m_bucket_size = bucket_size;
-   m_min_x       = 0; // chec region_min_x ?
-   m_min_y       = 0;
+   m_xRes       = xres;
+   m_yRes       = yres;
+   m_regX       = xres; // check region_min_x ?
+   m_regY       = yres;
+   m_bucketSize = bucketSize;
+   m_minX       = 0; // chec region_min_x ?
+   m_minY       = 0;
    
    //unsigned int i;
    //char kick_drv[1024];
@@ -352,7 +328,6 @@ void CRenderView::updateRenderOptions()
          if (foundBeauty) continue; // only 1 beauty please
 
          foundBeauty = true;
-
          outputValues.insert(outputValues.begin(), outputStr);
       } else
       {
@@ -379,78 +354,75 @@ void CRenderView::updateRenderOptions()
       AiArraySetStr(allOutputsArray, i, outputValues[i].c_str());
    }
    AiNodeSetArray(options, "outputs", allOutputsArray);
-
    
    // enlarge resolution to capture overscan data
-   AtBBox2 full_window;
-   AtBBox2 display_window, data_window;
-   display_window.minx = display_window.miny = 0;
-   display_window.maxx = xres;
-   display_window.maxy = yres;
+   AtBBox2 fullWindow;
+   AtBBox2 displayWindow, dataWindow;
+   displayWindow.minx = displayWindow.miny = 0;
+   displayWindow.maxx = xres;
+   displayWindow.maxy = yres;
 
    // Region data
-   data_window = display_window;
+   dataWindow = displayWindow;
 
-   AiBBox2Union(full_window, display_window, data_window);
+   AiBBox2Union(fullWindow, displayWindow, dataWindow);
 
-   m_x_res       = full_window.maxx - full_window.minx + 1;
-   m_y_res       = full_window.maxy - full_window.miny + 1;
-   m_reg_x       = data_window.maxx - data_window.minx + 1;
-   m_reg_y       = data_window.maxy - data_window.miny + 1;
-   m_bucket_size = bucket_size;
-   m_min_x       = data_window.minx;
-   m_min_y       = data_window.miny;
+   m_xRes       = fullWindow.maxx - fullWindow.minx + 1;
+   m_yRes       = fullWindow.maxy - fullWindow.miny + 1;
+   m_regX       = dataWindow.maxx - dataWindow.minx + 1;
+   m_regY       = dataWindow.maxy - dataWindow.miny + 1;
+   m_bucketSize = bucketSize;
+   m_minX       = dataWindow.minx;
+   m_minY       = dataWindow.miny;
    
    
 
    // compute number of buckets we need to render the full frame
-   if (display_sync)
+   if (displaySync)
    {
-      int x_res = data_window.maxx - data_window.minx + 1;
-      int y_res = data_window.maxy - data_window.miny + 1;
-      int nbx = CEIL(x_res / (float) bucket_size);
-      int nby = CEIL(y_res / (float) bucket_size);
+      int xRes = dataWindow.maxx - dataWindow.minx + 1;
+      int yRes = dataWindow.maxy - dataWindow.miny + 1;
+      int nbx = CEIL(xRes / (float) bucketSize);
+      int nby = CEIL(yRes / (float) bucketSize);
 
-      display_sync->buckets_left = nbx * nby;
+      displaySync->bucketsLeft = nbx * nby;
 
       // detect if we restarted rendering at the lowesst resolution
-      int AA_samples = AiNodeGetInt(options, "AA_samples");
-      if (AA_samples <= display_sync->previous_AA_samples)
-         display_sync->interrupted = false;
-      display_sync->previous_AA_samples = AA_samples;
+      int AASamples = AiNodeGetInt(options, "AA_samples");
+      if (AASamples <= displaySync->previousAASamples)
+         displaySync->interrupted = false;
+      displaySync->previousAASamples = AASamples;
    }
 
    // Now that AOVs have changed, 
    // let's update the AOVs menu
-   m_main_window->populateAOVsMenu();
+   m_mainWindow->PopulateAOVsMenu();
 
 }
 
 
-void CRenderView::render()
+void CRenderView::Render()
 {
+   InterruptRender();
 
-   interruptRender();
-
-   if (m_render_thread != NULL)
+   if (m_renderThread != NULL)
    {      
       K_aborted = true;
       K_wait_for_changes = false;      
-      AiThreadWait(m_render_thread);
-      AiThreadClose(m_render_thread);
+      AiThreadWait(m_renderThread);
+      AiThreadClose(m_renderThread);
 
-   }  
-
+   }
    // make sure m_aovBuffers is resized to the appropriate amount of AOVs
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    arnoldSession->SetContinuousUpdates(false);
 
    K_aborted = false;
-   m_render_thread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
+   m_renderThread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
 
 }
-bool CRenderView::canRestartRender() const
+bool CRenderView::CanRestartRender() const
 {
    if (this == 0) return false;
 
@@ -459,34 +431,33 @@ bool CRenderView::canRestartRender() const
 }
 
 
-void CRenderView::close()
+void CRenderView::Close()
 {
-   m_main_window->hide();
-   //delete m_main_window;
+   m_mainWindow->hide();
 }
 
-void CRenderView::show()
+void CRenderView::Show()
 {  
-   m_main_window->show();
+   m_mainWindow->show();
 }
 
-void CRenderView::finishRender()
+void CRenderView::FinishRender()
 {
    K_aborted = true;
-   interruptRender();
+   InterruptRender();
 
-   while (AiRendering()) {sleep(1000);}
-   if (m_render_thread != NULL)
+   while (AiRendering()) {Sleep(1000);}
+   if (m_renderThread != NULL)
    {  
       K_aborted = true;
       K_wait_for_changes = false;      
-      AiThreadWait(m_render_thread);
-      AiThreadClose(m_render_thread);
-      m_render_thread = NULL;
+      AiThreadWait(m_renderThread);
+      AiThreadClose(m_renderThread);
+      m_renderThread = NULL;
    }
 }
 
-void CRenderView::interruptRender()
+void CRenderView::InterruptRender()
 {
    if (AiRendering()) AiRenderInterrupt();
    
@@ -502,7 +473,7 @@ void CRenderView::interruptRender()
 // utilities copied from sync.h and time.h in core
 
 #ifdef _WIN64
-AtUInt64 CRenderView::time()
+AtUInt64 CRenderView::Time()
 {
    LARGE_INTEGER PerformanceCount;
    LARGE_INTEGER Frequency;
@@ -513,20 +484,20 @@ AtUInt64 CRenderView::time()
    return (AtUInt64) (PerformanceCount.QuadPart / (Frequency.QuadPart * 1e-6));
 }
 
-void CRenderView::sleep(AtUInt64 usecs)
+void CRenderView::Sleep(AtUInt64 usecs)
 {
-   Sleep(usecs / 1000);
+   ::Sleep(usecs / 1000);
 }
 #else
 
-AtUInt64 CRenderView::time()
+AtUInt64 CRenderView::Time()
 {
    struct timeval tp;
    gettimeofday(&tp, NULL);
    return ((AtUInt64) tp.tv_sec * 1000000) + ((AtUInt64) tp.tv_usec);
 }
 
-void CRenderView::sleep(AtUInt64 usecs)
+void CRenderView::Sleep(AtUInt64 usecs)
 {
    usleep(usecs);
 }
@@ -534,50 +505,47 @@ void CRenderView::sleep(AtUInt64 usecs)
 #endif
 
 
-void CRenderView::syncPause()
+void CRenderView::SyncPause()
 {
    _mm_pause();
 }
 
 // This function is called by each of the Render threads
 // Beware not to do any Qt UI stuff here
-void CRenderView::draw(AtBBox2 *region)  
+void CRenderView::Draw(AtBBox2 *region)  
 {
 
-   bool already_in_queue = false;
-   AtDisplaySync *sync = display_sync;
+   bool alreadyInQueue = false;
+   AtDisplaySync *sync = displaySync;
 
    // Lock to update the region
    AiCritSecEnter(&sync->lock);
 
-   already_in_queue = sync->waiting_draw;
+   alreadyInQueue = sync->waitingDraw;
 
    if (region)
    {
       // bucket update: enlarge region to be updated on draw
-      AiBBox2Union(sync->front_update_region, sync->front_update_region, *region);
-      display_sync->buckets_left--;    
+      AiBBox2Union(sync->frontUpdateRegion, sync->frontUpdateRegion, *region);
+      displaySync->bucketsLeft--;    
    }
-   else if (sync->buckets_left == 0 && !sync->interrupted)
+   else if (sync->bucketsLeft == 0 && !sync->interrupted)
    {
-      // full frame finished: copy to back buffer
-      m_gl->copyToBackBuffer();
-
-      sync->back_update_region.minx = 0;
-      sync->back_update_region.miny = 0;
-      sync->back_update_region.maxx = m_reg_x;
-      sync->back_update_region.maxy = m_reg_y;
-      sync->back_buffer_ready = true;
+      sync->backUpdateRegion.minx = 0;
+      sync->backUpdateRegion.miny = 0;
+      sync->backUpdateRegion.maxx = m_regX;
+      sync->backUpdateRegion.maxy = m_regY;
+      sync->backBufferReady = true;
    }
 
    // immediately draw or wait for timer to run out
-   sync->waiting_draw = true;
+   sync->waitingDraw = true;
    
    // if we're displayed a previously stored image
    // we don't want to prevent that we need a draw
    AiCritSecLeave(&sync->lock);
 
-   if ( already_in_queue == false) 
+   if ( alreadyInQueue == false) 
    {
       // update() can be called by any threads
       // after that, the paintGL will be called "soon" from the main (UI) thread
@@ -586,14 +554,14 @@ void CRenderView::draw(AtBBox2 *region)
 }
 
 
-void CRenderView::displaySyncCreate()
+void CRenderView::DisplaySyncCreate()
 {
-   if (display_sync != NULL)
+   if (displaySync != NULL)
    {
-      AiCritSecClose(&display_sync->event_lock);
-      AiCritSecClose(&display_sync->lock);
-      AiFree(display_sync);
-      display_sync = 0;
+      AiCritSecClose(&displaySync->eventLock);
+      AiCritSecClose(&displaySync->lock);
+      AiFree(displaySync);
+      displaySync = 0;
    }
 
    // Minimum frames per second at which we will always interrupt and redraw
@@ -605,60 +573,57 @@ void CRenderView::displaySyncCreate()
 
    AtDisplaySync *sync = (AtDisplaySync *) AiMalloc(sizeof(AtDisplaySync));
 
-   AtUInt64 now = time();
+   AtUInt64 now = Time();
 
-   sync->last_draw_time = now;
-   sync->last_interrupt_time = now;
+   sync->lastDrawTime = now;
+   sync->lastInterruptTime = now;
 
-   AiBBox2Init(sync->front_update_region, std::numeric_limits<int>::max());
-   AiBBox2Init(sync->back_update_region, std::numeric_limits<int>::max());
-   sync->back_buffer_ready = false;
+   AiBBox2Init(sync->frontUpdateRegion, std::numeric_limits<int>::max());
+   AiBBox2Init(sync->backUpdateRegion, std::numeric_limits<int>::max());
+   sync->backBufferReady = false;
 
-   sync->waiting_draw = false;
-   sync->waiting_interrupt = false;
+   sync->waitingDraw = false;
+   sync->waitingInterrupt = false;
    
 
-   sync->buckets_left = 0;
-   sync->previous_AA_samples = std::numeric_limits<int>::max();
+   sync->bucketsLeft = 0;
+   sync->previousAASamples = std::numeric_limits<int>::max();
    sync->interrupted = true;
 
    AiCritSecInit(&sync->lock);
-   AiCritSecInit(&sync->event_lock);
+   AiCritSecInit(&sync->eventLock);
 
-   display_sync = sync;
+   displaySync = sync;
 }
 
 
-void CRenderView::updateRender()
+void CRenderView::UpdateRender()
 {
-   interruptRender();
+   InterruptRender();
 
    // we need to do some special stuff when one of those render settings
    // parameters have changed
 
-   // bucket / xres / yres / outputs / AA_samples
+   // bucket / xres / yres / outputs / AASamples
    AtNode *options = AiUniverseGetOptions();
    
-   int bucket_size = AiNodeGetInt(options, "bucket_size");
+   int bucketSize = AiNodeGetInt(options, "bucket_size");
    int xres = AiNodeGetInt(options, "xres");
    int yres = AiNodeGetInt(options, "yres");
    //K_AA_samples = AiNodeGetInt(options, "AA_samples");
    AtArray *outputs = AiNodeGetArray(options, "outputs");
 
-//   AiNodeSetInt(options, "AA_samples", K_AA_samples); // setting back AA samples to its original value
-
-
    // should I wait until rendering is really finished ?
-   while (AiRendering()) CRenderView::sleep(1000);
+   while (AiRendering()) CRenderView::Sleep(1000);
 
    CMayaScene::UpdateSceneChanges();
    options = AiUniverseGetOptions();
    AtArray *new_outputs = AiNodeGetArray(options, "outputs");
-   bool size_changed = (xres != AiNodeGetInt(options, "xres") || yres != AiNodeGetInt(options, "yres"));
+   bool sizeChanged = (xres != AiNodeGetInt(options, "xres") || yres != AiNodeGetInt(options, "yres"));
 
  
-   // Since we're manually modifying the Options AA_samples parameter in the Render Loop
-   // and in parallel our Translator is setting AA_samples from Maya's value
+   // Since we're manually modifying the Options AASamples parameter in the Render Loop
+   // and in parallel our Translator is setting AASamples from Maya's value
    // it's better to come back to Maya's value here to make sure
    // we're having the right AA samples
    MSelectionList activeList;
@@ -669,46 +634,43 @@ void CRenderView::updateRender()
    K_AA_samples = fnOpt.findPlug("AASamples", true).asInt();
    AiNodeSetInt(options, "AA_samples", K_AA_samples);
 
-   if (bucket_size != AiNodeGetInt(options, "bucket_size") ||
-      size_changed ||
+   if (bucketSize != AiNodeGetInt(options, "bucket_size") ||
+      sizeChanged ||
       outputs != new_outputs)
    {
-      if (size_changed) initRender(AiNodeGetInt(options, "xres"), AiNodeGetInt(options, "yres"));
+      if (sizeChanged) InitRender(AiNodeGetInt(options, "xres"), AiNodeGetInt(options, "yres"));
 
-      updateRenderOptions();
-      m_main_window->populateAOVsMenu();
+      UpdateRenderOptions();
+      m_mainWindow->PopulateAOVsMenu();
    }
 
-   if(m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
+   if(m_debugShading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
-      m_shading_manager.isolateSelected();
+      m_shadingManager.IsolateSelected();
    }
-
    // check if amount of cameras have changed
-   restartRender();
-
+   RestartRender();
 }
 
-void CRenderView::restartRender()
+void CRenderView::RestartRender()
 {
-   show();
+   Show();
 
    if (!K_progressive)
    {
       // clear the buffer
       memset(m_buffer, 0, m_width * m_height * sizeof(AtRGBA));
-      AtRGBA8 *gl_buffer = m_gl->getBuffer();
+      AtRGBA8 *gl_buffer = m_gl->GetBuffer();
       memset(gl_buffer, 0, m_width * m_height * sizeof(AtRGBA8));
-      m_gl->reloadBuffer(m_color_mode);
+      m_gl->ReloadBuffer(m_colorMode);
    }
 
-   K_render_timestamp = time();
+   K_render_timestamp = Time();
    K_restartLoop = true;
    K_wait_for_changes = false;
    
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    arnoldSession->SetContinuousUpdates(false);
-
 }
 
 // For "Isolate Selected" debug shading mode,
@@ -738,39 +700,38 @@ void CRenderView::SelectionChangedCallback(void *data)
    CRenderView *rv = ((CRenderView*)data);
 
    // selection is valid
-   rv->m_shading_manager.setShaderName(nodeFn.name().asChar());
+   rv->m_shadingManager.SetShaderName(nodeFn.name().asChar());
    
-   rv->updateRender();
+   rv->UpdateRender();
 }
 
 
-void CRenderView::setDebugShading(RenderViewDebugShading d)
+void CRenderView::SetDebugShading(RenderViewDebugShading d)
 {
-   if (d == m_debug_shading) return;
+   if (d == m_debugShading) return;
 
-   interruptRender();
+   InterruptRender();
    while(AiRendering())
    {
-      CRenderView::sleep(1000);
+      CRenderView::Sleep(1000);
    }
-
 
    // if previous shading mode was "isolate selected"
    // I need the remove the "selection change" callback
    // and also restore the specific stuff done by the shading manager
-   if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
+   if (m_debugShading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
-      MMessage::removeCallback(rv_selection_cb);
-      rv_selection_cb = 0;
-      m_shading_manager.restore();
+      MMessage::removeCallback(rvSelectionCb);
+      rvSelectionCb = 0;
+      m_shadingManager.Restore();
    }
-   m_debug_shading = d; 
+   m_debugShading = d; 
 
-   manageDebugShading();
-   updateRender();
+   ManageDebugShading();
+   UpdateRender();
 }
 
-void CRenderView::manageDebugShading()
+void CRenderView::ManageDebugShading()
 {
    // for debug modes like basic, occlusion, wireframe, etc...   
    // we can set options.ignore_shaders to TRUE
@@ -786,64 +747,64 @@ void CRenderView::manageDebugShading()
 
    // don't forget to restore all this later
    AtNode *options = AiUniverseGetOptions();
-   if (m_debug_shading == RV_DBG_SHAD_DISABLED)
+   if (m_debugShading == RV_DBG_SHAD_DISABLED)
    {
       AiNodeSetBool(options, "ignore_shaders", false);
 
-   } else if (m_debug_shading == RV_DBG_SHAD_ISOLATE_SELECTED)
+   } else if (m_debugShading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
       AiNodeSetBool(options, "ignore_shaders", false);
-      if (rv_selection_cb) MMessage::removeCallback(rv_selection_cb);
+      if (rvSelectionCb) MMessage::removeCallback(rvSelectionCb);
 
-      rv_selection_cb = MEventMessage::addEventCallback("SelectionChanged",
+      rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
                                                   CRenderView::SelectionChangedCallback,
                                                   (void*)this);
 
-      AtNode *utility_shader = AiNodeLookUpByName("ai_default_reflection_shader");
-      AiNodeSetStr(utility_shader, "color_mode", "color");
-      AiNodeSetStr(utility_shader, "shade_mode", "flat");
-      AiNodeSetRGB(utility_shader, "color", 0.f, 0.f, 0.f);
+      AtNode *utilityShader = AiNodeLookUpByName("ai_default_reflection_shader");
+      AiNodeSetStr(utilityShader, "color_mode", "color");
+      AiNodeSetStr(utilityShader, "shade_mode", "flat");
+      AiNodeSetRGB(utilityShader, "color", 0.f, 0.f, 0.f);
 
    } else
    {
       AiNodeSetBool(options, "ignore_shaders", true);
       // all shapes will now be shaded with arnold default shader (ai_default_reflection_shader)
-      AtNode *utility_shader = AiNodeLookUpByName("ai_default_reflection_shader");
-      AiNodeSetRGB(utility_shader, "color", 1.f, 1.f, 1.f);
+      AtNode *utilityShader = AiNodeLookUpByName("ai_default_reflection_shader");
+      AiNodeSetRGB(utilityShader, "color", 1.f, 1.f, 1.f);
 
-      switch (m_debug_shading)
+      switch (m_debugShading)
       {
          case RV_DBG_SHAD_WIREFRAME:
-            AiNodeSetStr(utility_shader, "color_mode", "polywire");
-            AiNodeSetStr(utility_shader, "shade_mode", "ndoteye");
+            AiNodeSetStr(utilityShader, "color_mode", "polywire");
+            AiNodeSetStr(utilityShader, "shade_mode", "ndoteye");
          break;
          case RV_DBG_SHAD_BASIC:
-            AiNodeSetStr(utility_shader, "color_mode", "color");
-            AiNodeSetStr(utility_shader, "shade_mode", "ndoteye");
+            AiNodeSetStr(utilityShader, "color_mode", "color");
+            AiNodeSetStr(utilityShader, "shade_mode", "ndoteye");
          break;
          case RV_DBG_SHAD_OCCLUSION:
-            AiNodeSetStr(utility_shader, "color_mode", "color");
-            AiNodeSetStr(utility_shader, "shade_mode", "ambocc");
+            AiNodeSetStr(utilityShader, "color_mode", "color");
+            AiNodeSetStr(utilityShader, "shade_mode", "ambocc");
          break;   
          case RV_DBG_SHAD_UV:
-            AiNodeSetStr(utility_shader, "color_mode", "uv");
-            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+            AiNodeSetStr(utilityShader, "color_mode", "uv");
+            AiNodeSetStr(utilityShader, "shade_mode", "flat");
          break;
          case RV_DBG_SHAD_NORMAL:
-            AiNodeSetStr(utility_shader, "color_mode", "n");
-            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+            AiNodeSetStr(utilityShader, "color_mode", "n");
+            AiNodeSetStr(utilityShader, "shade_mode", "flat");
          break;
          case RV_DBG_SHAD_PRIMITIVE_ID:
-            AiNodeSetStr(utility_shader, "color_mode", "prims");
-            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+            AiNodeSetStr(utilityShader, "color_mode", "prims");
+            AiNodeSetStr(utilityShader, "shade_mode", "flat");
          break;
          case RV_DBG_SHAD_OBJECT:
-            AiNodeSetStr(utility_shader, "color_mode", "obj");
-            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+            AiNodeSetStr(utilityShader, "color_mode", "obj");
+            AiNodeSetStr(utilityShader, "shade_mode", "flat");
          break;
          case RV_DBG_SHAD_BARY:
-            AiNodeSetStr(utility_shader, "color_mode", "bary");
-            AiNodeSetStr(utility_shader, "shade_mode", "flat");
+            AiNodeSetStr(utilityShader, "color_mode", "bary");
+            AiNodeSetStr(utilityShader, "shade_mode", "flat");
          break;
          default:
          break;
@@ -852,12 +813,12 @@ void CRenderView::manageDebugShading()
 
 }
 
-void CRenderView::pickShape(int px, int py)
+void CRenderView::PickShape(int px, int py)
 {
    if (m_displayedImageIndex >= 0) return; // I can't pick a stored image
 
    int x, y;
-   m_gl->project(px, py, x, y, false);
+   m_gl->Project(px, py, x, y, false);
    
    // picking out of image bounds...
    if (x < 0 || x >= m_width || y < 0 || y >= m_height) return; 
@@ -866,17 +827,17 @@ void CRenderView::pickShape(int px, int py)
 
 
    // Get the ID AOV (last one in our list), and get the index value for the given pixel
-   const AtRGBA *IdAov = (m_aovBuffers.back());
-   const AtRGBA &id_val = IdAov[x + y * m_width];
-   //int Op_id = *((int*)&id_val.r);
-   int Op_id = reinterpret_type<float, int>(id_val.r);
+   const AtRGBA *idAov = (m_aovBuffers.back());
+   const AtRGBA &idVal = idAov[x + y * m_width];
 
-   AiCritSecEnter(&m_pick_lock);
-   if (m_picked_id) delete m_picked_id;
-   m_picked_id = new int(Op_id);
-   AiCritSecLeave(&m_pick_lock);
+   int opId = reinterpret_type<float, int>(idVal.r);
 
-   AtRGBA *displayedBuffer = getDisplayedBuffer();
+   AiCritSecEnter(&m_pickLock);
+   if (m_pickedId) delete m_pickedId;
+   m_pickedId = new int(opId);
+   AiCritSecLeave(&m_pickLock);
+
+   AtRGBA *displayedBuffer = GetDisplayedBuffer();
    AtRGBA *idBuffer = m_aovBuffers.back();
    
    int ind = 0;
@@ -886,14 +847,14 @@ void CRenderView::pickShape(int px, int py)
       {
          //int int_id = *((int*)&idBuffer[ind].r);
          int int_id = reinterpret_type<float, int>(idBuffer[ind].r);
-         if (int_id != Op_id) continue;
+         if (int_id != opId) continue;
 
-         fillGLPixel(displayedBuffer[ind], i, j, ind);
+         FillGLPixel(displayedBuffer[ind], i, j, ind);
       }
    }
 
-   m_gl->reloadBuffer(m_color_mode);
-   draw();
+   m_gl->ReloadBuffer(m_colorMode);
+   Draw();
 
 
    // for now we do a linear search over the Shapes in the scene.
@@ -904,7 +865,7 @@ void CRenderView::pickShape(int px, int py)
    {
       AtNode *node = AiNodeIteratorGetNext(iter);
       int nodeId = AiNodeGetInt(node, "id");
-      if (nodeId == Op_id)
+      if (nodeId == opId)
       {
          // Selection :
          // If CTRL is pressed, append the selected node to the list
@@ -919,56 +880,56 @@ void CRenderView::pickShape(int px, int py)
    AiNodeIteratorDestroy(iter);
 }
 
-void CRenderView::clearPicking()
+void CRenderView::ClearPicking()
 {
    // search in the ID Aov all the pixels corresponding to given ID and refresh them
-   // (less expensive than calling refreshGLBuffer())
+   // (less expensive than calling RefreshGLBuffer())
  
-   AiCritSecEnter(&m_pick_lock);
-   delete m_picked_id;
-   m_picked_id = NULL;
-   AiCritSecLeave(&m_pick_lock);
+   AiCritSecEnter(&m_pickLock);
+   delete m_pickedId;
+   m_pickedId = NULL;
+   AiCritSecLeave(&m_pickLock);
 
-   refreshGLBuffer();
+   RefreshGLBuffer();
 }
 
-void CRenderView::ObjectNameChanged(const std::string &new_name, const std::string &old_name)
+void CRenderView::ObjectNameChanged(const std::string &newName, const std::string &oldName)
 {
-   m_shading_manager.objectNameChanged(new_name, old_name);
+   m_shadingManager.ObjectNameChanged(newName, oldName);
 }
 
 // this function is being called by renderview_gl::paintGL
 // so we're in the main (UI) thread here
 // here we can do any stuff related to UI
-void CRenderView::checkSceneUpdates()
+void CRenderView::CheckSceneUpdates()
 {  
    // now that buckets are being painted
    // we can turn the menus as active again
-   m_main_window->enableMenus(true);
+   m_mainWindow->EnableMenus(true);
 
-   if (m_status_bar_enabled)
+   if (m_statusBarEnabled)
    {
-      if (m_status_changed)
+      if (m_statusChanged)
       {
-         refreshStatusBar();
-         m_status_changed = false;
+         RefreshStatusBar();
+         m_statusChanged = false;
       }
    }
 
-   if (!m_continuous_updates) return;
+   if (!m_continuousUpdates) return;
 
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
    if (arnoldSession == NULL) return;
-   if (m_restore_continuous)
+   if (m_restoreContinuous)
    {
       arnoldSession->SetContinuousUpdates(true);
-      m_restore_continuous = false;
+      m_restoreContinuous = false;
    }
    if (arnoldSession->HasObjectsToUpdate())
    {
-      AtUInt64 loop_time = CRenderView::time();
+      AtUInt64 loopTime = CRenderView::Time();
       // 1 / 15 seconds minimum before restarting a render
-      if (loop_time - K_render_timestamp > (AtUInt64)1000000/20)
+      if (loopTime - K_render_timestamp > (AtUInt64)1000000/20)
       {
          K_wait_for_changes = true;
          // setting continuous updates to true
@@ -978,7 +939,7 @@ void CRenderView::checkSceneUpdates()
    }
 }
 
-void CRenderView::saveImage(const std::string &filename)
+void CRenderView::SaveImage(const std::string &filename)
 {
    // Write down the displayed image
 
@@ -989,7 +950,7 @@ void CRenderView::saveImage(const std::string &filename)
    MImage outImg;
    outImg.create(m_width, m_height, 4 );
    
-   AtRGBA8 *buffer = m_gl->getBuffer();
+   AtRGBA8 *buffer = m_gl->GetBuffer();
    outImg.setPixels((unsigned char*)buffer, m_width, m_height);
    outImg.verticalFlip();
    MString fname(filename.c_str());
@@ -1000,7 +961,7 @@ void CRenderView::saveImage(const std::string &filename)
    /*
    // We're using QT stuff, but maybe we should use Maya's instead ?
    QImage outImg(m_width, m_height, QImage::Format_ARGB32 );
-   AtRGBA *buffer = getDisplayedBuffer();
+   AtRGBA *buffer = GetDisplayedBuffer();
 
    for (int j = 0; j < m_height; ++j)
    {
@@ -1015,7 +976,7 @@ void CRenderView::saveImage(const std::string &filename)
    */
 }
 
-void CRenderView::storeImage()
+void CRenderView::StoreImage()
 {
    AtRGBA *storedBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
    memcpy(storedBuffer, m_buffer, m_width * m_height * sizeof(AtRGBA));
@@ -1023,14 +984,14 @@ void CRenderView::storeImage()
    m_storedSnapshots.back().buffer = storedBuffer;
    m_storedSnapshots.back().width = m_width;
    m_storedSnapshots.back().height = m_height;
-   m_storedSnapshots.back().status = m_status_log;
+   m_storedSnapshots.back().status = m_statusLog;
 }
 
-void CRenderView::refreshGLBuffer()
+void CRenderView::RefreshGLBuffer()
 {
    m_displayID = (m_displayedImageIndex < 0) && (m_displayedAovIndex == (int(m_aovNames.size()) -1));
 
-   AtRGBA *displayedBuffer = getDisplayedBuffer();
+   AtRGBA *displayedBuffer = GetDisplayedBuffer();
 
    int width = m_width;
    int height = m_height;
@@ -1040,14 +1001,14 @@ void CRenderView::refreshGLBuffer()
       width = MIN(m_width, m_storedSnapshots[m_displayedImageIndex].width);
       height = MIN(m_height, m_storedSnapshots[m_displayedImageIndex].height);
 
-      memset(m_gl->getBuffer(), 0, m_width * m_height * sizeof(AtRGBA8));
+      memset(m_gl->GetBuffer(), 0, m_width * m_height * sizeof(AtRGBA8));
       for (int j = 0; j < height; ++j)
       {
          int storedIndex = j * m_storedSnapshots[m_displayedImageIndex].width;
          int glIndex = j * m_width;
          for (int i = 0; i < width; ++i, ++glIndex, ++storedIndex)
          {
-            fillGLPixel(displayedBuffer[storedIndex], i, j, glIndex);
+            FillGLPixel(displayedBuffer[storedIndex], i, j, glIndex);
          }
       }
    } else {
@@ -1056,39 +1017,39 @@ void CRenderView::refreshGLBuffer()
       {
          for (int i = 0; i < width; ++i, ++ind)
          {
-            fillGLPixel(displayedBuffer[ind], i, j, ind);
+            FillGLPixel(displayedBuffer[ind], i, j, ind);
          }
       }
    }
 
-   m_gl->reloadBuffer(m_color_mode);
-   draw();
-   refreshStatusBar();
+   m_gl->ReloadBuffer(m_colorMode);
+   Draw();
+   RefreshStatusBar();
 }
-void CRenderView::refreshStatusBar(int *mouse_position)
+void CRenderView::RefreshStatusBar(int *mousePosition)
 {
-   QString status_log(getDisplayedStatus().c_str());
+   QString statusLog(GetDisplayedStatus().c_str());
 
    // add the zoom factor
-   int zoomPercent = int(m_gl->getZoomFactor() * 100.f);
+   int zoomPercent = int(m_gl->GetZoomFactor() * 100.f);
    if (zoomPercent == 100)
    {
-      status_log +=" (1:1)";
+      statusLog +=" (1:1)";
    } else
    {
       QString zoomStr;
       zoomStr.setNum(zoomPercent);
       zoomStr += "%";
-      status_log += " ("+zoomStr+")";
+      statusLog += " ("+zoomStr+")";
    }
 
 
    // add eventual information about debug shading
-   if (m_debug_shading != RV_DBG_SHAD_DISABLED)
+   if (m_debugShading != RV_DBG_SHAD_DISABLED)
    {
       std::string debugShadingStr;
 
-      switch (m_debug_shading)
+      switch (m_debugShading)
       {
 
          case RV_DBG_SHAD_WIREFRAME:
@@ -1116,48 +1077,47 @@ void CRenderView::refreshStatusBar(int *mouse_position)
             debugShadingStr = "[BARYCENTRIC] ";
          break;
          case RV_DBG_SHAD_ISOLATE_SELECTED:
-            debugShadingStr = "["+m_shading_manager.getShaderName()+"] ";
+            debugShadingStr = "["+m_shadingManager.GetShaderName()+"] ";
          break;         
          default:
          break;
       }
-      status_log = debugShadingStr.c_str() + status_log;
-
+      statusLog = debugShadingStr.c_str() + statusLog;
    }
 
-   if (m_status_bar_pixel_info)
+   if (m_statusBarPixelInfo)
    {
-      if (mouse_position != NULL)
+      if (mousePosition != NULL)
       {
          // we have mouse position
          // get information about current pixel
 
          std::stringstream status_pixel;
-         status_pixel<<"  Pixel: "<<mouse_position[0]<<","<<mouse_position[1];
+         status_pixel<<"  Pixel: "<<mousePosition[0]<<","<<mousePosition[1];
          status_pixel<<"  RGBA: ("; // Get color from this pixel's buffer color 
 
-         AtRGBA *displayedBuffer = getDisplayedBuffer();
+         AtRGBA *displayedBuffer = GetDisplayedBuffer();
 
-         const AtRGBA &pixel_rgba = displayedBuffer[mouse_position[0] + m_width*mouse_position[1]];
+         const AtRGBA &pixel_rgba = displayedBuffer[mousePosition[0] + m_width*mousePosition[1]];
          status_pixel<<CEIL(pixel_rgba.r * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.g * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.b * 1000.f) / 1000.f<<", "<<CEIL(pixel_rgba.a * 1000.f) / 1000.f<<")";
-         status_log += QString(status_pixel.str().c_str());
+         statusLog += QString(status_pixel.str().c_str());
 
       } else 
       {
          // check if previous log had pixel information and keep it
-         std::string previous_log = m_main_window->statusBar()->currentMessage().toStdString();
-         size_t pixel_pos = previous_log.find("  Pixel");
+         std::string previousLog = m_mainWindow->statusBar()->currentMessage().toStdString();
+         size_t pixel_pos = previousLog.find("  Pixel");
          if (pixel_pos != std::string::npos)
          {
-            previous_log = previous_log.substr(pixel_pos);
-            status_log += QString(previous_log.c_str());
+            previousLog = previousLog.substr(pixel_pos);
+            statusLog += QString(previousLog.c_str());
          }
       }
    }
-   m_main_window->statusBar()->showMessage(status_log);
+   m_mainWindow->statusBar()->showMessage(statusLog);
 }
 
-void CRenderView::showPreviousStoredImage()
+void CRenderView::ShowPreviousStoredImage()
 {
    if (m_storedSnapshots.empty())
    {
@@ -1166,50 +1126,28 @@ void CRenderView::showPreviousStoredImage()
    }
    if (m_displayedImageIndex < 0)
    {
-      m_gl->copyToBackBuffer();
       m_displayedImageIndex = m_storedSnapshots.size() - 1;
    }
    else m_displayedImageIndex--;
 
-/*
-   if (m_displayedImageIndex >= 0)
-   {
-      AtDisplaySync *sync = displaySync();
-      sync->waiting_draw = false;
-   }
-*/
-   refreshGLBuffer();
+   RefreshGLBuffer();
 }
-void CRenderView::showNextStoredImage()
+void CRenderView::ShowNextStoredImage()
 {
    if (m_storedSnapshots.empty())
    {
       AiMsgError("[mtoa] No Image currently Stored in the Render View");      
       return;
    }
-   if (m_displayedImageIndex < 0)
-   {
-      m_gl->copyToBackBuffer();
-   }
-
+   
    if (m_displayedImageIndex >= (int)m_storedSnapshots.size() - 1) m_displayedImageIndex = -1;
    else m_displayedImageIndex++;
 
-
-/*
-   if (m_displayedImageIndex >= 0)
-   {
-      AtDisplaySync *sync = displaySync();
-      sync->waiting_draw = false;
-   }
-*/
-   refreshGLBuffer();
-   //m_gl->update();
-
-
+   RefreshGLBuffer();
+   
 }
 
-void CRenderView::deleteStoredImage()
+void CRenderView::DeleteStoredImage()
 {
    if (m_storedSnapshots.empty())
    {
@@ -1225,18 +1163,21 @@ void CRenderView::deleteStoredImage()
    
    if (m_displayedImageIndex >= (int)m_storedSnapshots.size()) m_displayedImageIndex--;
 
-   refreshGLBuffer();
-   //draw();
-
+   RefreshGLBuffer();
 }
 
 
+/**********************************************************************
+ *   CRenderViewMainWindows
+ *   Inherits from QMainWindow
+ */
 
 CRenderViewMainWindow::~CRenderViewMainWindow()
 {
    delete m_manipulator;
 }
 
+// Overriding QComboBox to receive "mousePressEvent"
 class CRvCameraComboBox : public QComboBox{
 public:
    CRvCameraComboBox(CRenderViewMainWindow &rv, QWidget*w) : QComboBox(w), m_rv(rv) {}
@@ -1244,7 +1185,7 @@ public:
    virtual void mousePressEvent(QMouseEvent * e)
    {
    
-      m_rv.updateCamerasMenu();
+      m_rv.UpdateCamerasMenu();
       QComboBox::mousePressEvent(e);
    }
 
@@ -1252,423 +1193,414 @@ public:
 };
 
 void
-CRenderViewMainWindow::initMenus()
+CRenderViewMainWindow::InitMenus()
 {
-
-
-   m_active_menus = false;
+   m_activeMenus = false;
    QMenuBar *menubar = menuBar();
 
    //setWindowIcon(QIcon(QPixmap((const char **) SA_logo_32_xpm)));
    setWindowIcon(QIcon(QPixmap((const char **) SA_logo_xpm)));
 
-   m_tool_bar =  addToolBar("Arnold");
-   m_tool_bar->setAutoFillBackground(true);
-   m_tool_bar->setPalette(palette());
+   m_toolBar =  addToolBar("Arnold");
+   m_toolBar->setAutoFillBackground(true);
+   m_toolBar->setPalette(palette());
 
    statusBar()->show();
    statusBar()->showMessage(" ");
    statusBar()->setAutoFillBackground(true);
    statusBar()->setPalette(palette()) ;
 
-   m_menu_file = menubar->addMenu("File");
+   m_menuFile = menubar->addMenu("File");
 
    QAction *action;
-   action = m_menu_file->addAction("Save Image");
-   connect( action, SIGNAL(triggered()), this, SLOT(saveImage()));
+   action = m_menuFile->addAction("Save Image");
+   connect( action, SIGNAL(triggered()), this, SLOT(SaveImage()));
 
    action->setCheckable(false);
    action->setStatusTip("Save the Image currently being displayed");
    
-   m_menu_view = menubar->addMenu("View");
+   m_menuView = menubar->addMenu("View");
 
-   m_action_enable_aovs = m_menu_view->addAction("Enable AOVs");
-   connect(m_action_enable_aovs, SIGNAL(triggered()), this, SLOT(enableAOVs()));
-   m_action_enable_aovs->setCheckable(true);
-   m_action_enable_aovs->setChecked(K_enable_aovs);
-   m_action_enable_aovs->setStatusTip("Enable AOVs in the RenderView");
+   m_actionEnableAovs = m_menuView->addAction("Enable AOVs");
+   connect(m_actionEnableAovs, SIGNAL(triggered()), this, SLOT(EnableAOVs()));
+   m_actionEnableAovs->setCheckable(true);
+   m_actionEnableAovs->setChecked(K_enable_aovs);
+   m_actionEnableAovs->setStatusTip("Enable AOVs in the RenderView");
    
-   m_menu_aovs = new QMenu("AOVs");
-   m_menu_view->addMenu(m_menu_aovs);
-   m_menu_aovs->setEnabled(K_enable_aovs);
+   m_menuAovs = new QMenu("AOVs");
+   m_menuView->addMenu(m_menuAovs);
+   m_menuAovs->setEnabled(K_enable_aovs);
 
-   m_aovs_action_group = 0;
+   m_aovsActionGroup = 0;
 
-   m_aovs_combo = new QComboBox(this);
+   m_aovsCombo = new QComboBox(this);
    
-   m_tool_bar->addWidget(m_aovs_combo);
-   m_aovs_combo->setMinimumWidth(90);
-   m_tool_bar->addSeparator();
+   m_toolBar->addWidget(m_aovsCombo);
+   m_aovsCombo->setMinimumWidth(90);
+   m_toolBar->addSeparator();
    
-   populateAOVsMenu();
+   PopulateAOVsMenu();
 
-   m_menu_view->addSeparator();
+   m_menuView->addSeparator();
    
-   m_channel_action_group = new QActionGroup(this);
+   m_channelActionGroup = new QActionGroup(this);
 
-   m_channel_red_action = m_menu_view->addAction("Red Channel");
-   connect(m_channel_red_action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   m_channel_red_action->setCheckable(true);
-   m_channel_red_action->setStatusTip("Display the Red Channel");
-   m_channel_action_group->addAction(m_channel_red_action);
+   m_channelRedAction = m_menuView->addAction("Red Channel");
+   connect(m_channelRedAction, SIGNAL(triggered()), this, SLOT(ShowChannel()));
+   m_channelRedAction->setCheckable(true);
+   m_channelRedAction->setStatusTip("Display the Red Channel");
+   m_channelActionGroup->addAction(m_channelRedAction);
 
-   m_channel_green_action = m_menu_view->addAction("Green Channel");
-   connect(m_channel_green_action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   m_channel_green_action->setCheckable(true);
-   m_channel_green_action->setStatusTip("Display the Green Channel");
-   m_channel_action_group->addAction(m_channel_green_action);
+   m_channelGreenAction = m_menuView->addAction("Green Channel");
+   connect(m_channelGreenAction, SIGNAL(triggered()), this, SLOT(ShowChannel()));
+   m_channelGreenAction->setCheckable(true);
+   m_channelGreenAction->setStatusTip("Display the Green Channel");
+   m_channelActionGroup->addAction(m_channelGreenAction);
 
-   m_channel_blue_action = m_menu_view->addAction("Blue Channel");
-   connect(m_channel_blue_action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   m_channel_blue_action->setCheckable(true);
-   m_channel_blue_action->setStatusTip("Display the Blue Channel");
-   m_channel_action_group->addAction(m_channel_blue_action);
+   m_channelBlueAction = m_menuView->addAction("Blue Channel");
+   connect(m_channelBlueAction, SIGNAL(triggered()), this, SLOT(ShowChannel()));
+   m_channelBlueAction->setCheckable(true);
+   m_channelBlueAction->setStatusTip("Display the Blue Channel");
+   m_channelActionGroup->addAction(m_channelBlueAction);
 
-   m_channel_alpha_action = m_menu_view->addAction("Alpha Channel");
-   connect(m_channel_alpha_action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   m_channel_alpha_action->setCheckable(true);
-   m_channel_alpha_action->setStatusTip("Display the Alpha Channel");
-   m_channel_action_group->addAction(m_channel_alpha_action);
+   m_channelAlphaAction = m_menuView->addAction("Alpha Channel");
+   connect(m_channelAlphaAction, SIGNAL(triggered()), this, SLOT(ShowChannel()));
+   m_channelAlphaAction->setCheckable(true);
+   m_channelAlphaAction->setStatusTip("Display the Alpha Channel");
+   m_channelActionGroup->addAction(m_channelAlphaAction);
 
-   m_channel_rgba_action = m_menu_view->addAction("All Channels");
-   connect(m_channel_rgba_action, SIGNAL(triggered()), this, SLOT(showChannel()));
-   m_channel_rgba_action->setCheckable(true);
-   m_channel_rgba_action->setChecked(true);
-   m_channel_rgba_action->setStatusTip("Display all channels");
-   m_channel_action_group->addAction(m_channel_rgba_action);
+   m_channelRgbaAction = m_menuView->addAction("All Channels");
+   connect(m_channelRgbaAction, SIGNAL(triggered()), this, SLOT(ShowChannel()));
+   m_channelRgbaAction->setCheckable(true);
+   m_channelRgbaAction->setChecked(true);
+   m_channelRgbaAction->setStatusTip("Display all channels");
+   m_channelActionGroup->addAction(m_channelRgbaAction);
 
-   m_menu_view->addSeparator();
+   m_menuView->addSeparator();
 
-   action = m_menu_view->addAction("Frame All");
-   connect(action, SIGNAL(triggered()), this, SLOT(frameAll()));
+   action = m_menuView->addAction("Frame All");
+   connect(action, SIGNAL(triggered()), this, SLOT(FrameAll()));
    action->setCheckable(false);
    action->setStatusTip("Frame the whole Image to fit the window size");
    action->setShortcut(Qt::Key_A);
 
-   action = m_menu_view->addAction("Frame Selection");
-   connect(action, SIGNAL(triggered()), this, SLOT(frameRegion()));
+   action = m_menuView->addAction("Frame Selection");
+   connect(action, SIGNAL(triggered()), this, SLOT(FrameRegion()));
    action->setCheckable(false);
    action->setStatusTip("Frame the Crop Region to fit the window size");
    action->setShortcut(Qt::Key_F);
 
-   action = m_menu_view->addAction("Real Size");
-   connect(action, SIGNAL(triggered()), this, SLOT(realSize()));
+   action = m_menuView->addAction("Real Size");
+   connect(action, SIGNAL(triggered()), this, SLOT(RealSize()));
    action->setCheckable(false);
    action->setStatusTip("Display image with its real size");
    action->setShortcut(Qt::Key_O);
 
-   m_menu_view->addSeparator();
+   m_menuView->addSeparator();
 
-   m_action_show_rendering_tiles = m_menu_view->addAction("Show Rendering Tiles");
-   connect(m_action_show_rendering_tiles, SIGNAL(triggered()), this, SLOT(showRenderingTiles()));
-   m_action_show_rendering_tiles->setCheckable(true);
-   m_action_show_rendering_tiles->setStatusTip("Display the Tiles being rendered");
+   m_actionShowRenderingTiles = m_menuView->addAction("Show Rendering Tiles");
+   connect(m_actionShowRenderingTiles, SIGNAL(triggered()), this, SLOT(ShowRenderingTiles()));
+   m_actionShowRenderingTiles->setCheckable(true);
+   m_actionShowRenderingTiles->setStatusTip("Display the Tiles being rendered");
 
-   m_store_action = m_menu_view->addAction("Store Snapshot");
-   connect(m_store_action, SIGNAL(triggered()), this, SLOT(storeImage()));
-   m_store_action->setCheckable(false);
+   m_storeAction = m_menuView->addAction("Store Snapshot");
+   connect(m_storeAction, SIGNAL(triggered()), this, SLOT(StoreImage()));
+   m_storeAction->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Plus);
-   m_store_action->setStatusTip("Stores a snapshot of the displayed Image in memory");
+   m_storeAction->setStatusTip("Stores a snapshot of the displayed Image in memory");
 
-   action = m_menu_view->addAction("Previous Snapshot");
-   connect(action, SIGNAL(triggered()), this, SLOT(previousStoredImage()));
+   action = m_menuView->addAction("Previous Snapshot");
+   connect(action, SIGNAL(triggered()), this, SLOT(PreviousStoredImage()));
    action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Left);
    action->setStatusTip("Display the Previous Snapshot Stored in the RenderView");
 
-   action = m_menu_view->addAction("Next Snapshot");
-   connect(action, SIGNAL(triggered()), this, SLOT(nextStoredImage()));
+   action = m_menuView->addAction("Next Snapshot");
+   connect(action, SIGNAL(triggered()), this, SLOT(NextStoredImage()));
    action->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Right);
    action->setStatusTip("Display the Next Snapshot Stored in the RenderView");
 
-   m_delete_stored_action = m_menu_view->addAction("Delete Snapshot");
-   connect(m_delete_stored_action, SIGNAL(triggered()), this, SLOT(deleteStoredImage()));
-   m_delete_stored_action->setCheckable(false);
+   m_deleteStoredAction = m_menuView->addAction("Delete Snapshot");
+   connect(m_deleteStoredAction, SIGNAL(triggered()), this, SLOT(DeleteStoredImage()));
+   m_deleteStoredAction->setCheckable(false);
    //action->setShortcut(Qt::CTRL + Qt::Key_Minus);
-   m_delete_stored_action->setStatusTip("Delete the Stored Snapshot being currently displayed");
+   m_deleteStoredAction->setStatusTip("Delete the Stored Snapshot being currently displayed");
 
-   m_menu_view->addSeparator();
+   m_menuView->addSeparator();
 
-   m_lut_action = m_menu_view->addAction("LUT / Color Correction");
-   connect(m_lut_action, SIGNAL(triggered()), this, SLOT(colorCorrection()));
-   m_lut_action->setCheckable(true);
-   m_lut_action->setChecked(false);
-   m_lut_action->setStatusTip("Apply Color Correction on the displayed image");
+   m_lutAction = m_menuView->addAction("LUT / Color Correction");
+   connect(m_lutAction, SIGNAL(triggered()), this, SLOT(ColorCorrection()));
+   m_lutAction->setCheckable(true);
+   m_lutAction->setChecked(false);
+   m_lutAction->setStatusTip("Apply Color Correction on the displayed image");
 
-   m_menu_view->addSeparator();   
+   m_menuView->addSeparator();   
 
-   m_3d_manipulation = false;
+   m_3dManipulation = false;
 
-   m_3d_manipulation_action = m_menu_view->addAction("3d Manipulation");
-   connect(m_3d_manipulation_action, SIGNAL(triggered()), this, SLOT(toggleManipulationMode()));
-   m_3d_manipulation_action->setCheckable(true);
-   m_3d_manipulation_action->setChecked(m_3d_manipulation);
-   m_3d_manipulation_action->setStatusTip("Manipulate the rendered image in 3D");
+   m_3dManipulationAction = m_menuView->addAction("3d Manipulation");
+   connect(m_3dManipulationAction, SIGNAL(triggered()), this, SLOT(ToggleManipulationMode()));
+   m_3dManipulationAction->setCheckable(true);
+   m_3dManipulationAction->setChecked(m_3dManipulation);
+   m_3dManipulationAction->setStatusTip("Manipulate the rendered image in 3D");
    
 
-   m_menu_view->addSeparator();      
-   QMenu *status_menu = new QMenu("Status Bar");
-   m_menu_view->addMenu(status_menu);
+   m_menuView->addSeparator();      
+   QMenu *statusMenu = new QMenu("Status Bar");
+   m_menuView->addMenu(statusMenu);
 
 
-   m_action_status_bar = status_menu->addAction("Show Status Bar");
-   connect(m_action_status_bar, SIGNAL(triggered()), this, SLOT(enableStatusBar()));
-   m_action_status_bar->setCheckable(true);
-   m_action_status_bar->setChecked(true);
-   m_action_status_bar->setStatusTip("Display the Status Bar");
+   m_actionStatusBar = statusMenu->addAction("Show Status Bar");
+   connect(m_actionStatusBar, SIGNAL(triggered()), this, SLOT(EnableStatusBar()));
+   m_actionStatusBar->setCheckable(true);
+   m_actionStatusBar->setChecked(true);
+   m_actionStatusBar->setStatusTip("Display the Status Bar");
 
-   m_action_status_info = status_menu->addAction("Display Pixel Information");
-   connect(m_action_status_info, SIGNAL(triggered()), this, SLOT(displayPixelInfo()));
-   m_action_status_info->setCheckable(true);
-   m_action_status_info->setChecked(false);
-   m_action_status_info->setStatusTip("Display Pixel Information in the Status Bar");
-
-
-   m_menu_render = menubar->addMenu("Render");
+   m_actionStatusInfo = statusMenu->addAction("Display Pixel Information");
+   connect(m_actionStatusInfo, SIGNAL(triggered()), this, SLOT(DisplayPixelInfo()));
+   m_actionStatusInfo->setCheckable(true);
+   m_actionStatusInfo->setChecked(false);
+   m_actionStatusInfo->setStatusTip("Display Pixel Information in the Status Bar");
 
 
-   m_render_action = m_menu_render->addAction("Render");
-   connect(m_render_action, SIGNAL(triggered()), this, SLOT(updateRender()));
-   m_render_action->setCheckable(false);
-   m_render_action->setShortcut(Qt::Key_F5);
-   m_render_action->setStatusTip("Render / Update");
+   m_menuRender = menubar->addMenu("Render");
+
+
+   m_renderAction = m_menuRender->addAction("Render");
+   connect(m_renderAction, SIGNAL(triggered()), this, SLOT(UpdateRender()));
+   m_renderAction->setCheckable(false);
+   m_renderAction->setShortcut(Qt::Key_F5);
+   m_renderAction->setStatusTip("Render / Update");
    
-   m_abort_action = m_menu_render->addAction("Abort Render");
-   connect(m_abort_action, SIGNAL(triggered()), this, SLOT(abortRender()));
-   m_abort_action->setCheckable(false);
-   m_abort_action->setStatusTip("Abort the current Render");
-   m_abort_action->setShortcut(Qt::Key_Escape);
+   m_abortAction = m_menuRender->addAction("Abort Render");
+   connect(m_abortAction, SIGNAL(triggered()), this, SLOT(AbortRender()));
+   m_abortAction->setCheckable(false);
+   m_abortAction->setStatusTip("Abort the current Render");
+   m_abortAction->setShortcut(Qt::Key_Escape);
 
-   m_action_auto_refresh = m_menu_render->addAction("Continuous Updates");
-   connect(m_action_auto_refresh, SIGNAL(triggered()), this, SLOT(autoRefresh()));
-   m_action_auto_refresh->setCheckable(true);
-   m_action_auto_refresh->setChecked(CMayaScene::GetArnoldSession()->GetContinuousUpdates());
-   m_action_auto_refresh->setStatusTip("Automatically update any change in the scene and restart the rendering");
+   m_actionAutoRefresh = m_menuRender->addAction("Continuous Updates");
+   connect(m_actionAutoRefresh, SIGNAL(triggered()), this, SLOT(AutoRefresh()));
+   m_actionAutoRefresh->setCheckable(true);
+   m_actionAutoRefresh->setChecked(CMayaScene::GetArnoldSession()->GetContinuousUpdates());
+   m_actionAutoRefresh->setStatusTip("Automatically update any change in the scene and restart the rendering");
 
-//   m_action_auto_refresh->setIcon(QIcon(QPixmap((const char **) SA_continuous_update_xpm)));
-   //m_action_auto_refresh->setIconVisibleInMenu(false);
+   m_actionProgressiveRefinement = m_menuRender->addAction("Progressive Refinement");
+   connect(m_actionProgressiveRefinement, SIGNAL(triggered()), this, SLOT(ProgressiveRefinement()));
+   m_actionProgressiveRefinement->setCheckable(true);
+   m_actionProgressiveRefinement->setChecked(true);
+   m_actionProgressiveRefinement->setStatusTip("Display the Tiles being rendered");
+
+   m_actionCropRegion = m_menuRender->addAction("Crop Region");
+   connect(m_actionCropRegion, SIGNAL(triggered()), this, SLOT(CropRegion()));
+   m_actionCropRegion->setCheckable(true);
+   m_actionCropRegion->setChecked(false);
+   m_actionCropRegion->setStatusTip("Allow to drag a Crop Render Region");
+
+   m_menuRender->addSeparator();
+
+   m_menuCamera = new QMenu("Camera");
+   m_menuRender->addMenu(m_menuCamera);
+
+   m_camerasActionGroup = 0;
+
+   m_camerasCombo = new CRvCameraComboBox(*this, this);
+   m_toolBar->addWidget(m_camerasCombo);
    
-   
+   PopulateCamerasMenu();
 
-   m_action_progressive_refinement = m_menu_render->addAction("Progressive Refinement");
-   connect(m_action_progressive_refinement, SIGNAL(triggered()), this, SLOT(progressiveRefinement()));
-   m_action_progressive_refinement->setCheckable(true);
-   m_action_progressive_refinement->setChecked(true);
-   m_action_progressive_refinement->setStatusTip("Display the Tiles being rendered");
+   connect(m_menuCamera, SIGNAL(aboutToShow()), this, SLOT(ShowCamerasMenu()));
 
-   m_action_crop_region = m_menu_render->addAction("Crop Region");
-   connect(m_action_crop_region, SIGNAL(triggered()), this, SLOT(cropRegion()));
-   m_action_crop_region->setCheckable(true);
-   m_action_crop_region->setChecked(false);
-   m_action_crop_region->setStatusTip("Allow to drag a Crop Render Region");
+   m_menuRender->addSeparator();
+   QMenu *debugShadingMenu = new QMenu("Debug Shading");
+   debugShadingMenu->setTearOffEnabled(true);
+   m_menuRender->addMenu(debugShadingMenu);
+   m_debugShadingActionGroup = new QActionGroup(this);
 
-   m_menu_render->addSeparator();
+   m_debugShadingActionDisabled = debugShadingMenu->addAction("Disabled");
+   connect(m_debugShadingActionDisabled, SIGNAL(triggered()), this, SLOT(DebugShading()));
+   m_debugShadingActionDisabled->setCheckable(true);
+   m_debugShadingActionDisabled->setStatusTip("Regular rendering");
+   m_debugShadingActionDisabled->setChecked(true);
+   m_debugShadingActionGroup->addAction(m_debugShadingActionDisabled);
 
-   m_menu_camera = new QMenu("Camera");
-   m_menu_render->addMenu(m_menu_camera);
+   debugShadingMenu->addSeparator();
 
-   m_cameras_action_group = 0;
-
-   m_cameras_combo = new CRvCameraComboBox(*this, this);
-   m_tool_bar->addWidget(m_cameras_combo);
-   
-   populateCamerasMenu();
-
-   connect(m_menu_camera, SIGNAL(aboutToShow()), this, SLOT(showCamerasMenu()));
-
-   m_menu_render->addSeparator();
-   QMenu *debug_shading_menu = new QMenu("Debug Shading");
-   debug_shading_menu->setTearOffEnabled(true);
-   m_menu_render->addMenu(debug_shading_menu);
-   m_debug_shading_action_group = new QActionGroup(this);
-
-   m_debug_shading_action_disabled = debug_shading_menu->addAction("Disabled");
-   connect(m_debug_shading_action_disabled, SIGNAL(triggered()), this, SLOT(debugShading()));
-   m_debug_shading_action_disabled->setCheckable(true);
-   m_debug_shading_action_disabled->setStatusTip("Regular rendering");
-   m_debug_shading_action_disabled->setChecked(true);
-   m_debug_shading_action_group->addAction(m_debug_shading_action_disabled);
-
-   debug_shading_menu->addSeparator();
-
-   action = debug_shading_menu->addAction("Basic");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Basic");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Basic Shading (ndoteye)");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   action = debug_shading_menu->addAction("Occlusion");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Occlusion");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Occlusion Rendering");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   action = debug_shading_menu->addAction("Wireframe");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Wireframe");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Wireframe Rendering");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   action = debug_shading_menu->addAction("Normal");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Normal");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Normal display");
 
-   m_debug_shading_action_group->addAction(action);
-   action = debug_shading_menu->addAction("UV");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   m_debugShadingActionGroup->addAction(action);
+   action = debugShadingMenu->addAction("UV");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("UV Display");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   action = debug_shading_menu->addAction("Primitive ID");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Primitive ID");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Display per-primitive color");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   action = debug_shading_menu->addAction("Barycentric");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Barycentric");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Barycentric coordinates");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   action = debug_shading_menu->addAction("Object");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Object");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Per-Object Color");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
-   debug_shading_menu->addSeparator();
+   debugShadingMenu->addSeparator();
 
-   action = debug_shading_menu->addAction("Isolate Selected");
-   connect(action, SIGNAL(triggered()), this, SLOT(debugShading()));
+   action = debugShadingMenu->addAction("Isolate Selected");
+   connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Isolate the selected shader");
-   m_debug_shading_action_group->addAction(action);
+   m_debugShadingActionGroup->addAction(action);
 
 
 // Now dealing with the ToolButtons   
 
    setIconSize(QSize(18, 18));
 
-   m_tool_bar->addSeparator();
-   QString style_button = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
+   m_toolBar->addSeparator();
+   QString styleButton = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
 
-   m_rgba_button = new QToolButton(m_tool_bar);
-   m_tool_bar->addWidget(m_rgba_button);
-   QIcon rgba_icon;
-   rgba_icon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
-   m_rgba_button->setIcon(rgba_icon);
-   m_rgba_button->setStyleSheet(style_button);
+   m_rgbaButton = new QToolButton(m_toolBar);
+   m_toolBar->addWidget(m_rgbaButton);
+   QIcon rgbaIcon;
+   rgbaIcon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
+   m_rgbaButton->setIcon(rgbaIcon);
+   m_rgbaButton->setStyleSheet(styleButton);
 
-   connect(m_rgba_button, SIGNAL(clicked()), this, SLOT(rgbaClicked()));
+   connect(m_rgbaButton, SIGNAL(clicked()), this, SLOT(RgbaClicked()));
 
-   m_tool_bar->addSeparator();
+   m_toolBar->addSeparator();
 
 
-   QToolButton *render_button = new QToolButton(m_tool_bar);
-   render_button->setDefaultAction(m_render_action);
-   m_tool_bar->addWidget(render_button);
-   QIcon render_icon(QPixmap((const char **) SA_icon_play_xpm));
-   render_button->setIcon(render_icon);
-   m_render_action->setIcon(render_icon);
-   m_render_action->setIconVisibleInMenu(false);
-   render_button->setStyleSheet(style_button);
+   QToolButton *renderButton = new QToolButton(m_toolBar);
+   renderButton->setDefaultAction(m_renderAction);
+   m_toolBar->addWidget(renderButton);
+   QIcon renderIcon(QPixmap((const char **) SA_icon_play_xpm));
+   renderButton->setIcon(renderIcon);
+   m_renderAction->setIcon(renderIcon);
+   m_renderAction->setIconVisibleInMenu(false);
+   renderButton->setStyleSheet(styleButton);
 
-   QToolButton *abort_button = new QToolButton(m_tool_bar);
-   abort_button->setDefaultAction(m_abort_action);
-   m_tool_bar->addWidget(abort_button);
-   QIcon abort_icon(QPixmap((const char **) SA_icon_stop_xpm));
-   abort_button->setIcon(abort_icon);
-   m_abort_action->setIcon(abort_icon);
-   m_abort_action->setIconVisibleInMenu(false);
-   abort_button->setStyleSheet(style_button);
+   QToolButton *abortButton = new QToolButton(m_toolBar);
+   abortButton->setDefaultAction(m_abortAction);
+   m_toolBar->addWidget(abortButton);
+   QIcon abortIcon(QPixmap((const char **) SA_icon_stop_xpm));
+   abortButton->setIcon(abortIcon);
+   m_abortAction->setIcon(abortIcon);
+   m_abortAction->setIconVisibleInMenu(false);
+   abortButton->setStyleSheet(styleButton);
 
-   m_tool_bar->addSeparator();
-   QToolButton *refresh_button = new QToolButton(m_tool_bar);
-   refresh_button->setDefaultAction(m_action_auto_refresh);
-   m_tool_bar->addWidget(refresh_button);
-   QIcon refresh_icon;
-   refresh_icon.addPixmap(QPixmap((const char **) SA_icon_continuous_on_xpm), QIcon::Normal, QIcon::On);
-   refresh_icon.addPixmap(QPixmap((const char **) SA_icon_continuous_off_xpm), QIcon::Normal, QIcon::Off);
-   refresh_button->setIcon(refresh_icon);
-   m_action_auto_refresh->setIcon(refresh_icon);
-   m_action_auto_refresh->setIconVisibleInMenu(false);
-   refresh_button->setStyleSheet(style_button);
+   m_toolBar->addSeparator();
+   QToolButton *refreshButton = new QToolButton(m_toolBar);
+   refreshButton->setDefaultAction(m_actionAutoRefresh);
+   m_toolBar->addWidget(refreshButton);
+   QIcon refreshIcon;
+   refreshIcon.addPixmap(QPixmap((const char **) SA_icon_continuous_on_xpm), QIcon::Normal, QIcon::On);
+   refreshIcon.addPixmap(QPixmap((const char **) SA_icon_continuous_off_xpm), QIcon::Normal, QIcon::Off);
+   refreshButton->setIcon(refreshIcon);
+   m_actionAutoRefresh->setIcon(refreshIcon);
+   m_actionAutoRefresh->setIconVisibleInMenu(false);
+   refreshButton->setStyleSheet(styleButton);
 
-   QToolButton *region_button = new QToolButton(m_tool_bar);
-   region_button->setDefaultAction(m_action_crop_region);
-   m_tool_bar->addWidget(region_button);
-   QIcon region_icon;
-   region_icon.addPixmap(QPixmap((const char **) SA_icon_region_on_xpm), QIcon::Normal, QIcon::On);
-   region_icon.addPixmap(QPixmap((const char **) SA_icon_region_off_xpm), QIcon::Normal, QIcon::Off);
-   region_button->setIcon(region_icon);
-   m_action_crop_region->setIcon(region_icon);
-   m_action_crop_region->setIconVisibleInMenu(false);
-   region_button->setStyleSheet(style_button);
+   QToolButton *regionButton = new QToolButton(m_toolBar);
+   regionButton->setDefaultAction(m_actionCropRegion);
+   m_toolBar->addWidget(regionButton);
+   QIcon regionIcon;
+   regionIcon.addPixmap(QPixmap((const char **) SA_icon_region_on_xpm), QIcon::Normal, QIcon::On);
+   regionIcon.addPixmap(QPixmap((const char **) SA_icon_region_off_xpm), QIcon::Normal, QIcon::Off);
+   regionButton->setIcon(regionIcon);
+   m_actionCropRegion->setIcon(regionIcon);
+   m_actionCropRegion->setIconVisibleInMenu(false);
+   regionButton->setStyleSheet(styleButton);
 
-   QToolButton *lut_button = new QToolButton(m_tool_bar);
-   lut_button->setDefaultAction(m_lut_action);
-   m_tool_bar->addWidget(lut_button);
-   QIcon lut_icon;
-   lut_icon.addPixmap(QPixmap((const char **) SA_icon_lut_on_xpm), QIcon::Normal, QIcon::On);
-   lut_icon.addPixmap(QPixmap((const char **) SA_icon_lut_off_xpm), QIcon::Normal, QIcon::Off);
-   lut_button->setIcon(lut_icon);
-   m_lut_action->setIcon(lut_icon);
-   m_lut_action->setIconVisibleInMenu(false);
-   lut_button->setStyleSheet(style_button);
+   QToolButton *lutButton = new QToolButton(m_toolBar);
+   lutButton->setDefaultAction(m_lutAction);
+   m_toolBar->addWidget(lutButton);
+   QIcon lutIcon;
+   lutIcon.addPixmap(QPixmap((const char **) SA_icon_lut_on_xpm), QIcon::Normal, QIcon::On);
+   lutIcon.addPixmap(QPixmap((const char **) SA_icon_lut_off_xpm), QIcon::Normal, QIcon::Off);
+   lutButton->setIcon(lutIcon);
+   m_lutAction->setIcon(lutIcon);
+   m_lutAction->setIconVisibleInMenu(false);
+   lutButton->setStyleSheet(styleButton);
 
-   m_tool_bar->addSeparator();
+   m_toolBar->addSeparator();
    
-   QToolButton *store_button = new QToolButton(m_tool_bar);
-   store_button->setDefaultAction(m_store_action);
-   m_tool_bar->addWidget(store_button);
+   QToolButton *storeButton = new QToolButton(m_toolBar);
+   storeButton->setDefaultAction(m_storeAction);
+   m_toolBar->addWidget(storeButton);
    QIcon store_icon(QPixmap((const char **) SA_icon_store_xpm));
-   store_button->setIcon(store_icon);
-   m_store_action->setIcon(store_icon);
-   m_store_action->setIconVisibleInMenu(false);
-   store_button->setStyleSheet(style_button);
+   storeButton->setIcon(store_icon);
+   m_storeAction->setIcon(store_icon);
+   m_storeAction->setIconVisibleInMenu(false);
+   storeButton->setStyleSheet(styleButton);
 
-   m_stored_slider = new QSlider(Qt::Horizontal, m_tool_bar);
-   m_stored_slider->setTickInterval(1);
-   m_stored_slider->setTickPosition(QSlider::TicksBothSides);
-   m_stored_slider->resize(100, 10);
-   m_stored_slider->setMaximumWidth(100);
-   m_stored_slider->setMaximumHeight(10);
+   m_storedSlider = new QSlider(Qt::Horizontal, m_toolBar);
+   m_storedSlider->setTickInterval(1);
+   m_storedSlider->setTickPosition(QSlider::TicksBothSides);
+   m_storedSlider->resize(100, 10);
+   m_storedSlider->setMaximumWidth(100);
+   m_storedSlider->setMaximumHeight(10);
 
-   m_stored_slider_action = m_tool_bar->addWidget(m_stored_slider);
-   m_stored_slider->resize(100, 10);
-   m_stored_slider->setMaximumWidth(100);
-   m_stored_slider->setMaximumHeight(10);
-   connect(m_stored_slider, SIGNAL(valueChanged(int)), this, SLOT(storedSliderMoved(int)));
+   m_storedSliderAction = m_toolBar->addWidget(m_storedSlider);
+   m_storedSlider->resize(100, 10);
+   m_storedSlider->setMaximumWidth(100);
+   m_storedSlider->setMaximumHeight(10);
+   connect(m_storedSlider, SIGNAL(valueChanged(int)), this, SLOT(StoredSliderMoved(int)));
 
-   QToolButton *delete_stored_button = new QToolButton(m_tool_bar);
-   delete_stored_button->setDefaultAction(m_delete_stored_action);
-   m_tool_bar->addWidget(delete_stored_button);
-   QIcon delete_stored_icon = QApplication::style()->standardIcon(QStyle::SP_TrashIcon);
-   //delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_delete_stored_xpm), QIcon::Normal, QIcon::Off);
-   delete_stored_icon.addPixmap(QPixmap((const char **) SA_icon_transparent_xpm), QIcon::Disabled, QIcon::Off);
+   QToolButton *deleteStoredButton = new QToolButton(m_toolBar);
+   deleteStoredButton->setDefaultAction(m_deleteStoredAction);
+   m_toolBar->addWidget(deleteStoredButton);
+   QIcon deleteStoredIcon = QApplication::style()->standardIcon(QStyle::SP_TrashIcon);
+   deleteStoredIcon.addPixmap(QPixmap((const char **) SA_icon_transparent_xpm), QIcon::Disabled, QIcon::Off);
 
    
-   delete_stored_button->setIcon(delete_stored_icon);
-   m_delete_stored_action->setIcon(delete_stored_icon);
-   m_delete_stored_action->setIconVisibleInMenu(false);
-   delete_stored_button->setStyleSheet(style_button);
-   delete_stored_button->hide();
+   deleteStoredButton->setIcon(deleteStoredIcon);
+   m_deleteStoredAction->setIcon(deleteStoredIcon);
+   m_deleteStoredAction->setIconVisibleInMenu(false);
+   deleteStoredButton->setStyleSheet(styleButton);
+   deleteStoredButton->hide();
 
-   updateStoredSlider();
+   UpdateStoredSlider();
 
-
-   m_render_action->setEnabled(false);
-   m_action_auto_refresh->setEnabled(false);
-   m_action_crop_region->setEnabled(false);
-   m_active_menus = false;
+   m_renderAction->setEnabled(false);
+   m_actionAutoRefresh->setEnabled(false);
+   m_actionCropRegion->setEnabled(false);
+   m_activeMenus = false;
 }
 
 void
-CRenderViewMainWindow::saveImage()
+CRenderViewMainWindow::SaveImage()
 {
 
    QString filename;
@@ -1689,158 +1621,156 @@ CRenderViewMainWindow::saveImage()
    if (selected.empty()) return;
    filename = selected.at(0);
 
-   m_renderView.saveImage(filename.toStdString());
+   m_renderView.SaveImage(filename.toStdString());
 }
 
-void CRenderViewMainWindow::abortRender()
+void CRenderViewMainWindow::AbortRender()
 {
-   m_renderView.interruptRender();
+   m_renderView.InterruptRender();
    CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-   if (m_renderView.m_continuous_updates)   arnoldSession->SetContinuousUpdates(true);
+   if (m_renderView.m_continuousUpdates)   arnoldSession->SetContinuousUpdates(true);
 }
 
-void CRenderViewMainWindow::showRenderingTiles()
+void CRenderViewMainWindow::ShowRenderingTiles()
 {
-   m_renderView.setShowRenderingTiles(m_action_show_rendering_tiles->isChecked());
+   m_renderView.SetShowRenderingTiles(m_actionShowRenderingTiles->isChecked());
 }
 
 
-void CRenderViewMainWindow::updateRender()
+void CRenderViewMainWindow::UpdateRender()
 {
    // re-render has been manually triggered
    // let's disable the menus until the first buckets 
    // are painted
-   enableMenus(false);
-   m_renderView.updateRender();
+   EnableMenus(false);
+   m_renderView.UpdateRender();
 
 }
 
-void CRenderViewMainWindow::autoRefresh()
+void CRenderViewMainWindow::AutoRefresh()
 {
-   m_renderView.m_continuous_updates = m_action_auto_refresh->isChecked();
-   CMayaScene::GetArnoldSession()->SetContinuousUpdates(m_action_auto_refresh->isChecked());
+   m_renderView.m_continuousUpdates = m_actionAutoRefresh->isChecked();
+   CMayaScene::GetArnoldSession()->SetContinuousUpdates(m_actionAutoRefresh->isChecked());
 }
 
-void CRenderViewMainWindow::storeImage()
+void CRenderViewMainWindow::StoreImage()
 {
-   m_renderView.storeImage();
-   updateStoredSlider();
+   m_renderView.StoreImage();
+   UpdateStoredSlider();
 }
 
-void CRenderViewMainWindow::previousStoredImage()
+void CRenderViewMainWindow::PreviousStoredImage()
 {
-   m_renderView.showPreviousStoredImage();
-   updateStoredSlider();
+   m_renderView.ShowPreviousStoredImage();
+   UpdateStoredSlider();
 
 }
-void CRenderViewMainWindow::nextStoredImage()
+void CRenderViewMainWindow::NextStoredImage()
 {
-   m_renderView.showNextStoredImage();
-   updateStoredSlider();
+   m_renderView.ShowNextStoredImage();
+   UpdateStoredSlider();
 }
-void CRenderViewMainWindow::deleteStoredImage()
+void CRenderViewMainWindow::DeleteStoredImage()
 {
-   m_renderView.deleteStoredImage();
-   updateStoredSlider();  
+   m_renderView.DeleteStoredImage();
+   UpdateStoredSlider();  
 }
 
 void
-CRenderViewMainWindow::storedSliderMoved(int i)
+CRenderViewMainWindow::StoredSliderMoved(int i)
 {
    m_renderView.m_displayedImageIndex = (i == m_renderView.m_storedSnapshots.size()) ? -1 : i;
 
-   m_delete_stored_action->setVisible(m_renderView.m_displayedImageIndex >= 0);
-   m_store_action->setEnabled(m_renderView.m_displayedImageIndex < 0);
-   m_renderView.refreshGLBuffer();
-
+   m_deleteStoredAction->setVisible(m_renderView.m_displayedImageIndex >= 0);
+   m_storeAction->setEnabled(m_renderView.m_displayedImageIndex < 0);
+   m_renderView.RefreshGLBuffer();
 }
 
-
 void
-CRenderViewMainWindow::updateStoredSlider()
+CRenderViewMainWindow::UpdateStoredSlider()
 {
    if (m_renderView.m_storedSnapshots.empty())
    {
-      m_store_action->setEnabled(true);
-      m_stored_slider_action->setVisible(false);
-      m_delete_stored_action->setVisible(false);
+      m_storeAction->setEnabled(true);
+      m_storedSliderAction->setVisible(false);
+      m_deleteStoredAction->setVisible(false);
       return;
    }
 
-   m_stored_slider_action->setVisible(true);
-   m_delete_stored_action->setVisible(m_renderView.m_displayedImageIndex >= 0);
-   m_store_action->setEnabled(m_renderView.m_displayedImageIndex < 0);
+   m_storedSliderAction->setVisible(true);
+   m_deleteStoredAction->setVisible(m_renderView.m_displayedImageIndex >= 0);
+   m_storeAction->setEnabled(m_renderView.m_displayedImageIndex < 0);
 
-   m_stored_slider->setMinimum(0);
-   m_stored_slider->setMaximum(m_renderView.m_storedSnapshots.size());   
+   m_storedSlider->setMinimum(0);
+   m_storedSlider->setMaximum(m_renderView.m_storedSnapshots.size());   
 
-   m_stored_slider->setSliderPosition((m_renderView.m_displayedImageIndex < 0) ? m_renderView.m_storedSnapshots.size() : m_renderView.m_displayedImageIndex);
+   m_storedSlider->setSliderPosition((m_renderView.m_displayedImageIndex < 0) ? m_renderView.m_storedSnapshots.size() : m_renderView.m_displayedImageIndex);
 }
 
 
-void CRenderViewMainWindow::enableStatusBar()
+void CRenderViewMainWindow::EnableStatusBar()
 {
-   m_renderView.m_status_bar_enabled = m_action_status_bar->isChecked();
-   if (m_renderView.m_status_bar_enabled) statusBar()->show();
+   m_renderView.m_statusBarEnabled = m_actionStatusBar->isChecked();
+   if (m_renderView.m_statusBarEnabled) statusBar()->show();
    else statusBar()->hide();
 
 }
-void CRenderViewMainWindow::displayPixelInfo()
+void CRenderViewMainWindow::DisplayPixelInfo()
 {   
-   m_renderView.m_status_bar_pixel_info = m_action_status_info->isChecked();
-   m_renderView.m_status_changed = true;
-   setMouseTracking(m_renderView.m_status_bar_pixel_info);
-   m_renderView.m_gl->setMouseTracking(m_renderView.m_status_bar_pixel_info);
-   m_renderView.m_central_widget->setMouseTracking(m_renderView.m_status_bar_pixel_info);
+   m_renderView.m_statusBarPixelInfo = m_actionStatusInfo->isChecked();
+   m_renderView.m_statusChanged = true;
+   setMouseTracking(m_renderView.m_statusBarPixelInfo);
+   m_renderView.m_gl->setMouseTracking(m_renderView.m_statusBarPixelInfo);
+   m_renderView.m_centralWidget->setMouseTracking(m_renderView.m_statusBarPixelInfo);
 }
 
 
-void CRenderViewMainWindow::progressiveRefinement()
+void CRenderViewMainWindow::ProgressiveRefinement()
 {
-   K_progressive = m_action_progressive_refinement->isChecked();
-   m_renderView.interruptRender();
-   m_renderView.restartRender();
+   K_progressive = m_actionProgressiveRefinement->isChecked();
+   m_renderView.InterruptRender();
+   m_renderView.RestartRender();
 }
 
 
-void CRenderViewMainWindow::showChannel()
+void CRenderViewMainWindow::ShowChannel()
 {
-   std::string colorMode = m_channel_action_group->checkedAction()->text().toStdString();
-   QIcon channel_icon;
+   std::string colorMode = m_channelActionGroup->checkedAction()->text().toStdString();
+   QIcon channelIcon;
    if (colorMode == "Red Channel")
    {
-      m_renderView.m_color_mode = COLOR_MODE_R;
-      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_red_xpm));
+      m_renderView.m_colorMode = COLOR_MODE_R;
+      channelIcon.addPixmap(QPixmap((const char **) SA_icon_ch_red_xpm));
    } else if(colorMode == "Green Channel")
    {
-      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_green_xpm));
-      m_renderView.m_color_mode = COLOR_MODE_G;
+      channelIcon.addPixmap(QPixmap((const char **) SA_icon_ch_green_xpm));
+      m_renderView.m_colorMode = COLOR_MODE_G;
    } else if (colorMode == "Blue Channel")
    {
-      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_blue_xpm));
-      m_renderView.m_color_mode = COLOR_MODE_B;
+      channelIcon.addPixmap(QPixmap((const char **) SA_icon_ch_blue_xpm));
+      m_renderView.m_colorMode = COLOR_MODE_B;
    } else if (colorMode == "Alpha Channel")
    {
-      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_alpha_xpm));
-      m_renderView.m_color_mode = COLOR_MODE_A;
+      channelIcon.addPixmap(QPixmap((const char **) SA_icon_ch_alpha_xpm));
+      m_renderView.m_colorMode = COLOR_MODE_A;
    } else
    {
-      m_renderView.m_color_mode = COLOR_MODE_RGBA;
-      channel_icon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
+      m_renderView.m_colorMode = COLOR_MODE_RGBA;
+      channelIcon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
    }
       
-   m_rgba_button->setIcon(channel_icon);
+   m_rgbaButton->setIcon(channelIcon);
 
-   m_renderView.getGlWidget()->reloadBuffer(m_renderView.m_color_mode);
+   m_renderView.GetGlWidget()->ReloadBuffer(m_renderView.m_colorMode);
 }
 
-void CRenderViewMainWindow::toggleManipulationMode()
+void CRenderViewMainWindow::ToggleManipulationMode()
 {
-   m_3d_manipulation = m_3d_manipulation_action->isChecked();
-   frameAll();
+   m_3dManipulation = m_3dManipulationAction->isChecked();
+   FrameAll();
 }
 
-void CRenderViewMainWindow::updateCamerasMenu()
+void CRenderViewMainWindow::UpdateCamerasMenu()
 {
    // we're opening the camera menu, or the toolbar's combo box
    // let's check if the camera list has changed in my scene
@@ -1854,7 +1784,7 @@ void CRenderViewMainWindow::updateCamerasMenu()
    {
       AtNode *node = AiNodeIteratorGetNext(iter);
       // check if this camera name is already in my combo box list
-      if (m_cameras_combo->findText(QString(AiNodeGetName(node))) < 0)
+      if (m_camerasCombo->findText(QString(AiNodeGetName(node))) < 0)
       {
          // this camera wasn't in my list !
          newCamera = true;
@@ -1865,44 +1795,44 @@ void CRenderViewMainWindow::updateCamerasMenu()
 
    // also check if the camera amount has changed to
    // track deleted cameras
-   if (newCamera || (camerasCount != m_cameras_combo->count()))
+   if (newCamera || (camerasCount != m_camerasCombo->count()))
    {
       // re-populate the menu AND the combo box
-      populateCamerasMenu();
+      PopulateCamerasMenu();
    }
 }
-void CRenderViewMainWindow::showCamerasMenu()
+void CRenderViewMainWindow::ShowCamerasMenu()
 {
-   updateCamerasMenu();
+   UpdateCamerasMenu();
 }
-void CRenderViewMainWindow::debugShading()
+void CRenderViewMainWindow::DebugShading()
 {
-   std::string debug_shading = m_debug_shading_action_group->checkedAction()->text().toStdString();
-   if (debug_shading == "Basic")
+   std::string debugShading = m_debugShadingActionGroup->checkedAction()->text().toStdString();
+   if (debugShading == "Basic")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_BASIC);
-   } else if (debug_shading == "Occlusion")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_BASIC);
+   } else if (debugShading == "Occlusion")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_OCCLUSION);
-   } else if (debug_shading == "Wireframe")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_OCCLUSION);
+   } else if (debugShading == "Wireframe")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_WIREFRAME);
-   } else if (debug_shading == "Normal")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_WIREFRAME);
+   } else if (debugShading == "Normal")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_NORMAL);
-   } else if (debug_shading == "UV")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_NORMAL);
+   } else if (debugShading == "UV")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_UV);
-   } else if (debug_shading == "Primitive ID")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_UV);
+   } else if (debugShading == "Primitive ID")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_PRIMITIVE_ID);
-   } else if (debug_shading == "Barycentric")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_PRIMITIVE_ID);
+   } else if (debugShading == "Barycentric")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_BARY);
-   } else if (debug_shading == "Object")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_BARY);
+   } else if (debugShading == "Object")
    {
-      m_renderView.setDebugShading(RV_DBG_SHAD_OBJECT);
-   } else if (debug_shading == "Isolate Selected")
+      m_renderView.SetDebugShading(RV_DBG_SHAD_OBJECT);
+   } else if (debugShading == "Isolate Selected")
    {
       MSelectionList activeList;
       MGlobal::getActiveSelectionList(activeList);
@@ -1920,35 +1850,34 @@ void CRenderViewMainWindow::debugShading()
          MFnDependencyNode nodeFn( depNode );
 
          // selection is valid
-         m_renderView.m_shading_manager.setShaderName(nodeFn.name().asChar());
+         m_renderView.m_shadingManager.SetShaderName(nodeFn.name().asChar());
          // connect to selection changed
       } else
       {
-         m_renderView.m_shading_manager.setShaderName("");
+         m_renderView.m_shadingManager.SetShaderName("");
       }
-      m_renderView.setDebugShading(RV_DBG_SHAD_ISOLATE_SELECTED);
+      m_renderView.SetDebugShading(RV_DBG_SHAD_ISOLATE_SELECTED);
    }
    else
    {
-
-      m_renderView.setDebugShading(RV_DBG_SHAD_DISABLED);
+      m_renderView.SetDebugShading(RV_DBG_SHAD_DISABLED);
    }
 }
 
 
 
-void CRenderViewMainWindow::enableAOVs()
+void CRenderViewMainWindow::EnableAOVs()
 {
-   K_enable_aovs = m_action_enable_aovs->isChecked();   
-   m_menu_aovs->setEnabled(K_enable_aovs);
+   K_enable_aovs = m_actionEnableAovs->isChecked();   
+   m_menuAovs->setEnabled(K_enable_aovs);
 }
 
 void CRenderViewMainWindow::keyPressEvent(QKeyEvent* ke)
 {
    if (ke->key() == Qt::Key_Shift)
    {
-      m_action_crop_region->setChecked(true);
-      cropRegion();
+      m_actionCropRegion->setChecked(true);
+      CropRegion();
    }
         
    QMainWindow::keyPressEvent(ke);
@@ -1959,7 +1888,7 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
 
    if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier))
    {
-      if (m_3d_manipulation)
+      if (m_3dManipulation)
       {
          if (event->buttons() & Qt::LeftButton)
          {
@@ -1989,7 +1918,7 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
    }
 
    // if SHIFT is pressed, region cropping is temporarily enabled
-   if (m_renderView.m_region_crop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
+   if (m_renderView.m_regionCrop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
    {
       if(!(event->buttons() & Qt::LeftButton)) return;
 
@@ -1998,30 +1927,29 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
    }
 
    // Pick the Shape
-   m_renderView.pickShape(event->x(), event->y());
-
+   m_renderView.PickShape(event->x(), event->y());
 }
 
 void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
 {
    if (m_manipulator)
    {
-      m_manipulator->mouseMove(event->x(), event->y());
+      m_manipulator->MouseMove(event->x(), event->y());
       return;
    }
    
-   if( m_renderView.m_status_bar_enabled && m_renderView.m_status_bar_pixel_info)
+   if( m_renderView.m_statusBarEnabled && m_renderView.m_statusBarPixelInfo)
    {
       int x = event->x();
       int y = event->y();
 
-      int mouse_position[2];
+      int mousePosition[2];
       
-      m_renderView.m_gl->project(x, y, mouse_position[0], mouse_position[1], false);
+      m_renderView.m_gl->Project(x, y, mousePosition[0], mousePosition[1], false);
 
-      if (mouse_position[0] >= 0 && mouse_position[0] < m_renderView.m_width && mouse_position[1] >= 0 && mouse_position[1] < m_renderView.m_height)
+      if (mousePosition[0] >= 0 && mousePosition[0] < m_renderView.m_width && mousePosition[1] >= 0 && mousePosition[1] < m_renderView.m_height)
       {
-         m_renderView.refreshStatusBar(mouse_position);
+         m_renderView.RefreshStatusBar(mousePosition);
       }
    }
 
@@ -2029,28 +1957,28 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
 
 void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
 {
-   if (m_renderView.m_picked_id)
+   if (m_renderView.m_pickedId)
    {
-      m_renderView.clearPicking();
+      m_renderView.ClearPicking();
    }
 
    if (m_manipulator == NULL) return;
-   m_manipulator->mouseRelease(event->x(), event->y());
+   m_manipulator->MouseRelease(event->x(), event->y());
    delete m_manipulator;
    m_manipulator = NULL;
 
    // once mouse button is down, we remove the crop region
-   if (m_action_crop_region->isChecked()) 
+   if (m_actionCropRegion->isChecked()) 
    {
-      m_action_crop_region->setChecked(false);
-      m_renderView.m_region_crop = false;
-      // not calling cropRegion(), otherwise it would clear my region
+      m_actionCropRegion->setChecked(false);
+      m_renderView.m_regionCrop = false;
+      // not calling CropRegion(), otherwise it would clear my region
    }
 
 }
 void CRenderViewMainWindow::moveEvent(QMoveEvent *event)
 {
-   if (m_cc_window) m_cc_window->adjustPosition();
+   if (m_ccWindow) m_ccWindow->AdjustPosition();
 }
 
 void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
@@ -2059,26 +1987,26 @@ void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
    m_renderView.m_gl->resize(newSize.width(), newSize.height() - (menuHeight + toolbarHeight + statusbarHeight + 26));
 
 
-   if (m_3d_manipulation) frameAll();
+   if (m_3dManipulation) FrameAll();
 
-   AtDisplaySync *sync = m_renderView.display_sync;
+   AtDisplaySync *sync = m_renderView.displaySync;
 
    // Lock to update the region
    AiCritSecEnter(&sync->lock);
 
-   bool already_in_queue = sync->waiting_draw;
+   bool alreadyInQueue = sync->waitingDraw;
    // immediately draw or wait for timer to run out
-   sync->waiting_draw = true;
+   sync->waitingDraw = true;
    
    // if we're displayed a previously stored image
    // we don't want to prevent that we need a draw
    AiCritSecLeave(&sync->lock);
 
-   if ( already_in_queue == false) 
+   if ( alreadyInQueue == false) 
    {
       m_renderView.m_gl->update();
    }
-   if (m_cc_window) m_cc_window->adjustPosition();
+   if (m_ccWindow) m_ccWindow->AdjustPosition();
 
 }
 
@@ -2086,81 +2014,81 @@ void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
 {
    if(QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) return;
 
-   if (m_3d_manipulation)
+   if (m_3dManipulation)
    {
-      CRenderView3DZoom::wheel(m_renderView, event->delta());
+      CRenderView3DZoom::Wheel(m_renderView, event->delta());
    } else
    {
-      CRenderView2DZoom::wheel(m_renderView, event->delta());
+      CRenderView2DZoom::Wheel(m_renderView, event->delta());
    }
 }
 
 
-void CRenderViewMainWindow::populateAOVsMenu()
+void CRenderViewMainWindow::PopulateAOVsMenu()
 {
-   if (m_menu_aovs == NULL) return; // not initialized
+   if (m_menuAovs == NULL) return; // not initialized
 
-   if (m_aovs_action_group != 0)
+   if (m_aovsActionGroup != 0)
    {
-      delete m_aovs_action_group;
-      m_aovs_action_group = 0;
+      delete m_aovsActionGroup;
+      m_aovsActionGroup = 0;
    }
 
    // clear all previous actions in the menu
-   m_menu_aovs->clear();
+   m_menuAovs->clear();
    // if AOVs are not enabled, we don't have anything to show
    if (!K_enable_aovs) 
    {
       //AiMsgError("[mtoa] AOVs must first be enabled to appear in the Render View");
       return; 
    }
-   m_aovs_action_group = new QActionGroup(this);
+   m_aovsActionGroup = new QActionGroup(this);
 
-   QAction *action = m_menu_aovs->addAction("Beauty");
-   connect(action, SIGNAL(triggered()), this, SLOT(showAOV()));
+   QAction *action = m_menuAovs->addAction("Beauty");
+   connect(action, SIGNAL(triggered()), this, SLOT(ShowAOV()));
    action->setCheckable(true);
    if (m_renderView.m_displayedAovIndex < 0) action->setChecked(true);
 
-   m_aovs_combo->clear();
-   m_aovs_combo->addItem("Beauty");
+   m_aovsCombo->clear();
+   m_aovsCombo->addItem("Beauty");
 
-   m_aovs_action_group->addAction(action);
-   m_menu_aovs->addSeparator();
+   m_aovsActionGroup->addAction(action);
+   m_menuAovs->addSeparator();
 
    const std::vector<std::string> &aovNames = m_renderView.m_aovNames;
    for (int i = 0; i < (int)aovNames.size(); ++i)
    {
-      action = m_menu_aovs->addAction(QString(aovNames[i].c_str()));
-      connect(action, SIGNAL(triggered()), this, SLOT(showAOV()));
+      action = m_menuAovs->addAction(QString(aovNames[i].c_str()));
+      connect(action, SIGNAL(triggered()), this, SLOT(ShowAOV()));
       action->setCheckable(true);
 
-      m_aovs_combo->addItem(QString(aovNames[i].c_str()));
+      m_aovsCombo->addItem(QString(aovNames[i].c_str()));
       if (m_renderView.m_displayedAovIndex == i) 
       {
          action->setChecked(true);
       }
-      m_aovs_action_group->addAction(action);
+      m_aovsActionGroup->addAction(action);
    }
-   m_aovs_combo->setCurrentIndex(m_renderView.m_displayedAovIndex + 1);
-   connect(m_aovs_combo, SIGNAL(activated(int)), this, SLOT(showBoxAOV()));
+   m_aovsCombo->setCurrentIndex(m_renderView.m_displayedAovIndex + 1);
+   connect(m_aovsCombo, SIGNAL(activated(int)), this, SLOT(ShowBoxAOV()));
 }
 
-void CRenderViewMainWindow::populateCamerasMenu()
+void CRenderViewMainWindow::PopulateCamerasMenu()
 {
-   if (m_menu_camera == NULL) return;
+   if (m_menuCamera == NULL) return;
 
    // don't forget to call this when new cameras are created
-   if (m_cameras_action_group != 0)
+   if (m_camerasActionGroup != 0)
    {
-      delete m_cameras_action_group;
-      m_cameras_action_group = 0;
+      delete m_camerasActionGroup;
+      m_camerasActionGroup = 0;
    }
 
    // clear all previous actions in the menu
-   m_menu_camera->clear();
-   m_cameras_combo->clear();
+   m_menuCamera->clear();
+   m_camerasCombo->clear();
 
-   m_cameras_action_group = new QActionGroup(this);
+   m_camerasActionGroup = new QActionGroup(this);
 
    AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_CAMERA);
    AtNode *currentCamera = (AtNode*)AiNodeGetPtr(AiUniverseGetOptions(), "camera");
@@ -2171,10 +2099,9 @@ void CRenderViewMainWindow::populateCamerasMenu()
    {
       AtNode *node = AiNodeIteratorGetNext(iter);
 
-      QAction *action = m_menu_camera->addAction(QString(AiNodeGetName(node)));
-      connect(action, SIGNAL(triggered()), this, SLOT(selectCamera()));
-      action->setCheckable(true);
-      
+      QAction *action = m_menuCamera->addAction(QString(AiNodeGetName(node)));
+      connect(action, SIGNAL(triggered()), this, SLOT(SelectCamera()));
+      action->setCheckable(true);      
 
       if (node == currentCamera)
       {
@@ -2183,21 +2110,21 @@ void CRenderViewMainWindow::populateCamerasMenu()
       } else
          action->setChecked(false);
       
-      m_cameras_action_group->addAction(action);
-      m_cameras_combo->addItem(QString(AiNodeGetName(node)));
+      m_camerasActionGroup->addAction(action);
+      m_camerasCombo->addItem(QString(AiNodeGetName(node)));
 
       i++;
    }
 
-   connect(m_cameras_combo, SIGNAL(activated(int)), this, SLOT(selectBoxCamera()));
-   if (i > 0) m_cameras_combo->setCurrentIndex(cam_index);
+   connect(m_camerasCombo, SIGNAL(activated(int)), this, SLOT(SelectBoxCamera()));
+   if (i > 0) m_camerasCombo->setCurrentIndex(cam_index);
    AiNodeIteratorDestroy(iter);
 }
 
 
-void CRenderViewMainWindow::showAOV()
+void CRenderViewMainWindow::ShowAOV()
 {
-   std::string aovName = m_aovs_action_group->checkedAction()->text().toStdString();
+   std::string aovName = m_aovsActionGroup->checkedAction()->text().toStdString();
    if (aovName == "Beauty")
    {
       // display the beauty
@@ -2216,17 +2143,18 @@ void CRenderViewMainWindow::showAOV()
          }
       }
    }
-   m_aovs_combo->setCurrentIndex(m_renderView.m_displayedAovIndex + 1);
+   m_aovsCombo->setCurrentIndex(m_renderView.m_displayedAovIndex + 1);
    // update the toolbar widget   
-   m_renderView.refreshGLBuffer();
+   m_renderView.RefreshGLBuffer();
 }
-void CRenderViewMainWindow::showBoxAOV()
+
+void CRenderViewMainWindow::ShowBoxAOV()
 {
-   int index = m_aovs_combo->currentIndex();
+   int index = m_aovsCombo->currentIndex();
    m_renderView.m_displayedAovIndex = index - 1;
-   std::string aovName = m_aovs_combo->currentText().toStdString();
+   std::string aovName = m_aovsCombo->currentText().toStdString();
    
-   QList<QAction *>  menu_actions = m_aovs_action_group->actions();
+   QList<QAction *>  menu_actions = m_aovsActionGroup->actions();
    for (int i = 0; i < menu_actions.length(); ++i)
    {
       if (menu_actions.at(i)->text().toStdString() == aovName)
@@ -2236,11 +2164,11 @@ void CRenderViewMainWindow::showBoxAOV()
       }
    }
 
-   m_renderView.refreshGLBuffer();
+   m_renderView.RefreshGLBuffer();
 
 }
 
-static void setCamera(CRenderView &renderView, const std::string &cameraName)
+static void SetCamera(CRenderView &renderView, const std::string &cameraName)
 {
    AtNode *camera =  AiNodeLookUpByName (cameraName.c_str());
    if (camera == NULL)
@@ -2249,7 +2177,7 @@ static void setCamera(CRenderView &renderView, const std::string &cameraName)
       return;
    }
 
-   renderView.interruptRender();
+   renderView.InterruptRender();
 
    // Since the Render Loop is rendering in a different thread, we must wait until 
    // rendering actually stops, otherwise the previous camera can pop back
@@ -2277,31 +2205,31 @@ static void setCamera(CRenderView &renderView, const std::string &cameraName)
    }
 
 
-   while (AiRendering()) {renderView.sleep(10);}
+   while (AiRendering()) {CRenderView::Sleep(10);}
    AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)camera);
 
-   renderView.restartRender();
+   renderView.RestartRender();
 }
 
-void CRenderViewMainWindow::selectCamera()
+void CRenderViewMainWindow::SelectCamera()
 {
-   std::string cameraName = m_cameras_action_group->checkedAction()->text().toStdString();
+   std::string cameraName = m_camerasActionGroup->checkedAction()->text().toStdString();
 
-   for (int i = 0; i < m_cameras_combo->count(); ++i)
+   for (int i = 0; i < m_camerasCombo->count(); ++i)
    {
-      if (m_cameras_combo->itemText(i).toStdString() == cameraName)
+      if (m_camerasCombo->itemText(i).toStdString() == cameraName)
       {
-         m_cameras_combo->setCurrentIndex(i);
+         m_camerasCombo->setCurrentIndex(i);
          break;
       }
    }
-   setCamera(m_renderView, cameraName);
+   SetCamera(m_renderView, cameraName);
    
 }
-void CRenderViewMainWindow::selectBoxCamera()
+void CRenderViewMainWindow::SelectBoxCamera()
 {
-   std::string cameraName = m_cameras_combo->currentText().toStdString();
-   QList<QAction *>  menu_actions = m_cameras_action_group->actions();
+   std::string cameraName = m_camerasCombo->currentText().toStdString();
+   QList<QAction *>  menu_actions = m_camerasActionGroup->actions();
    for (int i = 0; i < menu_actions.length(); ++i)
    {
       if (menu_actions.at(i)->text().toStdString() == cameraName)
@@ -2310,15 +2238,16 @@ void CRenderViewMainWindow::selectBoxCamera()
          break;
       }
    }
-   setCamera(m_renderView, cameraName);
+   SetCamera(m_renderView, cameraName);
 }
-void CRenderViewMainWindow::cropRegion()
+
+void CRenderViewMainWindow::CropRegion()
 {
-   m_renderView.m_region_crop = m_action_crop_region->isChecked();
-   if (!m_renderView.m_region_crop)
+   m_renderView.m_regionCrop = m_actionCropRegion->isChecked();
+   if (!m_renderView.m_regionCrop)
    {
-      m_renderView.m_gl->clearRegionCrop();
-      m_renderView.interruptRender();
+      m_renderView.m_gl->ClearRegionCrop();
+      m_renderView.InterruptRender();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
       AtNode *options = AiUniverseGetOptions();
@@ -2327,14 +2256,13 @@ void CRenderViewMainWindow::cropRegion()
       AiNodeSetInt(options, "region_max_x", -1);
       AiNodeSetInt(options, "region_max_y", -1);
 
-      m_renderView.restartRender();
+      m_renderView.RestartRender();
    }
 }
 
-
-void CRenderViewMainWindow::frameRegion()
+void CRenderViewMainWindow::FrameRegion()
 {
-   if (m_3d_manipulation)
+   if (m_3dManipulation)
    {
       // Frame the selected geometries bounding box
       MSelectionList selected; 
@@ -2357,11 +2285,11 @@ void CRenderViewMainWindow::frameRegion()
          boundingBox.transformUsing(mtx);
          globalBox.expand(boundingBox);
       }
-      AtNode *arnold_camera = AiUniverseGetCamera();
-      if (arnold_camera == NULL) return;
+      AtNode *arnoldCamera = AiUniverseGetCamera();
+      if (arnoldCamera == NULL) return;
       
       MSelectionList camList;
-      camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+      camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
 
       MDagPath camDag;
       camList.getDagPath(0, camDag);
@@ -2373,20 +2301,20 @@ void CRenderViewMainWindow::frameRegion()
       MMatrix camToWorld = camDag.inclusiveMatrix();
 
       // don't want to change the viewDirection & upDirection
-      MVector view_direction = camera.viewDirection(MSpace::kWorld);
-      MVector up_direction = camera.upDirection(MSpace::kWorld);
-      MPoint eye_point = camera.eyePoint(MSpace::kWorld);
-      MPoint center_interest = camera.centerOfInterestPoint(MSpace::kWorld);
+      MVector viewDirection = camera.viewDirection(MSpace::kWorld);
+      MVector upDirection = camera.upDirection(MSpace::kWorld);
+      MPoint eyePoint = camera.eyePoint(MSpace::kWorld);
+      MPoint centerInterest = camera.centerOfInterestPoint(MSpace::kWorld);
 
       MPoint center = globalBox.center();
       MFloatMatrix projectionMatrix = camera.projectionMatrix();
 
-      MPoint new_pos = eye_point + center - center_interest;
-      float center_dist = center.distanceTo(new_pos);
+      MPoint newPos = eyePoint + center - centerInterest;
+      float centerDist = center.distanceTo(newPos);
 
-      camToWorld[3][0] = new_pos.x;
-      camToWorld[3][1] = new_pos.y;
-      camToWorld[3][2] = new_pos.z;
+      camToWorld[3][0] = newPos.x;
+      camToWorld[3][1] = newPos.y;
+      camToWorld[3][2] = newPos.z;
 
       MMatrix worldToCam = camToWorld.inverse();
 
@@ -2415,22 +2343,22 @@ void CRenderViewMainWindow::frameRegion()
       // > 1 need to zoom out
       // < 1 need to zoom in
 
-      new_pos = center;
-      new_pos -=  view_direction * center_dist * maxScreen;
-      camera.set(new_pos, view_direction, up_direction, camera.horizontalFieldOfView(), camera.aspectRatio());
+      newPos = center;
+      newPos -=  viewDirection * centerDist * maxScreen;
+      camera.set(newPos, viewDirection, upDirection, camera.horizontalFieldOfView(), camera.aspectRatio());
       camera.setCenterOfInterestPoint(center, MSpace::kWorld);
 
    } else
    {
-      const AtBBox2 *region = m_renderView.m_gl->getRegion();
+      const AtBBox2 *region = m_renderView.m_gl->GetRegion();
       if (region == 0) 
       {
-         frameAll();
+         FrameAll();
          return;
       }
 
       float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)(height() - (menuHeight + toolbarHeight + statusbarHeight + 26) )/ (region->maxy - region->miny) );
-      m_renderView.m_gl->setZoomFactor(zoomFactor);
+      m_renderView.m_gl->SetZoomFactor(zoomFactor);
       
       AtPoint2 regionCenter;
       regionCenter.x = 0.5 * (region->maxx + region->minx);
@@ -2439,55 +2367,55 @@ void CRenderViewMainWindow::frameRegion()
       regionCenter.x -= m_renderView.m_width*0.5;
       regionCenter.y -= m_renderView.m_height*0.5;
 
-      m_renderView.m_gl->setPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
-      m_renderView.draw();
+      m_renderView.m_gl->SetPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
+      m_renderView.Draw();
    }
 }
 
-void CRenderViewMainWindow::frameAll()
+void CRenderViewMainWindow::FrameAll()
 {
-   if (m_3d_manipulation) return; // we should frame the global bounding box
+   if (m_3dManipulation) return; // we should frame the global bounding box
 
    float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)(height()- (menuHeight + toolbarHeight + statusbarHeight + 26))  / (float)m_renderView.m_height );
-   m_renderView.m_gl->setZoomFactor(zoomFactor);
-   m_renderView.m_gl->setPan(0, 0);
-   m_renderView.draw();
+   m_renderView.m_gl->SetZoomFactor(zoomFactor);
+   m_renderView.m_gl->SetPan(0, 0);
+   m_renderView.Draw();
 }
 
-void CRenderViewMainWindow::realSize()
+void CRenderViewMainWindow::RealSize()
 {
-   m_renderView.m_gl->setPan (0, 0);
-   m_renderView.m_gl->setZoomFactor(1.f);
-   m_renderView.draw();
+   m_renderView.m_gl->SetPan (0, 0);
+   m_renderView.m_gl->SetZoomFactor(1.f);
+   m_renderView.Draw();
 }
 
-void CRenderViewMainWindow::colorCorrection()
+void CRenderViewMainWindow::ColorCorrection()
 {
-   if (m_lut_action->isChecked())
+   if (m_lutAction->isChecked())
    {
-      if (m_cc_window == NULL)
+      if (m_ccWindow == NULL)
       {
-         m_cc_window = new CRenderViewCCWindow(this, m_renderView, m_renderView.m_colorCorrectSettings);
-         m_cc_window->init();
-         m_cc_window->adjustPosition();
+         m_ccWindow = new CRenderViewCCWindow(this, m_renderView, m_renderView.m_colorCorrectSettings);
+         m_ccWindow->Init();
+         m_ccWindow->AdjustPosition();
                 
       }
-      m_cc_window->show();
-   } else if(m_cc_window)
+      m_ccWindow->show();
+   } else if(m_ccWindow)
    {
-      delete m_cc_window;
-      m_cc_window = NULL;
+      delete m_ccWindow;
+      m_ccWindow = NULL;
    }
 }
 void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
 {
-   if (m_cc_window)
+   if (m_ccWindow)
    {
-      delete m_cc_window;
-      m_cc_window = NULL;
-      m_lut_action->blockSignals(true);
-      m_lut_action->setChecked(false);
-      m_lut_action->blockSignals(false);
+      delete m_ccWindow;
+      m_ccWindow = NULL;
+      m_lutAction->blockSignals(true);
+      m_lutAction->setChecked(false);
+      m_lutAction->blockSignals(false);
    }
 
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
@@ -2495,16 +2423,16 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
    {
       CMayaScene::GetArnoldSession()->SetContinuousUpdates(false);
       renderSession->SetRendering(false);
-      m_renderView.finishRender(); // this stops the rendering and destroys the render threads
-      if (rv_selection_cb)
+      m_renderView.FinishRender(); // this stops the rendering and destroys the render threads
+      if (rvSelectionCb)
       {
-         MMessage::removeCallback(rv_selection_cb);
-         rv_selection_cb = 0;
-         m_renderView.m_shading_manager.restore();
-         m_renderView.m_debug_shading = RV_DBG_SHAD_DISABLED;
-         m_debug_shading_action_disabled->blockSignals(true);
-         m_debug_shading_action_disabled->setChecked(true);
-         m_debug_shading_action_disabled->blockSignals(false);
+         MMessage::removeCallback(rvSelectionCb);
+         rvSelectionCb = 0;
+         m_renderView.m_shadingManager.Restore();
+         m_renderView.m_debugShading = RV_DBG_SHAD_DISABLED;
+         m_debugShadingActionDisabled->blockSignals(true);
+         m_debugShadingActionDisabled->setChecked(true);
+         m_debugShadingActionDisabled->blockSignals(false);
 
       }
       CMayaScene::End();
@@ -2514,27 +2442,27 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
 
 }
 
-void CRenderViewMainWindow::rgbaClicked()
+void CRenderViewMainWindow::RgbaClicked()
 {
-   if (m_channel_red_action->isChecked())
+   if (m_channelRedAction->isChecked())
    {
-      m_channel_green_action->setChecked(true);
-   } else if (m_channel_green_action->isChecked())
+      m_channelGreenAction->setChecked(true);
+   } else if (m_channelGreenAction->isChecked())
    {
-      m_channel_blue_action->setChecked(true);
+      m_channelBlueAction->setChecked(true);
 
-   } else if (m_channel_blue_action->isChecked())
+   } else if (m_channelBlueAction->isChecked())
    {
-      m_channel_alpha_action->setChecked(true);
+      m_channelAlphaAction->setChecked(true);
 
-   } else if (m_channel_alpha_action->isChecked())
+   } else if (m_channelAlphaAction->isChecked())
    {
-      m_channel_rgba_action->setChecked(true);
+      m_channelRgbaAction->setChecked(true);
    } else
    {
-      m_channel_red_action->setChecked(true);
+      m_channelRedAction->setChecked(true);
    }
-   showChannel();
+   ShowChannel();
 }
 
 

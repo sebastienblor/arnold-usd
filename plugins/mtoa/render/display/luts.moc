@@ -49,14 +49,14 @@ static const uint qt_meta_data_CRenderViewCCWindow[] = {
 };
 
 static const char qt_meta_stringdata_CRenderViewCCWindow[] = {
-    "CRenderViewCCWindow\0\0gammaSliderChanged()\0"
-    "gammaTextChanged()\0exposureSliderChanged()\0"
-    "exposureTextChanged()\0ditherChanged()\0"
-    "colorSpaceChanged()\0browseLutFile()\0"
-    "lutFileTextChanged()\0bgChanged()\0"
-    "browseBgFile()\0bgFileTextChanged()\0"
-    "bgScaleChanged()\0bgOffsetChanged()\0"
-    "pickBgColor()\0"
+    "CRenderViewCCWindow\0\0GammaSliderChanged()\0"
+    "GammaTextChanged()\0ExposureSliderChanged()\0"
+    "ExposureTextChanged()\0DitherChanged()\0"
+    "ColorSpaceChanged()\0BrowseLutFile()\0"
+    "LutFileTextChanged()\0BgChanged()\0"
+    "BrowseBgFile()\0BgFileTextChanged()\0"
+    "BgScaleChanged()\0BgOffsetChanged()\0"
+    "PickBgColor()\0"
 };
 
 void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -65,20 +65,20 @@ void CRenderViewCCWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
         Q_ASSERT(staticMetaObject.cast(_o));
         CRenderViewCCWindow *_t = static_cast<CRenderViewCCWindow *>(_o);
         switch (_id) {
-        case 0: _t->gammaSliderChanged(); break;
-        case 1: _t->gammaTextChanged(); break;
-        case 2: _t->exposureSliderChanged(); break;
-        case 3: _t->exposureTextChanged(); break;
-        case 4: _t->ditherChanged(); break;
-        case 5: _t->colorSpaceChanged(); break;
-        case 6: _t->browseLutFile(); break;
-        case 7: _t->lutFileTextChanged(); break;
-        case 8: _t->bgChanged(); break;
-        case 9: _t->browseBgFile(); break;
-        case 10: _t->bgFileTextChanged(); break;
-        case 11: _t->bgScaleChanged(); break;
-        case 12: _t->bgOffsetChanged(); break;
-        case 13: _t->pickBgColor(); break;
+        case 0: _t->GammaSliderChanged(); break;
+        case 1: _t->GammaTextChanged(); break;
+        case 2: _t->ExposureSliderChanged(); break;
+        case 3: _t->ExposureTextChanged(); break;
+        case 4: _t->DitherChanged(); break;
+        case 5: _t->ColorSpaceChanged(); break;
+        case 6: _t->BrowseLutFile(); break;
+        case 7: _t->LutFileTextChanged(); break;
+        case 8: _t->BgChanged(); break;
+        case 9: _t->BrowseBgFile(); break;
+        case 10: _t->BgFileTextChanged(); break;
+        case 11: _t->BgScaleChanged(); break;
+        case 12: _t->BgOffsetChanged(); break;
+        case 13: _t->PickBgColor(); break;
         default: ;
         }
     }

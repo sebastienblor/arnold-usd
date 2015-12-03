@@ -182,8 +182,8 @@ MStatus CRenderSession::End()
       InterruptRender();
       if (s_renderView)
       {
-         s_renderView->finishRender();
-         s_renderView->close();
+         s_renderView->FinishRender();
+         s_renderView->Close();
       }
    }
    
@@ -321,7 +321,7 @@ void CRenderSession::InterruptRender(bool waitFinished)
 {
    if (s_renderView != NULL) 
    {
-      s_renderView->interruptRender();
+      s_renderView->InterruptRender();
    }
    if (IsRendering() && AiRendering()) AiRenderInterrupt();
       
@@ -620,19 +620,19 @@ void CRenderSession::RunRenderView()
 {
    InterruptRender(); // clear the previous thread  
    SetRendering(true);
-   s_renderView->render();
+   s_renderView->Render();
 }
 
 void CRenderSession::StartRenderView()
 {
    if (s_renderView != NULL) 
    {
-      if (AiRendering()) s_renderView->interruptRender();
+      if (AiRendering()) s_renderView->InterruptRender();
 
-      s_renderView->initRender(m_renderOptions.width(), m_renderOptions.height());
-      s_renderView->show();
+      s_renderView->InitRender(m_renderOptions.width(), m_renderOptions.height());
+      s_renderView->Show();
 
-      s_renderView->updateRender();
+      s_renderView->UpdateRender();
       return;
    }
    s_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
@@ -662,9 +662,9 @@ void CRenderSession::UpdateRenderView()
       s_idle_cb = 0;
    }
 */
-   if(s_renderView != NULL && s_renderView->canRestartRender()) // for now always return true
+   if(s_renderView != NULL && s_renderView->CanRestartRender()) // for now always return true
    {
-      s_renderView->updateRender();
+      s_renderView->UpdateRender();
       /*
       InterruptRender();
       CMayaScene::UpdateSceneChanges();

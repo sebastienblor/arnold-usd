@@ -20,7 +20,7 @@ static const AtRGBA8 EMPTY_FILL_COLOR = {13, 13, 13, 255};
 
 /* Non-power-of-two texture support */
 
-inline int nearest_pow2(int num)
+inline int NearestPow2(int num)
 {
    unsigned int n = num > 0 ? num - 1 : 0;
    n |= n >>  1;
@@ -32,7 +32,7 @@ inline int nearest_pow2(int num)
    return (int)n;
 }
 
-inline bool support_non_power_of_two_textures(void)
+inline bool SupportNonPowerOfTwoTextures(void)
 {
    // OpenGL 2.0 and up supports non-power-of-two textures
    return atof((const char*)glGetString(GL_VERSION)) >= 2.0;
@@ -46,9 +46,8 @@ inline bool support_non_power_of_two_textures(void)
 CRenderGLWidget::CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height) : QGLWidget(parent), m_renderview(rv)
 {
    m_texture = 0;
-   m_front_buffer = NULL;
-   m_back_buffer = NULL;
-   initSize(width, height);
+   m_frontBuffer = NULL;
+   InitSize(width, height);
 }
 
 CRenderGLWidget::~CRenderGLWidget()
@@ -56,26 +55,19 @@ CRenderGLWidget::~CRenderGLWidget()
    if (m_texture)
    {
       glDeleteTextures(1, &m_texture);
-      GL_print_error("delete texture");
+      PrintGLError("delete texture");
    }
 
-   if (m_back_buffer)
-      AiFree(m_back_buffer);
-
-   AiFree(m_front_buffer);
-   
-}
-void CRenderGLWidget::closeEvent(QCloseEvent *event)
-{
+   AiFree(m_frontBuffer);
    
 }
 
-void CRenderGLWidget::initSize(int width, int height)
+void CRenderGLWidget::InitSize(int width, int height)
 {
    resize(width, height);
    // create display buffer
    
-   if (support_non_power_of_two_textures())
+   if (SupportNonPowerOfTwoTextures())
    {
       // most cards support non-power-of-two textures now
       m_width = width;
@@ -84,8 +76,8 @@ void CRenderGLWidget::initSize(int width, int height)
    else
    {
       // textures width/height rounded to power-of-two for old cards
-      m_width = nearest_pow2(width);
-      m_height = nearest_pow2(height);
+      m_width = NearestPow2(width);
+      m_height = NearestPow2(height);
    }
 
    // the texture coordinates for our quads -- we need to recompute this
@@ -96,30 +88,27 @@ void CRenderGLWidget::initSize(int width, int height)
    // allocate buffer
    const size_t size = m_width * m_height * sizeof(AtRGBA8);
 
-   if (m_back_buffer) AiFree(m_back_buffer);
-
-
-   if (m_front_buffer) AiFree(m_front_buffer);
-   m_front_buffer = (AtRGBA8 *)AiMalloc(size);
+   
+   if (m_frontBuffer) AiFree(m_frontBuffer);
+   m_frontBuffer = (AtRGBA8 *)AiMalloc(size);
 
    // fill with grey so we can see unfinished buckets
    const size_t fillsize = m_width * m_height;
    for(size_t i = 0; i < fillsize; i++)
    {
-      m_front_buffer[i] = EMPTY_FILL_COLOR;
+      m_frontBuffer[i] = EMPTY_FILL_COLOR;
    }
 
-   m_back_buffer = NULL;
    setMouseTracking(true);
-   clearRegionCrop();
+   ClearRegionCrop();
    m_pan[0] = m_pan[1] = 0;
    m_zoomFactor = 1.f;
 
    m_printGPUState = false;
-   m_bg_data = NULL;
-   m_bg_color = AI_RGBA_BLACK;
+   m_bgData = NULL;
+   m_bgColor = AI_RGBA_BLACK;
 }
-void CRenderGLWidget::setupTexture()
+void CRenderGLWidget::SetupTexture()
 {
    if (m_texture)
    {
@@ -129,7 +118,7 @@ void CRenderGLWidget::setupTexture()
 
    // create texture
    glGenTextures(1, &m_texture);
-   GL_print_error("create texture");
+   PrintGLError("create texture");
 
    glBindTexture(GL_TEXTURE_2D, m_texture);
    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -137,18 +126,18 @@ void CRenderGLWidget::setupTexture()
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-   GL_print_error("set texture parameter");
+   PrintGLError("set texture parameter");
 
    // describe texture layout
    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
    glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_width);
    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
    glPixelStorei(GL_UNPACK_SKIP_ROWS,   0);
-   GL_print_error("set pixel store");
+   PrintGLError("set pixel store");
 
    // set texture data
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_front_buffer);
-   GL_print_error("set texture pixels");
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_frontBuffer);
+   PrintGLError("set texture pixels");
 
    glPopClientAttrib();
 }
@@ -163,10 +152,10 @@ void CRenderGLWidget::initializeGL()
    glViewport(0, 0, m_width, m_height); //used to be x_res/y_res
    glOrtho(0, m_width, 0, m_height, -1, 1);
 
-   GL_print_error("setup viewport");
+   PrintGLError("setup viewport");
    
    // create texture
-   setupTexture();
+   SetupTexture();
 
 }
 
@@ -179,17 +168,17 @@ void CRenderGLWidget::paintGL()
    // check time
    // if higher than low_freq -> continue
 
-   AtDisplaySync *sync = m_renderview.displaySync();
+   AtDisplaySync *sync = m_renderview.DisplaySync();
 
 //  commenting this line for now.
 //  it looks like we should not block paintGL, as Qt can call it 
 //  in some situations (resizing, menus appearing/disappearing).
-//  We've had some buffers disappearing until waiting_draw was set back to true.
-//   if (!sync->waiting_draw) return;
+//  We've had some buffers disappearing until waitingDraw was set back to true.
+//   if (!sync->waitingDraw) return;
 
 
    if (m_printGPUState) {
-      printGPUState();
+      PrintGPUState();
       m_printGPUState = false;
    }
 
@@ -203,12 +192,12 @@ void CRenderGLWidget::paintGL()
    AtBBox2 region;
    AiCritSecEnter(&sync->lock);
 
-   region = sync->front_update_region;
+   region = sync->frontUpdateRegion;
 
-   sync->waiting_draw = false;
-   sync->front_update_region.minx = m_width;
-   sync->front_update_region.miny = m_height;
-   sync->front_update_region.maxx = sync->front_update_region.maxy = -1;
+   sync->waitingDraw = false;
+   sync->frontUpdateRegion.minx = m_width;
+   sync->frontUpdateRegion.miny = m_height;
+   sync->frontUpdateRegion.maxx = sync->frontUpdateRegion.maxy = -1;
 
 
    AiCritSecLeave(&sync->lock);
@@ -241,7 +230,7 @@ void CRenderGLWidget::paintGL()
    glPushMatrix();
    glLoadIdentity();
 
-   displayBuffer(m_renderview.m_reg_x, m_renderview.m_reg_y, &region, m_renderview.m_color_mode, false);
+   DisplayBuffer(m_renderview.m_regX, m_renderview.m_regY, &region, m_renderview.m_colorMode);
 
    glMatrixMode(GL_PROJECTION);
    glPopMatrix();
@@ -252,27 +241,11 @@ void CRenderGLWidget::paintGL()
    if (depthTest == GL_TRUE)
       glEnable(GL_DEPTH_TEST);
 
-
-
-   m_renderview.checkSceneUpdates();
-
+   m_renderview.CheckSceneUpdates();
 }
 
 
-
-void CRenderGLWidget::copyToBackBuffer()
-{
-   const size_t size = m_width * m_height * sizeof(AtRGBA8);
-
-   // allocate buffer on demand
-   if (!m_back_buffer)
-      m_back_buffer = (AtRGBA8 *)AiMalloc(size);
-
-   memcpy(m_back_buffer, m_front_buffer, size);
-}
-
-
-void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
+void CRenderGLWidget::ReloadBuffer(AtRvColorMode colorMode)
 {
    makeCurrent();
 
@@ -292,7 +265,7 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
    region.maxx = m_width;
    region.maxy = m_height;
 
-   displayBuffer(m_width, m_height, &region, color_mode, false);
+   DisplayBuffer(m_width, m_height, &region, colorMode);
 
    glMatrixMode(GL_PROJECTION);
    glPopMatrix();
@@ -303,73 +276,73 @@ void CRenderGLWidget::reloadBuffer(AtRvColorMode color_mode)
    update();
 }
 
-void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, AtRvColorMode color_mode, bool back_buffer)
+void CRenderGLWidget::DisplayBuffer(int w, int h, const AtBBox2 *updateRegion, AtRvColorMode colorMode)
 {
 
    glClearColor(FILL_COLOR.r, FILL_COLOR.g, FILL_COLOR.b, FILL_COLOR.a);
-   //glClearColor(m_bg_color.r, m_bg_color.g, m_bg_color.b, m_bg_color.a);
+   //glClearColor(m_bgColor.r, m_bgColor.g, m_bgColor.b, m_bgColor.a);
    glClear(GL_COLOR_BUFFER_BIT);
-   GL_print_error("clear buffer");
+   PrintGLError("clear buffer");
 
    // bind and update texture
    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
 
-   if (m_bg_data)
+   if (m_bgData)
    {
-      glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+      glBindTexture(GL_TEXTURE_2D, m_bgData->textureId);
       glEnable(GL_BLEND);
       glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
       glPushMatrix();
 
-      glTranslatef(m_bg_data->offset.x, m_bg_data->offset.y, 0.f);
-      glScalef(m_bg_data->scale.x, m_bg_data->scale.y, 1.f);
+      glTranslatef(m_bgData->offset.x, m_bgData->offset.y, 0.f);
+      glScalef(m_bgData->scale.x, m_bgData->scale.y, 1.f);
 
-      if (update_region)
+      if (updateRegion)
       {
-         AtRGBA8 *buffer = m_bg_data->bgBuffer;
+         AtRGBA8 *buffer = m_bgData->bgBuffer;
 
-         glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bg_data->bgWidth);
-         glPixelStorei(GL_UNPACK_SKIP_PIXELS, update_region->minx);
-         glPixelStorei(GL_UNPACK_SKIP_ROWS,   update_region->miny);
+         glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bgData->bgWidth);
+         glPixelStorei(GL_UNPACK_SKIP_PIXELS, updateRegion->minx);
+         glPixelStorei(GL_UNPACK_SKIP_ROWS,   updateRegion->miny);
 
-         if (color_mode == COLOR_MODE_RGBA)
+         if (colorMode == COLOR_MODE_RGBA)
          {
             
-            if (update_region->maxx > update_region->minx && update_region->maxy > update_region->miny)
+            if (updateRegion->maxx > updateRegion->minx && updateRegion->maxy > updateRegion->miny)
             {
                glTexSubImage2D(GL_TEXTURE_2D, 0,
-                  update_region->minx, update_region->miny,
-                  update_region->maxx - update_region->minx,
-                  update_region->maxy - update_region->miny,
+                  updateRegion->minx, updateRegion->miny,
+                  updateRegion->maxx - updateRegion->minx,
+                  updateRegion->maxy - updateRegion->miny,
                   GL_RGBA, GL_UNSIGNED_BYTE, buffer);
             }
          }
          else
          {
-            glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+            glBindTexture(GL_TEXTURE_2D, m_bgData->textureId);
 
-            AtUInt8 *tmp_buffer = (AtUInt8 *)AiMalloc(sizeof(AtUInt8) * m_bg_data->bgWidth * m_bg_data->bgHeight);
-            AtUInt8 *src_buffer = (AtUInt8 *)buffer;
+            AtUInt8 *tmpBuffer = (AtUInt8 *)AiMalloc(sizeof(AtUInt8) * m_bgData->bgWidth * m_bgData->bgHeight);
+            AtUInt8 *srcBuffer = (AtUInt8 *)buffer;
             
-            if (color_mode == COLOR_MODE_R) src_buffer += 0;
-            else if (color_mode == COLOR_MODE_G) src_buffer += 1;
-            else if (color_mode == COLOR_MODE_B) src_buffer += 2;
-            else if (color_mode == COLOR_MODE_A) src_buffer += 3;
+            if (colorMode == COLOR_MODE_R) srcBuffer += 0;
+            else if (colorMode == COLOR_MODE_G) srcBuffer += 1;
+            else if (colorMode == COLOR_MODE_B) srcBuffer += 2;
+            else if (colorMode == COLOR_MODE_A) srcBuffer += 3;
 
-            for (unsigned int i = 0; i < m_bg_data->bgWidth * m_bg_data->bgHeight; i++)
-               tmp_buffer[i] = src_buffer[i*4];
+            for (unsigned int i = 0; i < m_bgData->bgWidth * m_bgData->bgHeight; i++)
+               tmpBuffer[i] = srcBuffer[i*4];
 
             glTexSubImage2D(GL_TEXTURE_2D, 0,
-               update_region->minx, update_region->miny,
-               update_region->maxx - update_region->minx,
-               update_region->maxy - update_region->miny,
-               GL_LUMINANCE, GL_UNSIGNED_BYTE, tmp_buffer);
+               updateRegion->minx, updateRegion->miny,
+               updateRegion->maxx - updateRegion->minx,
+               updateRegion->maxy - updateRegion->miny,
+               GL_LUMINANCE, GL_UNSIGNED_BYTE, tmpBuffer);
 
-            AiFree(tmp_buffer);
+            AiFree(tmpBuffer);
          }
          
-         GL_print_error("update texture pixels");
+         PrintGLError("update texture pixels");
       }
 
 
@@ -398,12 +371,12 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
       glDisable(GL_TEXTURE_2D);
       glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-   } else if (m_bg_color.r > AI_EPSILON || m_bg_color.g > AI_EPSILON || m_bg_color.b > AI_EPSILON )
+   } else if (m_bgColor.r > AI_EPSILON || m_bgColor.g > AI_EPSILON || m_bgColor.b > AI_EPSILON )
    {
       glEnable(GL_BLEND);
       glDisable(GL_TEXTURE_2D);
       glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);   
-      glColor3f(m_bg_color.r, m_bg_color.g, m_bg_color.b);
+      glColor3f(m_bgColor.r, m_bgColor.g, m_bgColor.b);
       glBegin(GL_QUADS);
          glVertex2f(0, h);
          glVertex2f(0, 0);
@@ -412,24 +385,24 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
       glEnd();
    }
    glBindTexture(GL_TEXTURE_2D, m_texture);
-   if (update_region)
+   if (updateRegion)
    {
-      AtRGBA8 *buffer = (back_buffer && m_back_buffer) ? m_back_buffer : m_front_buffer;
+      AtRGBA8 *buffer = m_frontBuffer;
       
       glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_width);
-      glPixelStorei(GL_UNPACK_SKIP_PIXELS, update_region->minx);
-      glPixelStorei(GL_UNPACK_SKIP_ROWS,   update_region->miny);
+      glPixelStorei(GL_UNPACK_SKIP_PIXELS, updateRegion->minx);
+      glPixelStorei(GL_UNPACK_SKIP_ROWS,   updateRegion->miny);
 
-      if (color_mode == COLOR_MODE_RGBA)
+      if (colorMode == COLOR_MODE_RGBA)
       {
          
-         if (update_region->maxx > update_region->minx && update_region->maxy > update_region->miny)
+         if (updateRegion->maxx > updateRegion->minx && updateRegion->maxy > updateRegion->miny)
          {
 
             glTexSubImage2D(GL_TEXTURE_2D, 0,
-               update_region->minx, update_region->miny,
-               update_region->maxx - update_region->minx,
-               update_region->maxy - update_region->miny,
+               updateRegion->minx, updateRegion->miny,
+               updateRegion->maxx - updateRegion->minx,
+               updateRegion->maxy - updateRegion->miny,
                GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
          }
@@ -439,27 +412,27 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
 
          glBindTexture(GL_TEXTURE_2D, m_texture);
 
-         AtUInt8 *tmp_buffer = (AtUInt8 *)AiMalloc(sizeof(AtUInt8) * m_width * m_height);
-         AtUInt8 *src_buffer = (AtUInt8 *)buffer;
+         AtUInt8 *tmpBuffer = (AtUInt8 *)AiMalloc(sizeof(AtUInt8) * m_width * m_height);
+         AtUInt8 *srcBuffer = (AtUInt8 *)buffer;
 
          
-         if (color_mode == COLOR_MODE_R) src_buffer += 0;
-         else if (color_mode == COLOR_MODE_G) src_buffer += 1;
-         else if (color_mode == COLOR_MODE_B) src_buffer += 2;
-         else if (color_mode == COLOR_MODE_A) src_buffer += 3;
+         if (colorMode == COLOR_MODE_R) srcBuffer += 0;
+         else if (colorMode == COLOR_MODE_G) srcBuffer += 1;
+         else if (colorMode == COLOR_MODE_B) srcBuffer += 2;
+         else if (colorMode == COLOR_MODE_A) srcBuffer += 3;
 
          for (int i = 0; i < m_width * m_height; i++)
-            tmp_buffer[i] = src_buffer[i*4];
+            tmpBuffer[i] = srcBuffer[i*4];
 
          glTexSubImage2D(GL_TEXTURE_2D, 0,
-            update_region->minx, update_region->miny,
-            update_region->maxx - update_region->minx,
-            update_region->maxy - update_region->miny,
-            GL_LUMINANCE, GL_UNSIGNED_BYTE, tmp_buffer);
+            updateRegion->minx, updateRegion->miny,
+            updateRegion->maxx - updateRegion->minx,
+            updateRegion->maxy - updateRegion->miny,
+            GL_LUMINANCE, GL_UNSIGNED_BYTE, tmpBuffer);
 
-         AiFree(tmp_buffer);
+         AiFree(tmpBuffer);
       }
-      GL_print_error("update texture pixels");
+      PrintGLError("update texture pixels");
    }
    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);  
    // draw texture mapped quad with fixed function pipeline
@@ -495,10 +468,10 @@ void CRenderGLWidget::displayBuffer(int w, int h, const AtBBox2 *update_region, 
       glEnd();
    }
 
-   GL_print_error("draw texture");
+   PrintGLError("draw texture");
 }
 
-void CRenderGLWidget::project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp) const
+void CRenderGLWidget::Project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp) const
 {
    int imageSize[2];
    imageSize[0] = int (m_width * m_zoomFactor);
@@ -533,7 +506,7 @@ void CRenderGLWidget::project(int windowX, int windowY, int& bufferX, int &buffe
 
 }
 
-void CRenderGLWidget::setRegionCrop(int start_x, int start_y, int end_x, int end_y)
+void CRenderGLWidget::SetRegionCrop(int start_x, int start_y, int end_x, int end_y)
 {
    m_region.minx = start_x;
    m_region.miny = start_y;
@@ -542,91 +515,91 @@ void CRenderGLWidget::setRegionCrop(int start_x, int start_y, int end_x, int end
    m_regionCrop = true; 
 }
 
-void CRenderGLWidget::clearRegionCrop()
+void CRenderGLWidget::ClearRegionCrop()
 {
    m_regionCrop = false;
    m_region.minx = m_region.miny = m_region.maxx = m_region.maxy = 0;
 }
 
-void CRenderGLWidget::setZoomFactor(float z)
+void CRenderGLWidget::SetZoomFactor(float z)
 {
    m_zoomFactor = z;
    // this will dirty the status_changed flag
    // and force a status bar refresh (so that zoom factor appears)
-   m_renderview.dirtyStatusBar();
+   m_renderview.DirtyStatusBar();
 }
 
-void CRenderGLWidget::setBackgroundImage(const std::string &filename)
+void CRenderGLWidget::SetBackgroundImage(const std::string &filename)
 {
    MImage bgImg;
    MStatus status = bgImg.readFromFile(MString(filename.c_str()));
-   if (m_bg_data)
+   if (m_bgData)
    {
-      delete m_bg_data;
-      m_bg_data = NULL;
+      delete m_bgData;
+      m_bgData = NULL;
    }
 
    if (status != MS::kSuccess) return;
    
-   m_bg_data = new BackgroundData();
+   m_bgData = new BackgroundData();
 
-   bgImg.getSize(m_bg_data->bgWidth, m_bg_data->bgHeight);
+   bgImg.getSize(m_bgData->bgWidth, m_bgData->bgHeight);
    bgImg.verticalFlip();
-   m_bg_data->bgBuffer = (AtRGBA8 *)AiMalloc(m_bg_data->bgWidth * m_bg_data->bgHeight * sizeof(AtRGBA8));
+   m_bgData->bgBuffer = (AtRGBA8 *)AiMalloc(m_bgData->bgWidth * m_bgData->bgHeight * sizeof(AtRGBA8));
 
    unsigned char *pixels = bgImg.pixels();
-   unsigned int size = m_bg_data->bgWidth * m_bg_data->bgHeight;
+   unsigned int size = m_bgData->bgWidth * m_bgData->bgHeight;
 
    for (unsigned int i = 0; i < size; ++i)
    {
       
-      AtRGBA8 &bufferPixel = m_bg_data->bgBuffer[i];
+      AtRGBA8 &bufferPixel = m_bgData->bgBuffer[i];
       bufferPixel.r = *pixels;pixels++;
       bufferPixel.g = *pixels;pixels++;
       bufferPixel.b = *pixels;pixels++;
       bufferPixel.a = *pixels;pixels++;
    }
    // create texture
-   glGenTextures(1, &m_bg_data->textureId);
-   GL_print_error("create texture");
+   glGenTextures(1, &m_bgData->textureId);
+   PrintGLError("create texture");
 
-   glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+   glBindTexture(GL_TEXTURE_2D, m_bgData->textureId);
    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-   GL_print_error("set texture parameter");
+   PrintGLError("set texture parameter");
 
    // describe texture layout
    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-   glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bg_data->bgWidth);
+   glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bgData->bgWidth);
    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
    glPixelStorei(GL_UNPACK_SKIP_ROWS,   0);
-   GL_print_error("set pixel store");
+   PrintGLError("set pixel store");
 
    // set texture data
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_bg_data->bgWidth, m_bg_data->bgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bg_data->bgBuffer);
-   GL_print_error("set texture pixels");
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_bgData->bgWidth, m_bgData->bgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bgData->bgBuffer);
+   PrintGLError("set texture pixels");
 
    glPopClientAttrib();
 
 }
 
-void CRenderGLWidget::setBackgroundChecker()
+void CRenderGLWidget::SetBackgroundChecker()
 {
-   if (m_bg_data)
+   if (m_bgData)
    {
-      delete m_bg_data;
-      m_bg_data = NULL;
+      delete m_bgData;
+      m_bgData = NULL;
    }
    
-   m_bg_data = new BackgroundData();
+   m_bgData = new BackgroundData();
 
-   m_bg_data->bgWidth = m_width;
-   m_bg_data->bgHeight = m_height;
+   m_bgData->bgWidth = m_width;
+   m_bgData->bgHeight = m_height;
 
-   m_bg_data->bgBuffer = (AtRGBA8 *)AiMalloc(m_width * m_height * sizeof(AtRGBA8));
+   m_bgData->bgBuffer = (AtRGBA8 *)AiMalloc(m_width * m_height * sizeof(AtRGBA8));
 
    int pixelIndex = 0;
    int checkerSize = 20;
@@ -637,7 +610,7 @@ void CRenderGLWidget::setBackgroundChecker()
    {
       for (int x = 0; x < m_width; ++x, ++pixelIndex)
       {
-         AtRGBA8 &bufferPixel = m_bg_data->bgBuffer[pixelIndex];
+         AtRGBA8 &bufferPixel = m_bgData->bgBuffer[pixelIndex];
          xChecker = x/checkerSize;
          yChecker = y/checkerSize;
 
@@ -654,27 +627,27 @@ void CRenderGLWidget::setBackgroundChecker()
    }
       
    // create texture
-   glGenTextures(1, &m_bg_data->textureId);
-   GL_print_error("create texture");
+   glGenTextures(1, &m_bgData->textureId);
+   PrintGLError("create texture");
 
-   glBindTexture(GL_TEXTURE_2D, m_bg_data->textureId);
+   glBindTexture(GL_TEXTURE_2D, m_bgData->textureId);
    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-   GL_print_error("set texture parameter");
+   PrintGLError("set texture parameter");
 
    // describe texture layout
    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-   glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bg_data->bgWidth);
+   glPixelStorei(GL_UNPACK_ROW_LENGTH,  m_bgData->bgWidth);
    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
    glPixelStorei(GL_UNPACK_SKIP_ROWS,   0);
-   GL_print_error("set pixel store");
+   PrintGLError("set pixel store");
 
    // set texture data
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_bg_data->bgWidth, m_bg_data->bgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bg_data->bgBuffer);
-   GL_print_error("set texture pixels");
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_bgData->bgWidth, m_bgData->bgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_bgData->bgBuffer);
+   PrintGLError("set texture pixels");
 
    glPopClientAttrib();
 

@@ -6,16 +6,11 @@
  */
 
 #pragma once
-
-
 #include <ai.h>
-
 #include <math.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-
 #include <string>
 #include <vector>
 #include <iostream>
@@ -58,23 +53,23 @@ public:
    CRvShadingManager() {}
    ~CRvShadingManager() {}
 
-   void restore();
-   void isolateSelected();
+   void Restore();
+   void IsolateSelected();
    
-   void setShaderName(const std::string &name);
-   const std::string &getShaderName() const {return m_debug_shader_name;}
-   void objectNameChanged(const std::string &new_name, const std::string &old_name);
+   void SetShaderName(const std::string &name);
+   const std::string &GetShaderName() const {return m_debugShaderName;}
+   void ObjectNameChanged(const std::string &newName, const std::string &oldName);
 
 private:
-   static bool checkShaderConnections(const AtNode *, const AtNode *);
-   void restoreShaders();
-   void restoreLights();
+   static bool CheckShaderConnections(const AtNode *, const AtNode *);
+   void RestoreShaders();
+   void RestoreLights();
 
-   std::tr1::unordered_map<std::string, std::string> m_shader_map;
-   std::tr1::unordered_map<std::string, float> m_light_intensities;
+   std::tr1::unordered_map<std::string, std::string> m_shaderMap;
+   std::tr1::unordered_map<std::string, float> m_lightIntensities;
 
-   std::vector<std::string> m_disabled_shaders;
-   std::string  m_debug_shader_name;
+   std::vector<std::string> m_disabledShaders;
+   std::string  m_debugShaderName;
    
 };
 

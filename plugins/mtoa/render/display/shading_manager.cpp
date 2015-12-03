@@ -5,30 +5,12 @@
 #include <string.h>
 #include "shading_manager.h"
 
-/*
-static AtNode *getShaderUtilityBlack()
-{
-   AtNode *utility_shader = AiNodeLookUpByName("_rvdbg_black");
-   if (utility_shader == NULL)
-   {
-
-      // black mask
-      utility_shader = AiNode("utility");
-      AiNodeSetStr(utility_shader, "name", "_rvdbg_black");
-      AiNodeSetStr(utility_shader, "color_mode", "color");
-      AiNodeSetStr(utility_shader, "shade_mode", "flat");
-      AiNodeSetRGB(utility_shader, "color", 0.f, 0.f, 0.f);
-   }
-   return utility_shader;
-}
-*/
-
 
 // as of now we're having to check the shaders connections at every re-render
 // which isn't ideal at all.
 // we should find a way to do it only once until the shaders connections change.
 // Problem : how to find out that something has changed in the shaders connections ?
-bool CRvShadingManager::checkShaderConnections(const AtNode *start, const AtNode *end)
+bool CRvShadingManager::CheckShaderConnections(const AtNode *start, const AtNode *end)
 {
    if (start == end) return true;
    const AtNodeEntry *nentry = AiNodeGetNodeEntry(start);
@@ -41,13 +23,13 @@ bool CRvShadingManager::checkShaderConnections(const AtNode *start, const AtNode
       AtNode *link = AiNodeGetLink(start, paramName);
       if (link == NULL) continue;
 
-      if (checkShaderConnections(link, end)) return true;
+      if (CheckShaderConnections(link, end)) return true;
    }
    AiParamIteratorDestroy(iter);
    return false;
 }
 
-void CRvShadingManager::restoreLights()
+void CRvShadingManager::RestoreLights()
 {
    AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_LIGHT);
    // re-enable all lights
@@ -58,77 +40,77 @@ void CRvShadingManager::restoreLights()
    }
 }
 
-void CRvShadingManager::restoreShaders()
+void CRvShadingManager::RestoreShaders()
 {   
-   if (m_shader_map.empty() && m_disabled_shaders.empty()) return;
+   if (m_shaderMap.empty() && m_disabledShaders.empty()) return;
 
    // re-enable all shaders that have been previously disabled
    // (those not attached to isolated shading tree)
-   for (size_t i = 0; i < m_disabled_shaders.size(); ++i)
+   for (size_t i = 0; i < m_disabledShaders.size(); ++i)
    {
-      AtNode *shader = AiNodeLookUpByName(m_disabled_shaders[i].c_str());
+      AtNode *shader = AiNodeLookUpByName(m_disabledShaders[i].c_str());
       if (shader == NULL) continue;
       AiNodeSetDisabled(shader, false);
    }
-   m_disabled_shaders.clear();
+   m_disabledShaders.clear();
 
    // restore all shape -> shader connections to the original ones
    AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
    
-   std::string map_key;
+   std::string mapKey;
 
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode *shape = AiNodeIteratorGetNext(iter);
-      const char *shape_name = AiNodeGetName(shape);
+      const char *shapeName = AiNodeGetName(shape);
 
-      AtArray *shape_shaders = AiNodeGetArray(shape, "shader");
-      if (shape_shaders == NULL) continue;
+      AtArray *shapeShaders = AiNodeGetArray(shape, "shader");
+      if (shapeShaders == NULL) continue;
 
-      for (unsigned int g = 0; g < shape_shaders->nelements; ++g)
+      for (unsigned int g = 0; g < shapeShaders->nelements; ++g)
       {
-         AtNode *shader = (AtNode *)AiArrayGetPtr(shape_shaders, g);
+         AtNode *shader = (AtNode *)AiArrayGetPtr(shapeShaders, g);
          if(shader == NULL) continue;
 
-         map_key = shape_name;
+         mapKey = shapeName;
 
          char intBuf[512];
          sprintf(intBuf,"%i", g);
-         map_key += "#";
-         map_key += intBuf;
+         mapKey += "#";
+         mapKey += intBuf;
 
-         AtNode *original_shader = AiNodeLookUpByName(m_shader_map[map_key].c_str());
-         if (original_shader == NULL) continue;
+         AtNode *originalShader = AiNodeLookUpByName(m_shaderMap[mapKey].c_str());
+         if (originalShader == NULL) continue;
 
          // now let's restore our original shader
-         AiArraySetPtr(shape_shaders, g, original_shader);
+         AiArraySetPtr(shapeShaders, g, originalShader);
       }
    }
    AiNodeIteratorDestroy(iter);
-   m_shader_map.clear();
+   m_shaderMap.clear();
 
 }
 
-void CRvShadingManager::restore()
+void CRvShadingManager::Restore()
 {
-   restoreShaders();
-   restoreLights();
+   RestoreShaders();
+   RestoreLights();
 }
 
 
-void CRvShadingManager::isolateSelected()
+void CRvShadingManager::IsolateSelected()
 {
-   AtNode *debug_shader =  AiNodeLookUpByName (m_debug_shader_name.c_str());
-   AtNode *ai_default_shader = AiNodeLookUpByName("ai_default_reflection_shader");
-   bool all_black = false;
-   if(debug_shader == NULL)
+   AtNode *debugShader =  AiNodeLookUpByName (m_debugShaderName.c_str());
+   AtNode *aiDefaultShader = AiNodeLookUpByName("ai_default_reflection_shader");
+   bool allBlack = false;
+   if(debugShader == NULL)
    {
       // the default shader is set to black matte
-      debug_shader = ai_default_shader;
-      all_black = true;
+      debugShader = aiDefaultShader;
+      allBlack = true;
    }
 
-   const AtNodeEntry *entry = AiNodeGetNodeEntry(debug_shader);
+   const AtNodeEntry *entry = AiNodeGetNodeEntry(debugShader);
    int type = AiNodeEntryGetType(entry);
 
    if (type == AI_NODE_LIGHT)
@@ -143,7 +125,7 @@ void CRvShadingManager::isolateSelected()
       {
          AtNode *light = AiNodeIteratorGetNext(iter);
          // disable all but the selected light
-         AiNodeSetDisabled(light, (light != debug_shader));
+         AiNodeSetDisabled(light, (light != debugShader));
       }
       AiNodeIteratorDestroy(iter);
       return;
@@ -155,32 +137,32 @@ void CRvShadingManager::isolateSelected()
 
    AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
    
-   std::string map_key, shader_name;
+   std::string mapKey, shaderName;
 
    // loop over all shapes
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode *shape = AiNodeIteratorGetNext(iter);
-      const char *shape_name = AiNodeGetName(shape);
+      const char *shapeName = AiNodeGetName(shape);
 
       // get the list of shaders attached to it
-      AtArray *shape_shaders = AiNodeGetArray(shape, "shader");
+      AtArray *shapeShaders = AiNodeGetArray(shape, "shader");
 
       // no shaders ? get out
-      if (shape_shaders == NULL) continue;
+      if (shapeShaders == NULL) continue;
 
       // loop over all shaders for this shape      
-      for (unsigned int g = 0; g < shape_shaders->nelements; ++g)
+      for (unsigned int g = 0; g < shapeShaders->nelements; ++g)
       {
-         AtNode *shader = (AtNode *)AiArrayGetPtr(shape_shaders, g);
+         AtNode *shader = (AtNode *)AiArrayGetPtr(shapeShaders, g);
          if(shader == NULL) continue;
-         shader_name = AiNodeGetStr(shader, "name");
+         shaderName = AiNodeGetStr(shader, "name");
          
-         map_key = shape_name;
+         mapKey = shapeName;
          char intBuf[512];
          sprintf(intBuf,"%i", g);
-         map_key += "#";
-         map_key += intBuf;
+         mapKey += "#";
+         mapKey += intBuf;
          
 
          // let's store the original shader's name in a map (where the key is {shape}#{group})
@@ -189,7 +171,7 @@ void CRvShadingManager::isolateSelected()
          // in future situations we're not thinking of right now
 
          // check if this is not already a debug shader !!!
-         if (shader == ai_default_shader || shader_name == m_debug_shader_name || (shader_name.length() > 7 && shader_name[0] == '_' && shader_name.substr(0, 7) == "_rvdbg_"))
+         if (shader == aiDefaultShader || shaderName == m_debugShaderName || (shaderName.length() > 7 && shaderName[0] == '_' && shaderName.substr(0, 7) == "_rvdbg_"))
          {
             // this looks like a debug shader, don't store the map
          } else 
@@ -200,24 +182,24 @@ void CRvShadingManager::isolateSelected()
             // we could store the AtNode* but it might cause dangling pointers
             // in future situations we're not thinking of right now
 
-            m_shader_map[map_key] = AiNodeGetName(shader);
+            m_shaderMap[mapKey] = AiNodeGetName(shader);
             // Stored !!!
          }
          
          if (type == AI_NODE_SHADER)
          {
 
-            if (debug_shader == shader)
+            if (debugShader == shader)
             {
                // this is the isolated shader, nothing to do
                
-            } else if(all_black == false && checkShaderConnections(AiNodeLookUpByName(m_shader_map[map_key].c_str()), debug_shader))
+            } else if(allBlack == false && CheckShaderConnections(AiNodeLookUpByName(m_shaderMap[mapKey].c_str()), debugShader))
             {
                // the isolated shader is connected to this shading tree
-               // attach debug_shader
+               // attach debugShader
 
-               // now assign debug_shader
-               AiArraySetPtr(shape_shaders, g, debug_shader);
+               // now assign debugShader
+               AiArraySetPtr(shapeShaders, g, debugShader);
             } else 
             {
                // shader is not attached in my shading tree
@@ -225,12 +207,12 @@ void CRvShadingManager::isolateSelected()
                if (!AiNodeIsDisabled(shader))
                {
                   AiNodeSetDisabled(shader, true);
-                  m_disabled_shaders.push_back(shader_name);
+                  m_disabledShaders.push_back(shaderName);
                }
             }
          } else if (type == AI_NODE_SHAPE)
          {
-            if (debug_shader == shape)
+            if (debugShader == shape)
             {
                // this shape is selected -> nothing to do 
             } else
@@ -239,7 +221,7 @@ void CRvShadingManager::isolateSelected()
                // we can't disable the shader as a single shader can be assigned to multiple shapes
                // we don't want to disable the shape as we want it (to be confirmed ?) as a black matte
                
-               AiArraySetPtr(shape_shaders, g, ai_default_shader);
+               AiArraySetPtr(shapeShaders, g, aiDefaultShader);
             }
          }
       }
@@ -247,13 +229,13 @@ void CRvShadingManager::isolateSelected()
    AiNodeIteratorDestroy(iter);
 }
 
-void CRvShadingManager::setShaderName(const std::string &name)
+void CRvShadingManager::SetShaderName(const std::string &name)
 {
-   restore();
-   m_debug_shader_name = name;
+   Restore();
+   m_debugShaderName = name;
 }
 
-void CRvShadingManager::objectNameChanged(const std::string &new_name, const std::string &old_name)
+void CRvShadingManager::ObjectNameChanged(const std::string &new_name, const std::string &old_name)
 {
    // depending on the order of events, we might be called before or after Arnold node has been renamed :-/
    AtNode *node = AiNodeLookUpByName(old_name.c_str());
@@ -271,11 +253,11 @@ void CRvShadingManager::objectNameChanged(const std::string &new_name, const std
    {
       // check in the maps if there is data with the previous name
       // and eventually replace it
-      if(!m_shader_map.empty())
+      if(!m_shaderMap.empty())
       {
 
-         std::tr1::unordered_map<std::string, std::string>::iterator iter = m_shader_map.begin();
-         for ( ; iter != m_shader_map.end(); iter++)
+         std::tr1::unordered_map<std::string, std::string>::iterator iter = m_shaderMap.begin();
+         for ( ; iter != m_shaderMap.end(); iter++)
          {
             const std::string &shader_key = (*iter).first;
             if (shader_key.substr(0, shader_key.find('#')) == old_name)
@@ -294,15 +276,15 @@ void CRvShadingManager::objectNameChanged(const std::string &new_name, const std
    {
       // check in the maps if there is data with the previous name
       // and eventually replace it
-      if(!m_shader_map.empty())
+      if(!m_shaderMap.empty())
       {
-         std::tr1::unordered_map<std::string, std::string>::iterator iter = m_shader_map.begin();
-         for ( ; iter != m_shader_map.end(); iter++)
+         std::tr1::unordered_map<std::string, std::string>::iterator iter = m_shaderMap.begin();
+         for ( ; iter != m_shaderMap.end(); iter++)
          {
             //const std::string &shader_key = (*iter).first;
-            std::string &shader_name = (*iter).second;
+            std::string &shaderName = (*iter).second;
 
-            if (shader_name == old_name)
+            if (shaderName == old_name)
             {
                (*iter).second = new_name;
             }
@@ -311,18 +293,18 @@ void CRvShadingManager::objectNameChanged(const std::string &new_name, const std
 
    } else if (type == AI_NODE_LIGHT)
    {
-      if (!m_light_intensities.empty())
+      if (!m_lightIntensities.empty())
       {
-         std::tr1::unordered_map<std::string, float>::iterator iter = m_light_intensities.begin();
-         for ( ; iter != m_light_intensities.end(); iter++)
+         std::tr1::unordered_map<std::string, float>::iterator iter = m_lightIntensities.begin();
+         for ( ; iter != m_lightIntensities.end(); iter++)
          {
             const std::string &light_key = (*iter).first;
 
             if (light_key == old_name)
             {
                float intensity = (*iter).second;
-               m_light_intensities.erase(iter);
-               m_light_intensities[new_name] = intensity;
+               m_lightIntensities.erase(iter);
+               m_lightIntensities[new_name] = intensity;
                break;
             }
          }

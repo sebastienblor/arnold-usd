@@ -36,22 +36,22 @@ static void BucketSetThreadColor(CRenderView* rv, int xo, int yo, int xsize, int
    }
    rgba.a = 1.f;
 
-   int min_x = xo;
-   int min_y = yo;
-   int max_x = xo + xsize;
-   int max_y = yo + ysize;
+   int minX = xo;
+   int minY = yo;
+   int maxX = xo + xsize;
+   int maxY = yo + ysize;
 
 
    // paint in checkerboard (8-pixels wide)
-   for (int j = min_y, by = 0; j < max_y; j++, by++)
+   for (int j = minY, by = 0; j < maxY; j++, by++)
    {
-      for (int i = min_x, bx = 0; i < max_x; i++, bx++)
+      for (int i = minX, bx = 0; i < maxX; i++, bx++)
       {
          if (((bx == 0 || bx == xsize - 1) && (5 * by < ysize || 5 * (ysize - by - 1) < ysize)) ||
              ((by == 0 || by == ysize - 1) && (5 * bx < xsize || 5 * (xsize - bx - 1) < xsize)))
          {
             // overwrite the color in the corners
-            rv->setPixelColor(i, j, rgba);
+            rv->SetPixelColor(i, j, rgba);
          }
       }
    }
@@ -119,21 +119,21 @@ driver_prepare_bucket
 
    AtParamValue *params = AiNodeGetParams(node);
    CRenderView *rv = (CRenderView *) _userdata;
-   if (!rv->getShowRenderingTiles()) return;
+   if (!rv->GetShowRenderingTiles()) return;
 
    // translate to local display coordinates (cropped over overscan)
-   int min_x = bucket_xo - rv->m_min_x;
-   int min_y = bucket_yo - rv->m_min_y;
-   int max_x = MIN(min_x + bucket_size_x, rv->m_reg_x);
-   int max_y = MIN(min_y + bucket_size_y, rv->m_reg_y);
+   int minX = bucket_xo - rv->m_minX;
+   int minY = bucket_yo - rv->m_minY;
+   int maxX = MIN(minX + bucket_size_x, rv->m_regX);
+   int maxY = MIN(minY + bucket_size_y, rv->m_regY);
 
    // submit a 'prepare-bucket' event into our queue
    BucketSetThreadColor(rv,
-                        min_x, min_y,
-                        max_x - min_x, max_y - min_y,
+                        minX, minY,
+                        maxX - minX, maxY - minY,
                         tid);
 
-   rv->draw(min_x, min_y, max_x - min_x, max_y - min_y);
+   rv->Draw(minX, minY, maxX - minX, maxY - minY);
 }
 
 driver_process_bucket
@@ -142,106 +142,106 @@ driver_process_bucket
    CRenderView *rv = (CRenderView *) _userdata;
 
    // get the first AOV layer
-   int pixel_type;
-   const void* bucket_data;
+   int pixelType;
+   const void* bucketData;
 
 
    // translate to local display coordinates (cropped over overscan)
-   int min_x = bucket_xo - rv->m_min_x;
-   int min_y = bucket_yo - rv->m_min_y;
-   int max_x = MIN(min_x + bucket_size_x, rv->m_reg_x);
-   int max_y = MIN(min_y + bucket_size_y, rv->m_reg_y);
+   int minX = bucket_xo - rv->m_minX;
+   int minY = bucket_yo - rv->m_minY;
+   int maxX = MIN(minX + bucket_size_x, rv->m_regX);
+   int maxY = MIN(minY + bucket_size_y, rv->m_regY);
 
 
-   int AA_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   int AA_spacing = 1 << (-AA_samples);
+   int AASamples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   int AASpacing = 1 << (-AASamples);
    int spacing = 1;
-   bool has_spacing = false;
+   bool hasSpacing = false;
 
-   if (AA_samples < 0 && (min_x & (AA_spacing-1)) == 0 && (min_y & (AA_spacing-1)) == 0)
+   if (AASamples < 0 && (minX & (AASpacing-1)) == 0 && (minY & (AASpacing-1)) == 0)
    {
-      spacing = AA_spacing;
-      has_spacing = true;
+      spacing = AASpacing;
+      hasSpacing = true;
    }
 
 
    //const char *aov_name;
-   if (!AiOutputIteratorGetNext(iterator, NULL /* &aov_name */, &pixel_type, &bucket_data)) return;
+   if (!AiOutputIteratorGetNext(iterator, NULL /* &aov_name */, &pixelType, &bucketData)) return;
 
-   for (int j = min_y; j < max_y; j+=spacing)
+   for (int j = minY; j < maxY; j+=spacing)
    {
-      int in_j_offset = (j - min_y) * bucket_size_x;
+      int inOffsetJ = (j - minY) * bucket_size_x;
 
-      for (int i = min_x; i < max_x; i+=spacing)
+      for (int i = minX; i < maxX; i+=spacing)
       {
          
-         int in_idx = in_j_offset + i - min_x;
+         int inIdx = inOffsetJ + i - minX;
         // write to buffer
-         if (has_spacing)
+         if (hasSpacing)
          {
-            rv->setPixelsBlock(i, j, MIN(i + spacing, max_x), MIN(j + spacing, max_y), ((const AtRGBA *)bucket_data)[in_idx]);
+            rv->SetPixelsBlock(i, j, MIN(i + spacing, maxX), MIN(j + spacing, maxY), ((const AtRGBA *)bucketData)[inIdx]);
          } else
          {
             // simpler / faster case
-            rv->setPixelColor(i, j, ((const AtRGBA *)bucket_data)[in_idx]);
+            rv->SetPixelColor(i, j, ((const AtRGBA *)bucketData)[inIdx]);
          }
       }
    }
    if (K_enable_aovs)
    {
       int AOVIndex = 0;
-      while (AiOutputIteratorGetNext(iterator, NULL /*&aov_name*/, &pixel_type, &bucket_data))
+      while (AiOutputIteratorGetNext(iterator, NULL /*&aov_name*/, &pixelType, &bucketData))
       {
-         for (int j = min_y; j < max_y; j+=spacing)
+         for (int j = minY; j < maxY; j+=spacing)
          {
-            int in_j_offset = (j - min_y) * bucket_size_x;
+            int inOffsetJ = (j - minY) * bucket_size_x;
 
-            for (int i = min_x; i < max_x; i+=spacing)
+            for (int i = minX; i < maxX; i+=spacing)
             {  
-               int in_idx = in_j_offset + i - min_x;
+               int inIdx = inOffsetJ + i - minX;
               // write to buffer
-               if (has_spacing)
+               if (hasSpacing)
                {
-                  switch(pixel_type)
+                  switch(pixelType)
                   {
                      case AI_TYPE_RGBA:
-                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), ((const AtRGBA *)bucket_data)[in_idx], AOVIndex);
+                        rv->SetPixelsBlock(i, j,  MIN(i + spacing, maxX), MIN(j + spacing, maxY), ((const AtRGBA *)bucketData)[inIdx], AOVIndex);
                         break;
 
                      {
                      case AI_TYPE_RGB:
                      case AI_TYPE_VECTOR:
                      case AI_TYPE_POINT:
-                        const AtRGB &rgb = ((const AtRGB *)bucket_data)[in_idx];
+                        const AtRGB &rgb = ((const AtRGB *)bucketData)[inIdx];
                         AtRGBA rgba;
                         rgba.r = rgb.r;
                         rgba.g = rgb.g;
                         rgba.b = rgb.b;
                         rgba.a = 1.f;
-                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), rgba, AOVIndex);
+                        rv->SetPixelsBlock(i, j,  MIN(i + spacing, maxX), MIN(j + spacing, maxY), rgba, AOVIndex);
                         break;
                      }
                      {
                      case AI_TYPE_FLOAT:
-                        const float &flt = ((const float *)bucket_data)[in_idx];
+                        const float &flt = ((const float *)bucketData)[inIdx];
                         AtRGBA rgba;
                         rgba.r = rgba.g = rgba.b = flt;
                         rgba.a = 1.f;
-                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), rgba, AOVIndex);
+                        rv->SetPixelsBlock(i, j,  MIN(i + spacing, maxX), MIN(j + spacing, maxY), rgba, AOVIndex);
                         break;
                      }
                      {
                         case AI_TYPE_INT:
-                        const int &int_val = ((const int *)bucket_data)[in_idx];
+                        const int &intVal = ((const int *)bucketData)[inIdx];
                         AtRGBA rgba;
                         // not a simple cast, because we'll want to get the original 
                         // int value later (when picking)
 
-                        //*((int*)&rgba.r) = int_val;
-                        rgba.r = reinterpret_type<int, float>(int_val);
+                        //*((int*)&rgba.r) = intVal;
+                        rgba.r = reinterpret_type<int, float>(intVal);
                         rgba.g = rgba.b = rgba.r;
                         rgba.a = 1.f;
-                        rv->setPixelsBlock(i, j,  MIN(i + spacing, max_x), MIN(j + spacing, max_y), rgba, AOVIndex);
+                        rv->SetPixelsBlock(i, j,  MIN(i + spacing, maxX), MIN(j + spacing, maxY), rgba, AOVIndex);
                         break;
                      }
                      default:
@@ -250,45 +250,45 @@ driver_process_bucket
                   }
                } else
                {
-                  switch(pixel_type)
+                  switch(pixelType)
                   {
                      case AI_TYPE_RGBA:
-                        rv->setAOVPixelColor(AOVIndex, i, j, ((const AtRGBA *)bucket_data)[in_idx]);
+                        rv->SetAOVPixelColor(AOVIndex, i, j, ((const AtRGBA *)bucketData)[inIdx]);
                         break;
                      {
                      case AI_TYPE_RGB:
                      case AI_TYPE_VECTOR:
                      case AI_TYPE_POINT:
-                        const AtRGB &rgb = ((const AtRGB *)bucket_data)[in_idx];
+                        const AtRGB &rgb = ((const AtRGB *)bucketData)[inIdx];
                         AtRGBA rgba;
                         rgba.r = rgb.r;
                         rgba.g = rgb.g;
                         rgba.b = rgb.b;
                         rgba.a = 1.f;
-                        rv->setAOVPixelColor(AOVIndex, i, j, rgba);
+                        rv->SetAOVPixelColor(AOVIndex, i, j, rgba);
                         break;
                      }
 
                      {
                      case AI_TYPE_FLOAT:
-                        const float &flt = ((const float *)bucket_data)[in_idx];
+                        const float &flt = ((const float *)bucketData)[inIdx];
                         AtRGBA rgba;
                         rgba.r = rgba.g = rgba.b = flt;
                         rgba.a = 1.f;
-                        rv->setAOVPixelColor(AOVIndex, i, j, rgba);
+                        rv->SetAOVPixelColor(AOVIndex, i, j, rgba);
                         break;
                      }
                      {
                      case AI_TYPE_INT:
-                        const int &int_val = ((const int *)bucket_data)[in_idx];
+                        const int &intVal = ((const int *)bucketData)[inIdx];
                         AtRGBA rgba;
                         // not a simple cast, because we'll want to get the original 
                         // int value later (when picking)
-                        //*((int*)&rgba.r) = int_val;
-                        rgba.r = reinterpret_type<int, float>(int_val);
+                        //*((int*)&rgba.r) = intVal;
+                        rgba.r = reinterpret_type<int, float>(intVal);
                         rgba.g = rgba.b = rgba.r;
                         rgba.a = 1.f;
-                        rv->setAOVPixelColor(AOVIndex, i, j, rgba);
+                        rv->SetAOVPixelColor(AOVIndex, i, j, rgba);
                         break;
                      }
                      default:
@@ -301,7 +301,7 @@ driver_process_bucket
       }
    }
 
-   rv->draw(min_x, min_y, max_x - min_x, max_y - min_y);
+   rv->Draw(minX, minY, maxX - minX, maxY - minY);
 }
 
 driver_write_bucket
@@ -314,7 +314,7 @@ driver_close
    CRenderView *rv = (CRenderView *)_userdata;
 
    // signal that a full frame has finished rendering
-   rv->draw();
+   rv->Draw();
 }
 
 node_finish

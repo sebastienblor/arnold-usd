@@ -57,59 +57,60 @@ public:
    CRenderGLWidget(QWidget *parent, CRenderView &rv, int width, int height);
    virtual ~CRenderGLWidget();
    
-   void initSize(int width, int height);
-   void initializeGL();
-   void resizeGL(int width, int height);
-   void paintGL();
-   void closeEvent(QCloseEvent *event);
+   void InitSize(int width, int height);
 
-   AtRGBA8 *getBuffer() { return m_front_buffer; }
+
+
+   AtRGBA8 *GetBuffer() { return m_frontBuffer; }
    
-   int width() { return m_width; }
-   int height() { return m_height; }
+   int Width() { return m_width; }
+   int Height() { return m_height; }
 
-   void copyToBackBuffer();
-   void reloadBuffer(AtRvColorMode color_mode);
+   void ReloadBuffer(AtRvColorMode colorMode);
 
-   void setRegionCrop(int start_x, int start_y, int end_x, int end_y);
-   void clearRegionCrop();
+   void SetRegionCrop(int startX, int startY, int endX, int endY);
+   void ClearRegionCrop();
 
-   void setPan(int x, int y)
+   void SetPan(int x, int y)
    {
       m_pan[0] = x; 
       m_pan[1] = y; 
    }
-   void getPan(int &x, int &y) const
+   void GetPan(int &x, int &y) const
    {
       x = m_pan[0];
       y = m_pan[1];
    }
 
-   void setZoomFactor(float z);
-   float getZoomFactor() const {return m_zoomFactor;}
+   void SetZoomFactor(float z);
+   float GetZoomFactor() const {return m_zoomFactor;}
 
-   const AtBBox2 *getRegion() const {return (m_regionCrop) ? &m_region : NULL;}
+   const AtBBox2 *GetRegion() const {return (m_regionCrop) ? &m_region : NULL;}
 
-   void project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp = false) const;
+   void Project(int windowX, int windowY, int& bufferX, int &bufferY, bool clamp = false) const;
 
-   void debugGPUState() {m_printGPUState = true;}
-   void setBackgroundImage(const std::string &filename);
-   void setBackgroundChecker();
-   void setBackgroundColor (const AtRGBA &c) {m_bg_color = c;}
-   const AtRGBA &getBackgroundColor() const {return m_bg_color;}
+   void DebugGPUState() {m_printGPUState = true;}
+   void SetBackgroundImage(const std::string &filename);
+   void SetBackgroundChecker();
+   void SetBackgroundColor (const AtRGBA &c) {m_bgColor = c;}
+   const AtRGBA &GetBackgroundColor() const {return m_bgColor;}
 
-   BackgroundData *getBackgroundData() {return m_bg_data;}
+   BackgroundData *GetBackgroundData() {return m_bgData;}
 
+// Qt virtual functions
+   virtual void initializeGL();
+   virtual void resizeGL(int width, int height);
+   virtual void paintGL();
+   
 private:
-   void setupTexture();
-   void displayBuffer(int w, int h, const AtBBox2 *update_region,
-             AtRvColorMode color_mode, bool back_buffer);
+   void SetupTexture();
+   void DisplayBuffer(int w, int h, const AtBBox2 *updateRegion,
+             AtRvColorMode colorMode);
 
    CRenderView &m_renderview;
 
    // buffer
-   AtRGBA8 *m_front_buffer;
-   AtRGBA8 *m_back_buffer;
+   AtRGBA8 *m_frontBuffer;
    
    // OpenGL textured handle
    GLuint m_texture;
@@ -124,8 +125,8 @@ private:
    int m_pan[2];
    float m_zoomFactor;
   
-   BackgroundData *m_bg_data;
-   AtRGBA m_bg_color;
+   BackgroundData *m_bgData;
+   AtRGBA m_bgColor;
 
    bool m_printGPUState;
   

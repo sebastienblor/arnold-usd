@@ -43,19 +43,19 @@ class CRenderViewManipulator
 public:
    CRenderViewManipulator(CRenderView &rv, int x, int y) :
          m_renderView(rv),
-         m_start_x(x),
-         m_start_y(y) {}
+         m_startX(x),
+         m_startY(y) {}
 
 
    virtual ~CRenderViewManipulator() {}
 
-   virtual void mouseMove(int x, int y);
-   virtual void mouseRelease(int x, int y);
+   virtual void MouseMove(int x, int y);
+   virtual void MouseRelease(int x, int y);
 
 protected:
    CRenderView &m_renderView;
-   int m_start_x;
-   int m_start_y;
+   int m_startX;
+   int m_startY;
 };
 
 
@@ -67,8 +67,8 @@ public:
    virtual ~CRenderViewCropRegion();
 
 
-   virtual void mouseMove(int x, int y);
-   virtual void mouseRelease(int x, int y);
+   virtual void MouseMove(int x, int y);
+   virtual void MouseRelease(int x, int y);
 
 };
 
@@ -93,8 +93,8 @@ public:
    virtual ~CRenderView2DPan();
 
 
-   virtual void mouseMove(int x, int y);
-   virtual void mouseRelease(int x, int y);
+   virtual void MouseMove(int x, int y);
+   virtual void MouseRelease(int x, int y);
 
 
 
@@ -108,10 +108,10 @@ public:
    virtual ~CRenderView2DZoom();
 
 
-   virtual void mouseMove(int x, int y);
-   virtual void mouseRelease(int x, int y);
+   virtual void MouseMove(int x, int y);
+   virtual void MouseRelease(int x, int y);
 
-   static void wheel(CRenderView &renderView, float delta);
+   static void Wheel(CRenderView &renderView, float delta);
 
 
 };
@@ -125,16 +125,16 @@ public:
    virtual ~CRenderView3DManipulator();
 
 
-   virtual void mouseMove(int x, int y);
-   virtual void mouseRelease(int x, int y);
+   virtual void MouseMove(int x, int y);
+   virtual void MouseRelease(int x, int y);
 
 protected:
 
    MDagPath m_cameraPath;
    MFnCamera m_camera;
    
-   MMatrix m_original_matrix;
-   MPoint m_original_position;
+   MMatrix m_originalMatrix;
+   MPoint m_originalPosition;
 };
 
 
@@ -147,13 +147,13 @@ public:
    virtual ~CRenderView3DPan();
 
 
-   virtual void mouseMove(int x, int y);
+   virtual void MouseMove(int x, int y);
 
 protected : 
-   MVector  m_up_direction;
-   MVector  m_right_direction;
-   MVector  m_view_direction;
-   float    m_dist_factor;
+   MVector  m_upDirection;
+   MVector  m_rightDirection;
+   MVector  m_viewDirection;
+   float    m_distFactor;
 };
 
 
@@ -164,13 +164,13 @@ public:
    virtual ~CRenderView3DZoom();
 
 
-   virtual void mouseMove(int x, int y);
+   virtual void MouseMove(int x, int y);
 
-   static void wheel(CRenderView &renderView, float delta);
+   static void Wheel(CRenderView &renderView, float delta);
 
 protected:
-   MVector  m_view_direction;
-   MVector  m_up_direction;
+   MVector  m_viewDirection;
+   MVector  m_upDirection;
    MPoint   m_center;
    float    m_dist;
 };
@@ -184,15 +184,15 @@ public:
    virtual ~CRenderView3DRotate();
 
 
-   virtual void mouseMove(int x, int y);
+   virtual void MouseMove(int x, int y);
 
 protected:
    MPoint m_center;
-   MVector m_up_direction;
-   float m_center_dist;
-   float m_orig_lon;
-   float m_orig_lat;
-   MVector m_view_direction;
-   MVector m_orig_rotation;
+   MVector m_upDirection;
+   float m_centerDist;
+   float m_origLon;
+   float m_origLat;
+   MVector m_viewDirection;
+   MVector m_origRotation;
    
 };

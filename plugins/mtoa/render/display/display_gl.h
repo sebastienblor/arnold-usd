@@ -16,9 +16,9 @@
 
 
 /* Print OpenGL error messages */
-void GL_print_error(const char *operation);
+void PrintGLError(const char *operation);
 
-void printGPUState();
+void PrintGPUState();
 
 
 

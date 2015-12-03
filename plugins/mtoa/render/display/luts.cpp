@@ -34,9 +34,9 @@
 #include <iostream>
 #include <sstream>
 #include <fstream> 
+using namespace std;
 
-
-void CRenderViewCCWindow::init()
+void CRenderViewCCWindow::Init()
 {
    QScrollArea *scrollArea = new QScrollArea(this);
    QWidget *scrollWidget = new QWidget(this);
@@ -47,52 +47,52 @@ void CRenderViewCCWindow::init()
    
 
    int line = 20;
-   m_gamma_edit = new QLineEdit(scrollWidget);
-   m_gamma_edit->move(80, line);
+   m_gammaEdit = new QLineEdit(scrollWidget);
+   m_gammaEdit->move(80, line);
 
-   m_gamma_edit->resize(40, 20);
-   m_gamma_edit->setValidator( new QDoubleValidator(0., 100., 2, this) );
-   m_gamma_edit->setText(QString::number(m_colorCorrectSettings.gamma));
+   m_gammaEdit->resize(40, 20);
+   m_gammaEdit->setValidator( new QDoubleValidator(0., 100., 2, this) );
+   m_gammaEdit->setText(QString::number(m_colorCorrectSettings.gamma));
    
 
-   m_gamma_slider = new QSlider(Qt::Horizontal, scrollWidget);
-   m_gamma_slider->move(130, line);
+   m_gammaSlider = new QSlider(Qt::Horizontal, scrollWidget);
+   m_gammaSlider->move(130, line);
 
    
-   m_gamma_slider->resize(150, 20);
-   m_gamma_slider->setMinimum(0);
-   m_gamma_slider->setMaximum(500);
-   m_gamma_slider->setValue(int(m_colorCorrectSettings.gamma * 100));
+   m_gammaSlider->resize(150, 20);
+   m_gammaSlider->setMinimum(0);
+   m_gammaSlider->setMaximum(500);
+   m_gammaSlider->setValue(int(m_colorCorrectSettings.gamma * 100));
 
    QLabel *label = new QLabel(QString("Gamma"), scrollWidget);
    label->resize(40, 20);
    label->move(20, line );
 
-   connect(m_gamma_slider, SIGNAL(valueChanged(int)), this, SLOT(gammaSliderChanged()));
-   connect(m_gamma_edit, SIGNAL(returnPressed()), this, SLOT(gammaTextChanged()));
+   connect(m_gammaSlider, SIGNAL(valueChanged(int)), this, SLOT(GammaSliderChanged()));
+   connect(m_gammaEdit, SIGNAL(returnPressed()), this, SLOT(GammaTextChanged()));
 
    line += 30;
 
-   m_exposure_edit = new QLineEdit(scrollWidget);
-   m_exposure_edit->move(80, line);
+   m_exposureEdit = new QLineEdit(scrollWidget);
+   m_exposureEdit->move(80, line);
 
    
-   m_exposure_edit->resize(40, 20);
-   m_exposure_edit->setValidator( new QDoubleValidator(-100., 100., 2, this) );
-   m_exposure_edit->setText(QString::number(m_colorCorrectSettings.exposure));
+   m_exposureEdit->resize(40, 20);
+   m_exposureEdit->setValidator( new QDoubleValidator(-100., 100., 2, this) );
+   m_exposureEdit->setText(QString::number(m_colorCorrectSettings.exposure));
    
-   m_exposure_slider = new QSlider(Qt::Horizontal, scrollWidget);
-   m_exposure_slider->move(130, line);
-   m_exposure_slider->resize(150, 20);
-   m_exposure_slider->setMinimum(0);
-   m_exposure_slider->setMaximum(1000);
-   m_exposure_slider->setValue(int(m_colorCorrectSettings.exposure * 100) + 500);
+   m_exposureSlider = new QSlider(Qt::Horizontal, scrollWidget);
+   m_exposureSlider->move(130, line);
+   m_exposureSlider->resize(150, 20);
+   m_exposureSlider->setMinimum(0);
+   m_exposureSlider->setMaximum(1000);
+   m_exposureSlider->setValue(int(m_colorCorrectSettings.exposure * 100) + 500);
    label = new QLabel(QString("Exposure"), scrollWidget);
    label->move(20, line);
    label->resize(55, 20);
 
-   connect(m_exposure_slider, SIGNAL(valueChanged(int)), this, SLOT(exposureSliderChanged()));
-   connect(m_exposure_edit, SIGNAL(returnPressed()), this, SLOT(exposureTextChanged()));
+   connect(m_exposureSlider, SIGNAL(valueChanged(int)), this, SLOT(ExposureSliderChanged()));
+   connect(m_exposureEdit, SIGNAL(returnPressed()), this, SLOT(ExposureTextChanged()));
 
    line += 30;
 /*
@@ -108,148 +108,148 @@ void CRenderViewCCWindow::init()
 
    line += 30;
 */
-   m_space_combo = new QComboBox(scrollWidget);
-   m_space_combo->resize(90, 20);
+   m_spaceCombo = new QComboBox(scrollWidget);
+   m_spaceCombo->resize(90, 20);
    
-   m_space_combo->move(80, line);
+   m_spaceCombo->move(80, line);
 
-   m_space_combo->addItem("Linear");
-   m_space_combo->addItem("sRGB");
-   m_space_combo->addItem("Rec709");
-   m_space_combo->addItem("LUT File");
+   m_spaceCombo->addItem("Linear");
+   m_spaceCombo->addItem("sRGB");
+   m_spaceCombo->addItem("Rec709");
+   m_spaceCombo->addItem("LUT File");
 
-   m_space_combo->setCurrentIndex(1);
+   m_spaceCombo->setCurrentIndex(1);
 
    label = new QLabel(QString("Color Space"), scrollWidget);
    label->move(20, line);
    label->resize(70, 20);
 
-   connect(m_space_combo, SIGNAL( activated(int) ), this, SLOT(colorSpaceChanged()));
+   connect(m_spaceCombo, SIGNAL( activated(int) ), this, SLOT(ColorSpaceChanged()));
    line += 30;
 
-   m_lut_file_label = new QLabel(QString("LUT File"), scrollWidget);
-   m_lut_file_label->move(20, line);
-   m_lut_file_label->resize(70, 20);
+   m_lutFileLabel = new QLabel(QString("LUT File"), scrollWidget);
+   m_lutFileLabel->move(20, line);
+   m_lutFileLabel->resize(70, 20);
 
-   m_lut_file_edit =  new QLineEdit(scrollWidget);
-   m_lut_file_edit->move(80, line);
-   m_lut_file_edit->resize(180, 20);
+   m_lutFileEdit =  new QLineEdit(scrollWidget);
+   m_lutFileEdit->move(80, line);
+   m_lutFileEdit->resize(180, 20);
 
-   connect(m_lut_file_edit, SIGNAL(returnPressed()), this, SLOT(lutFileTextChanged()));
+   connect(m_lutFileEdit, SIGNAL(returnPressed()), this, SLOT(LutFileTextChanged()));
 
-   m_lut_file_button = new QPushButton("...", scrollWidget);
-   m_lut_file_button->move(260, line);
-   m_lut_file_button->resize(30, 20);
-   connect(m_lut_file_button, SIGNAL( clicked() ), this, SLOT(browseLutFile()));
+   m_lutFileButton = new QPushButton("...", scrollWidget);
+   m_lutFileButton->move(260, line);
+   m_lutFileButton->resize(30, 20);
+   connect(m_lutFileButton, SIGNAL( clicked() ), this, SLOT(browseLutFile()));
    line += 30;
 
-   m_lut_file_button->setEnabled(false);
-   m_lut_file_edit->setEnabled(false);
-   m_lut_file_label->setEnabled(false);
+   m_lutFileButton->setEnabled(false);
+   m_lutFileEdit->setEnabled(false);
+   m_lutFileLabel->setEnabled(false);
 
 
 //==================================
 
-   QGroupBox *bg_box = new QGroupBox(scrollWidget);
-   bg_box->setTitle("Background");
-   bg_box->move(5, line);
+   QGroupBox *bgBox = new QGroupBox(scrollWidget);
+   bgBox->setTitle("Background");
+   bgBox->move(5, line);
 
-   int bg_line = line;
+   int bgLine = line;
 
    line += 20;
 
-   label = new QLabel(QString("BG"), bg_box);
-   label->move(20 - 5, line - bg_line);
+   label = new QLabel(QString("BG"), bgBox);
+   label->move(20 - 5, line - bgLine);
    label->resize(40, 20);
 
-   m_bg_combo = new QComboBox(bg_box);
-   m_bg_combo->resize(90, 20);
+   m_bgCombo = new QComboBox(bgBox);
+   m_bgCombo->resize(90, 20);
    
-   m_bg_combo->move(80 - 5, line- bg_line);
+   m_bgCombo->move(80 - 5, line- bgLine);
 
-   m_bg_combo->addItem("BG Color");
-   m_bg_combo->addItem("BG Image");
-   m_bg_combo->addItem("Checker");
-   m_bg_combo->setCurrentIndex(0);
+   m_bgCombo->addItem("BG Color");
+   m_bgCombo->addItem("BG Image");
+   m_bgCombo->addItem("Checker");
+   m_bgCombo->setCurrentIndex(0);
 
-   connect(m_bg_combo, SIGNAL( activated(int) ), this, SLOT(bgChanged()));
+   connect(m_bgCombo, SIGNAL( activated(int) ), this, SLOT(BgChanged()));
 
    line += 30;
 
-   m_bg_color_label = new QLabel(QString("Color"), bg_box);
-   m_bg_color_label->move(20 - 5, line- bg_line);
-   m_bg_color_label->resize(70, 20);
+   m_bgColorLabel = new QLabel(QString("Color"), bgBox);
+   m_bgColorLabel->move(20 - 5, line- bgLine);
+   m_bgColorLabel->resize(70, 20);
 
-   m_bg_color_button = new QPushButton("", bg_box);
-   m_bg_color_button->move(80 - 5, line- bg_line);
-   m_bg_color_button->resize(20, 20);
-   connect(m_bg_color_button, SIGNAL( clicked() ), this, SLOT(pickBgColor()));
+   m_bgColorButton = new QPushButton("", bgBox);
+   m_bgColorButton->move(80 - 5, line- bgLine);
+   m_bgColorButton->resize(20, 20);
+   connect(m_bgColorButton, SIGNAL( clicked() ), this, SLOT(PickBgColor()));
    
-   AtRGBA current_bg_color = m_renderView.getGlWidget()->getBackgroundColor();
-   QColor col(int(current_bg_color.r * 255), int(current_bg_color.g * 255), int(current_bg_color.b * 255), 255); 
+   AtRGBA currentBgColor = m_renderView.GetGlWidget()->GetBackgroundColor();
+   QColor col(int(currentBgColor.r * 255), int(currentBgColor.g * 255), int(currentBgColor.b * 255), 255); 
    QString qss = QString("background-color: %1").arg(col.name());
-   m_bg_color_button->setStyleSheet(qss);
+   m_bgColorButton->setStyleSheet(qss);
 
    line += 30;
 
-   m_bg_file_label = new QLabel(QString("Image"), bg_box);
-   m_bg_file_label->move(20 - 5, line- bg_line);
-   m_bg_file_label->resize(70, 20);
+   m_bgFileLabel = new QLabel(QString("Image"), bgBox);
+   m_bgFileLabel->move(20 - 5, line- bgLine);
+   m_bgFileLabel->resize(70, 20);
 
-   m_bg_file_edit =  new QLineEdit(bg_box);
-   m_bg_file_edit->move(80 - 5, line- bg_line);
-   m_bg_file_edit->resize(170, 20);
-   connect(m_bg_file_edit, SIGNAL(returnPressed()), this, SLOT(bgFileTextChanged()));
+   m_bgFileEdit =  new QLineEdit(bgBox);
+   m_bgFileEdit->move(80 - 5, line- bgLine);
+   m_bgFileEdit->resize(170, 20);
+   connect(m_bgFileEdit, SIGNAL(returnPressed()), this, SLOT(BgFileTextChanged()));
 
-   m_bg_file_button = new QPushButton("...", bg_box);
-   m_bg_file_button->move(250 - 5, line- bg_line);
-   m_bg_file_button->resize(30, 20);
+   m_bgFileButton = new QPushButton("...", bgBox);
+   m_bgFileButton->move(250 - 5, line- bgLine);
+   m_bgFileButton->resize(30, 20);
       
-   connect(m_bg_file_button, SIGNAL( clicked() ), this, SLOT(browseBgFile()));
+   connect(m_bgFileButton, SIGNAL( clicked() ), this, SLOT(BrowseBgFile()));
    
    line += 30;
-   m_scale_label = new QLabel(QString("Scale"), bg_box);
-   m_scale_label->move(20 - 5, line- bg_line);
-   m_scale_label->resize(70, 20);
+   m_scaleLabel = new QLabel(QString("Scale"), bgBox);
+   m_scaleLabel->move(20 - 5, line- bgLine);
+   m_scaleLabel->resize(70, 20);
 
-   m_scale_x_edit = new QLineEdit(bg_box);
-   m_scale_x_edit->move(80 - 5, line- bg_line);
-   m_scale_x_edit->resize(40, 20);
-   m_scale_x_edit->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
-   m_scale_x_edit->setText("1");
+   m_scaleEditX = new QLineEdit(bgBox);
+   m_scaleEditX->move(80 - 5, line- bgLine);
+   m_scaleEditX->resize(40, 20);
+   m_scaleEditX->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
+   m_scaleEditX->setText("1");
 
-   m_scale_y_edit = new QLineEdit(bg_box);
-   m_scale_y_edit->move(140 - 5, line- bg_line);
-   m_scale_y_edit->resize(40, 20);
-   m_scale_y_edit->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
-   m_scale_y_edit->setText("1");
+   m_scaleEditY = new QLineEdit(bgBox);
+   m_scaleEditY->move(140 - 5, line- bgLine);
+   m_scaleEditY->resize(40, 20);
+   m_scaleEditY->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
+   m_scaleEditY->setText("1");
 
-   connect(m_scale_x_edit, SIGNAL(returnPressed()), this, SLOT(bgScaleChanged()));
-   connect(m_scale_y_edit, SIGNAL(returnPressed()), this, SLOT(bgScaleChanged()));
+   connect(m_scaleEditX, SIGNAL(returnPressed()), this, SLOT(BgScaleChanged()));
+   connect(m_scaleEditY, SIGNAL(returnPressed()), this, SLOT(BgScaleChanged()));
 
 
    line += 30;
-   m_offset_label = new QLabel(QString("Offset"), bg_box);
-   m_offset_label->move(20 - 5, line- bg_line);
-   m_offset_label->resize(70, 20);
+   m_offsetLabel = new QLabel(QString("Offset"), bgBox);
+   m_offsetLabel->move(20 - 5, line- bgLine);
+   m_offsetLabel->resize(70, 20);
 
-   m_offset_x_edit = new QLineEdit(bg_box);
-   m_offset_x_edit->move(80 - 5, line- bg_line);
-   m_offset_x_edit->resize(40, 20);
-   m_offset_x_edit->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
-   m_offset_x_edit->setText("0");
+   m_offsetEditX = new QLineEdit(bgBox);
+   m_offsetEditX->move(80 - 5, line- bgLine);
+   m_offsetEditX->resize(40, 20);
+   m_offsetEditX->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
+   m_offsetEditX->setText("0");
    
-   m_offset_y_edit = new QLineEdit(bg_box);
-   m_offset_y_edit->move(140 - 5, line- bg_line);
-   m_offset_y_edit->resize(40, 20);
-   m_offset_y_edit->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
-   m_offset_y_edit->setText("0");
+   m_offsetEditY = new QLineEdit(bgBox);
+   m_offsetEditY->move(140 - 5, line- bgLine);
+   m_offsetEditY->resize(40, 20);
+   m_offsetEditY->setValidator( new QDoubleValidator(-1000., 1000., 2, this) );
+   m_offsetEditY->setText("0");
    
 
-   connect(m_offset_x_edit, SIGNAL(returnPressed()), this, SLOT(bgOffsetChanged()));
-   connect(m_offset_y_edit, SIGNAL(returnPressed()), this, SLOT(bgOffsetChanged()));
+   connect(m_offsetEditX, SIGNAL(returnPressed()), this, SLOT(BgOffsetChanged()));
+   connect(m_offsetEditY, SIGNAL(returnPressed()), this, SLOT(BgOffsetChanged()));
    line += 30;
-   bg_box->resize(280, line - bg_line);
+   bgBox->resize(280, line - bgLine);
 
    line += 20;
    resize(300, line);
@@ -258,181 +258,181 @@ void CRenderViewCCWindow::init()
    scrollArea->resize(300, line);
 
 
-   updateBgUI();
+   UpdateBgUI();
 }
 
-void CRenderViewCCWindow::updateBgUI()
+void CRenderViewCCWindow::UpdateBgUI()
 {
-   int bg_combo = m_bg_combo->currentIndex();
+   int bgCombo = m_bgCombo->currentIndex();
 
-   m_bg_color_label->setEnabled((bg_combo == 0));
-   m_bg_color_button->setEnabled((bg_combo == 0));
-   m_bg_file_edit->setEnabled((bg_combo == 1));
-   m_bg_file_label->setEnabled((bg_combo == 1));
-   m_bg_file_button->setEnabled((bg_combo == 1));
-   m_scale_label->setEnabled((bg_combo != 0));
-   m_scale_x_edit->setEnabled((bg_combo != 0));
-   m_scale_y_edit->setEnabled((bg_combo != 0));   
-   m_offset_label->setEnabled((bg_combo != 0));
-   m_offset_x_edit->setEnabled((bg_combo != 0));
-   m_offset_y_edit->setEnabled((bg_combo != 0));
+   m_bgColorLabel->setEnabled((bgCombo == 0));
+   m_bgColorButton->setEnabled((bgCombo == 0));
+   m_bgFileEdit->setEnabled((bgCombo == 1));
+   m_bgFileLabel->setEnabled((bgCombo == 1));
+   m_bgFileButton->setEnabled((bgCombo == 1));
+   m_scaleLabel->setEnabled((bgCombo != 0));
+   m_scaleEditX->setEnabled((bgCombo != 0));
+   m_scaleEditY->setEnabled((bgCombo != 0));   
+   m_offsetLabel->setEnabled((bgCombo != 0));
+   m_offsetEditX->setEnabled((bgCombo != 0));
+   m_offsetEditY->setEnabled((bgCombo != 0));
 }
-void CRenderViewCCWindow::updateBackground()
+void CRenderViewCCWindow::UpdateBackground()
 {
-   int bg_combo = m_bg_combo->currentIndex();
+   int bgCombo = m_bgCombo->currentIndex();
 
-   if (bg_combo == 0)
+   if (bgCombo == 0)
    {
       // bg color
-      m_renderView.getGlWidget()->setBackgroundImage("");
+      m_renderView.GetGlWidget()->SetBackgroundImage("");
       
-   } else if (bg_combo == 1)
+   } else if (bgCombo == 1)
    {
       // bg texture
-      QString filename = m_bg_file_edit->text();
+      QString filename = m_bgFileEdit->text();
       std::string filenameStr = (filename.isEmpty()) ? "" : filename.toStdString();
-      m_renderView.getGlWidget()->setBackgroundImage(filenameStr);
+      m_renderView.GetGlWidget()->SetBackgroundImage(filenameStr);
 
    } else
    {
       // checker
-      m_renderView.getGlWidget()->setBackgroundChecker();
+      m_renderView.GetGlWidget()->SetBackgroundChecker();
    }
 
-   m_renderView.refreshGLBuffer();   
+   m_renderView.RefreshGLBuffer();   
 }
 
-void CRenderViewCCWindow::bgChanged()
+void CRenderViewCCWindow::BgChanged()
 {
-   updateBgUI();
-   updateBackground();
+   UpdateBgUI();
+   UpdateBackground();
 }
-void CRenderViewCCWindow::bgFileTextChanged()
+void CRenderViewCCWindow::BgFileTextChanged()
 {
-   updateBackground();
+   UpdateBackground();
 }
-void CRenderViewCCWindow::pickBgColor()
+void CRenderViewCCWindow::PickBgColor()
 {
-   AtRGBA current_bg_color = m_renderView.getGlWidget()->getBackgroundColor();
-   QColor bg_color(int(current_bg_color.r * 255), int(current_bg_color.g * 255), 
-      int(current_bg_color.b * 255), 255);
+   AtRGBA currentBgColor = m_renderView.GetGlWidget()->GetBackgroundColor();
+   QColor bg_color(int(currentBgColor.r * 255), int(currentBgColor.g * 255), 
+      int(currentBgColor.b * 255), 255);
 
    QColor col = QColorDialog::getColor(bg_color, this);
    if(col.isValid())
    {
       QString qss = QString("background-color: %1").arg(col.name());
-      m_bg_color_button->setStyleSheet(qss);
-      current_bg_color.r = col.redF();
-      current_bg_color.g = col.greenF();
-      current_bg_color.b = col.blueF();
-      current_bg_color.a = col.alphaF();
+      m_bgColorButton->setStyleSheet(qss);
+      currentBgColor.r = col.redF();
+      currentBgColor.g = col.greenF();
+      currentBgColor.b = col.blueF();
+      currentBgColor.a = col.alphaF();
 
-      m_renderView.getGlWidget()->setBackgroundColor(current_bg_color);
-      m_renderView.draw();
+      m_renderView.GetGlWidget()->SetBackgroundColor(currentBgColor);
+      m_renderView.Draw();
    }
 }
 
-void CRenderViewCCWindow::browseBgFile()
+void CRenderViewCCWindow::BrowseBgFile()
 {  
    QString filename = QFileDialog::getOpenFileName(this, tr("Load Background file"), QString(), 
          tr("Image files (*.jpg *.cin *.png *.gif *.als *.rla *.sgi *.tga *.tif *.iff *.exr)"));
 
    if (filename.isEmpty()) return;
    
-   m_bg_file_edit->blockSignals(true);
-   m_bg_file_edit->setText(filename);
-   m_bg_file_edit->blockSignals(false);
+   m_bgFileEdit->blockSignals(true);
+   m_bgFileEdit->setText(filename);
+   m_bgFileEdit->blockSignals(false);
 
-   updateBackground();
+   UpdateBackground();
 }
 
-void CRenderViewCCWindow::bgScaleChanged()
+void CRenderViewCCWindow::BgScaleChanged()
 {
-   CRenderGLWidget::BackgroundData *bgData = m_renderView.getGlWidget()->getBackgroundData();
+   CRenderGLWidget::BackgroundData *bgData = m_renderView.GetGlWidget()->GetBackgroundData();
    if (bgData == NULL) return;
 
-   bgData->scale.x = m_scale_x_edit->text().toFloat();
-   bgData->scale.y = m_scale_y_edit->text().toFloat();
-   m_renderView.draw();
+   bgData->scale.x = m_scaleEditX->text().toFloat();
+   bgData->scale.y = m_scaleEditY->text().toFloat();
+   m_renderView.Draw();
 }
 
-void CRenderViewCCWindow::bgOffsetChanged()
+void CRenderViewCCWindow::BgOffsetChanged()
 {
-   CRenderGLWidget::BackgroundData *bgData = m_renderView.getGlWidget()->getBackgroundData();
+   CRenderGLWidget::BackgroundData *bgData = m_renderView.GetGlWidget()->GetBackgroundData();
    if (bgData == NULL) return;
 
-   bgData->offset.x = m_offset_x_edit->text().toFloat();
-   bgData->offset.y = m_offset_y_edit->text().toFloat();
-   m_renderView.draw();
+   bgData->offset.x = m_offsetEditX->text().toFloat();
+   bgData->offset.y = m_offsetEditY->text().toFloat();
+   m_renderView.Draw();
 }
 
 
-void CRenderViewCCWindow::gammaSliderChanged()
+void CRenderViewCCWindow::GammaSliderChanged()
 {
-   m_colorCorrectSettings.gamma = ((float)m_gamma_slider->sliderPosition()) / 100.f;
+   m_colorCorrectSettings.gamma = ((float)m_gammaSlider->sliderPosition()) / 100.f;
 
-   m_gamma_edit->blockSignals(true);
-   m_gamma_edit->setText(QString::number(m_colorCorrectSettings.gamma));
-   m_gamma_edit->blockSignals(false);
-   m_renderView.refreshGLBuffer();
+   m_gammaEdit->blockSignals(true);
+   m_gammaEdit->setText(QString::number(m_colorCorrectSettings.gamma));
+   m_gammaEdit->blockSignals(false);
+   m_renderView.RefreshGLBuffer();
 }
 
-void CRenderViewCCWindow::gammaTextChanged()
+void CRenderViewCCWindow::GammaTextChanged()
 {
 
-   QString gamma = m_gamma_edit->text();
+   QString gamma = m_gammaEdit->text();
    m_colorCorrectSettings.gamma = gamma.toFloat();
-   m_gamma_slider->blockSignals(true);
-   m_gamma_slider->setValue(int(m_colorCorrectSettings.gamma * 100));
-   m_gamma_slider->blockSignals(false);
-   m_renderView.refreshGLBuffer();
+   m_gammaSlider->blockSignals(true);
+   m_gammaSlider->setValue(int(m_colorCorrectSettings.gamma * 100));
+   m_gammaSlider->blockSignals(false);
+   m_renderView.RefreshGLBuffer();
 }
 
 
-void CRenderViewCCWindow::exposureSliderChanged()
+void CRenderViewCCWindow::ExposureSliderChanged()
 {
-   m_colorCorrectSettings.exposure = ((float)m_exposure_slider->sliderPosition() - 500.f) / 100.f;
+   m_colorCorrectSettings.exposure = ((float)m_exposureSlider->sliderPosition() - 500.f) / 100.f;
    m_colorCorrectSettings.exposureFactor = powf(2.f, m_colorCorrectSettings.exposure);
 
-   m_exposure_edit->blockSignals(true);
-   m_exposure_edit->setText(QString::number(m_colorCorrectSettings.exposure));
-   m_exposure_edit->blockSignals(false);
-   m_renderView.refreshGLBuffer();
+   m_exposureEdit->blockSignals(true);
+   m_exposureEdit->setText(QString::number(m_colorCorrectSettings.exposure));
+   m_exposureEdit->blockSignals(false);
+   m_renderView.RefreshGLBuffer();
 }
 
-void CRenderViewCCWindow::exposureTextChanged()
+void CRenderViewCCWindow::ExposureTextChanged()
 {
 
-   QString exposureStr = m_exposure_edit->text();
+   QString exposureStr = m_exposureEdit->text();
    m_colorCorrectSettings.exposure = exposureStr.toFloat();
    m_colorCorrectSettings.exposureFactor = powf(2.f, m_colorCorrectSettings.exposure);
 
-   m_exposure_slider->blockSignals(true);
-   m_exposure_slider->setValue(int(m_colorCorrectSettings.exposure * 100) + 500);
-   m_exposure_slider->blockSignals(false);
-   m_renderView.refreshGLBuffer();
+   m_exposureSlider->blockSignals(true);
+   m_exposureSlider->setValue(int(m_colorCorrectSettings.exposure * 100) + 500);
+   m_exposureSlider->blockSignals(false);
+   m_renderView.RefreshGLBuffer();
 }
 
 
-void CRenderViewCCWindow::ditherChanged()
+void CRenderViewCCWindow::DitherChanged()
 {
-   m_colorCorrectSettings.dither = m_dither_box->isChecked();
-   m_renderView.refreshGLBuffer();
+   m_colorCorrectSettings.dither = m_ditherBox->isChecked();
+   m_renderView.RefreshGLBuffer();
 }
 
-void CRenderViewCCWindow::colorSpaceChanged()
+void CRenderViewCCWindow::ColorSpaceChanged()
 {
-   m_colorCorrectSettings.space = (CRenderViewColorSpace)m_space_combo->currentIndex();
+   m_colorCorrectSettings.space = (CRenderViewColorSpace)m_spaceCombo->currentIndex();
 
-   bool is_lut = (m_colorCorrectSettings.space == RV_COLOR_SPACE_LUT_FILE);
-   m_lut_file_button->setEnabled(is_lut);
-   m_lut_file_edit->setEnabled(is_lut);
-   m_lut_file_label->setEnabled(is_lut);
-   m_renderView.refreshGLBuffer();  
+   bool isLut = (m_colorCorrectSettings.space == RV_COLOR_SPACE_LUT_FILE);
+   m_lutFileButton->setEnabled(isLut);
+   m_lutFileEdit->setEnabled(isLut);
+   m_lutFileLabel->setEnabled(isLut);
+   m_renderView.RefreshGLBuffer();  
 }
 
 
-void CRenderViewCCWindow::browseLutFile()
+void CRenderViewCCWindow::BrowseLutFile()
 {
    QString lutFilename = QFileDialog::getOpenFileName(this, tr("Load LUT (.cube) file"), QString(), tr("CUBE Files (*.cube)"));
    if (lutFilename == "") return;
@@ -444,7 +444,7 @@ void CRenderViewCCWindow::browseLutFile()
       std::cerr<<"Error : CUBE File not found"<<std::endl;
       return;
    }
-   m_lut_file_edit->setText(lutFilename);
+   m_lutFileEdit->setText(lutFilename);
 
    if (m_colorCorrectSettings.lut3d) delete m_colorCorrectSettings.lut3d;
 
@@ -456,14 +456,14 @@ void CRenderViewCCWindow::browseLutFile()
       cout << "Could not parse the cube info in the input file. Return code = "<< ret << endl;
       return;
    }
-   m_renderView.refreshGLBuffer();
+   m_renderView.RefreshGLBuffer();
 
 }
 
 
-void CRenderViewCCWindow::lutFileTextChanged()
+void CRenderViewCCWindow::LutFileTextChanged()
 {
-   QString lutFilename(m_lut_file_edit->text());
+   QString lutFilename(m_lutFileEdit->text());
    std::string lutFilenameStr = lutFilename.toStdString();
    std::ifstream infile(lutFilenameStr.c_str());
    if(!infile.good())
@@ -482,11 +482,11 @@ void CRenderViewCCWindow::lutFileTextChanged()
       cout << "Could not parse the cube info in the input file. Return code = "<< ret << endl;
       return;
    }
-   m_renderView.refreshGLBuffer();
+   m_renderView.RefreshGLBuffer();
 
 }
 
-void CRenderViewCCWindow::adjustPosition()
+void CRenderViewCCWindow::AdjustPosition()
 {
 
    QPoint position = parentWidget()->pos();
@@ -496,21 +496,18 @@ void CRenderViewCCWindow::adjustPosition()
    m_moving = false;
 }
 
-
+// Qt Virtual funcion redefined
 void CRenderViewCCWindow::moveEvent(QMoveEvent *event)
 {
    if (m_moving) return;
 
    m_moving = true;
-   adjustPosition();
+   AdjustPosition();
    m_moving = false;
 }
 
 
-
-using namespace std;
-
-void CubeLUT::applyLUT(AtRGB &rgb)
+void CubeLUT::ApplyLUT(AtRGB &rgb)
 {
    if (is3d)
    {
