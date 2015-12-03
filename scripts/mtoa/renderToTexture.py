@@ -135,7 +135,7 @@ class MtoARenderToTexture(object):
 
         cmds.rowLayout(numberOfColumns=2, columnAlign2=('left', 'right'))
         cmds.textFieldGrp('udims', label='Udims', ct2=('left', 'left'), cw2=(90,110), text="", w=280)
-        cmds.checkBox( 'all_udims',label='All Udims', value=True )
+        cmds.checkBox( 'all_udims',label='All Udims', value=False )
 
         cmds.setParent("..")
 
