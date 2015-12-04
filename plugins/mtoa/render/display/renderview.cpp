@@ -50,7 +50,7 @@
 #include "icons/SA_icon_region_on.xpm"
 #include "icons/SA_icon_stop.xpm"
 #include "icons/SA_icon_store.xpm"
-#include "icons/SA_icon_delete_stored.xpm"
+//#include "icons/SA_icon_delete_stored.xpm"
 #include "icons/SA_icon_transparent.xpm"
 #include "icons/SA_icon_lut_off.xpm"
 #include "icons/SA_icon_lut_on.xpm"
@@ -140,7 +140,7 @@ CRenderView::~CRenderView()
    if (rvSelectionCb)
    {
       MMessage::removeCallback(rvSelectionCb);
-      rvSelectionCb;
+      rvSelectionCb = 0;
    }
    delete m_mainWindow;
 }
@@ -1679,7 +1679,7 @@ void CRenderViewMainWindow::DeleteStoredImage()
 void
 CRenderViewMainWindow::StoredSliderMoved(int i)
 {
-   m_renderView.m_displayedImageIndex = (i == m_renderView.m_storedSnapshots.size()) ? -1 : i;
+   m_renderView.m_displayedImageIndex = (i == (int)m_renderView.m_storedSnapshots.size()) ? -1 : i;
 
    m_deleteStoredAction->setVisible(m_renderView.m_displayedImageIndex >= 0);
    m_storeAction->setEnabled(m_renderView.m_displayedImageIndex < 0);

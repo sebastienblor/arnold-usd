@@ -646,7 +646,7 @@ void CRenderSession::sleep(AtUInt64 usecs)
 }
 #else
 
-void CRenderView::sleep(AtUInt64 usecs)
+void CRenderSession::sleep(AtUInt64 usecs)
 {
    usleep(usecs);
 }
