@@ -375,7 +375,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
 
             // info.setCameraPos
             MMatrix tm = camera.inclusiveMatrix(&status);
-            info.setCameraPos( tm[3][0], tm[3][1], tm[3][2] );
+            info.setCameraPos( (float)tm[3][0], (float)tm[3][1], (float)tm[3][2] );
 
             // info.fCameraFOV
             info.fCameraFOV = (float)fnCamera.horizontalFieldOfView(&status) * AI_RTOD;
@@ -384,10 +384,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             // This is correct. Maya expects a mix of the inverted and not inverted matrix
             //  values, and also with translation values in a different place.
             MMatrix tmi = camera.inclusiveMatrixInverse(&status);
-            info.setCameraInvMat(tm[0][0], tm[1][0], tm[2][0], tm[0][3],
-                                 tm[0][1], tm[1][1], tm[2][1], tm[1][3],
-                                 tm[0][2], tm[1][2], tm[2][2], tm[2][3],
-                                 tmi[3][0], tmi[3][1], tmi[3][2], tm[3][3]);
+            info.setCameraInvMat((float)tm[0][0], (float)tm[1][0], (float)tm[2][0], (float)tm[0][3],
+                                 (float)tm[0][1], (float)tm[1][1], (float)tm[2][1], (float)tm[1][3],
+                                 (float)tm[0][2], (float)tm[1][2], (float)tm[2][2], (float)tm[2][3],
+                                 (float)tmi[3][0], (float)tmi[3][1], (float)tmi[3][2], (float)tm[3][3]);
 
             // info.fCamRatio
             info.fCamRatio = (float)fnCamera.aspectRatio(&status);
