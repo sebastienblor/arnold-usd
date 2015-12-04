@@ -189,7 +189,7 @@ MUserData* CArnoldAreaLightDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL | MHWRender::kDirectX11); // | MHWRender::kDirectX11); TODO support dx11 later
+    return (MHWRender::kAllDevices);
 }
 
 void CArnoldAreaLightDrawOverride::clearGPUResources()

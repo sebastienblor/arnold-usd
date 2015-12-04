@@ -423,7 +423,7 @@ MStatus CArnoldSession::End()
    MStatus status = MStatus::kSuccess;
 
    m_requestUpdate = false;
-   if (GetSessionMode() == MTOA_SESSION_IPR)
+   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
    {
       ClearUpdateCallbacks();
    }
@@ -644,7 +644,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    // First "real" export
    MGlobal::viewFrame(m_sessionOptions.m_frame);
-   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR)
+   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW)
    {
       // Either for a specific camera or export all cameras
       // Note : in "render selected" mode Maya exports all lights and cameras
@@ -731,7 +731,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    {
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
       // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSessions::End().
-      if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR)
+      if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
          MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
       }
@@ -739,7 +739,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
 
    // add callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR)
+   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
    {
       ObjectToTranslatorMap::iterator it;
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
@@ -1120,10 +1120,20 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 
-void CArnoldSession::RequestUpdate()
+void CArnoldSession::SetContinuousUpdates(bool b) 
 {
+   //if (b == m_continuousUpdates) return;
+   m_continuousUpdates = b;
+   if (m_continuousUpdates && HasObjectsToUpdate())
+   {
+      RequestUpdate();
+   }
+}
+void CArnoldSession::RequestUpdate(bool forceUpdate)
+{
+   if (!forceUpdate && !m_continuousUpdates) return;
+
    m_requestUpdate = true;
-   // Loads the IPRIdleCallback
    CMayaScene::UpdateIPR();
 }
 
@@ -1174,6 +1184,7 @@ void CArnoldSession::DoUpdate()
          // the undo of a delete node
          MObject node = handle.object();
          MString name = MFnDependencyNode(node).name();
+
          std::vector< CNodeTranslator * > translators;
          if (GetActiveTranslators(handle, translators))
          {
@@ -1250,6 +1261,7 @@ void CArnoldSession::DoUpdate()
       {
          CNodeTranslator* translator = (*iter);
          if (translator != NULL) translator->DoUpdate(0);
+         
       }
    }
    else
@@ -1273,7 +1285,7 @@ void CArnoldSession::DoUpdate()
    }
 
    // Refresh translator callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR)
+   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
    {
       for (std::vector<CNodeAttrHandle>::iterator iter = newToUpdate.begin();
          iter != newToUpdate.end(); ++iter)

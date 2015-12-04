@@ -131,7 +131,7 @@ MUserData* CArnoldPhotometricLightDrawOverride::prepareForDraw(
 
 MHWRender::DrawAPI CArnoldPhotometricLightDrawOverride::supportedDrawAPIs() const
 {
-    return (MHWRender::kOpenGL | MHWRender::kDirectX11); // | MHWRender::kDirectX11); TODO support dx11 later
+    return (MHWRender::kAllDevices);
 }
 
 void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)

@@ -159,7 +159,7 @@ vars.AddVariables(
 )
 
 if system.os() == 'darwin':
-    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10')))
+    vars.Add(EnumVariable('SDK_VERSION', 'Version of the Mac OSX SDK to use', '10.7', allowed_values=('10.7', '10.8', '10.9', '10.10', '10.11')))
     vars.Add(PathVariable('SDK_PATH', 'Root path to installed OSX SDKs', '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs'))
 
 if system.os() == 'windows':
@@ -262,10 +262,6 @@ if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
-        
-#Disabling Bifrost for OSX by now
-if system.os() == 'darwin':
-    env['ENABLE_BIFROST'] = 0
 
 mercurial_id = ""
 try:
@@ -425,7 +421,7 @@ elif env['COMPILER'] == 'msvc':
     if env['MODE'] == 'debug':
         env.Append(CPPDEFINES = Split('_DEBUG'))
         # for MSVC memory tracking 
-        env.Append(CPPDEFINES = Split('_CRTDBG_MAP_ALLOC'))
+        #env.Append(CPPDEFINES = Split('_CRTDBG_MAP_ALLOC'))
 
     env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
 elif env['COMPILER'] == 'icc':

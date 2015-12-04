@@ -258,6 +258,15 @@ def startRender():
     if core.ACTIVE_CAMERA != None:
         cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
 
+def startRenderView():
+    # core.ACTIVE_CAMERA is not set, anything we could do here ?
+    #if core.ACTIVE_CAMERA != None:
+    #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
+    # so instead we're calling it without any argument
+    core.createOptions()
+
+    cmds.arnoldRenderView()
+
 def startIpr():
     if core.ACTIVE_CAMERA != None:
         cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='start')
@@ -336,11 +345,11 @@ def createArnoldMenu():
         pm.menuItem('ArnoldUserGuide', label='User Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Arnold+for+Maya+User+Guide'))
 
-        pm.menuItem('ArnoldTutorials', label='Tutorials', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/mayatut/Arnold+for+Maya+Tutorials'))
+        pm.menuItem('ArnoldTutorials', label='Common Workflows', parent='ArnoldHelpMenu',
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Common+Workflows'))
 
         pm.menuItem('ArnoldVideos', label='Videos', parent='ArnoldHelpMenu',
-                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMV/Arnold+for+Maya+Videos'))
+                    c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/AFMUG/Video+Tutorials'))
 
         pm.menuItem(divider=1, parent='ArnoldHelpMenu')
 
@@ -365,6 +374,9 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
 
         pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldRenderView', label='Render View', parent='ArnoldExperimentalMenu',
+                    c=lambda *args: startRenderView())
+
 
         pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 

@@ -263,7 +263,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_diffuse_samples");
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
-   s_attributes.MakeInput("sss_bssrdf_samples");
+   s_attributes.MakeInput("GI_sss_samples");
    
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
@@ -338,6 +338,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_refraction_depth");
    s_attributes.MakeInput("GI_volume_depth");
    s_attributes.MakeInput("GI_total_depth");
+   s_attributes.MakeInput("GI_volume_samples");
 
    s_attributes.MakeInput("enable_fast_opacity");
    
@@ -454,8 +455,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_motion_blur");
    s_attributes.MakeInput("ignore_sss");
    s_attributes.MakeInput("ignore_dof");
-   
-   s_attributes.MakeInput("volume_indirect_samples");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);

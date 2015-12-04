@@ -3,7 +3,7 @@
 ## load our own python modules
 import system
 import os
-from build_tools import find_files_recursive
+from build_tools import find_files_recursive, get_maya_version
 from distutils import sysconfig
 
 # import build env
@@ -43,6 +43,54 @@ for file_rem in source_files_rem:
 source_files += source_files_add
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
+
+
+
+MAYA_ROOT = local_env.subst(local_env['MAYA_ROOT'])
+MAYA_INCLUDE_PATH = local_env.subst(local_env['MAYA_INCLUDE_PATH'])
+if MAYA_INCLUDE_PATH == '.':
+    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
+# check in Maya directory if the tar.gz has been extracted
+
+maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+maya_version_base = maya_version[0:4]
+mayaQtFolder = ""
+mayaQtTarGz = ""
+
+MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
+
+
+if (int(maya_version_base) == 2014):
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.2-64-include')
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-64-include.tar.gz')
+if (int(maya_version_base) == 2015):
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.5-include')
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.5-include.tar.gz')
+elif (int(maya_version_base) >= 2016):
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.6-include') 
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.6-include.tar.gz')
+
+if not os.path.isdir(mayaQtFolder):
+    if os.path.exists(mayaQtTarGz):
+        print "Extracting Qt Files..."
+        import tarfile
+        tfile = tarfile.open(mayaQtTarGz, 'r:gz')
+        tfile.extractall(mayaQtFolder)
+    else:
+        print "Error : Qt Files not Found"
+
+
+local_env['QT_ROOT_DIR'] = mayaQtFolder
+
+local_env.Append(CPPPATH = [mayaQtFolder])
+qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
+local_env.Append(LIBPATH = [qt_lib_dir])
+
+if system.os() == 'windows':
+    local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+else:
+    local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+
 
 MTOA_API = local_env.SharedLibrary('mtoa_api', source_files)
 

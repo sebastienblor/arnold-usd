@@ -13,6 +13,8 @@
 #include <fstream>
 #include <fcntl.h>
 
+#include "XgExternalAPI.h"
+
 #include "XgArnoldProcedural.h"
 
 
@@ -226,7 +228,13 @@ int Procedural::Init(AtNode* node)
 
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
-
+   
+#if MAYA_API_VERSION >= 201500
+   char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
+   if(xgenConfigPath != NULL)
+      xgapi::initConfig(string(xgenConfigPath));
+#endif
+      
    // Cleanup Init
    if( parameters == "cleanup" )
    {
@@ -235,8 +243,7 @@ int Procedural::Init(AtNode* node)
 
    // Patch Init
    else if( m_patch==NULL && m_faces.size()==0 )
-    {
-
+   {
       m_node = node;
       m_shaders = AiNodeGetArray( m_node, "xgen_shader" );
 
@@ -328,7 +335,7 @@ int Procedural::Init(AtNode* node)
       }*/
     }
 
-   // Face Init
+    // Face Init
     if( m_faces.size()!=0 )
     {
        render();
@@ -478,15 +485,14 @@ const char* Procedural::get( EStringAttribute in_attr ) const
 {
    static string result;
    const char* cstr = NULL;
-    if( in_attr == BypassFXModulesAfterBGM )
-    {
+   if( in_attr == BypassFXModulesAfterBGM )
+   {
        if( getString( m_node, "xgen_bypassFXModulesAfterBGM", cstr, true  ) )
        {
           return cstr;
        }
    }
-
-    else if( in_attr == CacheDir )
+   else if( in_attr == CacheDir )
    {
       result = "xgenCache/";
 
@@ -506,7 +512,7 @@ const char* Procedural::get( EStringAttribute in_attr ) const
       {
          if( stob( cstr ) )
          {
-            //XGRenderAPIDebug( /*msg::C|msg::RENDERER|2,*/ "Ribbox disabled XGen patch " + _patch->name() + " from rendering." );
+            //XGRenderAPIDebug( /*msg::C|msg::RENDERER|2,*/ "Ribbon disabled XGen patch " + _patch->name() + " from rendering." );
             return "xgen_OFF";
          }
       }
@@ -563,7 +569,7 @@ bool Procedural::get( EBoolAttribute in_attr ) const
 
 float Procedural::get( EFloatAttribute in_attr ) const
 {
-   float result=0.f;
+    float result=0.f;
 
     if( in_attr == ShadowMotionBlur )
     {
@@ -711,7 +717,6 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
 
    if(m_bboxes.find(asstocfile) == m_bboxes.end())
    {
-
       std::ifstream file(asstocfile.c_str());
       if (!file.is_open())
       {
@@ -942,25 +947,25 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
 
     // Add the constant widths.
     if( widthsSize==0 )
-   {
-       float constantWidth = pc->get( PC(ConstantWidth) );
+    {
+      float constantWidth = pc->get( PC(ConstantWidth) );
 
       XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
       {string s = "Constant width: " + ftoa(constantWidth) + "\n";
       printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
-   }
+    }
     // Add Varying Widths
     else
-   {
-       const float* pWidths = pc->get( PC(Widths) );
+    {
+      const float* pWidths = pc->get( PC(Widths) );
 
       XGRenderAPIDebug( "Non-constant width.");
       for( unsigned int w=0; w<widthsSize; ++w )
       {
          curRadius[w] = pWidths[w] * 0.5f;
       }
-   }
+    }
 
     char buf[512];
 
@@ -1091,10 +1096,9 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
                 }
             }
 
-        // Now use these values to create the transforms for each motion
-        // sample and put in a motion block
+            // Now use these values to create the transforms for each motion
+            // sample and put in a motion block
 
-        
             // Translation
             translation( tmp, P + lengthVec / 2.0 );
             xP = tmp;
@@ -1116,11 +1120,11 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
             }
             
             // Scale
-         vec3 scaleV;
-         scaleV.x = (float)width;
-         scaleV.y = (float)length_;
-         scaleV.z = (float)depth;
-         scale( tmp, scaleV );
+            vec3 scaleV;
+            scaleV.x = (float)width;
+            scaleV.y = (float)length_;
+            scaleV.z = (float)depth;
+            scale( tmp, scaleV );
 
             multiply( xP, xP, tmp );
             if ( flipParam ) {
@@ -1135,7 +1139,7 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
             if(i == 0)
                xP0 = xP;
 
-           const float* xPi = &xP._00;
+            const float* xPi = &xP._00;
             AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
@@ -1153,17 +1157,17 @@ void Procedural::flushSpheres( const char *geomName, PrimitiveCache* pc )
 
         // and a geometry instance node.
         AtNode* nodeInstance = AiNode("ginstance");
-       AiNodeSetStr( nodeInstance, "name", getUniqueName(buf,( strParentName + string("_ginstance_") + strID).c_str()) );
-       AiNodeSetArray( nodeInstance, "matrix", matrix );
-       AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
-       AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
-       AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
+        AiNodeSetStr( nodeInstance, "name", getUniqueName(buf,( strParentName + string("_ginstance_") + strID).c_str()) );
+        AiNodeSetArray( nodeInstance, "matrix", matrix );
+        AiNodeSetPtr( nodeInstance, "node", (void*)m_sphere );
+        AiNodeSetArray( nodeInstance, "shader", m_shaders ? AiArrayCopy(m_shaders) : NULL );
+        AiNodeSetByte( nodeInstance, "visibility", AI_RAY_ALL );
 
-       // Add custom renderer parameters.
-       pushCustomParams( nodeInstance, pc, j);
+        // Add custom renderer parameters.
+        pushCustomParams( nodeInstance, pc, j);
 
-       // Keep our new nodes.
-       m_nodes.push_back( nodeInstance );
+        // Keep our new nodes.
+        m_nodes.push_back( nodeInstance );
     }
 }
 
@@ -1194,11 +1198,9 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
        return;
     s_bFirst = false;
     for ( unsigned int j=0; j<cacheCount; j++ ) {
-
       // Add the points.
       XGRenderAPIDebug(/*msg::C|msg::RENDERER|4,*/ "Adding points.");
       AtPoint* pointPtr = (AtPoint *)(void*)( &(pc->get( PC(Points), 0 )[j*16]) );
-
 
       AtArray* cvs = AiArrayAllocate( 16*3, numSamples, AI_TYPE_FLOAT );
       memcpy( cvs->data, pointPtr, sizeof(AtPoint)*16*numSamples );
@@ -1223,7 +1225,6 @@ void Procedural::flushCards( const char *geomName, PrimitiveCache* pc )
 
       // Keep our new nodes.
       m_nodes.push_back( nodeCard );
-
     }
 
 }
@@ -1356,11 +1357,10 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
    // do not contain BBOX information
    double bbox_scale = 1.0 / pc->get( PC(ArchiveSize) );
 
-    unsigned int cacheCount = pc->get( PC(CacheCount) );
-    unsigned int numSamples = pc->get( PC(NumMotionSamples) );
+   unsigned int cacheCount = pc->get( PC(CacheCount) );
+   unsigned int numSamples = pc->get( PC(NumMotionSamples) );
 
-
-//    unsigned int shutterSize = pc->getSize( PC(Shutter) );
+//   unsigned int shutterSize = pc->getSize( PC(Shutter) );
 //   float* shutter = (float*)pc->get( PC(Shutter) );
 
    bool normalParam = pc->get( PC(NormalParam) );
@@ -1471,8 +1471,8 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
                 }
             }
 
-        // Now use these values to create the transforms for each motion
-        // sample and put in a motion block
+            // Now use these values to create the transforms for each motion
+            // sample and put in a motion block
 
             // Translation
             translation( tmp, P );
@@ -1504,7 +1504,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
 
 
 /*
-      // NOTE: Ported from renderMan procedural code and the following is not activated yet
+        // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
         // Begin motion block if necessary.
         if ( numSamples > 1 ) {
@@ -1520,12 +1520,12 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         }
 */
 
-      //std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
+            //std::cout << "Procedural::flushArchives: " << "Creating Instance: " << instance_name << "\n";
 
             if(i == 0)
                xP0 = xP;
 
-           float* xPi = &xP._00;
+            float* xPi = &xP._00;
             AtMatrix tmp = {{float(xPi[0]),float(xPi[1]),float(xPi[2]),float(xPi[3])},
                             {float(xPi[4]),float(xPi[5]),float(xPi[6]),float(xPi[7])},
                             {float(xPi[8]),float(xPi[9]),float(xPi[10]),float(xPi[11])},
@@ -1536,7 +1536,7 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
         }
 
 /*
-      // NOTE: Ported from renderMan procedural code and the following is not activated yet
+        // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
         // End motion block if necessary.
         if ( numSamples > 1 ) {
@@ -1600,12 +1600,14 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
          }
 
          // Scale the bbox by the archive bbox
-         /*arcbox.xmin *= archiveScale;
+         /*
+         arcbox.xmin *= archiveScale;
          arcbox.ymin *= archiveScale;
          arcbox.zmin *= archiveScale;
          arcbox.xmax *= archiveScale;
          arcbox.ymax *= archiveScale;
-         arcbox.zmax *= archiveScale;*/
+         arcbox.zmax *= archiveScale;
+         */
 
 
          AtNode* archive_procedural = getArchiveProceduralNode( filename.c_str(), instance_name.c_str(), arcbox, archivesFrame[j] );
@@ -1629,8 +1631,8 @@ void Procedural::flushArchives( const char *geomName, PrimitiveCache* pc )
       // NOTE: Ported from renderMan procedural code and the following is not activated yet
 
         std::vector<std::string> stringdata;
-      std::vector<RtString> stringhandles;
-      pushParams( stringdata, stringhandles, j, geomName, pc );
+        std::vector<RtString> stringhandles;
+        pushParams( stringdata, stringhandles, j, geomName, pc );
         RtToken *tokenPtr = &(_tokens[0]);
         RtPointer *paramPtr = &(_params[0]);
         RiAttributeV( const_cast<char*>("user"), _tokens.size(),
@@ -1730,7 +1732,6 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
 {
    // Assuming the archive is exported at 24fps
    /*frame /= 24.0;
-
    char strFrame[256];
    snprintf( strFrame, 255, "%lf", frame );*/
 
@@ -1739,10 +1740,6 @@ AtNode* Procedural::getArchiveProceduralNode( const char* file_name, const char*
    string dso = string(file_name);
    
    /*std::string dso_data;
-
-
-   
-
    dso_data += string(" -filename ") + string(file_name);
    dso_data += string(" -nameprefix ") + string(instance_name);
    dso_data += string(" -frame ") + string(strFrame);

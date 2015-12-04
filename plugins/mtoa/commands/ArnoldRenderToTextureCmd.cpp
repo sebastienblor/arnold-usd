@@ -40,7 +40,9 @@ MSyntax CArnoldRenderToTextureCmd::newSyntax()
    syntax.addFlag("as", "aa_samples", MSyntax::kUnsigned);
    syntax.addFlag("af", "filter", MSyntax::kString);
    syntax.addFlag("afw", "filter_width", MSyntax::kDouble);
-   
+   syntax.addFlag("aud", "all_udims", MSyntax::kBoolean);
+   syntax.addFlag("ud", "udims", MSyntax::kString);
+
    syntax.setObjectType(MSyntax::kStringObjects);
    return syntax;
 }
@@ -53,6 +55,16 @@ void* CArnoldRenderToTextureCmd::creator()
 struct matrixAsFloats {
    float elems[16];
 };
+
+void splitString(const char* str, char delim, std::vector<std::string>& strings)
+{
+   std::istringstream f(str);
+   std::string s;
+   while (std::getline(f, s, delim))
+   {
+      strings.push_back(s);
+   }
+}
 
 MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 {
@@ -74,7 +86,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    if (sListStringsLength > 0)
    {
       for (unsigned int i = 0; i < sListStringsLength; ++i)
-      selected.add(sListStrings[i]);
+         selected.add(sListStrings[i]);
    }
    else
       MGlobal::getActiveSelectionList(selected);
@@ -92,12 +104,12 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    {
       argDB.getFlagArgument("folder", 0, folderName);
    }
-     
+
    if (folderName == "")
-   { 
+   {
       MGlobal::displayError("[mtoa] Render to Texture : no output directory specified");
       return MS::kSuccess;
-   }   
+   }
 
    CMayaScene::End();
    // Cannot export while a render is active
@@ -110,16 +122,16 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    // only display progressBar in Interactive sessions
    // or in batch it might fail
    bool progressBar = (MGlobal::mayaState() == MGlobal::kInteractive);
-   
-   
+
+
    AiBegin();
    CMayaScene::Begin(MTOA_SESSION_BATCH);
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   renderSession->SetForceTranslateShadingEngines(true);   
+   renderSession->SetForceTranslateShadingEngines(true);
    arnoldSession->SetExportFilterMask(AI_NODE_ALL);
 
-   CMayaScene::Export(); 
+   CMayaScene::Export();
    AtNode *shaderNode = 0;
 
    if (argDB.isFlagSet("shader"))
@@ -134,37 +146,39 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          if (sel.length() > 0)
          {
             MObject mat;
-            sel.getDependNode(0, mat);         
+            sel.getDependNode(0, mat);
             MFnDependencyNode depNodeMat(mat);
-            
+
             MStatus outColorStatus = MS::kFailure;
             MPlug outColorPlug = depNodeMat.findPlug("outColor", true, &outColorStatus);
             if (outColorStatus != MS::kSuccess || outColorPlug.name() == "")
             {
                outColorPlug = depNodeMat.findPlug("output", true, &outColorStatus);
-               
+
             }
-            if (outColorStatus != MS::kSuccess || outColorPlug.name() == "") 
+            if (outColorStatus != MS::kSuccess || outColorPlug.name() == "")
             {
                std::string errLog = "[mtoa] Render to Texture : Output attribute not found in ";
                errLog += shaderName.asChar();
                MGlobal::displayError(errLog.c_str());
-            } else
+            }
+            else
             {
                CNodeTranslator *translator = arnoldSession->ExportNode(outColorPlug, NULL, 0, false, &outColorStatus);
                if (translator != 0)
                {
                   shaderNode = translator->GetArnoldRootNode();
                }
-               else 
+               else
                {
                   std::string errLog = "[mtoa] Render to Texture : Mtoa Translator not found for ";
                   errLog += shaderName.asChar();
                   MGlobal::displayError(errLog.c_str());
                }
-            } 
-            
-         } else
+            }
+
+         }
+         else
          {
             std::string errLog = "[mtoa] Render to Texture : Shader ";
             errLog += shaderName.asChar();
@@ -179,10 +193,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    int resolution = 512; // default value
    if (argDB.isFlagSet("resolution"))
       argDB.getFlagArgument("resolution", 0, resolution);
-   else 
+   else
       MGlobal::displayWarning("[mtoa] Render to Texture : No resolution specified, using 512x512 by default");
 
-   renderSession->SetResolution(resolution, resolution); 
+   renderSession->SetResolution(resolution, resolution);
    // I guess that setting the renderSession's resolution
    // is enough, but let's make sure....
    AiNodeSetInt(options_node, "xres", resolution);
@@ -207,21 +221,48 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    {
       MString errLog = "[mtoa] Render to Texture : Unknown filter type ";
       errLog += filterType;
-      MGlobal::displayError(errLog.asChar());
+      MGlobal::displayWarning(errLog.asChar());
       filterNode = AiNode("gaussian_filter");
    }
    AiNodeSetStr(filterNode, "name", "defaultArnoldFilter@cameraMapperFilter");
 
-   int filterWidth = 2;
+   double filterWidth = 2.0f;
    if (argDB.isFlagSet("filter_width")) argDB.getFlagArgument("filter_width", 0, filterWidth);
-   
-   AiNodeSetInt(filterNode, "width", filterWidth);
+   AiNodeSetFlt(filterNode, "width", (float)filterWidth);
 
+   // handle udims
+   bool allUdims = false;
+   if (argDB.isFlagSet("all_udims")) argDB.getFlagArgument("all_udims", 0, allUdims);
+   std::set<std::pair<int, int>> udimsSet;
+   if (!allUdims)
+   {
+      MString udimsStr;
+      if (argDB.isFlagSet("udims"))
+      {
+         argDB.getFlagArgument("udims", 0, udimsStr);
+      }
+      // udims flag format: 0:1,1:2,9:2
+      std::vector<std::string> udimsVec;
+      splitString(udimsStr.asChar(), ',', udimsVec);
+      for (size_t i = 0; i < udimsVec.size(); ++i)
+      {
+         std::vector<std::string> udim;
+         splitString(udimsVec[i].c_str(), ':', udim);
+         if (udim.size() == 2)
+         {
+            int u, v;
+            std::istringstream(udim[0]) >> u;
+            std::istringstream(udim[1]) >> v;
+            //if (u>=0&&v>=0&&u<10&&v<10)
+            udimsSet.insert(std::make_pair(u, v));
+         }
+      }
+   }
 
    // create a driver that will write the output texture
    AtNode *driver = AiNode("driver_exr");
    AiNodeSetStr(driver, "name", "defaultArnoldDriver@cameraMapperOutput");
-   
+
    AtArray *outputs = 0;
 
    if (progressBar)
@@ -251,10 +292,10 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
 
-
-   for (unsigned int i = 0; i < selected.length(); ++i)  
+   // for every selected object
+   for (unsigned int i = 0; i < selected.length(); ++i)
    {
-      
+
       MDagPath dagPath;
       if (selected.getDagPath(i, dagPath) == MS::kFailure) continue;
 
@@ -267,8 +308,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
       if (progressBar)
       {
-
-         if (i == 0)  
+         if (i == 0)
          {
             MProgressWindow::reserve();
             MProgressWindow::setProgressRange(0, 100);
@@ -280,23 +320,23 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MString progressStatus = meshName;
          progressStatus += " (";
          progressStatus += (i + 1);
-         progressStatus +="/";
+         progressStatus += "/";
          progressStatus += selected.length();
          progressStatus += ")";
          MProgressWindow::setProgressStatus(progressStatus);
-         
-         if (i == 0) 
+
+         if (i == 0)
          {
             MProgressWindow::startProgress();
             // strange, but I need to change the value once so that it is displayed
-            MProgressWindow::setProgress(1); 
+            MProgressWindow::setProgress(1);
             MProgressWindow::setProgress(0);
-         } else
+         }
+         else
          {
-            MProgressWindow::setProgress(i*100/selected.length());
+            MProgressWindow::setProgress(i * 100 / selected.length());
          }
       }
-
 
       AtNode*input_object = AiNodeLookUpByName(meshName.asChar());
       if (input_object == 0)
@@ -308,51 +348,98 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          continue;
       }
 
-      std::string logMsg = "[mtoa] Render to Texture : Rendering polymesh ";
-      logMsg += meshName.asChar();
-      MGlobal::displayInfo(MString(logMsg.c_str()));
-
-      MString filename = folderName + "/"+meshName+".exr";
-      AiNodeSetStr(driver, "filename", filename.asChar());
-
-      // dirty hack.... triggering the polymesh initialization by invoking
-      // a render in free mode. Then we ask for a triangle information
-      // so that subdivision and displacement is computed.
-      // Then abort the free render and start real rendering.
-      // Now prepare the real rendering.
-      // Create the CameraUvMapper camera and assign it in the render options
-      AtNode *camera = AiNode("cameraUvMapper");
-      if (camera == 0) 
-      {
-         AiEnd();
-         argDB.getFlagArgument("folder", 0, folderName);
-         MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
-         return MS::kSuccess;
-      }
-
-      AiNodeSetStr(camera, "name", "cameraUvBaker");
-      AiNodeSetPtr(options_node, "camera", camera);
-      AiNodeSetStr(camera, "polymesh", meshName.asChar());
-      
       // specific shader to be assigned to geometry
-      if(shaderNode)
+      if (shaderNode)
       {
-         AtNode *polymeshNode = AiNodeLookUpByName(meshName.asChar());
-         if (polymeshNode)
-            AiNodeSetPtr(polymeshNode, "shader", shaderNode);
+         AiNodeSetPtr(input_object, "shader", shaderNode);
       }
-      
+      // get assigned shader name
+      const char* shader_name;
+      {
+         AtNode* shader = (AtNode*)AiNodeGetPtr(input_object, "shader");
+         if (shader)
+            shader_name = AiNodeGetName(shader);
+      }
 
-      // let's go !
-      AiRender();
-      std::string endLog = "[mtoa] Render to Texture : Rendered to ";
-      endLog += filename.asChar();
-      MGlobal::displayInfo(MString(endLog.c_str()));
+      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + meshName);
 
-      AiNodeDestroy(camera);
-   }
+      if (allUdims || udimsSet.size()>0)
+      {
 
-   if (progressBar)  MProgressWindow::endProgress();
+         AtArray* uv_list = AiNodeGetArray(input_object, "uvlist");
+
+         /// find all affected udims
+         if (allUdims)
+         {
+            for (size_t j = 0; j < uv_list->nelements; ++j)
+            {
+               AtPoint2 uv = AiArrayGetPnt2(uv_list, j);
+               if (uv.x>AI_EPSILON && uv.y > AI_EPSILON&&
+                  uv.x < 10 - AI_EPSILON && uv.y < 10 - AI_EPSILON)
+                  udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON)));
+            }
+         }
+         for (auto it = udimsSet.begin(); it != udimsSet.end(); it++)
+         {
+            const int& u_offset = it->first;
+            const int& v_offset = it->second;
+
+            std::ostringstream ss_filename;
+            ss_filename << folderName.asChar() << "/" << shader_name << "_" << meshName.asChar() << "_" << 1000 + u_offset + 1 + v_offset * 10 << ".exr";
+
+            // comment for mayabatch
+            std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
+            AtNode *camera = AiNode("cameraUvMapper");
+            if (camera == 0)
+            {
+               AiEnd();
+               MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
+               return MS::kSuccess;
+            }
+
+            AiNodeSetStr(camera, "name", "cameraUvBaker");
+            AiNodeSetStr(camera, "polymesh", meshName.asChar());
+            AiNodeSetFlt(camera, "u_offset", -(float)u_offset);
+            AiNodeSetFlt(camera, "v_offset", -(float)v_offset);
+            AiNodeSetPtr(options_node, "camera", camera);
+            AiNodeSetStr(driver, "filename", ss_filename.str().c_str());
+
+            AiRender();
+
+            MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + MString(ss_filename.str().c_str()));
+
+            AiNodeDestroy(camera);
+         }
+         if (allUdims)
+         {
+            udimsSet.clear();
+         }
+      }
+      // render without udims
+      else
+      {
+         AtNode *camera = AiNode("cameraUvMapper");
+         if (camera == 0)
+         {
+            AiEnd();
+            MGlobal::displayError("[mtoa] Render to Texture : Couldn't create a CameraUvMapper node");
+            return MS::kSuccess;
+         }
+         MString filename = folderName + "/" + meshName + ".exr";
+
+         AiNodeSetStr(camera, "name", "cameraUvBaker");
+         AiNodeSetStr(camera, "polymesh", meshName.asChar());
+         AiNodeSetPtr(options_node, "camera", camera);
+         AiNodeSetStr(driver, "filename", filename.asChar());
+
+         AiRender();
+
+         MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendered to ") + filename);
+
+         AiNodeDestroy(camera);
+      }
+   }// end for selected
+   MProgressWindow::endProgress();
 
    AiEnd();
 

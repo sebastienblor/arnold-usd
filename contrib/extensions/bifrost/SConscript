@@ -63,7 +63,10 @@ local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'inclu
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
 local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'common')])
 
-local_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
+if system.os() == 'darwin':
+    local_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
+else:
+    local_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
 
 if system.os() =='windows':
    local_env.Append(CPPPATH = ['.'])   
@@ -141,7 +144,11 @@ proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'includ
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'bifrosttypes', 'api')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'modules', 'aminomath', 'api')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'include', 'common')])
-proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
+
+if system.os() == 'darwin':
+    proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'bin')])
+else:
+    proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'bifrost', 'lib')])
 
 
 if system.os() =='windows':

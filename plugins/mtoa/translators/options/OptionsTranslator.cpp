@@ -33,6 +33,9 @@ void COptionsTranslator::ProcessAOVs()
 
    bool foundBeauty = false;
    MPlugArray conns;
+
+   m_aovs.clear();
+
    MPlug pAOVs = FindMayaPlug("aovs");
    for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
    {
@@ -68,6 +71,7 @@ void COptionsTranslator::ProcessAOVs()
       aov.SetName("beauty");
       m_aovs.insert(aov);
    }
+
    if (!m_aovsEnabled)
       AiMsgDebug("[mtoa] [aovs] disabled");
 }
@@ -84,6 +88,8 @@ void COptionsTranslator::ExportAOVs()
 
 
    // loop through AOVs
+   m_aovData.clear();
+
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       MString name = it->GetName();
@@ -166,6 +172,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    }
 
    // loop through aovs
+
    unsigned int nAOVs = m_aovData.size();
    for (unsigned int i = 0; i < nAOVs; ++i)
    {
@@ -410,8 +417,11 @@ void COptionsTranslator::SetCamera(AtNode *options)
    AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
 
    for (unsigned int i=0; i < ndrivers; ++i)
+   {
       AiArraySetStr(outputs, i, outputStrings[i].asChar());
+   }
    AiNodeSetArray(options, "outputs", outputs);
+
 }
 
 void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
@@ -453,7 +463,10 @@ void COptionsTranslator::Export(AtNode *options)
 
    MStringArray outputStrings;
 
-   ExportAOVs();
+   // in renderView sessions, we'll call exportAOVs in Update().
+   // This should probably be done in all other modes
+   // but it might introduce issues
+   if (GetSessionMode() != MTOA_SESSION_RENDERVIEW) ExportAOVs();
    
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
    
@@ -491,8 +504,12 @@ void COptionsTranslator::Export(AtNode *options)
 
 void COptionsTranslator::Update(AtNode *options)
 {
+   // we should probably be able to change this in regular IPR too
+   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW) ExportAOVs();
    // set the camera
    SetCamera(options);
+
+
 
    const AtNodeEntry* optionsEntry = AiNodeGetNodeEntry(options);
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(options));
@@ -527,9 +544,9 @@ void COptionsTranslator::Update(AtNode *options)
                AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
          }
-         else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
+         else if (strcmp(paramName, "GI_sss_samples") == 0)
          {
-            CNodeTranslator::ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+            CNodeTranslator::ProcessParameter(options, "GI_sss_samples", AI_TYPE_INT);
          }
          else if (strcmp(paramName, "bucket_scanning") == 0)
          {
