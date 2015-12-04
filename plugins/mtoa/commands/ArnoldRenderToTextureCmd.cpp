@@ -233,7 +233,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    // handle udims
    bool allUdims = false;
    if (argDB.isFlagSet("all_udims")) argDB.getFlagArgument("all_udims", 0, allUdims);
-   std::set<std::pair<int, int>> udimsSet;
+   std::set<std::pair<int, int> > udimsSet;
    if (!allUdims)
    {
       MString udimsStr;
@@ -354,7 +354,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          AiNodeSetPtr(input_object, "shader", shaderNode);
       }
       // get assigned shader name
-      const char* shader_name;
+      const char* shader_name = NULL;
       {
          AtNode* shader = (AtNode*)AiNodeGetPtr(input_object, "shader");
          if (shader)
@@ -379,7 +379,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
                   udimsSet.insert(std::make_pair((int)floor(uv.x - AI_EPSILON), (int)floor(uv.y - AI_EPSILON)));
             }
          }
-         for (auto it = udimsSet.begin(); it != udimsSet.end(); it++)
+         for (std::set<std::pair<int, int> >::iterator it = udimsSet.begin(); it != udimsSet.end(); it++)
          {
             const int& u_offset = it->first;
             const int& v_offset = it->second;

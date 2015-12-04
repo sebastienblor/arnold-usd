@@ -264,6 +264,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
    s_attributes.MakeInput("GI_sss_samples");
+   s_attributes.MakeInput("GI_volume_samples");
    
    s_attributes.MakeInput("region_min_x");
    s_attributes.MakeInput("region_max_x");
@@ -338,7 +339,6 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_refraction_depth");
    s_attributes.MakeInput("GI_volume_depth");
    s_attributes.MakeInput("GI_total_depth");
-   s_attributes.MakeInput("GI_volume_samples");
 
    s_attributes.MakeInput("enable_fast_opacity");
    
