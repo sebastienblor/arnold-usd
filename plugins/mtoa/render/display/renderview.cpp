@@ -1871,17 +1871,6 @@ void CRenderViewMainWindow::EnableAOVs()
    m_menuAovs->setEnabled(K_enable_aovs);
 }
 
-void CRenderViewMainWindow::keyPressEvent(QKeyEvent* ke)
-{
-   if (ke->key() == Qt::Key_Shift)
-   {
-      m_actionCropRegion->setChecked(true);
-      CropRegion();
-   }
-        
-   QMainWindow::keyPressEvent(ke);
-}
-
 void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
 {
 
@@ -1921,6 +1910,9 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
    {
       if(!(event->buttons() & Qt::LeftButton)) return;
 
+      m_actionCropRegion->setChecked(true);
+      CropRegion();
+   
       m_manipulator = new CRenderViewCropRegion(m_renderView, event->x(), event->y());
       return;
    }
@@ -2257,6 +2249,7 @@ void CRenderViewMainWindow::CropRegion()
 
       m_renderView.RestartRender();
    }
+   
 }
 
 void CRenderViewMainWindow::FrameRegion()
