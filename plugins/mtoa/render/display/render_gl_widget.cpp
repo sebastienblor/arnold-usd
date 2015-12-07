@@ -466,6 +466,20 @@ void CRenderGLWidget::DisplayBuffer(int w, int h, const AtBBox2 *updateRegion, A
       glVertex2d(m_region.maxx, m_height - m_region.miny);
       glVertex2d(m_region.minx, m_height - m_region.miny);
       glEnd();
+      glBegin(GL_LINE_LOOP);
+      glVertex2d(m_region.minx - 2, m_height - m_region.miny - 2);
+      glVertex2d(m_region.minx - 9, m_height - m_region.miny - 9);
+      glEnd();
+      glBegin(GL_LINE_LOOP);
+      glVertex2d(m_region.minx - 9, m_height - m_region.miny - 2);
+      glVertex2d(m_region.minx - 2, m_height - m_region.miny - 9);
+      glEnd();
+      glBegin(GL_LINE_LOOP);
+      glVertex2d(m_region.minx, m_height - m_region.miny);
+      glVertex2d(m_region.minx - 11, m_height - m_region.miny);
+      glVertex2d(m_region.minx - 11, m_height - m_region.miny - 11);
+      glVertex2d(m_region.minx, m_height - m_region.miny - 11);
+      glEnd();
    }
 
    PrintGLError("draw texture");
