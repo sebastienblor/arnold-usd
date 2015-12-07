@@ -1871,17 +1871,6 @@ void CRenderViewMainWindow::EnableAOVs()
    m_menuAovs->setEnabled(K_enable_aovs);
 }
 
-void CRenderViewMainWindow::keyPressEvent(QKeyEvent* ke)
-{
-   if (ke->key() == Qt::Key_Shift)
-   {
-      m_actionCropRegion->setChecked(true);
-      CropRegion();
-   }
-        
-   QMainWindow::keyPressEvent(ke);
-}
-
 void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
 {
 
@@ -1916,14 +1905,62 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
       return;
    }
 
+
+   const AtBBox2 *regionBox = m_renderView.m_gl->GetRegion();
+   if (regionBox != NULL) 
+   {
+      // get pixel position
+      int x = event->x();
+      int y = event->y();
+      int mousePosition[2];
+      m_renderView.m_gl->Project(x, y, mousePosition[0], mousePosition[1], false);
+
+      int regionStart[2];
+      int regionEnd[2];
+      AtNode *options = AiUniverseGetOptions();
+      regionStart[0] = (int) regionBox->minx;//AiNodeGetInt(options, "region_min_x");
+      regionStart[1] = (int) regionBox->miny;//AiNodeGetInt(options, "region_min_y");
+      regionEnd[0] = (int) regionBox->maxx;//AiNodeGetInt(options, "region_max_x");
+      regionEnd[1] = (int) regionBox->maxy;//AiNodeGetInt(options, "region_max_y");
+
+      if ((mousePosition[0] <  regionStart[0] && mousePosition[0] >= regionStart[0] - 11) &&
+         (mousePosition[1] <  regionStart[1] + 11 && mousePosition[1] >= regionStart[1]))
+      {
+
+         m_renderView.m_gl->ClearRegionCrop();
+         m_renderView.InterruptRender();
+         CRenderSession* renderSession = CMayaScene::GetRenderSession();
+         renderSession->SetRegion(0, 0 , m_renderView.Width(), m_renderView.Height());
+         AtNode *options = AiUniverseGetOptions();
+         AiNodeSetInt(options, "region_min_x", -1);
+         AiNodeSetInt(options, "region_min_y", -1);
+         AiNodeSetInt(options, "region_max_x", -1);
+         AiNodeSetInt(options, "region_max_y", -1);
+
+         m_renderView.RestartRender();
+
+         if (m_manipulator)
+         {
+            delete m_manipulator;
+            m_manipulator = NULL;
+         }
+         return;
+      }
+   }
+
+
    // if SHIFT is pressed, region cropping is temporarily enabled
    if (m_renderView.m_regionCrop || QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier))
    {
       if(!(event->buttons() & Qt::LeftButton)) return;
 
+      m_actionCropRegion->setChecked(true);
+      CropRegion();
+   
       m_manipulator = new CRenderViewCropRegion(m_renderView, event->x(), event->y());
       return;
    }
+
 
    // Pick the Shape
    m_renderView.PickShape(event->x(), event->y());
@@ -2257,6 +2294,7 @@ void CRenderViewMainWindow::CropRegion()
 
       m_renderView.RestartRender();
    }
+
 }
 
 void CRenderViewMainWindow::FrameRegion()

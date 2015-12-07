@@ -142,10 +142,7 @@ protected:
    void moveEvent(QMoveEvent *event);
    void wheelEvent ( QWheelEvent * event );
    void closeEvent(QCloseEvent *event);
-   virtual void keyPressEvent(QKeyEvent* ke);
-   // why can't I receive keyReleaseEvent calls ?
-//   virtual void keyReleaseEvent(QKeyEvent* ke);
-
+   
 
 private:
 
