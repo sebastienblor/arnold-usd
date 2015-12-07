@@ -62,6 +62,16 @@ void CRenderViewCropRegion::MouseMove(int x, int y)
    CRenderGLWidget *glWidget = m_renderView.GetGlWidget();
    glWidget->Project(m_startX, m_startY, bufferStart[0], bufferStart[1], true);
    glWidget->Project(x, y, bufferEnd[0], bufferEnd[1], true);
+   bufferStart[0] = CLAMP(bufferStart[0], 0, m_renderView.Width() - 1);
+   bufferStart[1] = CLAMP(bufferStart[1], 0, m_renderView.Height() - 1);
+
+   bufferEnd[0] = CLAMP(bufferEnd[0], 0, m_renderView.Width() - 1);
+   bufferEnd[1] = CLAMP(bufferEnd[1], 0, m_renderView.Height() - 1);
+
+   if (bufferEnd[0] < bufferStart[0]) std::swap(bufferStart[0], bufferEnd[0]);
+   if (bufferEnd[1] < bufferStart[1]) std::swap(bufferStart[1], bufferEnd[1]);
+
+
    glWidget->SetRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
 
    glWidget->ReloadBuffer(m_renderView.m_colorMode);
@@ -101,6 +111,16 @@ void CRenderViewCropRegion::MouseRelease(int x, int y)
    int bufferEnd[2];
    glWidget->Project(m_startX, m_startY, bufferStart[0], bufferStart[1], true);
    glWidget->Project(regionEnd[0], regionEnd[1], bufferEnd[0], bufferEnd[1], true);
+
+   bufferStart[0] = CLAMP(bufferStart[0], 0, m_renderView.Width() - 1);
+   bufferStart[1] = CLAMP(bufferStart[1], 0, m_renderView.Height() - 1);
+
+   bufferEnd[0] = CLAMP(bufferEnd[0], 0, m_renderView.Width() - 1);
+   bufferEnd[1] = CLAMP(bufferEnd[1], 0, m_renderView.Height() - 1);
+
+   if (bufferEnd[0] < bufferStart[0]) std::swap(bufferStart[0], bufferEnd[0]);
+   if (bufferEnd[1] < bufferStart[1]) std::swap(bufferStart[1], bufferEnd[1]);
+
    glWidget->SetRegionCrop(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
 
    
