@@ -374,11 +374,11 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
 
         pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldRenderView', label='Render View', parent='ArnoldExperimentalMenu',
+        pm.menuItem('ArnoldRenderView', label='MtoA RenderView', parent='ArnoldExperimentalMenu',
                     c=lambda *args: startRenderView())
 
 
-        pm.menuItem('ArnoldRender', label='External RenderView', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
+        pm.menuItem('ArnoldRender', label='Houdini MPlay', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
                     postMenuCommand=lambda *args: populateSelectCamera())
         populateSelectCamera()
