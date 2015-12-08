@@ -7,6 +7,9 @@
 #include <dlfcn.h>
 #endif
 
+#include <string.h>
+
+
 #include <iostream>
 
 /* Print OpenGL error messages */
