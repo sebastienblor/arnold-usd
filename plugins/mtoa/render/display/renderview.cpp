@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/timeb.h>
 #include <deque>
+#include <limits>
 
 #ifdef _WIN64
 #define _WIN32_WINNT    0x501
