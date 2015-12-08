@@ -61,8 +61,12 @@ mayaQtTarGz = ""
 MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
 
 if (int(maya_version_base) == 2014):
-    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.2-64-include')
-    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-64-include.tar.gz')
+    if system.os() == 'darwin':
+        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.2-include')
+        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-include.tar.gz')
+    else:
+        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.2-64-include')
+        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-64-include.tar.gz')
 if (int(maya_version_base) == 2015):
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.5-include')
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.5-include.tar.gz')
@@ -82,7 +86,10 @@ if not os.path.isdir(mayaQtFolder):
 local_env['QT_ROOT_DIR'] = mayaQtFolder
 
 local_env.Append(CPPPATH = [mayaQtFolder])
-qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
+if system.os() == 'darwin':
+    qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
+else:
+    qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
 if system.os() == 'windows':
