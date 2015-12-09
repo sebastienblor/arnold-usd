@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/timeb.h>
 #include <deque>
+#include <limits>
 
 #ifdef _WIN64
 #define _WIN32_WINNT    0x501
@@ -2411,7 +2412,9 @@ void CRenderViewMainWindow::FrameRegion()
 
 void CRenderViewMainWindow::FrameAll()
 {
-   if (m_3dManipulation) return; // we should frame the global bounding box
+   // this function is called for 3d manipulation when the window is resized
+   // so that the buffer always matches the windows size
+   //if (m_3dManipulation) return; // we should frame the global bounding box
 
    float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)(height()- (menuHeight + toolbarHeight + statusbarHeight + 26))  / (float)m_renderView.m_height );
    m_renderView.m_gl->SetZoomFactor(zoomFactor);
