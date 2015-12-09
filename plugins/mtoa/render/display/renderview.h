@@ -437,9 +437,32 @@ friend class CRenderViewMainWindow;
          unsigned int val;
          //val = *((unsigned int*)&rgba.r);
          val = reinterpret_type<float, unsigned int>(color.r);
-         color.r = (float((val+943) % 1257))/1257.f;
-         color.g = (float((val+189) % 438))/438.f;
-         color.b = (float((val+789) % 939))/939.f;
+         if (val == 0) color.r = color.g = color.b = 0.f;
+         else
+         {
+            /*
+            color.r = (float((val+943) % 1257))/1257.f;
+            color.g = (float((val+189) % 438))/438.f;
+            color.b = (float((val+789) % 939))/939.f;*/
+
+            float h = (val >> 16) / 65536.0f; // [0,1)
+            float v = ((val >> 8) & 0xFF) / 255.0f; v = LERP(v, 1.00f, 0.5f);
+            float s = ((val     ) & 0xFF) / 255.0f; s = LERP(s, 0.95f, 0.5f);
+            h = 6 * h;
+            int hi = (int) h;
+            float f = h - hi;
+            float p = v * (1-s);
+            float q = v * (1-s*f);
+            float t = v * (1-s*(1-f));
+            AtColor &r = color.rgb();
+            if      (hi == 0) r = AiColor(v, t, p);
+            else if (hi == 1) r = AiColor(q, v, p);
+            else if (hi == 2) r = AiColor(p, v, t);
+            else if (hi == 3) r = AiColor(p, q, v);
+            else if (hi == 4) r = AiColor(t, p, v);
+            else              r = AiColor(v, p, q);
+
+         }
          return;
       }
       AtRGB &rgb = color.rgb();
