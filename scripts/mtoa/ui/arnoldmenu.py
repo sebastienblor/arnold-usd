@@ -374,7 +374,7 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
 
         pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldRenderView', label='MtoA RenderView', parent='ArnoldExperimentalMenu',
+        pm.menuItem('ArnoldMtoARenderView', label='MtoA RenderView', parent='ArnoldExperimentalMenu',
                     c=lambda *args: startRenderView())
 
 
