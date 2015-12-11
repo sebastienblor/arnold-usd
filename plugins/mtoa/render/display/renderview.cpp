@@ -1340,7 +1340,7 @@ CRenderViewMainWindow::InitMenus()
 
    m_3dManipulation = false;
 
-   m_3dManipulationAction = m_menuView->addAction("3d Manipulation");
+   m_3dManipulationAction = m_menuView->addAction("3D Manipulation");
    connect(m_3dManipulationAction, SIGNAL(triggered()), this, SLOT(ToggleManipulationMode()));
    m_3dManipulationAction->setCheckable(true);
    m_3dManipulationAction->setChecked(m_3dManipulation);

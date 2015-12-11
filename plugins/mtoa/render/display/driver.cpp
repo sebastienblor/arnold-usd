@@ -41,14 +41,14 @@ static void BucketSetThreadColor(CRenderView* rv, int xo, int yo, int xsize, int
    int maxX = xo + xsize;
    int maxY = yo + ysize;
 
-
+   const int sz = 4;
    // paint in checkerboard (8-pixels wide)
    for (int j = minY, by = 0; j < maxY; j++, by++)
    {
       for (int i = minX, bx = 0; i < maxX; i++, bx++)
       {
-         if (((bx == 0 || bx == xsize - 1) && (5 * by < ysize || 5 * (ysize - by - 1) < ysize)) ||
-             ((by == 0 || by == ysize - 1) && (5 * bx < xsize || 5 * (xsize - bx - 1) < xsize)))
+         if (((bx == 0 || bx == xsize - 1) && (by < sz || by > (ysize - sz-1))) ||
+             ((by == 0 || by == ysize - 1) && (bx < sz || bx > (xsize - sz-1))))
          {
             // overwrite the color in the corners
             rv->SetPixelColor(i, j, rgba);
