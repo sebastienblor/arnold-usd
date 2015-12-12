@@ -1031,18 +1031,23 @@ void CRenderView::RefreshStatusBar(int *mousePosition)
 {
    QString statusLog(GetDisplayedStatus().c_str());
 
+   if (statusLog.isEmpty()) return;
+
    // add the zoom factor
    int zoomPercent = int(m_gl->GetZoomFactor() * 100.f);
+   QString zoomStr;
    if (zoomPercent == 100)
    {
-      statusLog +=" (1:1)";
+      zoomStr ="| 1:1 ";
    } else
    {
-      QString zoomStr;
+      
       zoomStr.setNum(zoomPercent);
-      zoomStr += "%";
-      statusLog += " ("+zoomStr+")";
+      zoomStr += "% ";
+      zoomStr = "| "+zoomStr;
    }
+   statusLog.insert(statusLog.indexOf('|', 12), zoomStr);
+
 
 
    // add eventual information about debug shading
@@ -1094,8 +1099,8 @@ void CRenderView::RefreshStatusBar(int *mousePosition)
          // get information about current pixel
 
          std::stringstream status_pixel;
-         status_pixel<<"  Pixel: "<<mousePosition[0]<<","<<mousePosition[1];
-         status_pixel<<"  RGBA: ("; // Get color from this pixel's buffer color 
+         status_pixel<<" XY: "<<mousePosition[0]<<","<<mousePosition[1];
+         status_pixel<<" RGBA: ("; // Get color from this pixel's buffer color 
 
          AtRGBA *displayedBuffer = GetDisplayedBuffer();
 

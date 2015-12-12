@@ -285,18 +285,20 @@ extern int RenderLoop(CRenderView *kwin)
 
 
          std::stringstream statusStr;
-         statusStr <<"Rendering...  ";
+         statusStr <<"Rendering |";
 
-         statusStr<<"Resolution: "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
-   
-         statusStr<<"  Sampling: "<<i;
+         statusStr<<" "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
+  
+         statusStr<<" | "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl; 
+
+         statusStr<<" | samples "<<i;
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_refraction_samples");
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "sss_bssrdf_samples");
          statusStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
         
-         statusStr<<"  Camera "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
+         
          kwin->SetStatus(statusStr.str());
         
          AtUInt64 loopTime = (i == smax) ? CRenderView::Time() : 0;
@@ -338,6 +340,7 @@ extern int RenderLoop(CRenderView *kwin)
                   minutesCount -= hoursCount * 60;
 
                   std::stringstream statusEndStr;
+                  statusEndStr<<"  ";
 
                   if (hoursCount <= 0) statusEndStr <<"00:";
                   else if (hoursCount < 10) statusEndStr<<"0"<<hoursCount<<":";
@@ -351,19 +354,19 @@ extern int RenderLoop(CRenderView *kwin)
                   else if (secondsCount < 10) statusEndStr<<"0"<<secondsCount;
                   else statusEndStr <<secondsCount;
 
-                  statusEndStr<<"  Resolution: "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
+                  statusEndStr<<" | "<<AiNodeGetInt(AiUniverseGetOptions(), "xres")<<"x"<<AiNodeGetInt(AiUniverseGetOptions(), "yres");
+                  statusStr<<" | "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
 
-                  statusEndStr <<"  Sampling: "<<i;
+                  statusEndStr <<" | samples "<<i;
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples");
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples");
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "GI_refraction_samples");
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "sss_bssrdf_samples");
                   statusEndStr<<"/"<<AiNodeGetInt(AiUniverseGetOptions(), "volume_indirect_samples");
 
-                  statusStr<<" Camera "<<AiNodeGetName(AiUniverseGetCamera())<<std::endl;
                  
                   const float memUsed = (float)AiMsgUtilGetUsedMemory() / 1024.0f / 1024.0f;
-                  statusEndStr<<" Memory: "<<memUsed<<"MB";
+                  statusEndStr<<" | "<<memUsed<<" MB";
 
                   kwin->SetStatus(statusEndStr.str());
                   kwin->Draw();
