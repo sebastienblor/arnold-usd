@@ -741,7 +741,8 @@ apiheaders = [
                 os.path.join('utils', 'Version.h'),
                 os.path.join('utils', 'Universe.h'),
                 os.path.join('utils', 'MtoaLog.h'),
-                os.path.join('utils', 'time.h')
+                os.path.join('utils', 'time.h'),
+                os.path.join('utils', 'HashUtils.h')
 ]
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
