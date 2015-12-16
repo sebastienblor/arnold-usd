@@ -1038,13 +1038,12 @@ void CRenderView::RefreshStatusBar(int *mousePosition)
    QString zoomStr;
    if (zoomPercent == 100)
    {
-      zoomStr ="| 1:1 ";
+      zoomStr ="(1:1) ";
    } else
    {
       
       zoomStr.setNum(zoomPercent);
-      zoomStr += "% ";
-      zoomStr = "| "+zoomStr;
+      zoomStr = "("+zoomStr+"%) ";
    }
    statusLog.insert(statusLog.indexOf('|', 12), zoomStr);
 
