@@ -35,7 +35,7 @@
 #include <QtCore/qthread.h>
 #include <iostream>
 #include "luts.h"
-
+#include "snapshots.h"
 
 struct AtDisplaySync;
 class CRenderViewManipulator;
@@ -62,7 +62,8 @@ public:
       m_aovsCombo(NULL),
       m_camerasCombo(NULL),
       m_ccWindow(NULL),
-      m_manipulator(NULL) {}
+      m_manipulator(NULL),
+      m_displayingSnapshot(false) {}
     ~CRenderViewMainWindow();
  
    void InitMenus();
@@ -70,15 +71,23 @@ public:
    void PopulateCamerasMenu();
    void UpdateCamerasMenu();
 
-   void EnableMenus(bool b)
+   void EnableMenus(bool b, bool force = false)
    {
-      if (b == m_activeMenus) return;
+      if ((!force) && b == m_activeMenus) return;
 
       m_renderAction->setEnabled(b);
-      m_actionAutoRefresh->setEnabled(b);
+//      m_actionAutoRefresh->setEnabled(b);
       m_actionCropRegion->setEnabled(b);
+      m_camerasCombo->setEnabled(b);
+      m_aovsCombo->setEnabled(b);
+      m_menuCamera->setEnabled(b);
+      m_menuAovs->setEnabled(b);
+
       m_activeMenus = b;
    }
+
+   void SetDisplayingSnapshot(bool b);
+   bool IsDisplayingSnapshot() const {return m_displayingSnapshot;}
    
 private:
 
@@ -95,6 +104,9 @@ private:
    QComboBox *m_aovsCombo;
    QComboBox *m_camerasCombo;
    QToolButton *m_rgbaButton;
+   QPushButton *m_storeButton;
+   QPushButton *m_showSnapshotsButton;
+
 
    QAction *m_actionShowRenderingTiles;
    QAction *m_actionAutoRefresh;
@@ -125,14 +137,14 @@ private:
 
    QSlider *m_storedSlider;
    CRenderViewCCWindow *m_ccWindow;
-
+   
    bool m_leftButtonDown;
    int  m_pickPoint[2];
 
    CRenderViewManipulator *m_manipulator;
    bool  m_activeMenus;
    bool  m_3dManipulation;
-   
+   bool m_displayingSnapshot;   
 protected:
    // virtual Qt methods redefined here
    void mouseMoveEvent ( QMouseEvent * event );
@@ -175,6 +187,7 @@ private slots:
    void DebugShading();
    void RgbaClicked();
    void ShowCamerasMenu();
+   void ShowSnapshotsLibrary();
 
 // If you add a slot to this class,
 // don't forget to run
@@ -265,7 +278,7 @@ public:
 
       m_buffer[pixelIndex] = rgba;
 
-      if (m_displayedImageIndex < 0 && m_displayedAovIndex < 0)
+      if ((m_snapshotsWindow == NULL ||!m_snapshotsWindow->DisplayingSnapshot()) && m_displayedAovIndex < 0)
       {
          FillGLPixel(rgba, x, y, pixelIndex);
       }
@@ -278,7 +291,7 @@ public:
 
       m_aovBuffers[aovIndex][pixelIndex] = rgba;
 
-      if (m_displayedAovIndex == aovIndex && m_displayedImageIndex < 0)
+      if (m_displayedAovIndex == aovIndex && (m_snapshotsWindow == NULL ||!m_snapshotsWindow->DisplayingSnapshot()))
       {
          FillGLPixel(rgba, x, y, pixelIndex);
       }
@@ -292,7 +305,7 @@ public:
       AtRGBA *rgbaBuffer = (aovIndex < 0) ? m_buffer : m_aovBuffers[aovIndex];
 
       // is this buffer being currently displayed ?
-      bool displayGL = (m_displayedImageIndex < 0 && m_displayedAovIndex == aovIndex);
+      bool displayGL = ((m_snapshotsWindow == NULL ||!m_snapshotsWindow->DisplayingSnapshot()) && m_displayedAovIndex == aovIndex);
       
       if (displayGL)
       {
@@ -385,14 +398,6 @@ protected:
 
 friend class CRenderViewMainWindow;
 
-   struct StoredSnapshot {
-      StoredSnapshot() : buffer(NULL), width(0), height(0) {}
-      ~StoredSnapshot() {/*if (buffer) AiFree(buffer);*/}
-      AtRGBA* buffer;
-      int width;
-      int height;
-      std::string status;
-   };
 
    void Init();
    void ManageDebugShading();
@@ -518,13 +523,12 @@ friend class CRenderViewMainWindow;
    }
    AtRGBA *GetDisplayedBuffer()
    {
-      return (m_displayedImageIndex < 0) ? 
-               ((m_displayedAovIndex < 0) ? m_buffer : m_aovBuffers[m_displayedAovIndex]) :
-               m_storedSnapshots[m_displayedImageIndex].buffer;
+      return (m_snapshotsWindow && m_snapshotsWindow->DisplayingSnapshot()) ? m_snapshotsWindow->GetDisplayedBuffer() :
+                     ((m_displayedAovIndex < 0) ? m_buffer : m_aovBuffers[m_displayedAovIndex]);
    }
    const std::string &GetDisplayedStatus() const
    {
-      return (m_displayedImageIndex < 0) ? m_statusLog : m_storedSnapshots[m_displayedImageIndex].status;
+      return (m_snapshotsWindow && m_snapshotsWindow->DisplayingSnapshot()) ? m_snapshotsWindow->GetDisplayedStatus() : m_statusLog;
    }
 
    int m_width;
@@ -543,13 +547,14 @@ friend class CRenderViewMainWindow;
 
 
    AtRGBA *m_buffer;
-   std::vector<StoredSnapshot> m_storedSnapshots;
+   
    std::vector<AtRGBA *> m_aovBuffers;
    std::vector<std::string> m_aovNames;
 
-   int m_displayedImageIndex;
+   //int m_displayedImageIndex;
    int m_displayedAovIndex;
    CRenderViewCCSettings m_colorCorrectSettings;
+   CRenderViewSnapshots *m_snapshotsWindow;
 
    bool m_displayID;
    int *m_pickedId;
@@ -558,6 +563,7 @@ friend class CRenderViewMainWindow;
    bool m_restoreContinuous;
    bool m_statusBarEnabled;
    bool m_statusBarPixelInfo;
+
    CRvShadingManager  m_shadingManager;
    RenderViewDebugShading m_debugShading;   
 };

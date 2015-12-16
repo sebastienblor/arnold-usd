@@ -27,7 +27,6 @@
 #endif
 
 #include "display_gl.h"
-
 #ifdef _WIN64
 #include "render_gl_widget.h"
 #endif
@@ -43,6 +42,7 @@
 #include "session/ArnoldSession.h"
 //#include "icons/SA_logo_32.xpm"
 #include "icons/SA_logo.xpm"
+
 
 #include "icons/SA_icon_continuous_off.xpm"
 #include "icons/SA_icon_continuous_on.xpm"
@@ -60,6 +60,12 @@
 #include "icons/SA_icon_ch_green.xpm"
 #include "icons/SA_icon_ch_blue.xpm"
 #include "icons/SA_icon_ch_alpha.xpm"
+#include "icons/SA_icon_arrows_up.xpm"
+#include "icons/SA_icon_arrows_down.xpm"
+#include "icons/SA_icon_photo.xpm"
+#include "icons/SA_icon_photo_red.xpm"
+
+
 
 
 #include "manipulators.h"
@@ -103,6 +109,7 @@ CRenderView::CRenderView(int w, int h)
    m_gl = NULL;
    m_buffer = NULL;
    m_pickedId = NULL;
+   m_snapshotsWindow = NULL;
 
    Init();
 
@@ -126,15 +133,7 @@ CRenderView::~CRenderView()
    AiFree(displaySync);
    displaySync = 0;
    AiFree(m_buffer);
-   if (!m_storedSnapshots.empty())
-   {
-      for (size_t i = 0; i < m_storedSnapshots.size(); ++i)
-      {
-         AiFree(m_storedSnapshots[i].buffer);
-         m_storedSnapshots[i].buffer = NULL;
-      }
-      m_storedSnapshots.clear();
-   }
+   
    AiCritSecClose(&m_windowCloseLock);
    AiCritSecClose(&m_pickLock);
 
@@ -176,21 +175,17 @@ void CRenderView::Init()
    m_continuousUpdates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
 
 
-   m_displayedImageIndex = -1; // -1 means the current rendering
+   //m_displayedImageIndex = -1; // -1 means the current rendering
    // >= 0 refers to a stored Image
 
    m_displayedAovIndex = -1; // -1 means we're showing the beauty
    // >0 refers to an AOV
 
    K_InitGlobalVars();
-   if (!m_storedSnapshots.empty())
+
+   if (m_snapshotsWindow)
    {
-      for (size_t i = 0; i < m_storedSnapshots.size(); ++i)
-      {
-         AiFree(m_storedSnapshots[i].buffer);
-         m_storedSnapshots[i].buffer = NULL;
-      }
-      m_storedSnapshots.clear();
+      m_snapshotsWindow->Clear();
    }
 
    // setup syncing
@@ -816,7 +811,7 @@ void CRenderView::ManageDebugShading()
 
 void CRenderView::PickShape(int px, int py)
 {
-   if (m_displayedImageIndex >= 0) return; // I can't pick a stored image
+   if (m_snapshotsWindow && m_snapshotsWindow->DisplayingSnapshot()) return; // I can't pick a stored image
 
    int x, y;
    m_gl->Project(px, py, x, y, false);
@@ -906,7 +901,7 @@ void CRenderView::CheckSceneUpdates()
 {  
    // now that buckets are being painted
    // we can turn the menus as active again
-   m_mainWindow->EnableMenus(true);
+   if (!m_mainWindow->IsDisplayingSnapshot()) m_mainWindow->EnableMenus(true);
 
    if (m_statusBarEnabled)
    {
@@ -979,33 +974,37 @@ void CRenderView::SaveImage(const std::string &filename)
 
 void CRenderView::StoreImage()
 {
-   AtRGBA *storedBuffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
-   memcpy(storedBuffer, m_buffer, m_width * m_height * sizeof(AtRGBA));
-   m_storedSnapshots.push_back(StoredSnapshot());
-   m_storedSnapshots.back().buffer = storedBuffer;
-   m_storedSnapshots.back().width = m_width;
-   m_storedSnapshots.back().height = m_height;
-   m_storedSnapshots.back().status = m_statusLog;
+   if (m_snapshotsWindow == NULL)
+   {
+      m_snapshotsWindow = new CRenderViewSnapshots(m_mainWindow, *this);
+      m_snapshotsWindow->Init();
+   }
+   m_snapshotsWindow->AdjustPosition();
+   m_snapshotsWindow->show();
+
+   m_snapshotsWindow->StoreSnapshot(m_buffer, m_width, m_height, m_statusLog, m_colorCorrectSettings);
 }
 
 void CRenderView::RefreshGLBuffer()
 {
-   m_displayID = (m_displayedImageIndex < 0) && (m_displayedAovIndex == (int(m_aovNames.size()) -1));
+   m_displayID = (m_snapshotsWindow == NULL || !m_snapshotsWindow->DisplayingSnapshot()) && (m_displayedAovIndex == (int(m_aovNames.size()) -1));
 
    AtRGBA *displayedBuffer = GetDisplayedBuffer();
 
    int width = m_width;
    int height = m_height;
-   if (m_displayedImageIndex >= 0 && 
-      (m_width != m_storedSnapshots[m_displayedImageIndex].width || m_height != m_storedSnapshots[m_displayedImageIndex].height))
+
+   if (m_snapshotsWindow && m_snapshotsWindow->DisplayingSnapshot() && (m_width != m_snapshotsWindow->GetDisplayedBufferWidth() 
+         || m_height != m_snapshotsWindow->GetDisplayedBufferHeight()))
    {
-      width = MIN(m_width, m_storedSnapshots[m_displayedImageIndex].width);
-      height = MIN(m_height, m_storedSnapshots[m_displayedImageIndex].height);
+   
+      width = MIN(m_width, m_snapshotsWindow->GetDisplayedBufferWidth());
+      height = MIN(m_height, m_snapshotsWindow->GetDisplayedBufferHeight());
 
       memset(m_gl->GetBuffer(), 0, m_width * m_height * sizeof(AtRGBA8));
       for (int j = 0; j < height; ++j)
       {
-         int storedIndex = j * m_storedSnapshots[m_displayedImageIndex].width;
+         int storedIndex = j *  m_snapshotsWindow->GetDisplayedBufferWidth();
          int glIndex = j * m_width;
          for (int i = 0; i < width; ++i, ++glIndex, ++storedIndex)
          {
@@ -1124,53 +1123,24 @@ void CRenderView::RefreshStatusBar(int *mousePosition)
 
 void CRenderView::ShowPreviousStoredImage()
 {
-   if (m_storedSnapshots.empty())
-   {
-      AiMsgError("[mtoa] No Image currently Stored in the Render View");      
-      return;
-   }
-   if (m_displayedImageIndex < 0)
-   {
-      m_displayedImageIndex = m_storedSnapshots.size() - 1;
-   }
-   else m_displayedImageIndex--;
+   if (m_snapshotsWindow == NULL || !m_snapshotsWindow->DisplayingSnapshot()) return;
+   int index = MAX(m_snapshotsWindow->GetDisplayedBufferIndex() - 1, 0);
+   m_snapshotsWindow->DisplaySnapshot(index);
 
-   RefreshGLBuffer();
 }
 void CRenderView::ShowNextStoredImage()
 {
-   if (m_storedSnapshots.empty())
-   {
-      AiMsgError("[mtoa] No Image currently Stored in the Render View");      
-      return;
-   }
-   
-   if (m_displayedImageIndex >= (int)m_storedSnapshots.size() - 1) m_displayedImageIndex = -1;
-   else m_displayedImageIndex++;
-
-   RefreshGLBuffer();
-   
+   if (m_snapshotsWindow == NULL || !m_snapshotsWindow->DisplayingSnapshot()) return;
+   int index = MIN(m_snapshotsWindow->GetDisplayedBufferIndex() + 1, (int)m_snapshotsWindow->GetStoredSnapshots().size() - 1);
+   m_snapshotsWindow->DisplaySnapshot(index);
 }
 
 void CRenderView::DeleteStoredImage()
 {
-   if (m_storedSnapshots.empty())
-   {
-      AiMsgError("[mtoa] No Image currently Stored in the Render View");      
-      return;
-   }
-   if (m_displayedImageIndex < 0 || m_displayedImageIndex >= (int)m_storedSnapshots.size()) return; // nothing to delete
-
-   AiFree(m_storedSnapshots[m_displayedImageIndex].buffer);
-   m_storedSnapshots[m_displayedImageIndex].buffer = NULL;
-
-   m_storedSnapshots.erase(m_storedSnapshots.begin() + m_displayedImageIndex);
-   
-   if (m_displayedImageIndex >= (int)m_storedSnapshots.size()) m_displayedImageIndex--;
-
-   RefreshGLBuffer();
+   if (m_snapshotsWindow == NULL || !m_snapshotsWindow->DisplayingSnapshot()) return;
+   int index = m_snapshotsWindow->GetDisplayedBufferIndex();
+   m_snapshotsWindow->DeleteStoredSnapshot(index);
 }
-
 
 /**********************************************************************
  *   CRenderViewMainWindows
@@ -1197,8 +1167,7 @@ public:
    CRenderViewMainWindow &m_rv;
 };
 
-void
-CRenderViewMainWindow::InitMenus()
+void CRenderViewMainWindow::InitMenus()
 {
    m_activeMenus = false;
    QMenuBar *menubar = menuBar();
@@ -1214,6 +1183,30 @@ CRenderViewMainWindow::InitMenus()
    statusBar()->showMessage(" ");
    statusBar()->setAutoFillBackground(true);
    statusBar()->setPalette(palette()) ;
+   statusBar()->setSizeGripEnabled(false);
+
+   m_storeButton = new QPushButton(statusBar());
+   QIcon store_icon(QPixmap((const char **) SA_icon_photo_xpm));
+   m_storeButton->setIcon(store_icon);
+   m_storeButton->setMaximumHeight(12);
+   m_storeButton->setCheckable(false);
+   m_storeButton->setToolTip(QString("Store a Snapshot"));
+
+   connect(m_storeButton, SIGNAL(clicked()), this, SLOT(StoreImage()));
+   m_storeButton->setStyleSheet("QPushButton { border: none transparent;   background-color: transparent;}  QPushButton:checked {    background-color: transparent ;}  QPushButton:flat {    border: none;border-color: transparent;} QPushButton:default { border: none;  border-color: transparent;}");
+   // add icons at the right of the status bar
+   statusBar()->addPermanentWidget(m_storeButton);
+
+/*
+   m_showSnapshots = new QPushButton(statusBar());
+   QIcon showSnapshotsIcon(QPixmap((const char **) SA_icon_arrows_down_xpm));
+   m_storeButton->setIcon(store_icon);
+   m_storeButton->resize(10, 10);
+   connect(m_storeButton, SIGNAL(clicked()), this, SLOT(StoreImage()));
+   m_storeButton->setStyleSheet("QPushButton {  background-color : transparent; color : transparent; }");
+   // add icons at the right of the status bar
+   statusBar()->addPermanentWidget(m_storeButton);
+*/
 
    m_menuFile = menubar->addMenu("File");
 
@@ -1561,6 +1554,7 @@ CRenderViewMainWindow::InitMenus()
 
    m_toolBar->addSeparator();
    
+   /*
    QToolButton *storeButton = new QToolButton(m_toolBar);
    storeButton->setDefaultAction(m_storeAction);
    m_toolBar->addWidget(storeButton);
@@ -1597,11 +1591,10 @@ CRenderViewMainWindow::InitMenus()
    deleteStoredButton->hide();
 
    UpdateStoredSlider();
+*/
 
-   m_renderAction->setEnabled(false);
-   m_actionAutoRefresh->setEnabled(false);
-   m_actionCropRegion->setEnabled(false);
-   m_activeMenus = false;
+   EnableMenus(false, true); //second arg is to force the setEnabled calls
+   
 }
 
 void
@@ -1661,39 +1654,62 @@ void CRenderViewMainWindow::AutoRefresh()
 void CRenderViewMainWindow::StoreImage()
 {
    m_renderView.StoreImage();
-   UpdateStoredSlider();
+
+   if (m_showSnapshotsButton == NULL)
+   {
+      m_showSnapshotsButton = new QPushButton(statusBar());
+      QIcon show_snapshots_icon;
+      show_snapshots_icon.addPixmap(QPixmap((const char **) SA_icon_arrows_down_xpm), QIcon::Normal, QIcon::Off);
+      show_snapshots_icon.addPixmap(QPixmap((const char **) SA_icon_arrows_up_xpm), QIcon::Normal, QIcon::On);
+
+      m_showSnapshotsButton->setIcon(show_snapshots_icon);
+      m_showSnapshotsButton->resize(10, 10);
+      m_showSnapshotsButton->setMaximumHeight(12);
+      m_showSnapshotsButton->setCheckable(true);
+      m_showSnapshotsButton->setToolTip(QString("Show/Hide the Snapshots Library"));
+
+      connect(m_showSnapshotsButton, SIGNAL(clicked()), this, SLOT(ShowSnapshotsLibrary()));
+      m_showSnapshotsButton->setStyleSheet("QPushButton { border: none transparent;   background-color: transparent;}  QPushButton:checked {    background-color: transparent ;}  QPushButton:flat {    border: none;border-color: transparent;} QPushButton:default { border: none;  border-color: transparent;}");
+      // add icons at the right of the status bar
+      statusBar()->addPermanentWidget(m_showSnapshotsButton);
+   }
+
+   m_showSnapshotsButton->setChecked(true);
 }
 
 void CRenderViewMainWindow::PreviousStoredImage()
 {
+
    m_renderView.ShowPreviousStoredImage();
-   UpdateStoredSlider();
+/*   UpdateStoredSlider();*/
 
 }
 void CRenderViewMainWindow::NextStoredImage()
 {
    m_renderView.ShowNextStoredImage();
-   UpdateStoredSlider();
+/*   UpdateStoredSlider();*/
 }
 void CRenderViewMainWindow::DeleteStoredImage()
 {
    m_renderView.DeleteStoredImage();
-   UpdateStoredSlider();  
+   /*UpdateStoredSlider();  */
 }
 
 void
 CRenderViewMainWindow::StoredSliderMoved(int i)
 {
+   /*
    m_renderView.m_displayedImageIndex = (i == (int)m_renderView.m_storedSnapshots.size()) ? -1 : i;
 
    m_deleteStoredAction->setVisible(m_renderView.m_displayedImageIndex >= 0);
    m_storeAction->setEnabled(m_renderView.m_displayedImageIndex < 0);
-   m_renderView.RefreshGLBuffer();
+   m_renderView.RefreshGLBuffer();*/
 }
 
 void
 CRenderViewMainWindow::UpdateStoredSlider()
 {
+   /*
    if (m_renderView.m_storedSnapshots.empty())
    {
       m_storeAction->setEnabled(true);
@@ -1710,6 +1726,7 @@ CRenderViewMainWindow::UpdateStoredSlider()
    m_storedSlider->setMaximum(m_renderView.m_storedSnapshots.size());   
 
    m_storedSlider->setSliderPosition((m_renderView.m_displayedImageIndex < 0) ? m_renderView.m_storedSnapshots.size() : m_renderView.m_displayedImageIndex);
+*/
 }
 
 
@@ -2020,6 +2037,7 @@ void CRenderViewMainWindow::mouseReleaseEvent( QMouseEvent * event )
 void CRenderViewMainWindow::moveEvent(QMoveEvent *event)
 {
    if (m_ccWindow) m_ccWindow->AdjustPosition();
+   if (m_renderView.m_snapshotsWindow) m_renderView.m_snapshotsWindow->AdjustPosition();
 }
 
 void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
@@ -2048,7 +2066,7 @@ void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
       m_renderView.m_gl->update();
    }
    if (m_ccWindow) m_ccWindow->AdjustPosition();
-
+   if (m_renderView.m_snapshotsWindow) m_renderView.m_snapshotsWindow->AdjustPosition();
 }
 
 void CRenderViewMainWindow::wheelEvent ( QWheelEvent * event )
@@ -2461,6 +2479,10 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
       m_lutAction->setChecked(false);
       m_lutAction->blockSignals(false);
    }
+   if (m_renderView.m_snapshotsWindow)
+   {
+      m_renderView.m_snapshotsWindow->hide();
+   }
 
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
@@ -2508,8 +2530,38 @@ void CRenderViewMainWindow::RgbaClicked()
    }
    ShowChannel();
 }
+void CRenderViewMainWindow::ShowSnapshotsLibrary()
+{
+   if (m_showSnapshotsButton->isChecked() && m_renderView.m_snapshotsWindow)
+   {
+      m_renderView.m_snapshotsWindow->show();
+   } else
+   {
+      m_renderView.m_snapshotsWindow->hide();
 
 
+   }
+}
+
+void CRenderViewMainWindow::SetDisplayingSnapshot(bool b)
+{
+   if (b)
+   {
+         // set the snapshot icon to red (and disabled)
+      QIcon store_icon(QPixmap((const char **) SA_icon_photo_red_xpm));
+      m_storeButton->setIcon(store_icon);
+      m_storeButton->setEnabled(false);
+      m_displayingSnapshot = true;
+      EnableMenus(false);
+   } else
+   {
+      QIcon store_icon(QPixmap((const char **) SA_icon_photo_xpm));
+      m_storeButton->setIcon(store_icon);
+      m_storeButton->setEnabled(true);      
+      m_displayingSnapshot = false;
+      EnableMenus(true);
+   }
+}
 
 // If you add some slots, you'll have to run moc
 #include "renderview.moc"
