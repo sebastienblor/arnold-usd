@@ -99,28 +99,29 @@ CRenderView::CRenderView(int w, int h)
 {
    m_renderThread = NULL;
    displaySync = NULL;
-
    m_width = w;
    m_height = h;
    
-   m_mainWindow = new CRenderViewMainWindow(MQtUtil::mainWindow(), *this);
+   m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
 
-   m_mainWindow->setWindowTitle("Arnold Render View");
-   m_gl = NULL;
-   m_buffer = NULL;
+   const size_t fillsize = m_width * m_height;
+
+   for(size_t i = 0; i < fillsize; i++)
+   {
+      m_buffer[i] = AI_RGBA_BLACK;
+   }
+
    m_pickedId = NULL;
    m_snapshotsWindow = NULL;
 
    Init();
 
-   m_centralWidget = new QWidget(m_mainWindow);
-   m_mainWindow->setCentralWidget(m_centralWidget);
-   m_centralWidget->resize(w, h + toolbarHeight + statusbarHeight);
+   m_mainWindow = new CRenderViewMainWindow(MQtUtil::mainWindow(), *this);
+   m_mainWindow->Init();
 
-   m_mainWindow->InitMenus();
+
    InitRender(w, h);   
-   m_mainWindow->show();
-   m_mainWindow->EnableMenus(false);
+   
 }
 
 
@@ -191,33 +192,15 @@ void CRenderView::Init()
    // setup syncing
    DisplaySyncCreate();
 }
+CRenderGLWidget *CRenderView::GetGlWidget()
+{
+   return m_mainWindow->GetGlWidget();
+}
 
 void CRenderView::InitRender(int w, int h)
 {
    m_width = w;
    m_height = h;   
-
-   m_mainWindow->resize(w, h+menuHeight + toolbarHeight + statusbarHeight + 26);
-
-   if (m_gl != NULL)
-   {
-      m_gl->InitSize(m_width, m_height);
-      m_gl->initializeGL();
-   }
-   else  m_gl = new CRenderGLWidget(m_centralWidget, *this, m_width, m_height);
-
-   if (m_buffer != NULL) AiFree(m_buffer);
-   m_buffer = (AtRGBA *)AiMalloc(m_width * m_height * sizeof(AtRGBA));
-
-   const size_t fillsize = m_width * m_height;
-
-   for(size_t i = 0; i < fillsize; i++)
-   {
-      m_buffer[i] = AI_RGBA_BLACK;
-   }
-
-   m_gl->resize(m_width, m_height);
-   m_gl->move(0, 0);
 
    UpdateRenderOptions();
 
@@ -545,7 +528,7 @@ void CRenderView::Draw(AtBBox2 *region)
    {
       // update() can be called by any threads
       // after that, the paintGL will be called "soon" from the main (UI) thread
-      m_gl->update();
+      m_mainWindow->GetGlWidget()->update();
    }
 }
 
@@ -656,9 +639,9 @@ void CRenderView::RestartRender()
    {
       // clear the buffer
       memset(m_buffer, 0, m_width * m_height * sizeof(AtRGBA));
-      AtRGBA8 *gl_buffer = m_gl->GetBuffer();
+      AtRGBA8 *gl_buffer = m_mainWindow->GetGlWidget()->GetBuffer();
       memset(gl_buffer, 0, m_width * m_height * sizeof(AtRGBA8));
-      m_gl->ReloadBuffer(m_colorMode);
+      m_mainWindow->GetGlWidget()->ReloadBuffer(m_colorMode);
    }
 
    K_render_timestamp = Time();
@@ -814,7 +797,7 @@ void CRenderView::PickShape(int px, int py)
    if (m_snapshotsWindow && m_snapshotsWindow->DisplayingSnapshot()) return; // I can't pick a stored image
 
    int x, y;
-   m_gl->Project(px, py, x, y, false);
+   m_mainWindow->GetGlWidget()->Project(px, py, x, y, false);
    
    // picking out of image bounds...
    if (x < 0 || x >= m_width || y < 0 || y >= m_height) return; 
@@ -849,7 +832,7 @@ void CRenderView::PickShape(int px, int py)
       }
    }
 
-   m_gl->ReloadBuffer(m_colorMode);
+   m_mainWindow->GetGlWidget()->ReloadBuffer(m_colorMode);
    Draw();
 
 
@@ -946,7 +929,7 @@ void CRenderView::SaveImage(const std::string &filename)
    MImage outImg;
    outImg.create(m_width, m_height, 4 );
    
-   AtRGBA8 *buffer = m_gl->GetBuffer();
+   AtRGBA8 *buffer = m_mainWindow->GetGlWidget()->GetBuffer();
    outImg.setPixels((unsigned char*)buffer, m_width, m_height);
    outImg.verticalFlip();
    MString fname(filename.c_str());
@@ -1001,7 +984,7 @@ void CRenderView::RefreshGLBuffer()
       width = MIN(m_width, m_snapshotsWindow->GetDisplayedBufferWidth());
       height = MIN(m_height, m_snapshotsWindow->GetDisplayedBufferHeight());
 
-      memset(m_gl->GetBuffer(), 0, m_width * m_height * sizeof(AtRGBA8));
+      memset(m_mainWindow->GetGlWidget()->GetBuffer(), 0, m_width * m_height * sizeof(AtRGBA8));
       for (int j = 0; j < height; ++j)
       {
          int storedIndex = j *  m_snapshotsWindow->GetDisplayedBufferWidth();
@@ -1022,7 +1005,7 @@ void CRenderView::RefreshGLBuffer()
       }
    }
 
-   m_gl->ReloadBuffer(m_colorMode);
+   m_mainWindow->GetGlWidget()->ReloadBuffer(m_colorMode);
    Draw();
    RefreshStatusBar();
 }
@@ -1033,7 +1016,7 @@ void CRenderView::RefreshStatusBar(int *mousePosition)
    if (statusLog.isEmpty()) return;
 
    // add the zoom factor
-   int zoomPercent = int(m_gl->GetZoomFactor() * 100.f);
+   int zoomPercent = int(m_mainWindow->GetGlWidget()->GetZoomFactor() * 100.f);
    QString zoomStr;
    if (zoomPercent == 100)
    {
@@ -1147,6 +1130,53 @@ void CRenderView::DeleteStoredImage()
  *   Inherits from QMainWindow
  */
 
+CRenderViewMainWindow::CRenderViewMainWindow(QWidget *parent, CRenderView &rv) : QMainWindow(parent, Qt::Tool/* Qt::WindowStaysOnTopHint*/), 
+      m_renderView(rv), 
+      m_menuFile(NULL),
+      m_menuView(NULL),
+      m_menuRender(NULL),
+      m_menuAovs(NULL),
+      m_menuCamera(NULL),
+      m_toolBar(NULL),
+      m_aovsCombo(NULL),
+      m_camerasCombo(NULL),
+      m_ccWindow(NULL),
+      m_manipulator(NULL),
+      m_displayingSnapshot(false)
+{
+   setWindowTitle("Arnold Render View");
+   m_gl = NULL;
+}
+
+void CRenderViewMainWindow::Init()
+{
+
+   int w = m_renderView.m_width;
+   int h = m_renderView.m_height;
+   resize(w, h+menuHeight + toolbarHeight + statusbarHeight + 26);
+
+
+   m_centralWidget = new QWidget(this);
+   setCentralWidget(m_centralWidget);
+   m_centralWidget->resize(w, h + toolbarHeight + statusbarHeight);
+
+   if (m_gl != NULL)
+   {
+      m_gl->InitSize(w, h);
+      m_gl->initializeGL();
+   }
+   else  m_gl = new CRenderGLWidget(m_centralWidget, m_renderView, w, h);
+
+   m_gl->resize(w, h);
+   m_gl->move(0, 0);
+
+
+   InitMenus();
+   show();
+   EnableMenus(false);
+
+
+}
 CRenderViewMainWindow::~CRenderViewMainWindow()
 {
    delete m_manipulator;
@@ -1742,8 +1772,8 @@ void CRenderViewMainWindow::DisplayPixelInfo()
    m_renderView.m_statusBarPixelInfo = m_actionStatusInfo->isChecked();
    m_renderView.m_statusChanged = true;
    setMouseTracking(m_renderView.m_statusBarPixelInfo);
-   m_renderView.m_gl->setMouseTracking(m_renderView.m_statusBarPixelInfo);
-   m_renderView.m_centralWidget->setMouseTracking(m_renderView.m_statusBarPixelInfo);
+   m_gl->setMouseTracking(m_renderView.m_statusBarPixelInfo);
+   m_centralWidget->setMouseTracking(m_renderView.m_statusBarPixelInfo);
 }
 
 
@@ -1927,15 +1957,14 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
       return;
    }
 
-
-   const AtBBox2 *regionBox = m_renderView.m_gl->GetRegion();
+   const AtBBox2 *regionBox = m_gl->GetRegion();
    if (regionBox != NULL) 
    {
       // get pixel position
       int x = event->x();
       int y = event->y();
       int mousePosition[2];
-      m_renderView.m_gl->Project(x, y, mousePosition[0], mousePosition[1], false);
+      m_gl->Project(x, y, mousePosition[0], mousePosition[1], false);
 
       int regionStart[2];
       int regionEnd[2];
@@ -1949,7 +1978,7 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
          (mousePosition[1] <  regionStart[1] + 11 && mousePosition[1] >= regionStart[1]))
       {
 
-         m_renderView.m_gl->ClearRegionCrop();
+         m_gl->ClearRegionCrop();
          m_renderView.InterruptRender();
          CRenderSession* renderSession = CMayaScene::GetRenderSession();
          renderSession->SetRegion(0, 0 , m_renderView.Width(), m_renderView.Height());
@@ -2003,7 +2032,7 @@ void CRenderViewMainWindow::mouseMoveEvent( QMouseEvent * event )
 
       int mousePosition[2];
       
-      m_renderView.m_gl->Project(x, y, mousePosition[0], mousePosition[1], false);
+      m_gl->Project(x, y, mousePosition[0], mousePosition[1], false);
 
       if (mousePosition[0] >= 0 && mousePosition[0] < m_renderView.m_width && mousePosition[1] >= 0 && mousePosition[1] < m_renderView.m_height)
       {
@@ -2043,12 +2072,13 @@ void CRenderViewMainWindow::moveEvent(QMoveEvent *event)
 void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
 {
    const QSize &newSize = event->size();
-   m_renderView.m_gl->resize(newSize.width(), newSize.height() - (menuHeight + toolbarHeight + statusbarHeight + 26));
+   m_gl->resize(newSize.width(), newSize.height() - (menuHeight + toolbarHeight + statusbarHeight + 26));
 
 
    if (m_3dManipulation) FrameAll();
 
    AtDisplaySync *sync = m_renderView.displaySync;
+   if (sync == NULL) return;
 
    // Lock to update the region
    AiCritSecEnter(&sync->lock);
@@ -2063,7 +2093,7 @@ void CRenderViewMainWindow::resizeEvent(QResizeEvent *event)
 
    if ( alreadyInQueue == false) 
    {
-      m_renderView.m_gl->update();
+      m_gl->update();
    }
    if (m_ccWindow) m_ccWindow->AdjustPosition();
    if (m_renderView.m_snapshotsWindow) m_renderView.m_snapshotsWindow->AdjustPosition();
@@ -2305,7 +2335,7 @@ void CRenderViewMainWindow::CropRegion()
    m_renderView.m_regionCrop = m_actionCropRegion->isChecked();
    if (!m_renderView.m_regionCrop)
    {
-      m_renderView.m_gl->ClearRegionCrop();
+      m_gl->ClearRegionCrop();
       m_renderView.InterruptRender();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
@@ -2410,7 +2440,7 @@ void CRenderViewMainWindow::FrameRegion()
 
    } else
    {
-      const AtBBox2 *region = m_renderView.m_gl->GetRegion();
+      const AtBBox2 *region = m_gl->GetRegion();
       if (region == 0) 
       {
          FrameAll();
@@ -2418,7 +2448,7 @@ void CRenderViewMainWindow::FrameRegion()
       }
 
       float zoomFactor = MIN((float)width() / (region->maxx - region->minx), (float)(height() - (menuHeight + toolbarHeight + statusbarHeight + 26) )/ (region->maxy - region->miny) );
-      m_renderView.m_gl->SetZoomFactor(zoomFactor);
+      m_gl->SetZoomFactor(zoomFactor);
       
       AtPoint2 regionCenter;
       regionCenter.x = 0.5 * (region->maxx + region->minx);
@@ -2427,7 +2457,7 @@ void CRenderViewMainWindow::FrameRegion()
       regionCenter.x -= m_renderView.m_width*0.5;
       regionCenter.y -= m_renderView.m_height*0.5;
 
-      m_renderView.m_gl->SetPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
+      m_gl->SetPan(int(-regionCenter.x * zoomFactor),int(-regionCenter.y*zoomFactor));
       m_renderView.Draw();
    }
 }
@@ -2439,15 +2469,15 @@ void CRenderViewMainWindow::FrameAll()
    //if (m_3dManipulation) return; // we should frame the global bounding box
 
    float zoomFactor = MIN((float)width() / (float)m_renderView.m_width, (float)(height()- (menuHeight + toolbarHeight + statusbarHeight + 26))  / (float)m_renderView.m_height );
-   m_renderView.m_gl->SetZoomFactor(zoomFactor);
-   m_renderView.m_gl->SetPan(0, 0);
+   m_gl->SetZoomFactor(zoomFactor);
+   m_gl->SetPan(0, 0);
    m_renderView.Draw();
 }
 
 void CRenderViewMainWindow::RealSize()
 {
-   m_renderView.m_gl->SetPan (0, 0);
-   m_renderView.m_gl->SetZoomFactor(1.f);
+   m_gl->SetPan (0, 0);
+   m_gl->SetZoomFactor(1.f);
    m_renderView.Draw();
 }
 

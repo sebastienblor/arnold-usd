@@ -51,21 +51,10 @@ class CRenderViewMainWindow : public QMainWindow
 Q_OBJECT
  
 public:
-   CRenderViewMainWindow(QWidget *parent, CRenderView &rv) : QMainWindow(parent, Qt::Tool/* Qt::WindowStaysOnTopHint*/), 
-      m_renderView(rv), 
-      m_menuFile(NULL),
-      m_menuView(NULL),
-      m_menuRender(NULL),
-      m_menuAovs(NULL),
-      m_menuCamera(NULL),
-      m_toolBar(NULL),
-      m_aovsCombo(NULL),
-      m_camerasCombo(NULL),
-      m_ccWindow(NULL),
-      m_manipulator(NULL),
-      m_displayingSnapshot(false) {}
+   CRenderViewMainWindow(QWidget *parent, CRenderView &rv);
     ~CRenderViewMainWindow();
  
+   void Init();
    void InitMenus();
    void PopulateAOVsMenu();
    void PopulateCamerasMenu();
@@ -86,6 +75,9 @@ public:
       m_activeMenus = b;
    }
 
+
+
+   CRenderGLWidget *GetGlWidget() {return m_gl;}
    void SetDisplayingSnapshot(bool b);
    bool IsDisplayingSnapshot() const {return m_displayingSnapshot;}
    
@@ -145,6 +137,10 @@ private:
    bool  m_activeMenus;
    bool  m_3dManipulation;
    bool m_displayingSnapshot;   
+
+   QWidget *m_centralWidget;
+   CRenderGLWidget *m_gl;
+
 protected:
    // virtual Qt methods redefined here
    void mouseMoveEvent ( QMouseEvent * event );
@@ -195,6 +191,7 @@ private slots:
    
 };
  
+class CRenderGLWidget;
 
 extern AtNodeMethods *kick_driver_mtd;
 
@@ -242,7 +239,7 @@ public:
       Draw(&box);
    }
 
-   CRenderGLWidget *GetGlWidget() {return m_gl;}
+   CRenderGLWidget *GetGlWidget(); 
 
    void DisplaySyncCreate();
    AtDisplaySync *DisplaySync() {return displaySync;}
@@ -336,7 +333,7 @@ public:
          rgba8.b = AiQuantize8bit(minx, miny, 2, outColor.b, dither);
          rgba8.a = AiQuantize8bit(minx, miny, 2, outColor.a, dither);
 
-         AtRGBA8 *glBuffer = m_gl->GetBuffer();      
+         AtRGBA8 *glBuffer = m_mainWindow->GetGlWidget()->GetBuffer();      
          int pixelIndex;
          for (int y = miny; y < maxy; ++y)
          {
@@ -424,7 +421,7 @@ friend class CRenderViewMainWindow;
          AiCritSecLeave(&m_pickLock);
       }
       // Now let'sfill the GLWidget's RGBA8 buffer
-      AtRGBA8 &rgba8 = m_gl->GetBuffer()[pixelIndex];
+      AtRGBA8 &rgba8 = m_mainWindow->GetGlWidget()->GetBuffer()[pixelIndex];
       rgba8.r = AiQuantize8bit(x, y, 0, outColor.r, m_colorCorrectSettings.dither);
       rgba8.g = AiQuantize8bit(x, y, 1, outColor.g, m_colorCorrectSettings.dither);
       rgba8.b = AiQuantize8bit(x, y, 2, outColor.b, m_colorCorrectSettings.dither);
@@ -534,8 +531,7 @@ friend class CRenderViewMainWindow;
    int m_width;
    int m_height;
    CRenderViewMainWindow *m_mainWindow;
-   QWidget *m_centralWidget;
-   CRenderGLWidget *m_gl;
+   
    AtDisplaySync *displaySync;
    
    bool m_showRenderingTiles;
