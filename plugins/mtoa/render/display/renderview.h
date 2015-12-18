@@ -87,6 +87,7 @@ private:
 
    CRenderView &m_renderView;
    QMenu *m_menuFile;
+   QMenu *m_menuWindow;
    QMenu *m_menuView;
    QMenu *m_menuRender;
    QMenu *m_menuAovs;
@@ -120,6 +121,27 @@ private:
    QAction *m_channelGreenAction;
    QAction *m_channelBlueAction;
    QAction *m_channelAlphaAction;
+
+   QAction *m_actionToolbarAOVs;
+   QAction *m_actionToolbarCamera;
+   QAction *m_actionToolbarRGBA;
+   QAction *m_actionToolbarRender;
+   QAction *m_actionToolbarAbort;
+   QAction *m_actionToolbarContinuous;
+   QAction *m_actionToolbarCrop;
+   QAction *m_actionToolbarLUT;
+
+/* These are the Toolbar actions
+*/
+   QAction *m_aovsComboAction;
+   QAction *m_camerasComboAction;
+   QAction *m_rgbaToolbarAction;
+   QAction *m_renderToolbarAction;
+   QAction *m_abortToolbarAction;
+   QAction *m_cropToolbarAction;
+   QAction *m_continuousToolbarAction;
+   QAction *m_lutToolbarAction;
+
 
 
    QActionGroup *m_channelActionGroup;
@@ -184,6 +206,14 @@ private slots:
    void RgbaClicked();
    void ShowCamerasMenu();
    void ShowSnapshotsLibrary();
+   void SlotToolbarAOVs();
+   void SlotToolbarCameras();
+   void SlotToolbarRGBA();
+   void SlotToolbarRender();
+   void SlotToolbarAbort();
+   void SlotToolbarContinuous();
+   void SlotToolbarCropRegion();
+   void SlotToolbarLut();
 
 // If you add a slot to this class,
 // don't forget to run

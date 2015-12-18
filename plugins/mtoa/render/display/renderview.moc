@@ -22,7 +22,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      29,   14, // methods
+      37,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -59,6 +59,14 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      446,   22,   22,   22, 0x08,
      460,   22,   22,   22, 0x08,
      478,   22,   22,   22, 0x08,
+     501,   22,   22,   22, 0x08,
+     519,   22,   22,   22, 0x08,
+     540,   22,   22,   22, 0x08,
+     558,   22,   22,   22, 0x08,
+     578,   22,   22,   22, 0x08,
+     597,   22,   22,   22, 0x08,
+     621,   22,   22,   22, 0x08,
+     645,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -77,7 +85,11 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "DisplayPixelInfo()\0StoredSliderMoved(int)\0"
     "ToggleManipulationMode()\0DebugShading()\0"
     "RgbaClicked()\0ShowCamerasMenu()\0"
-    "ShowSnapshotsLibrary()\0"
+    "ShowSnapshotsLibrary()\0SlotToolbarAOVs()\0"
+    "SlotToolbarCameras()\0SlotToolbarRGBA()\0"
+    "SlotToolbarRender()\0SlotToolbarAbort()\0"
+    "SlotToolbarContinuous()\0SlotToolbarCropRegion()\0"
+    "SlotToolbarLut()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -115,6 +127,14 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 26: _t->RgbaClicked(); break;
         case 27: _t->ShowCamerasMenu(); break;
         case 28: _t->ShowSnapshotsLibrary(); break;
+        case 29: _t->SlotToolbarAOVs(); break;
+        case 30: _t->SlotToolbarCameras(); break;
+        case 31: _t->SlotToolbarRGBA(); break;
+        case 32: _t->SlotToolbarRender(); break;
+        case 33: _t->SlotToolbarAbort(); break;
+        case 34: _t->SlotToolbarContinuous(); break;
+        case 35: _t->SlotToolbarCropRegion(); break;
+        case 36: _t->SlotToolbarLut(); break;
         default: ;
         }
     }
@@ -152,9 +172,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 29)
+        if (_id < 37)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 29;
+        _id -= 37;
     }
     return _id;
 }

@@ -1246,7 +1246,76 @@ void CRenderViewMainWindow::InitMenus()
 
    action->setCheckable(false);
    action->setStatusTip("Save the Image currently being displayed");
-   
+
+   m_menuWindow = menubar->addMenu("Window");
+
+   QMenu *statusMenu = new QMenu("Status Bar");
+   m_menuWindow->addMenu(statusMenu);
+
+
+   m_actionStatusBar = statusMenu->addAction("Show Status Bar");
+   connect(m_actionStatusBar, SIGNAL(triggered()), this, SLOT(EnableStatusBar()));
+   m_actionStatusBar->setCheckable(true);
+   m_actionStatusBar->setChecked(true);
+   m_actionStatusBar->setStatusTip("Display the Status Bar");
+
+   m_actionStatusInfo = statusMenu->addAction("Display Pixel Information");
+   connect(m_actionStatusInfo, SIGNAL(triggered()), this, SLOT(DisplayPixelInfo()));
+   m_actionStatusInfo->setCheckable(true);
+   m_actionStatusInfo->setChecked(false);
+   m_actionStatusInfo->setStatusTip("Display Pixel Information in the Status Bar");
+
+   QMenu *toolbarMenu = new QMenu("Toolbar Icons");
+   m_menuWindow->addMenu(toolbarMenu);
+
+   m_actionToolbarAOVs = toolbarMenu->addAction("Show AOVs list");
+   connect(m_actionToolbarAOVs, SIGNAL(triggered()), this, SLOT(SlotToolbarAOVs()));
+   m_actionToolbarAOVs->setCheckable(true);
+   m_actionToolbarAOVs->setChecked(true);
+   m_actionToolbarAOVs->setStatusTip("Show the AOVs list in the Toolbar");
+
+   m_actionToolbarCamera = toolbarMenu->addAction("Show Cameras list");
+   connect(m_actionToolbarCamera, SIGNAL(triggered()), this, SLOT(SlotToolbarCameras()));
+   m_actionToolbarCamera->setCheckable(true);
+   m_actionToolbarCamera->setChecked(true);
+   m_actionToolbarCamera->setStatusTip("Show the Cameras list in the Toolbar");
+
+   m_actionToolbarRGBA = toolbarMenu->addAction("Show RGBA icon");
+   connect(m_actionToolbarRGBA, SIGNAL(triggered()), this, SLOT(SlotToolbarRGBA()));
+   m_actionToolbarRGBA->setCheckable(true);
+   m_actionToolbarRGBA->setChecked(true);
+   m_actionToolbarRGBA->setStatusTip("Show the RGBA icon in the Toolbar");
+
+   m_actionToolbarRender = toolbarMenu->addAction("Show Render icon");
+   connect(m_actionToolbarRender, SIGNAL(triggered()), this, SLOT(SlotToolbarRender()));
+   m_actionToolbarRender->setCheckable(true);
+   m_actionToolbarRender->setChecked(true);
+   m_actionToolbarRender->setStatusTip("Show the Render icon in the Toolbar");
+
+   m_actionToolbarAbort = toolbarMenu->addAction("Show Abort icon");
+   connect(m_actionToolbarAbort, SIGNAL(triggered()), this, SLOT(SlotToolbarAbort()));
+   m_actionToolbarAbort->setCheckable(true);
+   m_actionToolbarAbort->setChecked(true);
+   m_actionToolbarAbort->setStatusTip("Show the Abort icon in the Toolbar");
+
+   m_actionToolbarContinuous = toolbarMenu->addAction("Show Continuous Updates icon");
+   connect(m_actionToolbarContinuous, SIGNAL(triggered()), this, SLOT(SlotToolbarContinuous()));
+   m_actionToolbarContinuous->setCheckable(true);
+   m_actionToolbarContinuous->setChecked(true);
+   m_actionToolbarContinuous->setStatusTip("Show the Abort icon in the Toolbar");
+
+   m_actionToolbarCrop = toolbarMenu->addAction("Show Crop Region icon");
+   connect(m_actionToolbarCrop, SIGNAL(triggered()), this, SLOT(SlotToolbarCropRegion()));
+   m_actionToolbarCrop->setCheckable(true);
+   m_actionToolbarCrop->setChecked(true);
+   m_actionToolbarCrop->setStatusTip("Show the Crop Region icon in the Toolbar");
+
+   m_actionToolbarLUT = toolbarMenu->addAction("Show LUT icon");
+   connect(m_actionToolbarLUT, SIGNAL(triggered()), this, SLOT(SlotToolbarLut()));
+   m_actionToolbarLUT->setCheckable(true);
+   m_actionToolbarLUT->setChecked(true);
+   m_actionToolbarLUT->setStatusTip("Show the Lut icon in the Toolbar");
+
    m_menuView = menubar->addMenu("View");
 
    m_actionEnableAovs = m_menuView->addAction("Enable AOVs");
@@ -1263,7 +1332,7 @@ void CRenderViewMainWindow::InitMenus()
 
    m_aovsCombo = new QComboBox(this);
    
-   m_toolBar->addWidget(m_aovsCombo);
+   m_aovsComboAction = m_toolBar->addWidget(m_aovsCombo);
    m_aovsCombo->setMinimumWidth(90);
    m_toolBar->addSeparator();
    
@@ -1306,6 +1375,7 @@ void CRenderViewMainWindow::InitMenus()
 
    m_menuView->addSeparator();
 
+
    action = m_menuView->addAction("Frame All");
    connect(action, SIGNAL(triggered()), this, SLOT(FrameAll()));
    action->setCheckable(false);
@@ -1325,6 +1395,7 @@ void CRenderViewMainWindow::InitMenus()
    action->setShortcut(Qt::Key_O);
 
    m_menuView->addSeparator();
+
 
    m_actionShowRenderingTiles = m_menuView->addAction("Show Rendering Tiles");
    connect(m_actionShowRenderingTiles, SIGNAL(triggered()), this, SLOT(ShowRenderingTiles()));
@@ -1357,6 +1428,7 @@ void CRenderViewMainWindow::InitMenus()
 
    m_menuView->addSeparator();
 
+
    m_lutAction = m_menuView->addAction("LUT / Color Correction");
    connect(m_lutAction, SIGNAL(triggered()), this, SLOT(ColorCorrection()));
    m_lutAction->setCheckable(true);
@@ -1375,22 +1447,7 @@ void CRenderViewMainWindow::InitMenus()
    
 
    m_menuView->addSeparator();      
-   QMenu *statusMenu = new QMenu("Status Bar");
-   m_menuView->addMenu(statusMenu);
-
-
-   m_actionStatusBar = statusMenu->addAction("Show Status Bar");
-   connect(m_actionStatusBar, SIGNAL(triggered()), this, SLOT(EnableStatusBar()));
-   m_actionStatusBar->setCheckable(true);
-   m_actionStatusBar->setChecked(true);
-   m_actionStatusBar->setStatusTip("Display the Status Bar");
-
-   m_actionStatusInfo = statusMenu->addAction("Display Pixel Information");
-   connect(m_actionStatusInfo, SIGNAL(triggered()), this, SLOT(DisplayPixelInfo()));
-   m_actionStatusInfo->setCheckable(true);
-   m_actionStatusInfo->setChecked(false);
-   m_actionStatusInfo->setStatusTip("Display Pixel Information in the Status Bar");
-
+   
 
    m_menuRender = menubar->addMenu("Render");
 
@@ -1433,7 +1490,7 @@ void CRenderViewMainWindow::InitMenus()
    m_camerasActionGroup = 0;
 
    m_camerasCombo = new CRvCameraComboBox(*this, this);
-   m_toolBar->addWidget(m_camerasCombo);
+   m_camerasComboAction = m_toolBar->addWidget(m_camerasCombo);
    
    PopulateCamerasMenu();
 
@@ -1510,16 +1567,15 @@ void CRenderViewMainWindow::InitMenus()
    action->setStatusTip("Isolate the selected shader");
    m_debugShadingActionGroup->addAction(action);
 
-
 // Now dealing with the ToolButtons   
-
+   
    setIconSize(QSize(18, 18));
 
    m_toolBar->addSeparator();
    QString styleButton = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
 
    m_rgbaButton = new QToolButton(m_toolBar);
-   m_toolBar->addWidget(m_rgbaButton);
+   m_rgbaToolbarAction = m_toolBar->addWidget(m_rgbaButton);
    QIcon rgbaIcon;
    rgbaIcon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
    m_rgbaButton->setIcon(rgbaIcon);
@@ -1532,7 +1588,7 @@ void CRenderViewMainWindow::InitMenus()
 
    QToolButton *renderButton = new QToolButton(m_toolBar);
    renderButton->setDefaultAction(m_renderAction);
-   m_toolBar->addWidget(renderButton);
+   m_renderToolbarAction = m_toolBar->addWidget(renderButton);
    QIcon renderIcon(QPixmap((const char **) SA_icon_play_xpm));
    renderButton->setIcon(renderIcon);
    m_renderAction->setIcon(renderIcon);
@@ -1541,7 +1597,7 @@ void CRenderViewMainWindow::InitMenus()
 
    QToolButton *abortButton = new QToolButton(m_toolBar);
    abortButton->setDefaultAction(m_abortAction);
-   m_toolBar->addWidget(abortButton);
+   m_abortToolbarAction = m_toolBar->addWidget(abortButton);
    QIcon abortIcon(QPixmap((const char **) SA_icon_stop_xpm));
    abortButton->setIcon(abortIcon);
    m_abortAction->setIcon(abortIcon);
@@ -1551,7 +1607,7 @@ void CRenderViewMainWindow::InitMenus()
    m_toolBar->addSeparator();
    QToolButton *refreshButton = new QToolButton(m_toolBar);
    refreshButton->setDefaultAction(m_actionAutoRefresh);
-   m_toolBar->addWidget(refreshButton);
+   m_continuousToolbarAction = m_toolBar->addWidget(refreshButton);
    QIcon refreshIcon;
    refreshIcon.addPixmap(QPixmap((const char **) SA_icon_continuous_on_xpm), QIcon::Normal, QIcon::On);
    refreshIcon.addPixmap(QPixmap((const char **) SA_icon_continuous_off_xpm), QIcon::Normal, QIcon::Off);
@@ -1562,7 +1618,7 @@ void CRenderViewMainWindow::InitMenus()
 
    QToolButton *regionButton = new QToolButton(m_toolBar);
    regionButton->setDefaultAction(m_actionCropRegion);
-   m_toolBar->addWidget(regionButton);
+   m_cropToolbarAction = m_toolBar->addWidget(regionButton);
    QIcon regionIcon;
    regionIcon.addPixmap(QPixmap((const char **) SA_icon_region_on_xpm), QIcon::Normal, QIcon::On);
    regionIcon.addPixmap(QPixmap((const char **) SA_icon_region_off_xpm), QIcon::Normal, QIcon::Off);
@@ -1573,7 +1629,7 @@ void CRenderViewMainWindow::InitMenus()
 
    QToolButton *lutButton = new QToolButton(m_toolBar);
    lutButton->setDefaultAction(m_lutAction);
-   m_toolBar->addWidget(lutButton);
+   m_lutToolbarAction = m_toolBar->addWidget(lutButton);
    QIcon lutIcon;
    lutIcon.addPixmap(QPixmap((const char **) SA_icon_lut_on_xpm), QIcon::Normal, QIcon::On);
    lutIcon.addPixmap(QPixmap((const char **) SA_icon_lut_off_xpm), QIcon::Normal, QIcon::Off);
@@ -1624,7 +1680,7 @@ void CRenderViewMainWindow::InitMenus()
 */
 
    EnableMenus(false, true); //second arg is to force the setEnabled calls
-   
+ 
 }
 
 void
@@ -2591,6 +2647,54 @@ void CRenderViewMainWindow::SetDisplayingSnapshot(bool b)
       m_displayingSnapshot = false;
       EnableMenus(true);
    }
+}
+
+void CRenderViewMainWindow::SlotToolbarAOVs()
+{
+   if(m_actionToolbarAOVs->isChecked()) m_aovsComboAction->setVisible(true);
+   else m_aovsComboAction->setVisible(false);
+   
+}
+void CRenderViewMainWindow::SlotToolbarCameras()
+{
+   if(m_actionToolbarCamera->isChecked()) m_camerasComboAction->setVisible(true);
+   else m_camerasComboAction->setVisible(false);
+   
+}
+
+void CRenderViewMainWindow::SlotToolbarRGBA()
+{
+   if(m_actionToolbarRGBA->isChecked()) m_rgbaToolbarAction->setVisible(true);
+   else m_rgbaToolbarAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotToolbarRender()
+{
+   if(m_actionToolbarRender->isChecked()) m_renderToolbarAction->setVisible(true);
+   else m_renderToolbarAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotToolbarAbort()
+{
+   if(m_actionToolbarAbort->isChecked()) m_abortToolbarAction->setVisible(true);
+   else m_abortToolbarAction->setVisible(false);
+
+}
+void CRenderViewMainWindow::SlotToolbarContinuous()
+{
+   if(m_actionToolbarContinuous->isChecked()) m_continuousToolbarAction->setVisible(true);
+   else m_continuousToolbarAction->setVisible(false);
+
+}
+void CRenderViewMainWindow::SlotToolbarCropRegion()
+{
+   if(m_actionToolbarCrop->isChecked()) m_cropToolbarAction->setVisible(true);
+   else m_cropToolbarAction->setVisible(false);
+
+}
+void CRenderViewMainWindow::SlotToolbarLut()
+{
+   if(m_actionToolbarLUT->isChecked()) m_lutToolbarAction->setVisible(true);
+   else m_lutToolbarAction->setVisible(false);
+
 }
 
 // If you add some slots, you'll have to run moc
