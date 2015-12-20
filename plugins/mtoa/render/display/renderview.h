@@ -58,6 +58,7 @@ public:
    void InitMenus();
    void PopulateAOVsMenu();
    void PopulateCamerasMenu();
+   void PopulateDebugShadingCombo();
    void UpdateCamerasMenu();
 
    void EnableMenus(bool b, bool force = false)
@@ -80,6 +81,7 @@ public:
    CRenderGLWidget *GetGlWidget() {return m_gl;}
    void SetDisplayingSnapshot(bool b);
    bool IsDisplayingSnapshot() const {return m_displayingSnapshot;}
+   void ExposureChanged();
    
 private:
 
@@ -92,13 +94,19 @@ private:
    QMenu *m_menuRender;
    QMenu *m_menuAovs;
    QMenu *m_menuCamera;
+   QMenu *m_debugShadingMenu;
 
    QToolBar *m_toolBar;
    QComboBox *m_aovsCombo;
    QComboBox *m_camerasCombo;
+   QComboBox *m_debugShadingCombo;
    QToolButton *m_rgbaButton;
    QPushButton *m_storeButton;
    QPushButton *m_showSnapshotsButton;
+   QPushButton *m_exposureButton;
+   QSlider *m_exposureSlider;
+   QLineEdit *m_exposureEdit;
+
 
 
    QAction *m_actionShowRenderingTiles;
@@ -130,6 +138,9 @@ private:
    QAction *m_actionToolbarContinuous;
    QAction *m_actionToolbarCrop;
    QAction *m_actionToolbarLUT;
+   QAction *m_actionToolbar3d;
+   QAction *m_actionToolbarDebugShading;
+   QAction *m_actionToolbarExposure;
 
 /* These are the Toolbar actions
 */
@@ -141,8 +152,11 @@ private:
    QAction *m_cropToolbarAction;
    QAction *m_continuousToolbarAction;
    QAction *m_lutToolbarAction;
-
-
+   QAction *m_3dToolbarAction;
+   QAction *m_debugShadingComboAction;
+   QAction *m_exposureSliderAction;
+   QAction *m_exposureButtonAction;
+   QAction *m_exposureEditAction;
 
    QActionGroup *m_channelActionGroup;
    QActionGroup *m_aovsActionGroup;
@@ -162,6 +176,7 @@ private:
 
    QWidget *m_centralWidget;
    CRenderGLWidget *m_gl;
+
 
 protected:
    // virtual Qt methods redefined here
@@ -214,6 +229,14 @@ private slots:
    void SlotToolbarContinuous();
    void SlotToolbarCropRegion();
    void SlotToolbarLut();
+   void SlotToolbar3d();
+   void SlotToolbarDebugShading();
+   void SlotSelectDebugShadingCombo();
+   void SlotToolbarExposure();
+   void SlotExposureSliderMoved(int i);
+   void SlotExposureTextChanged();
+   void SlotExposureButtonClicked();
+
 
 // If you add a slot to this class,
 // don't forget to run

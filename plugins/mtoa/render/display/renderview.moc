@@ -22,7 +22,7 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      37,   14, // methods
+      44,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -67,6 +67,13 @@ static const uint qt_meta_data_CRenderViewMainWindow[] = {
      597,   22,   22,   22, 0x08,
      621,   22,   22,   22, 0x08,
      645,   22,   22,   22, 0x08,
+     662,   22,   22,   22, 0x08,
+     678,   22,   22,   22, 0x08,
+     704,   22,   22,   22, 0x08,
+     734,   22,   22,   22, 0x08,
+     758,  756,   22,   22, 0x08,
+     787,   22,   22,   22, 0x08,
+     813,   22,   22,   22, 0x08,
 
        0        // eod
 };
@@ -89,7 +96,13 @@ static const char qt_meta_stringdata_CRenderViewMainWindow[] = {
     "SlotToolbarCameras()\0SlotToolbarRGBA()\0"
     "SlotToolbarRender()\0SlotToolbarAbort()\0"
     "SlotToolbarContinuous()\0SlotToolbarCropRegion()\0"
-    "SlotToolbarLut()\0"
+    "SlotToolbarLut()\0SlotToolbar3d()\0"
+    "SlotToolbarDebugShading()\0"
+    "SlotSelectDebugShadingCombo()\0"
+    "SlotToolbarExposure()\0i\0"
+    "SlotExposureSliderMoved(int)\0"
+    "SlotExposureTextChanged()\0"
+    "SlotExposureButtonClicked()\0"
 };
 
 void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
@@ -135,6 +148,13 @@ void CRenderViewMainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c
         case 34: _t->SlotToolbarContinuous(); break;
         case 35: _t->SlotToolbarCropRegion(); break;
         case 36: _t->SlotToolbarLut(); break;
+        case 37: _t->SlotToolbar3d(); break;
+        case 38: _t->SlotToolbarDebugShading(); break;
+        case 39: _t->SlotSelectDebugShadingCombo(); break;
+        case 40: _t->SlotToolbarExposure(); break;
+        case 41: _t->SlotExposureSliderMoved((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 42: _t->SlotExposureTextChanged(); break;
+        case 43: _t->SlotExposureButtonClicked(); break;
         default: ;
         }
     }
@@ -172,9 +192,9 @@ int CRenderViewMainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 37)
+        if (_id < 44)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 37;
+        _id -= 44;
     }
     return _id;
 }

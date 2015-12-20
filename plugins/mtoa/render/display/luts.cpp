@@ -389,28 +389,41 @@ void CRenderViewCCWindow::GammaTextChanged()
 }
 
 
-void CRenderViewCCWindow::ExposureSliderChanged()
+// This function is called from the outside
+// to say that m_colorCorrectSettings has changed
+void CRenderViewCCWindow::ExposureChanged()
 {
-   m_colorCorrectSettings.exposure = ((float)m_exposureSlider->sliderPosition() - 500.f) / 100.f;
-   m_colorCorrectSettings.exposureFactor = powf(2.f, m_colorCorrectSettings.exposure);
-
    m_exposureEdit->blockSignals(true);
    m_exposureEdit->setText(QString::number(m_colorCorrectSettings.exposure));
    m_exposureEdit->blockSignals(false);
-   m_renderView.RefreshGLBuffer();
+
+   m_exposureSlider->blockSignals(true);
+   m_exposureSlider->setValue(int(m_colorCorrectSettings.exposure * 100) + 500);
+   m_exposureSlider->blockSignals(false);
 }
 
 void CRenderViewCCWindow::ExposureTextChanged()
 {
 
    QString exposureStr = m_exposureEdit->text();
-   m_colorCorrectSettings.exposure = exposureStr.toFloat();
-   m_colorCorrectSettings.exposureFactor = powf(2.f, m_colorCorrectSettings.exposure);
-
+   m_colorCorrectSettings.SetExposure(exposureStr.toFloat());
+   
    m_exposureSlider->blockSignals(true);
    m_exposureSlider->setValue(int(m_colorCorrectSettings.exposure * 100) + 500);
    m_exposureSlider->blockSignals(false);
-   m_renderView.RefreshGLBuffer();
+   m_renderView.GetMainWindow()->ExposureChanged();
+}
+
+
+
+void CRenderViewCCWindow::ExposureSliderChanged()
+{
+   m_colorCorrectSettings.SetExposure(((float)m_exposureSlider->sliderPosition() - 500.f) / 100.f);
+   
+   m_exposureEdit->blockSignals(true);
+   m_exposureEdit->setText(QString::number(m_colorCorrectSettings.exposure));
+   m_exposureEdit->blockSignals(false);
+   m_renderView.GetMainWindow()->ExposureChanged();
 }
 
 
