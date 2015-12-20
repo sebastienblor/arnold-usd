@@ -88,6 +88,7 @@ struct CRenderViewCCSettings
    CRenderViewCCSettings() :  gamma(1.0),
                               exposure(0.f),
                               exposureFactor(1.f),
+                              previousExposure(0.f),
                               space(RV_COLOR_SPACE_SRGB),
                               dither(true),
                               lut3d(NULL)
@@ -96,11 +97,35 @@ struct CRenderViewCCSettings
    ~CRenderViewCCSettings() {
       if (lut3d) delete lut3d;
 
-
    }
+
+   void SetExposure(float f)
+   {
+      //previousExposure = exposure;
+      exposure = f;
+      exposureFactor = powf(2.f, exposure);
+   }
+   void ToggleExposure()
+   {
+      if (exposure == previousExposure) return;
+
+      if (previousExposure == 0.f)
+      {
+         previousExposure = exposure;
+         exposure = 0.f;
+      } else
+      {
+         exposure = previousExposure;
+         previousExposure = 0.f;
+      }
+      exposureFactor = powf(2.f, exposure);
+   }
+
+
    float gamma;
    float exposure;
    float exposureFactor;
+   float previousExposure;
    CRenderViewColorSpace  space;
    bool  dither;
    CubeLUT *lut3d;
@@ -130,6 +155,8 @@ public:
 
    void Init();
    void AdjustPosition();
+   void ExposureChanged();
+
 protected:
    void moveEvent(QMoveEvent *event);
    
@@ -171,11 +198,11 @@ private:
 
    bool m_moving;
 
+
+
 private slots:
    void GammaSliderChanged();
    void GammaTextChanged();
-   void ExposureSliderChanged();
-   void ExposureTextChanged();
    void DitherChanged();
    void ColorSpaceChanged();
    void BrowseLutFile();
@@ -186,6 +213,8 @@ private slots:
    void BgScaleChanged();
    void BgOffsetChanged();
    void PickBgColor();
+   void ExposureSliderChanged();
+   void ExposureTextChanged();
 
 };
 

@@ -64,7 +64,9 @@
 #include "icons/SA_icon_arrows_down.xpm"
 #include "icons/SA_icon_photo.xpm"
 #include "icons/SA_icon_photo_red.xpm"
-
+#include "icons/SA_icon_3d_on.xpm"
+#include "icons/SA_icon_3d_off.xpm"
+#include "icons/SA_icon_exposure.xpm"
 
 
 
@@ -82,6 +84,10 @@
 //#pragma warning (disable : 4244)
 //#endif
 static MCallbackId rvSelectionCb = 0;
+
+static QString s_styleButton = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
+static QString s_pushStyleButton = "QPushButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QPushButton:pressed {    background-color: rgb(150, 150, 150) ;} QPushButton:flat {    border: none;} QPushButton:default {   border-color: transparent;} QPushButton:hover {    border: none; background-color: rgb(120, 120, 120);} ";
+
 
 /*****************************
  *
@@ -1137,9 +1143,11 @@ CRenderViewMainWindow::CRenderViewMainWindow(QWidget *parent, CRenderView &rv) :
       m_menuRender(NULL),
       m_menuAovs(NULL),
       m_menuCamera(NULL),
+      m_debugShadingMenu(NULL),
       m_toolBar(NULL),
       m_aovsCombo(NULL),
       m_camerasCombo(NULL),
+      m_debugShadingCombo(NULL),
       m_ccWindow(NULL),
       m_manipulator(NULL),
       m_displayingSnapshot(false)
@@ -1208,6 +1216,8 @@ void CRenderViewMainWindow::InitMenus()
    m_toolBar =  addToolBar("Arnold");
    m_toolBar->setAutoFillBackground(true);
    m_toolBar->setPalette(palette());
+   m_toolBar->setFloatable(false);
+   m_toolBar->setMovable(false);
 
    statusBar()->show();
    statusBar()->showMessage(" ");
@@ -1226,6 +1236,11 @@ void CRenderViewMainWindow::InitMenus()
    m_storeButton->setStyleSheet("QPushButton { border: none transparent;   background-color: transparent;}  QPushButton:checked {    background-color: transparent ;}  QPushButton:flat {    border: none;border-color: transparent;} QPushButton:default { border: none;  border-color: transparent;}");
    // add icons at the right of the status bar
    statusBar()->addPermanentWidget(m_storeButton);
+
+
+   m_exposureSliderAction = NULL;
+   m_exposureButtonAction = NULL;
+   m_exposureEditAction = NULL;
 
 /*
    m_showSnapshots = new QPushButton(statusBar());
@@ -1246,7 +1261,126 @@ void CRenderViewMainWindow::InitMenus()
 
    action->setCheckable(false);
    action->setStatusTip("Save the Image currently being displayed");
+
+   m_menuWindow = menubar->addMenu("Window");
+
+   QMenu *statusMenu = new QMenu("Status Bar");
+   m_menuWindow->addMenu(statusMenu);
+
+
+   action = m_menuWindow->addAction("Frame All");
+   connect(action, SIGNAL(triggered()), this, SLOT(FrameAll()));
+   action->setCheckable(false);
+   action->setStatusTip("Frame the whole Image to fit the window size");
+   action->setShortcut(Qt::Key_A);
+
+   action = m_menuWindow->addAction("Frame Selection");
+   connect(action, SIGNAL(triggered()), this, SLOT(FrameRegion()));
+   action->setCheckable(false);
+   action->setStatusTip("Frame the Crop Region to fit the window size");
+   action->setShortcut(Qt::Key_F);
+
+   action = m_menuWindow->addAction("Real Size");
+   connect(action, SIGNAL(triggered()), this, SLOT(RealSize()));
+   action->setCheckable(false);
+   action->setStatusTip("Display image with its real size");
+   action->setShortcut(Qt::Key_O);
+
+   m_menuWindow->addSeparator();
+
+   m_3dManipulation = false;
+
+   m_3dManipulationAction = m_menuWindow->addAction("3D Manipulation");
+   connect(m_3dManipulationAction, SIGNAL(triggered()), this, SLOT(ToggleManipulationMode()));
+   m_3dManipulationAction->setCheckable(true);
+   m_3dManipulationAction->setChecked(m_3dManipulation);
+   m_3dManipulationAction->setStatusTip("Manipulate the rendered image in 3D");
    
+
+   m_menuWindow->addSeparator();     
+
+
+   m_actionStatusBar = statusMenu->addAction("Show Status Bar");
+   connect(m_actionStatusBar, SIGNAL(triggered()), this, SLOT(EnableStatusBar()));
+   m_actionStatusBar->setCheckable(true);
+   m_actionStatusBar->setChecked(true);
+   m_actionStatusBar->setStatusTip("Display the Status Bar");
+
+   m_actionStatusInfo = statusMenu->addAction("Display Pixel Information");
+   connect(m_actionStatusInfo, SIGNAL(triggered()), this, SLOT(DisplayPixelInfo()));
+   m_actionStatusInfo->setCheckable(true);
+   m_actionStatusInfo->setChecked(false);
+   m_actionStatusInfo->setStatusTip("Display Pixel Information in the Status Bar");
+
+   QMenu *toolbarMenu = new QMenu("Toolbar Icons");
+   m_menuWindow->addMenu(toolbarMenu);
+
+   m_actionToolbarAOVs = toolbarMenu->addAction("Show AOVs list");
+   connect(m_actionToolbarAOVs, SIGNAL(triggered()), this, SLOT(SlotToolbarAOVs()));
+   m_actionToolbarAOVs->setCheckable(true);
+   m_actionToolbarAOVs->setChecked(true);
+   m_actionToolbarAOVs->setStatusTip("Show the AOVs list in the Toolbar");
+
+   m_actionToolbarCamera = toolbarMenu->addAction("Show Cameras list");
+   connect(m_actionToolbarCamera, SIGNAL(triggered()), this, SLOT(SlotToolbarCameras()));
+   m_actionToolbarCamera->setCheckable(true);
+   m_actionToolbarCamera->setChecked(true);
+   m_actionToolbarCamera->setStatusTip("Show the Cameras list in the Toolbar");
+
+   m_actionToolbarRGBA = toolbarMenu->addAction("Show RGBA icon");
+   connect(m_actionToolbarRGBA, SIGNAL(triggered()), this, SLOT(SlotToolbarRGBA()));
+   m_actionToolbarRGBA->setCheckable(true);
+   m_actionToolbarRGBA->setChecked(true);
+   m_actionToolbarRGBA->setStatusTip("Show the RGBA icon in the Toolbar");
+
+   m_actionToolbarRender = toolbarMenu->addAction("Show Render icon");
+   connect(m_actionToolbarRender, SIGNAL(triggered()), this, SLOT(SlotToolbarRender()));
+   m_actionToolbarRender->setCheckable(true);
+   m_actionToolbarRender->setChecked(true);
+   m_actionToolbarRender->setStatusTip("Show the Render icon in the Toolbar");
+
+   m_actionToolbarAbort = toolbarMenu->addAction("Show Abort icon");
+   connect(m_actionToolbarAbort, SIGNAL(triggered()), this, SLOT(SlotToolbarAbort()));
+   m_actionToolbarAbort->setCheckable(true);
+   m_actionToolbarAbort->setChecked(true);
+   m_actionToolbarAbort->setStatusTip("Show the Abort icon in the Toolbar");
+
+   m_actionToolbarContinuous = toolbarMenu->addAction("Show Continuous Updates icon");
+   connect(m_actionToolbarContinuous, SIGNAL(triggered()), this, SLOT(SlotToolbarContinuous()));
+   m_actionToolbarContinuous->setCheckable(true);
+   m_actionToolbarContinuous->setChecked(true);
+   m_actionToolbarContinuous->setStatusTip("Show the Abort icon in the Toolbar");
+
+   m_actionToolbarCrop = toolbarMenu->addAction("Show Crop Region icon");
+   connect(m_actionToolbarCrop, SIGNAL(triggered()), this, SLOT(SlotToolbarCropRegion()));
+   m_actionToolbarCrop->setCheckable(true);
+   m_actionToolbarCrop->setChecked(true);
+   m_actionToolbarCrop->setStatusTip("Show the Crop Region icon in the Toolbar");
+
+   m_actionToolbarLUT = toolbarMenu->addAction("Show LUT icon");
+   connect(m_actionToolbarLUT, SIGNAL(triggered()), this, SLOT(SlotToolbarLut()));
+   m_actionToolbarLUT->setCheckable(true);
+   m_actionToolbarLUT->setChecked(true);
+   m_actionToolbarLUT->setStatusTip("Show the Lut icon in the Toolbar");
+
+   m_actionToolbar3d = toolbarMenu->addAction("Show 3D Manipulation icon");
+   connect(m_actionToolbar3d, SIGNAL(triggered()), this, SLOT(SlotToolbar3d()));
+   m_actionToolbar3d->setCheckable(true);
+   m_actionToolbar3d->setChecked(false);
+   m_actionToolbar3d->setStatusTip("Show the 3D Manipulation icon in the Toolbar");
+
+   m_actionToolbarDebugShading = toolbarMenu->addAction("Show Debug Shading icon");
+   connect(m_actionToolbarDebugShading, SIGNAL(triggered()), this, SLOT(SlotToolbarDebugShading()));
+   m_actionToolbarDebugShading->setCheckable(true);
+   m_actionToolbarDebugShading->setChecked(false);
+   m_actionToolbarDebugShading->setStatusTip("Show the Debug Shading option in the Toolbar");
+
+   m_actionToolbarExposure = toolbarMenu->addAction("Show Exposure icon");
+   connect(m_actionToolbarExposure, SIGNAL(triggered()), this, SLOT(SlotToolbarExposure()));
+   m_actionToolbarExposure->setCheckable(true);
+   m_actionToolbarExposure->setChecked(true);
+   m_actionToolbarExposure->setStatusTip("Show the Exposure Slider in the Toolbar");
+
    m_menuView = menubar->addMenu("View");
 
    m_actionEnableAovs = m_menuView->addAction("Enable AOVs");
@@ -1263,7 +1397,7 @@ void CRenderViewMainWindow::InitMenus()
 
    m_aovsCombo = new QComboBox(this);
    
-   m_toolBar->addWidget(m_aovsCombo);
+   m_aovsComboAction = m_toolBar->addWidget(m_aovsCombo);
    m_aovsCombo->setMinimumWidth(90);
    m_toolBar->addSeparator();
    
@@ -1306,25 +1440,7 @@ void CRenderViewMainWindow::InitMenus()
 
    m_menuView->addSeparator();
 
-   action = m_menuView->addAction("Frame All");
-   connect(action, SIGNAL(triggered()), this, SLOT(FrameAll()));
-   action->setCheckable(false);
-   action->setStatusTip("Frame the whole Image to fit the window size");
-   action->setShortcut(Qt::Key_A);
 
-   action = m_menuView->addAction("Frame Selection");
-   connect(action, SIGNAL(triggered()), this, SLOT(FrameRegion()));
-   action->setCheckable(false);
-   action->setStatusTip("Frame the Crop Region to fit the window size");
-   action->setShortcut(Qt::Key_F);
-
-   action = m_menuView->addAction("Real Size");
-   connect(action, SIGNAL(triggered()), this, SLOT(RealSize()));
-   action->setCheckable(false);
-   action->setStatusTip("Display image with its real size");
-   action->setShortcut(Qt::Key_O);
-
-   m_menuView->addSeparator();
 
    m_actionShowRenderingTiles = m_menuView->addAction("Show Rendering Tiles");
    connect(m_actionShowRenderingTiles, SIGNAL(triggered()), this, SLOT(ShowRenderingTiles()));
@@ -1357,6 +1473,7 @@ void CRenderViewMainWindow::InitMenus()
 
    m_menuView->addSeparator();
 
+
    m_lutAction = m_menuView->addAction("LUT / Color Correction");
    connect(m_lutAction, SIGNAL(triggered()), this, SLOT(ColorCorrection()));
    m_lutAction->setCheckable(true);
@@ -1364,33 +1481,8 @@ void CRenderViewMainWindow::InitMenus()
    m_lutAction->setStatusTip("Apply Color Correction on the displayed image");
 
    m_menuView->addSeparator();   
-
-   m_3dManipulation = false;
-
-   m_3dManipulationAction = m_menuView->addAction("3D Manipulation");
-   connect(m_3dManipulationAction, SIGNAL(triggered()), this, SLOT(ToggleManipulationMode()));
-   m_3dManipulationAction->setCheckable(true);
-   m_3dManipulationAction->setChecked(m_3dManipulation);
-   m_3dManipulationAction->setStatusTip("Manipulate the rendered image in 3D");
+ 
    
-
-   m_menuView->addSeparator();      
-   QMenu *statusMenu = new QMenu("Status Bar");
-   m_menuView->addMenu(statusMenu);
-
-
-   m_actionStatusBar = statusMenu->addAction("Show Status Bar");
-   connect(m_actionStatusBar, SIGNAL(triggered()), this, SLOT(EnableStatusBar()));
-   m_actionStatusBar->setCheckable(true);
-   m_actionStatusBar->setChecked(true);
-   m_actionStatusBar->setStatusTip("Display the Status Bar");
-
-   m_actionStatusInfo = statusMenu->addAction("Display Pixel Information");
-   connect(m_actionStatusInfo, SIGNAL(triggered()), this, SLOT(DisplayPixelInfo()));
-   m_actionStatusInfo->setCheckable(true);
-   m_actionStatusInfo->setChecked(false);
-   m_actionStatusInfo->setStatusTip("Display Pixel Information in the Status Bar");
-
 
    m_menuRender = menubar->addMenu("Render");
 
@@ -1433,156 +1525,182 @@ void CRenderViewMainWindow::InitMenus()
    m_camerasActionGroup = 0;
 
    m_camerasCombo = new CRvCameraComboBox(*this, this);
-   m_toolBar->addWidget(m_camerasCombo);
+   m_camerasComboAction = m_toolBar->addWidget(m_camerasCombo);
    
    PopulateCamerasMenu();
 
    connect(m_menuCamera, SIGNAL(aboutToShow()), this, SLOT(ShowCamerasMenu()));
 
    m_menuRender->addSeparator();
-   QMenu *debugShadingMenu = new QMenu("Debug Shading");
-   debugShadingMenu->setTearOffEnabled(true);
-   m_menuRender->addMenu(debugShadingMenu);
+   m_debugShadingMenu = new QMenu("Debug Shading");
+   m_debugShadingMenu->setTearOffEnabled(true);
+   m_menuRender->addMenu(m_debugShadingMenu);
    m_debugShadingActionGroup = new QActionGroup(this);
 
-   m_debugShadingActionDisabled = debugShadingMenu->addAction("Disabled");
+   m_debugShadingActionDisabled = m_debugShadingMenu->addAction("Disabled");
    connect(m_debugShadingActionDisabled, SIGNAL(triggered()), this, SLOT(DebugShading()));
    m_debugShadingActionDisabled->setCheckable(true);
    m_debugShadingActionDisabled->setStatusTip("Regular rendering");
    m_debugShadingActionDisabled->setChecked(true);
    m_debugShadingActionGroup->addAction(m_debugShadingActionDisabled);
 
-   debugShadingMenu->addSeparator();
+   m_debugShadingMenu->addSeparator();
 
-   action = debugShadingMenu->addAction("Basic");
+   action = m_debugShadingMenu->addAction("Basic");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Basic Shading (ndoteye)");
    m_debugShadingActionGroup->addAction(action);
 
-   action = debugShadingMenu->addAction("Occlusion");
+   action = m_debugShadingMenu->addAction("Occlusion");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Occlusion Rendering");
    m_debugShadingActionGroup->addAction(action);
 
-   action = debugShadingMenu->addAction("Wireframe");
+   action = m_debugShadingMenu->addAction("Wireframe");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Wireframe Rendering");
    m_debugShadingActionGroup->addAction(action);
 
-   action = debugShadingMenu->addAction("Normal");
+   action = m_debugShadingMenu->addAction("Normal");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Normal display");
 
    m_debugShadingActionGroup->addAction(action);
-   action = debugShadingMenu->addAction("UV");
+   action = m_debugShadingMenu->addAction("UV");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("UV Display");
    m_debugShadingActionGroup->addAction(action);
 
-   action = debugShadingMenu->addAction("Primitive ID");
+   action = m_debugShadingMenu->addAction("Primitive ID");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Display per-primitive color");
    m_debugShadingActionGroup->addAction(action);
 
-   action = debugShadingMenu->addAction("Barycentric");
+   action = m_debugShadingMenu->addAction("Barycentric");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Barycentric coordinates");
    m_debugShadingActionGroup->addAction(action);
 
-   action = debugShadingMenu->addAction("Object");
+   action = m_debugShadingMenu->addAction("Object");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Per-Object Color");
    m_debugShadingActionGroup->addAction(action);
 
-   debugShadingMenu->addSeparator();
+   m_debugShadingMenu->addSeparator();
 
-   action = debugShadingMenu->addAction("Isolate Selected");
+   action = m_debugShadingMenu->addAction("Isolate Selected");
    connect(action, SIGNAL(triggered()), this, SLOT(DebugShading()));
    action->setCheckable(true);
    action->setStatusTip("Isolate the selected shader");
    m_debugShadingActionGroup->addAction(action);
 
+   m_debugShadingCombo = new QComboBox(this);
+   
+   m_debugShadingComboAction = m_toolBar->addWidget(m_debugShadingCombo);
+   m_debugShadingComboAction->setVisible(m_actionToolbarDebugShading->isChecked());
+   m_debugShadingCombo->setMinimumWidth(70);
+   
 
 // Now dealing with the ToolButtons   
-
+   
    setIconSize(QSize(18, 18));
 
    m_toolBar->addSeparator();
-   QString styleButton = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
 
    m_rgbaButton = new QToolButton(m_toolBar);
-   m_toolBar->addWidget(m_rgbaButton);
+   m_rgbaToolbarAction = m_toolBar->addWidget(m_rgbaButton);
    QIcon rgbaIcon;
    rgbaIcon.addPixmap(QPixmap((const char **) SA_icon_ch_rgba_xpm));
    m_rgbaButton->setIcon(rgbaIcon);
-   m_rgbaButton->setStyleSheet(styleButton);
+   m_rgbaButton->setStyleSheet(s_styleButton);
 
    connect(m_rgbaButton, SIGNAL(clicked()), this, SLOT(RgbaClicked()));
 
    m_toolBar->addSeparator();
 
-
    QToolButton *renderButton = new QToolButton(m_toolBar);
    renderButton->setDefaultAction(m_renderAction);
-   m_toolBar->addWidget(renderButton);
+   m_renderToolbarAction = m_toolBar->addWidget(renderButton);
    QIcon renderIcon(QPixmap((const char **) SA_icon_play_xpm));
    renderButton->setIcon(renderIcon);
    m_renderAction->setIcon(renderIcon);
    m_renderAction->setIconVisibleInMenu(false);
-   renderButton->setStyleSheet(styleButton);
+   renderButton->setStyleSheet(s_styleButton);
 
    QToolButton *abortButton = new QToolButton(m_toolBar);
    abortButton->setDefaultAction(m_abortAction);
-   m_toolBar->addWidget(abortButton);
+   m_abortToolbarAction = m_toolBar->addWidget(abortButton);
    QIcon abortIcon(QPixmap((const char **) SA_icon_stop_xpm));
    abortButton->setIcon(abortIcon);
    m_abortAction->setIcon(abortIcon);
    m_abortAction->setIconVisibleInMenu(false);
-   abortButton->setStyleSheet(styleButton);
+   abortButton->setStyleSheet(s_styleButton);
 
    m_toolBar->addSeparator();
    QToolButton *refreshButton = new QToolButton(m_toolBar);
    refreshButton->setDefaultAction(m_actionAutoRefresh);
-   m_toolBar->addWidget(refreshButton);
+   m_continuousToolbarAction = m_toolBar->addWidget(refreshButton);
    QIcon refreshIcon;
    refreshIcon.addPixmap(QPixmap((const char **) SA_icon_continuous_on_xpm), QIcon::Normal, QIcon::On);
    refreshIcon.addPixmap(QPixmap((const char **) SA_icon_continuous_off_xpm), QIcon::Normal, QIcon::Off);
    refreshButton->setIcon(refreshIcon);
    m_actionAutoRefresh->setIcon(refreshIcon);
    m_actionAutoRefresh->setIconVisibleInMenu(false);
-   refreshButton->setStyleSheet(styleButton);
+   refreshButton->setStyleSheet(s_styleButton);
 
    QToolButton *regionButton = new QToolButton(m_toolBar);
    regionButton->setDefaultAction(m_actionCropRegion);
-   m_toolBar->addWidget(regionButton);
+   m_cropToolbarAction = m_toolBar->addWidget(regionButton);
    QIcon regionIcon;
    regionIcon.addPixmap(QPixmap((const char **) SA_icon_region_on_xpm), QIcon::Normal, QIcon::On);
    regionIcon.addPixmap(QPixmap((const char **) SA_icon_region_off_xpm), QIcon::Normal, QIcon::Off);
    regionButton->setIcon(regionIcon);
    m_actionCropRegion->setIcon(regionIcon);
    m_actionCropRegion->setIconVisibleInMenu(false);
-   regionButton->setStyleSheet(styleButton);
+   regionButton->setStyleSheet(s_styleButton);
+
+
+   QToolButton *tdmButton = new QToolButton(m_toolBar);
+   tdmButton->setDefaultAction(m_3dManipulationAction);
+   m_3dToolbarAction = m_toolBar->addWidget(tdmButton);
+   m_3dToolbarAction->setVisible(m_actionToolbar3d->isChecked());
+
+   QIcon tdmIcon;
+   tdmIcon.addPixmap(QPixmap((const char **) SA_icon_3d_on_xpm), QIcon::Normal, QIcon::On);
+   tdmIcon.addPixmap(QPixmap((const char **) SA_icon_3d_off_xpm), QIcon::Normal, QIcon::Off);
+
+   tdmButton->setIcon(tdmIcon);
+   m_3dManipulationAction->setIcon(tdmIcon);
+   m_3dManipulationAction->setIconVisibleInMenu(false);
+   tdmButton->setStyleSheet(s_styleButton);
 
    QToolButton *lutButton = new QToolButton(m_toolBar);
    lutButton->setDefaultAction(m_lutAction);
-   m_toolBar->addWidget(lutButton);
+   m_lutToolbarAction = m_toolBar->addWidget(lutButton);
    QIcon lutIcon;
    lutIcon.addPixmap(QPixmap((const char **) SA_icon_lut_on_xpm), QIcon::Normal, QIcon::On);
    lutIcon.addPixmap(QPixmap((const char **) SA_icon_lut_off_xpm), QIcon::Normal, QIcon::Off);
    lutButton->setIcon(lutIcon);
    m_lutAction->setIcon(lutIcon);
    m_lutAction->setIconVisibleInMenu(false);
-   lutButton->setStyleSheet(styleButton);
+   lutButton->setStyleSheet(s_styleButton);
 
-   m_toolBar->addSeparator();
+   PopulateDebugShadingCombo();
+
+
+   SlotToolbarExposure();
+
+
+
+//   m_toolBar->addSeparator();
    
    /*
    QToolButton *storeButton = new QToolButton(m_toolBar);
@@ -1624,7 +1742,7 @@ void CRenderViewMainWindow::InitMenus()
 */
 
    EnableMenus(false, true); //second arg is to force the setEnabled calls
-   
+ 
 }
 
 void
@@ -1913,6 +2031,9 @@ void CRenderViewMainWindow::DebugShading()
    {
       m_renderView.SetDebugShading(RV_DBG_SHAD_DISABLED);
    }
+
+   m_debugShadingCombo->setCurrentIndex(m_renderView.m_debugShading);
+
 }
 
 
@@ -2208,6 +2329,24 @@ void CRenderViewMainWindow::PopulateCamerasMenu()
    connect(m_camerasCombo, SIGNAL(activated(int)), this, SLOT(SelectBoxCamera()));
    if (i > 0) m_camerasCombo->setCurrentIndex(cam_index);
    AiNodeIteratorDestroy(iter);
+}
+void CRenderViewMainWindow::PopulateDebugShadingCombo()
+{
+   if (m_debugShadingMenu == NULL) return; // not initialized
+
+   // clear all previous actions in the menu
+   
+   m_debugShadingCombo->clear();
+   QList<QAction *> debugShadingActions = m_debugShadingActionGroup->actions();
+   for (int i = 0; i < debugShadingActions.size(); ++i)
+   {
+      QString actionName = (i == 0) ? "Shading" : debugShadingActions[i]->text();
+      m_debugShadingCombo->addItem(actionName);
+   }
+
+   m_debugShadingCombo->setCurrentIndex(0);
+   connect(m_debugShadingCombo, SIGNAL(activated(int)), this, SLOT(SlotSelectDebugShadingCombo()));
+
 }
 
 
@@ -2593,5 +2732,185 @@ void CRenderViewMainWindow::SetDisplayingSnapshot(bool b)
    }
 }
 
+void CRenderViewMainWindow::SlotToolbarAOVs()
+{
+   if(m_actionToolbarAOVs->isChecked()) m_aovsComboAction->setVisible(true);
+   else m_aovsComboAction->setVisible(false);
+   
+}
+void CRenderViewMainWindow::SlotToolbarCameras()
+{
+   if(m_actionToolbarCamera->isChecked()) m_camerasComboAction->setVisible(true);
+   else m_camerasComboAction->setVisible(false);
+   
+}
+
+void CRenderViewMainWindow::SlotToolbarRGBA()
+{
+   if(m_actionToolbarRGBA->isChecked()) m_rgbaToolbarAction->setVisible(true);
+   else m_rgbaToolbarAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotToolbarRender()
+{
+   if(m_actionToolbarRender->isChecked()) m_renderToolbarAction->setVisible(true);
+   else m_renderToolbarAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotToolbarAbort()
+{
+   if(m_actionToolbarAbort->isChecked()) m_abortToolbarAction->setVisible(true);
+   else m_abortToolbarAction->setVisible(false);
+
+}
+void CRenderViewMainWindow::SlotToolbarContinuous()
+{
+   if(m_actionToolbarContinuous->isChecked()) m_continuousToolbarAction->setVisible(true);
+   else m_continuousToolbarAction->setVisible(false);
+
+}
+void CRenderViewMainWindow::SlotToolbarCropRegion()
+{
+   if(m_actionToolbarCrop->isChecked()) m_cropToolbarAction->setVisible(true);
+   else m_cropToolbarAction->setVisible(false);
+
+}
+void CRenderViewMainWindow::SlotToolbarLut()
+{
+   if(m_actionToolbarLUT->isChecked()) m_lutToolbarAction->setVisible(true);
+   else m_lutToolbarAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotToolbar3d()
+{  
+   if(m_actionToolbar3d->isChecked()) m_3dToolbarAction->setVisible(true);
+   else  m_3dToolbarAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotToolbarDebugShading()
+{
+   // get the current index !
+   if(m_actionToolbarDebugShading->isChecked()) m_debugShadingComboAction->setVisible(true);
+   else  m_debugShadingComboAction->setVisible(false);
+}
+void CRenderViewMainWindow::SlotSelectDebugShadingCombo()
+{
+   std::string debugName = m_debugShadingCombo->currentText().toStdString();
+   if (debugName == "Shading") debugName = "Disabled";
+
+   QList<QAction *>  menu_actions = m_debugShadingActionGroup->actions();
+   for (int i = 0; i < menu_actions.length(); ++i)
+   {
+      if (menu_actions.at(i)->text().toStdString() == debugName)
+      {
+         menu_actions.at(i)->setChecked(true);
+         break;
+      }
+   }
+   DebugShading();
+   m_renderView.RefreshGLBuffer();
+}
+void CRenderViewMainWindow::SlotToolbarExposure()
+{   
+
+    // get the current index !
+   if(m_actionToolbarExposure->isChecked())
+   {
+      if (m_exposureSliderAction == NULL)
+      {
+         m_exposureButton = new QPushButton(m_toolBar);
+         m_exposureButtonAction = m_toolBar->addWidget(m_exposureButton);
+         QIcon exposureIcon(QPixmap((const char **) SA_icon_exposure_xpm));
+         m_exposureButton->setIcon(exposureIcon);
+         connect(m_exposureButton, SIGNAL(clicked()), this, SLOT(SlotExposureButtonClicked()));
+         m_exposureButton->setStyleSheet(s_pushStyleButton);
+         m_exposureButton->setMaximumWidth(16);
+         m_exposureButton->setMaximumHeight(16);
+
+
+         m_exposureSlider = new QSlider(Qt::Horizontal, m_toolBar);
+         m_exposureSlider->setTickInterval(1);
+         m_exposureSlider->setTickPosition(QSlider::TicksBothSides);
+         
+         m_exposureSliderAction = m_toolBar->addWidget(m_exposureSlider);
+         
+         m_exposureSlider->setMaximumWidth(70);
+         m_exposureSlider->setMaximumHeight(18);
+         m_exposureSlider->setMinimum(0);
+         m_exposureSlider->setMaximum(1000);
+         m_exposureSlider->setValue(int(m_renderView.m_colorCorrectSettings.exposure * 100) + 500);
+         connect(m_exposureSlider, SIGNAL(valueChanged(int)), this, SLOT(SlotExposureSliderMoved(int)));
+
+
+         m_exposureEdit = new QLineEdit(m_toolBar);
+         m_exposureEditAction =  m_toolBar->addWidget(m_exposureEdit);
+         m_exposureEdit->setMaximumWidth(35);
+         m_exposureEdit->setMaximumHeight(18);
+
+         m_exposureEdit->setValidator( new QDoubleValidator(-100., 100., 2, this));
+         m_exposureEdit->setText(QString::number(m_renderView.m_colorCorrectSettings.exposure, 'f', 2));
+         connect(m_exposureEdit, SIGNAL(editingFinished()), this, SLOT(SlotExposureTextChanged()));
+      }
+
+      m_exposureSliderAction->setVisible(true);
+      m_exposureButtonAction->setVisible(true);
+      m_exposureEditAction->setVisible(true);
+
+   } else if (m_exposureSliderAction)
+   {
+      m_exposureSliderAction->setVisible(false);
+      m_exposureButtonAction->setVisible(false);
+      m_exposureEditAction->setVisible(false);
+
+   }
+
+
+}
+void CRenderViewMainWindow::SlotExposureButtonClicked()
+{   
+   m_renderView.m_colorCorrectSettings.ToggleExposure();
+   ExposureChanged();
+   if (m_ccWindow) m_ccWindow->ExposureChanged();
+}
+
+void CRenderViewMainWindow::SlotExposureSliderMoved(int i)
+{
+   m_renderView.m_colorCorrectSettings.SetExposure(((float)m_exposureSlider->sliderPosition() - 500.f) / 100.f);
+   
+   m_exposureEdit->blockSignals(true);
+   m_exposureEdit->setText(QString::number(m_renderView.m_colorCorrectSettings.exposure, 'f', 2));
+   m_exposureEdit->blockSignals(false);
+   //m_renderView.RefreshGLBuffer();
+   if (m_ccWindow) m_ccWindow->ExposureChanged();   
+
+   m_renderView.RefreshGLBuffer();
+
+
+}
+
+void CRenderViewMainWindow::SlotExposureTextChanged()
+{
+   QString exposureStr = m_exposureEdit->text();
+   m_renderView.m_colorCorrectSettings.SetExposure(exposureStr.toFloat());
+   
+   m_exposureSlider->blockSignals(true);
+   m_exposureSlider->setValue(int(m_renderView.m_colorCorrectSettings.exposure * 100) + 500);
+   m_exposureSlider->blockSignals(false);
+
+   if (m_ccWindow) m_ccWindow->ExposureChanged();
+
+   m_renderView.RefreshGLBuffer();
+}
+
+void CRenderViewMainWindow::ExposureChanged()
+{
+   if (m_exposureSlider)
+   {
+      m_exposureEdit->blockSignals(true);
+      m_exposureEdit->setText(QString::number(m_renderView.m_colorCorrectSettings.exposure));
+      m_exposureEdit->blockSignals(false);
+
+      m_exposureSlider->blockSignals(true);
+      m_exposureSlider->setValue(int(m_renderView.m_colorCorrectSettings.exposure * 100) + 500);
+      m_exposureSlider->blockSignals(false);
+   }
+   m_renderView.RefreshGLBuffer();
+}
 // If you add some slots, you'll have to run moc
 #include "renderview.moc"
