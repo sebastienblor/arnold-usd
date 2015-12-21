@@ -52,7 +52,7 @@
 
 
 // Uncomment this define to use the "extracted" version of the RenderView
-//#define MTOA_EXTRACT_RV
+#define MTOA_EXTRACT_RV
 
 
 #ifdef MTOA_EXTRACT_RV

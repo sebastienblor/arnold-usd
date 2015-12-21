@@ -18,8 +18,6 @@ extern void K_ProcessRenderError(int error);
 
 #include "render_gl_widget.h"
 
-#include "scene/MayaScene.h"
-#include "session/ArnoldSession.h"
 
 #include <iostream>
 #include <sstream>
@@ -251,32 +249,6 @@ extern int RenderLoop(CRenderView *kwin)
             break;
 
          K_restartLoop = false;
-
-/*
-         Commented for now
-         This code triggers a new rendering after the first loop finished
-         in case some changes have been done in the scene
-
-         As opposed to the timer system used in CRenderView::checkSceneUpdates
-         this forces a full rendering of the first step before allowing a new one.
-         Not very convincing in the few tests I did
-
-         if (continuous && i != smin)
-         {
-            
-            if (arnoldSession->HasObjectsToUpdate())
-            {
-               K_wait_for_changes = true;
-               arnoldSession->SetContinuousUpdates(true);
-               K_restartLoop = true;
-               i = smax+1;
-               break;
-            }            
-            arnoldSession->SetContinuousUpdates(true);
-         }
-
-         */
-
          
          if ((i==0) || (i>1 && i<smax) || (i==smax-1))
             continue;

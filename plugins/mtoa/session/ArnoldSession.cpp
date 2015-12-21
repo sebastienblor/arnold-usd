@@ -1120,6 +1120,7 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 
+/*
 void CArnoldSession::SetContinuousUpdates(bool b) 
 {
    //if (b == m_continuousUpdates) return;
@@ -1129,9 +1130,10 @@ void CArnoldSession::SetContinuousUpdates(bool b)
       RequestUpdate();
    }
 }
-void CArnoldSession::RequestUpdate(bool forceUpdate)
+*/
+void CArnoldSession::RequestUpdate()
 {
-   if (!forceUpdate && !m_continuousUpdates) return;
+   //if (!forceUpdate && !m_continuousUpdates) return;
 
    m_requestUpdate = true;
    CMayaScene::UpdateIPR();

@@ -313,6 +313,8 @@ public:
    void UpdateRender();
    void UpdateRenderOptions();
    void InitRender(int w, int h);
+   void SceneChanged();
+   
 
    void SaveImage(const std::string &filename);
    void StoreImage();
@@ -436,7 +438,7 @@ public:
 
    void RefreshStatusBar(int *mousePosition = NULL);
 
-   void RestoreContinuous() {if (m_continuousUpdates)m_restoreContinuous = true;}
+   void RestoreContinuous();
    void PickShape(int x, int y);
    void ClearPicking();
    void SetDebugShading(RenderViewDebugShading d);
@@ -613,6 +615,9 @@ friend class CRenderViewMainWindow;
    bool m_restoreContinuous;
    bool m_statusBarEnabled;
    bool m_statusBarPixelInfo;
+
+   bool m_receiveMtoaChanges;
+   bool m_sceneChanged;
 
    CRvShadingManager  m_shadingManager;
    RenderViewDebugShading m_debugShading;   

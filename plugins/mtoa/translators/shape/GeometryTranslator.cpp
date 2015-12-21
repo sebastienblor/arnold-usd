@@ -1339,14 +1339,8 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
             translator->ExportShaders();
    		
             // Update Arnold without passing a translator, this just forces a redraw.
-            if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
-            {
-               translator->RequestUpdate();
-            } else
-            {
-               translator->RequestUpdate();
-               CMayaScene::GetArnoldSession()->RequestUpdate(true);
-            }
+            translator->RequestUpdate();
+            
          }
       }
    }

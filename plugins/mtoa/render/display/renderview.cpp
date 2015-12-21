@@ -39,7 +39,7 @@
 #include "render_loop.h"
 
 #include "scene/MayaScene.h"
-#include "session/ArnoldSession.h"
+
 //#include "icons/SA_logo_32.xpm"
 #include "icons/SA_logo.xpm"
 
@@ -169,17 +169,21 @@ void CRenderView::Init()
    m_statusChanged = false;
    m_statusBarEnabled = true;
    m_statusBarPixelInfo = false;
-   m_restoreContinuous = false;
+   //m_restoreContinuous = false;
    m_colorMode  = COLOR_MODE_RGBA;
    m_displayID = false;
    m_debugShading = RV_DBG_SHAD_DISABLED;
+   m_receiveMtoaChanges = true;
+   m_sceneChanged = false;
 
    AiCritSecInit(&m_windowCloseLock);
    AiCritSecInit(&m_pickLock);
 
    K_render_window = true;
    K_progressive = true;
-   m_continuousUpdates = CMayaScene::GetArnoldSession()->GetContinuousUpdates();
+
+   // where should i get this information from ?
+   m_continuousUpdates = true; 
 
 
    //m_displayedImageIndex = -1; // -1 means the current rendering
@@ -398,11 +402,10 @@ void CRenderView::Render()
       AiThreadClose(m_renderThread);
 
    }
-   // make sure m_aovBuffers is resized to the appropriate amount of AOVs
-
-   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-   arnoldSession->SetContinuousUpdates(false);
-
+   
+   // for a while, we won't receive any MtoA SceneChanged event,
+   m_receiveMtoaChanges = false;
+   
    K_aborted = false;
    m_renderThread = AiThreadCreate(kickWindowRender, (void *)this, AI_PRIORITY_LOW);  
 
@@ -581,6 +584,19 @@ void CRenderView::DisplaySyncCreate()
    displaySync = sync;
 }
 
+void CRenderView::SceneChanged()
+{
+   // this function is called by the host
+   // to tell us that the scene has changed
+   // 
+   m_sceneChanged = true;
+
+   if ((!m_continuousUpdates) || !(m_receiveMtoaChanges)) return;
+
+
+   UpdateRender();
+
+}
 
 void CRenderView::UpdateRender()
 {
@@ -602,6 +618,7 @@ void CRenderView::UpdateRender()
    while (AiRendering()) CRenderView::Sleep(1000);
 
    CMayaScene::UpdateSceneChanges();
+   m_sceneChanged = false;
    options = AiUniverseGetOptions();
    AtArray *new_outputs = AiNodeGetArray(options, "outputs");
    bool sizeChanged = (xres != AiNodeGetInt(options, "xres") || yres != AiNodeGetInt(options, "yres"));
@@ -654,8 +671,8 @@ void CRenderView::RestartRender()
    K_restartLoop = true;
    K_wait_for_changes = false;
    
-   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-   arnoldSession->SetContinuousUpdates(false);
+   m_receiveMtoaChanges = false;
+
 }
 
 // For "Isolate Selected" debug shading mode,
@@ -883,6 +900,21 @@ void CRenderView::ObjectNameChanged(const std::string &newName, const std::strin
    m_shadingManager.ObjectNameChanged(newName, oldName);
 }
 
+void CRenderView::RestoreContinuous()
+{
+   // should i keep restore continuous ? why ?
+   //{if (m_continuousUpdates)m_restoreContinuous = true;}
+   m_receiveMtoaChanges = true;
+
+   // now I want to receive MtoA changes again
+   // but, has the scene changed since last time I rendered it ?
+   if (m_sceneChanged)
+   {
+      // ok, we want to re-render again
+      UpdateRender();
+   }
+}
+
 // this function is being called by renderview_gl::paintGL
 // so we're in the main (UI) thread here
 // here we can do any stuff related to UI
@@ -900,26 +932,28 @@ void CRenderView::CheckSceneUpdates()
          m_statusChanged = false;
       }
    }
-
+   
    if (!m_continuousUpdates) return;
 
-   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-   if (arnoldSession == NULL) return;
-   if (m_restoreContinuous)
+   // when does that happen ? do we need that flag
+   /*if (m_restoreContinuous)
    {
-      arnoldSession->SetContinuousUpdates(true);
+      
       m_restoreContinuous = false;
-   }
-   if (arnoldSession->HasObjectsToUpdate())
+   }*/
+
+      // check instead 
+   if (m_sceneChanged)
    {
       AtUInt64 loopTime = CRenderView::Time();
-      // 1 / 15 seconds minimum before restarting a render
+      // 1 / 20 seconds minimum before restarting a render
       if (loopTime - K_render_timestamp > (AtUInt64)1000000/20)
       {
          K_wait_for_changes = true;
          // setting continuous updates to true
          // will trigger the update
-         arnoldSession->SetContinuousUpdates(true);
+
+         RestoreContinuous();
       }
    }
 }
@@ -1502,7 +1536,7 @@ void CRenderViewMainWindow::InitMenus()
    m_actionAutoRefresh = m_menuRender->addAction("Continuous Updates");
    connect(m_actionAutoRefresh, SIGNAL(triggered()), this, SLOT(AutoRefresh()));
    m_actionAutoRefresh->setCheckable(true);
-   m_actionAutoRefresh->setChecked(CMayaScene::GetArnoldSession()->GetContinuousUpdates());
+   m_actionAutoRefresh->setChecked(m_renderView.m_continuousUpdates);
    m_actionAutoRefresh->setStatusTip("Automatically update any change in the scene and restart the rendering");
 
    m_actionProgressiveRefinement = m_menuRender->addAction("Progressive Refinement");
@@ -1773,8 +1807,8 @@ CRenderViewMainWindow::SaveImage()
 void CRenderViewMainWindow::AbortRender()
 {
    m_renderView.InterruptRender();
-   CArnoldSession *arnoldSession = CMayaScene::GetArnoldSession();
-   if (m_renderView.m_continuousUpdates)   arnoldSession->SetContinuousUpdates(true);
+   // we just aborted the render. We don't want it to start again, even if there have been some changes
+   m_renderView.m_receiveMtoaChanges = true;
 }
 
 void CRenderViewMainWindow::ShowRenderingTiles()
@@ -1796,7 +1830,6 @@ void CRenderViewMainWindow::UpdateRender()
 void CRenderViewMainWindow::AutoRefresh()
 {
    m_renderView.m_continuousUpdates = m_actionAutoRefresh->isChecked();
-   CMayaScene::GetArnoldSession()->SetContinuousUpdates(m_actionAutoRefresh->isChecked());
 }
 
 void CRenderViewMainWindow::StoreImage()
@@ -2425,7 +2458,7 @@ static void SetCamera(CRenderView &renderView, const std::string &cameraName)
          // Setting export camera in Arnold session will trigger an update and 
          // block my rendering :-/
 
-//       CMayaScene::GetArnoldSession()->SetExportCamera(camPath);
+
          CMayaScene::GetRenderSession()->SetCamera(camPath);
          break;
       }      
@@ -2656,7 +2689,8 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {
-      CMayaScene::GetArnoldSession()->SetContinuousUpdates(false);
+      m_renderView.m_receiveMtoaChanges = false;
+      
       renderSession->SetRendering(false);
       m_renderView.FinishRender(); // this stops the rendering and destroys the render threads
       if (rvSelectionCb)

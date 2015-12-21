@@ -62,8 +62,8 @@ void CRenderViewInterface::Render()
 
 void CRenderViewInterface::SceneChanged()
 {
-   // to be implemented  
-
+   if (m_mainWindow == NULL) return;
+   m_mainWindow->GetRenderView().SceneChanged();  
 }
 
 void CRenderViewInterface::SelectionChanged(const std::vector<AtNode *> &selection)
