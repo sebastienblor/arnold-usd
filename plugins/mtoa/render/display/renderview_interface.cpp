@@ -18,7 +18,7 @@ void CRenderViewInterface::OpenRenderView(int width, int height, QWidget *parent
 
    } else 
    {
-      CRenderView *renderView = new CRenderView(width, height);
+      CRenderView *renderView = new CRenderView(*this, width, height, parent);
       m_mainWindow = renderView->GetMainWindow();
    }
    
@@ -66,8 +66,10 @@ void CRenderViewInterface::SceneChanged()
    m_mainWindow->GetRenderView().SceneChanged();  
 }
 
-void CRenderViewInterface::SelectionChanged(const std::vector<AtNode *> &selection)
+void CRenderViewInterface::HostSelectionChanged(const std::vector<AtNode *> &selection)
 {
-   // to be implemented
+   if (m_mainWindow == NULL) return;
+   m_mainWindow->GetRenderView().HostSelectionChanged(selection);
+
 
 }

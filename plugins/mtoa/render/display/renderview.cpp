@@ -38,8 +38,6 @@
 #include "renderview.h"
 #include "render_loop.h"
 
-#include "scene/MayaScene.h"
-
 //#include "icons/SA_logo_32.xpm"
 #include "icons/SA_logo.xpm"
 
@@ -71,11 +69,11 @@
 
 
 #include "manipulators.h"
-#include <maya/MQtUtil.h>
+
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
-#include <maya/MGlobal.h>
-#include <maya/MEventMessage.h>
+#include "scene/MayaScene.h"
+
 #include <maya/MImage.h>
 
 #include <sstream>
@@ -83,7 +81,7 @@
 //#ifdef _MSC_VER
 //#pragma warning (disable : 4244)
 //#endif
-static MCallbackId rvSelectionCb = 0;
+
 
 static QString s_styleButton = "QToolButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QToolButton:checked {    background-color: transparent ;}  QToolButton:flat {    border: none;} QToolButton:default {   border-color: transparent;}";
 static QString s_pushStyleButton = "QPushButton { border: none transparent;  border-radius: 1px;   background-color: transparent; min-width: 18;}  QPushButton:pressed {    background-color: rgb(150, 150, 150) ;} QPushButton:flat {    border: none;} QPushButton:default {   border-color: transparent;} QPushButton:hover {    border: none; background-color: rgb(120, 120, 120);} ";
@@ -101,7 +99,7 @@ static int statusbarHeight = 10;
 
 
 
-CRenderView::CRenderView(int w, int h)
+CRenderView::CRenderView(CRenderViewInterface &inter, int w, int h, QWidget *parent) : m_interface(inter)
 {
    m_renderThread = NULL;
    displaySync = NULL;
@@ -122,7 +120,7 @@ CRenderView::CRenderView(int w, int h)
 
    Init();
 
-   m_mainWindow = new CRenderViewMainWindow(MQtUtil::mainWindow(), *this);
+   m_mainWindow = new CRenderViewMainWindow(parent, *this);
    m_mainWindow->Init();
 
 
@@ -144,11 +142,7 @@ CRenderView::~CRenderView()
    AiCritSecClose(&m_windowCloseLock);
    AiCritSecClose(&m_pickLock);
 
-   if (rvSelectionCb)
-   {
-      MMessage::removeCallback(rvSelectionCb);
-      rvSelectionCb = 0;
-   }
+   m_interface.ReceiveSelectionChanges(false);
    delete m_mainWindow;
 }
 
@@ -296,7 +290,7 @@ void CRenderView::UpdateRenderOptions()
    bool foundBeauty = false;
    for (size_t i = 0; i < outputs->nelements; ++i)
    {      
-      std::string outputStr = AiArrayGetStr(outputs, i);
+      std::string outputStr = AiArrayGetStr(outputs, (int)i);
       std::string outputName = outputStr.substr(0, outputStr.find_first_of(' '));
 
       while(outputStr[outputStr.length() - 1] == ' ')
@@ -337,10 +331,10 @@ void CRenderView::UpdateRenderOptions()
    m_aovBuffers.push_back(aovBuffer);  
    outputValues.push_back("ID INT _renderViewDefault@closest_filter kick_display");
 
-   AtArray *allOutputsArray = AiArrayAllocate(outputValues.size(), 1, AI_TYPE_STRING);
+   AtArray *allOutputsArray = AiArrayAllocate((int)outputValues.size(), 1, AI_TYPE_STRING);
    for (size_t i=0; i < outputValues.size(); i++)
    {
-      AiArraySetStr(allOutputsArray, i, outputValues[i].c_str());
+      AiArraySetStr(allOutputsArray, (int)i, outputValues[i].c_str());
    }
    AiNodeSetArray(options, "outputs", allOutputsArray);
    
@@ -617,7 +611,9 @@ void CRenderView::UpdateRender()
    // should I wait until rendering is really finished ?
    while (AiRendering()) CRenderView::Sleep(1000);
 
-   CMayaScene::UpdateSceneChanges();
+   // ask the host to update all the changes to be computed   
+   m_interface.UpdateSceneChanges();
+   
    m_sceneChanged = false;
    options = AiUniverseGetOptions();
    AtArray *new_outputs = AiNodeGetArray(options, "outputs");
@@ -625,9 +621,12 @@ void CRenderView::UpdateRender()
 
  
    // Since we're manually modifying the Options AASamples parameter in the Render Loop
-   // and in parallel our Translator is setting AASamples from Maya's value
-   // it's better to come back to Maya's value here to make sure
+   // and in parallel our Translator is setting AASamples from Host's value
+   // it's better to come back to Host's value here to make sure
    // we're having the right AA samples
+
+   // FIXME How to deal with that ??? this needs to be extracted !
+
    MSelectionList activeList;
    activeList.add(MString("defaultArnoldRenderOptions"));
    MObject optObject;
@@ -635,6 +634,7 @@ void CRenderView::UpdateRender()
    MFnDependencyNode fnOpt(optObject);
    K_AA_samples = fnOpt.findPlug("AASamples", true).asInt();
    AiNodeSetInt(options, "AA_samples", K_AA_samples);
+
 
    if (bucketSize != AiNodeGetInt(options, "bucket_size") ||
       sizeChanged ||
@@ -675,37 +675,6 @@ void CRenderView::RestartRender()
 
 }
 
-// For "Isolate Selected" debug shading mode,
-// we need to receive the events that current
-// Selection has changed
-void CRenderView::SelectionChangedCallback(void *data)
-{
-   MSelectionList activeList;
-   MGlobal::getActiveSelectionList(activeList);
-   if( activeList.isEmpty()) return;
-
-   MObject depNode;
-   activeList.getDependNode(0, depNode);
-   if (depNode.hasFn(MFn::kTransform))
-   {
-      // from Transform to Shape
-      MDagPath dagPath;
-      activeList.getDagPath(0, dagPath);
-      depNode = dagPath.child(0);
-   }
-
-   MFnDependencyNode nodeFn( depNode );
-
-
-   //AtNode *selected_shader =  AiNodeLookUpByName (nodeFn.name().asChar());
-
-   CRenderView *rv = ((CRenderView*)data);
-
-   // selection is valid
-   rv->m_shadingManager.SetShaderName(nodeFn.name().asChar());
-   
-   rv->UpdateRender();
-}
 
 
 void CRenderView::SetDebugShading(RenderViewDebugShading d)
@@ -723,8 +692,7 @@ void CRenderView::SetDebugShading(RenderViewDebugShading d)
    // and also restore the specific stuff done by the shading manager
    if (m_debugShading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
-      MMessage::removeCallback(rvSelectionCb);
-      rvSelectionCb = 0;
+      m_interface.ReceiveSelectionChanges(false);
       m_shadingManager.Restore();
    }
    m_debugShading = d; 
@@ -756,11 +724,8 @@ void CRenderView::ManageDebugShading()
    } else if (m_debugShading == RV_DBG_SHAD_ISOLATE_SELECTED)
    {
       AiNodeSetBool(options, "ignore_shaders", false);
-      if (rvSelectionCb) MMessage::removeCallback(rvSelectionCb);
 
-      rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
-                                                  CRenderView::SelectionChangedCallback,
-                                                  (void*)this);
+      m_interface.ReceiveSelectionChanges(true);
 
       AtNode *utilityShader = AiNodeLookUpByName("ai_default_reflection_shader");
       AiNodeSetStr(utilityShader, "color_mode", "color");
@@ -860,25 +825,26 @@ void CRenderView::PickShape(int px, int py)
 
 
    // for now we do a linear search over the Shapes in the scene.
-   // In the future we might want to store the Maya nodes in a map (per ID) for faster lookup
+   // In the future we might want to store the nodes in a map (per ID) for faster lookup
    AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
    
+   std::vector<AtNode *> selection;
+
    while (!AiNodeIteratorFinished(iter))
    {
       AtNode *node = AiNodeIteratorGetNext(iter);
       int nodeId = AiNodeGetInt(node, "id");
       if (nodeId == opId)
-      {
-         // Selection :
-         // If CTRL is pressed, append the selected node to the list
-         if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
-            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kAddToList);
-         else
-            MGlobal::selectByName(MString(AiNodeGetName(node)), MGlobal::kReplaceList);
-
+      {         
+         selection.push_back(node);
          break;
       }
    }
+   // Selection :
+   // If CTRL is pressed, append the selected node to the list
+   
+   m_interface.SetSelection(selection, QApplication::keyboardModifiers().testFlag(Qt::ControlModifier));
+   
    AiNodeIteratorDestroy(iter);
 }
 
@@ -898,6 +864,22 @@ void CRenderView::ClearPicking()
 void CRenderView::ObjectNameChanged(const std::string &newName, const std::string &oldName)
 {
    m_shadingManager.ObjectNameChanged(newName, oldName);
+}
+
+void CRenderView::HostSelectionChanged(const std::vector<AtNode *> &selection)
+{
+   if (selection.empty()) return;
+
+   if (m_debugShading != RV_DBG_SHAD_ISOLATE_SELECTED)
+   {
+      // this shouldn't happen
+      m_interface.ReceiveSelectionChanges(false);
+      return;
+   }
+
+   std::string name = AiNodeGetName(selection[0]);
+   m_shadingManager.SetShaderName(name);
+   UpdateRender();
 }
 
 void CRenderView::RestoreContinuous()
@@ -2036,27 +2018,14 @@ void CRenderViewMainWindow::DebugShading()
       m_renderView.SetDebugShading(RV_DBG_SHAD_OBJECT);
    } else if (debugShading == "Isolate Selected")
    {
-      MSelectionList activeList;
-      MGlobal::getActiveSelectionList(activeList);
-      if( !activeList.isEmpty())
-      {
-         MObject depNode;
-         activeList.getDependNode(0, depNode);
-         if (depNode.hasFn(MFn::kTransform))
-         {
-            // from Transform to Shape
-            MDagPath dagPath;
-            activeList.getDagPath(0, dagPath);
-            depNode = dagPath.child(0);
-         }
-         MFnDependencyNode nodeFn( depNode );
-
-         // selection is valid
-         m_renderView.m_shadingManager.SetShaderName(nodeFn.name().asChar());
-         // connect to selection changed
-      } else
+      std::vector<AtNode *> selectedNodes;
+      m_renderView.m_interface.GetSelection(selectedNodes);
+      if (selectedNodes.empty())
       {
          m_renderView.m_shadingManager.SetShaderName("");
+      } else
+      {
+         m_renderView.m_shadingManager.SetShaderName(AiNodeGetName(selectedNodes[0]));
       }
       m_renderView.SetDebugShading(RV_DBG_SHAD_ISOLATE_SELECTED);
    }
@@ -2134,14 +2103,15 @@ void CRenderViewMainWindow::mousePressEvent( QMouseEvent * event )
 
          m_gl->ClearRegionCrop();
          m_renderView.InterruptRender();
-         CRenderSession* renderSession = CMayaScene::GetRenderSession();
-         renderSession->SetRegion(0, 0 , m_renderView.Width(), m_renderView.Height());
+
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetInt(options, "region_min_x", -1);
          AiNodeSetInt(options, "region_min_y", -1);
          AiNodeSetInt(options, "region_max_x", -1);
          AiNodeSetInt(options, "region_max_y", -1);
 
+         m_renderView.m_interface.NodeParamChanged(options, "region_min_x");
+         
          m_renderView.RestartRender();
 
          if (m_manipulator)
@@ -2399,7 +2369,7 @@ void CRenderViewMainWindow::ShowAOV()
          if (aovNames[i] == aovName)
          {
             // found my current AOV
-            m_renderView.m_displayedAovIndex = i;
+            m_renderView.m_displayedAovIndex = (int)i;
             break;
          }
       }
@@ -2439,35 +2409,12 @@ static void SetCamera(CRenderView &renderView, const std::string &cameraName)
    }
 
    renderView.InterruptRender();
-
    // Since the Render Loop is rendering in a different thread, we must wait until 
    // rendering actually stops, otherwise the previous camera can pop back
-
-   // Search for the MDagPath for this camera   
-   MItDag itDag(MItDag::kDepthFirst, MFn::kCamera);
-   itDag.reset();
-
-   while (!itDag.isDone())
-   {
-      MDagPath camPath;
-      itDag.getPath(camPath);
-      std::string camName = camPath.partialPathName().asChar();
-      if (camName == cameraName)
-      {
-         
-         // Setting export camera in Arnold session will trigger an update and 
-         // block my rendering :-/
-
-
-         CMayaScene::GetRenderSession()->SetCamera(camPath);
-         break;
-      }      
-      itDag.next();
-   }
-
-
    while (AiRendering()) {CRenderView::Sleep(10);}
    AiNodeSetPtr(AiUniverseGetOptions(), "camera", (void*)camera);
+
+   renderView.GetInterface().NodeParamChanged(AiUniverseGetOptions(), "camera");
 
    renderView.RestartRender();
 }
@@ -2509,13 +2456,15 @@ void CRenderViewMainWindow::CropRegion()
    {
       m_gl->ClearRegionCrop();
       m_renderView.InterruptRender();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetRegion(0, 0 , m_renderView.m_width, m_renderView.m_height);
+      
+      
       AtNode *options = AiUniverseGetOptions();
       AiNodeSetInt(options, "region_min_x", -1);
       AiNodeSetInt(options, "region_min_y", -1);
       AiNodeSetInt(options, "region_max_x", -1);
       AiNodeSetInt(options, "region_max_y", -1);
+
+      m_renderView.m_interface.NodeParamChanged(options, "region_min_x");
 
       m_renderView.RestartRender();
    }
@@ -2523,9 +2472,11 @@ void CRenderViewMainWindow::CropRegion()
 }
 
 void CRenderViewMainWindow::FrameRegion()
-{
+{   
    if (m_3dManipulation)
    {
+
+      // FIXME to be extracted       
       // Frame the selected geometries bounding box
       MSelectionList selected; 
       MBoundingBox globalBox;
@@ -2609,6 +2560,7 @@ void CRenderViewMainWindow::FrameRegion()
       newPos -=  viewDirection * centerDist * maxScreen;
       camera.set(newPos, viewDirection, upDirection, camera.horizontalFieldOfView(), camera.aspectRatio());
       camera.setCenterOfInterestPoint(center, MSpace::kWorld);
+      
 
    } else
    {
@@ -2686,27 +2638,18 @@ void CRenderViewMainWindow::closeEvent(QCloseEvent *event)
       m_renderView.m_snapshotsWindow->hide();
    }
 
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   if (renderSession)
-   {
-      m_renderView.m_receiveMtoaChanges = false;
-      
-      renderSession->SetRendering(false);
-      m_renderView.FinishRender(); // this stops the rendering and destroys the render threads
-      if (rvSelectionCb)
-      {
-         MMessage::removeCallback(rvSelectionCb);
-         rvSelectionCb = 0;
-         m_renderView.m_shadingManager.Restore();
-         m_renderView.m_debugShading = RV_DBG_SHAD_DISABLED;
-         m_debugShadingActionDisabled->blockSignals(true);
-         m_debugShadingActionDisabled->setChecked(true);
-         m_debugShadingActionDisabled->blockSignals(false);
+   m_renderView.FinishRender(); // this stops the rendering and destroys the render threads
+   m_renderView.m_receiveMtoaChanges = false;
 
-      }
-      CMayaScene::End();
-      AiEnd();
-   }
+   m_renderView.m_shadingManager.Restore();
+   m_renderView.m_debugShading = RV_DBG_SHAD_DISABLED;
+   m_debugShadingActionDisabled->blockSignals(true);
+   m_debugShadingActionDisabled->setChecked(true);
+   m_debugShadingActionDisabled->blockSignals(false);
+   
+   m_renderView.m_interface.RenderViewClosed();
+
+   AiEnd();
    event->accept();
 
 }

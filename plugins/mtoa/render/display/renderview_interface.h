@@ -58,7 +58,7 @@ public:
    // If ReceiveSelectionChanges is set to true, then the Host
    // should call this function whenever its current selection
    // is changed
-   void SelectionChanged(const std::vector<AtNode *> &selection);
+   void HostSelectionChanged(const std::vector<AtNode *> &selection);
 
    void InterruptRender();
    void ObjectNameChanged(const std::string &oldName, const std::string &newName);
@@ -72,23 +72,25 @@ public:
    // The RenderView code will invoke this function when it wants 
    // the Host to update the Arnold nodes
    // the optional vectors may be filled with the list of modified nodes
-   virtual void UpdateSceneChanges(const std::vector<AtNode*> &modifiedNodes, 
-   const std::vector<AtNode *> &addedNodes,
-   const std::vector<AtNode *> &deletedNodes) = 0;
+   virtual void UpdateSceneChanges(const std::vector<AtNode*> *modifiedNodes = NULL, 
+   const std::vector<AtNode *> *addedNodes = NULL,
+   const std::vector<AtNode *> *deletedNodes = NULL) = 0;
 
 
    // this function returns the list of Arnold selected nodes in the Host side
-   virtual void GetSelection(const std::vector<AtNode *> &selectedNodes) = 0;
+   virtual void GetSelection(std::vector<AtNode *> &selectedNodes) = 0;
 
    // This function is invoked by the RenderView to set the current selection
    // in the Host side
-   virtual void SetSelection(const std::vector<AtNode *> &selectedNode) = 0;
+   virtual void SetSelection(const std::vector<AtNode *> &selectedNode, bool append = false) = 0;
 
    // This function is called by the RenderView when it needs to receive the 
    // Selection Changed events. Today, this happens when "Isolate Selected"
    // mode is used
    virtual void ReceiveSelectionChanges(bool receive) = 0;
+   virtual void RenderViewClosed() = 0;
 
+   virtual void NodeParamChanged(AtNode *node, const std::string &paramName) = 0;
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators

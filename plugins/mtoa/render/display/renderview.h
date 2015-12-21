@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "renderview_interface.h"
 #include "shading_manager.h"
 
 #ifdef _WIN32
@@ -36,6 +37,7 @@
 #include <iostream>
 #include "luts.h"
 #include "snapshots.h"
+
 
 struct AtDisplaySync;
 class CRenderViewManipulator;
@@ -254,11 +256,11 @@ class CRenderView
 public:
 
    // create and destroy window
-   CRenderView(int w, int h);
+   CRenderView(CRenderViewInterface &i, int w, int h, QWidget *parent = NULL);
 
    ~CRenderView();
 
-   
+   CRenderViewInterface &GetInterface() {return m_interface;}
    // request to close the window
    void Close();
    void Show();
@@ -281,7 +283,7 @@ public:
    static AtUInt64 Time();
    static void SyncPause();
    static void Sleep(AtUInt64 usecs);
-
+   
    void Draw(AtBBox2 *region = 0);
    void Draw(int xmin, int ymin, int width, int height)
    {
@@ -314,7 +316,7 @@ public:
    void UpdateRenderOptions();
    void InitRender(int w, int h);
    void SceneChanged();
-   
+
 
    void SaveImage(const std::string &filename);
    void StoreImage();
@@ -443,8 +445,9 @@ public:
    void ClearPicking();
    void SetDebugShading(RenderViewDebugShading d);
    void ObjectNameChanged(const std::string &newName, const std::string &oldName);
+   void HostSelectionChanged(const std::vector<AtNode *> &selection);
 
-   static void SelectionChangedCallback(void *);
+   
    
    AtRvColorMode m_colorMode;
 protected:
@@ -584,6 +587,7 @@ friend class CRenderViewMainWindow;
       return (m_snapshotsWindow && m_snapshotsWindow->DisplayingSnapshot()) ? m_snapshotsWindow->GetDisplayedStatus() : m_statusLog;
    }
 
+   CRenderViewInterface &m_interface;
    int m_width;
    int m_height;
    CRenderViewMainWindow *m_mainWindow;
@@ -620,7 +624,7 @@ friend class CRenderViewMainWindow;
    bool m_sceneChanged;
 
    CRvShadingManager  m_shadingManager;
-   RenderViewDebugShading m_debugShading;   
+   RenderViewDebugShading m_debugShading;
 };
 
 
