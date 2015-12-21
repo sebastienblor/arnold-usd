@@ -60,6 +60,7 @@ public:
    void PopulateCamerasMenu();
    void PopulateDebugShadingCombo();
    void UpdateCamerasMenu();
+   CRenderView &GetRenderView() {return m_renderView;}
 
    void EnableMenus(bool b, bool force = false)
    {

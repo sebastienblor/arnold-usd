@@ -22,6 +22,7 @@
 #include <ai_ray.h>
 
 
+#include <maya/MQtUtil.h>
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
@@ -49,7 +50,18 @@
 #define new DEBUG_NEW
 #endif
 
+
+// Uncomment this define to use the "extracted" version of the RenderView
+//#define MTOA_EXTRACT_RV
+
+
+#ifdef MTOA_EXTRACT_RV
+#include "display/renderview_mtoa.h"
+static CRenderViewMtoA  *s_renderView = NULL;
+#else
 static CRenderView  *s_renderView = NULL;
+#endif
+
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
@@ -180,11 +192,20 @@ MStatus CRenderSession::End()
       // IsRendering check prevents thread lock when CMayaScene::End is called
       // from InteractiveRenderThread
       InterruptRender();
+
+#ifdef MTOA_EXTRACT_RV
+      if (s_renderView)
+      {
+         s_renderView->CloseRenderView();
+      } 
+
+#else
       if (s_renderView)
       {
          s_renderView->FinishRender();
          s_renderView->Close();
       }
+#endif
    }
    
    if (!AiUniverseIsActive())
@@ -211,11 +232,13 @@ MStatus CRenderSession::End()
 }
 void CRenderSession::DeleteRenderView()
 {
+
    if (s_renderView != NULL)
    {
       delete s_renderView;
       s_renderView = NULL;
    }
+
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -272,7 +295,13 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
 {
    if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW) && data != 0)
    {
-      ((CRenderSession*)data)->UpdateRenderView();
+
+#ifdef MTOA_EXTRACT_RV
+   // do I even need this ??
+#else
+//    do I even need this ??   
+//      ((CRenderSession*)data)->UpdateRenderView();
+#endif
       return;
    }
 
@@ -625,6 +654,16 @@ void CRenderSession::RunRenderView()
 
 void CRenderSession::StartRenderView()
 {
+#ifdef MTOA_EXTRACT_RV
+   if (s_renderView == NULL)
+   {
+      s_renderView = new CRenderViewMtoA;
+   }
+   
+   s_renderView->OpenRenderView(m_renderOptions.width(), m_renderOptions.height(), MQtUtil::mainWindow());
+   
+
+#else
    if (s_renderView != NULL) 
    {
       if (AiRendering()) s_renderView->InterruptRender();
@@ -635,8 +674,10 @@ void CRenderSession::StartRenderView()
       s_renderView->UpdateRender();
       return;
    }
-   s_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
 
+
+   s_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
+#endif
 }
 
 #ifdef _WIN64
@@ -655,36 +696,22 @@ void CRenderSession::sleep(AtUInt64 usecs)
 
 void CRenderSession::UpdateRenderView()
 {  
-/*
-   if (s_idle_cb)
+#ifdef MTOA_EXTRACT_RV
+   if(s_renderView != NULL) // for now always return true
    {
-      MMessage::removeCallback(s_idle_cb);
-      s_idle_cb = 0;
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->SceneChanged();
    }
-*/
-   if(s_renderView != NULL && s_renderView->CanRestartRender()) // for now always return true
+   
+#else
+   if(s_renderView != NULL)
    {
       s_renderView->UpdateRender();
-      /*
-      InterruptRender();
-      CMayaScene::UpdateSceneChanges();
-      s_renderView->restartRender();*/
       return;
    }
 
-   // if not, raise a flag (needs update), and call idle
-   /*
-   MStatus status;
-   float remaining_time = float(renderView_refresh_time + s_renderView->renderTimestamp() - current_time) * 0.001f;
-
-   CMayaScene::UpdateSceneChanges();
-
-   s_idle_cb = MTimerMessage::addTimerCallback(remaining_time,
-                                               CRenderSession::InteractiveRenderCallback,
-                                               this,
-                                               &status);
-
-                                               */
+#endif
 
 }
 
