@@ -26,6 +26,9 @@
 #include "scene/MayaScene.h"
 #include "session/ArnoldSession.h"
 
+
+#include <maya/MBoundingBox.h>
+#include <maya/MFloatMatrix.h>
 #include <maya/MEulerRotation.h>
 #include <maya/MFnTransform.h>
 
@@ -188,6 +191,7 @@ void CRenderView2DZoom::MouseMove(int x, int y)
 void CRenderView2DZoom::MouseRelease(int x, int y)
 {
 }
+
 
 void CRenderView2DZoom::Wheel(CRenderView &renderView, float delta)
 {
@@ -364,6 +368,96 @@ void CRenderView3DZoom::Wheel(CRenderView &renderView, float delta)
    zoom *= delta;
    newPosition +=  zoom;
    camera.set(newPosition, view_direction, camera.upDirection(MSpace::kWorld), camera.horizontalFieldOfView(), camera.aspectRatio());
+   camera.setCenterOfInterestPoint(center, MSpace::kWorld);
+}
+
+void CRenderView3DZoom::FrameSelection(CRenderView &renderView)
+{
+
+// FIXME to be extracted       
+      // Frame the selected geometries bounding box
+   
+   MSelectionList selected; 
+   MBoundingBox globalBox;
+
+   MGlobal::getActiveSelectionList(selected);
+   for (unsigned int i = 0; i < selected.length(); ++i)
+   {
+      MDagPath dagPath;
+      if (selected.getDagPath(i, dagPath) != MS::kSuccess) continue;
+      MStatus status;
+      MFnDagNode dagShape(dagPath, &status);
+      if (status != MS::kSuccess) continue;
+
+      MBoundingBox boundingBox = dagShape.boundingBox(&status);
+      if (status != MS::kSuccess) continue;
+
+      MMatrix mtx = dagPath.inclusiveMatrix();
+
+      boundingBox.transformUsing(mtx);
+      globalBox.expand(boundingBox);
+   }
+   AtNode *arnoldCamera = AiUniverseGetCamera();
+   if (arnoldCamera == NULL) return;
+   
+   MSelectionList camList;
+   camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
+
+   MDagPath camDag;
+   camList.getDagPath(0, camDag);
+
+   if (!camDag.isValid()) return;
+   MObject camNode = camDag.node();
+   MFnCamera camera;
+   camera.setObject(camDag);
+   MMatrix camToWorld = camDag.inclusiveMatrix();
+
+   // don't want to change the viewDirection & upDirection
+   MVector viewDirection = camera.viewDirection(MSpace::kWorld);
+   MVector upDirection = camera.upDirection(MSpace::kWorld);
+   MPoint eyePoint = camera.eyePoint(MSpace::kWorld);
+   MPoint centerInterest = camera.centerOfInterestPoint(MSpace::kWorld);
+
+   MPoint center = globalBox.center();
+   MFloatMatrix projectionMatrix = camera.projectionMatrix();
+
+   MPoint newPos = eyePoint + center - centerInterest;
+   float centerDist = center.distanceTo(newPos);
+
+   camToWorld[3][0] = newPos.x;
+   camToWorld[3][1] = newPos.y;
+   camToWorld[3][2] = newPos.z;
+
+   MMatrix worldToCam = camToWorld.inverse();
+
+   globalBox.transformUsing(worldToCam);
+
+   MPoint minBox = globalBox.min(); // in camera space
+   MPoint maxBox = globalBox.max(); // in camera space
+
+   MMatrix proj;
+   for (int i =0; i < 4; ++i)
+   {
+      for (int j = 0; j < 4; ++j)
+      {
+         proj[i][j] = projectionMatrix[i][j];
+      }
+   }
+   minBox = minBox * proj;
+   maxBox = maxBox * proj;
+   minBox.x /= minBox.z;
+   minBox.y /= minBox.z;
+   maxBox.x /= maxBox.z;
+   maxBox.y /= maxBox.z;
+   
+   float maxScreen = MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y)));
+   // if maxScreen == 1 -> don't zoom
+   // > 1 need to zoom out
+   // < 1 need to zoom in
+
+   newPos = center;
+   newPos -=  viewDirection * centerDist * maxScreen;
+   camera.set(newPos, viewDirection, upDirection, camera.horizontalFieldOfView(), camera.aspectRatio());
    camera.setCenterOfInterestPoint(center, MSpace::kWorld);
 }
 

@@ -70,12 +70,6 @@
 
 #include "manipulators.h"
 
-#include <maya/MBoundingBox.h>
-#include <maya/MFloatMatrix.h>
-#include "scene/MayaScene.h"
-
-#include <maya/MImage.h>
-
 #include <sstream>
 
 //#ifdef _MSC_VER
@@ -626,7 +620,7 @@ void CRenderView::UpdateRender()
    // we're having the right AA samples
 
    // FIXME How to deal with that ??? this needs to be extracted !
-
+/*
    MSelectionList activeList;
    activeList.add(MString("defaultArnoldRenderOptions"));
    MObject optObject;
@@ -634,7 +628,8 @@ void CRenderView::UpdateRender()
    MFnDependencyNode fnOpt(optObject);
    K_AA_samples = fnOpt.findPlug("AASamples", true).asInt();
    AiNodeSetInt(options, "AA_samples", K_AA_samples);
-
+*/
+   K_AA_samples = AiNodeGetInt(options, "AA_samples");
 
    if (bucketSize != AiNodeGetInt(options, "bucket_size") ||
       sizeChanged ||
@@ -943,7 +938,7 @@ void CRenderView::CheckSceneUpdates()
 void CRenderView::SaveImage(const std::string &filename)
 {
    // Write down the displayed image
-
+/*
    size_t dotPos = filename.find_last_of('.');
    
    std::string extension = (dotPos == std::string::npos) ? "jpg" : filename.substr(dotPos + 1);
@@ -957,24 +952,26 @@ void CRenderView::SaveImage(const std::string &filename)
    MString fname(filename.c_str());
    
    outImg.writeToFile(fname, MString(extension.c_str()));
-      
+  */    
 
    /*
-   // We're using QT stuff, but maybe we should use Maya's instead ?
+   // We're using QT stuff, but maybe we should use Maya's instead ?*/
+
    QImage outImg(m_width, m_height, QImage::Format_ARGB32 );
-   AtRGBA *buffer = GetDisplayedBuffer();
+   //AtRGBA *buffer = GetDisplayedBuffer();
+   AtRGBA8 *buffer = m_mainWindow->GetGlWidget()->GetBuffer();
 
    for (int j = 0; j < m_height; ++j)
    {
       for (int i = 0; i < m_width; ++i, ++buffer)
       {
-         AtRGBA &color = *buffer;
-         outImg.setPixel(i, j, qRgba(int(255*(color.r)), int(255*(color.g)), int(255*(color.b)), int(255*(color.a))));
+         AtRGBA8 &color = *buffer;
+         outImg.setPixel(i, j, qRgba(int(color.r), int(color.g), int(color.b), int(color.a)));
       }
    }
    outImg.save(QString(filename.c_str()));
 
-   */
+   
 }
 
 void CRenderView::StoreImage()
@@ -1773,7 +1770,8 @@ CRenderViewMainWindow::SaveImage()
    dialog.setWindowTitle("Save Image As");
 
    QStringList filters;
-   filters <<"Image files (*.bmp *.jpg *.cin *.png *.gif *.als *.rla *.sgi *.tga *.tif *.iff)"
+   filters <<"Image files (*.bmp, *.jpg, *.jpeg, *.png, *.ppm, *.xbm, *.xpm)"
+   //filters <<"Image files (*.bmp *.jpg *.cin *.png *.gif *.als *.rla *.sgi *.tga *.tif *.iff)"
          << "Any files (*)";
    dialog.setNameFilters(filters);
 
@@ -2475,93 +2473,8 @@ void CRenderViewMainWindow::FrameRegion()
 {   
    if (m_3dManipulation)
    {
-
-      // FIXME to be extracted       
-      // Frame the selected geometries bounding box
-      MSelectionList selected; 
-      MBoundingBox globalBox;
-
-      MGlobal::getActiveSelectionList(selected);
-      for (unsigned int i = 0; i < selected.length(); ++i)
-      {
-         MDagPath dagPath;
-         if (selected.getDagPath(i, dagPath) != MS::kSuccess) continue;
-         MStatus status;
-         MFnDagNode dagShape(dagPath, &status);
-         if (status != MS::kSuccess) continue;
-
-         MBoundingBox boundingBox = dagShape.boundingBox(&status);
-         if (status != MS::kSuccess) continue;
-
-         MMatrix mtx = dagPath.inclusiveMatrix();
-   
-         boundingBox.transformUsing(mtx);
-         globalBox.expand(boundingBox);
-      }
-      AtNode *arnoldCamera = AiUniverseGetCamera();
-      if (arnoldCamera == NULL) return;
+      CRenderView3DZoom::FrameSelection(m_renderView);
       
-      MSelectionList camList;
-      camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
-
-      MDagPath camDag;
-      camList.getDagPath(0, camDag);
-
-      if (!camDag.isValid()) return;
-      MObject camNode = camDag.node();
-      MFnCamera camera;
-      camera.setObject(camDag);
-      MMatrix camToWorld = camDag.inclusiveMatrix();
-
-      // don't want to change the viewDirection & upDirection
-      MVector viewDirection = camera.viewDirection(MSpace::kWorld);
-      MVector upDirection = camera.upDirection(MSpace::kWorld);
-      MPoint eyePoint = camera.eyePoint(MSpace::kWorld);
-      MPoint centerInterest = camera.centerOfInterestPoint(MSpace::kWorld);
-
-      MPoint center = globalBox.center();
-      MFloatMatrix projectionMatrix = camera.projectionMatrix();
-
-      MPoint newPos = eyePoint + center - centerInterest;
-      float centerDist = center.distanceTo(newPos);
-
-      camToWorld[3][0] = newPos.x;
-      camToWorld[3][1] = newPos.y;
-      camToWorld[3][2] = newPos.z;
-
-      MMatrix worldToCam = camToWorld.inverse();
-
-      globalBox.transformUsing(worldToCam);
-
-      MPoint minBox = globalBox.min(); // in camera space
-      MPoint maxBox = globalBox.max(); // in camera space
-
-      MMatrix proj;
-      for (int i =0; i < 4; ++i)
-      {
-         for (int j = 0; j < 4; ++j)
-         {
-            proj[i][j] = projectionMatrix[i][j];
-         }
-      }
-      minBox = minBox * proj;
-      maxBox = maxBox * proj;
-      minBox.x /= minBox.z;
-      minBox.y /= minBox.z;
-      maxBox.x /= maxBox.z;
-      maxBox.y /= maxBox.z;
-      
-      float maxScreen = MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y)));
-      // if maxScreen == 1 -> don't zoom
-      // > 1 need to zoom out
-      // < 1 need to zoom in
-
-      newPos = center;
-      newPos -=  viewDirection * centerDist * maxScreen;
-      camera.set(newPos, viewDirection, upDirection, camera.horizontalFieldOfView(), camera.aspectRatio());
-      camera.setCenterOfInterestPoint(center, MSpace::kWorld);
-      
-
    } else
    {
       const AtBBox2 *region = m_gl->GetRegion();

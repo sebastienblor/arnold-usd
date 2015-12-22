@@ -242,6 +242,7 @@ extern int RenderLoop(CRenderView *kwin)
          while (AiRendering()){CRenderView::Sleep(1000);}
       }
       
+
       for (i=(K_progressive) ? smin : smax; i<=smax && !K_aborted ; i++)
       {        
          int error;
@@ -275,6 +276,10 @@ extern int RenderLoop(CRenderView *kwin)
         
          AtUInt64 loopTime = (i == smax) ? CRenderView::Time() : 0;
          error = AiRender(0); //AI_RENDER_THREADED);
+         
+         // immediately set back the AA samples to the previous value
+         // (meanwhile the host might be re-exporting it)
+         AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", smax);
          switch (error)
          {
 

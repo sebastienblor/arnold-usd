@@ -167,6 +167,7 @@ public:
    virtual void MouseMove(int x, int y);
 
    static void Wheel(CRenderView &renderView, float delta);
+   static void FrameSelection(CRenderView &renderView);
 
 protected:
    MVector  m_viewDirection;
