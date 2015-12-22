@@ -279,7 +279,6 @@ extern int RenderLoop(CRenderView *kwin)
          
          // immediately set back the AA samples to the previous value
          // (meanwhile the host might be re-exporting it)
-         AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", smax);
          switch (error)
          {
 
@@ -288,7 +287,7 @@ extern int RenderLoop(CRenderView *kwin)
                /*
                 * restart rendering loop
                 */
-               
+               AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", smax);      
                K_restartLoop = true;
                i = smax+1;
                exitCode = error;
@@ -305,6 +304,7 @@ extern int RenderLoop(CRenderView *kwin)
 
                if (i == smax)
                {
+                  AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", smax);
                   // setting back continuous updates to its original state
                   kwin->RestoreContinuous();
                   
@@ -360,6 +360,7 @@ extern int RenderLoop(CRenderView *kwin)
                 * then there was some sort of rendering error or abort
                 * signal -- terminate the render loop
                 */
+                AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", smax);
                K_aborted = 1;
                exitCode = error;
                kwin->RestoreContinuous();

@@ -9,7 +9,6 @@
 #include <sstream>
 #include <iostream>
 
-#include <maya/MImage.h>
 #include "render_gl_widget.h"
 #include "renderview.h"
 #include "render_loop.h" 
@@ -545,33 +544,40 @@ void CRenderGLWidget::SetZoomFactor(float z)
 
 void CRenderGLWidget::SetBackgroundImage(const std::string &filename)
 {
-   MImage bgImg;
-   MStatus status = bgImg.readFromFile(MString(filename.c_str()));
+
+   QImage bgImg(filename.c_str());
+
+
    if (m_bgData)
    {
       delete m_bgData;
       m_bgData = NULL;
    }
-
-   if (status != MS::kSuccess) return;
+   if (bgImg.isNull()) return;
    
    m_bgData = new BackgroundData();
 
-   bgImg.getSize(m_bgData->bgWidth, m_bgData->bgHeight);
-   bgImg.verticalFlip();
+   m_bgData->bgWidth = bgImg.width();
+   m_bgData->bgHeight = bgImg.height();
+
    m_bgData->bgBuffer = (AtRGBA8 *)AiMalloc(m_bgData->bgWidth * m_bgData->bgHeight * sizeof(AtRGBA8));
 
-   unsigned char *pixels = bgImg.pixels();
+   const uchar *pixels = bgImg.constBits();
    unsigned int size = m_bgData->bgWidth * m_bgData->bgHeight;
+   int i = 0;
 
-   for (unsigned int i = 0; i < size; ++i)
+   for (unsigned int y = 0; y < m_bgData->bgHeight; ++y)
    {
-      
-      AtRGBA8 &bufferPixel = m_bgData->bgBuffer[i];
-      bufferPixel.r = *pixels;pixels++;
-      bufferPixel.g = *pixels;pixels++;
-      bufferPixel.b = *pixels;pixels++;
-      bufferPixel.a = *pixels;pixels++;
+      for (unsigned int x = 0; x < m_bgData->bgWidth; ++x, ++i)
+      {
+         AtRGBA8 &bufferPixel = m_bgData->bgBuffer[i];
+         QRgb rgba = bgImg.pixel(x, y);
+
+         bufferPixel.r = qRed(rgba);
+         bufferPixel.g = qGreen(rgba);
+         bufferPixel.b = qBlue(rgba);
+         bufferPixel.a = qAlpha(rgba);
+      }
    }
    // create texture
    glGenTextures(1, &m_bgData->textureId);

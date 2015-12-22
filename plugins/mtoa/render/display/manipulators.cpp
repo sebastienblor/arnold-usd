@@ -23,14 +23,7 @@
 #include "utility.h"
 #include <emmintrin.h>
 #include "renderview.h"
-#include "scene/MayaScene.h"
-#include "session/ArnoldSession.h"
 
-
-#include <maya/MBoundingBox.h>
-#include <maya/MFloatMatrix.h>
-#include <maya/MEulerRotation.h>
-#include <maya/MFnTransform.h>
 
 void CRenderViewManipulator::MouseMove(int x, int y)
 {
@@ -95,14 +88,14 @@ void CRenderViewCropRegion::MouseRelease(int x, int y)
       m_startX = m_startY = -1;
       glWidget->ClearRegionCrop();
       m_renderView.InterruptRender();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetRegion(0, 0 , m_renderView.Width(), m_renderView.Height());
+
       AtNode *options = AiUniverseGetOptions();
       AiNodeSetInt(options, "region_min_x", -1);
       AiNodeSetInt(options, "region_min_y", -1);
       AiNodeSetInt(options, "region_max_x", -1);
       AiNodeSetInt(options, "region_max_y", -1);
 
+      m_renderView.GetInterface().NodeParamChanged(options, "region_min_x");
       m_renderView.RestartRender();
       return;
    }
@@ -128,14 +121,14 @@ void CRenderViewCropRegion::MouseRelease(int x, int y)
 
    
    m_renderView.InterruptRender();
-   CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   renderSession->SetRegion(bufferStart[0], bufferStart[1], bufferEnd[0], bufferEnd[1]);
+   
    AtNode *options = AiUniverseGetOptions();
    AiNodeSetInt(options, "region_min_x", bufferStart[0]);
    AiNodeSetInt(options, "region_min_y", bufferStart[1]);
    AiNodeSetInt(options, "region_max_x", bufferEnd[0]);
    AiNodeSetInt(options, "region_max_y", bufferEnd[1]);
-   
+
+   m_renderView.GetInterface().NodeParamChanged(options, "region_min_x");
    m_renderView.RestartRender();
 }
 
@@ -225,24 +218,8 @@ void CRenderView2DZoom::Wheel(CRenderView &renderView, float delta)
 // 3D PAN
 CRenderView3DManipulator::CRenderView3DManipulator(CRenderView &rv, int x, int y) : CRenderViewManipulator(rv, x, y)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera();
-   if (arnold_camera == NULL) return;
-   
-   MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+   m_interface = &rv.GetInterface();
 
-   camList.getDagPath(0, m_cameraPath);
-
-   if (!m_cameraPath.isValid()) return;
-
-   MObject camNode = m_cameraPath.node();
-
-   m_camera.setObject(m_cameraPath);      
-
-   m_originalMatrix = m_cameraPath.inclusiveMatrix();
-   MStatus status;
-   m_originalPosition = m_camera.eyePoint(MSpace::kWorld, &status);
-   
 }
 CRenderView3DManipulator::~CRenderView3DManipulator()
 {
@@ -260,31 +237,20 @@ void CRenderView3DManipulator::MouseRelease(int x, int y)
 
 //////////////////////////////////////////////
 // 3D PAN
-CRenderView3DPan::CRenderView3DPan(CRenderView &rv, int x, int y) : CRenderView3DManipulator(rv, x, y)
-{
-   m_upDirection = m_camera.upDirection(MSpace::kWorld);
-   m_rightDirection = m_camera.rightDirection(MSpace::kWorld);
-   m_viewDirection = m_camera.viewDirection(MSpace::kWorld);
-
-   m_distFactor = 1.f;
-   AtNode *cam = AiUniverseGetCamera ();
-   if (cam == NULL) return; // can this happen ?....
-   
-   if (strcmp (AiNodeEntryGetName(AiNodeGetNodeEntry(cam)), "persp_camera") != 0) return;
-
-   MPoint originalPosition = m_camera.eyePoint(MSpace::kWorld);
-   MPoint center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   float center_dist = center.distanceTo(originalPosition);
-
-   m_distFactor = center_dist * tanf(AiNodeGetFlt(cam, "fov") * AI_DTOR);
-
+CRenderView3DPan::CRenderView3DPan(CRenderView &rv, int x, int y) : CRenderView3DManipulator(rv, x, y),
+                                                                     m_panManipulator(NULL)
+{   
+   if (m_interface == NULL) return;
+   m_panManipulator = m_interface->GetPanManipulator();
 }
 CRenderView3DPan::~CRenderView3DPan()
 {
+   delete m_panManipulator;
 }
 
 void CRenderView3DPan::MouseMove(int x, int y)
 {
+   if (m_panManipulator == NULL) return;
 
    // get the start and current mouse coordinates in image space
    int imageStart[2];
@@ -293,229 +259,82 @@ void CRenderView3DPan::MouseMove(int x, int y)
    glWidget->Project(m_startX, m_startY, imageStart[0], imageStart[1], true);
    glWidget->Project(x, y, imagePoint[0], imagePoint[1], true);
 
-   // get the delta factor relative to the width 
-   float delta[2];
-   delta[0] = (-m_distFactor * (imagePoint[0] - imageStart[0]) / (m_renderView.Width()));
-   delta[1] = (m_distFactor * (imagePoint[1] - imageStart[1]) / (m_renderView.Width()));
+   int delta[2];
+   delta[0] = (imagePoint[0] - imageStart[0]);
+   delta[1] = (imagePoint[1] - imageStart[1]);
 
-   MPoint newPosition = m_originalPosition + m_rightDirection * delta[0] + m_upDirection * delta[1];
-   m_camera.set(newPosition, m_viewDirection, m_upDirection, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
+   m_panManipulator->MouseDelta(delta[0], delta[1]);
 }
 
 
 //////////////////////////////////////////////
 // 3D ZOOM
-CRenderView3DZoom::CRenderView3DZoom(CRenderView &rv, int x, int y) : CRenderView3DManipulator(rv, x, y)
+CRenderView3DZoom::CRenderView3DZoom(CRenderView &rv, int x, int y) : CRenderView3DManipulator(rv, x, y),
+                                                                  m_zoomManipulator(NULL)
 {
-   m_viewDirection = m_camera.viewDirection(MSpace::kWorld);
-   m_upDirection = m_camera.upDirection(MSpace::kWorld);
-   m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   m_dist = m_center.distanceTo(m_originalPosition);
+   if (m_interface == NULL) return;
+   m_zoomManipulator = m_interface->GetZoomManipulator();
 }
 
 CRenderView3DZoom::~CRenderView3DZoom()
 {
-
+   delete m_zoomManipulator;
 }
 
 void CRenderView3DZoom::MouseMove(int x, int y)
 {
+   if (m_zoomManipulator == NULL) return;
    int deltaX = x - m_startX;
+   int deltaY = y - m_startY;
 
-   float delta = (float)deltaX / (float)m_renderView.Width();
-   if (delta > 0.9f)
-   {
-      float diff = delta - 0.9f;
-      delta = 0.9f;
-      while (diff > 0.f)
-      {
-         delta += MIN(diff, 1.f) * (1.f - delta) * 0.5f;
-         diff -= 1.f;
-      }
-   }
-   delta *= m_dist;   
+   m_zoomManipulator->MouseDelta(deltaX, deltaY);
 
-   MPoint newPosition = m_originalPosition + m_viewDirection * delta;
-   m_camera.set(newPosition, m_viewDirection, m_upDirection, m_camera.horizontalFieldOfView(), m_camera.aspectRatio());
-   m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
 }
 
 void CRenderView3DZoom::Wheel(CRenderView &renderView, float delta)
 {
-   AtNode *arnold_camera = AiUniverseGetCamera();
-   if (arnold_camera == NULL) return;
-   
-   MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnold_camera, "name")));
+   CRenderViewZoomManipulator *manipulator = renderView.GetInterface().GetZoomManipulator();
+   manipulator->WheelDelta(delta);
 
-   MDagPath camDag;
-   camList.getDagPath(0, camDag);
-
-   if (!camDag.isValid()) return;
-   MObject camNode = camDag.node();
-   MFnCamera camera;
-   camera.setObject(camDag);
-      
-   MVector view_direction = camera.viewDirection(MSpace::kWorld);
-   MPoint originalPosition = camera.eyePoint(MSpace::kWorld);
-
-   delta /= 120.f;
-   MPoint center = camera.centerOfInterestPoint(MSpace::kWorld);
-   float center_dist = center.distanceTo(originalPosition);
-   delta *= center_dist / 10.f;
-   MPoint newPosition = originalPosition;
-   MVector zoom = view_direction;
-   zoom *= delta;
-   newPosition +=  zoom;
-   camera.set(newPosition, view_direction, camera.upDirection(MSpace::kWorld), camera.horizontalFieldOfView(), camera.aspectRatio());
-   camera.setCenterOfInterestPoint(center, MSpace::kWorld);
+   delete manipulator;
 }
 
 void CRenderView3DZoom::FrameSelection(CRenderView &renderView)
 {
+   CRenderViewZoomManipulator *manipulator = renderView.GetInterface().GetZoomManipulator();
+   manipulator->FrameSelection();
 
-// FIXME to be extracted       
-      // Frame the selected geometries bounding box
-   
-   MSelectionList selected; 
-   MBoundingBox globalBox;
+   delete manipulator;
+/*
 
-   MGlobal::getActiveSelectionList(selected);
-   for (unsigned int i = 0; i < selected.length(); ++i)
-   {
-      MDagPath dagPath;
-      if (selected.getDagPath(i, dagPath) != MS::kSuccess) continue;
-      MStatus status;
-      MFnDagNode dagShape(dagPath, &status);
-      if (status != MS::kSuccess) continue;
-
-      MBoundingBox boundingBox = dagShape.boundingBox(&status);
-      if (status != MS::kSuccess) continue;
-
-      MMatrix mtx = dagPath.inclusiveMatrix();
-
-      boundingBox.transformUsing(mtx);
-      globalBox.expand(boundingBox);
-   }
-   AtNode *arnoldCamera = AiUniverseGetCamera();
-   if (arnoldCamera == NULL) return;
-   
-   MSelectionList camList;
-   camList.add(MString(AiNodeGetStr(arnoldCamera, "name")));
-
-   MDagPath camDag;
-   camList.getDagPath(0, camDag);
-
-   if (!camDag.isValid()) return;
-   MObject camNode = camDag.node();
-   MFnCamera camera;
-   camera.setObject(camDag);
-   MMatrix camToWorld = camDag.inclusiveMatrix();
-
-   // don't want to change the viewDirection & upDirection
-   MVector viewDirection = camera.viewDirection(MSpace::kWorld);
-   MVector upDirection = camera.upDirection(MSpace::kWorld);
-   MPoint eyePoint = camera.eyePoint(MSpace::kWorld);
-   MPoint centerInterest = camera.centerOfInterestPoint(MSpace::kWorld);
-
-   MPoint center = globalBox.center();
-   MFloatMatrix projectionMatrix = camera.projectionMatrix();
-
-   MPoint newPos = eyePoint + center - centerInterest;
-   float centerDist = center.distanceTo(newPos);
-
-   camToWorld[3][0] = newPos.x;
-   camToWorld[3][1] = newPos.y;
-   camToWorld[3][2] = newPos.z;
-
-   MMatrix worldToCam = camToWorld.inverse();
-
-   globalBox.transformUsing(worldToCam);
-
-   MPoint minBox = globalBox.min(); // in camera space
-   MPoint maxBox = globalBox.max(); // in camera space
-
-   MMatrix proj;
-   for (int i =0; i < 4; ++i)
-   {
-      for (int j = 0; j < 4; ++j)
-      {
-         proj[i][j] = projectionMatrix[i][j];
-      }
-   }
-   minBox = minBox * proj;
-   maxBox = maxBox * proj;
-   minBox.x /= minBox.z;
-   minBox.y /= minBox.z;
-   maxBox.x /= maxBox.z;
-   maxBox.y /= maxBox.z;
-   
-   float maxScreen = MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y)));
-   // if maxScreen == 1 -> don't zoom
-   // > 1 need to zoom out
-   // < 1 need to zoom in
-
-   newPos = center;
-   newPos -=  viewDirection * centerDist * maxScreen;
-   camera.set(newPos, viewDirection, upDirection, camera.horizontalFieldOfView(), camera.aspectRatio());
-   camera.setCenterOfInterestPoint(center, MSpace::kWorld);
+   */
 }
 
 /////////////////////////////////////////////////////////
 // 3D ROTATE
 CRenderView3DRotate::CRenderView3DRotate(CRenderView &rv, int x, int y) : CRenderView3DManipulator(rv, x, y)
 {
-   m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   m_centerDist = m_center.distanceTo(m_originalPosition);
-   m_upDirection = m_camera.upDirection(MSpace::kWorld);
+   if (m_interface == NULL) return;
+   m_rotateManipulator = m_interface->GetRotateManipulator();
    
 }
 CRenderView3DRotate::~CRenderView3DRotate()
 {
+   delete m_rotateManipulator;
 
 }
 
 void CRenderView3DRotate::MouseMove(int x, int y)
 {
+   if (m_rotateManipulator == NULL) return;
+   int delta[2];
+   delta[0] = x - m_startX;
+   delta[1] = y - m_startY;
 
-   MStatus status;
-   MDagPath camTransform = m_cameraPath;
-   camTransform.pop();
-   MFnTransform transformPath(camTransform, &status);
-   if (status != MS::kSuccess) 
-      return;
-   
+   m_rotateManipulator->MouseDelta(delta[0], delta[1]);
 
-   MVector rightDirection = m_camera.rightDirection(MSpace::kWorld);
-   MVector fElevationAxis = -rightDirection;
-   fElevationAxis.normalize();
-
-   MPoint previousRp = transformPath.rotatePivot(MSpace::kWorld);
-   MVector previousRt = transformPath.rotatePivotTranslation (MSpace::kWorld);
-
-   MPoint fPivotPoint = m_center;
-   transformPath.setRotatePivot(fPivotPoint, MSpace::kWorld, true);
-   MMatrix matrix = camTransform.inclusiveMatrix();
-   
-   MEulerRotation rot;
-
-   transformPath.getRotation(rot);
-   
-   rot.incrementalRotateBy (fElevationAxis, .01f * (y - m_startY));
-   
-   rot.incrementalRotateBy (MGlobal::upAxis(), - .01f * (x - m_startX));
-
-   // start_x being "previous_x" here
+   // reset the manipulator start
    m_startX = x;
    m_startY = y;
 
-   transformPath.setRotation(rot);
-
-   transformPath.setRotatePivot (previousRp, MSpace::kWorld, true);
-   MVector nextRt = transformPath.rotatePivotTranslation (MSpace::kWorld);
-
-   transformPath.translateBy(nextRt - previousRt, MSpace::kWorld);
-   transformPath.setRotatePivotTranslation(previousRt, MSpace::kWorld);
-   m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
-  
 }

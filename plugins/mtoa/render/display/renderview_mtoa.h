@@ -13,6 +13,10 @@
 #include <stdio.h>
 #include <vector>
 
+
+#include <maya/MFnCamera.h>
+#include <maya/MDagPath.h>
+#include <maya/MMatrix.h>
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
@@ -57,30 +61,79 @@ public:
 class CRenderViewMtoAPan : public CRenderViewPanManipulator
 {
 public:
-   CRenderViewMtoAPan() : CRenderViewPanManipulator() {}
+   CRenderViewMtoAPan();
    virtual ~CRenderViewMtoAPan() {}
 
-   virtual void MouseDelta(int deltaX, int deltaY) {};
+   virtual void MouseDelta(int deltaX, int deltaY);
+
+private:
+
+   MDagPath m_cameraPath;
+   MFnCamera m_camera;
+   
+   MMatrix m_originalMatrix;
+   MPoint m_originalPosition;
+
+   MVector  m_upDirection;
+   MVector  m_rightDirection;
+   MVector  m_viewDirection;
+   float    m_distFactor;
+   int m_width;
+   
 };
 
 class CRenderViewMtoAZoom : public CRenderViewZoomManipulator
 {
 public:
 
-   CRenderViewMtoAZoom() : CRenderViewZoomManipulator() {}
+   CRenderViewMtoAZoom();
    virtual ~CRenderViewMtoAZoom() {}
 
-   virtual void MouseDelta(int deltaX, int deltaY) {}
-   virtual void WheelDelta(int delta) {}
+   virtual void MouseDelta(int deltaX, int deltaY);
+   virtual void WheelDelta(float delta);
+   virtual void FrameSelection();
+
+private:
+   
+   MDagPath m_cameraPath;
+   MFnCamera m_camera;
+   
+   MMatrix m_originalMatrix;
+   MPoint m_originalPosition;
+
+   MVector  m_viewDirection;
+   MVector  m_upDirection;
+   MPoint   m_center;
+   float    m_dist;
+   int m_width;
 };
 
 class CRenderViewMtoARotate : public CRenderViewRotateManipulator
 {
 public:
-   CRenderViewMtoARotate() : CRenderViewRotateManipulator() {}
+   CRenderViewMtoARotate();
    virtual ~CRenderViewMtoARotate() {}
 
-   virtual void MouseDelta(int deltaX, int deltaY) {};
+   virtual void MouseDelta(int deltaX, int deltaY);
+
+private:
+   
+   MDagPath m_cameraPath;
+   MFnCamera m_camera;
+   
+   MMatrix m_originalMatrix;
+   MPoint m_originalPosition;
+
+   MPoint m_center;
+   MVector m_upDirection;
+   float m_centerDist;
+   float m_origLon;
+   float m_origLat;
+   MVector m_viewDirection;
+   MVector m_origRotation;
+   int m_width;
+   
+
 };
 
 

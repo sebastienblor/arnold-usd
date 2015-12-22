@@ -30,9 +30,8 @@
 
 #include <iostream>
 
-#include <maya/MFnCamera.h>
-#include <maya/MDagPath.h>
-#include <maya/MMatrix.h>
+
+#include "renderview_interface.h"
 
 
 class QMenu;
@@ -129,15 +128,15 @@ public:
    virtual void MouseRelease(int x, int y);
 
 protected:
-
+/*
    MDagPath m_cameraPath;
    MFnCamera m_camera;
    
    MMatrix m_originalMatrix;
    MPoint m_originalPosition;
+*/
+   CRenderViewInterface *m_interface;      
 };
-
-
 
 
 class CRenderView3DPan : public CRenderView3DManipulator
@@ -150,10 +149,7 @@ public:
    virtual void MouseMove(int x, int y);
 
 protected : 
-   MVector  m_upDirection;
-   MVector  m_rightDirection;
-   MVector  m_viewDirection;
-   float    m_distFactor;
+   CRenderViewPanManipulator *m_panManipulator;
 };
 
 
@@ -170,10 +166,7 @@ public:
    static void FrameSelection(CRenderView &renderView);
 
 protected:
-   MVector  m_viewDirection;
-   MVector  m_upDirection;
-   MPoint   m_center;
-   float    m_dist;
+   CRenderViewZoomManipulator *m_zoomManipulator;
 };
 
 
@@ -188,12 +181,5 @@ public:
    virtual void MouseMove(int x, int y);
 
 protected:
-   MPoint m_center;
-   MVector m_upDirection;
-   float m_centerDist;
-   float m_origLon;
-   float m_origLat;
-   MVector m_viewDirection;
-   MVector m_origRotation;
-   
+   CRenderViewRotateManipulator *m_rotateManipulator;
 };

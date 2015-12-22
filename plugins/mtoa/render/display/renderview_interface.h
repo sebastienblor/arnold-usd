@@ -127,7 +127,8 @@ public:
    virtual ~CRenderViewZoomManipulator() {}
 
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
-   virtual void WheelDelta(int delta) = 0;
+   virtual void WheelDelta(float delta) = 0;
+   virtual void FrameSelection() = 0;
 
 };
 
