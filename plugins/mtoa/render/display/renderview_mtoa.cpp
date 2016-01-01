@@ -14,8 +14,8 @@
 #include <maya/MEulerRotation.h>
 #include <maya/MFnTransform.h>
 
-
 static MCallbackId rvSelectionCb = 0;
+
 
 /**
   * Preparing MtoA's interface code with the RenderView
@@ -29,7 +29,6 @@ void CRenderViewMtoA::UpdateSceneChanges(const std::vector<AtNode*> *modifiedNod
 {
    CMayaScene::UpdateSceneChanges();
 }
-
 
 void CRenderViewMtoA::GetSelection(std::vector<AtNode *> &selectedNodes)
 {
@@ -119,6 +118,11 @@ void CRenderViewMtoA::SetSelection(const std::vector<AtNode *> &selectedNodes, b
 void CRenderViewMtoA::NodeParamChanged(AtNode *node, const std::string &paramName)
 {
    if (node != AiUniverseGetOptions()) return;
+/*
+   We used to advert the RenderSession that region had changed, but in fact this just causes more confusion
+   since the renderSession will do other changes to "region_min*" "region_max*"
+   So from now on, we're no longer telling the Render Session what is happening with the crop region
+   and it's much simpler...
 
    if (paramName == "region_min_x" || paramName == "region_min_y" || paramName == "region_max_x" || paramName == "region_max_y")
    {
@@ -129,18 +133,21 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const std::string &paramNam
       int maxx = AiNodeGetInt(node, "region_max_x");
       int maxy = AiNodeGetInt(node, "region_max_y");
 
+
       if (minx < 0 || miny < 0)
       {
          int xres = AiNodeGetInt(node, "xres");
          int yres = AiNodeGetInt(node, "yres");
 
-         renderSession->SetRegion(0, 0 , xres, yres);
+         renderSession->SetRegion(0, xres, 0, yres);
       } else
       {
-         renderSession->SetRegion(minx, miny , maxx, maxy);
+         renderSession->SetRegion(minx, maxx , miny, maxy);
       }
       return;
    }
+
+   */
 
    if (paramName == "camera")
    {

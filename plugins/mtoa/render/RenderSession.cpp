@@ -10,7 +10,7 @@
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
 
-#include "display/renderview.h"
+#include "display/renderview_mtoa.h"
 
 
 #include <ai_dotass.h>
