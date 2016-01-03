@@ -1,7 +1,7 @@
 
 #include "renderview_mtoa.h"
-
 #include "scene/MayaScene.h"
+
 
 #include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
@@ -16,7 +16,6 @@
 
 static MCallbackId rvSelectionCb = 0;
 
-
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
@@ -28,6 +27,7 @@ void CRenderViewMtoA::UpdateSceneChanges(const std::vector<AtNode*> *modifiedNod
    const std::vector<AtNode *> *deletedNodes)
 {
    CMayaScene::UpdateSceneChanges();
+   SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
 }
 
 void CRenderViewMtoA::GetSelection(std::vector<AtNode *> &selectedNodes)

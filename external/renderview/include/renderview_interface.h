@@ -18,6 +18,7 @@ class CRenderViewPanManipulator;
 class CRenderViewZoomManipulator;
 class CRenderViewRotateManipulator;
 class QWidget;
+class QMainWindow;
 
 /**
  *   CRenderViewInterface plays the role of an Interface between the "Host" (Plugin / Application)
@@ -44,7 +45,7 @@ public:
  **/
 
    // return the renderView Qt Window
-   CRenderViewMainWindow *GetRenderView() {return m_mainWindow;}
+   QMainWindow *GetRenderView() {return (QMainWindow *)m_mainWindow;}
 
    // Render the scene.
    // This function assumes that the Arnold scene already exists
@@ -62,6 +63,10 @@ public:
 
    void InterruptRender();
    void ObjectNameChanged(const std::string &oldName, const std::string &newName);
+
+   // This function should be invoked by the host
+   // whenever the frame number is changed
+   void SetFrame(float frame);
 
 /**  
  *    Functions that may be invoked by the RenderView depending 
@@ -88,8 +93,12 @@ public:
    // Selection Changed events. Today, this happens when "Isolate Selected"
    // mode is used
    virtual void ReceiveSelectionChanges(bool receive) = 0;
+
+   // This Function is called when the Renderview window is closed
    virtual void RenderViewClosed() = 0;
 
+   // This function is invoked by the RenderView when it changes a parameter 
+   // in the scene, so that we can advert the host
    virtual void NodeParamChanged(AtNode *node, const std::string &paramName) = 0;
 
 // In the Future these Manipulator classes should be removed and handled
@@ -99,7 +108,7 @@ public:
    virtual CRenderViewPanManipulator *GetPanManipulator() = 0;
    virtual CRenderViewZoomManipulator *GetZoomManipulator() = 0;
    virtual CRenderViewRotateManipulator *GetRotateManipulator() = 0;
-   
+
 
 private:
 
@@ -118,6 +127,7 @@ public:
    virtual ~CRenderViewPanManipulator() {}
 
    virtual void MouseDelta(int deltaX, int deltaY) = 0;
+   
 };
 
 class CRenderViewZoomManipulator

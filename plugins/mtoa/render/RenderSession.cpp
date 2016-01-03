@@ -659,7 +659,7 @@ void CRenderSession::StartRenderView()
    {
       s_renderView = new CRenderViewMtoA;
    }
-   
+   s_renderView->SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
    s_renderView->OpenRenderView(m_renderOptions.width(), m_renderOptions.height(), MQtUtil::mainWindow());
    
 
