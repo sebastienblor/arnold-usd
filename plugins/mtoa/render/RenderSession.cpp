@@ -645,6 +645,7 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+
 void CRenderSession::RunRenderView()
 {
    InterruptRender(); // clear the previous thread  
@@ -659,9 +660,8 @@ void CRenderSession::StartRenderView()
    {
       s_renderView = new CRenderViewMtoA;
    }
-   s_renderView->SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
    s_renderView->OpenRenderView(m_renderOptions.width(), m_renderOptions.height(), MQtUtil::mainWindow());
-   
+   s_renderView->SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
 
 #else
    if (s_renderView != NULL) 
