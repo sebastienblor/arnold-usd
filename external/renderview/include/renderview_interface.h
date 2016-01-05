@@ -26,7 +26,7 @@ class QMainWindow;
  *   (from Host -> RenderView, or from RenderView -> Host)
  *   Some of them need to be overridden by the Host, who will derive from this class
  **/
-class CRenderViewInterface
+class __declspec(dllexport) CRenderViewInterface
 {
 public:
 
@@ -120,7 +120,7 @@ private:
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
 
-class CRenderViewPanManipulator
+class __declspec(dllexport) CRenderViewPanManipulator
 {
 public:
    CRenderViewPanManipulator() {}
@@ -130,7 +130,7 @@ public:
    
 };
 
-class CRenderViewZoomManipulator
+class __declspec(dllexport) CRenderViewZoomManipulator
 {
 public:
    CRenderViewZoomManipulator() {}
@@ -142,7 +142,7 @@ public:
 
 };
 
-class CRenderViewRotateManipulator
+class __declspec(dllexport) CRenderViewRotateManipulator
 {
 public:
    CRenderViewRotateManipulator() {}
