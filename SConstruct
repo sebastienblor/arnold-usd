@@ -673,7 +673,11 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_exten
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 
-renderview_dylib = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, 'ai_renderview'+ get_library_extension())
+if system.os() == 'windows':
+    renderview_dylib = glob.glob(os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, 'ai_renderview'+ get_library_extension()))
+else:
+    renderview_dylib = glob.glob(os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, 'libai_renderview'+ get_library_extension()))
+
 env.Install(env['TARGET_BINARIES'], renderview_dylib)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])

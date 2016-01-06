@@ -12,6 +12,15 @@
 #include <stdio.h>
 #include <vector>
 
+#ifdef _WIN32
+#define DLLEXPORT __declspec(dllexport)
+#endif
+#ifdef _LINUX
+#define DLLEXPORT __attribute__ ((visibility("default")))
+#endif
+#ifdef _DARWIN
+#define DLLEXPORT __attribute__ ((visibility("default")))
+#endif
 
 class CRenderViewMainWindow;
 class CRenderViewPanManipulator;
@@ -26,7 +35,7 @@ class QMainWindow;
  *   (from Host -> RenderView, or from RenderView -> Host)
  *   Some of them need to be overridden by the Host, who will derive from this class
  **/
-class __declspec(dllexport) CRenderViewInterface
+class DLLEXPORT CRenderViewInterface
 {
 public:
 
@@ -120,7 +129,7 @@ private:
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
 
-class __declspec(dllexport) CRenderViewPanManipulator
+class DLLEXPORT CRenderViewPanManipulator
 {
 public:
    CRenderViewPanManipulator() {}
@@ -130,7 +139,7 @@ public:
    
 };
 
-class __declspec(dllexport) CRenderViewZoomManipulator
+class DLLEXPORT CRenderViewZoomManipulator
 {
 public:
    CRenderViewZoomManipulator() {}
@@ -142,7 +151,7 @@ public:
 
 };
 
-class __declspec(dllexport) CRenderViewRotateManipulator
+class DLLEXPORT CRenderViewRotateManipulator
 {
 public:
    CRenderViewRotateManipulator() {}
