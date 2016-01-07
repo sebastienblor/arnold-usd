@@ -51,16 +51,9 @@
 #endif
 
 
-// Uncomment this define to use the "extracted" version of the RenderView
-#define MTOA_EXTRACT_RV
-
-
-#ifdef MTOA_EXTRACT_RV
 #include "display/renderview_mtoa.h"
 static CRenderViewMtoA  *s_renderView = NULL;
-#else
-static CRenderView  *s_renderView = NULL;
-#endif
+
 
 
 extern AtNodeMethods* mtoa_driver_mtd;
@@ -193,19 +186,11 @@ MStatus CRenderSession::End()
       // from InteractiveRenderThread
       InterruptRender();
 
-#ifdef MTOA_EXTRACT_RV
       if (s_renderView)
       {
          s_renderView->CloseRenderView();
       } 
 
-#else
-      if (s_renderView)
-      {
-         s_renderView->FinishRender();
-         s_renderView->Close();
-      }
-#endif
    }
    
    if (!AiUniverseIsActive())
@@ -296,12 +281,8 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
    if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW) && data != 0)
    {
 
-#ifdef MTOA_EXTRACT_RV
-   // do I even need this ??
-#else
 //    do I even need this ??   
 //      ((CRenderSession*)data)->UpdateRenderView();
-#endif
       return;
    }
 
@@ -655,7 +636,6 @@ void CRenderSession::RunRenderView()
 
 void CRenderSession::StartRenderView()
 {
-#ifdef MTOA_EXTRACT_RV
    if (s_renderView == NULL)
    {
       s_renderView = new CRenderViewMtoA;
@@ -663,21 +643,6 @@ void CRenderSession::StartRenderView()
    s_renderView->OpenRenderView(m_renderOptions.width(), m_renderOptions.height(), MQtUtil::mainWindow());
    s_renderView->SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
 
-#else
-   if (s_renderView != NULL) 
-   {
-      if (AiRendering()) s_renderView->InterruptRender();
-
-      s_renderView->InitRender(m_renderOptions.width(), m_renderOptions.height());
-      s_renderView->Show();
-
-      s_renderView->UpdateRender();
-      return;
-   }
-
-
-   s_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
-#endif
 }
 
 #ifdef _WIN64
@@ -696,22 +661,12 @@ void CRenderSession::sleep(AtUInt64 usecs)
 
 void CRenderSession::UpdateRenderView()
 {  
-#ifdef MTOA_EXTRACT_RV
    if(s_renderView != NULL) // for now always return true
    {
       // This will tell the render View that the scene has changed
       // it will decide whether to re-render or not
       s_renderView->SceneChanged();
    }
-   
-#else
-   if(s_renderView != NULL)
-   {
-      s_renderView->UpdateRender();
-      return;
-   }
-
-#endif
 
 }
 
