@@ -12,15 +12,17 @@
 #include <stdio.h>
 #include <vector>
 
+
 #ifdef _WIN32
-#define DLLEXPORT __declspec(dllexport)
+#define AI_RV_DLLEXPORT __declspec(dllexport)
 #endif
 #ifdef _LINUX
-#define DLLEXPORT __attribute__ ((visibility("default")))
+#define AI_RV_DLLEXPORT __attribute__ ((visibility("default")))
 #endif
 #ifdef _DARWIN
-#define DLLEXPORT __attribute__ ((visibility("default")))
+#define AI_RV_DLLEXPORT __attribute__ ((visibility("default")))
 #endif
+
 
 class CRenderViewMainWindow;
 class CRenderViewPanManipulator;
@@ -35,7 +37,7 @@ class QMainWindow;
  *   (from Host -> RenderView, or from RenderView -> Host)
  *   Some of them need to be overridden by the Host, who will derive from this class
  **/
-class DLLEXPORT CRenderViewInterface
+class AI_RV_DLLEXPORT CRenderViewInterface
 {
 public:
 
@@ -68,10 +70,10 @@ public:
    // If ReceiveSelectionChanges is set to true, then the Host
    // should call this function whenever its current selection
    // is changed
-   void HostSelectionChanged(const std::vector<AtNode *> &selection);
+   void HostSelectionChanged(const AtNode **selection, unsigned int size);
 
    void InterruptRender();
-   void ObjectNameChanged(const std::string &oldName, const std::string &newName);
+   void ObjectNameChanged(const char *oldName, const char *newName);
 
    // This function should be invoked by the host
    // whenever the frame number is changed
@@ -86,17 +88,17 @@ public:
    // The RenderView code will invoke this function when it wants 
    // the Host to update the Arnold nodes
    // the optional vectors may be filled with the list of modified nodes
-   virtual void UpdateSceneChanges(const std::vector<AtNode*> *modifiedNodes = NULL, 
-   const std::vector<AtNode *> *addedNodes = NULL,
-   const std::vector<AtNode *> *deletedNodes = NULL) = 0;
+   virtual void UpdateSceneChanges() = 0;
 
 
+   // this function returns the amount of Arnold selected nodes in the Host side
+   virtual unsigned int GetSelectionCount() = 0;
    // this function returns the list of Arnold selected nodes in the Host side
-   virtual void GetSelection(std::vector<AtNode *> &selectedNodes) = 0;
+   virtual void GetSelection(AtNode **selection) = 0;
 
    // This function is invoked by the RenderView to set the current selection
    // in the Host side
-   virtual void SetSelection(const std::vector<AtNode *> &selectedNode, bool append = false) = 0;
+   virtual void SetSelection(const AtNode **selectedNodes, unsigned int selectionSize, bool append = false) = 0;
 
    // This function is called by the RenderView when it needs to receive the 
    // Selection Changed events. Today, this happens when "Isolate Selected"
@@ -108,7 +110,7 @@ public:
 
    // This function is invoked by the RenderView when it changes a parameter 
    // in the scene, so that we can advert the host
-   virtual void NodeParamChanged(AtNode *node, const std::string &paramName) = 0;
+   virtual void NodeParamChanged(AtNode *node, const char *paramName) = 0;
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
@@ -129,7 +131,7 @@ private:
 // internally by the RenderView code. As of now, MtoA's manipulators
 // still rely on some Maya functions so we need to extract it
 
-class DLLEXPORT CRenderViewPanManipulator
+class AI_RV_DLLEXPORT CRenderViewPanManipulator
 {
 public:
    CRenderViewPanManipulator() {}
@@ -139,7 +141,7 @@ public:
    
 };
 
-class DLLEXPORT CRenderViewZoomManipulator
+class AI_RV_DLLEXPORT CRenderViewZoomManipulator
 {
 public:
    CRenderViewZoomManipulator() {}
@@ -151,7 +153,7 @@ public:
 
 };
 
-class DLLEXPORT CRenderViewRotateManipulator
+class AI_RV_DLLEXPORT CRenderViewRotateManipulator
 {
 public:
    CRenderViewRotateManipulator() {}

@@ -3,7 +3,7 @@
 #include "scene/MayaScene.h"
 
 
-#include <maya/MQtUtil.h>
+//#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
 #include <maya/MGlobal.h>
@@ -22,15 +22,13 @@ static MCallbackId rvSelectionCb = 0;
   * will be the only files left in MtoA repository
  **/
 
-void CRenderViewMtoA::UpdateSceneChanges(const std::vector<AtNode*> *modifiedNodes, 
-   const std::vector<AtNode *> *addedNodes,
-   const std::vector<AtNode *> *deletedNodes)
+void CRenderViewMtoA::UpdateSceneChanges()
 {
    CMayaScene::UpdateSceneChanges();
-   SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
+   SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
 }
 
-void CRenderViewMtoA::GetSelection(std::vector<AtNode *> &selectedNodes)
+static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
 {
    MSelectionList activeList;
    MGlobal::getActiveSelectionList(activeList);
@@ -50,6 +48,20 @@ void CRenderViewMtoA::GetSelection(std::vector<AtNode *> &selectedNodes)
       AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
       if (selected) selectedNodes.push_back(selected);
    }
+}
+unsigned int CRenderViewMtoA::GetSelectionCount()
+{
+   std::vector<AtNode *>selection;
+   GetSelectionVector(selection);
+   return (unsigned int)selection.size();
+}
+void CRenderViewMtoA::GetSelection(AtNode **selection)
+{
+   std::vector<AtNode *> selectionVec;
+   GetSelectionVector(selectionVec);
+   if (selectionVec.empty()) return;
+
+   memcpy(selection, &selectionVec[0], selectionVec.size() * sizeof(AtNode*));
 }
 
 // For "Isolate Selected" debug shading mode,
@@ -84,40 +96,42 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
       if(selected_shader) selection.push_back(selected_shader);
    }
    
-   renderViewMtoA->HostSelectionChanged(selection);
+   renderViewMtoA->HostSelectionChanged((selection.empty()) ? NULL : (const AtNode **)&selection[0], selection.size());
 
 }
 
 
-void CRenderViewMtoA::SetSelection(const std::vector<AtNode *> &selectedNodes, bool append)
+void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append)
 {   
    if (append)
    {
-      if (selectedNodes.empty()) return;
-      for (size_t i = 0; i < selectedNodes.size(); ++i)
+      if (selectionCount == 0) return;
+      for (unsigned int i = 0; i < selectionCount; ++i)
       {
          MGlobal::selectByName(MString(AiNodeGetName(selectedNodes[i])), MGlobal::kAddToList);
       }
 
    } else 
    {
-      if (selectedNodes.empty()) 
+      if (selectionCount == 0) 
       {
          MGlobal::clearSelectionList();
          return;
       }
       
       MGlobal::selectByName(MString(AiNodeGetName(selectedNodes[0])), MGlobal::kReplaceList);
-      for (size_t i = 1; i < selectedNodes.size(); ++i)
+      for (unsigned int i = 1; i < selectionCount; ++i)
       {
          MGlobal::selectByName(MString(AiNodeGetName(selectedNodes[i])), MGlobal::kAddToList);
       }
    }
 }
 
-void CRenderViewMtoA::NodeParamChanged(AtNode *node, const std::string &paramName)
+void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 {
    if (node != AiUniverseGetOptions()) return;
+   std::string paramName = paramNameChar;
+
 /*
    We used to advert the RenderSession that region had changed, but in fact this just causes more confusion
    since the renderSession will do other changes to "region_min*" "region_max*"
@@ -248,7 +262,7 @@ CRenderViewMtoAPan::CRenderViewMtoAPan() : CRenderViewPanManipulator()
 
    MPoint originalPosition = m_camera.eyePoint(MSpace::kWorld);
    MPoint center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   float center_dist = center.distanceTo(originalPosition);
+   float center_dist = (float)center.distanceTo(originalPosition);
 
    m_distFactor = center_dist * tanf(AiNodeGetFlt(arnold_camera, "fov") * AI_DTOR);
 
@@ -289,7 +303,7 @@ CRenderViewMtoAZoom::CRenderViewMtoAZoom() : CRenderViewZoomManipulator()
    m_viewDirection = m_camera.viewDirection(MSpace::kWorld);
    m_upDirection = m_camera.upDirection(MSpace::kWorld);
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   m_dist = m_center.distanceTo(m_originalPosition);
+   m_dist = (float)m_center.distanceTo(m_originalPosition);
 
    m_width = AiNodeGetInt(AiUniverseGetOptions(), "xres");
 }
@@ -336,7 +350,7 @@ void CRenderViewMtoAZoom::WheelDelta(float delta)
 
    delta /= 120.f;
    MPoint center = camera.centerOfInterestPoint(MSpace::kWorld);
-   float center_dist = center.distanceTo(originalPosition);
+   float center_dist = (float)center.distanceTo(originalPosition);
    delta *= center_dist / 10.f;
    MPoint newPosition = originalPosition;
    MVector zoom = view_direction;
@@ -396,7 +410,7 @@ void CRenderViewMtoAZoom::FrameSelection()
    MFloatMatrix projectionMatrix = camera.projectionMatrix();
 
    MPoint newPos = eyePoint + center - centerInterest;
-   float centerDist = center.distanceTo(newPos);
+   float centerDist = float(center.distanceTo(newPos));
 
    camToWorld[3][0] = newPos.x;
    camToWorld[3][1] = newPos.y;
@@ -424,7 +438,7 @@ void CRenderViewMtoAZoom::FrameSelection()
    maxBox.x /= maxBox.z;
    maxBox.y /= maxBox.z;
    
-   float maxScreen = MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y)));
+   float maxScreen = float(MAX(MAX(ABS(minBox.x), ABS(maxBox.x)), MAX(ABS(minBox.y), ABS(maxBox.y))));
    // if maxScreen == 1 -> don't zoom
    // > 1 need to zoom out
    // < 1 need to zoom in
@@ -458,7 +472,7 @@ CRenderViewMtoARotate::CRenderViewMtoARotate() : CRenderViewRotateManipulator()
    m_originalPosition = m_camera.eyePoint(MSpace::kWorld, &status);
 
    m_center = m_camera.centerOfInterestPoint(MSpace::kWorld);
-   m_centerDist = m_center.distanceTo(m_originalPosition);
+   m_centerDist = float(m_center.distanceTo(m_originalPosition));
    m_upDirection = m_camera.upDirection(MSpace::kWorld);
    
 

@@ -31,15 +31,13 @@ public:
 	CRenderViewMtoA() : CRenderViewInterface() {}
 	virtual ~CRenderViewMtoA() {}
 
-   virtual void UpdateSceneChanges(const std::vector<AtNode*> *modifiedNodes = NULL, 
-   const std::vector<AtNode *> *addedNodes = NULL,
-   const std::vector<AtNode *> *deletedNodes = NULL);
+   virtual void UpdateSceneChanges();
 
-
-   virtual void GetSelection(std::vector<AtNode *> &selectedNodes);
-   virtual void SetSelection(const std::vector<AtNode *> &selectedNode, bool append = false);
+   virtual unsigned int GetSelectionCount();
+   virtual void GetSelection(AtNode **selectedNodes);
+   virtual void SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append = false);
    virtual void ReceiveSelectionChanges(bool receive);
-   virtual void NodeParamChanged(AtNode *node, const std::string &paramName);
+   virtual void NodeParamChanged(AtNode *node, const char *paramName);
    virtual void RenderViewClosed();
 
 // In the Future these Manipulator classes should be removed and handled

@@ -678,8 +678,8 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
    if (s_renderView != NULL)
    {
       MFnDependencyNode fnNode(node);
-      std::string newName = fnNode.name().asChar();
-      std::string oldName = str.asChar();
+      const char *newName = fnNode.name().asChar();
+      const char *oldName = str.asChar();
       s_renderView->ObjectNameChanged(newName, oldName);
    }
 
