@@ -284,6 +284,10 @@ def createArnoldMenu():
     if not pm.about(b=1):
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
 
+        pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',
+                    c=lambda *args: startRenderView())
+        pm.menuItem(parent='ArnoldMenu', divider=True)
+
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                     c=lambda *args: createStandIn())
@@ -374,10 +378,7 @@ def createArnoldMenu():
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
 
         pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldMtoARenderView', label='MtoA RenderView', parent='ArnoldExperimentalMenu',
-                    c=lambda *args: startRenderView())
-
-
+        
         pm.menuItem('ArnoldRender', label='Houdini MPlay', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
         pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
                     postMenuCommand=lambda *args: populateSelectCamera())
