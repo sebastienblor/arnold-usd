@@ -258,13 +258,13 @@ def startRender():
     if core.ACTIVE_CAMERA != None:
         cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
 
-def startRenderView():
+def arnoldMtoARenderView():
     # core.ACTIVE_CAMERA is not set, anything we could do here ?
     #if core.ACTIVE_CAMERA != None:
     #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
     # so instead we're calling it without any argument
-    core.createOptions()
 
+    core.createOptions()
     cmds.arnoldRenderView()
 
 def startIpr():
@@ -285,7 +285,7 @@ def createArnoldMenu():
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
 
         pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',
-                    c=lambda *args: startRenderView())
+                    c=lambda *args: arnoldMtoARenderView())
         pm.menuItem(parent='ArnoldMenu', divider=True)
 
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True, tearOff=True)
