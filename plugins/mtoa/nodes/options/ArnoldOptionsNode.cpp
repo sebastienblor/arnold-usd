@@ -215,7 +215,8 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_threads = nAttr.create("threads", "thrds", MFnNumericData::kInt, 1);
    nAttr.setKeyable(false);
-   nAttr.setMin(1);
+   nAttr.setMin(-AI_MAX_THREADS);
+   nAttr.setSoftMin(1);
    nAttr.setMax(AI_MAX_THREADS);
    addAttribute(s_threads);
 
