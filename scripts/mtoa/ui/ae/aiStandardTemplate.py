@@ -122,6 +122,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("Ksss_color", label="Color")
         self.addControl("Ksss", label="Weight")
         self.addControl("sss_radius", label="Radius")
+        self.addControl("sss_profile", label="Profile")
         self.endLayout() # End SSS Layout
 
         self.beginLayout("Emission", collapse=True)
