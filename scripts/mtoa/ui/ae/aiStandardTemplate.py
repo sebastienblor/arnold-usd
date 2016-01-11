@@ -74,6 +74,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("specular_roughness", label="Roughness")
         self.addControl("specular_anisotropy", label="Anisotropy")
         self.addControl("specular_rotation", label="Rotation")        
+        self.addControl("specular_distribution", label="Distribution")
         # depreciated
         # self.addControl("Phong_exponent", label="Glossiness")
         self.addSeparator()
