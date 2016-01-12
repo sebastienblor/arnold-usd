@@ -49,6 +49,8 @@ public:
    virtual CRenderViewRotateManipulator *GetRotateManipulator();
    
    static void SelectionChangedCallback(void *);
+
+   void OpenMtoARenderView(int width, int height);
 };
 
 // In the Future these Manipulator classes should be removed and handled

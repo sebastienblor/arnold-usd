@@ -14,8 +14,14 @@
 #include <maya/MEulerRotation.h>
 #include <maya/MFnTransform.h>
 
+#include <maya/MQtUtil.h>
+
 static MCallbackId rvSelectionCb = 0;
 
+void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
+{
+   OpenRenderView(width, height, MQtUtil::mainWindow());
+}
 /**
   * Preparing MtoA's interface code with the RenderView
   * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h

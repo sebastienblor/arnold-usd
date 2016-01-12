@@ -12,7 +12,6 @@
 
 #include "display/renderview_mtoa.h"
 
-
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_plugins.h>
@@ -21,8 +20,6 @@
 #include <ai_universe.h>
 #include <ai_ray.h>
 
-
-#include <maya/MQtUtil.h>
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
@@ -337,7 +334,12 @@ void CRenderSession::InterruptRender(bool waitFinished)
       
    if (waitFinished)
    {
-      while(AiRendering()) sleep(1000);
+#ifdef _WIN64
+      while(AiRendering()) Sleep(1);
+#else
+      while(AiRendering()) usleep(1000);
+#endif
+
    }
    // Wait for the thread to clear.
    if (m_render_thread != 0)
@@ -640,24 +642,10 @@ void CRenderSession::StartRenderView()
    {
       s_renderView = new CRenderViewMtoA;
    }
-   s_renderView->OpenRenderView(m_renderOptions.width(), m_renderOptions.height(), MQtUtil::mainWindow());
-   s_renderView->SetFrame(CMayaScene::GetArnoldSession()->GetExportFrame());
+   s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
+   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
 
 }
-
-#ifdef _WIN64
-void CRenderSession::sleep(AtUInt64 usecs)
-{
-   Sleep(usecs / 1000);
-}
-#else
-
-void CRenderSession::sleep(AtUInt64 usecs)
-{
-   usleep(usecs);
-}
-
-#endif
 
 void CRenderSession::UpdateRenderView()
 {  

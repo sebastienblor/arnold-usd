@@ -164,10 +164,7 @@ public:
    inline bool IsActive() const { return m_is_active; }
 
    static void ClearIdleRenderViewCallback();
-   
-   static void sleep(AtUInt64 usecs);
-
-
+      
 private:
 
    CRenderSession()
