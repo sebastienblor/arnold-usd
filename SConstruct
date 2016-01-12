@@ -674,11 +674,13 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_exten
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 if system.os() == 'windows':
-    renderview_dylib = glob.glob(os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, 'ai_renderview'+ get_library_extension()))
+    RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
 else:
-    renderview_dylib = glob.glob(os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, 'libai_renderview'+ get_library_extension()))
+    RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
 
-env.Install(env['TARGET_BINARIES'], renderview_dylib)
+env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -953,6 +955,7 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
     if system.os() == 'windows':
@@ -1018,6 +1021,9 @@ elif system.os() == 'darwin':
     PACKAGE_FILES += [
        [MTOA[0], 'plug-ins'],
     ]
+
+PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
