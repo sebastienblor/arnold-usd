@@ -61,6 +61,7 @@ protected:
    MDagPath GetMeshRefObj();
    bool GetRefObj(const float*& refVertices,
          AtArray*& refNormals,
+         AtArray*& rnidxs,
          AtArray*& refTangents,
          AtArray*& refBitangents);
    bool GetVertexColors(const MObject &geometry,

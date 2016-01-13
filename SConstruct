@@ -670,7 +670,17 @@ dylibs = glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
+
 env.Install(env['TARGET_BINARIES'], dylibs)
+
+if system.os() == 'windows':
+    RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+else:
+    RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
+    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+
+env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -741,7 +751,8 @@ apiheaders = [
                 os.path.join('utils', 'Version.h'),
                 os.path.join('utils', 'Universe.h'),
                 os.path.join('utils', 'MtoaLog.h'),
-                os.path.join('utils', 'time.h')
+                os.path.join('utils', 'time.h'),
+                os.path.join('utils', 'HashUtils.h')
 ]
 
 env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
@@ -944,6 +955,7 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
     if system.os() == 'windows':
@@ -1009,6 +1021,9 @@ elif system.os() == 'darwin':
     PACKAGE_FILES += [
        [MTOA[0], 'plug-ins'],
     ]
+
+PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 

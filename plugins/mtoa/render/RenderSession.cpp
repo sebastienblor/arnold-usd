@@ -10,8 +10,7 @@
 #include "translators/options/OptionsTranslator.h"
 #include "extension/Extension.h"
 
-#include "display/renderview.h"
-
+#include "display/renderview_mtoa.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -20,7 +19,6 @@
 #include <ai_threads.h>
 #include <ai_universe.h>
 #include <ai_ray.h>
-
 
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
@@ -49,7 +47,11 @@
 #define new DEBUG_NEW
 #endif
 
-static CRenderView  *s_renderView = NULL;
+
+#include "display/renderview_mtoa.h"
+static CRenderViewMtoA  *s_renderView = NULL;
+
+
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
@@ -180,11 +182,12 @@ MStatus CRenderSession::End()
       // IsRendering check prevents thread lock when CMayaScene::End is called
       // from InteractiveRenderThread
       InterruptRender();
+
       if (s_renderView)
       {
-         s_renderView->FinishRender();
-         s_renderView->Close();
-      }
+         s_renderView->CloseRenderView();
+      } 
+
    }
    
    if (!AiUniverseIsActive())
@@ -211,11 +214,13 @@ MStatus CRenderSession::End()
 }
 void CRenderSession::DeleteRenderView()
 {
+
    if (s_renderView != NULL)
    {
       delete s_renderView;
       s_renderView = NULL;
    }
+
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -272,7 +277,9 @@ void CRenderSession::InteractiveRenderCallback(float elapsedTime, float lastTime
 {
    if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW) && data != 0)
    {
-      ((CRenderSession*)data)->UpdateRenderView();
+
+//    do I even need this ??   
+//      ((CRenderSession*)data)->UpdateRenderView();
       return;
    }
 
@@ -327,7 +334,12 @@ void CRenderSession::InterruptRender(bool waitFinished)
       
    if (waitFinished)
    {
-      while(AiRendering()) sleep(1000);
+#ifdef _WIN64
+      while(AiRendering()) Sleep(1);
+#else
+      while(AiRendering()) usleep(1000);
+#endif
+
    }
    // Wait for the thread to clear.
    if (m_render_thread != 0)
@@ -616,6 +628,7 @@ void CRenderSession::DoIPRRender()
    }
 }
 
+
 void CRenderSession::RunRenderView()
 {
    InterruptRender(); // clear the previous thread  
@@ -625,66 +638,23 @@ void CRenderSession::RunRenderView()
 
 void CRenderSession::StartRenderView()
 {
-   if (s_renderView != NULL) 
+   if (s_renderView == NULL)
    {
-      if (AiRendering()) s_renderView->InterruptRender();
-
-      s_renderView->InitRender(m_renderOptions.width(), m_renderOptions.height());
-      s_renderView->Show();
-
-      s_renderView->UpdateRender();
-      return;
+      s_renderView = new CRenderViewMtoA;
    }
-   s_renderView = new CRenderView(m_renderOptions.width(), m_renderOptions.height());
+   s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
+   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
 
 }
-
-#ifdef _WIN64
-void CRenderSession::sleep(AtUInt64 usecs)
-{
-   Sleep(usecs / 1000);
-}
-#else
-
-void CRenderSession::sleep(AtUInt64 usecs)
-{
-   usleep(usecs);
-}
-
-#endif
 
 void CRenderSession::UpdateRenderView()
 {  
-/*
-   if (s_idle_cb)
+   if(s_renderView != NULL) // for now always return true
    {
-      MMessage::removeCallback(s_idle_cb);
-      s_idle_cb = 0;
+      // This will tell the render View that the scene has changed
+      // it will decide whether to re-render or not
+      s_renderView->SceneChanged();
    }
-*/
-   if(s_renderView != NULL && s_renderView->CanRestartRender()) // for now always return true
-   {
-      s_renderView->UpdateRender();
-      /*
-      InterruptRender();
-      CMayaScene::UpdateSceneChanges();
-      s_renderView->restartRender();*/
-      return;
-   }
-
-   // if not, raise a flag (needs update), and call idle
-   /*
-   MStatus status;
-   float remaining_time = float(renderView_refresh_time + s_renderView->renderTimestamp() - current_time) * 0.001f;
-
-   CMayaScene::UpdateSceneChanges();
-
-   s_idle_cb = MTimerMessage::addTimerCallback(remaining_time,
-                                               CRenderSession::InteractiveRenderCallback,
-                                               this,
-                                               &status);
-
-                                               */
 
 }
 
@@ -696,8 +666,8 @@ void CRenderSession::ObjectNameChanged(MObject& node, const MString& str)
    if (s_renderView != NULL)
    {
       MFnDependencyNode fnNode(node);
-      std::string newName = fnNode.name().asChar();
-      std::string oldName = str.asChar();
+      const char *newName = fnNode.name().asChar();
+      const char *oldName = str.asChar();
       s_renderView->ObjectNameChanged(newName, oldName);
    }
 
