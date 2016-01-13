@@ -1,7 +1,8 @@
+/*
 #ifndef _WIN64
 #include "../render/display/renderview.h"
 #endif
-
+*/
 #include "ArnoldRenderViewCmd.h"
 #include "scene/MayaScene.h"
 
@@ -17,10 +18,11 @@
 #include <maya/M3dView.h>
 #include <vector>
 
+/*
 #ifdef _WIN64
 #include "../render/display/renderview.h"
 #endif
-
+*/
 
 
 
@@ -73,7 +75,6 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("r", "region", MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned);
-   syntax.addFlag("ar", "refresh", MSyntax::kBoolean);
 
    return syntax;
 }
@@ -142,9 +143,6 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       if (is_region)
          renderSession->SetRegion(region[0], region[1], region[2], region[3]);
 
-      bool auto_refresh = args.isFlagSet("refresh") ? args.flagArgumentBool("refresh", 0) : true;
-
-      CMayaScene::GetArnoldSession()->SetContinuousUpdates(auto_refresh);
       // Start off the render.
       renderSession->RunRenderView();
    } else if (mode == "stop")

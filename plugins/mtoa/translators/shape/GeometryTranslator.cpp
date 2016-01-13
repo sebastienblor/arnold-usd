@@ -319,6 +319,7 @@ MDagPath CGeometryTranslator::GetMeshRefObj()
 
 bool CGeometryTranslator::GetRefObj(const float*& refVertices,
                                     AtArray*& refNormals,
+                                    AtArray*& rnidxs,
                                     AtArray*& refTangents,
                                     AtArray*& refBitangents)
 {
@@ -343,10 +344,16 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
                                                 &stat);
       if (stat == MStatus::kSuccess && pExportRefNormals.asBool())
       {
-         // Get normals of the reference object (as we are outputing this as a user-data varying data,
-         // we must have 1 normal per vertex
-         // Also, even if subdivision is applied we want to get the normals data
-         GetPerVertexNormals(geometryRef, refNormals, MSpace::kWorld, true);
+         // Get normals of the reference object
+         unsigned int rNumNorms = fnRefMesh.numNormals();
+         refNormals = AiArrayConvert(rNumNorms, 1, AI_TYPE_VECTOR, &(fnRefMesh.getRawNormals(&stat)[0]));
+         
+         MIntArray vertex_counts, normal_ids;
+         rnidxs = AiArrayAllocate(rNumNorms, 1, AI_TYPE_UINT);
+         unsigned int id = 0;
+         fnRefMesh.getNormalIds(vertex_counts, normal_ids);
+         for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(rnidxs, id, normal_ids[n]);
+         
       }
 
       MPlug pExportRefTangents = fnMesh.findPlug("aiExportRefTangents", false,
@@ -813,14 +820,14 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       AtArray* nsides = 0;
       AtArray* vidxs = 0; AtArray* nidxs = 0;
       std::map<std::string, std::vector<float> > vcolors;
-      AtArray* refNormals = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
+      AtArray* refNormals = 0; AtArray* rnidxs = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
       // Get UVs
       bool exportUVs = GetUVs(geometry, uvs, uvNames);
 
       // Get reference objects
-      bool exportReferenceObjects = GetRefObj(refVertices, refNormals,
+      bool exportReferenceObjects = GetRefObj(refVertices, refNormals, rnidxs,
                                               refTangents, refBitangents);
       bool exportRefVerts = refVertices != 0;
       bool exportRefNorms = refNormals != 0;
@@ -855,7 +862,8 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          if (exportRefVerts)
             AiNodeDeclare(polymesh, "Pref", "varying POINT");
          if (exportRefNorms)
-            AiNodeDeclare(polymesh, "Nref", "varying VECTOR");
+            AiNodeDeclare(polymesh, "Nref", "indexed VECTOR");
+            AiNodeDeclare(polymesh, "Nrefidxs", "indexed UINT");
          if (exportRefTangents)
          {
             AiNodeDeclare(polymesh, "Tref", "varying VECTOR");
@@ -973,6 +981,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          }
          if (exportRefNorms)
             AiNodeSetArray(polymesh, "Nref", refNormals);
+            AiNodeSetArray(polymesh, "Nrefidxs", rnidxs);
          if (exportRefTangents)
          {
             AiNodeSetArray(polymesh, "Tref", refTangents);
@@ -1339,14 +1348,8 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
             translator->ExportShaders();
    		
             // Update Arnold without passing a translator, this just forces a redraw.
-            if (CMayaScene::GetArnoldSession()->GetContinuousUpdates())
-            {
-               translator->RequestUpdate();
-            } else
-            {
-               translator->RequestUpdate();
-               CMayaScene::GetArnoldSession()->RequestUpdate(true);
-            }
+            translator->RequestUpdate();
+            
          }
       }
    }
