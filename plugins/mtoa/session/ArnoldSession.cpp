@@ -197,6 +197,18 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
+         
+         // I suspect we should do that for IPR sessions as well, 
+         // but this needs more investigation as it could break existing 
+         // configurations
+         if (GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+         {
+            // This node handle might have already been added to the list of objects to update
+            // but since no translator was found in m_processedTranslators, it might have been discarded
+            // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+            // for this shader
+            QueueForUpdate(translator);
+         }
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -310,6 +322,18 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
+
+         // I suspect we should do that for IPR sessions as well, 
+         // but this needs more investigation as it could break existing 
+         // configurations
+         if (GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+         {
+            // This node handle might have already been added to the list of objects to update
+            // but since no translator was found in m_processedTranslators, it might have been discarded
+            // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+            // for this shader
+            QueueForUpdate(translator);
+         }
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
