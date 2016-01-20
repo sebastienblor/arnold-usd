@@ -13,10 +13,54 @@
 #include <maya/MFloatMatrix.h>
 #include <maya/MEulerRotation.h>
 #include <maya/MFnTransform.h>
-
+#include <maya/MRenderUtil.h>
 #include <maya/MQtUtil.h>
+#include <maya/M3dView.h>
+#include <maya/MDagPathArray.h>
 
 static MCallbackId rvSelectionCb = 0;
+
+
+// Return all renderable cameras
+static int GetRenderCamerasList(MDagPathArray &cameras)
+{
+
+   M3dView view;
+   MDagPath activeCameraPath;
+   MStatus viewStatus;
+   view = M3dView::active3dView(&viewStatus);
+   if (viewStatus == MS::kSuccess && view.getCamera(activeCameraPath) == MS::kSuccess)
+   {
+      cameras.append(activeCameraPath);
+      return 1;
+   }
+
+   MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
+   MDagPath cameraPath;
+   // MFnCamera cameraNode;
+   MFnDagNode cameraNode;
+   MPlug renderable;
+   MStatus stat;
+   while (!dagIter.isDone())
+   {
+      dagIter.getPath(cameraPath);
+      cameraNode.setObject(cameraPath);
+      renderable = cameraNode.findPlug("renderable", false, &stat);
+      if (stat && renderable.asBool())
+      {
+         cameras.append(cameraPath);
+      }
+      dagIter.next();
+   }
+
+   int size = cameras.length();
+   if (size > 1)
+      MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
+   else if (!size)
+      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
+   return size;
+}
+
 
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
@@ -30,8 +74,51 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
 void CRenderViewMtoA::UpdateSceneChanges()
 {
-   CMayaScene::UpdateSceneChanges();
-   SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+   if (AiUniverseIsActive())
+   {
+      CMayaScene::UpdateSceneChanges();
+      SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+      return;
+   }
+
+   // Universe isn't active, oh my....
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+   {   
+      renderSession->SetRendering(false);
+      CMayaScene::End();
+   }
+   // Re-export everything !
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+
+   MDagPathArray cameras;
+   GetRenderCamerasList(cameras);
+   CMayaScene::ExecuteScript(renderGlobals.preMel);
+   CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
+
+   CMayaScene::Begin(MTOA_SESSION_RENDERVIEW);
+
+   if (!renderGlobals.renderAll)
+   {
+      MSelectionList selected;
+      MGlobal::getActiveSelectionList(selected);
+      CMayaScene::Export(&selected);
+   }
+   else
+   {
+      CMayaScene::Export();
+   }
+
+   // SetExportCamera mus be called AFTER CMayaScene::Export
+   CMayaScene::GetArnoldSession()->SetExportCamera(cameras[0]);
+
+   // Set resolution and camera as passed in.
+   CMayaScene::GetRenderSession()->SetResolution(-1, -1);
+   CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+
+
 }
 
 static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
