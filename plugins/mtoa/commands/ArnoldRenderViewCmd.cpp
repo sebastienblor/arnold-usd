@@ -104,10 +104,12 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MRenderUtil::getCommonRenderSettings(renderGlobals);
       
    // What mode are we in?
-   if (mode == "render")
+   if (mode == "render" || mode == "open")
    {
       if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
       {
+         // A render view session has already been started
+         // let's pop-up the window, and eventually re-render
          CMayaScene::GetRenderSession()->StartRenderView();
          return MS::kSuccess;
       }
@@ -144,7 +146,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          renderSession->SetRegion(region[0], region[1], region[2], region[3]);
 
       // Start off the render.
-      renderSession->RunRenderView();
+      // Unless we are in "open" mode
+      if (mode == "render") renderSession->RunRenderView();
    } else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
