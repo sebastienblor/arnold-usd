@@ -198,17 +198,11 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
          
-         // I suspect we should do that for IPR sessions as well, 
-         // but this needs more investigation as it could break existing 
-         // configurations
-         if (GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-         {
-            // This node handle might have already been added to the list of objects to update
-            // but since no translator was found in m_processedTranslators, it might have been discarded
-            // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
-            // for this shader
-            QueueForUpdate(translator);
-         }
+         // This node handle might have already been added to the list of objects to update
+         // but since no translator was found in m_processedTranslators, it might have been discarded
+         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+         // for this shader
+         QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -323,17 +317,11 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
 
-         // I suspect we should do that for IPR sessions as well, 
-         // but this needs more investigation as it could break existing 
-         // configurations
-         if (GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-         {
-            // This node handle might have already been added to the list of objects to update
-            // but since no translator was found in m_processedTranslators, it might have been discarded
-            // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
-            // for this shader
-            QueueForUpdate(translator);
-         }
+         // This node handle might have already been added to the list of objects to update
+         // but since no translator was found in m_processedTranslators, it might have been discarded
+         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+         // for this shader
+         QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -1175,10 +1163,17 @@ void CArnoldSession::DoUpdate()
    bool newDag = false;
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
-   for (itObj = m_objectsToUpdate.begin(); itObj != m_objectsToUpdate.end(); itObj++)
+
+   // In theory, no objectsToUpdate are supposed to be 
+   // added to this list during the loop. But to make 
+   // sure this won't be done by any of the functions 
+   // we'll be invoking here it's safer to loop 
+   // with the vector's index instead of relying on iterators...
+   for (size_t i = 0; i < m_objectsToUpdate.size(); ++i)
    {
-      CNodeAttrHandle handle(itObj->first);           // TODO : test isValid and isAlive ?
-      CNodeTranslator * translator = itObj->second;
+      CNodeAttrHandle handle(m_objectsToUpdate[i].first);           // TODO : test isValid and isAlive ?
+      CNodeTranslator * translator = m_objectsToUpdate[i].second;
+
       if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
       {
          // A translator was provided, just add it to the list
@@ -1265,6 +1260,11 @@ void CArnoldSession::DoUpdate()
          }
       }
    }
+
+   // store the amount of updated objects as this list can increase during the actual updates
+   // (e.g. when a new node is added to a shading tree)
+   size_t updatedObjects = m_objectsToUpdate.size();
+   
    // FIXME: n
    if (newDag || IsLightLinksDirty())
    {
@@ -1279,6 +1279,7 @@ void CArnoldSession::DoUpdate()
    // Now do an update for all the translators in our list
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request
+
 
    if (!reqMob)
    {
@@ -1320,7 +1321,9 @@ void CArnoldSession::DoUpdate()
          ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
          it = m_processedTranslators.find(handle);
          if(it != m_processedTranslators.end())
+         {
             translatorsToUpdate.push_back(it->second);
+         }
       }
       // re-add IPR callbacks to all updated translators after ALL updates are done
       for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
@@ -1337,8 +1340,18 @@ void CArnoldSession::DoUpdate()
 
    // Clear the list and the request update flag.
    translatorsToUpdate.clear();
-   m_objectsToUpdate.clear();
-   m_requestUpdate = false;
+
+   if (m_objectsToUpdate.size() > updatedObjects)
+   {
+      // some nodes have been added to the update list.
+      // let's keep them in this list so that next update invokes them
+      m_objectsToUpdate.erase(m_objectsToUpdate.begin(), m_objectsToUpdate.begin() + updatedObjects);
+   } else 
+   {
+      m_objectsToUpdate.clear();
+      m_requestUpdate = false;
+   }     
+
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
