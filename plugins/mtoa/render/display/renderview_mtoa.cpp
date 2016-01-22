@@ -196,12 +196,13 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
 
 void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append)
 {   
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
    if (append)
    {
       if (selectionCount == 0) return;
       for (unsigned int i = 0; i < selectionCount; ++i)
       {
-         MGlobal::selectByName(MString(AiNodeGetName(selectedNodes[i])), MGlobal::kAddToList);
+         MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[i]), MGlobal::kAddToList);
       }
 
    } else 
@@ -212,10 +213,10 @@ void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int se
          return;
       }
       
-      MGlobal::selectByName(MString(AiNodeGetName(selectedNodes[0])), MGlobal::kReplaceList);
+      MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[0]), MGlobal::kReplaceList);
       for (unsigned int i = 1; i < selectionCount; ++i)
       {
-         MGlobal::selectByName(MString(AiNodeGetName(selectedNodes[i])), MGlobal::kAddToList);
+         MGlobal::selectByName(session->GetMayaObjectName(selectedNodes[i]), MGlobal::kAddToList);
       }
    }
 }

@@ -161,6 +161,7 @@ public:
    //bool GetContinuousUpdates() const { return m_continuousUpdates;}
    bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
+   MString GetMayaObjectName(const AtNode *node) const;
 /*
    bool IsActiveAOV(CAOV &aov) const
    {

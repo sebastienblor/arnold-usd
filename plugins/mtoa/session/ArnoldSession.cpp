@@ -1461,3 +1461,39 @@ MVector CArnoldSession::GetOrigin() const
 {
    return m_origin;
 }
+
+MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
+{   
+   // first check if an object exists with the same name ?
+   const char *arnoldName = AiNodeGetName(node);
+
+   MSelectionList camList;
+   camList.add(MString(arnoldName));
+   MObject mayaObject;
+   if (camList.getDependNode(0, mayaObject) == MS::kSuccess && !mayaObject.isNull())
+   {
+      // There is an object with the same name in Maya.
+      // We're assuming it's this one....
+      return MString(arnoldName);
+   }
+
+
+   // There is no object with this name in the scene.
+   // Let's search it amongst the list of processed translators
+   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   {
+      CNodeTranslator *translator = m_processedTranslatorList[i];
+      if (translator == NULL) continue;
+
+      // check if this translator corresponds to this AtNode
+      // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
+      if (translator->GetArnoldRootNode() == node)
+      {
+         // We found our translator
+         return translator->GetMayaNodeName().asChar();
+      }
+   }
+
+   return "";
+}
+
