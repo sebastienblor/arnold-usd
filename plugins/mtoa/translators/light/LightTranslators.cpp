@@ -424,11 +424,15 @@ void CMeshLightTranslator::Export(AtNode* light)
    
    MObject meshObject = GetMeshObject();
    AtNode* meshNode = ExportSimpleMesh(meshObject);
+   
+   
    if (meshNode == NULL)
    {
       AiMsgWarning("[mtoa] Failed to export mesh for mesh_light");
       return;
    }
+   
+   ExportUserAttributes(meshNode, GetMayaObject(), this);
 
    AiNodeSetPtr(light, "mesh", meshNode);
 
