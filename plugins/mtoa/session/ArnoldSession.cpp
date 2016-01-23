@@ -34,6 +34,7 @@
 #include <maya/MDGMessage.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
+#include <maya/MNodeMessage.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -44,7 +45,6 @@
 
 // When we're sure these utilities stay, we can expose them
 // as static method on CArnoldSession or a separate helper class
-
 
 namespace // <anonymous>
 {
@@ -197,7 +197,6 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
-         
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
@@ -405,6 +404,7 @@ void CArnoldSession::ProcessAOVs()
 
 MStatus CArnoldSession::Begin(const CSessionOptions &options)
 {
+ 
    MStatus status = MStatus::kSuccess;
 
    m_sessionOptions = options;
@@ -451,6 +451,13 @@ MStatus CArnoldSession::End()
       //AiMsgDebug("[mtoa] Deleting translator for %s in %p", MFnDependencyNode(it->first.object()).name().asChar(), it->second);
       delete m_processedTranslatorList[i];
    }
+
+   for(unsigned int i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
+   {
+      MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
+   }
+   m_hiddenObjectsCallbacks.clear();
+
    // Any translators are in the processed translators map, so already deleted
    m_processedTranslators.clear();
    m_objectsToUpdate.clear();
@@ -879,6 +886,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
                continue;
             if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
                continue;
+            
             MStatus stat;
             ExportDagPath(path, true, &stat);
             if (stat != MStatus::kSuccess)
@@ -946,6 +954,85 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    return status;
 }
 
+// This callback is invoked when one of the skipped (hidden) objects is modified 
+// during an IPR session. We have to check if it became visible in order to export it
+void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   // just check if this node is visible now 
+   MFnDagNode dagNode(node);
+   MDagPath path;
+   if (dagNode.getPath(path) != MS::kSuccess) return;
+
+   if(!path.isValid()) return;
+
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   DagFiltered filtered = session->FilteredStatus(path);
+   if (filtered != MTOA_EXPORT_ACCEPTED) return; // this object is still hidden
+
+   session->SetDagVisible(path);
+}
+
+void CArnoldSession::SetDagVisible(MDagPath &path)
+{
+   MObject object = path.node();
+   // we need to clear the existing hiddenObjectCallback
+   // starting with a simple linear search
+   for(size_t i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
+   {
+      if (m_hiddenObjectsCallbacks[i].first.object() == object)
+      {
+         // found the object in our hidden list         
+         const MStatus status = MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
+         if (status == MS::kSuccess) 
+         {
+            m_hiddenObjectsCallbacks.erase(m_hiddenObjectsCallbacks.begin() + i);
+            break;
+         }
+      }
+   }
+
+   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+   MStatus status;
+   for (dagIterator.reset(path); (!dagIterator.isDone()); dagIterator.next())
+   {
+      if (dagIterator.getPath(path))
+      {
+         if (path.apiType() == MFn::kWorld)
+            continue;
+         MObject obj = path.node();
+         MFnDagNode node(obj);
+         MString name = node.name();
+         DagFiltered filtered = FilteredStatus(path);
+         if (filtered != MTOA_EXPORT_ACCEPTED)
+         {
+            if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+            {
+               HiddenObjectCallbackPair hiddenObj;
+               hiddenObj.first = CNodeAttrHandle(obj, "");
+               hiddenObj.second = MNodeMessage::addNodeDirtyCallback(obj,
+                                        HiddenNodeCallback,
+                                        this,
+                                        &status);
+               m_hiddenObjectsCallbacks.push_back(hiddenObj);
+            }
+            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
+            // for MTOA_EXPORT_REJECTED_BRANCH
+            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
+               dagIterator.prune();
+            continue;
+         }
+         MStatus stat;
+         ExportDagPath(path, true, &stat);
+         QueueForUpdate(path);
+         if (stat != MStatus::kSuccess)
+            status = MStatus::kFailure;
+      }
+      
+   }
+
+   RequestUpdate();
+}
+
 // Export the full maya scene or the passed selection
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
@@ -995,6 +1082,16 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
             filtered = FilteredStatus(path);
             if (filtered != MTOA_EXPORT_ACCEPTED)
             {
+               if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+               {
+                  HiddenObjectCallbackPair hiddenObj;
+                  hiddenObj.first = CNodeAttrHandle(obj, "");
+                  hiddenObj.second = MNodeMessage::addNodeDirtyCallback(obj,
+                                           HiddenNodeCallback,
+                                           this,
+                                           &status);
+                  m_hiddenObjectsCallbacks.push_back(hiddenObj);
+               }
                // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
                // for MTOA_EXPORT_REJECTED_BRANCH
                if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
