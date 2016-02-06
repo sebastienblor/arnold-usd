@@ -79,6 +79,15 @@ public:
    // whenever the frame number is changed
    void SetFrame(float frame);
 
+   // This function should be invoked by the host to
+   // provide a default directory for images
+   void SetDefaultImageDirectory(const char *dir);
+
+   // This function should be invoked by the host to
+   // provide a temp directory for snapshots
+   void SetTempDirectory(const char *dir);
+
+
 /**  
  *    Functions that may be invoked by the RenderView depending 
  *    user actions. They need to be overridden to define what

@@ -65,6 +65,15 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
    OpenRenderView(width, height, MQtUtil::mainWindow());
+
+   // Set image Dir
+   MString workspace;
+   MStatus status = MGlobal::executeCommand(MString("workspace -q -rd;"), workspace);
+   if (status == MS::kSuccess)
+   {
+      workspace += "/images";
+      SetDefaultImageDirectory(workspace.asChar());
+   }
 }
 /**
   * Preparing MtoA's interface code with the RenderView
