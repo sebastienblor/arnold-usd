@@ -87,6 +87,7 @@ public:
    // provide a temp directory for snapshots
    void SetTempDirectory(const char *dir);
 
+   void SetLogging (int consoleFlags, int fileFlags);
 
 /**  
  *    Functions that may be invoked by the RenderView depending 

@@ -74,6 +74,20 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       workspace += "/images";
       SetDefaultImageDirectory(workspace.asChar());
    }
+   MString tmpDir;
+   status = MGlobal::executeCommand(MString("getenv \"TMPDIR\";"), tmpDir);
+   if (status == MS::kSuccess)
+   {
+      SetTempDirectory(tmpDir.asChar());
+   }
+
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   if (renderSession)
+   {
+      CRenderOptions *renderOptions = renderSession->RenderOptions();
+      int logging = renderOptions->GetLogVerbosity();
+      SetLogging(logging | AI_LOG_COLOR, logging);
+   }
 }
 /**
   * Preparing MtoA's interface code with the RenderView
