@@ -711,18 +711,21 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
+   nAttr.setAffectsAppearance(true);
    addAttribute(s_scale);
 
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
+   nAttr.setAffectsAppearance(true);
    addAttribute(s_boundingBoxMin);
 
    s_boundingBoxMax = nAttr.create("MaxBoundingBox", "max", MFnNumericData::k3Float, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
+   nAttr.setAffectsAppearance(true);
    addAttribute(s_boundingBoxMax);
 
    s_drawOverride = eAttr.create("standInDrawOverride", "standin_draw_override");
