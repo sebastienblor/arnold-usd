@@ -650,6 +650,11 @@ shader_evaluate
    default:
       break;
    }
+   if (!AiV3Exists(AiVector(st.x, st.y, stx.x)) || 
+      !AiV3Exists(AiVector(stx.y, sty.x, sty.y)) 
+   {
+      mapped = false;
+   }
 
    if (mapped)
    {
