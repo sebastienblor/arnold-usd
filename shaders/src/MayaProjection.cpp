@@ -650,8 +650,9 @@ shader_evaluate
    default:
       break;
    }
-   if (!AiV3Exists(AiVector(st.x, st.y, stx.x)) || 
-      !AiV3Exists(AiVector(stx.y, sty.x, sty.y))) 
+   if (!(AiIsFinite(st.x)  && AiIsFinite(st.y)  &&
+      AiIsFinite(stx.x) && AiIsFinite(stx.y) &&
+      AiIsFinite(sty.x) && AiIsFinite(sty.y)))
    {
       mapped = false;
    }
