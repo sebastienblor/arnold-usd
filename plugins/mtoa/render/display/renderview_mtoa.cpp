@@ -85,8 +85,9 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    if (renderSession)
    {
       CRenderOptions *renderOptions = renderSession->RenderOptions();
-      int logging = renderOptions->GetLogVerbosity();
-      SetLogging(logging | AI_LOG_COLOR, logging);
+      int consoleLogging = renderOptions->GetLogConsoleVerbosity();
+      int fileLogging = renderOptions->GetLogFileVerbosity();
+      SetLogging(consoleLogging, fileLogging);
    }
 }
 /**
