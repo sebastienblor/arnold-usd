@@ -242,7 +242,7 @@ AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
    float ay = N.y > 0.0f ? N.y : -N.y;
    float az = N.z > 0.0f ? N.z : -N.z;
 
-   if (ax > ay && ax > az)
+   if (ax >= ay && ax > az)
    {
       // yz plane
       st.x = V.z;
@@ -649,12 +649,6 @@ shader_evaluate
    case PT_NONE:
    default:
       break;
-   }
-   if (!(AiIsFinite(st.x)  && AiIsFinite(st.y)  &&
-      AiIsFinite(stx.x) && AiIsFinite(stx.y) &&
-      AiIsFinite(sty.x) && AiIsFinite(sty.y)))
-   {
-      mapped = false;
    }
 
    if (mapped)
