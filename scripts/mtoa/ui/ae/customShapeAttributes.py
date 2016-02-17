@@ -110,7 +110,19 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 #       ui.addSeparator()
 #       ui.addControl("enableProcedural")
 #       ui.addControl("dso")
+
+class ProceduralTemplate(templates.ShapeTranslatorTemplate):
+
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl('dso', label='Path')
+        self.addControl('data', label='Data')
+        self.addControl('deferStandinLoad', label='Defer Procedural Load')
+        self.addControl("aiUserOptions", label="User Options")
+
 templates.registerTranslatorUI(MeshTemplate, "mesh", "polymesh")
+templates.registerTranslatorUI(ProceduralTemplate, "mesh", "procedural")
 core.registerDefaultTranslator("mesh", "polymesh")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
