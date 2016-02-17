@@ -650,6 +650,12 @@ shader_evaluate
    default:
       break;
    }
+   if (!(AiIsFinite(st.x)  && AiIsFinite(st.y)  &&
+      AiIsFinite(stx.x) && AiIsFinite(stx.y) &&
+      AiIsFinite(sty.x) && AiIsFinite(sty.y)))
+   {
+      mapped = false;
+   }
 
    if (mapped)
    {
