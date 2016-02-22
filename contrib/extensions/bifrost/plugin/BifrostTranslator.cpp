@@ -11,6 +11,11 @@
 #undef max
 #endif
 
+#ifdef WIN32
+#undef min
+#undef max
+#endif
+
 #include "BifrostTranslator.h"
 #include "../common/bifrostObjectUserData.h"
 #include "../common/bifrostHelpers.h"
