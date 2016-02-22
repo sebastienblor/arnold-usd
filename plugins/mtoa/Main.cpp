@@ -441,7 +441,7 @@ namespace // <anonymous>
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
       unsigned int pluginPathLength = pluginPath.length();
-      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
+      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength-1) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          SetEnv("MTOA_PATH", pluginPath);

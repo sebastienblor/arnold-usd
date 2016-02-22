@@ -6,6 +6,11 @@
 #include <maya/MTime.h>
 #include <maya/MGlobal.h>
 
+#ifdef WIN32
+#undef min
+#undef max
+#endif
+
 #include "BifrostTranslator.h"
 #include "../common/bifrostObjectUserData.h"
 #include "../common/bifrostHelpers.h"
