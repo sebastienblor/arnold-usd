@@ -197,11 +197,6 @@ env.Append(BUILDERS = {'MakeModule' : make_module})
 
 env.AppendENVPath('PATH', env.subst(env['TOOLS_PATH']))
 
-# Special stuff to get pdb files
-if env['MODE'] == 'debug':
-	env['CCPDBFLAGS'] = '/Zi /Fd${TARGET}.pdb'
-	env['PDB']='${TARGET.base}.pdb'
-
 system.set_target_arch('x86_64')
 
 # Configure colored output
@@ -655,8 +650,6 @@ if system.os() == 'windows':
     nprocs = []
     for proc in MTOA_PROCS:
         if str(proc)[-3:] == 'dll':
-            nprocs.append(proc)
-        if str(proc)[-3:] == 'pdb':
             nprocs.append(proc)
     MTOA_PROCS = nprocs
     env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)

@@ -513,21 +513,6 @@ bool CArnoldStandInShape::isBounded() const
    return true;
 }
 
-/* override */
-MSelectionMask CArnoldStandInShape::getShapeSelectionMask() const
-//
-// Description
-//     This method is overriden to support interactive object selection in Viewport 2.0
-//
-// Returns
-//
-//    The selection mask of the shape
-//
-{
-	MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
-    return MSelectionMask( selType );
-}
-
 MStatus CArnoldStandInShape::GetPointPlugValue(MPlug plug, float3 & value)
 {
    // Retrieve the value as an MObject
@@ -726,21 +711,18 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
-   nAttr.setAffectsAppearance(true);
    addAttribute(s_scale);
 
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
-   nAttr.setAffectsAppearance(true);
    addAttribute(s_boundingBoxMin);
 
    s_boundingBoxMax = nAttr.create("MaxBoundingBox", "max", MFnNumericData::k3Float, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
-   nAttr.setAffectsAppearance(true);
    addAttribute(s_boundingBoxMax);
 
    s_drawOverride = eAttr.create("standInDrawOverride", "standin_draw_override");
