@@ -29,26 +29,20 @@ public:
         MUserData* oldData);
 
     virtual MHWRender::DrawAPI supportedDrawAPIs() const;
+
+	virtual bool hasUIDrawables() const { return true; }
+	virtual void addUIDrawables(
+		const MDagPath& objPath,
+		MHWRender::MUIDrawManager& drawManager,
+		const MHWRender::MFrameContext& frameContext,
+		const MUserData* data);
+
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
-    static void clearGPUResources();
 private:
     CArnoldAreaLightDrawOverride(const MObject& obj);
 
-    static void initializeGPUResources();
-
-    #ifdef _WIN32
-    static CDXConstantBuffer* s_pDXConstantBuffer;
-    static DXShader* s_pDXShader;
-    #endif
+    static void initializeUserData();
     
-    static GLuint s_vertexShader;
-    static GLuint s_fragmentShader;
-    static GLuint s_program;
-
-    static GLint s_modelLoc;
-    static GLint s_viewProjLoc;
-    static GLint s_shadeColorLoc;
-
-    static bool s_isValid;
+	static bool s_isValid;
     static bool s_isInitialized;
 };

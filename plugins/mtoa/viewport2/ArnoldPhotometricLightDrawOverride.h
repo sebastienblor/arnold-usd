@@ -30,6 +30,14 @@ public:
         MUserData* oldData);
 
     virtual MHWRender::DrawAPI supportedDrawAPIs() const;
+
+	virtual bool hasUIDrawables() const { return true; }
+	virtual void addUIDrawables(
+		const MDagPath& objPath,
+		MHWRender::MUIDrawManager& drawManager,
+		const MHWRender::MFrameContext& frameContext,
+		const MUserData* data);
+
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
     static void clearGPUResources();
 private:
