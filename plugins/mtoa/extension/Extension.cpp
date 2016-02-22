@@ -227,7 +227,7 @@ MStatus CExtension::setFile(const MString &file)
    unsigned int next = libext.numChars();
    if (nchars > next + 1)
    {
-      MString ext = name.substringW(nchars-next, nchars);
+      MString ext = name.substringW(nchars-next, nchars-1);
       if (ext == libext)
       {
          name = name.substringW(0, nchars-next-1);

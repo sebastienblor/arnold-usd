@@ -4,7 +4,7 @@
 #include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
-#include "viewport2/ArnoldStandInDrawOverride.h"
+#include "viewport2/ArnoldStandInGeometryOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
@@ -212,11 +212,11 @@ namespace // <anonymous>
          "arnoldSkyDomeLightNodeOverride",
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          CArnoldSkyDomeLightDrawOverride::creator
-      } , {
+      } , /*{
          "arnoldStandInNodeOverride",
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
-      } , {
+      } ,*/ {
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
          CArnoldPhotometricLightDrawOverride::creator
@@ -441,7 +441,7 @@ namespace // <anonymous>
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
       unsigned int pluginPathLength = pluginPath.length();
-      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
+      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength-1) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          SetEnv("MTOA_PATH", pluginPath);
@@ -832,6 +832,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                override.creator);
       CHECK_MSTATUS(status);
    }
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_STANDIN_CLASSIFICATION,
+      "arnoldStandInNodeOverride",
+		CArnoldStandInGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
+   
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -921,12 +927,17 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
                override.registrant);
       CHECK_MSTATUS(status);
    }
+   
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+		AI_STANDIN_CLASSIFICATION,
+      "arnoldStandInNodeOverride");
+   CHECK_MSTATUS(status);
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
       CArnoldPhotometricLightDrawOverride::clearGPUResources();
       CArnoldAreaLightDrawOverride::clearGPUResources();
-      CArnoldStandInDrawOverride::clearGPUResources();
+      //CArnoldStandInDrawOverride::clearGPUResources();
       CArnoldVolumeDrawOverride::clearGPUResources();
    }
 #endif

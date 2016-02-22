@@ -67,6 +67,7 @@ public:
 
    virtual bool isBounded() const;
    virtual MBoundingBox boundingBox() const;
+   virtual MSelectionMask	getShapeSelectionMask() const;
 
    MStatus GetPointPlugValue( MPlug plug, float3 & value );
    MStatus SetPointPlugValue( MPlug plug, float3   value );
