@@ -21,83 +21,118 @@ bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
 // much performance problems, but cleaner,
 // the better
 struct CArnoldAreaLightUserData : public MUserData{
-    //static CGPUPrimitive* s_primitives[3];
-    //CGPUPrimitive* p_primitive;
+	MString m_primitiveType;
+	double m_scale[3];
 	MPointArray p_positions;
 	MUintArray p_indices;
-    MMatrix m_modelMatrix;
-    float m_color[4];
     float m_wireframeColor[4];
 
-    CArnoldAreaLightUserData() : MUserData(false) { }
+    CArnoldAreaLightUserData() : MUserData(false) 
+	{
+		m_scale[0] = m_scale[1] = 1.0;
+	}
 
     void update(const MDagPath& objPath)
     {
-        MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
-        m_wireframeColor[0] = color.r;
-        m_wireframeColor[1] = color.g;
-        m_wireframeColor[2] = color.b;
-        m_wireframeColor[3] = color.a;
+		// Update the wireframe color
+		if (MHWRender::kDormant == MHWRender::MGeometryUtilities::displayStatus(objPath))
+		{
+			m_wireframeColor[0] = 0.75;
+			m_wireframeColor[1] = 0;
+			m_wireframeColor[2] = 0;
+			m_wireframeColor[3] = 0.2;
+		}
+		else
+		{
+			MColor color = MHWRender::MGeometryUtilities::wireframeColor(objPath);
+			m_wireframeColor[0] = color.r;
+			m_wireframeColor[1] = color.g;
+			m_wireframeColor[2] = color.b;
+			m_wireframeColor[3] = color.a;
+		}
+		
+		MString primitiveType = "quad";
+		double scale2[3] = { 1.0, 1.0, 1.0 };
 
-        MFnDependencyNode depNode(objPath.node());
-
-        MStatus status;
+		MFnDependencyNode depNode(objPath.node());		
+		MStatus status;
         MPlug plug = depNode.findPlug("aiTranslator", &status);
         MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());
         if (status && !plug.isNull())
         {
-            if (plug.asString() == "disk")
+			primitiveType = plug.asString();
+		}
+		bool primitiveTypeChanged = (m_primitiveType != primitiveType);
+
+		// Change in primitive type
+        if (primitiveType == "disk")
+        {
+            double scale[3];
+            modelMatrix.getScale(scale, MSpace::kWorld);
+            if (scale[0] != scale[1]) // non uniform scaling across x and y
             {
+                if (scale[0] != 0.0)
+                    scale2[0] /= scale[0];
+                if (scale[1] != 0)
+                    scale2[1] /= scale[1];
+                const double avs = (scale[0] + scale[1]) * 0.5;
+                scale2[0] *= avs;
+                scale2[1] *= avs;
+            }
+
+			if (primitiveTypeChanged || 
+				scale2[0] != m_scale[0] ||
+				scale2[1] != m_scale[1] ||
+				scale2[2] != m_scale[2])
+			{
 				fprintf(stderr, "Update to disk data\n");
-				CGDiskLightPrimitive::generateData(p_positions, p_indices);
+				CGDiskLightPrimitive::generateData(p_positions, p_indices, scale2);
 
-                double scale[3];
-                modelMatrix.getScale(scale, MSpace::kWorld);
-                if (scale[0] != scale[1]) // non uniform scaling across x and y
-                {
-                    double scale2[3] = {1.0, 1.0, 1.0};
-                    if (scale[0] != 0.0)
-                        scale2[0] /= scale[0];
-                    if (scale[1] != 0)
-                        scale2[1] /= scale[1];
-                    const double avs = (scale[0] + scale[1]) * 0.5;
-                    scale2[0] *= avs;
-                    scale2[1] *= avs;
-                    modelMatrix.addScale(scale2, MSpace::kWorld);
-                }
-            }
-            else if (plug.asString() == "cylinder")
+				m_scale[0] = scale2[0];
+				m_scale[1] = scale2[1];
+				m_scale[2] = scale2[2];
+			}
+			m_primitiveType = "disk";
+        }
+        else if (primitiveType == "cylinder")
+        {
+            double scale[3];
+            modelMatrix.getScale(scale, MSpace::kWorld);
+            if (scale[0] != scale[2]) // non uniform scaling across x and y
             {
-				fprintf(stderr, "Update to cylinder data\n");
-				CGCylinderPrimitive::generateData(p_positions, p_indices);
-
-                double scale[3];
-                modelMatrix.getScale(scale, MSpace::kWorld);
-                if (scale[0] != scale[2]) // non uniform scaling across x and y
-                {
-                    double scale2[3] = {1.0, 1.0, 1.0};
-                    if (scale[0] != 0.0)
-                        scale2[0] /= scale[0];
-                    if (scale[2] != 0)
-                        scale2[2] /= scale[2];
-                    const double avs = (scale[0] + scale[2]) * 0.5;
-                    scale2[0] *= avs;
-                    scale2[2] *= avs;
-                    modelMatrix.addScale(scale2, MSpace::kWorld);
-                }
+                if (scale[0] != 0.0)
+                    scale2[0] /= scale[0];
+                if (scale[2] != 0)
+                    scale2[2] /= scale[2];
+                const double avs = (scale[0] + scale[2]) * 0.5;
+                scale2[0] *= avs;
+                scale2[2] *= avs;
             }
-            else
+
+			if (primitiveTypeChanged ||
+				scale2[0] != m_scale[0] ||
+				scale2[1] != m_scale[1] ||
+				scale2[2] != m_scale[2])
+			{
+				fprintf(stderr, "Update to cylinder data\n");
+				CGCylinderPrimitive::generateData(p_positions, p_indices, scale2);
+
+				m_scale[0] = scale2[0];
+				m_scale[1] = scale2[1];
+				m_scale[2] = scale2[2];
+			}
+			m_primitiveType = "cylinder";			
+		}
+        else
+		{
+			if (primitiveTypeChanged)
 			{
 				fprintf(stderr, "Update to quad data\n");
-				CGQuadLightPrimitive::generateData(p_positions, p_indices);
+				CGQuadLightPrimitive::generateData(p_positions, p_indices, scale2);
+				m_primitiveType = "quad";			
 			}
-        } 
-		else
-		{
-			CGQuadLightPrimitive::generateData(p_positions, p_indices);
 		}
-        m_modelMatrix = modelMatrix.asMatrix();
-    }
+	}
 
     ~CArnoldAreaLightUserData()
     {

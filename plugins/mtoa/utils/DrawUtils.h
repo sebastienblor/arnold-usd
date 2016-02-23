@@ -96,19 +96,19 @@ public:
 
 class CGQuadLightPrimitive{
 public:
-   static void generateData(MPointArray &positions, MUintArray &indices);
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGDiskLightPrimitive{
 public:
-   static void generateData(MPointArray &positions, MUintArray &indices);
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGCylinderPrimitive{
 public:
-   static void generateData(MPointArray &positions, MUintArray &indices);
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 

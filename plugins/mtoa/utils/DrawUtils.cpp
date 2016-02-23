@@ -338,7 +338,8 @@ CGPUPrimitive* CGQuadLightPrimitive::generate(CGPUPrimitive* prim)
 	return prim;
 }
 
-void CGQuadLightPrimitive::generateData(MPointArray &positions, MUintArray &indices)
+void CGQuadLightPrimitive::generateData(MPointArray &positions, MUintArray &indices,
+										double scale[3])
 {
 	const float l_vertices [] = {
 		-1.0f, -1.0f, 0.0f,
@@ -362,7 +363,9 @@ void CGQuadLightPrimitive::generateData(MPointArray &positions, MUintArray &indi
 	positions.clear();
 	for (unsigned i=0; i<9; i++)
 	{
-		positions.append(MPoint(l_vertices[i*3], l_vertices[i*3+1], l_vertices[i*3+2]));
+		positions.append(MPoint(l_vertices[i*3]*scale[0], 
+								l_vertices[i*3+1]*scale[1], 
+								l_vertices[i*3+2]*scale[2]));
 	}
 	indices.clear();
 	for (unsigned i=0; i<14; i++)
@@ -402,16 +405,17 @@ CGPUPrimitive* CGDiskLightPrimitive::generate(CGPUPrimitive* prim)
 	return prim;
 }
 
-void CGDiskLightPrimitive::generateData(MPointArray &positions, MUintArray &indices)
+void CGDiskLightPrimitive::generateData(MPointArray &positions, MUintArray &indices,
+										double scale[3])
 {
 	positions.clear();
 	positions.append(MPoint(0.0f, 0.0f, 0.0f));
-	positions.append(MPoint(0.0f, 0.0f, -1.0f));
+	positions.append(MPoint(0.0f, 0.0f, -1.0f*scale[2]));
 
 	for (unsigned int i = 0; i < 20; ++i)
 	{
 		const float d = AI_PITIMES2 * (float(i) / 20.0f);
-		positions.append(MPoint(cosf(d), sinf(d), 0.0f));
+		positions.append(MPoint(cosf(d)*scale[0], sinf(d)*scale[1], 0.0f));
 	}
 
 	indices.clear();
@@ -464,18 +468,18 @@ CGPUPrimitive* CGCylinderPrimitive::generate(CGPUPrimitive* prim)
 	return prim;
 }
 
-void CGCylinderPrimitive::generateData(MPointArray &positions, MUintArray &indices)
+void CGCylinderPrimitive::generateData(MPointArray &positions, MUintArray &indices,
+									   double scale[3])
 {
 	positions.setLength(20 * 2);
-	//float vertices[20 * 6];
 	const unsigned int indexDiff = 20;
 	for (unsigned int i = 0; i < 20; ++i)
 	{
 		const float d = AI_PITIMES2 * (float(i) / 20.0f);
 		const float x = cosf(d);
 		const float z = sinf(d);
-		positions[i] = MPoint(x,1.0f,z);
-		positions[i + indexDiff] = MPoint(x, -1.0f, z);
+		positions[i] = MPoint(x*scale[0],1.0f*scale[1],z*scale[2]);
+		positions[i + indexDiff] = MPoint(x*scale[0], -1.0f*scale[1], z*scale[2]);
 	}
 	indices.setLength(20 * 6);
 	const unsigned int res2 = 20 * 2;
