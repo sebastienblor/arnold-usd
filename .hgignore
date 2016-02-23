@@ -24,6 +24,7 @@ Debug
 *.bat
 docs
 plugins/mtoa/utils/MercurialID.h
+external/qt-4.8.6-include/*
 *.zip
 *.run
 *.sh
