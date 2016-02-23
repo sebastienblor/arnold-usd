@@ -6,6 +6,10 @@
 #include <maya/MUserData.h>
 #include <maya/MDrawContext.h>
 #include <maya/MObject.h>
+#include <maya/MPointArray.h>
+#include <maya/MUintArray.h>
+#include <maya/MPxNode.h>
+#include <maya/MMessage.h>
 
 class CArnoldPhotometricLightDrawOverride : public MHWRender::MPxDrawOverride{
 public:
@@ -39,26 +43,17 @@ public:
 		const MUserData* data);
 
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
-    static void clearGPUResources();
 private:
-    CArnoldPhotometricLightDrawOverride(const MObject& obj);
+	CArnoldPhotometricLightDrawOverride(const MObject& obj);
 
-    static void initializeGPUResources();
-
-#ifdef _WIN32
-    static CDXConstantBuffer* s_pDXConstantBuffer;
-    static DXShader* s_pDXShader;
-#endif
-
-    static GLuint s_vertexShader;
-    static GLuint s_fragmentShader;
-    static GLuint s_program;
-
-    static GLint s_modelViewProjLoc;
-    static GLint s_shadeColorLoc;
-
-    static CGPUPrimitive* sp_primitive;
+	static void initializeUserData();
+    static MPointArray s_positions;
+    static MUintArray s_indexing;
 
     static bool s_isValid;
     static bool s_isInitialized;
+
+	MPxNode* m_node;
+	MCallbackId m_ModelEditorChangedCbId;
+	static void OnModelEditorChanged(void *clientData);
 };

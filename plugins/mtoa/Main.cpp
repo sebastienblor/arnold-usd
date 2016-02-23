@@ -929,7 +929,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
-      CArnoldPhotometricLightDrawOverride::clearGPUResources();
+      //CArnoldPhotometricLightDrawOverride::clearGPUResources();
       //CArnoldAreaLightDrawOverride::clearGPUResources();
       //CArnoldStandInDrawOverride::clearGPUResources();
       CArnoldVolumeDrawOverride::clearGPUResources();
