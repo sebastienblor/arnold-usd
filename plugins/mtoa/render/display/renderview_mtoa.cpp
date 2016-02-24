@@ -380,13 +380,14 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 {
-   if (s_rvSelectionCb)
+   if ((!receive) && s_rvSelectionCb)
    {
       MMessage::removeCallback(s_rvSelectionCb);
       s_rvSelectionCb = 0;
+      return;
    }
 
-   if (receive)
+   if (receive && (s_rvSelectionCb == 0))
    {
 
       s_rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
