@@ -8,8 +8,6 @@
 #include <maya/MObject.h>
 #include <maya/MPointArray.h>
 #include <maya/MUintArray.h>
-#include <maya/MPxNode.h>
-#include <maya/MMessage.h>
 
 class CArnoldPhotometricLightDrawOverride : public MHWRender::MPxDrawOverride{
 public:
@@ -52,8 +50,4 @@ private:
 
     static bool s_isValid;
     static bool s_isInitialized;
-
-	MPxNode* m_node;
-	MCallbackId m_ModelEditorChangedCbId;
-	static void OnModelEditorChanged(void *clientData);
 };

@@ -117,13 +117,15 @@ namespace // <anonymous>
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax}
    };
 
-   const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/areaLight";
+   // Note that we use drawdb/geometry/light to classify it as UI for light.
+   // This will allow it to be automatically filtered out by viewport display filters.
+   const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
-   const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
+   const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
-   const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/photometricLight";
+   const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
 
    struct mayaNode {

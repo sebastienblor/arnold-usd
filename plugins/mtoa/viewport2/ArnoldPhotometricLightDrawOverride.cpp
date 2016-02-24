@@ -26,32 +26,13 @@ MHWRender::MPxDrawOverride* CArnoldPhotometricLightDrawOverride::creator(const M
 }
 
 CArnoldPhotometricLightDrawOverride::CArnoldPhotometricLightDrawOverride(const MObject& obj) :
-    MHWRender::MPxDrawOverride(obj, draw, false) // false = Mark as never dirty. Requires explicit dirty handling
+    MHWRender::MPxDrawOverride(obj, draw, false) // false = Mark as never dirty.
 {
-	MStatus status;
-	MFnDependencyNode node(obj, &status);
-	m_node = status ? node.userNode() : 0;
-
-	if (m_node)
-	{
-		m_ModelEditorChangedCbId = MEventMessage::addEventCallback(
-										"modelEditorChanged", OnModelEditorChanged, this);
-	}
 }
 
 CArnoldPhotometricLightDrawOverride::~CArnoldPhotometricLightDrawOverride()
 {
 
-}
-
-void CArnoldPhotometricLightDrawOverride::OnModelEditorChanged(void *clientData)
-{
-	// Mark the node as being dirty so that it can update on display appearance changes
-	CArnoldPhotometricLightDrawOverride *ovr = static_cast<CArnoldPhotometricLightDrawOverride*>(clientData);
-	if (ovr && ovr->m_node)
-	{
-		MHWRender::MRenderer::setGeometryDrawDirty(ovr->m_node->thisMObject());
-	}
 }
 
 bool CArnoldPhotometricLightDrawOverride::isBounded(
@@ -158,11 +139,10 @@ void CArnoldPhotometricLightDrawOverride::addUIDrawables(const MDagPath& objPath
 	if (s_isValid == false)
         return;
 
-	// Check for light type exclusion
-	MUint64 typeExclusions = frameContext.objectTypeExclusions();
-	if (typeExclusions & MHWRender::MFrameContext::kExcludeLights)
-		return;
-
+	// Note that we don't need to add in a light type filter
+	// since the classification string "drawdb/geometry/light" usage
+	// will automatically do this for us.
+	//
     const SArnoldPhotometricLightUserData* userData = reinterpret_cast<const SArnoldPhotometricLightUserData*>(data);
     if (userData == 0)
         return;

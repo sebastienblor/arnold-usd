@@ -37,10 +37,10 @@ struct CArnoldAreaLightUserData : public MUserData{
 		// Update the wireframe color
 		if (MHWRender::kDormant == MHWRender::MGeometryUtilities::displayStatus(objPath))
 		{
-			m_wireframeColor[0] = 0.75;
-			m_wireframeColor[1] = 0;
-			m_wireframeColor[2] = 0;
-			m_wireframeColor[3] = 0.2;
+			m_wireframeColor[0] = 0.75f;
+			m_wireframeColor[1] = 0.f;
+			m_wireframeColor[2] = 0.f;
+			m_wireframeColor[3] = 0.2f;
 		}
 		else
 		{
@@ -85,7 +85,6 @@ struct CArnoldAreaLightUserData : public MUserData{
 				scale2[1] != m_scale[1] ||
 				scale2[2] != m_scale[2])
 			{
-				fprintf(stderr, "Update to disk data\n");
 				CGDiskLightPrimitive::generateData(p_positions, p_indices, scale2);
 
 				m_scale[0] = scale2[0];
@@ -114,7 +113,6 @@ struct CArnoldAreaLightUserData : public MUserData{
 				scale2[1] != m_scale[1] ||
 				scale2[2] != m_scale[2])
 			{
-				fprintf(stderr, "Update to cylinder data\n");
 				CGCylinderPrimitive::generateData(p_positions, p_indices, scale2);
 
 				m_scale[0] = scale2[0];
@@ -127,7 +125,6 @@ struct CArnoldAreaLightUserData : public MUserData{
 		{
 			if (primitiveTypeChanged)
 			{
-				fprintf(stderr, "Update to quad data\n");
 				CGQuadLightPrimitive::generateData(p_positions, p_indices, scale2);
 				m_primitiveType = "quad";			
 			}
@@ -225,11 +222,10 @@ void CArnoldAreaLightDrawOverride::addUIDrawables(const MDagPath& objPath,
     if (s_isValid == false)
         return;
 
-	// Check for light type exclusion
-	MUint64 typeExclusions = frameContext.objectTypeExclusions();
-	if (typeExclusions & MHWRender::MFrameContext::kExcludeLights)
-		return;
-
+	// Note that we don't need to add in a light type filter
+	// since the classification string "drawdb/geometry/light" usage
+	// will automatically do this for us.
+	//
     const CArnoldAreaLightUserData* userData = reinterpret_cast<const CArnoldAreaLightUserData*>(data);
     if (userData == 0)
         return;
