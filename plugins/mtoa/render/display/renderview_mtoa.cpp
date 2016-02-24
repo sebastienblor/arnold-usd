@@ -17,10 +17,32 @@
 #include <maya/MQtUtil.h>
 #include <maya/M3dView.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MSceneMessage.h>
 
-static MCallbackId rvSelectionCb = 0;
+static MCallbackId s_rvSelectionCb = 0;
+static MCallbackId s_rvSceneSaveCb = 0;
+static MCallbackId s_rvSceneOpenCb = 0;
+bool s_convertOptionsParam = true;
 
+CRenderViewMtoA::~CRenderViewMtoA()
+{
+   if (s_rvSceneSaveCb)
+   {
+      MMessage::removeCallback(s_rvSceneSaveCb);
+      s_rvSceneSaveCb = 0;
+   }
+   if (s_rvSceneOpenCb)
+   {
+      MMessage::removeCallback(s_rvSceneOpenCb);
+      s_rvSceneOpenCb = 0;
+   }
+   if (s_rvSelectionCb)
+   {
+      MMessage::removeCallback(s_rvSelectionCb);
+      s_rvSelectionCb = 0;
+   }
 
+}
 // Return all renderable cameras
 static int GetRenderCamerasList(MDagPathArray &cameras)
 {
@@ -52,7 +74,6 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
       }
       dagIter.next();
    }
-
    int size = cameras.length();
    if (size > 1)
       MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
@@ -61,10 +82,39 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    return size;
 }
 
-
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
+   // Check if attribute ARV_options exist
+   // if it doesn't create it
+   int exists = 0;
+   MGlobal::executeCommand("attributeExists \"ARV_options\" \"defaultArnoldRenderOptions\" ", exists);
+
+   if (!exists)
+   {
+      MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
+   } 
+
    OpenRenderView(width, height, MQtUtil::mainWindow());
+
+   if (exists && s_convertOptionsParam)
+   {
+      // assign the ARV_options parameter as it is the first time since I opened this scene
+      MString optParam;
+      MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+      SetFromSerialized(optParam.asChar());
+      s_convertOptionsParam = false;
+   }
+   
+   if (s_rvSceneSaveCb == 0)
+   {
+      MStatus status;
+      s_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+   }
+   if (s_rvSceneOpenCb == 0)
+   {
+      MStatus status;
+      s_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
+   }
 
    // Set image Dir
    MString workspace;
@@ -180,6 +230,28 @@ void CRenderViewMtoA::GetSelection(AtNode **selection)
 
    memcpy(selection, &selectionVec[0], selectionVec.size() * sizeof(AtNode*));
 }
+
+void CRenderViewMtoA::SceneSaveCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+
+   const char *serialized = renderViewMtoA->Serialize();
+   
+   MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
+   command += serialized;
+   command +="\"";
+
+   MGlobal::executeCommand(command);
+
+}
+
+void CRenderViewMtoA::SceneOpenCallback(void *data)
+{
+   // next time I open the RenderView, convert the ARV_options param
+   s_convertOptionsParam = true;
+}
+
 
 // For "Isolate Selected" debug shading mode,
 // we need to receive the events that current
@@ -308,16 +380,16 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 {
-   if (rvSelectionCb)
+   if (s_rvSelectionCb)
    {
-      MMessage::removeCallback(rvSelectionCb);
-      rvSelectionCb = 0;
+      MMessage::removeCallback(s_rvSelectionCb);
+      s_rvSelectionCb = 0;
    }
 
    if (receive)
    {
 
-      rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
+      s_rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
                                       CRenderViewMtoA::SelectionChangedCallback,
                                       (void*)this);
 
@@ -334,6 +406,8 @@ void CRenderViewMtoA::RenderViewClosed()
       renderSession->SetRendering(false);
       CMayaScene::End();
    }
+   MMessage::removeCallback(s_rvSceneSaveCb);
+   s_rvSceneSaveCb = 0;
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {

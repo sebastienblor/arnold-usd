@@ -29,7 +29,7 @@ class CRenderViewMtoA : public CRenderViewInterface
 public:
 
 	CRenderViewMtoA() : CRenderViewInterface() {}
-	virtual ~CRenderViewMtoA() {}
+	virtual ~CRenderViewMtoA();
 
    virtual void UpdateSceneChanges();
 
@@ -49,6 +49,8 @@ public:
    virtual CRenderViewRotateManipulator *GetRotateManipulator();
    
    static void SelectionChangedCallback(void *);
+   static void SceneSaveCallback(void *);
+   static void SceneOpenCallback(void *);
 
    void OpenMtoARenderView(int width, int height);
 };
