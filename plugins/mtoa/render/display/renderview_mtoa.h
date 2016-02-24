@@ -49,6 +49,7 @@ public:
    virtual CRenderViewRotateManipulator *GetRotateManipulator();
    
    static void SelectionChangedCallback(void *);
+   static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
    static void SceneOpenCallback(void *);
 

@@ -22,6 +22,9 @@
 static MCallbackId s_rvSelectionCb = 0;
 static MCallbackId s_rvSceneSaveCb = 0;
 static MCallbackId s_rvSceneOpenCb = 0;
+static MCallbackId s_rvLayerManagerChangeCb = 0;
+static MCallbackId s_rvLayerChangeCb = 0;
+
 bool s_convertOptionsParam = true;
 
 CRenderViewMtoA::~CRenderViewMtoA()
@@ -41,7 +44,16 @@ CRenderViewMtoA::~CRenderViewMtoA()
       MMessage::removeCallback(s_rvSelectionCb);
       s_rvSelectionCb = 0;
    }
-
+   if (s_rvLayerManagerChangeCb)
+   {
+      MMessage::removeCallback(s_rvLayerManagerChangeCb);
+      s_rvLayerManagerChangeCb = 0;
+   }
+   if (s_rvLayerChangeCb)
+   {
+      MMessage::removeCallback(s_rvLayerChangeCb);
+      s_rvLayerChangeCb = 0;
+   }
 }
 // Return all renderable cameras
 static int GetRenderCamerasList(MDagPathArray &cameras)
@@ -104,21 +116,32 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       SetFromSerialized(optParam.asChar());
       s_convertOptionsParam = false;
    }
-   
+   MStatus status;   
    if (s_rvSceneSaveCb == 0)
    {
-      MStatus status;
       s_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
    }
    if (s_rvSceneOpenCb == 0)
    {
-      MStatus status;
       s_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
    }
+   if (s_rvLayerManagerChangeCb == 0)
+   {
+      s_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+   if (s_rvLayerChangeCb == 0)
+   {
+      s_rvLayerManagerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+
 
    // Set image Dir
    MString workspace;
-   MStatus status = MGlobal::executeCommand(MString("workspace -q -rd;"), workspace);
+   status = MGlobal::executeCommand(MString("workspace -q -rd;"), workspace);
    if (status == MS::kSuccess)
    {
       workspace += "/images";
@@ -252,7 +275,14 @@ void CRenderViewMtoA::SceneOpenCallback(void *data)
    s_convertOptionsParam = true;
 }
 
+void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   renderViewMtoA->SetOption("Update Full Scene", "1");
 
+
+}
 // For "Isolate Selected" debug shading mode,
 // we need to receive the events that current
 // Selection has changed
