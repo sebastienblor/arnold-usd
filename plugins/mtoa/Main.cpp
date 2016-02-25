@@ -3,7 +3,7 @@
 #include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
-#include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
+#include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldStandInDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
@@ -210,11 +210,11 @@ namespace // <anonymous>
          "arnoldAreaLightNodeOverride",
          AI_AREA_LIGHT_CLASSIFICATION,
          CArnoldAreaLightDrawOverride::creator
-      } , {
+      } , /* {
          "arnoldSkyDomeLightNodeOverride",
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          CArnoldSkyDomeLightDrawOverride::creator
-      } , {
+      } , */ {
          "arnoldStandInNodeOverride",
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
@@ -834,6 +834,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                override.creator);
       CHECK_MSTATUS(status);
    }
+	status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_SKYDOME_LIGHT_CLASSIFICATION,
+      "arnoldSkyDomeLightNodeOverride",
+		CArnoldSkyDomeLightGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
