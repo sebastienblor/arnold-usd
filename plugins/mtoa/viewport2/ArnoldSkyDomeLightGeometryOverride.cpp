@@ -96,13 +96,13 @@ void CArnoldSkyDomeLightGeometryOverride::updateDG()
 bool CArnoldSkyDomeLightGeometryOverride::isIndexingDirty(const MHWRender::MRenderItem &item) 
 { 
 	// Indexing data never needs to be updated
-	return false; 
+	return true; 
 }
 
 bool CArnoldSkyDomeLightGeometryOverride::isStreamDirty(const MHWRender::MVertexBufferDescriptor &desc) 
 { 
 	// Stream data never needs to be updated
-	return false; 
+	return true; 
 }
 
 void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path, MHWRender::MRenderItemList& list)
@@ -158,7 +158,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			MHWRender::MGeometry::kLineStrip);
 		//wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
 		wireframeItem->setDrawMode((MHWRender::MGeometry::DrawMode)
-			(MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));
+			(MHWRender::MGeometry::kWireframe | MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));
 		wireframeItem->depthPriority(5);
 		wireframeItem->enable(true);
 		list.append(wireframeItem);
@@ -368,50 +368,49 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 	}
 
 	// Create wireframe data
+	unsigned int index = 0;
 	for (unsigned int x = 0; x < divisions[0]; ++x)
 	{
 		float phiB = (float)AI_PITIMES2 * (float)x / (float)divisions[0];
 		float phiE = (float)AI_PITIMES2 * (float)(x + 1) / (float)divisions[1];
 		for (unsigned int y = 0; y < divisions[1]; ++y)
 		{
-			const int id = x + y * divisions[0];
-
 			float thetaB = (float)AI_PI * (float)y / (float)divisions[0];
 			float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisions[1];
 
 			AtVector dir = SphereVertex(phiB, thetaB);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 			dir = SphereVertex(phiE, thetaB);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 
 			dir = SphereVertex(phiB, thetaE);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 			dir = SphereVertex(phiE, thetaE);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 
 			dir = SphereVertex(phiB, thetaB);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 			dir = SphereVertex(phiB, thetaE);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 
 			dir = SphereVertex(phiE, thetaB);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 			dir = SphereVertex(phiE, thetaE);
-			s_wirePositions[id] = MFloatVector( dir.x*radius,
+			s_wirePositions[index++] = MFloatVector( dir.x*radius,
 											   dir.y*radius,
 											   dir.z*radius);
 		}
@@ -438,7 +437,7 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 	// Already created so don't create again
 	if (s_filledPositions.length() == 0)
 	{	
-		unsigned int dim[2] = { 20, 20 };
+		unsigned int dim[2] = { 16, 16 };
 		createSkyDomeGeometry(dim, 1.0f);
 	}
 
