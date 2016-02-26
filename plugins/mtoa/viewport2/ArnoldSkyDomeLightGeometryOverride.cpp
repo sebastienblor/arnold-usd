@@ -155,7 +155,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		wireframeItem = MHWRender::MRenderItem::Create(
 			s_wireframeItemName,
 			MHWRender::MRenderItem::DecorationItem,
-			MHWRender::MGeometry::kLineStrip);
+			MHWRender::MGeometry::kLines);
 		//wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
 		wireframeItem->setDrawMode((MHWRender::MGeometry::DrawMode)
 			(MHWRender::MGeometry::kWireframe | MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));
