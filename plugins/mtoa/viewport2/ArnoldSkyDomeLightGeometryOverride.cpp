@@ -7,6 +7,7 @@
 #include <maya/MUIDrawManager.h>
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
+#include <maya/MGlobal.h>
 
 #include <iostream>
 
@@ -35,10 +36,14 @@ MHWRender::MPxGeometryOverride*
 
 CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const MObject& obj) 
 	: MHWRender::MPxGeometryOverride(obj)
+	, m_format(0)
+	, m_radius(1000)
 	, m_wireframeShader(0)
 	, m_texturedShader(0)
 	, p_skydomeNode(0)
 {
+	m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3] = 1.0f;
+
 	// get the skydome object from the MObject
 	MStatus status;
 	MFnDependencyNode node(obj, &status);
@@ -55,7 +60,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 		if (!shaderMgr)
 			return;
 		m_wireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
-		m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
+		m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader);
 	}
 }
 
@@ -86,6 +91,11 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
 		{
 		}
 	}
+}
+
+MHWRender::DrawAPI CArnoldSkyDomeLightGeometryOverride::supportedDrawAPIs() const
+{
+	return (MHWRender::kAllDevices);
 }
 
 void CArnoldSkyDomeLightGeometryOverride::updateDG()
@@ -122,6 +132,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	MFnDependencyNode depNode(path.node());
 
 	// Get format
+	m_format = 0;
 	MStatus status;
 	MPlug plug = depNode.findPlug("format", &status);
 	if (status && !plug.isNull())
@@ -156,10 +167,9 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			s_wireframeItemName,
 			MHWRender::MRenderItem::DecorationItem,
 			MHWRender::MGeometry::kLines);
-		//wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
-		wireframeItem->setDrawMode((MHWRender::MGeometry::DrawMode)
-			(MHWRender::MGeometry::kWireframe | MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));
-		wireframeItem->depthPriority(5);
+		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
+		wireframeItem->depthPriority(MHWRender::MRenderItem::sActiveWireDepthPriority);
+		wireframeItem->setExcludedFromPostEffects(true);
 		wireframeItem->enable(true);
 		list.append(wireframeItem);
 	}
@@ -195,8 +205,11 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			MHWRender::MRenderItem::MaterialSceneItem,
 			MHWRender::MGeometry::kTriangles);
 		texturedItem->setDrawMode((MHWRender::MGeometry::DrawMode)
-			(MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));
+			(MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));		
 		texturedItem->enable(true);
+		texturedItem->setExcludedFromPostEffects(true);
+		texturedItem->castsShadows(false);
+		texturedItem->receivesShadows(false);
 		list.append(texturedItem);
 	}
 	else
@@ -208,11 +221,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	{
 		MHWRender::MTexture* texture = 0;
 
-		// We only enable the shaded item if there's a texture define for it.
-		texturedItem->enable(false);
-
 		// Update the matrix
-		wireframeItem->setMatrix(&modelMatrix);
+		texturedItem->setMatrix(&modelMatrix);
 
 		// Performance issue to recompute the shader program even if not used ?
 		MHWRender::MShaderInstance *shaderInst = m_texturedShader;
@@ -237,49 +247,75 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
 		if (m_texturedShader)
 		{
-			/* MFnDagNode iblDagNode(path);
+			// Get texture
+			MHWRender::MTexture* texture = NULL;
 
-			MTextureAssignment textureAssignment;
+			// Dummy fallback texture.
+#if 1
+			unsigned int targetWidth = 128;
+			unsigned int targetHeight = 128;
+			unsigned char* textureData = new unsigned char[4*targetWidth*targetHeight];
+			if (textureData)
+			{
+				for (unsigned int y = 0; y < targetHeight; y++)
+				{
+					unsigned char* pPixel = textureData + (y * targetWidth * 4);
+					for (unsigned int x = 0; x < targetWidth; x++)
+					{
+						bool checker = (((x >> 5) & 1) ^ ((y >> 5) & 1)) != 0;
+						*pPixel++ = checker ? 255 : 0;
+						*pPixel++ = 0;
+						*pPixel++ = 0;
+						*pPixel++ = 255;
+					}
+				}
+			}
+			MHWRender::MTextureDescription colorTextureDesc;
+			colorTextureDesc.fWidth = targetWidth;
+			colorTextureDesc.fHeight = targetHeight;
+			colorTextureDesc.fDepth = 1;
+			colorTextureDesc.fBytesPerRow = 4*targetWidth;
+			colorTextureDesc.fBytesPerSlice = colorTextureDesc.fBytesPerRow*targetHeight;
+			texture = textureManager->acquireTexture("", colorTextureDesc, textureData);
+			delete [] textureData;
+#endif
+#if 0
+			texture = textureManager->acquireTexture("c:/work/data/swatches.jpg");
+			if (texture)
+			{
+				MGlobal::displayInfo("Acquire dummy texture");
+				MStatus status = textureManager->saveTexture(texture, "c:/Work/Data/dummy1.jpg"); // To disk
+				if (status == MStatus::kSuccess)
+					MGlobal::displayInfo("Save dummy texture");
+			}
+#endif
+			// Set texture
+			MHWRender::MTextureAssignment textureAssignment;
 			textureAssignment.texture = texture;
-			texture->setHasAlpha(true);
+			//texture->setHasAlpha(true);
+			bool assignedTexture = false;
+			MStatus status = shaderInst->setParameter("map", textureAssignment);
+			if (MStatus::kSuccess == status)
+				assignedTexture = true;
+			//MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned map" : "Failed map");
+/*
+			// Set transparency
+			float alphaThreshold = 0.0f;       
+			status = shaderInst->setParameter("alphaThreshold", &alphaThreshold);
+			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaThreshold" : "Failed alphaThreshold" );
+			float defaultColor[4] = { 1.0f, 0.2f, 5.0f, 0.3f };
+			status = shaderInst->setParameter("defaultColor", defaultColor);
+			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned defaultColor" : "Failed defaultColor" );
+			// Set outputMode 4 = Multiply defaultColor * texture
+			status = shaderInst->setParameter("outputMode", 4);
+			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned outputMode" : "Failed outputMode" );
 
-			shaderInst->setParameter(iblSourceTextureParameter, textureAssignment);
-
-			short hardwareFilter = 0;
-			MPlug hardwareFilterPlug = iblDagNode.findPlug(hardwareFilterPlugName);
-			hardwareFilterPlug.getValue(hardwareFilter);
-
-			if(hardwareFilter == 0)
-			{
-			// A value of 0 requests a nearest neighbour sampling strategy
-			shaderInst->setParameter(iblSourceSampleParameter, MSamplerState::kAnisotropic);
-			}
-			else
-			{
-			// A value of 0 requests a linear sampling strategy
-			shaderInst->setParameter(iblSourceSampleParameter, MSamplerState:: kMinMagMipPoint);
-			}
-			*/
-			shaderInst->setIsTransparent(true);
-
-			/* ////Set the hardware exposure parameter
-			short hardwareExposure = 0;
-			MPlug hardwareExposurePlug = iblDagNode.findPlug(hardwareExposurePlugName);
-			hardwareExposurePlug.getValue(hardwareExposure);
-
-			const float hardwareExposureScale = ldexp(1.0f, hardwareExposure);
-			const float colorGain[3] = {hardwareExposureScale, hardwareExposureScale, hardwareExposureScale};
-			shaderInst->setParameter(iblColorGain, colorGain);
-
-			////Set the hardware exposure parameter
-			float hardwareAlpha = 0;
-			MPlug hardwareAlphaPlug = iblDagNode.findPlug(hardwareAlphaPlugName);
-			hardwareAlphaPlug.getValue(hardwareAlpha);
-			shaderInst->setParameter(iblAlphaGain, 0.0f);
-			shaderInst->setParameter(iblAlphaOffset, hardwareAlpha);
-			shaderInst->setParameter(iblOutputMode, 1);
-			shaderInst->setParameter(iblAlphaDiscard, 0.05f);
-			*/ 
+			shaderInst->setParameter("alphaGain", 0.0f);
+			shaderInst->setParameter("alphaOffset", 0.5f);
+			status = shaderInst->setParameter("outputMode", 1);
+*/
+			//shaderInst->setIsTransparent(true);
+			
 			texturedItem->setShader(shaderInst, &s_texturedItemName);
 		}
 
@@ -287,27 +323,29 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		// it alive for shading
 		if (texture)
 		{
-			textureManager->releaseTexture(texture);
+			//	textureManager->releaseTexture(texture);
 		} 
 	}
 }
 
 static AtVector SphereVertex(float phi, float theta)
 {
-   AtVector ret;
-   ret.y = cosf(theta);
-   float t = sinf(theta);
-   ret.x = t * sinf(phi);
-   ret.z = t * cosf(phi);
-   return ret;
+	AtVector ret;
+	ret.y = cosf(theta);
+	float t = sinf(theta);
+	ret.x = t * sinf(phi);
+	ret.z = t * cosf(phi);
+	return ret;
 }
 
 void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int divisions[2],
 																float radius)
 {
 	// Allocate memory
-	unsigned int numVertices = divisions[0] * divisions[1];
 	unsigned int numIndices = divisions[0] * divisions[1] * 6;
+	unsigned int divisionsX1 = divisions[0] + 1;
+	unsigned int divisionsY1 = divisions[1] + 1;
+	unsigned int numVertices = divisionsX1 * divisionsY1;
 	s_filledPositions.setLength(numVertices);
 	s_filledUvs[0].setLength(numVertices*2);
 	s_filledUvs[1].setLength(numVertices*2);
@@ -323,47 +361,53 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 	float u, v, u2, v2, u3, v3;
 
 	// Create filled data
-	for (unsigned int x = 0; x < divisions[0]; ++x)
+	for (unsigned int x = 0; x < divisionsX1; ++x)
 	{
 		const float phi = (float)AI_PITIMES2 * (float)x / (float)divisions[0];
 
-		for (unsigned int y = 0; y < divisions[1]; ++y)
+		for (unsigned int y = 0; y < divisionsY1; ++y)
 		{         
 			const float theta = (float)AI_PI * (float)y / (float)divisions[1];
 			dir = SphereVertex(phi, theta);            
 
 			AiMappingMirroredBall(&dir, &u, &v); // Mirrored Ball
-			AiMappingAngularMap(&dir, &u2, &v2); break;  // Angular
-			AiMappingLatLong(&dir, &u3, &v3); break;  // Latlong
+			AiMappingAngularMap(&dir, &u2, &v2);  // Angular
+			AiMappingLatLong(&dir, &u3, &v3);  // Latlong
 
-			const int id = x + y * divisions[0];
+			const int id = x + y * divisionsX1;
 			s_filledUvs[0][id*2] = u;
 			s_filledUvs[0][id*2+1] = v;
+			//MString outstr("uv = ");
+			//outstr += u;
+			//outstr += ", ";
+			//outstr += v;
+			//MGlobal::displayInfo(outstr);
+
 			s_filledUvs[1][id*2] = u2;
 			s_filledUvs[1][id*2+1] = v2;
 			s_filledUvs[2][id*2] = u3;
 			s_filledUvs[2][id*2+1] = v3;
+
 			s_filledPositions[id] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 		}
 	}
 
 	int indexCounter = 0;
-	for (unsigned int x = 0; x < divisions[0]; ++x)
+	for (unsigned int x = 0; x < (unsigned int)divisions[0]; ++x)
 	{
 		const int x1 = x + 1;
-		for (unsigned int y = 0; y < divisions[1]; ++y)
+		for (unsigned int y = 0; y < (unsigned int)divisions[1]; ++y)
 		{
 			const int y1 = y + 1;
-			s_filledIndexing[indexCounter++] = x + y * divisions[0];
-			s_filledIndexing[indexCounter++] = x1 + y * divisions[0];
-			s_filledIndexing[indexCounter++] = x + y1 * divisions[0];
+			s_filledIndexing[indexCounter++] = x + y * divisionsX1;
+			s_filledIndexing[indexCounter++] = x1 + y * divisionsX1;
+			s_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
 
-			s_filledIndexing[indexCounter++] = x1 + y * divisions[0];
-			s_filledIndexing[indexCounter++] = x1 + y1 * divisions[0];
-			s_filledIndexing[indexCounter++] = x + y1 * divisions[0];
-
+			s_filledIndexing[indexCounter++] = x1 + y * divisionsX1;
+			s_filledIndexing[indexCounter++] = x1 + y1 * divisionsX1;
+			s_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
 		}  
 	}
 
@@ -380,39 +424,39 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 
 			AtVector dir = SphereVertex(phiB, thetaB);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 			dir = SphereVertex(phiE, thetaB);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 
 			dir = SphereVertex(phiB, thetaE);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 			dir = SphereVertex(phiE, thetaE);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 
 			dir = SphereVertex(phiB, thetaB);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 			dir = SphereVertex(phiB, thetaE);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 
 			dir = SphereVertex(phiE, thetaB);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 			dir = SphereVertex(phiE, thetaE);
 			s_wirePositions[index++] = MFloatVector( dir.x*radius,
-											   dir.y*radius,
-											   dir.z*radius);
+				dir.y*radius,
+				dir.z*radius);
 		}
 	}
 	for (unsigned int x = 0; x < divisions[0]*divisions[1]*8; ++x)
@@ -422,8 +466,8 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 }
 
 void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeometryRequirements &requirements, 
-														   const MHWRender::MRenderItemList &renderItems, 
-														   MHWRender::MGeometry &data)
+	const MHWRender::MRenderItemList &renderItems, 
+	MHWRender::MGeometry &data)
 {
 	MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 	if (!renderer)
@@ -437,7 +481,7 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 	// Already created so don't create again
 	if (s_filledPositions.length() == 0)
 	{	
-		unsigned int dim[2] = { 16, 16 };
+		unsigned int dim[2] = { 8, 8 };
 		createSkyDomeGeometry(dim, 1.0f);
 	}
 
@@ -464,6 +508,7 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 		{
 		case MHWRender::MGeometry::kPosition:
 			{
+				// Update position buffer for textured render item
 				if (vertexBufforDescriptor.name() == s_texturedItemName)
 				{		
 					unsigned int totalVerts = s_filledPositions.length();
@@ -476,6 +521,7 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 						}
 					}
 				}
+				// Update position buffer for wireframe render item
 				else if (vertexBufforDescriptor.name() == s_wireframeItemName)
 				{
 					unsigned int totalVerts = s_wirePositions.length();
@@ -492,15 +538,21 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 			break;
 		case MHWRender::MGeometry::kTexture:
 			{
+				// Update texture coordinate buffer for textured render item
 				if (vertexBufforDescriptor.name() == s_texturedItemName)
-				{
-					unsigned int numUvs = s_filledUvs[0].length();
+				{	
+					// Get the set of uvs based on the format
+					unsigned int numUvs = s_filledUvs[m_format].length() / 2;
 					if (numUvs > 0)
 					{
 						filledUvBuffer = data.createVertexBuffer(vertexBufforDescriptor);
 						if (filledUvBuffer)
 						{
-							filledUvBuffer->update(&s_filledUvs[0], 0, numUvs, true);
+							MStatus status = filledUvBuffer->update(&s_filledUvs[m_format], 0, numUvs, true);
+							if (status == MStatus::kSuccess)
+							{
+								//MGlobal::displayInfo("Loaded UVS");
+							}
 						}
 					}
 				}
@@ -514,17 +566,17 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 	// Update indexing for render items
 	//
 	int numItems = renderItems.length();
-    for (int i=0; i<numItems; i++)
-    {
-        const MHWRender::MRenderItem* item = renderItems.itemAt(i);
+	for (int i=0; i<numItems; i++)
+	{
+		const MHWRender::MRenderItem* item = renderItems.itemAt(i);
 
-        if (!item)
-        {
-            continue;
-        }
+		if (!item)
+		{
+			continue;
+		}
 
-        MString renderItemName = item->name();
-        if (item->name() == s_texturedItemName)
+		MString renderItemName = item->name();
+		if (item->name() == s_texturedItemName)
 		{
 			unsigned int indexCount = s_filledIndexing.length();
 			if (indexCount)
@@ -551,13 +603,9 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 			}
 		}
 	}
- }
+}
 
 void CArnoldSkyDomeLightGeometryOverride::cleanUp() 
 {
 }
 
-MHWRender::DrawAPI CArnoldSkyDomeLightGeometryOverride::supportedDrawAPIs() const
-{
-	return (MHWRender::kAllDevices);
-}
