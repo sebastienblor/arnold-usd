@@ -52,8 +52,11 @@ public:
    static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
    static void SceneOpenCallback(void *);
+   static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
 
    void OpenMtoARenderView(int width, int height);
+   void UpdateColorManagement(MObject &node);
+
 };
 
 // In the Future these Manipulator classes should be removed and handled

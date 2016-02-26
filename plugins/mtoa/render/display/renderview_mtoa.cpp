@@ -17,6 +17,8 @@
 #include <maya/MQtUtil.h>
 #include <maya/M3dView.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MNodeMessage.h>
+
 #include <maya/MSceneMessage.h>
 
 static MCallbackId s_rvSelectionCb = 0;
@@ -24,6 +26,7 @@ static MCallbackId s_rvSceneSaveCb = 0;
 static MCallbackId s_rvSceneOpenCb = 0;
 static MCallbackId s_rvLayerManagerChangeCb = 0;
 static MCallbackId s_rvLayerChangeCb = 0;
+static MCallbackId s_rvColorMgtCb = 0;
 
 bool s_convertOptionsParam = true;
 
@@ -53,6 +56,11 @@ CRenderViewMtoA::~CRenderViewMtoA()
    {
       MMessage::removeCallback(s_rvLayerChangeCb);
       s_rvLayerChangeCb = 0;
+   }
+   if (s_rvColorMgtCb)
+   {
+      MMessage::removeCallback(s_rvColorMgtCb);
+      s_rvColorMgtCb = 0;
    }
 }
 // Return all renderable cameras
@@ -138,6 +146,24 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
                                       (void*)this);
    }
 
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   // get the maya node contraining the color management options         
+   if(activeList.length() > 0)
+   {
+      MObject colorMgtObject;
+      activeList.getDependNode(0,colorMgtObject);
+
+      if (s_rvColorMgtCb == 0)
+      {
+         s_rvColorMgtCb = MNodeMessage::addNodeDirtyCallback(colorMgtObject,
+                                              ColorMgtCallback,
+                                              this,
+                                              &status);
+      }
+      UpdateColorManagement(colorMgtObject);
+   }
 
    // Set image Dir
    MString workspace;
@@ -741,5 +767,106 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
    transformPath.setRotatePivotTranslation(previousRt, MSpace::kWorld);
    m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
 
+
+}
+
+
+void CRenderViewMtoA::UpdateColorManagement(MObject &node)
+{
+   MFnDependencyNode depNode(node);
+
+// cfe -> ocio enabled
+// cfp -> ocio path
+// vtn  -> view transform name
+// wsn  -> 
+// otn
+// potn 
+
+   MStatus status;
+   MPlug plug;
+   plug = depNode.findPlug("cfe", &status);
+   bool ocio = false;
+   if (status == MS::kSuccess && plug.asBool())
+   {
+      ocio = true;
+      SetOption("LUT.Tonemap", "OCIO");
+   }
+   
+   plug = depNode.findPlug("cfp", &status);
+   
+   if (status == MS::kSuccess)
+   {      
+      std::string ocioFile = plug.asString().asChar();
+      if (!ocioFile.empty())
+      {
+         SetOption("LUT.OCIO File", ocioFile.c_str());
+      }
+
+      if (ocio)
+      {
+         plug = depNode.findPlug("vtn", &status);
+         if (status == MS::kSuccess)
+         {
+            const std::string viewTransform = plug.asString().asChar();
+            size_t sep = viewTransform.find(" (");
+            if (sep != std::string::npos)
+            {
+               std::string viewName = viewTransform.substr(0, sep);
+               
+               size_t lastPos = viewTransform.find(")", sep+2);
+               if (lastPos != std::string::npos)
+               {
+                  std::string displayName = viewTransform.substr(sep + 2, lastPos - sep - 2);
+                  SetOption("LUT.Display", displayName.c_str());
+                  SetOption("LUT.View", viewName.c_str());
+
+               }
+            }
+         }
+      } else
+      {
+         plug = depNode.findPlug("vtn", &status);
+         if (status == MS::kSuccess)
+         {            
+            const std::string viewTransform = plug.asString().asChar();
+            if (viewTransform == "1.8 gamma")
+            {
+               SetOption("LUT.Tonemap", "Linear"); 
+               SetOption("LUT.Gamma", "1.8"); 
+               SetOption("LUT.Exposure", "1");
+            } else if (viewTransform == "2.2 gamma")
+            {
+               SetOption("LUT.Tonemap", "Linear"); 
+               SetOption("LUT.Gamma", "2.2"); 
+               SetOption("LUT.Exposure", "1");
+            } else if (viewTransform == "sRGB gamma")
+            {
+               SetOption("LUT.Tonemap", "sRGB");
+               SetOption("LUT.Gamma", "1"); 
+               SetOption("LUT.Exposure", "1");
+            } else if (viewTransform == "Rec 709 gamma")
+            {
+               SetOption("LUT.Tonemap", "Rec709");
+               SetOption("LUT.Gamma", "1"); 
+               SetOption("LUT.Exposure", "1");
+            } else if (viewTransform == "Raw")
+            {
+               SetOption("LUT.Tonemap", "Raw");
+               SetOption("LUT.Gamma", "1"); 
+               SetOption("LUT.Exposure", "1");
+            } else if (viewTransform == "Log")
+            {
+               SetOption("LUT.Tonemap", "Log");
+               SetOption("LUT.Gamma", "1");
+               SetOption("LUT.Exposure", "1");
+            }
+         }
+      }
+   }
+}
+void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
+   rvMtoA->UpdateColorManagement(node);
 
 }
