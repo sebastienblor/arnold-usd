@@ -22,7 +22,6 @@
 #include <maya/MFloatMatrix.h>
 #include <maya/MItDependencyGraph.h>
 #include <maya/MStringArray.h>
-#include <maya/MGlobal.h>
 
 MTypeId CSphereLocator::id(ARNOLD_NODEID_SPHERE_LOCATOR);
 
@@ -77,7 +76,6 @@ void SphereVertexGL(float radius, float phi, float theta)
 
 void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV)
 {
-	divisionsX = 8; divisionsY = 8;
    const int numIndices = divisionsX * divisionsY * 6;
    const int divisionsX1 = divisionsX + 1;
    const int divisionsY1 = divisionsY + 1;
@@ -115,16 +113,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
             dir = SphereVertex(phi, theta);            
             switch (format)
             {
-               case 0: AiMappingMirroredBall(&dir, &u, &v); 
-				{
-					MString outstr("uv = ");
-					outstr += u;
-					outstr += ", ";
-					outstr += v;
-					MGlobal::displayInfo(outstr);
-
-				   break;   // Mirrored Ball
-				}
+               case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
                case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
                case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong
                default: AiMappingLatLong(&dir, &u, &v);
