@@ -7,7 +7,6 @@
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
 #include <maya/MGlobal.h>
-#include <maya/MEventMessage.h>
 
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
@@ -21,46 +20,48 @@
 
 #include <maya/MSceneMessage.h>
 
-static MCallbackId s_rvSelectionCb = 0;
-static MCallbackId s_rvSceneSaveCb = 0;
-static MCallbackId s_rvSceneOpenCb = 0;
-static MCallbackId s_rvLayerManagerChangeCb = 0;
-static MCallbackId s_rvLayerChangeCb = 0;
-static MCallbackId s_rvColorMgtCb = 0;
-
-bool s_convertOptionsParam = true;
+CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
+   m_rvSelectionCb(0),
+   m_rvSceneSaveCb(0),
+   m_rvSceneOpenCb(0),
+   m_rvLayerManagerChangeCb(0),
+   m_rvLayerChangeCb(0),
+   m_rvColorMgtCb(0),
+   m_convertOptionsParam(true)
+{   
+}
 
 CRenderViewMtoA::~CRenderViewMtoA()
 {
-   if (s_rvSceneSaveCb)
+   if (m_rvSceneSaveCb)
    {
-      MMessage::removeCallback(s_rvSceneSaveCb);
-      s_rvSceneSaveCb = 0;
+      MMessage::removeCallback(m_rvSceneSaveCb);
+      m_rvSceneSaveCb = 0;
    }
-   if (s_rvSceneOpenCb)
+   if (m_rvSceneOpenCb)
    {
-      MMessage::removeCallback(s_rvSceneOpenCb);
-      s_rvSceneOpenCb = 0;
+      MMessage::removeCallback(m_rvSceneOpenCb);
+      m_rvSceneOpenCb = 0;
    }
-   if (s_rvSelectionCb)
+   if (m_rvSelectionCb)
    {
-      MMessage::removeCallback(s_rvSelectionCb);
-      s_rvSelectionCb = 0;
+      MMessage::removeCallback(m_rvSelectionCb);
+      m_rvSelectionCb = 0;
    }
-   if (s_rvLayerManagerChangeCb)
+   if (m_rvLayerManagerChangeCb)
    {
-      MMessage::removeCallback(s_rvLayerManagerChangeCb);
-      s_rvLayerManagerChangeCb = 0;
+      MMessage::removeCallback(m_rvLayerManagerChangeCb);
+      m_rvLayerManagerChangeCb = 0;
    }
-   if (s_rvLayerChangeCb)
+   if (m_rvLayerChangeCb)
    {
-      MMessage::removeCallback(s_rvLayerChangeCb);
-      s_rvLayerChangeCb = 0;
+      MMessage::removeCallback(m_rvLayerChangeCb);
+      m_rvLayerChangeCb = 0;
    }
-   if (s_rvColorMgtCb)
+   if (m_rvColorMgtCb)
    {
-      MMessage::removeCallback(s_rvColorMgtCb);
-      s_rvColorMgtCb = 0;
+      MMessage::removeCallback(m_rvColorMgtCb);
+      m_rvColorMgtCb = 0;
    }
 }
 // Return all renderable cameras
@@ -116,32 +117,31 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 
    OpenRenderView(width, height, MQtUtil::mainWindow());
 
-   if (exists && s_convertOptionsParam)
+   if (exists && m_convertOptionsParam)
    {
       // assign the ARV_options parameter as it is the first time since I opened this scene
       MString optParam;
       MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
       SetFromSerialized(optParam.asChar());
-      s_convertOptionsParam = false;
    }
    MStatus status;   
-   if (s_rvSceneSaveCb == 0)
+   if (m_rvSceneSaveCb == 0)
    {
-      s_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
    }
-   if (s_rvSceneOpenCb == 0)
+   if (m_rvSceneOpenCb == 0)
    {
-      s_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
+      m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
    }
-   if (s_rvLayerManagerChangeCb == 0)
+   if (m_rvLayerManagerChangeCb == 0)
    {
-      s_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
+      m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
                                       CRenderViewMtoA::RenderLayerChangedCallback,
                                       (void*)this);
    }
-   if (s_rvLayerChangeCb == 0)
+   if (m_rvLayerChangeCb == 0)
    {
-      s_rvLayerManagerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+      m_rvLayerManagerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
                                       CRenderViewMtoA::RenderLayerChangedCallback,
                                       (void*)this);
    }
@@ -155,15 +155,17 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       MObject colorMgtObject;
       activeList.getDependNode(0,colorMgtObject);
 
-      if (s_rvColorMgtCb == 0)
+      if (m_rvColorMgtCb == 0)
       {
-         s_rvColorMgtCb = MNodeMessage::addNodeDirtyCallback(colorMgtObject,
+         m_rvColorMgtCb = MNodeMessage::addNodeDirtyCallback(colorMgtObject,
                                               ColorMgtCallback,
                                               this,
                                               &status);
       }
-      UpdateColorManagement(colorMgtObject);
+
+      if (m_convertOptionsParam) UpdateColorManagement(colorMgtObject);
    }
+   m_convertOptionsParam = false;
 
    // Set image Dir
    MString workspace;
@@ -297,8 +299,10 @@ void CRenderViewMtoA::SceneSaveCallback(void *data)
 
 void CRenderViewMtoA::SceneOpenCallback(void *data)
 {
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   renderViewMtoA->m_convertOptionsParam = true;
    // next time I open the RenderView, convert the ARV_options param
-   s_convertOptionsParam = true;
 }
 
 void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
@@ -436,17 +440,17 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 {
-   if ((!receive) && s_rvSelectionCb)
+   if ((!receive) && m_rvSelectionCb)
    {
-      MMessage::removeCallback(s_rvSelectionCb);
-      s_rvSelectionCb = 0;
+      MMessage::removeCallback(m_rvSelectionCb);
+      m_rvSelectionCb = 0;
       return;
    }
 
-   if (receive && (s_rvSelectionCb == 0))
+   if (receive && (m_rvSelectionCb == 0))
    {
 
-      s_rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
+      m_rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
                                       CRenderViewMtoA::SelectionChangedCallback,
                                       (void*)this);
 
@@ -463,8 +467,8 @@ void CRenderViewMtoA::RenderViewClosed()
       renderSession->SetRendering(false);
       CMayaScene::End();
    }
-   MMessage::removeCallback(s_rvSceneSaveCb);
-   s_rvSceneSaveCb = 0;
+   MMessage::removeCallback(m_rvSceneSaveCb);
+   m_rvSceneSaveCb = 0;
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -833,32 +837,32 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
             {
                SetOption("LUT.Tonemap", "Linear"); 
                SetOption("LUT.Gamma", "1.8"); 
-               SetOption("LUT.Exposure", "1");
+               SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "2.2 gamma")
             {
                SetOption("LUT.Tonemap", "Linear"); 
                SetOption("LUT.Gamma", "2.2"); 
-               SetOption("LUT.Exposure", "1");
+               SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "sRGB gamma")
             {
                SetOption("LUT.Tonemap", "sRGB");
                SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "1");
+               SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "Rec 709 gamma")
             {
                SetOption("LUT.Tonemap", "Rec709");
                SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "1");
+               SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "Raw")
             {
                SetOption("LUT.Tonemap", "Raw");
                SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "1");
+               SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "Log")
             {
                SetOption("LUT.Tonemap", "Log");
                SetOption("LUT.Gamma", "1");
-               SetOption("LUT.Exposure", "1");
+               SetOption("LUT.Exposure", "0");
             }
          }
       }
