@@ -8,6 +8,7 @@
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
 #include <maya/MGlobal.h>
+#include <maya/MPlugArray.h>
 
 #include <iostream>
 
@@ -224,8 +225,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		// Update the matrix
 		texturedItem->setMatrix(&modelMatrix);
 
-		// Performance issue to recompute the shader program even if not used ?
 		MHWRender::MShaderInstance *shaderInst = m_texturedShader;
+		// TODO : Add CM support for texture lookup
 		/* if (mIblShape->cmEnabled_)
 		{
 		if(mIblShape->inputColorSpace_ != mIblShape->inputColorSpaceLast_
@@ -248,74 +249,99 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		if (m_texturedShader)
 		{
 			// Get texture
-			MHWRender::MTexture* texture = NULL;
+			MHWRender::MTexture* texture = 0;
 
-			// Dummy fallback texture.
-#if 1
-			unsigned int targetWidth = 128;
-			unsigned int targetHeight = 128;
-			unsigned char* textureData = new unsigned char[4*targetWidth*targetHeight];
-			if (textureData)
+			// Examine the node connected to the "color" attribute of the skydome node.
+			// If one exists then acqure a texture by plug. If it's a file texture
+			// we should get a direct read, otherwise a bake will occur.
+			//
+			unsigned int colorBakeSize = 256; // TODO use globals
+			bool useUnconnectedColor = true;
+			MPlug plug = depNode.findPlug("color");
+			if (!texture)
 			{
-				for (unsigned int y = 0; y < targetHeight; y++)
+				if (!plug.isNull())
 				{
-					unsigned char* pPixel = textureData + (y * targetWidth * 4);
-					for (unsigned int x = 0; x < targetWidth; x++)
+					MPlugArray plugArray;
+					if (plug.connectedTo(plugArray, true, false) && plugArray.length() == 1)
 					{
-						bool checker = (((x >> 5) & 1) ^ ((y >> 5) & 1)) != 0;
-						*pPixel++ = checker ? 255 : 0;
-						*pPixel++ = 0;
-						*pPixel++ = 0;
-						*pPixel++ = 255;
+						// Get texture from plug
+						// TODO : Do not require a V-flip for procedurals. Need to check this.
+						//
+						texture = textureManager->acquireTexture("", plugArray[0], colorBakeSize, colorBakeSize);
+						if (texture)
+						{
+							useUnconnectedColor = false;
+						}
 					}
 				}
 			}
-			MHWRender::MTextureDescription colorTextureDesc;
-			colorTextureDesc.fWidth = targetWidth;
-			colorTextureDesc.fHeight = targetHeight;
-			colorTextureDesc.fDepth = 1;
-			colorTextureDesc.fBytesPerRow = 4*targetWidth;
-			colorTextureDesc.fBytesPerSlice = colorTextureDesc.fBytesPerRow*targetHeight;
-			texture = textureManager->acquireTexture("", colorTextureDesc, textureData);
-			delete [] textureData;
-#endif
-#if 0
-			texture = textureManager->acquireTexture("c:/work/data/swatches.jpg");
-			if (texture)
+
+			// If no texture found then get unconnected plug value and make a 1x1 texture of
+			// constant color using it.
+			if (useUnconnectedColor)
 			{
-				MGlobal::displayInfo("Acquire dummy texture");
-				MStatus status = textureManager->saveTexture(texture, "c:/Work/Data/dummy1.jpg"); // To disk
-				if (status == MStatus::kSuccess)
-					MGlobal::displayInfo("Save dummy texture");
+				float r = 0.5f;
+				float g = 0.5f;
+				float b = 0.5f;
+				if (!plug.isNull())
+				{
+					plug.child(0).getValue(r);
+					plug.child(1).getValue(g);
+					plug.child(2).getValue(b);
+				}
+
+				unsigned char texData[4];
+				texData[0] = (unsigned char)(255 * r);
+				texData[1] = (unsigned char)(255 * g);
+				texData[2] = (unsigned char)(255 * b);
+				texData[3] = 255;
+				MHWRender::MTextureDescription desc;
+				desc.setToDefault2DTexture();
+				desc.fWidth = 1;
+				desc.fHeight = 1;
+				desc.fFormat = MHWRender::kR8G8B8A8_UNORM;
+				texture = textureManager->acquireTexture("", desc, texData);
 			}
-#endif
+
 			// Set texture
 			MHWRender::MTextureAssignment textureAssignment;
 			textureAssignment.texture = texture;
-			//texture->setHasAlpha(true);
+			if (texture)
+			{
+				texture->setHasAlpha(true);
+			}
 			bool assignedTexture = false;
 			MStatus status = shaderInst->setParameter("map", textureAssignment);
 			if (MStatus::kSuccess == status)
 				assignedTexture = true;
 			//MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned map" : "Failed map");
-/*
+
+#if _TRANSPARENCY_SUPPORT_REQUIRED_
 			// Set transparency
-			float alphaThreshold = 0.0f;       
+			float alphaThreshold = 0.05f;       
 			status = shaderInst->setParameter("alphaThreshold", &alphaThreshold);
 			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaThreshold" : "Failed alphaThreshold" );
-			float defaultColor[4] = { 1.0f, 0.2f, 5.0f, 0.3f };
+			
+			float defaultColor[4] = { 1.0f, 1.0f, 1.0f, 0.3f };
 			status = shaderInst->setParameter("defaultColor", defaultColor);
 			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned defaultColor" : "Failed defaultColor" );
+			
 			// Set outputMode 4 = Multiply defaultColor * texture
 			status = shaderInst->setParameter("outputMode", 4);
-			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned outputMode" : "Failed outputMode" );
+			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned outputMode=4" : "Failed outputMode" );
 
 			shaderInst->setParameter("alphaGain", 0.0f);
+			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaGain" : "Failed outputMode" );
+
 			shaderInst->setParameter("alphaOffset", 0.5f);
-			status = shaderInst->setParameter("outputMode", 1);
-*/
-			//shaderInst->setIsTransparent(true);
-			
+			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaOffset" : "Failed outputMode" );
+
+			//status = shaderInst->setParameter("outputMode", 1);
+			//MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned outputMode=1" : "Failed outputMode" );
+
+			shaderInst->setIsTransparent(true);
+#endif		
 			texturedItem->setShader(shaderInst, &s_texturedItemName);
 		}
 
@@ -323,7 +349,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		// it alive for shading
 		if (texture)
 		{
-			//	textureManager->releaseTexture(texture);
+			textureManager->releaseTexture(texture);
 		} 
 	}
 }
@@ -370,23 +396,17 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 			const float theta = (float)AI_PI * (float)y / (float)divisions[1];
 			dir = SphereVertex(phi, theta);            
 
-			AiMappingMirroredBall(&dir, &u, &v); // Mirrored Ball
-			AiMappingAngularMap(&dir, &u2, &v2);  // Angular
-			AiMappingLatLong(&dir, &u3, &v3);  // Latlong
+			AiMappingMirroredBall(&dir, &u, &v);	// Mirrored Ball
+			AiMappingAngularMap(&dir, &u2, &v2);	// Angular
+			AiMappingLatLong(&dir, &u3, &v3);		// Lat-long
 
 			const int id = x + y * divisionsX1;
 			s_filledUvs[0][id*2] = u;
-			s_filledUvs[0][id*2+1] = v;
-			//MString outstr("uv = ");
-			//outstr += u;
-			//outstr += ", ";
-			//outstr += v;
-			//MGlobal::displayInfo(outstr);
-
+			s_filledUvs[0][id*2+1] = 1.0f - v;		// Need to vertically flip for VP2
 			s_filledUvs[1][id*2] = u2;
-			s_filledUvs[1][id*2+1] = v2;
+			s_filledUvs[1][id*2+1] = 1.0f - v2;
 			s_filledUvs[2][id*2] = u3;
-			s_filledUvs[2][id*2+1] = v3;
+			s_filledUvs[2][id*2+1] = 1.0f - v3;
 
 			s_filledPositions[id] = MFloatVector( dir.x*radius,
 				dir.y*radius,
@@ -481,7 +501,7 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 	// Already created so don't create again
 	if (s_filledPositions.length() == 0)
 	{	
-		unsigned int dim[2] = { 8, 8 };
+		unsigned int dim[2] = { 64, 64 };
 		createSkyDomeGeometry(dim, 1.0f);
 	}
 
@@ -548,10 +568,10 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 						filledUvBuffer = data.createVertexBuffer(vertexBufforDescriptor);
 						if (filledUvBuffer)
 						{
-							MStatus status = filledUvBuffer->update(&s_filledUvs[m_format], 0, numUvs, true);
-							if (status == MStatus::kSuccess)
+							MStatus status = filledUvBuffer->update(&(s_filledUvs[m_format][0]), 0, numUvs, true);
+							if (status != MStatus::kSuccess)
 							{
-								//MGlobal::displayInfo("Loaded UVS");
+								//MGlobal::displayInfo("Unable to load UVS for skydome");
 							}
 						}
 					}
