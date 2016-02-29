@@ -242,30 +242,31 @@ void CRenderViewMtoA::UpdateSceneChanges()
    // Set resolution and camera as passed in.
    CMayaScene::GetRenderSession()->SetResolution(-1, -1);
    CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
-
-
 }
 
 static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
 {
    MSelectionList activeList;
    MGlobal::getActiveSelectionList(activeList);
-   if( !activeList.isEmpty())
-   {
-      MObject depNode;
-      activeList.getDependNode(0, depNode);
-      if (depNode.hasFn(MFn::kTransform))
-      {
-         // from Transform to Shape
-         MDagPath dagPath;
-         activeList.getDagPath(0, dagPath);
-         depNode = dagPath.child(0);
-      }
-      MFnDependencyNode nodeFn( depNode );
+   if(activeList.isEmpty()) return;
 
-      AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
-      if (selected) selectedNodes.push_back(selected);
+   //CArnoldSession *session = CMayaScene::GetArnoldSession();
+   //session->FlattenSelection(&activeList, false);
+   
+   MObject depNode;
+   activeList.getDependNode(0, depNode);
+   if (depNode.hasFn(MFn::kTransform))
+   {
+      // from Transform to Shape
+      MDagPath dagPath;
+      activeList.getDagPath(0, dagPath);
+      depNode = dagPath.child(0);
    }
+   MFnDependencyNode nodeFn( depNode );
+
+   AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+   if (selected) selectedNodes.push_back(selected);
+   
 }
 unsigned int CRenderViewMtoA::GetSelectionCount()
 {
@@ -324,6 +325,9 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
    MGlobal::getActiveSelectionList(activeList);
    if( activeList.isEmpty()) return;
 
+   //CArnoldSession *session = CMayaScene::GetArnoldSession();
+   //session->FlattenSelection(&activeList, false);
+   
    MObject depNode;
    std::vector<AtNode *> selection;
    unsigned int count = activeList.length();
@@ -790,11 +794,17 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
    MPlug plug;
    plug = depNode.findPlug("cfe", &status);
    bool ocio = false;
+
    if (status == MS::kSuccess && plug.asBool())
    {
+      SetOption("LUT.OCIO", "1");
       ocio = true;
-      SetOption("LUT.Tonemap", "OCIO");
+      SetOption("LUT.Gamma", "1"); 
+      SetOption("LUT.Exposure", "0");
+
    }
+   else  SetOption("LUT.OCIO", "0");
+
    
    plug = depNode.findPlug("cfp", &status);
    
@@ -812,20 +822,7 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
          if (status == MS::kSuccess)
          {
             const std::string viewTransform = plug.asString().asChar();
-            size_t sep = viewTransform.find(" (");
-            if (sep != std::string::npos)
-            {
-               std::string viewName = viewTransform.substr(0, sep);
-               
-               size_t lastPos = viewTransform.find(")", sep+2);
-               if (lastPos != std::string::npos)
-               {
-                  std::string displayName = viewTransform.substr(sep + 2, lastPos - sep - 2);
-                  SetOption("LUT.Display", displayName.c_str());
-                  SetOption("LUT.View", viewName.c_str());
-
-               }
-            }
+            SetOption("LUT.View Transform", viewTransform.c_str());
          }
       } else
       {
@@ -835,32 +832,32 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
             const std::string viewTransform = plug.asString().asChar();
             if (viewTransform == "1.8 gamma")
             {
-               SetOption("LUT.Tonemap", "Linear"); 
+               SetOption("LUT.View Transform", "Linear"); 
                SetOption("LUT.Gamma", "1.8"); 
                SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "2.2 gamma")
             {
-               SetOption("LUT.Tonemap", "Linear"); 
+               SetOption("LUT.View Transform", "Linear"); 
                SetOption("LUT.Gamma", "2.2"); 
                SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "sRGB gamma")
             {
-               SetOption("LUT.Tonemap", "sRGB");
+               SetOption("LUT.View Transform", "sRGB");
                SetOption("LUT.Gamma", "1"); 
                SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "Rec 709 gamma")
             {
-               SetOption("LUT.Tonemap", "Rec709");
+               SetOption("LUT.View Transform", "Rec709");
                SetOption("LUT.Gamma", "1"); 
                SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "Raw")
             {
-               SetOption("LUT.Tonemap", "Raw");
+               SetOption("LUT.View Transform", "Linear");
                SetOption("LUT.Gamma", "1"); 
                SetOption("LUT.Exposure", "0");
             } else if (viewTransform == "Log")
             {
-               SetOption("LUT.Tonemap", "Log");
+               SetOption("LUT.View Transform", "Log");
                SetOption("LUT.Gamma", "1");
                SetOption("LUT.Exposure", "0");
             }
