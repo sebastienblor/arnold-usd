@@ -4,7 +4,7 @@
 #include "attributes/AttrHelper.h"
 
 #include <ai_types.h>
-
+#include <maya/MSelectionMask.h>
 
 class CArnoldSkyDomeLightNode
    :  public CSphereLocator
@@ -24,7 +24,9 @@ public:
    static MStatus initialize();
    virtual MStatus   compute( const MPlug&, MDataBlock& );
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
-
+#ifdef ENABLE_VP2
+   virtual MSelectionMask getShapeSelectionMask() const;
+#endif
    static MTypeId id;
 
    static CStaticAttrHelper s_attributes;

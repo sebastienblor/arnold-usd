@@ -85,12 +85,6 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
 				m_texturedShader = 0;
 			}
 		}
-
-		// Release texture
-		MHWRender::MTextureManager* textureManager = renderer->getTextureManager();
-		if (textureManager)
-		{
-		}
 	}
 }
 
@@ -107,12 +101,12 @@ void CArnoldSkyDomeLightGeometryOverride::updateDG()
 bool CArnoldSkyDomeLightGeometryOverride::isIndexingDirty(const MHWRender::MRenderItem &item) 
 { 
 	// Indexing data never needs to be updated
-	return true; 
+	return false; 
 }
 
 bool CArnoldSkyDomeLightGeometryOverride::isStreamDirty(const MHWRender::MVertexBufferDescriptor &desc) 
 { 
-	// Stream data never needs to be updated
+	// Stream data never needs to be updated (to add in)
 	return true; 
 }
 
@@ -132,32 +126,18 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
 	MFnDependencyNode depNode(path.node());
 
-	// Get format
+	// Cache format for uv geometry update
 	m_format = 0;
 	MStatus status;
 	MPlug plug = depNode.findPlug("format", &status);
 	if (status && !plug.isNull())
 		m_format = plug.asInt();
 
-	// zeroing the translation component out
-	path.inclusiveMatrix().get(m_modelMatrix);
-	m_modelMatrix[3][0] = 0.0f;
-	m_modelMatrix[3][1] = 0.0f;
-	m_modelMatrix[3][2] = 0.0f;
-	MMatrix modelMatrix(m_modelMatrix);
-
-	// Apply scale
+	// Cache scale value for position geometry update
 	m_radius = 1.0;
 	plug = depNode.findPlug("skyRadius", &status);
 	if (status && !plug.isNull())
 		m_radius = plug.asFloat();
-	if (m_radius != 1.0)
-	{
-		MTransformationMatrix transformMatrix(modelMatrix);
-		double scale[3] = { m_radius, m_radius, m_radius };
-		transformMatrix.addScale( scale, MSpace::kWorld );
-		modelMatrix = transformMatrix.asMatrix();
-	}
 
 	// Add in a wireframe render item
 	MHWRender::MRenderItem* wireframeItem = 0;
@@ -168,10 +148,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			s_wireframeItemName,
 			MHWRender::MRenderItem::DecorationItem,
 			MHWRender::MGeometry::kLines);
-		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
-		wireframeItem->depthPriority(MHWRender::MRenderItem::sActiveWireDepthPriority);
-		wireframeItem->setExcludedFromPostEffects(true);
-		wireframeItem->enable(true);
 		list.append(wireframeItem);
 	}
 	else
@@ -180,6 +156,11 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	}
 	if (wireframeItem && m_wireframeShader)
 	{
+		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
+		wireframeItem->depthPriority(MHWRender::MRenderItem::sActiveLineDepthPriority);
+		wireframeItem->setExcludedFromPostEffects(true);
+		wireframeItem->enable(true);
+
 		// Update the wireframe color
 		MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
 		m_wireframeColor[0] = color.r;
@@ -190,9 +171,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		// Update the color
 		m_wireframeShader->setParameter(colorParameterName_, m_wireframeColor);
 		wireframeItem->setShader(m_wireframeShader, &s_wireframeItemName);
-
-		// Update the matrix
-		wireframeItem->setMatrix(&modelMatrix);
 	}
 
 	// Add in a textured render item
@@ -205,12 +183,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			s_texturedItemName,
 			MHWRender::MRenderItem::MaterialSceneItem,
 			MHWRender::MGeometry::kTriangles);
-		texturedItem->setDrawMode((MHWRender::MGeometry::DrawMode)
-			(MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));		
-		texturedItem->enable(true);
-		texturedItem->setExcludedFromPostEffects(true);
-		texturedItem->castsShadows(false);
-		texturedItem->receivesShadows(false);
 		list.append(texturedItem);
 	}
 	else
@@ -220,10 +192,15 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
 	if (texturedItem)
 	{
-		MHWRender::MTexture* texture = 0;
+		texturedItem->setDrawMode((MHWRender::MGeometry::DrawMode)
+			(MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));	
+		texturedItem->depthPriority(MHWRender::MRenderItem::sDormantFilledDepthPriority);
+		texturedItem->enable(true);
+		texturedItem->setExcludedFromPostEffects(true);
+		texturedItem->castsShadows(false);
+		texturedItem->receivesShadows(false);
 
-		// Update the matrix
-		texturedItem->setMatrix(&modelMatrix);
+		MHWRender::MTexture* texture = 0;
 
 		MHWRender::MShaderInstance *shaderInst = m_texturedShader;
 		// TODO : Add CM support for texture lookup
@@ -315,33 +292,21 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			MStatus status = shaderInst->setParameter("map", textureAssignment);
 			if (MStatus::kSuccess == status)
 				assignedTexture = true;
-			//MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned map" : "Failed map");
 
-#if _TRANSPARENCY_SUPPORT_REQUIRED_
-			// Set transparency
-			float alphaThreshold = 0.05f;       
-			status = shaderInst->setParameter("alphaThreshold", &alphaThreshold);
-			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaThreshold" : "Failed alphaThreshold" );
-			
-			float defaultColor[4] = { 1.0f, 1.0f, 1.0f, 0.3f };
-			status = shaderInst->setParameter("defaultColor", defaultColor);
-			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned defaultColor" : "Failed defaultColor" );
-			
+			// Check for transparency
+			//
+            float hwTexAlpha  = depNode.findPlug("hwtexalpha").asFloat();
+
+			float alphaThreshold = 0.0f;       
+			status = shaderInst->setParameter("alphaThreshold", &alphaThreshold);			
+			float defaultColor[4] = { hwTexAlpha, hwTexAlpha, hwTexAlpha, hwTexAlpha  };
+			status = shaderInst->setParameter("defaultColor", defaultColor);	
 			// Set outputMode 4 = Multiply defaultColor * texture
 			status = shaderInst->setParameter("outputMode", 4);
-			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned outputMode=4" : "Failed outputMode" );
 
-			shaderInst->setParameter("alphaGain", 0.0f);
-			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaGain" : "Failed outputMode" );
+			// Make shader transparent as necessary
+			shaderInst->setIsTransparent(hwTexAlpha < 1.0f);
 
-			shaderInst->setParameter("alphaOffset", 0.5f);
-			MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned alphaOffset" : "Failed outputMode" );
-
-			//status = shaderInst->setParameter("outputMode", 1);
-			//MGlobal::displayInfo(status == MStatus::kSuccess ? "Assigned outputMode=1" : "Failed outputMode" );
-
-			shaderInst->setIsTransparent(true);
-#endif		
 			texturedItem->setShader(shaderInst, &s_texturedItemName);
 		}
 
@@ -499,10 +464,10 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 
 	// Build geometry
 	// Already created so don't create again
-	if (s_filledPositions.length() == 0)
+	//if (s_filledPositions.length() == 0)
 	{	
-		unsigned int dim[2] = { 64, 64 };
-		createSkyDomeGeometry(dim, 1.0f);
+		unsigned int dim[2] = { 16, 16 };
+		createSkyDomeGeometry(dim, m_radius);
 	}
 
 	// Filled vertex data
