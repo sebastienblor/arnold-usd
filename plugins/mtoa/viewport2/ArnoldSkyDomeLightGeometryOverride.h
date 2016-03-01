@@ -59,12 +59,14 @@ private:
 
 	// Shaders used for drawing 
 	MHWRender::MShaderInstance* m_wireframeShader;
+	MHWRender::MShaderInstance* m_activeWireframeShader;
 	MHWRender::MShaderInstance* m_texturedShader;
 
 	// Texture for texture shader
 
 	// Render item names
 	static MString s_wireframeItemName;
+	static MString s_activeWireframeItemName;
 	static MString s_texturedItemName;
 
 	// Associated object
@@ -79,8 +81,10 @@ private:
     // 1 - Angular
     // 2 - LatLong
 
-	static void createSkyDomeGeometry(unsigned int divisions[2],
-										float radius);
+	static void createFilledSkyDomeGeometry(unsigned int divisions[2],
+											float radius);
+	static void createWireSkyDomeGeometry(unsigned int divisions[2],
+											float radius);
 
 	// Cleared from main, like clear GPU resources....
 	static unsigned int s_divisions[2];

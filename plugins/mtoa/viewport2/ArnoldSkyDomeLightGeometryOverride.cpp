@@ -22,9 +22,10 @@ MFloatArray CArnoldSkyDomeLightGeometryOverride::s_filledUvs[3];
 MUintArray CArnoldSkyDomeLightGeometryOverride::s_filledIndexing;
 MFloatVectorArray CArnoldSkyDomeLightGeometryOverride::s_wirePositions;
 MUintArray CArnoldSkyDomeLightGeometryOverride::s_wireIndexing;
-unsigned int CArnoldSkyDomeLightGeometryOverride::s_divisions[2] = { 20, 20 };
+unsigned int CArnoldSkyDomeLightGeometryOverride::s_divisions[2] = { 0, 0 };
 
 MString CArnoldSkyDomeLightGeometryOverride::s_wireframeItemName = "wireframeSkyDome";
+MString CArnoldSkyDomeLightGeometryOverride::s_activeWireframeItemName = "active_wireframeSkyDome";
 MString CArnoldSkyDomeLightGeometryOverride::s_texturedItemName	= "texturedSkyDome";
 
 MString colorParameterName_   = "solidColor";
@@ -40,6 +41,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 	, m_format(0)
 	, m_radius(1000)
 	, m_wireframeShader(0)
+	, m_activeWireframeShader(0)
 	, m_texturedShader(0)
 	, p_skydomeNode(0)
 {
@@ -61,6 +63,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 		if (!shaderMgr)
 			return;
 		m_wireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
+		m_activeWireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
 		m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader);
 	}
 }
@@ -78,6 +81,11 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
 			{
 				shaderMgr->releaseShader(m_wireframeShader);
 				m_wireframeShader = 0;
+			}
+			if (m_activeWireframeShader)
+			{
+				shaderMgr->releaseShader(m_activeWireframeShader);
+				m_activeWireframeShader = 0;
 			}
 			if (m_texturedShader)
 			{
@@ -139,7 +147,21 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	if (status && !plug.isNull())
 		m_radius = plug.asFloat();
 
-	// Add in a wireframe render item
+	// Disable when not required
+	bool needActiveItem = false;
+	MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(path);
+	switch (displayStatus) {
+	case MHWRender::kLead:
+	case MHWRender::kActive:
+	case MHWRender::kHilite:
+	case MHWRender::kActiveComponent:
+		needActiveItem = true;
+		break;
+	default:
+		break;
+	};
+
+	// 1. Add in a dormant wireframe render item
 	MHWRender::MRenderItem* wireframeItem = 0;
 	int index = list.indexOf(s_wireframeItemName);
 	if (index < 0)
@@ -148,6 +170,11 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			s_wireframeItemName,
 			MHWRender::MRenderItem::DecorationItem,
 			MHWRender::MGeometry::kLines);
+	
+		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
+		wireframeItem->depthPriority(MHWRender::MRenderItem::sDormantWireDepthPriority);
+		wireframeItem->setExcludedFromPostEffects(true);
+		wireframeItem->enable(true);
 		list.append(wireframeItem);
 	}
 	else
@@ -156,24 +183,66 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	}
 	if (wireframeItem && m_wireframeShader)
 	{
-		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
-		wireframeItem->depthPriority(MHWRender::MRenderItem::sActiveLineDepthPriority);
-		wireframeItem->setExcludedFromPostEffects(true);
-		wireframeItem->enable(true);
+		// Need dormant if not drawing active item
+		wireframeItem->enable(!needActiveItem);
 
 		// Update the wireframe color
+		if (MHWRender::kDormant == MHWRender::MGeometryUtilities::displayStatus(path))
+		{
+			m_wireframeColor[0] = 0.75f;
+			m_wireframeColor[1] = 0.f;
+			m_wireframeColor[2] = 0.f;
+			m_wireframeColor[3] = 0.2f;
+		}
+		else
+		{
+			MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
+			m_wireframeColor[0] = color.r;
+			m_wireframeColor[1] = color.g;
+			m_wireframeColor[2] = color.b;
+			m_wireframeColor[3] = color.a;
+		}
+
+		// Update the color
+		m_wireframeShader->setParameter(colorParameterName_, m_wireframeColor);
+		wireframeItem->setShader(m_wireframeShader);
+	}
+
+	// 2. Add in a active wireframe render item
+	// 
+	MHWRender::MRenderItem* activeWireframeItem = 0;
+	index = list.indexOf(s_activeWireframeItemName);
+	if (index < 0)
+	{
+		activeWireframeItem = MHWRender::MRenderItem::Create(
+			s_activeWireframeItemName,
+			MHWRender::MRenderItem::DecorationItem,
+			MHWRender::MGeometry::kLines);
+
+		activeWireframeItem->setDrawMode(MHWRender::MGeometry::kAll);
+		activeWireframeItem->depthPriority(MHWRender::MRenderItem::sActiveLineDepthPriority);
+		activeWireframeItem->setExcludedFromPostEffects(true);
+		list.append(activeWireframeItem);
+	}
+	else
+	{
+		activeWireframeItem = list.itemAt(index);
+	}
+	if (activeWireframeItem && m_activeWireframeShader)
+	{
+		// Enable if need active item
+		activeWireframeItem->enable(needActiveItem);
+
 		MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
 		m_wireframeColor[0] = color.r;
 		m_wireframeColor[1] = color.g;
 		m_wireframeColor[2] = color.b;
 		m_wireframeColor[3] = color.a;
-
-		// Update the color
-		m_wireframeShader->setParameter(colorParameterName_, m_wireframeColor);
-		wireframeItem->setShader(m_wireframeShader, &s_wireframeItemName);
+		m_activeWireframeShader->setParameter(colorParameterName_, m_wireframeColor);
+		activeWireframeItem->setShader(m_activeWireframeShader);
 	}
 
-	// Add in a textured render item
+	// 3. Add in a textured render item
 	MHWRender::MRenderItem* texturedItem = NULL;
 
 	index = list.indexOf(s_texturedItemName);
@@ -181,7 +250,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	{
 		texturedItem = MHWRender::MRenderItem::Create(
 			s_texturedItemName,
-			MHWRender::MRenderItem::MaterialSceneItem,
+			// Note: we don't want this to be treated like a material item
+			MHWRender::MRenderItem::DecorationItem, 
 			MHWRender::MGeometry::kTriangles);
 		list.append(texturedItem);
 	}
@@ -232,7 +302,28 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			// If one exists then acqure a texture by plug. If it's a file texture
 			// we should get a direct read, otherwise a bake will occur.
 			//
-			unsigned int colorBakeSize = 256; // TODO use globals
+			unsigned int colorBakeSize = 256; 
+			int sampling = depNode.findPlug("sampling").asShort();
+			switch (sampling)
+			{
+			case 0:
+				colorBakeSize = 64;
+				break;
+			case 1:
+				colorBakeSize = 128;
+				break;
+			case 2:
+				colorBakeSize = 256;
+				break;
+			case 3:
+				colorBakeSize = 512;
+				break;
+			case 4:
+				colorBakeSize = 1024;
+				break;
+			default:
+				break;
+			}
 			bool useUnconnectedColor = true;
 			MPlug plug = depNode.findPlug("color");
 			if (!texture)
@@ -295,7 +386,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
 			// Check for transparency
 			//
-            float hwTexAlpha  = depNode.findPlug("hwtexalpha").asFloat();
+            float hwTexAlpha  = useUnconnectedColor ? 0.3f : depNode.findPlug("hwtexalpha").asFloat();
 
 			float alphaThreshold = 0.0f;       
 			status = shaderInst->setParameter("alphaThreshold", &alphaThreshold);			
@@ -329,7 +420,7 @@ static AtVector SphereVertex(float phi, float theta)
 	return ret;
 }
 
-void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int divisions[2],
+void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned int divisions[2],
 																float radius)
 {
 	// Allocate memory
@@ -342,11 +433,6 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 	s_filledUvs[1].setLength(numVertices*2);
 	s_filledUvs[2].setLength(numVertices*2);
 	s_filledIndexing.setLength(numIndices);
-
-	unsigned int numVertices_wire = divisions[0] * divisions[1] * 8;
-	unsigned int numIndicies_wire = divisions[0] * divisions[1] * 8;
-	s_wirePositions.setLength(numVertices_wire);
-	s_wireIndexing.setLength(numIndicies_wire);
 
 	AtVector dir;
 	float u, v, u2, v2, u3, v3;
@@ -395,6 +481,17 @@ void CArnoldSkyDomeLightGeometryOverride::createSkyDomeGeometry(unsigned int div
 			s_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
 		}  
 	}
+}
+
+
+void CArnoldSkyDomeLightGeometryOverride::createWireSkyDomeGeometry(unsigned int divisions[2],
+																float radius)
+{
+	// Allocate memory
+	unsigned int numVertices_wire = divisions[0] * divisions[1] * 8;
+	unsigned int numIndicies_wire = divisions[0] * divisions[1] * 8;
+	s_wirePositions.setLength(numVertices_wire);
+	s_wireIndexing.setLength(numIndicies_wire);
 
 	// Create wireframe data
 	unsigned int index = 0;
@@ -463,12 +560,10 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 		return;
 
 	// Build geometry
-	// Already created so don't create again
-	//if (s_filledPositions.length() == 0)
-	{	
-		unsigned int dim[2] = { 16, 16 };
-		createSkyDomeGeometry(dim, m_radius);
-	}
+	unsigned int wire_dim[2] = { 64, 64 };
+	createWireSkyDomeGeometry(wire_dim, m_radius*1.001f);
+	unsigned int filled_dim[2] = { 256, 256 };
+	createFilledSkyDomeGeometry(filled_dim, m_radius);
 
 	// Filled vertex data
 	MHWRender::MVertexBuffer* filledPositionBuffer = NULL;
@@ -507,7 +602,7 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 					}
 				}
 				// Update position buffer for wireframe render item
-				else if (vertexBufforDescriptor.name() == s_wireframeItemName)
+				else 
 				{
 					unsigned int totalVerts = s_wirePositions.length();
 					if (totalVerts > 0)
@@ -574,7 +669,8 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 				}
 			}
 		}
-		else if (item->name() == s_wireframeItemName)
+		else if (item->name() == s_wireframeItemName ||
+				 item->name() == s_activeWireframeItemName)
 		{
 			unsigned int indexCount = s_wireIndexing.length();
 			if (indexCount)
