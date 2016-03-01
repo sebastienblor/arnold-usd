@@ -75,6 +75,7 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("r", "region", MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned);
+   syntax.addFlag("opt", "option", MSyntax::kString, MSyntax::kString);
 
    return syntax;
 }
@@ -86,6 +87,16 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    //   return MS::kFailure;
    MStatus status;
    MArgDatabase args(syntax(), argList);
+
+   if (args.isFlagSet("option"))
+   {
+      MString option = args.flagArgumentString("option", 0);
+      MString value = args.flagArgumentString("option", 1);
+
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->SetRenderViewOption(option, value);
+      return MS::kSuccess;
+   }
 
    // Get argument to "-mode" flag
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
