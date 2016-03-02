@@ -7,6 +7,7 @@
 #include <maya/MUIDrawManager.h>
 #include <maya/MShaderManager.h>
 #include <maya/MTextureManager.h>
+#include <maya/MStateManager.h>
 #include <maya/MGlobal.h>
 #include <maya/MPlugArray.h>
 
@@ -24,11 +25,34 @@ MFloatVectorArray CArnoldSkyDomeLightGeometryOverride::s_wirePositions;
 MUintArray CArnoldSkyDomeLightGeometryOverride::s_wireIndexing;
 unsigned int CArnoldSkyDomeLightGeometryOverride::s_divisions[2] = { 0, 0 };
 
+// Static depth stencil and rasterizer states
+const MHWRender::MDepthStencilState* s_oldDepthStencilState = 0;
+const MHWRender::MRasterizerState* s_oldRasterizerState = 0;
+
 MString CArnoldSkyDomeLightGeometryOverride::s_wireframeItemName = "wireframeSkyDome";
 MString CArnoldSkyDomeLightGeometryOverride::s_activeWireframeItemName = "active_wireframeSkyDome";
 MString CArnoldSkyDomeLightGeometryOverride::s_texturedItemName	= "texturedSkyDome";
 
 MString colorParameterName_   = "solidColor";
+
+// User data to pass for pre and post shader state setup / cleanup
+struct CArnoldSkyDomeLighUserData : public MUserData
+{
+	CArnoldSkyDomeLighUserData()
+		: MUserData(false /*deleteAfterUse*/)
+		, m_depthStencilState(0)
+		, m_rasterizerState(0)
+	{}
+
+	~CArnoldSkyDomeLighUserData()
+	{
+		m_depthStencilState = 0;
+		m_rasterizerState = 0;
+	}
+
+	const MHWRender::MDepthStencilState*	m_depthStencilState;
+	const MHWRender::MRasterizerState*		m_rasterizerState;
+};
 
 MHWRender::MPxGeometryOverride* 
 	CArnoldSkyDomeLightGeometryOverride::Creator(const MObject& obj)
@@ -44,6 +68,10 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 	, m_activeWireframeShader(0)
 	, m_texturedShader(0)
 	, p_skydomeNode(0)
+	, m_depthStencilState(0)
+	, m_cullNoneState(0)
+	, m_cullBackState(0)
+	, m_cullFrontState(0)
 {
 	m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3] = 1.0f;
 
@@ -60,11 +88,17 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 	if (renderer)
 	{
 		const MHWRender::MShaderManager* shaderMgr = renderer->getShaderManager();
-		if (!shaderMgr)
-			return;
-		m_wireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
-		m_activeWireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
-		m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader);
+		if (shaderMgr)
+		{
+			m_wireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader,
+				preDrawCallback, postDrawCallback);
+			m_activeWireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader,
+				preDrawCallback, postDrawCallback);
+			m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader,
+				preDrawCallback, postDrawCallback);
+		}
+
+		createDisplayStates();
 	}
 }
 
@@ -93,12 +127,153 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
 				m_texturedShader = 0;
 			}
 		}
+
+		destoryDisplayStates();
 	}
 }
 
 MHWRender::DrawAPI CArnoldSkyDomeLightGeometryOverride::supportedDrawAPIs() const
 {
 	return (MHWRender::kAllDevices);
+}
+
+// Create state objects 
+void CArnoldSkyDomeLightGeometryOverride::createDisplayStates()
+{
+	if (!m_depthStencilState)
+	{
+		MHWRender::MDepthStencilStateDesc desc;
+		desc.depthWriteEnable = false;
+		m_depthStencilState = MHWRender::MStateManager::acquireDepthStencilState(desc);
+	}
+	if (!m_cullNoneState)
+	{
+		MHWRender::MRasterizerStateDesc desc;
+		desc.cullMode =  MHWRender::MRasterizerState::kCullNone;
+		m_cullNoneState = MHWRender::MStateManager::acquireRasterizerState(desc);
+	}	
+	if (!m_cullBackState)
+	{
+		MHWRender::MRasterizerStateDesc desc;
+		desc.cullMode =  MHWRender::MRasterizerState::kCullBack;
+		m_cullBackState = MHWRender::MStateManager::acquireRasterizerState(desc);
+	}
+	if (!m_cullFrontState)
+	{
+		MHWRender::MRasterizerStateDesc desc;
+		desc.cullMode =  MHWRender::MRasterizerState::kCullFront;
+		m_cullFrontState = MHWRender::MStateManager::acquireRasterizerState(desc);
+	}
+}
+
+// Destory state objects
+void CArnoldSkyDomeLightGeometryOverride::destoryDisplayStates()
+{
+	if (!m_depthStencilState)
+	{
+		MHWRender::MStateManager::releaseDepthStencilState(m_depthStencilState);
+		m_depthStencilState = 0;
+	}
+	if (!m_cullNoneState)
+	{
+		MHWRender::MStateManager::releaseRasterizerState(m_cullNoneState);
+		m_cullNoneState = 0;
+	}	
+	if (!m_cullBackState)
+	{
+		MHWRender::MStateManager::releaseRasterizerState(m_cullBackState);
+		m_cullBackState = 0;
+	}
+	if (!m_cullFrontState)
+	{
+		MHWRender::MStateManager::releaseRasterizerState(m_cullFrontState);
+		m_cullFrontState = 0;
+	}
+}
+
+void CArnoldSkyDomeLightGeometryOverride::preDrawCallback(
+	MHWRender::MDrawContext&			context,
+	const MHWRender::MRenderItemList&	renderItemList,
+	MHWRender::MShaderInstance*			shaderInstance)
+{
+	// Set forceOpaque flag to true if we are drawing a non-PE pattern pass
+	// This pass draws an alpha mask to choose which part of the target
+	// is not affected by post-FX.
+	const MHWRender::MPassContext& passCtx = context.getPassContext();
+	const MStringArray& passSem = passCtx.passSemantics();
+	for (unsigned int i=0; i<passSem.length(); i++)
+	{
+		const MString& sem = passSem[i];
+		if (sem == MHWRender::MPassContext::kNonPEPatternPassSemantic)
+		{
+			//shaderInstance->setParameter(sForceOpaque, true);
+			break;
+		}
+	}
+
+	// Override the default 
+	const MHWRender::MRenderItem* item = renderItemList.itemAt(0);
+	if (item)
+	{
+		CArnoldSkyDomeLighUserData* userData =
+			dynamic_cast<CArnoldSkyDomeLighUserData*>(item->customData());
+		if (userData)
+		{
+			MHWRender::MStateManager* stateMgr = context.getStateManager();
+
+			// Override depth stencil state
+			if (userData->m_depthStencilState)
+			{
+				s_oldDepthStencilState = stateMgr->getDepthStencilState();
+				stateMgr->setDepthStencilState(userData->m_depthStencilState);
+			}
+
+			// Override rasterizer state
+			if (userData->m_rasterizerState)
+			{
+				s_oldRasterizerState = stateMgr->getRasterizerState();
+				stateMgr->setRasterizerState(userData->m_rasterizerState);
+			}
+		}
+	}
+}
+
+/*!
+	Post-draw particle render items callback
+*/
+void CArnoldSkyDomeLightGeometryOverride::postDrawCallback(
+	MHWRender::MDrawContext&			context,
+	const MHWRender::MRenderItemList&	renderItemList,
+	MHWRender::MShaderInstance*			shaderInstance)
+{
+	// See the comments above in pre-draw callback. Restore settings.
+	const MHWRender::MPassContext& passCtx = context.getPassContext();
+	const MStringArray& passSem = passCtx.passSemantics();
+	for (unsigned int i=0; i<passSem.length(); i++)
+	{
+		const MString& sem = passSem[i];
+		if (sem == MHWRender::MPassContext::kNonPEPatternPassSemantic)
+		{
+			//shaderInstance->setParameter(sForceOpaque, false);
+			break;
+		}
+	};
+
+	// Restore the depth stencil state
+	if (s_oldDepthStencilState)
+	{
+		MHWRender::MStateManager* stateMgr = context.getStateManager();
+		stateMgr->setDepthStencilState(s_oldDepthStencilState);
+		s_oldDepthStencilState = 0;
+	}
+
+	// Restore the rasterizer state if any
+	if (s_oldRasterizerState)
+	{
+		MHWRender::MStateManager* stateMgr = context.getStateManager();
+		stateMgr->setRasterizerState(s_oldRasterizerState);
+		s_oldRasterizerState = 0;
+	}
 }
 
 void CArnoldSkyDomeLightGeometryOverride::updateDG()
@@ -206,6 +381,20 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		// Update the color
 		m_wireframeShader->setParameter(colorParameterName_, m_wireframeColor);
 		wireframeItem->setShader(m_wireframeShader);
+
+		// Set custom data for state overrides
+		CArnoldSkyDomeLighUserData* userData =
+			dynamic_cast<CArnoldSkyDomeLighUserData*>(wireframeItem->customData());
+		if (!userData)
+		{
+			userData = new CArnoldSkyDomeLighUserData();
+		}
+		if (userData)
+		{
+			userData->m_depthStencilState = 0; // m_depthStencilState;
+			userData->m_rasterizerState = 0; 
+		}
+		wireframeItem->setCustomData(userData);
 	}
 
 	// 2. Add in a active wireframe render item
@@ -240,6 +429,20 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		m_wireframeColor[3] = color.a;
 		m_activeWireframeShader->setParameter(colorParameterName_, m_wireframeColor);
 		activeWireframeItem->setShader(m_activeWireframeShader);
+
+		// Set custom data for state overrides
+		CArnoldSkyDomeLighUserData* userData =
+			dynamic_cast<CArnoldSkyDomeLighUserData*>(activeWireframeItem->customData());
+		if (!userData)
+		{
+			userData = new CArnoldSkyDomeLighUserData();
+		}
+		if (userData)
+		{
+			userData->m_depthStencilState = 0; //m_depthStencilState;
+			userData->m_rasterizerState = 0; 
+		}
+		activeWireframeItem->setCustomData(userData);
 	}
 
 	// 3. Add in a textured render item
@@ -269,6 +472,27 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		texturedItem->setExcludedFromPostEffects(true);
 		texturedItem->castsShadows(false);
 		texturedItem->receivesShadows(false);
+
+		// Set custom data for state overrides
+		CArnoldSkyDomeLighUserData* userData =
+			dynamic_cast<CArnoldSkyDomeLighUserData*>(texturedItem->customData());
+		if (!userData)
+		{
+			userData = new CArnoldSkyDomeLighUserData();
+		}
+		// Set depth stencil state
+		//
+		userData->m_depthStencilState = m_depthStencilState;
+		
+		// Set culling state
+		int facing = 0;
+		MPlug facingPlug  = depNode.findPlug("skyFacing");
+		facingPlug.getValue(facing);
+		if (facing == 0)
+			userData->m_rasterizerState = m_cullBackState;
+		else //if (facing == 1 || 2)
+			userData->m_rasterizerState = m_cullFrontState;
+		texturedItem->setCustomData(userData);
 
 		MHWRender::MTexture* texture = 0;
 

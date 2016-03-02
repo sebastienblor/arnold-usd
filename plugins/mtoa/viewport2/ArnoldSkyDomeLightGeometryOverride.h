@@ -41,17 +41,7 @@ public:
         MUserData* oldData);
 */
     virtual MHWRender::DrawAPI supportedDrawAPIs() const;
-/*
-	virtual bool hasUIDrawables() const { return true; }
-	virtual void addUIDrawables(
-		const MDagPath& objPath,
-		MHWRender::MUIDrawManager& drawManager,
-		const MHWRender::MFrameContext& frameContext,
-		const MUserData* data);
 
-    static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
-    static void clearGPUResources();
-*/
 private:
     CArnoldSkyDomeLightGeometryOverride(const MObject& obj);
 
@@ -62,7 +52,23 @@ private:
 	MHWRender::MShaderInstance* m_activeWireframeShader;
 	MHWRender::MShaderInstance* m_texturedShader;
 
-	// Texture for texture shader
+	// Depth stencil and rasterizer states for filled item
+	void createDisplayStates();
+	void destoryDisplayStates();
+	const MHWRender::MDepthStencilState* m_depthStencilState;
+	const MHWRender::MRasterizerState* m_cullNoneState;
+	const MHWRender::MRasterizerState* m_cullBackState;
+	const MHWRender::MRasterizerState* m_cullFrontState;
+
+	// Callbacks to allow state change per render item
+	static void preDrawCallback(
+		MHWRender::MDrawContext&			context,
+		const MHWRender::MRenderItemList&	renderItemList,
+		MHWRender::MShaderInstance*			shaderInstance);
+	static void postDrawCallback(
+		MHWRender::MDrawContext&			context,
+		const MHWRender::MRenderItemList&	renderItemList,
+		MHWRender::MShaderInstance*			shaderInstance);
 
 	// Render item names
 	static MString s_wireframeItemName;
@@ -95,30 +101,4 @@ private:
 
 	static MFloatVectorArray s_wirePositions;
 	static MUintArray s_wireIndexing;
-/*
-    static void initializeGPUResources();
-
-    static GLuint s_vertexShaderWireframe;
-    static GLuint s_fragmentShaderWireframe;
-    static GLuint s_programWireframe;
-
-    //static GLuint s_vertexShaderTextured;
-    //static GLuint s_fragmentShaderTextured;
-    //static GLuint s_programTextured;
-
-    static GLuint s_VBO;
-    static GLuint s_IBOWireframe;
-    static GLuint s_IBOTextured;
-
-    static GLuint s_numWireframeIndices;
-    static GLuint s_numTexturedIndices;
-
-    static GLint s_modelLocWireframe;
-    static GLint s_viewProjLocWireframe;
-    static GLint s_scaleLocWireframe;
-    static GLint s_shadeColorLocWireframe;
-
-    static bool s_isValid;
-    static bool s_isInitialized;
-*/
 };
