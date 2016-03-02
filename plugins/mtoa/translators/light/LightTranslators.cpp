@@ -236,7 +236,7 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
 void CPhotometricLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
-
+   AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    AiNodeSetStr(light, "filename", FindMayaPlug("aiFilename").asString().asChar());
@@ -253,6 +253,7 @@ void CPhotometricLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "photometric_light");
    // Cannot be created both on Node and here
    MakeCommonAttributes(helper);
+   helper.MakeInput("radius");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("shadow_color");

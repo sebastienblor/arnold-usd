@@ -490,6 +490,10 @@
         max                 INT     100
         default             INT     1
         maya.channelbox     BOOL    True
+    [attr radius]
+        min                 FLOAT   0
+        softmax             FLOAT   10.0
+        maya.channelbox     BOOL    True
     [attr color]
         linkable            BOOL    False
     [attr diffuse]
