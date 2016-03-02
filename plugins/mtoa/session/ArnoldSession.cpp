@@ -80,40 +80,6 @@ namespace // <anonymous>
             return false;
    }
 
-   bool IsVisible(MFnDagNode &node)
-   {
-      MStatus status;
-
-      if (node.isIntermediateObject())
-         return false;
-
-      MPlug visPlug = node.findPlug("visibility", &status);
-      MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
-
-      if (status == MStatus::kFailure)
-         return false;
-
-      if (visPlug.asBool() && overVisPlug.asBool())
-         return true;
-      else
-         return false;
-   }
-
-   bool IsVisiblePath(MDagPath dagPath)
-   {
-
-      MStatus stat = MStatus::kSuccess;
-      while (stat == MStatus::kSuccess)
-      {
-         MFnDagNode node;
-         node.setObject(dagPath.node());
-         if (!IsVisible(node))
-            return false;
-         stat = dagPath.pop();
-      }
-      return true;
-   }
-
    bool IsTemplatedPath(MDagPath dagPath)
    {
 
@@ -1594,3 +1560,38 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
    return "";
 }
 
+bool CArnoldSession::IsVisible(MFnDagNode &node) const
+{
+   MStatus status;
+
+   if (node.isIntermediateObject())
+      return false;
+
+   if (m_useVisibilityOverride)
+      return m_visibilityOverride;
+
+   MPlug visPlug = node.findPlug("visibility", &status);
+   MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
+
+   if (status == MStatus::kFailure)
+      return false;
+
+   if (visPlug.asBool() && overVisPlug.asBool())
+      return true;
+   else
+      return false;
+}
+
+bool CArnoldSession::IsVisiblePath(MDagPath dagPath) const
+{
+   MStatus stat = MStatus::kSuccess;
+   while (stat == MStatus::kSuccess)
+   {
+      MFnDagNode node;
+      node.setObject(dagPath.node());
+      if (!IsVisible(node))
+         return false;
+      stat = dagPath.pop();
+   }
+   return true;
+}

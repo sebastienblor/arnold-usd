@@ -2,6 +2,8 @@
 #include "../scene/MayaScene.h"
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
+#include "../render/MaterialView.h"
+
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -110,6 +112,9 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       MGlobal::displayError("[mtoa] Render to Texture : no output directory specified");
       return MS::kSuccess;
    }
+
+   // Make sure no material view session is active
+   CMaterialView::ScopedSuspend suspendMtrlView;
 
    CMayaScene::End();
    // Cannot export while a render is active

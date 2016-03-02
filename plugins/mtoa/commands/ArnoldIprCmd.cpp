@@ -1,6 +1,7 @@
 
 #include "ArnoldIprCmd.h"
 #include "scene/MayaScene.h"
+#include "render/MaterialView.h"
 
 #include <ai_universe.h>
 
@@ -60,6 +61,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "start")
    {
+      // Make sure no material view session is active
+      CMaterialView::SuspendRenderer();
+
       // Just incase we were rendering already.
       CMayaScene::End();
 
@@ -106,6 +110,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
+
+      // Resume material view session
+      CMaterialView::ResumeRenderer();
    }
 
    else if (mode == "refresh")

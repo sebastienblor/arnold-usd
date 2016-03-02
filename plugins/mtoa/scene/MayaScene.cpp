@@ -3,6 +3,7 @@
 #include "utils/MtoaLog.h"
 #include "utils/MercurialID.h"
 #include "nodes/ShaderUtils.h"
+#include "render/MaterialView.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -490,9 +491,14 @@ void CMayaScene::FileOpenCallback(void *)
 {
    // something we might want to do when a new file is opened
 
+   // Make sure to terminate material view session if active
+   if (GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
+   {
+      CMaterialView::AbortSession();
+   }
    // for now we only call End() for the RenderView
    // as IPR already handles it by calling IPR "stop"
-   if (s_arnoldSession && s_arnoldSession->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   else if (GetSessionMode() == MTOA_SESSION_RENDERVIEW)
    {
       End();
    }
@@ -502,7 +508,16 @@ void CMayaScene::FileOpenCallback(void *)
 void CMayaScene::QuitApplicationCallback(void *)
 {
    // something we might want to do when closing maya
-   End();
+
+   // Make sure to terminate material view session if active
+   if (GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
+   {
+      CMaterialView::AbortSession();
+   }
+   else 
+   {
+      End();
+   }
 }
 
 void CMayaScene::IPRIdleCallback(void *)

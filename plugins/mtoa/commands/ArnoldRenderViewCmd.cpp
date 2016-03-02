@@ -5,6 +5,7 @@
 */
 #include "ArnoldRenderViewCmd.h"
 #include "scene/MayaScene.h"
+#include "render/MaterialView.h"
 
 #include <ai_universe.h>
 
@@ -113,8 +114,11 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          CMayaScene::GetRenderSession()->StartRenderView();
          return MS::kSuccess;
       }
-      MDagPathArray cameras;
 
+      // Make sure no material view session is active
+      CMaterialView::SuspendRenderer();
+
+      MDagPathArray cameras;
       if (args.isFlagSet("camera"))
       {
          MSelectionList sel;
@@ -148,7 +152,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       // Start off the render.
       // Unless we are in "open" mode
       if (mode == "render") renderSession->RunRenderView();
-   } else if (mode == "stop")
+   }
+   else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
       {
@@ -161,7 +166,9 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
-      
+
+      // Resume material view session
+      CMaterialView::ResumeRenderer();
    }
    else if (mode == "refresh")
    {

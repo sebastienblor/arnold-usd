@@ -1,6 +1,7 @@
 #include "utils/Version.h"
 #include "ArnoldExportAssCmd.h"
 #include "scene/MayaScene.h"
+#include "render/MaterialView.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -301,7 +302,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", panelName);
    if (panelName.length() > 0)
       MGlobal::executeCommand("stopIprRendering " + panelName[0]);
+
+   // Make sure no material view session is active
+   CMaterialView::ScopedSuspend suspendMtrlView;
+
    CMayaScene::End();
+
    // Cannot export while a render is active
    if (AiUniverseIsActive())
    {
