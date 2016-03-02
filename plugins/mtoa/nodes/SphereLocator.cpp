@@ -449,32 +449,23 @@ MBoundingBox CSphereLocator::boundingBox() const
 {
    float scaleX, scaleY, scaleZ, radius;
    MFnDagNode fn(thisMObject());
-   MDagPath dp;
-   fn.getPath(dp);
-   MFnDagNode fnt(dp.transform());
 
-   MPlug scaleXPlug  = fnt.findPlug("scaleX");
-   MPlug scaleYPlug  = fnt.findPlug("scaleY");
-   MPlug scaleZPlug  = fnt.findPlug("scaleZ");
    MPlug radiusPlug  = fn.findPlug("skyRadius");
-   scaleXPlug.getValue(scaleX);
-   scaleYPlug.getValue(scaleY);
-   scaleZPlug.getValue(scaleZ);
    radiusPlug.getValue(radius);
 
-   scaleX = radius*scaleX/2;
-   scaleY = radius*scaleY/2;
-   scaleZ = radius*scaleZ/2;
+   scaleX = radius;
+   scaleY = radius;
+   scaleZ = radius; 
 
    // expand the bounding box to fit all axes of the locator node
    MBoundingBox bbox;
 
-   bbox.expand(MPoint(-0.5f*scaleX, 0.0f, 0.0f));
-   bbox.expand(MPoint(0.5f*scaleX, 0.0f, 0.0f));
-   bbox.expand(MPoint(0.0f,-0.5f*scaleY, 0.0f));
-   bbox.expand(MPoint(0.0f, 0.5f*scaleY, 0.0f));
-   bbox.expand(MPoint(0.0f, 0.0f, -0.5f*scaleZ));
-   bbox.expand(MPoint(0.0f, 0.0f, 0.5f*scaleZ));
+   bbox.expand(MPoint(-1.0f*scaleX, 0.0f, 0.0f));
+   bbox.expand(MPoint(scaleX, 0.0f, 0.0f));
+   bbox.expand(MPoint(0.0f,-1.0f*scaleY, 0.0f));
+   bbox.expand(MPoint(0.0f, 1.0f*scaleY, 0.0f));
+   bbox.expand(MPoint(0.0f, 0.0f, -1.0f*scaleZ));
+   bbox.expand(MPoint(0.0f, 0.0f, 1.0f*scaleZ));
    return bbox;
 }
 
