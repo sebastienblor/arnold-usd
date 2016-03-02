@@ -353,7 +353,8 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.addControl("aiResolution")
-        
+        self.addControl("aiSpread")
+                
         self.addSeparator()
 
         self.commonLightAttributes()

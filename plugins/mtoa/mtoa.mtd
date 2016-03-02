@@ -547,6 +547,10 @@
         max                 INT     100
         default             INT     1
         maya.channelbox     BOOL    True
+    [attr spread]
+        min                 FLOAT   0
+        max                 FLOAT   1
+        maya.channelbox     BOOL    True
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -667,6 +671,10 @@
     [attr exposure]
         softmin             FLOAT   -5.0
         softmax             FLOAT   5.0
+        maya.channelbox     BOOL    True
+    [attr spread]
+        min                 FLOAT   0
+        max                 FLOAT   1
         maya.channelbox     BOOL    True
     [attr shadow_density]
         min                 FLOAT   0.0
