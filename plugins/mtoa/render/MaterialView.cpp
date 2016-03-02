@@ -128,6 +128,9 @@ MStatus CMaterialView::beginSceneUpdate()
    {
       // Session is already active
       // Interupt rendering to prepare for the scene updates
+      // Don't wait for finish here, just let the renderer finish
+      // in parallel, and instead check for final completion before
+      // applying any scene updates.
       InterruptRender();
       return MStatus::kSuccess;
    }
@@ -142,7 +145,10 @@ MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
    if (!IsActive())
       return MStatus::kFailure;
 
-   AtNode* geometryNode = TranslateDagShape(id, node, AI_RECREATE_NODE);
+   // Make sure the renderer is stopped
+   InterruptRender(true);
+
+   AtNode* geometryNode = TranslateDagNode(id, node, MV_UPDATE_RECREATE);
    if (!geometryNode) 
    {
       return MStatus::kFailure;
@@ -164,7 +170,10 @@ MStatus CMaterialView::translateLightSource(const MUuid& id, const MObject& node
    if (!IsActive())
       return MStatus::kFailure;
 
-   if (!TranslateDagShape(id, node))
+   // Make sure the renderer is stopped
+   InterruptRender(true);
+
+   if (!TranslateDagNode(id, node))
    {
       return MStatus::kFailure;
    }
@@ -178,7 +187,10 @@ MStatus CMaterialView::translateCamera(const MUuid& id, const MObject& node)
    if (!IsActive())
       return MStatus::kFailure;
 
-   if (!TranslateDagShape(id, node))
+   // Make sure the renderer is stopped
+   InterruptRender(true);
+
+   if (!TranslateDagNode(id, node))
    {
       return MStatus::kFailure;
    }
@@ -191,6 +203,9 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
 
    if (!IsActive())
       return MStatus::kFailure;
+
+   // Make sure the renderer is stopped
+   InterruptRender(true);
 
    if (!m_environmentShader)
    {
@@ -246,6 +261,9 @@ MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId,
       AtMatrix matrix;
       translator->ConvertMatrix(matrix, mayaMatrix, CMayaScene::GetArnoldSession());
 
+      // Make sure the renderer is stopped
+      InterruptRender(true);
+
       AtNode* arnoldNode = translator->GetArnoldRootNode();
       AiNodeSetMatrix(arnoldNode, "matrix", matrix);
    }
@@ -264,7 +282,10 @@ MStatus CMaterialView::translateShader(const MUuid& id, const MObject& node)
    if (!IsActive())
       return MStatus::kFailure;
 
-   if (!TranslateNode(id, node))
+   // Make sure the renderer is stopped
+   InterruptRender(true);
+
+   if (!TranslateNode(id, node, MV_UPDATE_CONNECTED))
    {
       return MStatus::kFailure;
    }
@@ -295,9 +316,12 @@ MStatus CMaterialView::setProperty(const MUuid& id, const MString& name, const M
 
    if (m_environmentShader && m_environmentImage)
    {
-      static const MString s_propImageFile("imageFile");
-      if (name == s_propImageFile)
+      static const MString s_imageFileStr("imageFile");
+      if (name == s_imageFileStr)
       {
+         // Make sure the renderer is stopped
+         InterruptRender(true);
+
          AiNodeSetStr(m_environmentImage, "filename", value.asChar());
          if (value.length())
          {
@@ -319,7 +343,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
 
    if (!IsActive())
       return MStatus::kFailure;
-
+   
    TranslatorLookup::iterator it = m_translatorLookup.find(id);
    if (it == m_translatorLookup.end())
       return MStatus::kFailure;
@@ -331,6 +355,9 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
       return MStatus::kFailure;
    CNodeTranslator* shaderTranslator = it->second;
    AtNode* shaderNode = shaderTranslator->GetArnoldRootNode();
+
+   // Make sure the renderer is stopped
+   InterruptRender(true);
 
    AiNodeSetPtr(geometryNode, "shader", shaderNode);
 
@@ -348,9 +375,14 @@ MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
 
    if (IsActive())
    {
-      InterruptRender();
+      // Make sure the renderer is stopped
+      InterruptRender(true);
+
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->SetResolution(m_width, m_height);
+
+      // Resolution updates are not wrapped in begin/end calls
+      // so we need to schedule a refresh explicitly here
       ScheduleRefresh();
    }
 
@@ -506,7 +538,7 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    return arnoldNode;
 }
 
-AtNode* CMaterialView::TranslateDagShape(const MUuid& id, const MObject& node, int updateMode)
+AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, int updateMode)
 {
    AtNode* arnoldNode = NULL;
 
@@ -553,16 +585,13 @@ AtNode* CMaterialView::TranslateDagShape(const MUuid& id, const MObject& node, i
 
 AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode)
 {
-   if (updateMode == AI_RECREATE_NODE)
+   if (updateMode == MV_UPDATE_RECREATE)
    {
-      // Deleting an node will fail if the render is not 
-      // completely finished. So wait for it to finish here.
-      InterruptRender(true);
       translator->Delete();
       translator->DoCreateArnoldNodes();
       return translator->DoExport(0);
    }
-   return translator->DoUpdate(0);
+   return translator->DoUpdate(0, updateMode == MV_UPDATE_CONNECTED);
 }
 
 void CMaterialView::SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data)

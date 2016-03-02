@@ -62,9 +62,16 @@ private:
    bool WaitForRefresh(unsigned int msTimeout);
    void ScheduleRefresh();
 
-   AtNode* TranslateNode(const MUuid& id, const MObject& node, int updateMode = AI_UPDATE_ONLY);
-   AtNode* TranslateDagShape(const MUuid& id, const MObject& node, int updateMode = AI_UPDATE_ONLY);
-   AtNode* UpdateNode(CNodeTranslator* translator, int updateMode = AI_UPDATE_ONLY);
+   enum UpdateMode
+   {
+      MV_UPDATE_DEFAULT,
+      MV_UPDATE_CONNECTED,
+      MV_UPDATE_RECREATE
+   };
+
+   AtNode* TranslateNode(const MUuid& id, const MObject& node, int updateMode = MV_UPDATE_DEFAULT);
+   AtNode* TranslateDagNode(const MUuid& id, const MObject& node, int updateMode = MV_UPDATE_DEFAULT);
+   AtNode* UpdateNode(CNodeTranslator* translator, int updateMode = MV_UPDATE_DEFAULT);
 
    static unsigned int RenderThread(void* data);
 

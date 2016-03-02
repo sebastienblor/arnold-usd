@@ -483,7 +483,7 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
 }
 
 // internal use only
-AtNode* CNodeTranslator::DoUpdate(unsigned int step)
+AtNode* CNodeTranslator::DoUpdate(unsigned int step, bool updateConnectedNodes)
 {
    assert(AiUniverseIsActive());
    AtNode* node = GetArnoldNode("");
@@ -501,6 +501,10 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
               AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
               node);
 
+   // Set internal flag for updating connected nodes
+   const bool tmp = m_updateConnectedNodes;
+   m_updateConnectedNodes = updateConnectedNodes;
+
    if (step == 0)
    {
       Update(node);
@@ -510,6 +514,9 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    {
       UpdateMotion(node, step);
    }
+
+   // Restore the flag
+   m_updateConnectedNodes = tmp;
 
    return GetArnoldRootNode();
 }
@@ -1394,10 +1401,18 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
    {
       // process connections
       MPlug srcMayaPlug = connections[0];
-      AtNode* srcArnoldNode = ExportNode(srcMayaPlug);
+      CNodeTranslator* srcNodeTranslator = NULL;
+      AtNode* srcArnoldNode = ExportNode(srcMayaPlug, true, &srcNodeTranslator);
 
       if (srcArnoldNode == NULL)
          return NULL;
+
+      // Update the connected node if this is requested
+      if (m_updateConnectedNodes && srcNodeTranslator)
+      {
+         // Propagate the update upstream
+         srcNodeTranslator->DoUpdate(m_step, true);
+      }
 
       if (arnoldParamType == AI_TYPE_NODE)
       {
