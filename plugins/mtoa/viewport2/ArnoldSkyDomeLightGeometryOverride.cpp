@@ -490,8 +490,20 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		facingPlug.getValue(facing);
 		if (facing == 0)
 			userData->m_rasterizerState = m_cullBackState;
-		else //if (facing == 1 || 2)
+		else if (facing == 1)
 			userData->m_rasterizerState = m_cullFrontState;
+		else 
+		{
+			// THis is not quite correct since we want
+			// to be able to turn on depth write still
+			// to allow picking through the shaded item.
+			// The VP1 implementation draws back and then front
+			// to achive this in order. TBD how to do this in VP2.
+			// Mostly matters when the skydome is made semi-transparent.
+			// Maybe can lower the selection priority instead.
+			userData->m_rasterizerState = 0;
+			userData->m_depthStencilState = 0;
+		}
 		texturedItem->setCustomData(userData);
 
 		MHWRender::MTexture* texture = 0;
