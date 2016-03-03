@@ -214,7 +214,7 @@ private:
    
    MStatus Export(MSelectionList* selected = NULL);
 
-   MStatus FlattenSelection(MSelectionList* selected);
+   MStatus FlattenSelection(MSelectionList* selected, bool skipRoot = false);
 
    MStatus ExportCameras(MSelectionList* selected = NULL);
    MStatus ExportLights(MSelectionList* selected = NULL);

@@ -642,7 +642,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    if (exportSelected)
    {
       unsigned int ns = selected->length();
-      status = FlattenSelection(selected);
+      status = FlattenSelection(selected, false); // false = don't skip root nodes (ticket #1061)
       unsigned int fns = selected->length();
       AiMsgDebug("[mtoa] Exporting selection (%i:%i)", ns, fns);
    }
@@ -1120,7 +1120,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
+MStatus CArnoldSession::FlattenSelection(MSelectionList* selected, bool skipRoot)
 {
    MStatus status;
 
@@ -1140,6 +1140,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
          // should we export all its dag paths?
          if (FilteredStatus(path) == MTOA_EXPORT_ACCEPTED)
          {
+            // add this path, unless skipRoot is true
+            if (!skipRoot) selected->add(path, MObject::kNullObj, true);
+
             for (unsigned int child = 0; (child < path.childCount()); child++)
             {
                MObject ChildObject = path.child(child);
@@ -1150,8 +1153,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
                if (!dgNode.isIntermediateObject())
                   selected->add (path, MObject::kNullObj, true);
                path.pop(1);
-               if (MStatus::kSuccess != FlattenSelection(&children))
+               if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
                   status = MStatus::kFailure;
+
                selected->merge(children);
             }
          }
@@ -1167,7 +1171,7 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
             // get set members, we don't set flatten to true in case we'd want a
             // test on each set recursively
             set.getMembers(children, false);
-            if (MStatus::kSuccess != FlattenSelection(&children))
+            if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
                status = MStatus::kFailure;
             selected->merge(children);
          }
