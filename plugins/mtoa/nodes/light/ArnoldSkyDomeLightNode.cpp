@@ -279,7 +279,7 @@ MSelectionMask CArnoldSkyDomeLightNode::getShapeSelectionMask() const
 //    The selection mask of the shape
 //
 {
-	MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
-    return MSelectionMask( selType );
+	//MSelectionMask::SelectionType selType = MSelectionMask::kSelectLights;
+    return MSelectionMask("arnoldLightSelection");
 }
 #endif

@@ -128,7 +128,7 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
 			}
 		}
 
-		destoryDisplayStates();
+		destroyDisplayStates();
 	}
 }
 
@@ -166,25 +166,25 @@ void CArnoldSkyDomeLightGeometryOverride::createDisplayStates()
 	}
 }
 
-// Destory state objects
-void CArnoldSkyDomeLightGeometryOverride::destoryDisplayStates()
+// destroy state objects
+void CArnoldSkyDomeLightGeometryOverride::destroyDisplayStates()
 {
-	if (!m_depthStencilState)
+	if (m_depthStencilState)
 	{
 		MHWRender::MStateManager::releaseDepthStencilState(m_depthStencilState);
 		m_depthStencilState = 0;
 	}
-	if (!m_cullNoneState)
+	if (m_cullNoneState)
 	{
 		MHWRender::MStateManager::releaseRasterizerState(m_cullNoneState);
 		m_cullNoneState = 0;
 	}	
-	if (!m_cullBackState)
+	if (m_cullBackState)
 	{
 		MHWRender::MStateManager::releaseRasterizerState(m_cullBackState);
 		m_cullBackState = 0;
 	}
-	if (!m_cullFrontState)
+	if (m_cullFrontState)
 	{
 		MHWRender::MStateManager::releaseRasterizerState(m_cullFrontState);
 		m_cullFrontState = 0;
@@ -494,7 +494,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			userData->m_rasterizerState = m_cullFrontState;
 		else 
 		{
-			// THis is not quite correct since we want
+			// This is not quite correct since we want
 			// to be able to turn on depth write still
 			// to allow picking through the shaded item.
 			// The VP1 implementation draws back and then front
@@ -925,4 +925,3 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 void CArnoldSkyDomeLightGeometryOverride::cleanUp() 
 {
 }
-

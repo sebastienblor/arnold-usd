@@ -15,6 +15,7 @@ public:
 
     ~CArnoldSkyDomeLightGeometryOverride();
 
+    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
 	virtual void updateDG();
 	virtual bool isIndexingDirty(const MHWRender::MRenderItem &item);
 	virtual bool isStreamDirty(const MHWRender::MVertexBufferDescriptor &desc);
@@ -23,24 +24,6 @@ public:
 								const MHWRender::MRenderItemList &renderItems, 
 								MHWRender::MGeometry &data);
 	virtual void cleanUp();
-/*
-    virtual bool isBounded(
-        const MDagPath& objPath,
-        const MDagPath& cameraPath) const;
-
-    virtual MBoundingBox boundingBox(
-        const MDagPath& objPath,
-        const MDagPath& cameraPath) const;
-
-    virtual bool disableInternalBoundingBoxDraw() const;
-
-    virtual MUserData* prepareForDraw(
-        const MDagPath& objPath,
-        const MDagPath& cameraPath,
-        const MHWRender::MFrameContext& frameContext,
-        MUserData* oldData);
-*/
-    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
 
 private:
     CArnoldSkyDomeLightGeometryOverride(const MObject& obj);
@@ -54,7 +37,7 @@ private:
 
 	// Depth stencil and rasterizer states for filled item
 	void createDisplayStates();
-	void destoryDisplayStates();
+	void destroyDisplayStates();
 	const MHWRender::MDepthStencilState* m_depthStencilState;
 	const MHWRender::MRasterizerState* m_cullNoneState;
 	const MHWRender::MRasterizerState* m_cullBackState;

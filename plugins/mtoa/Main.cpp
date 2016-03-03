@@ -9,6 +9,7 @@
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include <maya/MDrawRegistry.h>
+#include <maya/MSelectionMask.h>
 #endif
 
 #include "utils/Version.h"
@@ -839,6 +840,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       "arnoldSkyDomeLightNodeOverride",
 		CArnoldSkyDomeLightGeometryOverride::Creator);
    CHECK_MSTATUS(status);
+   // Register a custom selection mask
+   MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -941,6 +944,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       //CArnoldStandInDrawOverride::clearGPUResources();
       CArnoldVolumeDrawOverride::clearGPUResources();
    }
+   // Register a custom selection mask
+   MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 #endif
    
    // Swatch renderer
