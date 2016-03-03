@@ -93,9 +93,11 @@ private:
 
    CCritSec      m_sceneLock;
    CCritSec      m_runningLock;
+   CCritSec      m_refreshLock;
    void*         m_renderThread;
    volatile bool m_isRunning;
    volatile bool m_terminationRequested;
+   volatile bool m_refreshAllowed;
    CEvent        m_refreshEvent;
    unsigned int  m_width;
    unsigned int  m_height;

@@ -17,6 +17,20 @@
 #define new DEBUG_NEW
 #endif
 
+namespace 
+{
+
+void SleepMS(unsigned int ms)
+{
+#ifdef _WIN64
+   Sleep(ms);
+#else
+   usleep(ms*1000);
+#endif
+}
+
+}
+
 extern AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
@@ -27,6 +41,7 @@ CMaterialView::CMaterialView()
 , m_isRunning(false)
 , m_terminationRequested(false)
 , m_refreshEvent(true, false)
+, m_refreshAllowed(false)
 , m_width(1)
 , m_height(1)
 {
@@ -75,10 +90,11 @@ MStatus CMaterialView::startAsync(const JobParams& params)
       AiNodeSetArray(options, "outputs", outputs);
 
       // Set all options
+      AiNodeSetInt(options, "xres", m_width);
+      AiNodeSetInt(options, "yres", m_height);
       AiNodeSetInt(options, "bucket_size", 32);
       AiNodeSetStr(options, "pin_threads", "off");
       AiNodeSetInt(options, "threads", params.maxThreads);
-      AiNodeSetInt(options, "AA_samples", 3);
       AiNodeSetInt(options, "GI_sss_samples", 4);
       AiNodeSetInt(options, "GI_diffuse_depth", 1);
    }
@@ -212,7 +228,8 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
       m_environmentShader = AiNode("sky");
       AiNodeSetStr(m_environmentShader, "name", "mtrlViewSky");
       AiNodeSetInt(m_environmentShader, "format", 2);
-      AiNodeSetRGB(m_environmentShader, "color", 0.80f, 0.75f, 0.97f);
+      AiNodeSetRGB(m_environmentShader, "color", 0.1f, 0.1f, 0.1f);
+//      AiNodeSetRGB(m_environmentShader, "color", 0.80f, 0.75f, 0.97f);
 
       // Invert in Z to account for the env sphere being viewed from inside
       AiNodeSetVec(m_environmentShader, "X", 1.0f, 0.0f, 0.0f);
@@ -375,14 +392,15 @@ MStatus CMaterialView::setResolution(unsigned int width, unsigned int height)
 
    if (IsActive())
    {
-      // Make sure the renderer is stopped
-      InterruptRender(true);
-
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetResolution(m_width, m_height);
-
       // Resolution updates are not wrapped in begin/end calls
-      // so we need to schedule a refresh explicitly here
+      // so we need to interrupt and schedule refresh explicitly here
+
+      InterruptRender();
+
+      AtNode* options = AiUniverseGetOptions();
+      AiNodeSetInt(options, "xres", m_width);
+      AiNodeSetInt(options, "yres", m_height);
+
       ScheduleRefresh();
    }
 
@@ -475,18 +493,22 @@ bool CMaterialView::IsActive()
 
 void CMaterialView::InterruptRender(bool waitFinished)
 {
-   if (AiRendering())
-      AiRenderInterrupt();
-
-   if (waitFinished)
    {
-      while(AiRendering())
+      // Remove any scheduled refresh
+      CCritSec::CScopedLock sc(m_refreshLock);
+      m_refreshAllowed = false;
+      m_refreshEvent.unset();
+   }
+
+   if (AiRendering())
+   {
+      AiRenderInterrupt();
+      if (waitFinished)
       {
-#ifdef _WIN64
-         Sleep(1);
-#else
-         usleep(1000);
-#endif
+         while(AiRendering())
+         {
+            SleepMS(1);
+         }
       }
    }
 }
@@ -494,12 +516,20 @@ void CMaterialView::InterruptRender(bool waitFinished)
 bool CMaterialView::WaitForRefresh(unsigned int msTimeout)
 {
    const bool result = m_refreshEvent.wait(msTimeout);
-   m_refreshEvent.unset();
-   return result;
+
+   CCritSec::CScopedLock sc(m_refreshLock);
+   if (result && m_refreshAllowed)
+   {
+      m_refreshEvent.unset();
+      return true;
+   }
+   return false;
 }
 
 void CMaterialView::ScheduleRefresh()
 {
+   CCritSec::CScopedLock sc(m_refreshLock);
+   m_refreshAllowed = true;
    m_refreshEvent.set();
 }
 
@@ -645,11 +675,15 @@ unsigned int CMaterialView::RenderThread(void* data)
 
             status = AiRender(AI_RENDER_MODE_CAMERA);
             if (status != AI_SUCCESS)
+            {
                break;
+            }
          }
-
-         // Notify rendering completed and thread idle
-         mtrlView->SendProgress(1);
+         if (status == AI_SUCCESS)
+         {
+            // Notify rendering completed and thread idle
+            mtrlView->SendProgress(1);
+         }
       }
    }
 
