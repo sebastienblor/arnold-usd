@@ -56,23 +56,30 @@ MStatus CMaterialView::startAsync(const JobParams& params)
    if (!IsActive())
       return MStatus::kFailure;
 
+   CCritSec::CScopedLock sc(m_runningLock);
+
+   // Guard for being called twice
+   if (m_isRunning)
+   {
+      // Thread already started
+      return MStatus::kSuccess;
+   }
+
    {
       // Setup scene for rendering
       CCritSec::CScopedLock sc(m_sceneLock);
 
-      // Find render camera
+      AtNode* options = AiUniverseGetOptions();
+
+      // Set render camera
       TranslatorLookup::iterator it = m_translatorLookup.find(params.cameraId);
       if (it == m_translatorLookup.end())
       {
          AiMsgError("Render camera not found!");
          return MStatus::kFailure;
       }
-      const MDagPath& camera = static_cast<CDagTranslator*>(it->second)->GetMayaDagPath();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetCamera(camera);
-      renderSession->SetResolution(m_width, m_height);
-
-      AtNode* options = AiUniverseGetOptions();
+      AtNode* camera = it->second->GetArnoldRootNode();
+      AiNodeSetPtr(options, "camera", camera);
 
       // Setup display driver and filter
       AtNode* driver = AiNode("materialview_display");
@@ -99,13 +106,10 @@ MStatus CMaterialView::startAsync(const JobParams& params)
       AiNodeSetInt(options, "GI_diffuse_depth", 1);
    }
 
-   {
-      // Start the render thread.
-      CCritSec::CScopedLock sc(m_runningLock);
-      m_terminationRequested = false;
-      m_isRunning = true;
-      m_renderThread = AiThreadCreate(CMaterialView::RenderThread, this, AI_PRIORITY_LOW);
-   }
+   // Start the render thread.
+   m_terminationRequested = false;
+   m_isRunning = true;
+   m_renderThread = AiThreadCreate(CMaterialView::RenderThread, this, AI_PRIORITY_LOW);
 
    ScheduleRefresh();
 
