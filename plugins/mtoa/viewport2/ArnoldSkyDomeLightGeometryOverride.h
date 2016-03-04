@@ -62,6 +62,7 @@ private:
 	MObject m_LocatorNode;
 
 	// Node data
+	MString m_fileTextureName;
 	float m_modelMatrix[4][4]; // cut out translation, that doesn't matter
     float m_wireframeColor[4];
     float m_radius;
@@ -69,6 +70,7 @@ private:
     // 0 - MirroredBall
     // 1 - Angular
     // 2 - LatLong
+	bool m_geometryDirty;
 
 	static void createFilledSkyDomeGeometry(unsigned int divisions[2],
 											float radius);

@@ -10,6 +10,7 @@
 #include <maya/MStateManager.h>
 #include <maya/MGlobal.h>
 #include <maya/MPlugArray.h>
+#include <maya/MRenderUtil.h>
 
 #include <iostream>
 
@@ -63,7 +64,7 @@ MHWRender::MPxGeometryOverride*
 CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const MObject& obj) 
 	: MHWRender::MPxGeometryOverride(obj)
 	, m_format(0)
-	, m_radius(1000)
+	, m_radius(0)
 	, m_wireframeShader(0)
 	, m_activeWireframeShader(0)
 	, m_texturedShader(0)
@@ -72,6 +73,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 	, m_cullNoneState(0)
 	, m_cullBackState(0)
 	, m_cullFrontState(0)
+	, m_geometryDirty(true)
 {
 	m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3] = 1.0f;
 
@@ -150,18 +152,21 @@ void CArnoldSkyDomeLightGeometryOverride::createDisplayStates()
 	{
 		MHWRender::MRasterizerStateDesc desc;
 		desc.cullMode =  MHWRender::MRasterizerState::kCullNone;
+		//desc.fillMode = MHWRender::MRasterizerState::kFillWireFrame;
 		m_cullNoneState = MHWRender::MStateManager::acquireRasterizerState(desc);
 	}	
 	if (!m_cullBackState)
 	{
 		MHWRender::MRasterizerStateDesc desc;
 		desc.cullMode =  MHWRender::MRasterizerState::kCullBack;
+		//desc.fillMode = MHWRender::MRasterizerState::kFillWireFrame;
 		m_cullBackState = MHWRender::MStateManager::acquireRasterizerState(desc);
 	}
 	if (!m_cullFrontState)
 	{
 		MHWRender::MRasterizerStateDesc desc;
 		desc.cullMode =  MHWRender::MRasterizerState::kCullFront;
+		//desc.fillMode = MHWRender::MRasterizerState::kFillWireFrame;
 		m_cullFrontState = MHWRender::MStateManager::acquireRasterizerState(desc);
 	}
 }
@@ -317,10 +322,17 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		m_format = plug.asInt();
 
 	// Cache scale value for position geometry update
-	m_radius = 1.0;
+	// Currently need a rebuild if radius changed
 	plug = depNode.findPlug("skyRadius", &status);
 	if (status && !plug.isNull())
-		m_radius = plug.asFloat();
+	{
+		float newRadius = plug.asFloat();
+		if (newRadius != m_radius)
+		{
+			m_radius = newRadius;
+			m_geometryDirty = true;
+		}
+	}
 
 	// Disable when not required
 	bool needActiveItem = false;
@@ -336,6 +348,9 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		break;
 	};
 
+	// Can add in custom selection masking if desired
+	//const MSelectionMask selectionMask("arnoldLightSelection");
+
 	// 1. Add in a dormant wireframe render item
 	MHWRender::MRenderItem* wireframeItem = 0;
 	int index = list.indexOf(s_wireframeItemName);
@@ -349,6 +364,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
 		wireframeItem->depthPriority(MHWRender::MRenderItem::sDormantWireDepthPriority);
 		wireframeItem->setExcludedFromPostEffects(true);
+		//wireframeItem->setSelectionMask(selectionMask);
 		wireframeItem->enable(true);
 		list.append(wireframeItem);
 	}
@@ -411,6 +427,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		activeWireframeItem->setDrawMode(MHWRender::MGeometry::kAll);
 		activeWireframeItem->depthPriority(MHWRender::MRenderItem::sActiveLineDepthPriority);
 		activeWireframeItem->setExcludedFromPostEffects(true);
+		//activeWireframeItem->setSelectionMask(selectionMask);
 		list.append(activeWireframeItem);
 	}
 	else
@@ -472,6 +489,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		texturedItem->setExcludedFromPostEffects(true);
 		texturedItem->castsShadows(false);
 		texturedItem->receivesShadows(false);
+		//texturedItem->setSelectionMask(selectionMask);
 
 		// Set custom data for state overrides
 		CArnoldSkyDomeLighUserData* userData =
@@ -539,6 +557,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			// we should get a direct read, otherwise a bake will occur.
 			//
 			unsigned int colorBakeSize = 256; 
+			/*
 			int sampling = depNode.findPlug("sampling").asShort();
 			switch (sampling)
 			{
@@ -559,6 +578,10 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 				break;
 			default:
 				break;
+			}*/
+			if (p_skydomeNode)
+			{
+				colorBakeSize = p_skydomeNode->NumSampleBase();
 			}
 			bool useUnconnectedColor = true;
 			MPlug plug = depNode.findPlug("color");
@@ -572,7 +595,22 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 						// Get texture from plug
 						// TODO : Do not require a V-flip for procedurals. Need to check this.
 						//
-						texture = textureManager->acquireTexture("", plugArray[0], colorBakeSize, colorBakeSize);
+						const MPlug& connectedPlug = plugArray[0];
+						MObject connectedObject = connectedPlug.node();
+						if (connectedObject.hasFn( MFn::kFileTexture))
+						{
+							//MFnDependencyNode connectedNode(connectedObject, &status);
+							MString fileTextureName;
+							MRenderUtil::exactFileTextureName(connectedObject, fileTextureName);
+							if (fileTextureName.length())
+							{
+								texture = textureManager->acquireTexture(fileTextureName);
+							}
+						}
+						else
+						{
+							texture = textureManager->acquireTexture("", connectedPlug, colorBakeSize, colorBakeSize);
+						}
 						if (texture)
 						{
 							useUnconnectedColor = false;
@@ -795,11 +833,16 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 	if (!shaderMgr)
 		return;
 
-	// Build geometry
-	unsigned int wire_dim[2] = { 64, 64 };
-	createWireSkyDomeGeometry(wire_dim, m_radius*1.001f);
-	unsigned int filled_dim[2] = { 256, 256 };
-	createFilledSkyDomeGeometry(filled_dim, m_radius);
+	// Build geometry if dirty
+	if (m_geometryDirty)
+	{
+		unsigned int wire_dim[2] = { 32, 32 };
+		createWireSkyDomeGeometry(wire_dim, m_radius*1.001f);
+		unsigned int filled_dim[2] = { 128, 128 };
+		createFilledSkyDomeGeometry(filled_dim, m_radius);
+
+		m_geometryDirty = false;
+	}
 
 	// Filled vertex data
 	MHWRender::MVertexBuffer* filledPositionBuffer = NULL;
