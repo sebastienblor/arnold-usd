@@ -84,7 +84,7 @@ MStatus CMaterialView::startAsync(const JobParams& params)
       // Setup display driver and filter
       AtNode* driver = AiNode("materialview_display");
       AiNodeSetStr(driver, "name", "materialview_display");
-      AiNodeSetPtr(driver, "renderer", this);
+      AiNodeSetPtr(driver, "view", this);
       AtNode* filter = AiNode("gaussian_filter");
       AiNodeSetStr(filter, "name", "materialview_filter");
       AiNodeSetFlt(filter, "width", 2.0f);
@@ -233,7 +233,6 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
       AiNodeSetStr(m_environmentShader, "name", "mtrlViewSky");
       AiNodeSetInt(m_environmentShader, "format", 2);
       AiNodeSetRGB(m_environmentShader, "color", 0.1f, 0.1f, 0.1f);
-//      AiNodeSetRGB(m_environmentShader, "color", 0.80f, 0.75f, 0.97f);
 
       // Invert in Z to account for the env sphere being viewed from inside
       AiNodeSetVec(m_environmentShader, "X", 1.0f, 0.0f, 0.0f);
@@ -563,6 +562,8 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    {
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
       AiMsgDebug("[mtoa] %-30s | Exported as %s(%s)",  MFnDependencyNode(node).name().asChar(), AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+
+      std::clog << "Translating " << MFnDagNode(node).fullPathName().asChar() << " of type " << AiNodeGetName(arnoldNode) << " " << AiNodeEntryGetTypeName(nodeEntry) << " " << id.asString().asChar() << std::endl;
    }
    else
    {
@@ -608,6 +609,8 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
 
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
       AiMsgDebug("[mtoa] %-30s | Exported as %s(%s)",  MFnDagNode(node).fullPathName().asChar(), AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+
+      std::clog << "Translating " << MFnDagNode(node).fullPathName().asChar() << " of type " << AiNodeGetName(arnoldNode) << " " << AiNodeEntryGetTypeName(nodeEntry) << " " << id.asString().asChar() << std::endl;
    }
    else
    {

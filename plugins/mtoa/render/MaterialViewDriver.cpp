@@ -22,19 +22,18 @@ namespace
 
 enum MaterialViewDriverParams
 {
-   p_mtrlView,
+   p_view,
 };
 
-static CMaterialView* s_mtrlView;
+static CMaterialView* s_view;
 
 };
 
 node_parameters
 {
-   // Use a pointer paramter to set the renderer pointer
-   // TODO: Is this the right way to do this?
-   AiParameterPTR("renderer", NULL);
-   AiMetaDataSetBool(mds, "renderer", "maya.hide", true);
+   // Use a pointer parameter to set the view pointer
+   AiParameterPTR("view", NULL);
+   AiMetaDataSetBool(mds, "view", "maya.hide", true);
 
    AiMetaDataSetStr(mds, NULL, "maya.translator", "maya");
    AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
@@ -44,7 +43,7 @@ node_parameters
 
 node_initialize
 {
-   s_mtrlView = (CMaterialView*)params[p_mtrlView].PTR;
+   s_view = (CMaterialView*)params[p_view].PTR;
    AiDriverInitialize(node, false, NULL);
 }
 
@@ -73,7 +72,7 @@ driver_needs_bucket
 
 driver_process_bucket
 {
-   if (s_mtrlView == NULL)
+   if (s_view == NULL)
       return;
 
    int         pixel_type;
@@ -83,7 +82,7 @@ driver_process_bucket
    if (!AiOutputIteratorGetNext(iterator, NULL, &pixel_type, &bucket_data) || pixel_type != AI_TYPE_RGBA)
       return;
 
-   // TODO: Don't allocate memorty for each new tile
+   // TODO: Don't allocate memory for each new tile
    RV_PIXEL* pixels = new RV_PIXEL[bucket_size_x * bucket_size_y];
    int minx = bucket_xo;
    int miny = bucket_yo;
@@ -111,7 +110,7 @@ driver_process_bucket
       }
    }
 
-   s_mtrlView->SendBucketToView(minx, maxx, miny, maxy, (void*)pixels);
+   s_view->SendBucketToView(minx, maxx, miny, maxy, (void*)pixels);
 
    delete [] pixels;
 }
@@ -130,7 +129,7 @@ driver_close
 
 node_finish
 {
-   s_mtrlView = NULL;
+   s_view = NULL;
 
    // release the driver
    AiDriverDestroy(node);
