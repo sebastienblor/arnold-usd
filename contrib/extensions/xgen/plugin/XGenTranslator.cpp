@@ -201,8 +201,8 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          MDagPath palDagPath = m_dagPath;
          palDagPath.pop();
          palDagPath.pop();
-         info.strPalette = palDagPath.fullPathName().asChar();
-         info.strPalette = info.strPalette.substr( 1 );
+         info.strPalette = palDagPath.partialPathName().asChar();
+         const std::string strPaletteFullPath = palDagPath.fullPathName().asChar();
 #ifdef DEBUG_MTOA
          printf("strPalette=%s\n",info.strPalette.c_str() );
 #endif
@@ -210,7 +210,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          MDagPath descDagPath = m_dagPath;
          descDagPath.pop();
          info.strDescription = descDagPath.fullPathName().asChar();
-         info.strDescription = info.strDescription.substr( 1 + info.strPalette.size() + 1 );
+         info.strDescription = info.strDescription.substr( strPaletteFullPath.size() + 1 );
 #ifdef DEBUG_MTOA
          printf("strDescription=%s\n",info.strDescription.c_str() );
 #endif
@@ -225,7 +225,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
             sprintf(buf,"nodeType %s;",strChild.c_str());
             MString nodeType = MGlobal::executeCommandStringResult(buf);
 
-            strChild = strChild.substr( 1+ info.strPalette.size() + 1 + info.strDescription.size() + 1 );
+            strChild = strChild.substr( strPaletteFullPath.size() + 1 + info.strDescription.size() + 1 );
 
          // Get the data for the translation from the description shape
             if (nodeType == "xgmDescription") 

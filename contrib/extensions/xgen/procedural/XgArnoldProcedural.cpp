@@ -13,6 +13,8 @@
 #include <fstream>
 #include <fcntl.h>
 
+#include <maya/MTypes.h>
+
 #include "../../../plugins/mtoa/utils/HashUtils.h"
 
 #include "XgExternalAPI.h"

@@ -34,6 +34,7 @@
 #include <maya/MDGMessage.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
+#include <maya/MNodeMessage.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -44,7 +45,6 @@
 
 // When we're sure these utilities stay, we can expose them
 // as static method on CArnoldSession or a separate helper class
-
 
 namespace // <anonymous>
 {
@@ -197,6 +197,11 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
+         // This node handle might have already been added to the list of objects to update
+         // but since no translator was found in m_processedTranslators, it might have been discarded
+         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+         // for this shader
+         QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -310,6 +315,12 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
          m_processedTranslatorList.push_back(translator);
+
+         // This node handle might have already been added to the list of objects to update
+         // but since no translator was found in m_processedTranslators, it might have been discarded
+         // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
+         // for this shader
+         QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -393,6 +404,7 @@ void CArnoldSession::ProcessAOVs()
 
 MStatus CArnoldSession::Begin(const CSessionOptions &options)
 {
+ 
    MStatus status = MStatus::kSuccess;
 
    m_sessionOptions = options;
@@ -439,6 +451,13 @@ MStatus CArnoldSession::End()
       //AiMsgDebug("[mtoa] Deleting translator for %s in %p", MFnDependencyNode(it->first.object()).name().asChar(), it->second);
       delete m_processedTranslatorList[i];
    }
+
+   for(unsigned int i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
+   {
+      MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
+   }
+   m_hiddenObjectsCallbacks.clear();
+
    // Any translators are in the processed translators map, so already deleted
    m_processedTranslators.clear();
    m_objectsToUpdate.clear();
@@ -623,7 +642,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    if (exportSelected)
    {
       unsigned int ns = selected->length();
-      status = FlattenSelection(selected);
+      status = FlattenSelection(selected, false); // false = don't skip root nodes (ticket #1061)
       unsigned int fns = selected->length();
       AiMsgDebug("[mtoa] Exporting selection (%i:%i)", ns, fns);
    }
@@ -867,6 +886,7 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
                continue;
             if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
                continue;
+            
             MStatus stat;
             ExportDagPath(path, true, &stat);
             if (stat != MStatus::kSuccess)
@@ -934,6 +954,85 @@ MStatus CArnoldSession::ExportLights(MSelectionList* selected)
    return status;
 }
 
+// This callback is invoked when one of the skipped (hidden) objects is modified 
+// during an IPR session. We have to check if it became visible in order to export it
+void CArnoldSession::HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   // just check if this node is visible now 
+   MFnDagNode dagNode(node);
+   MDagPath path;
+   if (dagNode.getPath(path) != MS::kSuccess) return;
+
+   if(!path.isValid()) return;
+
+   CArnoldSession *session = (CArnoldSession*)clientData;
+   DagFiltered filtered = session->FilteredStatus(path);
+   if (filtered != MTOA_EXPORT_ACCEPTED) return; // this object is still hidden
+
+   session->SetDagVisible(path);
+}
+
+void CArnoldSession::SetDagVisible(MDagPath &path)
+{
+   MObject object = path.node();
+   // we need to clear the existing hiddenObjectCallback
+   // starting with a simple linear search
+   for(size_t i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
+   {
+      if (m_hiddenObjectsCallbacks[i].first.object() == object)
+      {
+         // found the object in our hidden list         
+         const MStatus status = MNodeMessage::removeCallback(m_hiddenObjectsCallbacks[i].second);
+         if (status == MS::kSuccess) 
+         {
+            m_hiddenObjectsCallbacks.erase(m_hiddenObjectsCallbacks.begin() + i);
+            break;
+         }
+      }
+   }
+
+   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+   MStatus status;
+   for (dagIterator.reset(path); (!dagIterator.isDone()); dagIterator.next())
+   {
+      if (dagIterator.getPath(path))
+      {
+         if (path.apiType() == MFn::kWorld)
+            continue;
+         MObject obj = path.node();
+         MFnDagNode node(obj);
+         MString name = node.name();
+         DagFiltered filtered = FilteredStatus(path);
+         if (filtered != MTOA_EXPORT_ACCEPTED)
+         {
+            if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+            {
+               HiddenObjectCallbackPair hiddenObj;
+               hiddenObj.first = CNodeAttrHandle(obj, "");
+               hiddenObj.second = MNodeMessage::addNodeDirtyCallback(obj,
+                                        HiddenNodeCallback,
+                                        this,
+                                        &status);
+               m_hiddenObjectsCallbacks.push_back(hiddenObj);
+            }
+            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
+            // for MTOA_EXPORT_REJECTED_BRANCH
+            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
+               dagIterator.prune();
+            continue;
+         }
+         MStatus stat;
+         ExportDagPath(path, true, &stat);
+         QueueForUpdate(path);
+         if (stat != MStatus::kSuccess)
+            status = MStatus::kFailure;
+      }
+      
+   }
+
+   RequestUpdate();
+}
+
 // Export the full maya scene or the passed selection
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
@@ -983,6 +1082,16 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
             filtered = FilteredStatus(path);
             if (filtered != MTOA_EXPORT_ACCEPTED)
             {
+               if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+               {
+                  HiddenObjectCallbackPair hiddenObj;
+                  hiddenObj.first = CNodeAttrHandle(obj, "");
+                  hiddenObj.second = MNodeMessage::addNodeDirtyCallback(obj,
+                                           HiddenNodeCallback,
+                                           this,
+                                           &status);
+                  m_hiddenObjectsCallbacks.push_back(hiddenObj);
+               }
                // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
                // for MTOA_EXPORT_REJECTED_BRANCH
                if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
@@ -1011,7 +1120,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
+MStatus CArnoldSession::FlattenSelection(MSelectionList* selected, bool skipRoot)
 {
    MStatus status;
 
@@ -1031,6 +1140,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
          // should we export all its dag paths?
          if (FilteredStatus(path) == MTOA_EXPORT_ACCEPTED)
          {
+            // add this path, unless skipRoot is true
+            if (!skipRoot) selected->add(path, MObject::kNullObj, true);
+
             for (unsigned int child = 0; (child < path.childCount()); child++)
             {
                MObject ChildObject = path.child(child);
@@ -1041,8 +1153,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
                if (!dgNode.isIntermediateObject())
                   selected->add (path, MObject::kNullObj, true);
                path.pop(1);
-               if (MStatus::kSuccess != FlattenSelection(&children))
+               if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
                   status = MStatus::kFailure;
+
                selected->merge(children);
             }
          }
@@ -1058,7 +1171,7 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
             // get set members, we don't set flatten to true in case we'd want a
             // test on each set recursively
             set.getMembers(children, false);
-            if (MStatus::kSuccess != FlattenSelection(&children))
+            if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
                status = MStatus::kFailure;
             selected->merge(children);
          }
@@ -1151,10 +1264,17 @@ void CArnoldSession::DoUpdate()
    bool newDag = false;
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
-   for (itObj = m_objectsToUpdate.begin(); itObj != m_objectsToUpdate.end(); itObj++)
+
+   // In theory, no objectsToUpdate are supposed to be 
+   // added to this list during the loop. But to make 
+   // sure this won't be done by any of the functions 
+   // we'll be invoking here it's safer to loop 
+   // with the vector's index instead of relying on iterators...
+   for (size_t i = 0; i < m_objectsToUpdate.size(); ++i)
    {
-      CNodeAttrHandle handle(itObj->first);           // TODO : test isValid and isAlive ?
-      CNodeTranslator * translator = itObj->second;
+      CNodeAttrHandle handle(m_objectsToUpdate[i].first);           // TODO : test isValid and isAlive ?
+      CNodeTranslator * translator = m_objectsToUpdate[i].second;
+
       if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
       {
          // A translator was provided, just add it to the list
@@ -1241,6 +1361,11 @@ void CArnoldSession::DoUpdate()
          }
       }
    }
+
+   // store the amount of updated objects as this list can increase during the actual updates
+   // (e.g. when a new node is added to a shading tree)
+   size_t updatedObjects = m_objectsToUpdate.size();
+   
    // FIXME: n
    if (newDag || IsLightLinksDirty())
    {
@@ -1255,6 +1380,7 @@ void CArnoldSession::DoUpdate()
    // Now do an update for all the translators in our list
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request
+
 
    if (!reqMob)
    {
@@ -1296,7 +1422,9 @@ void CArnoldSession::DoUpdate()
          ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
          it = m_processedTranslators.find(handle);
          if(it != m_processedTranslators.end())
+         {
             translatorsToUpdate.push_back(it->second);
+         }
       }
       // re-add IPR callbacks to all updated translators after ALL updates are done
       for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
@@ -1313,8 +1441,18 @@ void CArnoldSession::DoUpdate()
 
    // Clear the list and the request update flag.
    translatorsToUpdate.clear();
-   m_objectsToUpdate.clear();
-   m_requestUpdate = false;
+
+   if (m_objectsToUpdate.size() > updatedObjects)
+   {
+      // some nodes have been added to the update list.
+      // let's keep them in this list so that next update invokes them
+      m_objectsToUpdate.erase(m_objectsToUpdate.begin(), m_objectsToUpdate.begin() + updatedObjects);
+   } else 
+   {
+      m_objectsToUpdate.clear();
+      m_requestUpdate = false;
+   }     
+
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
@@ -1424,3 +1562,39 @@ MVector CArnoldSession::GetOrigin() const
 {
    return m_origin;
 }
+
+MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
+{   
+   // first check if an object exists with the same name ?
+   const char *arnoldName = AiNodeGetName(node);
+
+   MSelectionList camList;
+   camList.add(MString(arnoldName));
+   MObject mayaObject;
+   if (camList.getDependNode(0, mayaObject) == MS::kSuccess && !mayaObject.isNull())
+   {
+      // There is an object with the same name in Maya.
+      // We're assuming it's this one....
+      return MString(arnoldName);
+   }
+
+
+   // There is no object with this name in the scene.
+   // Let's search it amongst the list of processed translators
+   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   {
+      CNodeTranslator *translator = m_processedTranslatorList[i];
+      if (translator == NULL) continue;
+
+      // check if this translator corresponds to this AtNode
+      // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
+      if (translator->GetArnoldRootNode() == node)
+      {
+         // We found our translator
+         return translator->GetMayaNodeName().asChar();
+      }
+   }
+
+   return "";
+}
+
