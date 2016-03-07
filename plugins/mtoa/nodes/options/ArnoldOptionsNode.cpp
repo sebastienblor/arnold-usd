@@ -500,12 +500,12 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
-   mAttr.setReadable(false);
+   mAttr.setReadable(true);
    addAttribute(s_background);
 
    s_atmosphere = mAttr.create("atmosphere", "atm");
    mAttr.setKeyable(false);
-   mAttr.setReadable(false);
+   mAttr.setReadable(true);
    addAttribute(s_atmosphere);
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);

@@ -792,3 +792,13 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    // Start the render on the current thread.
    AiRender(AI_RENDER_MODE_CAMERA);
 }
+void CRenderSession::SetRenderViewOption(const MString &option, const MString &value)
+{
+   if (s_renderView == NULL)
+   {
+      s_renderView = new CRenderViewMtoA;
+   }
+   s_renderView->SetOption(option.asChar(), value.asChar());
+}
+
+

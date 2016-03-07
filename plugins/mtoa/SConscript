@@ -3,7 +3,7 @@
 ## load our own python modules
 import system
 from build_tools import find_files_recursive, find_files, get_maya_version
-
+from shutil import copyfile
 import os
 
 # import build env
@@ -87,16 +87,26 @@ local_env['QT_ROOT_DIR'] = mayaQtFolder
 
 local_env.Append(CPPPATH = [mayaQtFolder])
 if system.os() == 'darwin':
-    qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
+    maya_qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
+    qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
+    if not os.path.isdir(qt_lib_dir):
+        os.makedirs(qt_lib_dir)
+
+    copyfile(os.path.join(maya_qt_lib_dir, 'QtCore'), os.path.join(qt_lib_dir, 'libQtCore.dylib'))
+    copyfile(os.path.join(maya_qt_lib_dir, 'QtGui'), os.path.join(qt_lib_dir, 'libQtGui.dylib'))
+    copyfile(os.path.join(maya_qt_lib_dir, 'QtOpenGL'), os.path.join(qt_lib_dir, 'libQtOpenGL.dylib'))
+
+
 else:
     qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
 if system.os() == 'windows':
     local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
-else:
+elif system.os() == 'linux':
     local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
-
+else:
+    local_env
 
 renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
 renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', maya_version_base)

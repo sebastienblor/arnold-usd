@@ -79,6 +79,26 @@ public:
    // whenever the frame number is changed
    void SetFrame(float frame);
 
+   // This function should be invoked by the host to
+   // provide a default directory for images
+   void SetDefaultImageDirectory(const char *dir);
+
+   // This function should be invoked by the host to
+   // provide a temp directory for snapshots
+   void SetTempDirectory(const char *dir);
+
+   // Set the console and file logging flags
+   // We should be able to get rid of this function in next Arnold version
+   void SetLogging (int consoleFlags, int fileFlags);
+
+   // set an option in the render view
+   void SetOption(const char *option, const char *value);
+
+   // Get a serialized definition of the RenderView options
+   const char *Serialize();
+   void SetFromSerialized(const char *);
+
+
 /**  
  *    Functions that may be invoked by the RenderView depending 
  *    user actions. They need to be overridden to define what

@@ -75,6 +75,7 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("r", "region", MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned, MSyntax::kUnsigned);
+   syntax.addFlag("opt", "option", MSyntax::kString, MSyntax::kString);
 
    return syntax;
 }
@@ -86,6 +87,16 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    //   return MS::kFailure;
    MStatus status;
    MArgDatabase args(syntax(), argList);
+
+   if (args.isFlagSet("option"))
+   {
+      MString option = args.flagArgumentString("option", 0);
+      MString value = args.flagArgumentString("option", 1);
+
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->SetRenderViewOption(option, value);
+      return MS::kSuccess;
+   }
 
    // Get argument to "-mode" flag
    MString mode = (args.isFlagSet("mode")) ? args.flagArgumentString("mode", 0) : "render";
@@ -104,10 +115,12 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
    MRenderUtil::getCommonRenderSettings(renderGlobals);
       
    // What mode are we in?
-   if (mode == "render")
+   if (mode == "render" || mode == "open")
    {
       if (CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
       {
+         // A render view session has already been started
+         // let's pop-up the window, and eventually re-render
          CMayaScene::GetRenderSession()->StartRenderView();
          return MS::kSuccess;
       }
@@ -144,7 +157,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          renderSession->SetRegion(region[0], region[1], region[2], region[3]);
 
       // Start off the render.
-      renderSession->RunRenderView();
+      // Unless we are in "open" mode
+      if (mode == "render") renderSession->RunRenderView();
    } else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))

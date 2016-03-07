@@ -1175,6 +1175,28 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
 
 AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
+   // First check if this geometry is renderable
+   // if it is not, set it as Disabled and early out
+   if (false == m_session->IsRenderablePath(m_dagPath))
+   {
+      AiNodeSetDisabled(polymesh, true);
+      // If I'm supposed to update the geometry data (update = false)
+      // I should keep that information
+      // When I'll be set back to visible, update might be true
+      // and my geometry would be outdated
+      if (!update) m_needGeoDataUpdate = true;
+      
+      return polymesh;
+   }
+   // I've been previously told to update my geometry data
+   // but I didn't do it as it wasn't visible.
+   // let's update it now
+   if (m_needGeoDataUpdate)
+   {
+      update = false;
+      m_needGeoDataUpdate = false;
+   }
+   AiNodeSetDisabled(GetArnoldRootNode(), false);
    ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
