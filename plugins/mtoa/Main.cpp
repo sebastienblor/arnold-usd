@@ -124,10 +124,12 @@ namespace // <anonymous>
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
+   const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/arnold/skynode";
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
+   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
 
    struct mayaNode {
       const char* name;
@@ -176,7 +178,7 @@ namespace // <anonymous>
       } , {
          "aiSky", CArnoldSkyNode::id,
          CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
-         MPxNode::kLocatorNode, &ENVIRONMENT_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH
       }
    };
 
@@ -835,9 +837,18 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                override.creator);
       CHECK_MSTATUS(status);
    }
-	status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+	
+   // Skydome light and sky shader share the same override as
+   // they are drawn the same way.
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
       AI_SKYDOME_LIGHT_CLASSIFICATION,
       "arnoldSkyDomeLightNodeOverride",
+		CArnoldSkyDomeLightGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_SKYNODE_CLASSIFICATION,
+      "arnoldSkyNodeOverride",
 		CArnoldSkyDomeLightGeometryOverride::Creator);
    CHECK_MSTATUS(status);
    // Register a custom selection mask

@@ -62,7 +62,7 @@ private:
 	MObject m_LocatorNode;
 
 	// Node data
-	MString m_fileTextureName;
+	bool m_flipVData;
 	float m_modelMatrix[4][4]; // cut out translation, that doesn't matter
     float m_wireframeColor[4];
     float m_radius;
@@ -73,7 +73,7 @@ private:
 	bool m_geometryDirty;
 
 	static void createFilledSkyDomeGeometry(unsigned int divisions[2],
-											float radius);
+											float radius );
 	static void createWireSkyDomeGeometry(unsigned int divisions[2],
 											float radius);
 

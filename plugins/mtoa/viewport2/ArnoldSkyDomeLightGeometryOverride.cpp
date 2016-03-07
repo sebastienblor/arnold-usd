@@ -74,6 +74,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 	, m_cullBackState(0)
 	, m_cullFrontState(0)
 	, m_geometryDirty(true)
+	, m_flipVData(true)
 {
 	m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3] = 1.0f;
 
@@ -557,28 +558,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			// we should get a direct read, otherwise a bake will occur.
 			//
 			unsigned int colorBakeSize = 256; 
-			/*
-			int sampling = depNode.findPlug("sampling").asShort();
-			switch (sampling)
-			{
-			case 0:
-				colorBakeSize = 64;
-				break;
-			case 1:
-				colorBakeSize = 128;
-				break;
-			case 2:
-				colorBakeSize = 256;
-				break;
-			case 3:
-				colorBakeSize = 512;
-				break;
-			case 4:
-				colorBakeSize = 1024;
-				break;
-			default:
-				break;
-			}*/
 			if (p_skydomeNode)
 			{
 				colorBakeSize = p_skydomeNode->NumSampleBase();
@@ -599,17 +578,20 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 						MObject connectedObject = connectedPlug.node();
 						if (connectedObject.hasFn( MFn::kFileTexture))
 						{
-							//MFnDependencyNode connectedNode(connectedObject, &status);
 							MString fileTextureName;
 							MRenderUtil::exactFileTextureName(connectedObject, fileTextureName);
 							if (fileTextureName.length())
 							{
 								texture = textureManager->acquireTexture(fileTextureName);
 							}
+							// Need v-flip for file textures 
+							m_flipVData = true;
 						}
 						else
 						{
 							texture = textureManager->acquireTexture("", connectedPlug, colorBakeSize, colorBakeSize);
+							// Don't need v-flip for file textures 
+							m_flipVData = false;
 						}
 						if (texture)
 						{
@@ -669,6 +651,9 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			// Set outputMode 4 = Multiply defaultColor * texture
 			status = shaderInst->setParameter("outputMode", 4);
 
+			// Set V flip if needed
+			status = shaderInst->setParameter("verticalFlip", m_flipVData);
+
 			// Make shader transparent as necessary
 			shaderInst->setIsTransparent(hwTexAlpha < 1.0f);
 
@@ -727,11 +712,11 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
 
 			const int id = x + y * divisionsX1;
 			s_filledUvs[0][id*2] = u;
-			s_filledUvs[0][id*2+1] = 1.0f - v;		// Need to vertically flip for VP2
+			s_filledUvs[0][id*2+1] = v;	
 			s_filledUvs[1][id*2] = u2;
-			s_filledUvs[1][id*2+1] = 1.0f - v2;
+			s_filledUvs[1][id*2+1] = v2;
 			s_filledUvs[2][id*2] = u3;
-			s_filledUvs[2][id*2+1] = 1.0f - v3;
+			s_filledUvs[2][id*2+1] = v3;
 
 			s_filledPositions[id] = MFloatVector( dir.x*radius,
 				dir.y*radius,
