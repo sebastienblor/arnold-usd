@@ -489,6 +489,11 @@ bool CSphereLocator::excludeAsLocator() const
    return false;
 }
 
+MSelectionMask CSphereLocator::getShapeSelectionMask() const
+{
+	return MSelectionMask("arnoldLightSelection");
+}
+
 
 MStatus CSphereLocator::initialize()
 {

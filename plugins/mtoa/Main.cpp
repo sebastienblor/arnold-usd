@@ -853,6 +853,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    CHECK_MSTATUS(status);
    // Register a custom selection mask
    MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
+   status = MGlobal::executeCommand("selectType -byName \"arnoldLightSelection\" 1");
+   CHECK_MSTATUS(status);
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);

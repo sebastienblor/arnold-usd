@@ -7,6 +7,7 @@
 #include <maya/M3dView.h>
 #include <maya/MDagPath.h>
 #include <maya/MBoundingBox.h>
+#include <maya/MSelectionMask.h>
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
@@ -40,6 +41,7 @@ public:
    virtual bool excludeAsLocator() const;
    virtual MBoundingBox boundingBox() const;
    virtual bool setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context);
+   virtual MSelectionMask getShapeSelectionMask() const;
 
    static void* creator();
    bool isAbstractClass();
