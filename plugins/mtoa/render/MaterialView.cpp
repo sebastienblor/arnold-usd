@@ -42,6 +42,7 @@ CMaterialView::CMaterialView()
 , m_terminationRequested(false)
 , m_refreshEvent(true, false)
 , m_refreshAllowed(false)
+, m_renderThread(NULL)
 , m_width(1)
 , m_height(1)
 {
@@ -65,48 +66,8 @@ MStatus CMaterialView::startAsync(const JobParams& params)
       return MStatus::kSuccess;
    }
 
-   {
-      // Setup scene for rendering
-      CCritSec::CScopedLock sc(m_sceneLock);
-
-      AtNode* options = AiUniverseGetOptions();
-
-      // Set render camera
-      TranslatorLookup::iterator it = m_translatorLookup.find(params.cameraId);
-      if (it == m_translatorLookup.end())
-      {
-         AiMsgError("Render camera not found!");
-         return MStatus::kFailure;
-      }
-      AtNode* camera = it->second->GetArnoldRootNode();
-      AiNodeSetPtr(options, "camera", camera);
-
-      // Setup display driver and filter
-      AtNode* driver = AiNode("materialview_display");
-      AiNodeSetStr(driver, "name", "materialview_display");
-      AiNodeSetPtr(driver, "view", this);
-      AtNode* filter = AiNode("gaussian_filter");
-      AiNodeSetStr(filter, "name", "materialview_filter");
-      AiNodeSetFlt(filter, "width", 2.0f);
-
-      // Create the single output line. No AOVs or anything.
-      AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
-      char str[1024];
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-      AiArraySetStr(outputs, 0, str);
-      AiNodeSetArray(options, "outputs", outputs);
-
-      // Set all options
-      AiNodeSetInt(options, "xres", m_width);
-      AiNodeSetInt(options, "yres", m_height);
-      AiNodeSetInt(options, "bucket_size", 32);
-      AiNodeSetStr(options, "pin_threads", "off");
-      AiNodeSetInt(options, "threads", params.maxThreads);
-      AiNodeSetInt(options, "GI_sss_samples", 4);
-      AiNodeSetInt(options, "GI_diffuse_depth", 1);
-   }
-
    // Start the render thread.
+   m_job = params;
    m_terminationRequested = false;
    m_isRunning = true;
    m_renderThread = AiThreadCreate(CMaterialView::RenderThread, this, AI_PRIORITY_LOW);
@@ -494,6 +455,59 @@ bool CMaterialView::IsActive()
    return CMayaScene::IsActive(MTOA_SESSION_MATERIALVIEW);
 }
 
+void CMaterialView::InitOptions()
+{
+   CCritSec::CScopedLock sc(m_sceneLock);
+
+   AtNode* options = AiUniverseGetOptions();
+
+   // Set render camera
+   TranslatorLookup::iterator it = m_translatorLookup.find(m_job.cameraId);
+   if (it != m_translatorLookup.end())
+   {
+      AtNode* camera = it->second->GetArnoldRootNode();
+      AiNodeSetPtr(options, "camera", camera);
+   }
+   else
+   {
+      AiMsgError("Render camera not found!");
+      assert(false); // Should never happen
+   }
+
+   // Setup display driver
+   AtNode* driver = AiNodeLookUpByName("materialview_display1");
+   if (!driver)
+   {
+      driver = AiNode("materialview_display");
+      AiNodeSetStr(driver, "name", "materialview_display1");
+   }
+   AiNodeSetPtr(driver, "view", this);
+
+   // Setup filter
+   AtNode* filter = AiNodeLookUpByName("materialview_filter1");
+   if (!filter)
+   {
+      filter = AiNode("gaussian_filter");
+      AiNodeSetStr(filter, "name", "materialview_filter1");
+   }
+   AiNodeSetFlt(filter, "width", 2.0f);
+
+   // Create the single output line. No AOVs or anything.
+   AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
+   char str[1024];
+   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
+   AiArraySetStr(outputs, 0, str);
+   AiNodeSetArray(options, "outputs", outputs);
+
+   AiNodeSetInt(options, "xres", m_width);
+   AiNodeSetInt(options, "yres", m_height);
+   AiNodeSetInt(options, "bucket_size", 32);
+   AiNodeSetStr(options, "pin_threads", "off");
+   AiNodeSetInt(options, "threads", m_job.maxThreads);
+   AiNodeSetInt(options, "GI_sss_samples", 4);
+   AiNodeSetInt(options, "GI_diffuse_depth", 1);
+}
+
 void CMaterialView::InterruptRender(bool waitFinished)
 {
    {
@@ -562,8 +576,6 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    {
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
       AiMsgDebug("[mtoa] %-30s | Exported as %s(%s)",  MFnDependencyNode(node).name().asChar(), AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
-
-      std::clog << "Translating " << MFnDagNode(node).fullPathName().asChar() << " of type " << AiNodeGetName(arnoldNode) << " " << AiNodeEntryGetTypeName(nodeEntry) << " " << id.asString().asChar() << std::endl;
    }
    else
    {
@@ -609,8 +621,6 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
 
       const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
       AiMsgDebug("[mtoa] %-30s | Exported as %s(%s)",  MFnDagNode(node).fullPathName().asChar(), AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
-
-      std::clog << "Translating " << MFnDagNode(node).fullPathName().asChar() << " of type " << AiNodeGetName(arnoldNode) << " " << AiNodeEntryGetTypeName(nodeEntry) << " " << id.asString().asChar() << std::endl;
    }
    else
    {
@@ -656,21 +666,23 @@ void CMaterialView::SendProgress(float progress)
 
 unsigned int CMaterialView::RenderThread(void* data)
 {
-   CMaterialView* mtrlView = static_cast<CMaterialView*>(data);
+   CMaterialView* view = static_cast<CMaterialView*>(data);
    AtNode* options = AiUniverseGetOptions();
 
-   const int AA_samples = AiNodeGetInt(options, "AA_samples");
-
+   const int oldSampleRate = AiNodeGetInt(options, "AA_samples");
    const int numIterations = 6;
    const int sampleRate[numIterations] = {-3,-1, 1, 3, 6, 10};
 
+   // Initialize options for rendering
+   view->InitOptions();
+
    int status = AI_SUCCESS;
-   while (mtrlView->m_terminationRequested == false)
+   while (view->m_terminationRequested == false)
    {
-      if (mtrlView->WaitForRefresh(50))
+      if (view->WaitForRefresh(50))
       {
          // Notify rendering is in progress
-         mtrlView->SendProgress(0);
+         view->SendProgress(0);
 
          status = AI_SUCCESS;
          for (int i = 0; i < numIterations; ++i)
@@ -689,13 +701,13 @@ unsigned int CMaterialView::RenderThread(void* data)
          if (status == AI_SUCCESS)
          {
             // Notify rendering completed and thread idle
-            mtrlView->SendProgress(1);
+            view->SendProgress(1);
          }
       }
    }
 
-   // Put this back after we're done
-   AiNodeSetInt(options, "AA_samples", AA_samples);
+   // Restore sample rate
+   AiNodeSetInt(options, "AA_samples", oldSampleRate);
 
    return status;
 }

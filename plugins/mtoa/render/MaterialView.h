@@ -58,6 +58,7 @@ private:
    bool BeginSession();
    void EndSession();
    bool IsActive();
+   void InitOptions();
    void InterruptRender(bool waitFinished = false);
    bool WaitForRefresh(unsigned int msTimeout);
    void ScheduleRefresh();
@@ -101,6 +102,7 @@ private:
    CEvent        m_refreshEvent;
    unsigned int  m_width;
    unsigned int  m_height;
+   MPxRenderer::JobParams m_job;
 
    static CMaterialView* s_instance;
 };
