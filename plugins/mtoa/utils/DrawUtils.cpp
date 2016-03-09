@@ -408,23 +408,24 @@ CGPUPrimitive* CGDiskLightPrimitive::generate(CGPUPrimitive* prim)
 void CGDiskLightPrimitive::generateData(MPointArray &positions, MUintArray &indices,
 										double scale[3])
 {
+	const unsigned int dimensions = 20;
 	positions.clear();
 	positions.append(MPoint(0.0f, 0.0f, 0.0f));
 	positions.append(MPoint(0.0f, 0.0f, -1.0f*scale[2]));
 
-	for (unsigned int i = 0; i < 20; ++i)
+	for (unsigned int i = 0; i < dimensions; ++i)
 	{
-		const float d = AI_PITIMES2 * (float(i) / 20.0f);
+		const float d = AI_PITIMES2 * (float(i) / float(dimensions));
 		positions.append(MPoint(cosf(d)*scale[0], sinf(d)*scale[1], 0.0f));
 	}
 
 	indices.clear();
 	indices.append( 0 );
 	indices.append( 1 );
-	for (unsigned int i = 0; i < 20; ++i)
+	for (unsigned int i = 0; i < dimensions; ++i)
 	{
 		indices.append( i + 2 );
-		indices.append( (i + 1) % 20 + 2 );
+		indices.append( (i + 1) % dimensions + 2 );
 		indices.append( 0 );
 		indices.append(i + 2);
 	}
@@ -471,29 +472,30 @@ CGPUPrimitive* CGCylinderPrimitive::generate(CGPUPrimitive* prim)
 void CGCylinderPrimitive::generateData(MPointArray &positions, MUintArray &indices,
 									   double scale[3])
 {
-	positions.setLength(20 * 2);
-	const unsigned int indexDiff = 20;
-	for (unsigned int i = 0; i < 20; ++i)
+	const unsigned int dimensions = 20;
+	positions.setLength(dimensions * 2);
+	const unsigned int indexDiff = dimensions;
+	for (unsigned int i = 0; i < dimensions; ++i)
 	{
-		const float d = AI_PITIMES2 * (float(i) / 20.0f);
+		const float d = AI_PITIMES2 * (float(i) / float(dimensions));
 		const float x = cosf(d);
 		const float z = sinf(d);
 		positions[i] = MPoint(x*scale[0],1.0f*scale[1],z*scale[2]);
 		positions[i + indexDiff] = MPoint(x*scale[0], -1.0f*scale[1], z*scale[2]);
 	}
-	indices.setLength(20 * 6);
-	const unsigned int res2 = 20 * 2;
-	for (unsigned int i = 0; i < 20; ++i)
+	indices.setLength(dimensions * 6);
+	const unsigned int res2 = dimensions * 2;
+	for (unsigned int i = 0; i < dimensions; ++i)
 	{
 		const unsigned int i2 = i * 2;
-		const unsigned int i1 = (i + 1) % 20;
+		const unsigned int i1 = (i + 1) % dimensions;
 		indices[i2] = i;
 		indices[i2 + 1] = i1;
-		indices[i2 + res2] = i + 20;
-		indices[i2 + res2 + 1] = i1 + 20;
-		const unsigned int i2o = i2 + 20 * 4;
+		indices[i2 + res2] = i + dimensions;
+		indices[i2 + res2 + 1] = i1 + dimensions;
+		const unsigned int i2o = i2 + dimensions * 4;
 		indices[i2o] = i;
-		indices[i2o + 1] = i + 20;
+		indices[i2o + 1] = i + dimensions;
 	}
 }
 
@@ -746,6 +748,42 @@ CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
 
 	prim->setPrimitiveData(vertices, 8 * 3, indices, 4 * 3 * 2);
 	return prim;
+}
+
+void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices)
+{
+	const unsigned int numVertices = 24;
+	const float vertices [numVertices] = {
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f
+	};
+
+	const unsigned int indices[numVertices] = {
+		0, 1, 1, 2, 2, 3, 3, 0,
+		4, 5, 5, 6, 6, 7, 7, 4,
+		0, 4, 1, 5, 2, 6, 3, 7
+	};
+
+	positions.setLength(numVertices / 3);
+	for (unsigned int i=0; i<numVertices / 3; i++)
+	{
+		const unsigned int i3 = i * 3;
+		const unsigned int i31 = i3 + 1;
+		const unsigned int i32 = i3 + 2;
+		positions.set(i, vertices[i3], vertices[i31], vertices[i32]);
+	}
+
+	mindices.setLength(numVertices);
+	for (unsigned int i = 0; i < numVertices; i++)
+	{
+		mindices[i] = indices[i];
+	}
 }
 
 bool checkShaderError(unsigned int shader)

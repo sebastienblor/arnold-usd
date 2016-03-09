@@ -213,11 +213,7 @@ namespace // <anonymous>
          "arnoldAreaLightNodeOverride",
          AI_AREA_LIGHT_CLASSIFICATION,
          CArnoldAreaLightDrawOverride::creator
-      } , /* {
-         "arnoldSkyDomeLightNodeOverride",
-         AI_SKYDOME_LIGHT_CLASSIFICATION,
-         CArnoldSkyDomeLightDrawOverride::creator
-      } , */ {
+      } , {
          "arnoldStandInNodeOverride",
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator

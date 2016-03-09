@@ -349,9 +349,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		break;
 	};
 
-	// Can add in custom selection masking if desired
-	//const MSelectionMask selectionMask("arnoldLightSelection");
-
 	// 1. Add in a dormant wireframe render item
 	MHWRender::MRenderItem* wireframeItem = 0;
 	int index = list.indexOf(s_wireframeItemName);
@@ -364,8 +361,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 	
 		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
 		wireframeItem->depthPriority(MHWRender::MRenderItem::sDormantWireDepthPriority);
-		wireframeItem->setExcludedFromPostEffects(true);
-		//wireframeItem->setSelectionMask(selectionMask);
 		wireframeItem->enable(true);
 		list.append(wireframeItem);
 	}
@@ -427,8 +422,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
 		activeWireframeItem->setDrawMode(MHWRender::MGeometry::kAll);
 		activeWireframeItem->depthPriority(MHWRender::MRenderItem::sActiveLineDepthPriority);
-		activeWireframeItem->setExcludedFromPostEffects(true);
-		//activeWireframeItem->setSelectionMask(selectionMask);
 		list.append(activeWireframeItem);
 	}
 	else
@@ -487,10 +480,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 			(MHWRender::MGeometry::kShaded | MHWRender::MGeometry::kTextured));	
 		texturedItem->depthPriority(MHWRender::MRenderItem::sDormantFilledDepthPriority);
 		texturedItem->enable(true);
-		texturedItem->setExcludedFromPostEffects(true);
-		texturedItem->castsShadows(false);
-		texturedItem->receivesShadows(false);
-		//texturedItem->setSelectionMask(selectionMask);
 
 		// Set custom data for state overrides
 		CArnoldSkyDomeLighUserData* userData =
