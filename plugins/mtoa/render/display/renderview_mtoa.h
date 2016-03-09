@@ -52,11 +52,14 @@ public:
    static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
    static void SceneOpenCallback(void *);
+   static void ColorMgtChangedCallback(void *);
    static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
+   static void ResolutionCallback(MObject& node, MPlug& plug, void* clientData);
+   static void ResolutionChangedCallback(void *);
 
    void OpenMtoARenderView(int width, int height);
 private:
-   void UpdateColorManagement(MObject &node);
+   void UpdateColorManagement();
 
 
    MCallbackId m_rvSelectionCb;
@@ -65,6 +68,8 @@ private:
    MCallbackId m_rvLayerManagerChangeCb;
    MCallbackId m_rvLayerChangeCb;
    MCallbackId m_rvColorMgtCb;
+   MCallbackId m_rvResCb;
+   MCallbackId m_rvIdleCb;
 
    bool m_convertOptionsParam;
 

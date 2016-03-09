@@ -27,6 +27,8 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvLayerManagerChangeCb(0),
    m_rvLayerChangeCb(0),
    m_rvColorMgtCb(0),
+   m_rvResCb(0),
+   m_rvIdleCb(0),
    m_convertOptionsParam(true)
 {   
 }
@@ -62,6 +64,16 @@ CRenderViewMtoA::~CRenderViewMtoA()
    {
       MMessage::removeCallback(m_rvColorMgtCb);
       m_rvColorMgtCb = 0;
+   }
+   if (m_rvResCb)
+   {
+      MMessage::removeCallback(m_rvResCb);
+      m_rvResCb = 0;
+   }
+   if (m_rvIdleCb)
+   {
+      MMessage::removeCallback(m_rvIdleCb);
+      m_rvIdleCb = 0;
    }
 }
 // Return all renderable cameras
@@ -163,9 +175,28 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
                                               &status);
       }
 
-      if (m_convertOptionsParam) UpdateColorManagement(colorMgtObject);
+      if (m_convertOptionsParam) UpdateColorManagement();
    }
    m_convertOptionsParam = false;
+
+   MSelectionList resList;
+   resList.add(MString(":defaultResolution"));
+   
+   // get the maya node contraining the color management options         
+   if(resList.length() > 0)
+   {
+      MObject resObject;
+      resList.getDependNode(0,resObject);
+
+      if (m_rvResCb == 0)
+      {
+         m_rvResCb = MNodeMessage::addNodeDirtyCallback(resObject,
+                                              ResolutionCallback,
+                                              this,
+                                              &status);
+      }
+
+   }
 
    // Set image Dir
    MString workspace;
@@ -779,8 +810,16 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 }
 
 
-void CRenderViewMtoA::UpdateColorManagement(MObject &node)
+void CRenderViewMtoA::UpdateColorManagement()
 {
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   // get the maya node contraining the color management options         
+   if(activeList.length() == 0) return;
+   
+   MObject node;
+   activeList.getDependNode(0,node);
    MFnDependencyNode depNode(node);
 
 // cfe -> ocio enabled
@@ -865,9 +904,84 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
       }
    }
 }
+void CRenderViewMtoA::ColorMgtChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+   renderViewMtoA->UpdateColorManagement();
+}
+
 void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData)
 {
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
-   rvMtoA->UpdateColorManagement(node);
+   MStatus status;
+   if(rvMtoA->m_rvIdleCb == 0)
+   {
+
+      rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                                                  CRenderViewMtoA::ColorMgtChangedCallback,
+                                                  clientData,
+                                                  &status);
+   }
+}
+void CRenderViewMtoA::ResolutionChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+
+   MSelectionList resList;
+   resList.add(MString(":defaultResolution"));
+   
+   if(resList.length() == 0) return;
+
+   MObject resObject;
+   resList.getDependNode(0,resObject);
+   MFnDependencyNode depNode(resObject);
+
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+   
+   if (renderOptions == NULL) return;
+
+   MStatus status;
+   MPlug plug = depNode.findPlug("width", &status);
+   bool updateRender = false;
+   if (status == MS::kSuccess)
+   {
+      if (plug.asInt() != renderOptions->width()) updateRender = true;
+   }
+   plug = depNode.findPlug("height", &status);
+   if (status == MS::kSuccess)
+   {
+      if (plug.asInt() != renderOptions->height()) updateRender = true;
+   }
+
+   if(updateRender)      
+      renderViewMtoA->SetOption("Update Full Scene", "1");
+}
+void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
+   MStatus status;
+   if(rvMtoA->m_rvIdleCb == 0)
+   {
+
+      rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                                                  CRenderViewMtoA::ResolutionChangedCallback,
+                                                  clientData,
+                                                  &status);
+   }
 
 }
