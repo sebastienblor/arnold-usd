@@ -517,28 +517,16 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 		MHWRender::MTexture* texture = 0;
 
 		MHWRender::MShaderInstance *shaderInst = m_texturedShader;
-		// TODO : Add CM support for texture lookup
-		/* if (mIblShape->cmEnabled_)
-		{
-		if(mIblShape->inputColorSpace_ != mIblShape->inputColorSpaceLast_
-		||
-		mIblShape->workingColorSpace_ != mIblShape->workingColorSpaceLast_)
-		{
-		mIblSurfaceShaderCM 
-		= mIblSurfaceShader->createShaderInstanceWithColorManagementFragment(mIblShape->inputColorSpace_);
-		mIblShape->inputColorSpaceLast_ = mIblShape->inputColorSpace_;
-		mIblShape->workingColorSpaceLast_ = mIblShape->workingColorSpace_;
-		}
-		assert(mIblSurfaceShaderCM != NULL);
-		if (mIblSurfaceShaderCM)
-		{
-		shaderInst = mIblSurfaceShaderCM;
-		}
-		}
-		*/
 
 		if (m_texturedShader)
 		{
+			// Color effects
+			float alphaGain = 1.0f;
+			float alphaOffset = 0.0f;
+			float colorGain[3] = { 1.0f, 1.0f, 1.0f };
+			float colorOffset[3] = { 0.0f, 0.0f, 0.0f };
+			bool invert = false;
+
 			// Get texture
 			MHWRender::MTexture* texture = 0;
 
@@ -552,6 +540,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 				colorBakeSize = p_skydomeNode->NumSampleBase();
 			}
 			bool useUnconnectedColor = true;
+			MObject connectedObject = MObject::kNullObj;
 			MPlug plug = depNode.findPlug("color");
 			if (!texture)
 			{
@@ -564,7 +553,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 						// TODO : Do not require a V-flip for procedurals. Need to check this.
 						//
 						const MPlug& connectedPlug = plugArray[0];
-						MObject connectedObject = connectedPlug.node();
+						connectedObject = connectedPlug.node();
 						if (connectedObject.hasFn( MFn::kFileTexture))
 						{
 							MString fileTextureName;
@@ -616,6 +605,43 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 				desc.fFormat = MHWRender::kR8G8B8A8_UNORM;
 				texture = textureManager->acquireTexture("", desc, texData);
 			}
+			else
+			{
+				// If any of these attributes exist use them
+				if (connectedObject != MObject::kNullObj)
+				{
+					MFnDependencyNode depNode(connectedObject);
+					MPlug plug = depNode.findPlug("colorGain");
+					if (!plug.isNull())
+					{
+						plug.child(0).getValue(colorGain[0]);
+						plug.child(1).getValue(colorGain[1]);
+						plug.child(2).getValue(colorGain[2]);
+					}
+					MPlug plug2 = depNode.findPlug("colorOffset");
+					if (!plug2.isNull())
+					{
+						plug2.child(0).getValue(colorOffset[0]);
+						plug2.child(1).getValue(colorOffset[1]);
+						plug2.child(2).getValue(colorOffset[2]);
+					}
+					MPlug plug3 = depNode.findPlug("alphaGain");
+					if (!plug3.isNull())
+					{
+						plug3.getValue(alphaGain);
+					}
+					MPlug plug4 = depNode.findPlug("alphaOffset");
+					if (!plug4.isNull())
+					{
+						plug4.getValue(alphaOffset);
+					}
+					MPlug plug5 = depNode.findPlug("invert");
+					if (!plug5.isNull())
+					{
+						plug5.getValue(invert);
+					}
+				}
+			}
 
 			// Set texture
 			MHWRender::MTextureAssignment textureAssignment;
@@ -645,6 +671,16 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 
 			// Make shader transparent as necessary
 			shaderInst->setIsTransparent(hwTexAlpha < 1.0f);
+
+			// Set color effects
+			shaderInst->setParameter("colorGain", colorGain);
+			shaderInst->setParameter("colorOffset", colorOffset);
+			shaderInst->setParameter("alphaOffset", alphaOffset);
+			shaderInst->setParameter("alphaGain", alphaGain);
+			shaderInst->setParameter("invert", invert);
+
+			// Set sampler
+			shaderInst->setParameter("samp", MHWRender::MSamplerState::kAnisotropic);
 
 			texturedItem->setShader(shaderInst, &s_texturedItemName);
 		}
