@@ -107,7 +107,7 @@ MHWRender::MPxDrawOverride* CArnoldLightBlockerDrawOverride::creator(const MObje
 }
 
 CArnoldLightBlockerDrawOverride::CArnoldLightBlockerDrawOverride(const MObject& obj) :
-    MHWRender::MPxDrawOverride(obj, draw)
+    MHWRender::MPxDrawOverride(obj, draw, false)
 {
 
 }
