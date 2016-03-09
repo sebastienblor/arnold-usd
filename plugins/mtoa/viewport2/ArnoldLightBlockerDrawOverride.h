@@ -5,15 +5,12 @@
 #include <maya/MPxDrawOverride.h>
 #include <maya/MUserData.h>
 #include <maya/MDrawContext.h>
-#include <maya/MObject.h>
-#include <maya/MPointArray.h>
-#include <maya/MUintArray.h>
 
-class CArnoldPhotometricLightDrawOverride : public MHWRender::MPxDrawOverride{
+class CArnoldLightBlockerDrawOverride : public MHWRender::MPxDrawOverride{
 public:
     static MHWRender::MPxDrawOverride* creator(const MObject& obj);
 
-    ~CArnoldPhotometricLightDrawOverride();
+    ~CArnoldLightBlockerDrawOverride();
 
     virtual bool isBounded(
         const MDagPath& objPath,
@@ -24,7 +21,7 @@ public:
         const MDagPath& cameraPath) const;
 
     virtual bool disableInternalBoundingBoxDraw() const;
-
+	
     virtual MUserData* prepareForDraw(
         const MDagPath& objPath,
         const MDagPath& cameraPath,
@@ -42,12 +39,10 @@ public:
 
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
 private:
-	CArnoldPhotometricLightDrawOverride(const MObject& obj);
+    CArnoldLightBlockerDrawOverride(const MObject& obj);
 
-	static void initializeUserData();
-    static MPointArray s_positions;
-    static MUintArray s_indexing;
-
-    static bool s_isValid;
+    static void initializeUserData();
+    
+	static bool s_isValid;
     static bool s_isInitialized;
 };

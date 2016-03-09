@@ -120,10 +120,19 @@ public:
 
 class CGBoxPrimitive{
 public:
-   static void generateData(MPointArray &positions, MUintArray &indices);
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
+class CGSpherePrimitive{
+public:
+   static void generateData(MPointArray &positions, MUintArray &indices, double radius, unsigned int resolution=16);
+};
+
+class CGQuadPrimitive{
+public:
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
+};
 
 bool checkShaderError(unsigned int shader);
 bool checkProgramError(unsigned int shader);
