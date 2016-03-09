@@ -7,7 +7,6 @@
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
 #include <maya/MGlobal.h>
-#include <maya/MEventMessage.h>
 
 #include <maya/MBoundingBox.h>
 #include <maya/MFloatMatrix.h>
@@ -17,10 +16,54 @@
 #include <maya/MQtUtil.h>
 #include <maya/M3dView.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MNodeMessage.h>
 
-static MCallbackId rvSelectionCb = 0;
+#include <maya/MSceneMessage.h>
 
+CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
+   m_rvSelectionCb(0),
+   m_rvSceneSaveCb(0),
+   m_rvSceneOpenCb(0),
+   m_rvLayerManagerChangeCb(0),
+   m_rvLayerChangeCb(0),
+   m_rvColorMgtCb(0),
+   m_convertOptionsParam(true)
+{   
+}
 
+CRenderViewMtoA::~CRenderViewMtoA()
+{
+   if (m_rvSceneSaveCb)
+   {
+      MMessage::removeCallback(m_rvSceneSaveCb);
+      m_rvSceneSaveCb = 0;
+   }
+   if (m_rvSceneOpenCb)
+   {
+      MMessage::removeCallback(m_rvSceneOpenCb);
+      m_rvSceneOpenCb = 0;
+   }
+   if (m_rvSelectionCb)
+   {
+      MMessage::removeCallback(m_rvSelectionCb);
+      m_rvSelectionCb = 0;
+   }
+   if (m_rvLayerManagerChangeCb)
+   {
+      MMessage::removeCallback(m_rvLayerManagerChangeCb);
+      m_rvLayerManagerChangeCb = 0;
+   }
+   if (m_rvLayerChangeCb)
+   {
+      MMessage::removeCallback(m_rvLayerChangeCb);
+      m_rvLayerChangeCb = 0;
+   }
+   if (m_rvColorMgtCb)
+   {
+      MMessage::removeCallback(m_rvColorMgtCb);
+      m_rvColorMgtCb = 0;
+   }
+}
 // Return all renderable cameras
 static int GetRenderCamerasList(MDagPathArray &cameras)
 {
@@ -52,7 +95,6 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
       }
       dagIter.next();
    }
-
    int size = cameras.length();
    if (size > 1)
       MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
@@ -61,14 +103,73 @@ static int GetRenderCamerasList(MDagPathArray &cameras)
    return size;
 }
 
-
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
 {
+   // Check if attribute ARV_options exist
+   // if it doesn't create it
+   int exists = 0;
+   MGlobal::executeCommand("attributeExists \"ARV_options\" \"defaultArnoldRenderOptions\" ", exists);
+
+   if (!exists)
+   {
+      MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
+   } 
+
    OpenRenderView(width, height, MQtUtil::mainWindow());
+
+   if (exists && m_convertOptionsParam)
+   {
+      // assign the ARV_options parameter as it is the first time since I opened this scene
+      MString optParam;
+      MGlobal::executeCommand("getAttr \"defaultArnoldRenderOptions.ARV_options\"", optParam);
+      SetFromSerialized(optParam.asChar());
+   }
+   MStatus status;   
+   if (m_rvSceneSaveCb == 0)
+   {
+      m_rvSceneSaveCb = MSceneMessage::addCallback(MSceneMessage::kBeforeSave, CRenderViewMtoA::SceneSaveCallback, (void*)this, &status);
+   }
+   if (m_rvSceneOpenCb == 0)
+   {
+      m_rvSceneOpenCb = MSceneMessage::addCallback(MSceneMessage::kAfterOpen, CRenderViewMtoA::SceneOpenCallback, (void*)this, &status);
+   }
+   if (m_rvLayerManagerChangeCb == 0)
+   {
+      m_rvLayerManagerChangeCb = MEventMessage::addEventCallback("renderLayerManagerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+   if (m_rvLayerChangeCb == 0)
+   {
+      m_rvLayerManagerChangeCb =  MEventMessage::addEventCallback("renderLayerChange",
+                                      CRenderViewMtoA::RenderLayerChangedCallback,
+                                      (void*)this);
+   }
+
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   // get the maya node contraining the color management options         
+   if(activeList.length() > 0)
+   {
+      MObject colorMgtObject;
+      activeList.getDependNode(0,colorMgtObject);
+
+      if (m_rvColorMgtCb == 0)
+      {
+         m_rvColorMgtCb = MNodeMessage::addNodeDirtyCallback(colorMgtObject,
+                                              ColorMgtCallback,
+                                              this,
+                                              &status);
+      }
+
+      if (m_convertOptionsParam) UpdateColorManagement(colorMgtObject);
+   }
+   m_convertOptionsParam = false;
 
    // Set image Dir
    MString workspace;
-   MStatus status = MGlobal::executeCommand(MString("workspace -q -rd;"), workspace);
+   status = MGlobal::executeCommand(MString("workspace -q -rd;"), workspace);
    if (status == MS::kSuccess)
    {
       workspace += "/images";
@@ -141,30 +242,31 @@ void CRenderViewMtoA::UpdateSceneChanges()
    // Set resolution and camera as passed in.
    CMayaScene::GetRenderSession()->SetResolution(-1, -1);
    CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
-
-
 }
 
 static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
 {
    MSelectionList activeList;
    MGlobal::getActiveSelectionList(activeList);
-   if( !activeList.isEmpty())
-   {
-      MObject depNode;
-      activeList.getDependNode(0, depNode);
-      if (depNode.hasFn(MFn::kTransform))
-      {
-         // from Transform to Shape
-         MDagPath dagPath;
-         activeList.getDagPath(0, dagPath);
-         depNode = dagPath.child(0);
-      }
-      MFnDependencyNode nodeFn( depNode );
+   if(activeList.isEmpty()) return;
 
-      AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
-      if (selected) selectedNodes.push_back(selected);
+   //CArnoldSession *session = CMayaScene::GetArnoldSession();
+   //session->FlattenSelection(&activeList, false);
+   
+   MObject depNode;
+   activeList.getDependNode(0, depNode);
+   if (depNode.hasFn(MFn::kTransform))
+   {
+      // from Transform to Shape
+      MDagPath dagPath;
+      activeList.getDagPath(0, dagPath);
+      depNode = dagPath.child(0);
    }
+   MFnDependencyNode nodeFn( depNode );
+
+   AtNode *selected = AiNodeLookUpByName(nodeFn.name().asChar());
+   if (selected) selectedNodes.push_back(selected);
+   
 }
 unsigned int CRenderViewMtoA::GetSelectionCount()
 {
@@ -181,6 +283,37 @@ void CRenderViewMtoA::GetSelection(AtNode **selection)
    memcpy(selection, &selectionVec[0], selectionVec.size() * sizeof(AtNode*));
 }
 
+void CRenderViewMtoA::SceneSaveCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+
+   const char *serialized = renderViewMtoA->Serialize();
+   
+   MString command = "setAttr -type \"string\" \"defaultArnoldRenderOptions.ARV_options\" \"";
+   command += serialized;
+   command +="\"";
+
+   MGlobal::executeCommand(command);
+
+}
+
+void CRenderViewMtoA::SceneOpenCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   renderViewMtoA->m_convertOptionsParam = true;
+   // next time I open the RenderView, convert the ARV_options param
+}
+
+void CRenderViewMtoA::RenderLayerChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   renderViewMtoA->SetOption("Update Full Scene", "1");
+
+
+}
 // For "Isolate Selected" debug shading mode,
 // we need to receive the events that current
 // Selection has changed
@@ -192,6 +325,9 @@ void CRenderViewMtoA::SelectionChangedCallback(void *data)
    MGlobal::getActiveSelectionList(activeList);
    if( activeList.isEmpty()) return;
 
+   //CArnoldSession *session = CMayaScene::GetArnoldSession();
+   //session->FlattenSelection(&activeList, false);
+   
    MObject depNode;
    std::vector<AtNode *> selection;
    unsigned int count = activeList.length();
@@ -308,16 +444,17 @@ void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramNameChar)
 
 void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 {
-   if (rvSelectionCb)
+   if ((!receive) && m_rvSelectionCb)
    {
-      MMessage::removeCallback(rvSelectionCb);
-      rvSelectionCb = 0;
+      MMessage::removeCallback(m_rvSelectionCb);
+      m_rvSelectionCb = 0;
+      return;
    }
 
-   if (receive)
+   if (receive && (m_rvSelectionCb == 0))
    {
 
-      rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
+      m_rvSelectionCb = MEventMessage::addEventCallback("SelectionChanged",
                                       CRenderViewMtoA::SelectionChangedCallback,
                                       (void*)this);
 
@@ -334,6 +471,8 @@ void CRenderViewMtoA::RenderViewClosed()
       renderSession->SetRendering(false);
       CMayaScene::End();
    }
+   MMessage::removeCallback(m_rvSceneSaveCb);
+   m_rvSceneSaveCb = 0;
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -636,5 +775,99 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
    transformPath.setRotatePivotTranslation(previousRt, MSpace::kWorld);
    m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
 
+
+}
+
+
+void CRenderViewMtoA::UpdateColorManagement(MObject &node)
+{
+   MFnDependencyNode depNode(node);
+
+// cfe -> ocio enabled
+// cfp -> ocio path
+// vtn  -> view transform name
+// wsn  -> 
+// otn
+// potn 
+
+   MStatus status;
+   MPlug plug;
+   plug = depNode.findPlug("cfe", &status);
+   bool ocio = false;
+
+   if (status == MS::kSuccess && plug.asBool())
+   {
+      SetOption("LUT.OCIO", "1");
+      ocio = true;
+      SetOption("LUT.Gamma", "1"); 
+      SetOption("LUT.Exposure", "0");
+
+   }
+   else  SetOption("LUT.OCIO", "0");
+
+   
+   plug = depNode.findPlug("cfp", &status);
+   
+   if (status == MS::kSuccess)
+   {      
+      std::string ocioFile = plug.asString().asChar();
+      if (!ocioFile.empty())
+      {
+         SetOption("LUT.OCIO File", ocioFile.c_str());
+      }
+
+      if (ocio)
+      {
+         plug = depNode.findPlug("vtn", &status);
+         if (status == MS::kSuccess)
+         {
+            const std::string viewTransform = plug.asString().asChar();
+            SetOption("LUT.View Transform", viewTransform.c_str());
+         }
+      } else
+      {
+         plug = depNode.findPlug("vtn", &status);
+         if (status == MS::kSuccess)
+         {            
+            const std::string viewTransform = plug.asString().asChar();
+            if (viewTransform == "1.8 gamma")
+            {
+               SetOption("LUT.View Transform", "Linear"); 
+               SetOption("LUT.Gamma", "1.8"); 
+               SetOption("LUT.Exposure", "0");
+            } else if (viewTransform == "2.2 gamma")
+            {
+               SetOption("LUT.View Transform", "Linear"); 
+               SetOption("LUT.Gamma", "2.2"); 
+               SetOption("LUT.Exposure", "0");
+            } else if (viewTransform == "sRGB gamma")
+            {
+               SetOption("LUT.View Transform", "sRGB");
+               SetOption("LUT.Gamma", "1"); 
+               SetOption("LUT.Exposure", "0");
+            } else if (viewTransform == "Rec 709 gamma")
+            {
+               SetOption("LUT.View Transform", "Rec709");
+               SetOption("LUT.Gamma", "1"); 
+               SetOption("LUT.Exposure", "0");
+            } else if (viewTransform == "Raw")
+            {
+               SetOption("LUT.View Transform", "Linear");
+               SetOption("LUT.Gamma", "1"); 
+               SetOption("LUT.Exposure", "0");
+            } else if (viewTransform == "Log")
+            {
+               SetOption("LUT.View Transform", "Log");
+               SetOption("LUT.Gamma", "1");
+               SetOption("LUT.Exposure", "0");
+            }
+         }
+      }
+   }
+}
+void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
+   rvMtoA->UpdateColorManagement(node);
 
 }

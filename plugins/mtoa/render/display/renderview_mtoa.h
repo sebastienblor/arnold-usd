@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <vector>
 
-
+#include <maya/MEventMessage.h>
 #include <maya/MFnCamera.h>
 #include <maya/MDagPath.h>
 #include <maya/MMatrix.h>
@@ -28,8 +28,8 @@ class CRenderViewMtoA : public CRenderViewInterface
 {
 public:
 
-	CRenderViewMtoA() : CRenderViewInterface() {}
-	virtual ~CRenderViewMtoA() {}
+	CRenderViewMtoA();
+	virtual ~CRenderViewMtoA();
 
    virtual void UpdateSceneChanges();
 
@@ -49,8 +49,25 @@ public:
    virtual CRenderViewRotateManipulator *GetRotateManipulator();
    
    static void SelectionChangedCallback(void *);
+   static void RenderLayerChangedCallback(void *);
+   static void SceneSaveCallback(void *);
+   static void SceneOpenCallback(void *);
+   static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
 
    void OpenMtoARenderView(int width, int height);
+private:
+   void UpdateColorManagement(MObject &node);
+
+
+   MCallbackId m_rvSelectionCb;
+   MCallbackId m_rvSceneSaveCb;
+   MCallbackId m_rvSceneOpenCb;
+   MCallbackId m_rvLayerManagerChangeCb;
+   MCallbackId m_rvLayerChangeCb;
+   MCallbackId m_rvColorMgtCb;
+
+   bool m_convertOptionsParam;
+
 };
 
 // In the Future these Manipulator classes should be removed and handled
