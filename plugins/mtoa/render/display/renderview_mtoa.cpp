@@ -1,7 +1,43 @@
 
 #include "renderview_mtoa.h"
-#include "scene/MayaScene.h"
 
+#ifdef MTOA_DISABLE_RV
+
+// define the functions in case we disabled the RenderView
+// so that we don't have to uncomment all the places where CRenderViewMtoA is used
+
+CRenderViewMtoA::CRenderViewMtoA() {}
+CRenderViewMtoA::~CRenderViewMtoA() {}
+
+void CRenderViewMtoA::UpdateSceneChanges(){}
+
+unsigned int CRenderViewMtoA::GetSelectionCount() {return 0;}
+void CRenderViewMtoA::GetSelection(AtNode **selectedNodes) {}
+void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append){}
+void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
+void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
+void CRenderViewMtoA::RenderViewClosed() {}
+
+CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
+CRenderViewZoomManipulator *CRenderViewMtoA::GetZoomManipulator() {return NULL;}
+CRenderViewRotateManipulator *CRenderViewMtoA::GetRotateManipulator() {return NULL;}
+   
+void CRenderViewMtoA::SelectionChangedCallback(void *) {}
+void CRenderViewMtoA::RenderLayerChangedCallback(void *) {}
+void CRenderViewMtoA::SceneSaveCallback(void *) {}
+void CRenderViewMtoA::SceneOpenCallback(void *) {}
+void CRenderViewMtoA::ColorMgtChangedCallback(void *) {}
+void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData) {}
+void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData) {}
+void CRenderViewMtoA::ResolutionChangedCallback(void *) {}
+void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
+void CRenderViewMtoA::UpdateColorManagement(){}
+
+#else
+
+// Arnold RenderView is defined
+
+#include "scene/MayaScene.h"
 
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
@@ -985,3 +1021,5 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
    }
 
 }
+
+#endif

@@ -1,9 +1,39 @@
 
 #pragma once
-
-#include "renderview_interface.h"
-
 #include <ai.h>
+
+#ifndef MTOA_DISABLE_RV
+#include "renderview_interface.h"
+#else
+
+// Arnold RenderView is disabled :
+// here is an empty RenderView Interface class
+// so that all these functions exist and we don't have 
+// fill the rest of MtoA code with #ifdef
+
+class CRenderViewInterface
+{
+public:
+   CRenderViewInterface() {}
+   virtual ~CRenderViewInterface() {}
+
+   void CloseRenderView(){}
+   void Render(){}
+   void SceneChanged(){}
+   void HostSelectionChanged(const AtNode **selection, unsigned int size){}
+   void InterruptRender(){}
+   void ObjectNameChanged(const char *oldName, const char *newName){}
+   void SetFrame(float frame){}
+   void SetOption(const char *option, const char *value){}
+
+};
+
+class CRenderViewPanManipulator;
+class CRenderViewRotateManipulator;
+class CRenderViewZoomManipulator;
+
+#endif
+
 
 #include <math.h>
 #include <errno.h>
@@ -17,12 +47,6 @@
 #include <maya/MFnCamera.h>
 #include <maya/MDagPath.h>
 #include <maya/MMatrix.h>
-/**
-  * Preparing MtoA's interface code with the RenderView
-  * Once the RenderView is extracted from MtoA, renderview_mtoa.cpp and renderview_mtoa.h
-  * will be the only files left in MtoA repository
- **/
-
 
 class CRenderViewMtoA : public CRenderViewInterface
 {
@@ -74,6 +98,8 @@ private:
    bool m_convertOptionsParam;
 
 };
+
+#ifndef MTOA_DISABLE_RV
 
 // In the Future these Manipulator classes should be removed and handled
 // internally by the RenderView code. As of now, MtoA's manipulators
@@ -158,5 +184,4 @@ private:
 
 };
 
-
-
+#endif
