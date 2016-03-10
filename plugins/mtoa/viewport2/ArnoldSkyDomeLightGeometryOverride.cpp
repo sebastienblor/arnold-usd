@@ -707,6 +707,8 @@ static AtVector SphereVertex(float phi, float theta)
 void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned int divisions[2],
 																float radius)
 {
+	//divisions[0] = divisions[1] = 4;
+
 	// Allocate memory
 	unsigned int numIndices = divisions[0] * divisions[1] * 6;
 	unsigned int divisionsX1 = divisions[0] + 1;
@@ -718,8 +720,11 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
 	s_filledUvs[2].setLength(numVertices*2);
 	s_filledIndexing.setLength(numIndices);
 
-	AtVector dir;
+	AtVector dir, dirLL;
 	float u, v, u2, v2, u3, v3;
+	float prev_u = 110.0;
+	float prev_u2 = 110.0;
+	float prev_u3 = 110.0;
 
 	// Create filled data
 	for (unsigned int x = 0; x < divisionsX1; ++x)
@@ -730,12 +735,45 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
 		{         
 			const float theta = (float)AI_PI * (float)y / (float)divisions[1];
 			dir = SphereVertex(phi, theta);            
+			dirLL = SphereVertex(AI_PI + phi, theta);
 
 			AiMappingMirroredBall(&dir, &u, &v);	// Mirrored Ball
 			AiMappingAngularMap(&dir, &u2, &v2);	// Angular
-			AiMappingLatLong(&dir, &u3, &v3);		// Lat-long
+			AiMappingLatLong(&dirLL, &u3, &v3);		// Lat-long
+#if 1
+			if (y == divisions[1])
+			{
+				u3 = prev_u3;
+			}
+			else
+			{
+				prev_u3 = u3;
+			}
+#endif
+			if (x == divisions[0])
+			{
+				u3 = 0.0f;
+			}
 
 			const int id = x + y * divisionsX1;
+
+#if 0
+			MString g("x,y =");
+			g += x; g += ",", g += y;
+			g += ". Phi="; g += phi;
+			g += ". Theta="; g += theta;
+			g += ". Direction = ";
+			g += dir.x; g+= ","; g += dir.y; g += ",", g += dir.z;
+			g += ". U,V = ";
+			g += u3; g += ","; g += v3;
+/*			g += ". M U,V = ";
+			g += u; g += ","; g += v;
+			g += ". A U,V = ";
+			g += u2; g += ","; g += v2; */
+			g += ". ID = "; g += id;
+			MGlobal::displayInfo(g);
+#endif
+
 			s_filledUvs[0][id*2] = u;
 			s_filledUvs[0][id*2+1] = v;	
 			s_filledUvs[1][id*2] = u2;
