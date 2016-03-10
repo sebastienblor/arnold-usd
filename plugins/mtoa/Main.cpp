@@ -4,6 +4,7 @@
 #include "viewport2/ArnoldGenericShaderOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
+#include "viewport2/ArnoldStandInSubSceneOverride.h"
 #include "viewport2/ArnoldStandInGeometryOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
@@ -121,7 +122,7 @@ namespace // <anonymous>
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
    const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
-   const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
+   const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/photometricLight";
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
@@ -832,10 +833,16 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                override.creator);
       CHECK_MSTATUS(status);
    }
-   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
-      AI_STANDIN_CLASSIFICATION,
-      "arnoldStandInNodeOverride",
-		CArnoldStandInGeometryOverride::Creator);
+//    status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+//        AI_STANDIN_CLASSIFICATION,
+//        "arnoldStandInNodeOverride",
+//        CArnoldStandInGeometryOverride::Creator);
+//    CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
+       AI_STANDIN_CLASSIFICATION,
+       "arnoldStandInNodeOverride",
+       CArnoldStandInSubSceneOverride::Creator);
    CHECK_MSTATUS(status);
    
 #endif
@@ -928,9 +935,14 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       CHECK_MSTATUS(status);
    }
    
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-		AI_STANDIN_CLASSIFICATION,
-      "arnoldStandInNodeOverride");
+//    status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+// 		AI_STANDIN_CLASSIFICATION,
+//       "arnoldStandInNodeOverride");
+//    CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
+       AI_STANDIN_CLASSIFICATION,
+       "arnoldStandInNodeOverride");
    CHECK_MSTATUS(status);
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
