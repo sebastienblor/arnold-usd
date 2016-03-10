@@ -689,6 +689,19 @@ void CNodeTranslator::AddUpdateCallbacks()
                                            &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 
+   if (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   {
+      // In RENDERVIEW mode, we also add AttributeChangedCallback
+      // otherwise, we might have desynchronized parameter values 
+      // (see ticket #2312)
+
+      id = MNodeMessage::addAttributeChangedCallback(object,
+                                              AttributeChangedCallback,
+                                              this,
+                                              &status);
+      if (MS::kSuccess == status) ManageUpdateCallback(id);
+   }
+
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
@@ -721,6 +734,12 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
+// In RenderView mode, attribute changed invoke nodeDirty (ticket #2312)
+void CNodeTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg, MPlug &plug, MPlug &otherPlug, void *clientData)
+{
+   MObject node = plug.node();
+   NodeDirtyCallback(node, plug, clientData);
+}
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
@@ -732,6 +751,13 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
+      if (translator->m_holdUpdates) // only happens for Arnold RenderView
+      {
+         // I'm still waiting to update this translator, 
+         // I can leave this place
+         return;
+      }
+
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
@@ -974,9 +1000,21 @@ void CNodeTranslator::RequestUpdate(void *clientData)
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-      translator->RemoveUpdateCallbacks();
-      // Add translator to the list of translators to update
-      m_session->QueueForUpdate(translator);
+ 
+      if (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+      {
+         if (!m_holdUpdates)
+         {
+            m_holdUpdates = true;
+            // Add translator to the list of translators to update
+            m_session->QueueForUpdate(translator);
+         }
+      } else
+      {
+         translator->RemoveUpdateCallbacks();
+         // Add translator to the list of translators to update
+         m_session->QueueForUpdate(translator);
+      }
    }
    else
    {

@@ -1266,6 +1266,8 @@ void CArnoldSession::DoUpdate()
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
 
+   bool arv = (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW);
+
    // In theory, no objectsToUpdate are supposed to be 
    // added to this list during the loop. But to make 
    // sure this won't be done by any of the functions 
@@ -1453,8 +1455,21 @@ void CArnoldSession::DoUpdate()
          CNodeTranslator* translator = (*iter);
          if (translator != NULL)
          {
-            translator->RemoveUpdateCallbacks();
-            translator->AddUpdateCallbacks();
+            if (arv)
+            {
+               // For RenderView, we don't clear the update callbacks
+               // we just add them if they're missing
+               if (!translator->HasUpdateCallbacks())
+               {
+                  translator->AddUpdateCallbacks();
+               } 
+
+              translator->m_holdUpdates = false; // I'm allowed to receive updates once again
+            } else
+            {
+               translator->RemoveUpdateCallbacks();
+               translator->AddUpdateCallbacks();
+            }
          }
       }
    }
