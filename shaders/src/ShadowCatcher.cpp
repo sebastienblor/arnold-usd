@@ -7,13 +7,15 @@ enum ShadowCatcherParams
    p_catch_shadows = 0,
    p_background_color,
    p_shadow_color,
+   p_backlighting,
    p_enable_transparency,
    p_shadow_transparency,
    
    p_catch_diffuse,
    p_diffuse_color,
    
-   p_reflection
+   p_reflection,
+   p_legacy
 };
 
 node_parameters
@@ -26,6 +28,7 @@ node_parameters
    AiParameterBOOL("catchShadows", true);
    AiParameterRGB("backgroundColor", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("shadowColor", 0.f, 0.f, 0.f);
+   AiParameterFLT("backlighting", 0.f);
    AiParameterBOOL("enableTransparency", false);
    AiParameterRGB("shadowTransparency", 0.0f, 0.0f, 0.0f);
    
@@ -33,14 +36,22 @@ node_parameters
    AiParameterRGB("diffuseColor", 1.0f, 1.0f, 1.0f);
    
    AiParameterRGB("reflection", 0.f, 0.f, 0.f);
+   AiParameterBOOL("legacy", false);
 }
 
 node_initialize
 {
+
 }
 
 node_update
 {
+   AiAOVRegister("shadow", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister("shadow_matte", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister("shadow_diff", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister("shadow_mask", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister("indirect_diffuse", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister("reflection", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
 node_finish
@@ -60,13 +71,51 @@ shader_evaluate
 
    AtRGB result = AI_RGB_BLACK;
    AtRGB resultOpacity = AI_RGB_WHITE;
-   float resultAlpha = 0.0f;   
-      
+   
+   
+   AtRGB Li = AI_RGB_BLACK;
+   AtRGB Liu = AI_RGB_BLACK;
+   AtRGB matte = AI_RGB_BLACK;
+   
    if (AiShaderEvalParamBool(p_catch_shadows))
    {
-      AtRGB matte = AI_RGB_BLACK;
-      matte = AiLightsGetShadowMatte(sg);
-      resultAlpha = (matte.r + matte.g + matte.b) / 3.0f;      
+      
+      if (AiShaderEvalParamBool(p_legacy))
+      {
+         matte = AiLightsGetShadowMatte(sg);
+      } else
+      {
+         float Kb = AiShaderEvalParamFlt(p_backlighting);
+         
+
+         if (Kb > 0.0f)
+            sg->fhemi = false;
+
+         AiLightsPrepare(sg);
+         while (AiLightsGetSample(sg))
+         {
+            if (AiLightGetAffectDiffuse(sg->Lp)) 
+            {
+               float d = sg->we * AiV3Dot(sg->Nf, sg->Ld);
+               // backlighting
+               if (d < 0.0)
+                  d *= -Kb;
+
+               Li += sg->Li * d;
+               Liu += sg->Liu * d;
+            }
+         }
+
+         // shadow matte
+         // NOTE We invert the value, so we have a black background for the whole image.
+         // Otherwise we have white backgroung on the geometry (e.g. Plane) the shadow_matte
+         // shader is assigned to and black background everywhere else.
+         // In composite this AOV has to be inverted and multiplied by the direct diffuse.
+         if (Liu.r != 0.0f) matte.r = 1.0f - Li.r / Liu.r;
+         if (Liu.g != 0.0f) matte.g = 1.0f - Li.g / Liu.g;
+         if (Liu.b != 0.0f) matte.b = 1.0f - Li.b / Liu.b;
+      }
+      
       if (AiShaderEvalParamBool(p_enable_transparency))
          resultOpacity = matte * (1.0f - AiShaderEvalParamRGB(p_shadow_transparency));
       result = LERP(matte, backgroundColor, shadowColor);
@@ -74,16 +123,37 @@ shader_evaluate
    else
       result = backgroundColor;
    
+   AtRGB indirect_diffuse = AI_RGB_BLACK;
+   AtRGB Kd = AI_RGB_WHITE;
    if (AiShaderEvalParamBool(p_catch_diffuse))
    {
       AtRGB diffuse_color = AiShaderEvalParamRGB(p_diffuse_color);
+      Kd = diffuse_color;
       if (!AiColorIsSmall(diffuse_color))
-         result += diffuse_color * AiIndirectDiffuse(&sg->Nf, sg) * backgroundColor;
+         indirect_diffuse = diffuse_color * AiIndirectDiffuse(&sg->Nf, sg) * backgroundColor;
    }
+   float resultAlpha = (matte.r + matte.g + matte.b) / 3.0f;      
    
-   result += AiShaderEvalParamRGB(p_reflection);
-   
+   // shadow diff
+   AtRGB shadow_diff = AI_ONEOVERPI * Kd * (Liu - Li);
+
+   // shadow mask
+   AtRGB shadow_mask = AiColorIsZero(matte) ? AI_RGB_BLACK : AI_RGB_WHITE;
+
+   AtRGB reflection = AiShaderEvalParamRGB(p_reflection);
+
+   AiAOVSetRGB(sg, "shadow", result);
+   AiAOVSetRGB(sg, "shadow_matte", matte);
+   AiAOVSetRGB(sg, "shadow_diff", shadow_diff);
+   AiAOVSetRGB(sg, "shadow_mask", shadow_mask);
+   AiAOVSetRGB(sg, "indirect_diffuse", indirect_diffuse);
+   AiAOVSetRGB(sg, "reflection", reflection);
+
+   result += indirect_diffuse;
+   result += reflection;
+
    sg->out.RGB = result;
    sg->out_opacity = resultOpacity;
    sg->out.RGBA.a = resultAlpha;
+   
 }

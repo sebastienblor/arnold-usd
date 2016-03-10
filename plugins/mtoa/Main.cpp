@@ -57,6 +57,7 @@
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/CurveTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
+#include "translators/shape/ProceduralTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
@@ -347,6 +348,10 @@ namespace // <anonymous>
                                     "mesh_light",
                                     CMeshLightTranslator::creator,
                                     CMeshLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("mesh",
+                                    "procedural",
+                                    CArnoldProceduralTranslator::creator,
+                                    CArnoldProceduralTranslator::NodeInitializer);
       builtin->RegisterTranslator("nurbsSurface",
                                     "",
                                     CNurbsSurfaceTranslator::creator,
@@ -442,7 +447,7 @@ namespace // <anonymous>
       CExtension* shaders;
       MString pluginPath = plugin.loadPath();
       unsigned int pluginPathLength = pluginPath.length();
-      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength) == MString("plug-ins"))
+      if (pluginPath.substring(pluginPathLength - 8, pluginPathLength-1) == MString("plug-ins"))
       {
          pluginPath = pluginPath.substring(0, pluginPathLength - 9);
          SetEnv("MTOA_PATH", pluginPath);

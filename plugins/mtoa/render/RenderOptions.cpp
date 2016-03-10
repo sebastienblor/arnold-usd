@@ -275,3 +275,28 @@ void CRenderOptions::UpdateImageDimensions()
    AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
 }
 
+int CRenderOptions::GetLogConsoleVerbosity() const
+{
+   if (m_log_to_console)
+   {
+      return m_log_verbosity | AI_LOG_COLOR;
+   } else { 
+      // I'm missing some situations here, as the logging can be set from different place.
+      // Ideally we'd like to have a function AiMsgGetConsoleFlags 
+      return DEFAULT_LOG_FLAGS;
+   }
+}
+int CRenderOptions::GetLogFileVerbosity() const
+{
+   if ((m_log_filename != "") && (m_log_to_file))
+   {
+      return m_log_verbosity;
+   } else 
+   {
+      // I'm missing some situations here, as the logging can be set from different place.
+      // Ideally we'd like to have a function AiMsgGetFileFlags 
+      return DEFAULT_LOG_FLAGS;
+   }
+
+}
+

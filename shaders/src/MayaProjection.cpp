@@ -242,7 +242,7 @@ AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
    float ay = N.y > 0.0f ? N.y : -N.y;
    float az = N.z > 0.0f ? N.z : -N.z;
 
-   if (ax > ay && ax > az)
+   if (ax >= ay && ax > az)
    {
       // yz plane
       st.x = V.z;
