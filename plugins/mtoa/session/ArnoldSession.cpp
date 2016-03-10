@@ -1260,6 +1260,7 @@ void CArnoldSession::DoUpdate()
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
+   
    bool aDag   = false;
    bool newDag = false;
    bool reqMob = false;
@@ -1275,32 +1276,51 @@ void CArnoldSession::DoUpdate()
       CNodeAttrHandle handle(m_objectsToUpdate[i].first);           // TODO : test isValid and isAlive ?
       CNodeTranslator * translator = m_objectsToUpdate[i].second;
 
-      if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
+      // Check if this translator needs to be re-created
+      if (translator != NULL && translator->m_updateMode == AI_RECREATE_TRANSLATOR)
       {
-         // A translator was provided, just add it to the list
-         if(translator->m_updateMode == AI_DELETE_NODE)
+         // delete the current translator, just like AI_DELETE_NODE does
+         translator->RemoveUpdateCallbacks();
+         translator->Delete();
+         m_processedTranslators.erase(handle); // shouldn't we delete the translator ?
+
+         // setting translator to NULL will consider that this is a new node,
+         // re-create the translator and export it appropriately
+         translator = NULL; 
+         m_objectsToUpdate[i].second = NULL; // safety
+      }
+
+      if (translator != NULL)
+      {
+         // Translator already exists
+         // check its update mode
+
+         if(translator->m_updateMode == AI_RECREATE_NODE)
+         {
+            // to be updated properly, the Arnold node must 
+            // be deleted and re-exported            
+            translator->Delete();
+            translator->m_atNodes.clear();
+            translator->DoCreateArnoldNodes();
+
+            translator->DoExport(0);
+            translatorsToUpdate.push_back(translator);
+         } else if(translator->m_updateMode == AI_DELETE_NODE)
          {
             translator->RemoveUpdateCallbacks();
             translator->Delete();
             m_processedTranslators.erase(handle);
-         }
+            // FIXME : when is this translator supposed to be deleted ??
+         }  
          else
-         {
+         {  
+            // AI_UPDATE_ONLY => simple update
             if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
             if (translator->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
-      }
-      else if(translator != NULL && translator->m_updateMode == AI_RECREATE_NODE)
-      {
-         translator->Delete();
-         translator->m_atNodes.clear();
-         translator->DoCreateArnoldNodes();
 
-         translator->DoExport(0);
-         translatorsToUpdate.push_back(translator);
-      }
-      else
+      } else
       {
          // No translator was provided, it's either a new node creation or
          // the undo of a delete node

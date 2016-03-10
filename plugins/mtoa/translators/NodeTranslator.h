@@ -26,6 +26,8 @@
 #define AI_UPDATE_ONLY 0
 #define AI_DELETE_NODE 1
 #define AI_RECREATE_NODE 2
+#define AI_RECREATE_TRANSLATOR 3
+
 
 MString GetAOVNodeType(int type);
 
