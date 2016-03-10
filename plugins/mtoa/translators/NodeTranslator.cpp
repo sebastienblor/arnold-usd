@@ -737,6 +737,18 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
       MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
       
+
+      if (plugName == ".aiTranslator")
+      {
+         // The Arnold translator has changed :
+         // This means the current one won't be able to export as it should.
+         // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
+         // will be cleared and a new one will be generated
+         translator->m_updateMode = AI_RECREATE_TRANSLATOR;
+         translator->RequestUpdate(clientData);
+         return;
+      }
+
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {
          std::vector< CDagTranslator * > translatorsToUpdate;
