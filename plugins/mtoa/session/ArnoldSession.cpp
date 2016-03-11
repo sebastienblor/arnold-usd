@@ -201,7 +201,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
          // for this shader
-         QueueForUpdate(translator);
+         if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -320,7 +320,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
          // for this shader
-         QueueForUpdate(translator);
+         if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -435,7 +435,7 @@ MStatus CArnoldSession::End()
    MStatus status = MStatus::kSuccess;
 
    m_requestUpdate = false;
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       ClearUpdateCallbacks();
    }
@@ -758,7 +758,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
 
    // add callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       ObjectToTranslatorMap::iterator it;
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
@@ -1005,7 +1005,7 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
          DagFiltered filtered = FilteredStatus(path);
          if (filtered != MTOA_EXPORT_ACCEPTED)
          {
-            if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+            if (IsInteractiveRender())
             {
                HiddenObjectCallbackPair hiddenObj;
                hiddenObj.first = CNodeAttrHandle(obj, "");
@@ -1082,7 +1082,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
             filtered = FilteredStatus(path);
             if (filtered != MTOA_EXPORT_ACCEPTED)
             {
-               if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+               if (IsInteractiveRender())
                {
                   HiddenObjectCallbackPair hiddenObj;
                   hiddenObj.first = CNodeAttrHandle(obj, "");
@@ -1435,7 +1435,7 @@ void CArnoldSession::DoUpdate()
    }
 
    // Refresh translator callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       for (std::vector<CNodeAttrHandle>::iterator iter = newToUpdate.begin();
          iter != newToUpdate.end(); ++iter)
