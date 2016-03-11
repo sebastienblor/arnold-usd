@@ -361,7 +361,7 @@ void CGQuadLightPrimitive::generateData(MPointArray &positions, MUintArray &indi
 	};
 
 	positions.clear();
-	for (unsigned i=0; i<9; i++)
+	for (unsigned i=0; i<6; i++)
 	{
 		positions.append(MPoint(l_vertices[i*3]*scale[0], 
 								l_vertices[i*3+1]*scale[1], 
@@ -750,18 +750,18 @@ CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
 	return prim;
 }
 
-void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices)
+void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, double scale[3])
 {
 	const unsigned int numVertices = 24;
 	const float vertices [numVertices] = {
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f
 	};
 
 	const unsigned int indices[numVertices] = {
@@ -776,13 +776,93 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices)
 		const unsigned int i3 = i * 3;
 		const unsigned int i31 = i3 + 1;
 		const unsigned int i32 = i3 + 2;
-		positions.set(i, vertices[i3], vertices[i31], vertices[i32]);
+		positions.set(i, scale[0]*vertices[i3], scale[1]*vertices[i31], scale[2]*vertices[i32]);
 	}
 
 	mindices.setLength(numVertices);
 	for (unsigned int i = 0; i < numVertices; i++)
 	{
 		mindices[i] = indices[i];
+	}
+}
+
+void CGSpherePrimitive::generateData(MPointArray &positions, MUintArray &indices, double radius,
+									 unsigned int resolution)
+{
+	positions.setLength((resolution * resolution + 2) * 2);
+	positions[0] = MPoint(0.0, -radius, 0.0);
+	positions[1] = MPoint(0.0, radius, 0.0);
+
+	unsigned int vid = 2;
+	for (unsigned int yy = 0; yy < resolution; ++yy)
+	{
+		const double dy = AI_PI * float(yy) / float(resolution) - AI_PIOVER2;
+		const double y = sin(dy) * radius;
+		const double pr = cos(dy) * radius;
+		for (unsigned int xx = 0; xx < resolution; ++xx)
+		{
+			const double dx = AI_PITIMES2 * double(xx) / double(resolution);
+			positions[vid++] = MPoint( cos(dx) * pr, y, sin(dx) * pr);
+		}
+	}
+
+	indices.setLength(resolution * resolution * 2 + // for horizontal lines
+		(resolution + 1) * resolution * 2); // for vertical lines
+	// fill horizontal lines
+	unsigned int id = 0;
+	for (unsigned int yy = 0; yy < resolution; ++yy)
+	{
+		const unsigned int wy = 2 + yy * resolution;
+		for (unsigned int xx = 0; xx < resolution; ++xx)
+		{
+			indices[id++] = wy + xx;
+			indices[id++] = wy + (xx + 1) % resolution;
+		}
+	}
+
+	for (unsigned int xx = 0; xx < resolution; ++xx)
+	{
+		const unsigned int xx2 = 2 + xx;
+		indices[id++] = 0;         
+		indices[id++] = xx2;
+		for (unsigned int yy = 0; yy < (resolution - 1); ++yy)
+		{
+			indices[id++] = xx2 + yy * resolution;
+			indices[id++] = xx2 + (yy + 1) * resolution;
+		}
+		indices[id++] = xx2 + (resolution - 1) * resolution;
+		indices[id++] = 1;
+	}
+}
+
+void CGQuadPrimitive::generateData(MPointArray &positions, MUintArray &indices,
+										double scale[3])
+{
+	const float l_vertices [] = {
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+	};
+
+	const unsigned int l_indices[] = {
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0,
+	};
+
+	positions.clear();
+	for (unsigned i=0; i<4; i++)
+	{
+		positions.append(MPoint(l_vertices[i*3]*scale[0], 
+								l_vertices[i*3+1]*scale[1], 
+								l_vertices[i*3+2]*scale[2]));
+	}
+	indices.clear();
+	for (unsigned i=0; i<8; i++)
+	{
+		indices.append(l_indices[i]);
 	}
 }
 

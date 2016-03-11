@@ -8,6 +8,7 @@
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
+#include "viewport2/ArnoldLightBlockerDrawOverride.h"
 #include <maya/MDrawRegistry.h>
 #include <maya/MSelectionMask.h>
 #endif
@@ -128,8 +129,10 @@ namespace // <anonymous>
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
    const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
+   const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
+   const MString AI_LIGHT_FILTER_WITH_ENVIRONMENT_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
 
    struct mayaNode {
       const char* name;
@@ -174,7 +177,7 @@ namespace // <anonymous>
       } , {
          "aiLightBlocker", CArnoldLightBlockerNode::id,
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
-         MPxNode::kLocatorNode, &LIGHT_FILTER_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_LIGHT_FILTER_WITH_ENVIRONMENT_WITH_SWATCH
       } , {
          "aiSky", CArnoldSkyNode::id,
          CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
@@ -225,6 +228,10 @@ namespace // <anonymous>
          "arnoldVolumeNodeOverride",
          AI_VOLUME_CLASSIFICATION,
          CArnoldVolumeDrawOverride::creator
+      } , {
+         "arnoldLightBlockerNodeOverride",
+         AI_LIGHT_FILTER_CLASSIFICATION,
+         CArnoldLightBlockerDrawOverride::creator
       }
    };
 #endif
