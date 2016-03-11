@@ -88,7 +88,8 @@ private:
 
    TranslatorVector m_deletables;
    TranslatorLookup m_translatorLookup;
-   CNodeTranslator* m_shaderTranslator;
+   AtNode*          m_activeShader;
+   AtNode*          m_dummyShader;
    AtNode*          m_environmentShader;
    AtNode*          m_environmentImage;
 

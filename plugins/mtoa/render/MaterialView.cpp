@@ -35,7 +35,8 @@ extern AtNodeMethods* materialview_driver_mtd;
 CMaterialView* CMaterialView::s_instance = NULL;
 
 CMaterialView::CMaterialView()
-: m_shaderTranslator(NULL)
+: m_activeShader(NULL)
+, m_dummyShader(NULL)
 , m_environmentShader(NULL)
 , m_environmentImage(NULL)
 , m_isRunning(false)
@@ -135,10 +136,9 @@ MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
       return MStatus::kFailure;
    }
 
-   if (m_shaderTranslator)
+   if (m_activeShader)
    {
-      AtNode* shaderNode = m_shaderTranslator->GetArnoldRootNode();
-      AiNodeSetPtr(geometryNode, "shader", shaderNode);
+      AiNodeSetPtr(geometryNode, "shader", m_activeShader);
    }
 
    return MStatus::kSuccess;
@@ -331,18 +331,27 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    CNodeTranslator* geometryTranslator = it->second;
    AtNode* geometryNode = geometryTranslator->GetArnoldRootNode();
 
+   AtNode* shaderNode = NULL;
+
    it = m_translatorLookup.find(shaderId);
-   if (it == m_translatorLookup.end())
-      return MStatus::kFailure;
-   CNodeTranslator* shaderTranslator = it->second;
-   AtNode* shaderNode = shaderTranslator->GetArnoldRootNode();
+   if (it != m_translatorLookup.end())
+   {
+      // Shader found among our translatated shaders
+      CNodeTranslator* shaderTranslator = it->second;
+      shaderNode = shaderTranslator->GetArnoldRootNode();
+   }
+   else
+   {
+      // No such shader translated, it's an unsupported shader type
+      // Assign the black dummy shader to indicate this to the user
+      shaderNode = m_dummyShader;
+   }
 
    // Make sure the renderer is stopped
    InterruptRender(true);
 
    AiNodeSetPtr(geometryNode, "shader", shaderNode);
-
-   m_shaderTranslator = shaderTranslator;
+   m_activeShader = shaderNode;
 
    return MStatus::kSuccess;
 }
@@ -418,6 +427,10 @@ bool CMaterialView::BeginSession()
    // Install our driver
    AiNodeEntryInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "materialview_display", "mtoa", (AtNodeMethods*) materialview_driver_mtd, AI_VERSION);
 
+   m_dummyShader = AiNode("MayaSurfaceShader");
+   AiNodeSetStr(m_dummyShader, "name", "mtrlViewDummyShader");
+   AiNodeSetRGB(m_dummyShader, "outColor", 0.0f, 0.0f, 0.0f);
+
    return true;
 }
 
@@ -433,7 +446,8 @@ void CMaterialView::EndSession()
    }
    m_deletables.clear();
    m_translatorLookup.clear();
-   m_shaderTranslator  = NULL;
+   m_activeShader      = NULL;
+   m_dummyShader       = NULL;
    m_environmentShader = NULL;
    m_environmentImage  = NULL;
 
@@ -560,11 +574,13 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
    if (it == m_translatorLookup.end())
    {
       CNodeTranslator* translator = CExtensionsManager::GetTranslator(node);
-      translator->Init(arnoldSession, node);
-      arnoldNode = translator->DoExport(0);
-
-      m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
-      m_deletables.push_back(translator);
+      if (translator)
+      {
+         translator->Init(arnoldSession, node);
+         arnoldNode = translator->DoExport(0);
+         m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
+         m_deletables.push_back(translator);
+      }
    }
    else
    {
@@ -600,11 +616,13 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       dagPath.extendToShape();
 
       CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-      translator->Init(arnoldSession, dagPath);
-      arnoldNode = translator->DoExport(0);
-
-      m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
-      m_deletables.push_back(translator);
+      if (translator)
+      {
+         translator->Init(arnoldSession, dagPath);
+         arnoldNode = translator->DoExport(0);
+         m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
+         m_deletables.push_back(translator);
+      }
    }
    else
    {
