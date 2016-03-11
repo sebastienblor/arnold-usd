@@ -93,9 +93,9 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 		const MHWRender::MShaderManager* shaderMgr = renderer->getShaderManager();
 		if (shaderMgr)
 		{
-			m_wireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader,
+			m_wireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dDashLineShader,
 				preDrawCallback, postDrawCallback);
-			m_activeWireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader,
+			m_activeWireframeShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dDashLineShader,
 				preDrawCallback, postDrawCallback);
 			m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader,
 				preDrawCallback, postDrawCallback);
@@ -153,21 +153,18 @@ void CArnoldSkyDomeLightGeometryOverride::createDisplayStates()
 	{
 		MHWRender::MRasterizerStateDesc desc;
 		desc.cullMode =  MHWRender::MRasterizerState::kCullNone;
-		//desc.fillMode = MHWRender::MRasterizerState::kFillWireFrame;
 		m_cullNoneState = MHWRender::MStateManager::acquireRasterizerState(desc);
 	}	
 	if (!m_cullBackState)
 	{
 		MHWRender::MRasterizerStateDesc desc;
 		desc.cullMode =  MHWRender::MRasterizerState::kCullBack;
-		//desc.fillMode = MHWRender::MRasterizerState::kFillWireFrame;
 		m_cullBackState = MHWRender::MStateManager::acquireRasterizerState(desc);
 	}
 	if (!m_cullFrontState)
 	{
 		MHWRender::MRasterizerStateDesc desc;
 		desc.cullMode =  MHWRender::MRasterizerState::kCullFront;
-		//desc.fillMode = MHWRender::MRasterizerState::kFillWireFrame;
 		m_cullFrontState = MHWRender::MStateManager::acquireRasterizerState(desc);
 	}
 }
@@ -202,21 +199,6 @@ void CArnoldSkyDomeLightGeometryOverride::preDrawCallback(
 	const MHWRender::MRenderItemList&	renderItemList,
 	MHWRender::MShaderInstance*			shaderInstance)
 {
-	// Set forceOpaque flag to true if we are drawing a non-PE pattern pass
-	// This pass draws an alpha mask to choose which part of the target
-	// is not affected by post-FX.
-	const MHWRender::MPassContext& passCtx = context.getPassContext();
-	const MStringArray& passSem = passCtx.passSemantics();
-	for (unsigned int i=0; i<passSem.length(); i++)
-	{
-		const MString& sem = passSem[i];
-		if (sem == MHWRender::MPassContext::kNonPEPatternPassSemantic)
-		{
-			//shaderInstance->setParameter(sForceOpaque, true);
-			break;
-		}
-	}
-
 	// Override the default 
 	const MHWRender::MRenderItem* item = renderItemList.itemAt(0);
 	if (item)
@@ -252,19 +234,6 @@ void CArnoldSkyDomeLightGeometryOverride::postDrawCallback(
 	const MHWRender::MRenderItemList&	renderItemList,
 	MHWRender::MShaderInstance*			shaderInstance)
 {
-	// See the comments above in pre-draw callback. Restore settings.
-	const MHWRender::MPassContext& passCtx = context.getPassContext();
-	const MStringArray& passSem = passCtx.passSemantics();
-	for (unsigned int i=0; i<passSem.length(); i++)
-	{
-		const MString& sem = passSem[i];
-		if (sem == MHWRender::MPassContext::kNonPEPatternPassSemantic)
-		{
-			//shaderInstance->setParameter(sForceOpaque, false);
-			break;
-		}
-	};
-
 	// Restore the depth stencil state
 	if (s_oldDepthStencilState)
 	{
@@ -550,7 +519,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 					if (plug.connectedTo(plugArray, true, false) && plugArray.length() == 1)
 					{
 						// Get texture from plug
-						// TODO : Do not require a V-flip for procedurals. Need to check this.
 						//
 						const MPlug& connectedPlug = plugArray[0];
 						connectedObject = connectedPlug.node();
@@ -707,8 +675,6 @@ static AtVector SphereVertex(float phi, float theta)
 void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned int divisions[2],
 																float radius)
 {
-	//divisions[0] = divisions[1] = 4;
-
 	// Allocate memory
 	unsigned int numIndices = divisions[0] * divisions[1] * 6;
 	unsigned int divisionsX1 = divisions[0] + 1;
@@ -720,65 +686,39 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
 	s_filledUvs[2].setLength(numVertices*2);
 	s_filledIndexing.setLength(numIndices);
 
-	AtVector dir, dirLL;
+	AtVector dir;
 	float u, v, u2, v2, u3, v3;
-	float prev_u = 110.0;
-	float prev_u2 = 110.0;
-	float prev_u3 = 110.0;
 
 	// Create filled data
 	for (unsigned int x = 0; x < divisionsX1; ++x)
 	{
-		const float phi = (float)AI_PITIMES2 * (float)x / (float)divisions[0];
+		const float delta = (float)x / (float)divisions[0];
+		const float mdelta = 1.0f - delta;
+		// Note: Shift by PI to avoid wrapping of values for lat-long in u.
+		const float phi = AI_PI + (float)AI_PITIMES2 * delta;
 
 		for (unsigned int y = 0; y < divisionsY1; ++y)
 		{         
 			const float theta = (float)AI_PI * (float)y / (float)divisions[1];
 			dir = SphereVertex(phi, theta);            
-			dirLL = SphereVertex(AI_PI + phi, theta);
 
 			AiMappingMirroredBall(&dir, &u, &v);	// Mirrored Ball
 			AiMappingAngularMap(&dir, &u2, &v2);	// Angular
-			AiMappingLatLong(&dirLL, &u3, &v3);		// Lat-long
-#if 1
-			if (y == divisions[1])
-			{
-				u3 = prev_u3;
-			}
-			else
-			{
-				prev_u3 = u3;
-			}
-#endif
-			if (x == divisions[0])
-			{
-				u3 = 0.0f;
-			}
+			AiMappingLatLong(&dir, &u3, &v3);		// Lat-long
+
 
 			const int id = x + y * divisionsX1;
 
-#if 0
-			MString g("x,y =");
-			g += x; g += ",", g += y;
-			g += ". Phi="; g += phi;
-			g += ". Theta="; g += theta;
-			g += ". Direction = ";
-			g += dir.x; g+= ","; g += dir.y; g += ",", g += dir.z;
-			g += ". U,V = ";
-			g += u3; g += ","; g += v3;
-/*			g += ". M U,V = ";
-			g += u; g += ","; g += v;
-			g += ". A U,V = ";
-			g += u2; g += ","; g += v2; */
-			g += ". ID = "; g += id;
-			MGlobal::displayInfo(g);
-#endif
-
 			s_filledUvs[0][id*2] = u;
 			s_filledUvs[0][id*2+1] = v;	
+			
 			s_filledUvs[1][id*2] = u2;
 			s_filledUvs[1][id*2+1] = v2;
-			s_filledUvs[2][id*2] = u3;
+
+			// Based on starting from PI, fix up any issues at poles 
+			// and avoid duplicate u value when wrapping around at 360 degrees.
+			// by enforcing a fixed u value per division.
+			s_filledUvs[2][id*2] = mdelta;
 			s_filledUvs[2][id*2+1] = v3;
 
 			s_filledPositions[id] = MFloatVector( dir.x*radius,
@@ -885,8 +825,8 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
 	if (m_geometryDirty)
 	{
 		unsigned int wire_dim[2] = { 32, 32 };
-		createWireSkyDomeGeometry(wire_dim, m_radius*1.001f);
-		unsigned int filled_dim[2] = { 128, 128 };
+		createWireSkyDomeGeometry(wire_dim, m_radius);
+		unsigned int filled_dim[2] = { 32, 32 };
 		createFilledSkyDomeGeometry(filled_dim, m_radius);
 
 		m_geometryDirty = false;
