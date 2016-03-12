@@ -1225,11 +1225,13 @@ void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
+   if (m_isExportingMotion && GetSessionMode() == MTOA_SESSION_RENDERVIEW) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
+   if (m_isExportingMotion && GetSessionMode() == MTOA_SESSION_RENDERVIEW) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 
@@ -1296,7 +1298,6 @@ void CArnoldSession::DoUpdate()
       {
          // Translator already exists
          // check its update mode
-
          if(translator->m_updateMode == AI_RECREATE_NODE)
          {
             // to be updated properly, the Arnold node must 
@@ -1402,7 +1403,6 @@ void CArnoldSession::DoUpdate()
    // Now do an update for all the translators in our list
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request
-
 
    if (!reqMob)
    {

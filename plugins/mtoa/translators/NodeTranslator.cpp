@@ -741,6 +741,7 @@ void CNodeTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage ms
    NodeDirtyCallback(node, plug, clientData);
 }
 
+
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 {
@@ -757,6 +758,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          // I can leave this place
          return;
       }
+      if (translator->m_session->IsExportingMotion() && translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW) return;
 
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
@@ -995,14 +997,17 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
  
-      if (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+      if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
+         if (session->IsExportingMotion()) return;
          if (!m_holdUpdates)
          {
             m_holdUpdates = true;
