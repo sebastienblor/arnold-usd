@@ -725,11 +725,16 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    for (unsigned int step = 0; step < numSteps; ++step)
    {
       if ((step != 0) || (m_motion_frames[step] != m_sessionOptions.m_frame))
+      {
+         // it used to be done at if(step ==1)
+         // but we could possibly be changing the frame temporarily
+         // without setting exportingMode=true
+         // so it's better to do it here. This way we can block the NodeDirty signals as desired
+         m_isExportingMotion = true; 
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+      }
       AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
-      if (step == 1)
-         m_isExportingMotion = true;
-
+      
       // then, loop through the already processed dag translators and export for current step
       // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
       // Since all nodes *should* be exported at this point, the following calls to DoExport do not
@@ -1225,13 +1230,13 @@ void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
-   if (m_isExportingMotion && GetSessionMode() == MTOA_SESSION_RENDERVIEW) return;
+   if (m_isExportingMotion && IsInteractiveRender()) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
-   if (m_isExportingMotion && GetSessionMode() == MTOA_SESSION_RENDERVIEW) return;
+   if (m_isExportingMotion && IsInteractiveRender()) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 

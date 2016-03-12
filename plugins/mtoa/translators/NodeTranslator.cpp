@@ -758,7 +758,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          // I can leave this place
          return;
       }
-      if (translator->m_session->IsExportingMotion() && translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW) return;
+      if (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()) return;
 
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
@@ -1005,9 +1005,10 @@ void CNodeTranslator::RequestUpdate(void *clientData)
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
  
+      if (session->IsInteractiveRender() && session->IsExportingMotion()) return;
       if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
-         if (session->IsExportingMotion()) return;
+         
          if (!m_holdUpdates)
          {
             m_holdUpdates = true;
