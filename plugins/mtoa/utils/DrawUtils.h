@@ -18,6 +18,7 @@
 
 #include <vector>
 #include <maya/MPointArray.h>
+#include <maya/MFloatVectorArray.h>
 #include <maya/MUintArray.h>
 
 class CLinePrimitiveData{
@@ -109,6 +110,7 @@ public:
 class CGCylinderPrimitive{
 public:
    static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
@@ -121,16 +123,19 @@ public:
 class CGBoxPrimitive{
 public:
    static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGSpherePrimitive{
 public:
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double radius, unsigned int resolution=16);
    static void generateData(MPointArray &positions, MUintArray &indices, double radius, unsigned int resolution=16);
 };
 
 class CGQuadPrimitive{
 public:
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3]);
    static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
 };
 

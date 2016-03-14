@@ -8,7 +8,7 @@
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
-#include "viewport2/ArnoldLightBlockerDrawOverride.h"
+#include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include <maya/MDrawRegistry.h>
 #include <maya/MSelectionMask.h>
 #endif
@@ -228,11 +228,7 @@ namespace // <anonymous>
          "arnoldVolumeNodeOverride",
          AI_VOLUME_CLASSIFICATION,
          CArnoldVolumeDrawOverride::creator
-      } , {
-         "arnoldLightBlockerNodeOverride",
-         AI_LIGHT_FILTER_CLASSIFICATION,
-         CArnoldLightBlockerDrawOverride::creator
-      }
+      } 
    };
 #endif
 
@@ -858,6 +854,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
    status = MGlobal::executeCommand("selectType -byName \"arnoldLightSelection\" 1");
    CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_LIGHT_FILTER_CLASSIFICATION,
+      "arnoldLightBlockerNodeOverride",
+		CArnoldLightBlockerGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -949,15 +951,15 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    }
    
    status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-		AI_STANDIN_CLASSIFICATION,
-      "arnoldStandInNodeOverride");
+      AI_LIGHT_FILTER_CLASSIFICATION,
+      "arnoldLightBlockerNodeOverride");
    CHECK_MSTATUS(status);
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
       //CArnoldPhotometricLightDrawOverride::clearGPUResources();
       //CArnoldAreaLightDrawOverride::clearGPUResources();
-      //CArnoldStandInDrawOverride::clearGPUResources();
+      CArnoldStandInDrawOverride::clearGPUResources();
       CArnoldVolumeDrawOverride::clearGPUResources();
    }
    // Register a custom selection mask
