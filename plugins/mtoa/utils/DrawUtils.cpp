@@ -499,6 +499,37 @@ void CGCylinderPrimitive::generateData(MPointArray &positions, MUintArray &indic
 	}
 }
 
+void CGCylinderPrimitive::generateData(MFloatVectorArray &positions, MUintArray &indices,
+									   double scale[3])
+{
+	const unsigned int dimensions = 20;
+	positions.setLength(dimensions * 2);
+	const unsigned int indexDiff = dimensions;
+	for (unsigned int i = 0; i < dimensions; ++i)
+	{
+		const float d = AI_PITIMES2 * (float(i) / float(dimensions));
+		const float x = cosf(d);
+		const float z = sinf(d);
+		positions[i] = MFloatVector(x*scale[0],1.0f*scale[1],z*scale[2]);
+		positions[i + indexDiff] = MPoint(x*scale[0], -1.0f*scale[1], z*scale[2]);
+	}
+	indices.setLength(dimensions * 6);
+	const unsigned int res2 = dimensions * 2;
+	for (unsigned int i = 0; i < dimensions; ++i)
+	{
+		const unsigned int i2 = i * 2;
+		const unsigned int i1 = (i + 1) % dimensions;
+		indices[i2] = i;
+		indices[i2 + 1] = i1;
+		indices[i2 + res2] = i + dimensions;
+		indices[i2 + res2 + 1] = i1 + dimensions;
+		const unsigned int i2o = i2 + dimensions * 4;
+		indices[i2o] = i;
+		indices[i2o + 1] = i + dimensions;
+	}
+}
+
+
 CGPUPrimitive* CGPhotometricLightPrimitive::generate(CGPUPrimitive* prim)
 {
 	unsigned int id = 0;
@@ -710,7 +741,7 @@ void CGPhotometricLightPrimitive::generateData(MPointArray &positions, MUintArra
 	{
 		unsigned int idb = 360 * 3;
 		indices[id++] = i * 45;
-		indices[id++] = idb + i;
+		indices[id++] = id + i;
 		indices[id++] = i * 45 + 360;
 		indices[id++] = idb + i + 8;
 		indices[id++] = i * 45 + 360 * 2;
@@ -786,6 +817,42 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, 
 	}
 }
 
+void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mindices, double scale[3])
+{
+	const unsigned int numVertices = 24;
+	const float vertices [numVertices] = {
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, 0.5f,
+		-0.5f, -0.5f, 0.5f,
+		-0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, -0.5f,
+		0.5f, 0.5f, 0.5f,
+		-0.5f, 0.5f, 0.5f
+	};
+
+	const unsigned int indices[numVertices] = {
+		0, 1, 1, 2, 2, 3, 3, 0,
+		4, 5, 5, 6, 6, 7, 7, 4,
+		0, 4, 1, 5, 2, 6, 3, 7
+	};
+
+	positions.setLength(numVertices / 3);
+	for (unsigned int i=0; i<numVertices / 3; i++)
+	{
+		const unsigned int i3 = i * 3;
+		const unsigned int i31 = i3 + 1;
+		const unsigned int i32 = i3 + 2;
+		positions.set(MFloatVector( scale[0]*vertices[i3], scale[1]*vertices[i31], scale[2]*vertices[i32]), i);
+	}
+
+	mindices.setLength(numVertices);
+	for (unsigned int i = 0; i < numVertices; i++)
+	{
+		mindices[i] = indices[i];
+	}
+}
+
 void CGSpherePrimitive::generateData(MPointArray &positions, MUintArray &indices, double radius,
 									 unsigned int resolution)
 {
@@ -803,6 +870,55 @@ void CGSpherePrimitive::generateData(MPointArray &positions, MUintArray &indices
 		{
 			const double dx = AI_PITIMES2 * double(xx) / double(resolution);
 			positions[vid++] = MPoint( cos(dx) * pr, y, sin(dx) * pr);
+		}
+	}
+
+	indices.setLength(resolution * resolution * 2 + // for horizontal lines
+		(resolution + 1) * resolution * 2); // for vertical lines
+	// fill horizontal lines
+	unsigned int id = 0;
+	for (unsigned int yy = 0; yy < resolution; ++yy)
+	{
+		const unsigned int wy = 2 + yy * resolution;
+		for (unsigned int xx = 0; xx < resolution; ++xx)
+		{
+			indices[id++] = wy + xx;
+			indices[id++] = wy + (xx + 1) % resolution;
+		}
+	}
+
+	for (unsigned int xx = 0; xx < resolution; ++xx)
+	{
+		const unsigned int xx2 = 2 + xx;
+		indices[id++] = 0;         
+		indices[id++] = xx2;
+		for (unsigned int yy = 0; yy < (resolution - 1); ++yy)
+		{
+			indices[id++] = xx2 + yy * resolution;
+			indices[id++] = xx2 + (yy + 1) * resolution;
+		}
+		indices[id++] = xx2 + (resolution - 1) * resolution;
+		indices[id++] = 1;
+	}
+}
+
+void CGSpherePrimitive::generateData(MFloatVectorArray &positions, MUintArray &indices, double radius,
+									 unsigned int resolution)
+{
+	positions.setLength((resolution * resolution + 2) * 2);
+	positions[0] = MPoint(0.0, -radius, 0.0);
+	positions[1] = MPoint(0.0, radius, 0.0);
+
+	unsigned int vid = 2;
+	for (unsigned int yy = 0; yy < resolution; ++yy)
+	{
+		const double dy = AI_PI * float(yy) / float(resolution) - AI_PIOVER2;
+		const double y = sin(dy) * radius;
+		const double pr = cos(dy) * radius;
+		for (unsigned int xx = 0; xx < resolution; ++xx)
+		{
+			const double dx = AI_PITIMES2 * double(xx) / double(resolution);
+			positions[vid++] = MFloatVector( cos(dx) * pr, y, sin(dx) * pr);
 		}
 	}
 
@@ -856,6 +972,37 @@ void CGQuadPrimitive::generateData(MPointArray &positions, MUintArray &indices,
 	for (unsigned i=0; i<4; i++)
 	{
 		positions.append(MPoint(l_vertices[i*3]*scale[0], 
+								l_vertices[i*3+1]*scale[1], 
+								l_vertices[i*3+2]*scale[2]));
+	}
+	indices.clear();
+	for (unsigned i=0; i<8; i++)
+	{
+		indices.append(l_indices[i]);
+	}
+}
+
+void CGQuadPrimitive::generateData(MFloatVectorArray &positions, MUintArray &indices,
+										double scale[3])
+{
+	const float l_vertices [] = {
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+	};
+
+	const unsigned int l_indices[] = {
+		0, 1,
+		1, 2,
+		2, 3,
+		3, 0,
+	};
+
+	positions.clear();
+	for (unsigned i=0; i<4; i++)
+	{
+		positions.append(MFloatVector(l_vertices[i*3]*scale[0], 
 								l_vertices[i*3+1]*scale[1], 
 								l_vertices[i*3+2]*scale[2]));
 	}
