@@ -5,7 +5,6 @@
 */
 #include "ArnoldRenderViewCmd.h"
 #include "scene/MayaScene.h"
-#include "render/MaterialView.h"
 
 #include <ai_universe.h>
 
@@ -165,8 +164,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       // Start off the render.
       // Unless we are in "open" mode
       if (mode == "render") renderSession->RunRenderView();
-   }
-   else if (mode == "stop")
+   } else if (mode == "stop")
    {
       if (!CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW))
       {
@@ -179,6 +177,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
+
    }
    else if (mode == "refresh")
    {

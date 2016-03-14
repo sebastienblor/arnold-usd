@@ -2,8 +2,6 @@
 #include "../scene/MayaScene.h"
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
-#include "../render/MaterialView.h"
-
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>

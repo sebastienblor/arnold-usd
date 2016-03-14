@@ -1,7 +1,6 @@
 #include "ArnoldAIRCmd.h"
 
 #include "scene/MayaScene.h"
-#include "render/MaterialView.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MGlobal.h>

@@ -192,6 +192,9 @@ MStatus CMaterialView::translateEnvironment(const MUuid& id, EnvironmentType typ
 
    if (!m_environmentShader)
    {
+      // TODO: Use skydome light for more efficient sampling, and combine
+      //       with sky shader for reflections and background.
+
       m_environmentShader = AiNode("sky");
       AiNodeSetStr(m_environmentShader, "name", "mtrlViewSky");
       AiNodeSetInt(m_environmentShader, "format", 2);

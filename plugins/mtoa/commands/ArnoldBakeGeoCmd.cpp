@@ -1,6 +1,5 @@
 #include "ArnoldBakeGeoCmd.h"
 #include "../scene/MayaScene.h"
-#include "../render/MaterialView.h"
 #include <ai.h>
 
 #include <maya/MStatus.h>
@@ -102,14 +101,13 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
+   CMayaScene::End();
    // Cannot export while a render is active
    if (AiUniverseIsActive())
    {
       AiMsgError("[mtoa] Cannot bake geometry while rendering");
       return MS::kFailure;
    }
-
-   CMayaScene::End();
 
    MString filename = "";
    argDB.getFlagArgument("filename", 0, filename);

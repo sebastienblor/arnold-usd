@@ -1,6 +1,5 @@
 #include "ArnoldRenderCmd.h"
 #include "scene/MayaScene.h"
-#include "render/MaterialView.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
