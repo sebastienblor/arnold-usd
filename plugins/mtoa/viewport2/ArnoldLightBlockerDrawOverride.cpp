@@ -24,7 +24,7 @@ struct CArnoldLightBlockerUserData : public MUserData{
     CArnoldLightBlockerUserData() : MUserData(false) 
 	{
 		m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3] = 1.0f;
-		m_primitiveType = 0;
+		m_primitiveType = 6;
 	}
 
     void update(const MDagPath& objPath)
