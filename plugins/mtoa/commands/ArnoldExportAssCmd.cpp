@@ -303,9 +303,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    if (panelName.length() > 0)
       MGlobal::executeCommand("stopIprRendering " + panelName[0]);
 
-   // Make sure no material view session is active
-   CMaterialView::ScopedSuspend suspendMtrlView;
-
    CMayaScene::End();
 
    // Cannot export while a render is active

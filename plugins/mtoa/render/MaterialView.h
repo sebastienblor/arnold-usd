@@ -44,14 +44,14 @@ public:
 
    static void* Creator();
    static const MString& Name();
-   static void SuspendRenderer();
-   static void ResumeRenderer();
-   static void AbortSession();
+   static void Suspend();
+   static void Resume();
+   static void Abort();
 
    class ScopedSuspend {
    public:
-      ScopedSuspend() { CMaterialView::SuspendRenderer(); }
-      ~ScopedSuspend() { CMaterialView::ResumeRenderer(); }
+      ScopedSuspend() { CMaterialView::Suspend(); }
+      ~ScopedSuspend() { CMaterialView::Resume(); }
    };
 
 private:
@@ -62,6 +62,10 @@ private:
    void InterruptRender(bool waitFinished = false);
    bool WaitForRefresh(unsigned int msTimeout);
    void ScheduleRefresh();
+
+   void DoSuspend();
+   void DoResume();
+   void DoAbort();
 
    enum UpdateMode
    {
@@ -97,7 +101,9 @@ private:
    CCritSec      m_runningLock;
    CCritSec      m_refreshLock;
    void*         m_renderThread;
-   volatile bool m_isRunning;
+   volatile bool m_active;
+   volatile bool m_running;
+   volatile bool m_suspended;
    volatile bool m_terminationRequested;
    volatile bool m_refreshAllowed;
    CEvent        m_refreshEvent;

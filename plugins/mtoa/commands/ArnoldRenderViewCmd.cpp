@@ -131,9 +131,6 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          return MS::kSuccess;
       }
 
-      // Make sure no material view session is active
-      CMaterialView::SuspendRenderer();
-
       MDagPathArray cameras;
       if (args.isFlagSet("camera"))
       {
@@ -182,9 +179,6 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
-
-      // Resume material view session
-      CMaterialView::ResumeRenderer();
    }
    else if (mode == "refresh")
    {

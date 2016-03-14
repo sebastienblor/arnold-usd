@@ -39,7 +39,9 @@ CMaterialView::CMaterialView()
 , m_dummyShader(NULL)
 , m_environmentShader(NULL)
 , m_environmentImage(NULL)
-, m_isRunning(false)
+, m_active(false)
+, m_running(false)
+, m_suspended(false)
 , m_terminationRequested(false)
 , m_refreshEvent(true, false)
 , m_refreshAllowed(false)
@@ -61,7 +63,7 @@ MStatus CMaterialView::startAsync(const JobParams& params)
    CCritSec::CScopedLock sc(m_runningLock);
 
    // Guard for being called twice
-   if (m_isRunning)
+   if (m_running)
    {
       // Thread already started
       return MStatus::kSuccess;
@@ -70,7 +72,7 @@ MStatus CMaterialView::startAsync(const JobParams& params)
    // Start the render thread.
    m_job = params;
    m_terminationRequested = false;
-   m_isRunning = true;
+   m_running = true;
    m_renderThread = AiThreadCreate(CMaterialView::RenderThread, this, AI_PRIORITY_LOW);
 
    ScheduleRefresh();
@@ -93,7 +95,7 @@ MStatus CMaterialView::stopAsync()
       m_renderThread = 0;
    }
 
-   m_isRunning = false;
+   m_running = false;
 
    return MStatus::kSuccess;
 }
@@ -101,7 +103,7 @@ MStatus CMaterialView::stopAsync()
 bool CMaterialView::isRunningAsync()
 {
    CCritSec::CScopedLock sc(m_runningLock);
-   return m_isRunning;
+   return m_running;
 }
 
 MStatus CMaterialView::beginSceneUpdate()
@@ -389,8 +391,6 @@ MStatus CMaterialView::endSceneUpdate()
 
 MStatus CMaterialView::destroyScene()
 {
-   CCritSec::CScopedLock sc(m_sceneLock);
-
    EndSession();
 
    return MStatus::kSuccess;
@@ -403,7 +403,9 @@ bool CMaterialView::isSafeToUnload()
 
 bool CMaterialView::BeginSession()
 {
-   if (CMayaScene::IsActive(MTOA_SESSION_MATERIALVIEW))
+   CCritSec::CScopedLock sc(m_sceneLock);
+
+   if (m_active)
    {
       // We are already active. We should never get here.
       AiMsgDebug("[mtoa] Material View: Session already active!");
@@ -431,11 +433,21 @@ bool CMaterialView::BeginSession()
    AiNodeSetStr(m_dummyShader, "name", "mtrlViewDummyShader");
    AiNodeSetRGB(m_dummyShader, "outColor", 0.0f, 0.0f, 0.0f);
 
+   m_active = true;
+
    return true;
 }
 
 void CMaterialView::EndSession()
 {
+   CCritSec::CScopedLock sc(m_sceneLock);
+
+   if (!m_active)
+   {
+      AiMsgDebug("[mtoa] Material View: Session already ended!");
+      return;
+   }
+
    // Make sure we are not rendering
    InterruptRender(true);
 
@@ -450,6 +462,10 @@ void CMaterialView::EndSession()
    m_dummyShader       = NULL;
    m_environmentShader = NULL;
    m_environmentImage  = NULL;
+
+   // Note: We must set the active flag before calling CMayaScene::End() below
+   // to prevent reqursive entry since End() checks for active mtrl view session
+   m_active = false;
 
    // Uninstall our driver
    AiNodeEntryUninstall("materialview_display");
@@ -466,7 +482,8 @@ void CMaterialView::EndSession()
 
 bool CMaterialView::IsActive()
 {
-   return CMayaScene::IsActive(MTOA_SESSION_MATERIALVIEW);
+   CCritSec::CScopedLock sc(m_sceneLock);
+   return m_active;
 }
 
 void CMaterialView::InitOptions()
@@ -562,6 +579,38 @@ void CMaterialView::ScheduleRefresh()
    CCritSec::CScopedLock sc(m_refreshLock);
    m_refreshAllowed = true;
    m_refreshEvent.set();
+}
+
+void CMaterialView::DoSuspend()
+{
+   CCritSec::CScopedLock sc(m_runningLock);
+   if (!m_suspended)
+   {
+      m_suspended = true;
+      CMayaScene::ExecuteScript("renderer -materialViewRendererSuspend true");
+   }
+}
+
+void CMaterialView::DoResume()
+{
+   CCritSec::CScopedLock sc(m_runningLock);
+   if (m_suspended)
+   {
+      m_suspended = false;
+      CMayaScene::ExecuteScript("renderer -materialViewRendererSuspend false");
+   }
+}
+
+void CMaterialView::DoAbort()
+{
+   CCritSec::CScopedLock sc(m_runningLock);
+   if (IsActive())
+   {
+      if (isRunningAsync()) {
+         stopAsync();
+      }
+      destroyScene();
+   }
 }
 
 AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int updateMode)
@@ -743,23 +792,26 @@ const MString& CMaterialView::Name()
    return s_name;
 }
 
-void CMaterialView::SuspendRenderer()
+void CMaterialView::Suspend()
 {
-   CMayaScene::ExecuteScript("renderer -materialViewRendererSuspend true");
-}
-
-void CMaterialView::ResumeRenderer()
-{
-   CMayaScene::ExecuteScript("renderer -materialViewRendererSuspend false");
-}
-
-void CMaterialView::AbortSession()
-{
-   if (s_instance && s_instance->IsActive())
+   if (s_instance)
    {
-      if (s_instance->isRunningAsync()) {
-         s_instance->stopAsync();
-      }
-      s_instance->destroyScene();
+      s_instance->DoSuspend();
+   }
+}
+
+void CMaterialView::Resume()
+{
+   if (s_instance)
+   {
+      s_instance->DoResume();
+   }
+}
+
+void CMaterialView::Abort()
+{
+   if (s_instance)
+   {
+      s_instance->DoAbort();
    }
 }

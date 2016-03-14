@@ -109,9 +109,6 @@ MStatus CArnoldBakeGeoCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   // Make sure no material view session is active
-   CMaterialView::ScopedSuspend suspendMtrlView;
-
    CMayaScene::End();
 
    MString filename = "";

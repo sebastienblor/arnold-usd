@@ -113,9 +113,6 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       return MS::kSuccess;
    }
 
-   // Make sure no material view session is active
-   CMaterialView::ScopedSuspend suspendMtrlView;
-
    CMayaScene::End();
    // Cannot export while a render is active
    if (AiUniverseIsActive())

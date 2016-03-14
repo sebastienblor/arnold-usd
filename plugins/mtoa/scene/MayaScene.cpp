@@ -100,6 +100,13 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
    MStatus status = MStatus::kSuccess;
 
+   // Suspend material view during all render sessions, except swatches
+   // which has lower priority and will be aborted by material viewer
+   if (mode != MTOA_SESSION_MATERIALVIEW && mode != MTOA_SESSION_SWATCH)
+   {
+      CMaterialView::Suspend();
+   }
+
    // FIXME: raise an error if Begin is called on active session
    // (forcing a CMayaScene::End() to be called before a CMayaScene::Begin() ?
    if (s_renderSession == NULL)
@@ -210,6 +217,12 @@ MStatus CMayaScene::End()
    s_active = false;
    AiCritSecLeave(&s_lock);
 
+   // Terminate material view session if active
+   if (GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
+   {
+      CMaterialView::Abort();
+   }
+
    ClearIPRCallbacks();
    if (s_renderSession != NULL)
    {
@@ -235,6 +248,9 @@ MStatus CMayaScene::End()
       MMessage::removeCallback(s_FileOpenCallbackId);
       s_FileOpenCallbackId = 0;
    }
+
+   // Resume material view if previously suspended
+   CMaterialView::Resume();
 
    return status;
 }
@@ -491,14 +507,9 @@ void CMayaScene::FileOpenCallback(void *)
 {
    // something we might want to do when a new file is opened
 
-   // Make sure to terminate material view session if active
-   if (GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
-   {
-      CMaterialView::AbortSession();
-   }
-   // for now we only call End() for the RenderView
+   // for now we only call End() for the RenderView or MaterialView
    // as IPR already handles it by calling IPR "stop"
-   else if (GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
    {
       End();
    }
@@ -509,15 +520,7 @@ void CMayaScene::QuitApplicationCallback(void *)
 {
    // something we might want to do when closing maya
 
-   // Make sure to terminate material view session if active
-   if (GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
-   {
-      CMaterialView::AbortSession();
-   }
-   else 
-   {
-      End();
-   }
+   End();
 }
 
 void CMayaScene::IPRIdleCallback(void *)

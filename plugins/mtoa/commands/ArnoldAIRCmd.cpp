@@ -66,9 +66,6 @@ MStatus CArnoldAIRCmd::doIt(const MArgList& argList)
             return MS::kFailure;
         }
 
-        // Make sure no material view session is active
-        CMaterialView::SuspendRenderer();
-
         CMayaScene::End();
 
         MCommonRenderSettingsData renderGlobals;
@@ -106,9 +103,6 @@ MStatus CArnoldAIRCmd::doIt(const MArgList& argList)
 
         CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
         CMayaScene::ExecuteScript(renderGlobals.postMel);
-
-      // Resume material view session
-      CMaterialView::ResumeRenderer();
     }
     else
     {

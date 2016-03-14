@@ -214,9 +214,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
 
-   // Make sure no material view session is active
-   CMaterialView::ScopedSuspend suspendMtrlView;
-
    CMayaScene::End(); // In case we're already rendering (e.g. IPR).
 
    // Check if in batch mode
