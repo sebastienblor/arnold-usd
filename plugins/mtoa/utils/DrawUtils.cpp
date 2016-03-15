@@ -315,7 +315,7 @@ void CGLPrimitive::draw(void* platform) const
 
 CGPUPrimitive* CGQuadLightPrimitive::generate(CGPUPrimitive* prim)
 {
-	const float vertices [] = {
+	static const float vertices [] = {
 		-1.0f, -1.0f, 0.0f,
 		1.0f, -1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f,
@@ -324,7 +324,7 @@ CGPUPrimitive* CGQuadLightPrimitive::generate(CGPUPrimitive* prim)
 		0.0f, 0.0f, -1.0f
 	};
 
-	const unsigned int indices[] = {
+	static const unsigned int indices[] = {
 		0, 1,
 		1, 2,
 		2, 3,
@@ -341,7 +341,7 @@ CGPUPrimitive* CGQuadLightPrimitive::generate(CGPUPrimitive* prim)
 void CGQuadLightPrimitive::generateData(MPointArray &positions, MUintArray &indices,
 										double scale[3])
 {
-	const float l_vertices [] = {
+	static const float l_vertices [] = {
 		-1.0f, -1.0f, 0.0f,
 		1.0f, -1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f,
@@ -350,7 +350,7 @@ void CGQuadLightPrimitive::generateData(MPointArray &positions, MUintArray &indi
 		0.0f, 0.0f, -1.0f
 	};
 
-	const unsigned int l_indices[] = {
+	static const unsigned int l_indices[] = {
 		0, 1,
 		1, 2,
 		2, 3,
@@ -760,7 +760,7 @@ void CGPhotometricLightPrimitive::generateData(MPointArray &positions, MUintArra
 
 CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
 {
-	const float vertices [] = {
+	static const float vertices [] = {
 		0.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 1.0f,
@@ -771,7 +771,7 @@ CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
 		0.0f, 1.0f, 1.0f
 	};
 
-	const unsigned int indices[] = {
+	static const unsigned int indices[] = {
 		0, 1, 1, 2, 2, 3, 3, 0,
 		4, 5, 5, 6, 6, 7, 7, 4,
 		0, 4, 1, 5, 2, 6, 3, 7
@@ -784,7 +784,7 @@ CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
 void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, double scale[3])
 {
 	const unsigned int numVertices = 24;
-	const float vertices [numVertices] = {
+	static const float vertices [numVertices] = {
 		-0.5f, -0.5f, -0.5f,
 		0.5f, -0.5f, -0.5f,
 		0.5f, -0.5f, 0.5f,
@@ -795,7 +795,7 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, 
 		-0.5f, 0.5f, 0.5f
 	};
 
-	const unsigned int indices[numVertices] = {
+	static const unsigned int indices[numVertices] = {
 		0, 1, 1, 2, 2, 3, 3, 0,
 		4, 5, 5, 6, 6, 7, 7, 4,
 		0, 4, 1, 5, 2, 6, 3, 7
@@ -820,7 +820,7 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, 
 void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mindices, double scale[3])
 {
 	const unsigned int numVertices = 24;
-	const float vertices [numVertices] = {
+	static const float vertices [numVertices] = {
 		-0.5f, -0.5f, -0.5f,
 		0.5f, -0.5f, -0.5f,
 		0.5f, -0.5f, 0.5f,
@@ -831,7 +831,7 @@ void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mind
 		-0.5f, 0.5f, 0.5f
 	};
 
-	const unsigned int indices[numVertices] = {
+	static const unsigned int indices[numVertices] = {
 		0, 1, 1, 2, 2, 3, 3, 0,
 		4, 5, 5, 6, 6, 7, 7, 4,
 		0, 4, 1, 5, 2, 6, 3, 7
@@ -847,10 +847,7 @@ void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mind
 	}
 
 	mindices.setLength(numVertices);
-	for (unsigned int i = 0; i < numVertices; i++)
-	{
-		mindices[i] = indices[i];
-	}
+	memcpy(&mindices[0], &indices[0], sizeof(unsigned int)*numVertices);
 }
 
 void CGSpherePrimitive::generateData(MPointArray &positions, MUintArray &indices, double radius,
@@ -954,14 +951,14 @@ void CGSpherePrimitive::generateData(MFloatVectorArray &positions, MUintArray &i
 void CGQuadPrimitive::generateData(MPointArray &positions, MUintArray &indices,
 										double scale[3])
 {
-	const float l_vertices [] = {
+	static const float l_vertices [] = {
 		-1.0f, -1.0f, 0.0f,
 		1.0f, -1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f,
 		-1.0f, 1.0f, 0.0f,
 	};
 
-	const unsigned int l_indices[] = {
+	static const unsigned int l_indices[] = {
 		0, 1,
 		1, 2,
 		2, 3,
@@ -969,30 +966,27 @@ void CGQuadPrimitive::generateData(MPointArray &positions, MUintArray &indices,
 	};
 
 	positions.clear();
-	for (unsigned i=0; i<4; i++)
+	for (unsigned int i=0; i<4; i++)
 	{
 		positions.append(MPoint(l_vertices[i*3]*scale[0], 
 								l_vertices[i*3+1]*scale[1], 
 								l_vertices[i*3+2]*scale[2]));
 	}
-	indices.clear();
-	for (unsigned i=0; i<8; i++)
-	{
-		indices.append(l_indices[i]);
-	}
+	indices.setLength(8);
+	memcpy(&indices[0], &l_indices[0], sizeof(unsigned int)*8);
 }
 
 void CGQuadPrimitive::generateData(MFloatVectorArray &positions, MUintArray &indices,
 										double scale[3])
 {
-	const float l_vertices [] = {
+	static const float l_vertices [] = {
 		-1.0f, -1.0f, 0.0f,
 		1.0f, -1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f,
 		-1.0f, 1.0f, 0.0f,
 	};
 
-	const unsigned int l_indices[] = {
+	static const unsigned int l_indices[] = {
 		0, 1,
 		1, 2,
 		2, 3,
@@ -1000,17 +994,14 @@ void CGQuadPrimitive::generateData(MFloatVectorArray &positions, MUintArray &ind
 	};
 
 	positions.clear();
-	for (unsigned i=0; i<4; i++)
+	for (unsigned int i=0; i<4; i++)
 	{
 		positions.append(MPoint(l_vertices[i*3]*scale[0], 
 								l_vertices[i*3+1]*scale[1], 
 								l_vertices[i*3+2]*scale[2]));
 	}
-	indices.clear();
-	for (unsigned i=0; i<8; i++)
-	{
-		indices.append(l_indices[i]);
-	}
+	indices.setLength(8);
+	memcpy(&indices[0], &l_indices[0], sizeof(unsigned int)*8);
 }
 
 bool checkShaderError(unsigned int shader)
