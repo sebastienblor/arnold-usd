@@ -510,7 +510,7 @@ void CGCylinderPrimitive::generateData(MFloatVectorArray &positions, MUintArray 
 		const float d = AI_PITIMES2 * (float(i) / float(dimensions));
 		const float x = cosf(d);
 		const float z = sinf(d);
-		positions[i] = MFloatVector(x*scale[0],1.0f*scale[1],z*scale[2]);
+		positions[i] = MPoint(x*scale[0],1.0f*scale[1],z*scale[2]);
 		positions[i + indexDiff] = MPoint(x*scale[0], -1.0f*scale[1], z*scale[2]);
 	}
 	indices.setLength(dimensions * 6);
@@ -741,7 +741,7 @@ void CGPhotometricLightPrimitive::generateData(MPointArray &positions, MUintArra
 	{
 		unsigned int idb = 360 * 3;
 		indices[id++] = i * 45;
-		indices[id++] = id + i;
+		indices[id++] = idb + i;
 		indices[id++] = i * 45 + 360;
 		indices[id++] = idb + i + 8;
 		indices[id++] = i * 45 + 360 * 2;
@@ -843,7 +843,7 @@ void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mind
 		const unsigned int i3 = i * 3;
 		const unsigned int i31 = i3 + 1;
 		const unsigned int i32 = i3 + 2;
-		positions.set(MFloatVector( scale[0]*vertices[i3], scale[1]*vertices[i31], scale[2]*vertices[i32]), i);
+		positions.set(MPoint( scale[0]*vertices[i3], scale[1]*vertices[i31], scale[2]*vertices[i32]), i);
 	}
 
 	mindices.setLength(numVertices);
@@ -918,7 +918,7 @@ void CGSpherePrimitive::generateData(MFloatVectorArray &positions, MUintArray &i
 		for (unsigned int xx = 0; xx < resolution; ++xx)
 		{
 			const double dx = AI_PITIMES2 * double(xx) / double(resolution);
-			positions[vid++] = MFloatVector( cos(dx) * pr, y, sin(dx) * pr);
+			positions[vid++] = MPoint( cos(dx) * pr, y, sin(dx) * pr);
 		}
 	}
 
@@ -1002,7 +1002,7 @@ void CGQuadPrimitive::generateData(MFloatVectorArray &positions, MUintArray &ind
 	positions.clear();
 	for (unsigned i=0; i<4; i++)
 	{
-		positions.append(MFloatVector(l_vertices[i*3]*scale[0], 
+		positions.append(MPoint(l_vertices[i*3]*scale[0], 
 								l_vertices[i*3+1]*scale[1], 
 								l_vertices[i*3+2]*scale[2]));
 	}

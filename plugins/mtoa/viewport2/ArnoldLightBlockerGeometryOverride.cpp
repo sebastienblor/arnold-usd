@@ -127,7 +127,7 @@ void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path
 			MHWRender::MRenderItem::DecorationItem,
 			MHWRender::MGeometry::kLines);
 	
-		wireframeItem->setDrawMode(MHWRender::MGeometry::kWireframe);
+		wireframeItem->setDrawMode(MHWRender::MGeometry::kAll);
 		wireframeItem->depthPriority(MHWRender::MRenderItem::sDormantWireDepthPriority);
 		wireframeItem->enable(true);
 		list.append(wireframeItem);
