@@ -65,6 +65,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
   ${If} "$%MAYA_VERSION%" != "2012"
   FileWrite $0 "PATH +:= bin$\r$\n"
+  FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
   ${EndIf}
   FileClose $0
   
@@ -136,6 +137,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
     ${If} "$%MAYA_VERSION%" != "2012"
     FileWrite $0 "PATH +:= bin$\r$\n"
+    FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
     ${EndIf}
     FileClose $0
     
