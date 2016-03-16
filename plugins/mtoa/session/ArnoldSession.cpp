@@ -749,7 +749,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          m_processedTranslatorList[i]->DoExport(step);
       }
    }
-   m_isExportingMotion = false;
 
    if (mb)
    {
@@ -761,7 +760,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       }
    }
 
-
+   m_isExportingMotion = false;
+   
    // add callbacks after all is done
    if (IsInteractiveRender())
    {
@@ -770,6 +770,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
       }
+      m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
 
    return status;
@@ -1492,7 +1493,6 @@ void CArnoldSession::DoUpdate()
       m_objectsToUpdate.clear();
       m_requestUpdate = false;
    }     
-
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
