@@ -747,6 +747,20 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
 
 }
 
+MSelectionMask CArnoldStandInShape::getShapeSelectionMask() const
+//
+// Description
+//     This method is overriden to support interactive object selection in Viewport 2.0
+//
+// Returns
+//
+//    The selection mask of the shape
+//
+{
+	MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
+    return MSelectionMask( selType );
+}
+
 void* CArnoldStandInShape::creator()
 {
    return new CArnoldStandInShape();
