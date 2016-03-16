@@ -335,7 +335,7 @@ size_t CArnoldPolymeshGeometry::WireIndexCount() const
     for (size_t i = 0; i < m_nsides.size(); ++i)
     {
         const unsigned int ns = m_nsides[i];
-        total += (ns-1)*2;
+        total += ns*2;
     }
     return total;
 }
@@ -345,17 +345,25 @@ void CArnoldPolymeshGeometry::GetWireIndexing(unsigned int* outIndices, unsigned
     if ((m_vlist.size() == 0) || (m_vidxs.size() == 0))
         return;
     size_t newId = 0;
-
+    // for each polygon
     for (size_t i = 0, id = 0; i < m_nsides.size(); ++i)
     {
+        size_t startId = id;
         const unsigned int ns = m_nsides[i];
 
+        // generate an edge for each point on the perimeter 
         for (unsigned int j = 0; j < ns-1; ++j, ++id)
         {
             outIndices[newId++] = m_vidxs[id] + vertexOffset;
             outIndices[newId++] = m_vidxs[id+1] + vertexOffset;
         }
-        ++id;
+        if (ns > 1)
+        {
+            // close the polygon
+            outIndices[newId++] = m_vidxs[id] + vertexOffset;
+            outIndices[newId++] = m_vidxs[startId] + vertexOffset;
+        }
+        ++id; // advance to the next polygon
     }
 }
 
