@@ -877,7 +877,7 @@ void CRenderViewMtoA::UpdateColorManagement()
    // wsn -> working space name (also known as rendering color space)
    // ote -> output transform enabled 
    // otn -> output transform name 
-   // ... -> other attributes will not be used by the RenderViewt for now.
+   // ... -> other attributes will not be used by the RenderView for now.
 
    // Implementation: [Patrick Hodoul & Sebastien Ortega]
    // The color transformation from the rendering color space to the 
