@@ -15,6 +15,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCallbackIdArray.h>
+#include <maya/MNodeMessage.h>
 
 #include <string>
 #include <vector>
@@ -26,6 +27,7 @@
 #define AI_UPDATE_ONLY 0
 #define AI_DELETE_NODE 1
 #define AI_RECREATE_NODE 2
+#define AI_RECREATE_TRANSLATOR 3
 
 MString GetAOVNodeType(int type);
 
@@ -104,6 +106,7 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
+   bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
 
 protected:
    CNodeTranslator()  :
@@ -117,6 +120,7 @@ protected:
       m_shaders(NULL),
       m_updateMode(AI_UPDATE_ONLY),
       m_updateConnectedNodes(false),
+      m_holdUpdates(false),
       m_handle(CNodeAttrHandle())      
    {}
 
@@ -203,6 +207,7 @@ protected:
    static void NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
    static void NodeDestroyedCallback(void* clientData);
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
+   static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg, MPlug &plug, MPlug &otherPlug, void *clientData);
 
 protected:
 
@@ -227,6 +232,7 @@ protected:
    
    unsigned int m_updateMode;
    bool m_updateConnectedNodes;
+   bool m_holdUpdates; // for Arnold RenderView only
 
 private:
    
