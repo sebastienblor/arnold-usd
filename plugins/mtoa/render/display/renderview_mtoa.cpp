@@ -858,12 +858,32 @@ void CRenderViewMtoA::UpdateColorManagement()
    activeList.getDependNode(0,node);
    MFnDependencyNode depNode(node);
 
-// cfe -> ocio enabled
-// cfp -> ocio path
-// vtn  -> view transform name
-// wsn  -> 
-// otn
-// potn 
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   // Note:
+   // For debugging purpose only, 'defaultColorMgtGlobals' attributes are:
+   // cme -> color management enabled
+   // cfe -> ocio mode enabled (false means that native mode is enabled)
+   // cfp -> ocio path, to be used only if cme and cfe are on
+   // vtn -> view transform name
+   // wsn -> working space name (also known as rendering color space)
+   // ote -> output transform enabled 
+   // otn -> output transform name 
+   // ... -> other attributes will not be used by the RenderView for now.
+
+   // Implementation: [Patrick Hodoul & Sebastien Ortega]
+   // The color transformation from the rendering color space to the 
+   // view transform must be managed by SynColor as it could imply
+   // a lot more processing. The code receiving the request should
+   // use SynColor to perform the color transformation.
 
    MStatus status;
    MPlug plug;
