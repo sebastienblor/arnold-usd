@@ -689,19 +689,6 @@ void CNodeTranslator::AddUpdateCallbacks()
                                            &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 
-   if (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-   {
-      // In RENDERVIEW mode, we also add AttributeChangedCallback
-      // otherwise, we might have desynchronized parameter values 
-      // (see ticket #2312)
-
-      id = MNodeMessage::addAttributeChangedCallback(object,
-                                              AttributeChangedCallback,
-                                              this,
-                                              &status);
-      if (MS::kSuccess == status) ManageUpdateCallback(id);
-   }
-
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
@@ -734,12 +721,6 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
-// In RenderView mode, attribute changed invoke nodeDirty (ticket #2312)
-void CNodeTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg, MPlug &plug, MPlug &otherPlug, void *clientData)
-{
-   MObject node = plug.node();
-   NodeDirtyCallback(node, plug, clientData);
-}
 
 
 // This is a simple callback triggered when a node is marked as dirty.
