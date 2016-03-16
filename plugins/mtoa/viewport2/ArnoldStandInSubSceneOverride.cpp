@@ -613,7 +613,7 @@ void CArnoldStandInSubSceneOverride::updateShaderFromNode()
                 {
                     StandInShadedItemUserData* userData = new StandInShadedItemUserData(this);
                     mShaderFromNode = shaderMgr->getShaderFromNode(connectedPlugs[0].node(), 
-                        paths[0], standInShadedItemLinkLost, userData, 0, 0, true);
+                        paths[0], standInShadedItemLinkLost, userData, 0, 0/*, true*/);
                 }
             }
         }

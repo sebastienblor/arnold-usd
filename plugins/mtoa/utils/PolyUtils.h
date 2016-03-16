@@ -3,13 +3,17 @@
 #define _MTOA_POLYUTILS
 
 #include <vector>
+#include <algorithm>
 #include <unordered_set>
 #include <unordered_map>
 
 #include <maya/MFnMesh.h>
+#include <maya/MFloatVector.h>
 
 // This class is used for generating wireframe indices.
 //
+using namespace std;
+
 template<class INDEX_TYPE>
 class WireIndicesGenerator
 {
@@ -470,7 +474,7 @@ public:
             }
 
             // max number of points in a polygon
-            maxPoints = std::max(numPoints, maxPoints);
+            maxPoints = max(numPoints, maxPoints);
 
             // the number of triangles expected in the polygon
             size_t numTriangles = numPoints - 2;
