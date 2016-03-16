@@ -9,6 +9,8 @@
 #include <maya/MNodeMessage.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MPlugArray.h>
+#include <maya/MGlobal.h>
+#include <maya/MSelectionContext.h>
 
 #include <iostream>
 
@@ -19,13 +21,15 @@
 
 const MString colorParameterName_       = "solidColor";
 const MString diffuseColorParameterName_ = "diffuseColor";
-const MString wireframecubeItemName_    = "cubeLocatorWires";
-const MString pointCloudItemName_       = "pointCloud";
-const MString perObjectBoxItemName_     = "perObjectBox";
-const MString wireframeItemName_        = "wireframe";
+
+const MString unselectedItemName_       = "UI";
+const MString selectedItemName_         = "selected_UI";
+const MString leadItemName_             = "lead_UI";
 const MString polyItemName_             = "polygons";
-const MString shadedPolyItemName_       = "shadedPolygons";
-const MString deferStandInItemName_     = "deferredBox";
+
+const MString unselectedDeferItemName_  = "defer_UI";
+const MString selectedDeferItemName_    = "selected_defer_UI";
+const MString leadDeferItemName_        = "lead_defer_UI";
 
 static const float cube[][3] = { {0.0f, 0.0f, 0.0f},
                      {1.0f, 0.0f, 0.0f},
@@ -92,6 +96,8 @@ namespace {
 CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& obj)
 : MHWRender::MPxSubSceneOverride(obj)
 , mSolidUIShader(NULL)
+, mSelectedSolidUIShader(NULL)
+, mLeadSolidUIShader(NULL)
 , mSolidShader(NULL)
 , mBlinnShader(NULL)
 , mShaderFromNode(NULL)
@@ -99,6 +105,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mBBChanged(true)
 , mOneTimeUpdate(true)
 , mAttribChangedID(0)
+, fNumInstances(0)
+, fLeadIndex(0)
 {
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
     if (!renderer)
@@ -109,6 +117,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
         return;
 
 	mSolidUIShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
+    mSelectedSolidUIShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
+    mLeadSolidUIShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
     mSolidShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidShader);
     mBlinnShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dBlinnShader);
 
@@ -134,6 +144,10 @@ CArnoldStandInSubSceneOverride::~CArnoldStandInSubSceneOverride()
     	{
             if(mSolidUIShader)
                 shaderMgr->releaseShader(mSolidUIShader);
+            if(mSelectedSolidUIShader)
+                shaderMgr->releaseShader(mSelectedSolidUIShader);
+            if(mLeadSolidUIShader)
+                shaderMgr->releaseShader(mLeadSolidUIShader);
             if(mSolidShader)
                 shaderMgr->releaseShader(mSolidShader);
             if(mBlinnShader)
@@ -143,6 +157,8 @@ CArnoldStandInSubSceneOverride::~CArnoldStandInSubSceneOverride()
 		}
     }
     mSolidUIShader = NULL;
+    mSelectedSolidUIShader = NULL;
+    mLeadSolidUIShader = NULL;
     mSolidShader = NULL;
     mBlinnShader = NULL;
     mShaderFromNode = NULL;
@@ -162,69 +178,35 @@ bool CArnoldStandInSubSceneOverride::requiresUpdate(
     const MHWRender::MSubSceneContainer& container,
     const MHWRender::MFrameContext& frameContext) const
 {
+    return true;
+}
+
+bool CArnoldStandInSubSceneOverride::anyChanges(const MHWRender::MSubSceneContainer& container)
+{
+    MStatus status;
+    MFnDagNode node(mLocatorNode, &status);
+    if (!status) return false;
+    MDagPathArray instances;
+    if (!node.getAllPaths(instances) || instances.length() == 0) return false;
+
+    // there was a change to one or more instances, update required.
+    if (updateInstanceData(instances))
+        return true;
+
+    // the container is not yet populated, update required.
     if (!container.count())
         return true;
 
-    // set the shader
-    if (mSolidUIShader)
-    {
-        MStatus status;
-        MFnDagNode node(mLocatorNode, &status);
-        if (!status) return false;
-
-        // get the wireframe color for this node 
-        MDagPath path;
-        node.getPath(path);
-        MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
-
-        float  wireframeColor[4] = { color.r, color.g, color.b, 1.0f };
-        mSolidUIShader->setParameter(colorParameterName_, wireframeColor);
-    }
-
-    // Update when something has changed
-    return mBBChanged || mOneTimeUpdate;
-}
-
-void CArnoldStandInSubSceneOverride::releaseShadedMaterial()
-{
-    MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
-    if (renderer)
-    {
-        const MHWRender::MShaderManager* shaderMgr = renderer->getShaderManager();
-        if (shaderMgr && mShaderFromNode)
-            shaderMgr->releaseShader(mShaderFromNode);
-    }
-    mShaderFromNode = NULL;
-    mOneTimeUpdate = true;
-}
-
-MHWRender::MRenderItem* CArnoldStandInSubSceneOverride::getItem(
-    MHWRender::MSubSceneContainer& container,
-    const MString& name, 
-    MHWRender::MGeometry::Primitive primitiveType,
-    unsigned int depthPriority,
-    MHWRender::MGeometry::DrawMode drawMode)
-{
-    // Find or create the item if needed
-    MHWRender::MRenderItem* item = container.find(name);
-    if (!item)
-    {
-        item = MHWRender::MRenderItem::Create(
-            name,
-            MHWRender::MRenderItem::NonMaterialSceneItem,
-            primitiveType);
-        item->setDrawMode(drawMode);
-        item->depthPriority(depthPriority);
-        container.add(item);
-    }
-
-    return item;
+    // Update required when something has changed.
+    return mOneTimeUpdate||mBBChanged;
 }
 
 void CArnoldStandInSubSceneOverride::update(
-    MHWRender::MSubSceneContainer& container,
-    const MHWRender::MFrameContext& frameContext)
+    MHWRender::MSubSceneContainer& container, const MHWRender::MFrameContext& frameContext)
 {
+    if (!anyChanges(container))
+        return;
+
     // initialize
     mOneTimeUpdate = false;
     container.clear();
@@ -234,6 +216,24 @@ void CArnoldStandInSubSceneOverride::update(
     MFnDagNode node(mLocatorNode, &status);
     CArnoldStandInShape* standIn = static_cast<CArnoldStandInShape*>(node.userNode());
     CArnoldStandInGeom* geom = standIn->geometry();
+
+    if (fNumInstances == 0)
+        return; //early out if there are no instances
+
+    // shape instance gathering
+    // ************************************
+    MMatrixArray instanceMatrixArray;
+    MMatrixArray selectedInstanceMatrixArray;
+    MMatrixArray unselectedInstanceMatrixArray;
+    int leadIndex = -1;
+    getInstanceTransforms(instanceMatrixArray, selectedInstanceMatrixArray, unselectedInstanceMatrixArray, leadIndex);
+
+    bool hasLeadItem = leadIndex >= 0;
+    bool anyInstanceSelected = selectedInstanceMatrixArray.length() > 0;  //don't count lead item
+    bool anyInstanceUnselected = unselectedInstanceMatrixArray.length() > 0;
+
+    // end of shape instance gathering.
+    // *************************************
 
     // get the drawOverride to determine if we enable display of standins
     int drawOverride = getDrawOverride();
@@ -252,6 +252,15 @@ void CArnoldStandInSubSceneOverride::update(
     bool wantWireframe(mode==2||mode==3||mode==5);
     bool wantPoints(mode==4);
     bool wantShaded(mode==5||mode==6);
+    bool wantDeferBox = (geom->deferStandinLoad && drawOverride <= 0);
+
+    MHWRender::MRenderItem* shadedItem = NULL;
+    MHWRender::MRenderItem* selectedItem = NULL;
+    MHWRender::MRenderItem* unselectedItem = NULL;
+    MHWRender::MRenderItem* leadItem = NULL;
+    MHWRender::MRenderItem* selectedDeferItem = NULL;
+    MHWRender::MRenderItem* unselectedDeferItem = NULL;
+    MHWRender::MRenderItem* leadDeferItem = NULL;
 
     if (wantShaded)
     {
@@ -262,9 +271,17 @@ void CArnoldStandInSubSceneOverride::update(
             if (!mShaderFromNode)
                 updateShaderFromNode();
 
-            MHWRender::MRenderItem* item = getItem(container, shadedPolyItemName_, MHWRender::MGeometry::kTriangles, 
+            shadedItem = getItem(container, polyItemName_, MHWRender::MGeometry::kTriangles,
                 MHWRender::MRenderItem::sDormantFilledDepthPriority);
-            updateRenderItem(container, geom, item, sharedVertexCount, (mShaderFromNode ? mShaderFromNode : mBlinnShader), true);
+            updateRenderItem(container, geom, shadedItem, sharedVertexCount, (mShaderFromNode ? mShaderFromNode : mBlinnShader), true);
+
+            if (!wantWireframe && !wantDeferBox)
+            {
+                // if only drawing shaded mode then draw a box for the selected instances 
+                // to give some indication of the selection.  Don't draw any boxes for unselected items.
+                wantBox = true;
+                anyInstanceUnselected = false;
+            }
         }
         else // no normals, try solid
             wantSolid = true;
@@ -275,70 +292,142 @@ void CArnoldStandInSubSceneOverride::update(
     {
         if (geom->TriangleIndexCount())
         {
-	        MHWRender::MRenderItem* item = getItem(container, polyItemName_, MHWRender::MGeometry::kTriangles, 
+	        shadedItem = getItem(container, polyItemName_, MHWRender::MGeometry::kTriangles, 
 	            MHWRender::MRenderItem::sDormantFilledDepthPriority);
-	        updateRenderItem(container, geom, item, totalPoints, mSolidShader);
+	        updateRenderItem(container, geom, shadedItem, totalPoints, mSolidShader);
         } 
         else // no triangles, try wireframe
             wantWireframe = true;
     }
 
+    // update the UI items
+    bool hasUIItems = false;
+    bool boxMode = false;
+    MHWRender::MGeometry::Primitive geometryType = MHWRender::MGeometry::kLines;
+
+    // arrays of elements each to handle selected, unselected, and lead items
+    const bool test[] = {anyInstanceUnselected, anyInstanceSelected, hasLeadItem};
+    MHWRender::MRenderItem** items[] = {&unselectedItem, &selectedItem, &leadItem};
+    MHWRender::MRenderItem** deferItems[] = { &unselectedDeferItem, &selectedDeferItem, &leadDeferItem };
+    const MString itemNames[] = { unselectedItemName_, selectedItemName_, leadItemName_};
+    const MString deferItemNames[] = { unselectedDeferItemName_, selectedDeferItemName_, leadDeferItemName_ };
+    const MHWRender::MShaderInstance* shaders[] = { mSolidUIShader, mSelectedSolidUIShader, mLeadSolidUIShader };
+
     if (wantWireframe)
     {
-        if (geom->WireIndexCount() > 0)
-        {
-            MHWRender::MRenderItem* item = getItem(container, wireframeItemName_, MHWRender::MGeometry::kLines, 
-                MHWRender::MRenderItem::sActiveLineDepthPriority);
-            updateRenderItem(container, geom, item, totalPoints, mSolidUIShader, false);
-        }
-        else // no wires, try points.
-            wantPoints = true;
+        hasUIItems = geom->WireIndexCount() > 0;
+        wantPoints = !hasUIItems; // if no wireframe try points
     }
-
     if (wantPoints)
     {
-        if (geom->PointCount() > 0)
-        {
-	        MHWRender::MRenderItem* item = getItem(container, pointCloudItemName_, MHWRender::MGeometry::kPoints,
-	            MHWRender::MRenderItem::sActiveLineDepthPriority);
-	        updateRenderItem(container, geom, item, totalPoints, mSolidUIShader);
-        } 
-        else // no points, try bounding boxes.
-            wantBoxes = true;
+        hasUIItems = geom->PointCount() > 0;
+        geometryType = hasUIItems ? MHWRender::MGeometry::kPoints : geometryType;
+        wantBoxes = !hasUIItems; // if no points, try bounding boxes.
     }
-
     if (wantBoxes)
     {
-        if (geom->VisibleGeometryCount() > 0)
-        {
-	        MHWRender::MRenderItem* item = getItem(container, perObjectBoxItemName_, MHWRender::MGeometry::kLines,
-	            MHWRender::MRenderItem::sActiveLineDepthPriority);
-	        updateRenderItem(container, geom, item, geom->VisibleGeometryCount()*kCubeCount, mSolidUIShader, false, true);
-        } 
-        else // no visible geometry.  Draw a single box.
-            wantBox = true;
+        hasUIItems = geom->VisibleGeometryCount() > 0;
+        totalPoints = hasUIItems ? geom->VisibleGeometryCount()*kCubeCount : totalPoints;
+        boxMode = true;
+        wantBox = !hasUIItems; // no visible geometry.  Draw a single box.
     }
-
     if (wantBox)
+        hasUIItems = true;
+
+    // if we have any UI items to draw then add them here
+    if (hasUIItems || wantDeferBox)
     {
-        // Create the wire box render item if needed
-        MHWRender::MRenderItem* item = getItem(container, wireframecubeItemName_, MHWRender::MGeometry::kLines,
-            MHWRender::MRenderItem::sActiveLineDepthPriority);
-        updateWireframeCubeItem(standIn, item, false);
+        MHWRender::MRenderItem* thisItem = NULL;
+        // three different states (selected, unselected, and lead)
+        // same geometry, different shaders.
+        for (int x = 0; x < 3; ++x)
+        {
+            if (test[x])
+            {
+                if (hasUIItems)
+                {
+                    // Create the ui render item if needed
+                    thisItem = getItem(container, itemNames[x], geometryType, MHWRender::MRenderItem::sActiveLineDepthPriority);
+                    if (wantBox)
+                        updateWireframeCubeItem(standIn, thisItem, shaders[x], false);
+                    else
+                        updateRenderItem(container, geom, thisItem, totalPoints, shaders[x], false, boxMode);
+                    *(items[x]) = thisItem;
+                }
+
+                if (wantDeferBox)
+                {
+                    // Create the ui render item used to indicate deferred load if needed
+                    thisItem = getItem(container, deferItemNames[x], MHWRender::MGeometry::kLines,
+                        MHWRender::MRenderItem::sActiveLineDepthPriority);
+                    updateWireframeCubeItem(standIn, thisItem, shaders[x], false);
+                    *(deferItems[x]) = thisItem;
+                }
+            }
+        }
     }
 
-    if (geom->deferStandinLoad && drawOverride <= 0)
+    if (leadItem)
+        leadItem->setMatrix(&instanceMatrixArray[leadIndex]);
+    if (leadDeferItem)
+        leadDeferItem->setMatrix(&instanceMatrixArray[leadIndex]);
+
+    // Update the matrices.  Use HW instancing if there is more than one instance.
+    if (fNumInstances == 1)
     {
-        // Create the wire box render item for the defer load.
-        MHWRender::MRenderItem* item = getItem(container, deferStandInItemName_, MHWRender::MGeometry::kLines,
-            MHWRender::MRenderItem::sActiveLineDepthPriority);
-        updateWireframeCubeItem(standIn, item, true);
+        MMatrix& objToWorld = instanceMatrixArray[0];
+
+        // When not dealing with multiple instances, don't convert the render items into instanced
+        // mode.  Set the matrices on them directly.
+        if (shadedItem)
+            shadedItem->setMatrix(&objToWorld);
+        if (selectedItem)
+            selectedItem->setMatrix(&objToWorld);
+        if (unselectedItem)
+            unselectedItem->setMatrix(&objToWorld);
+
+        if (selectedDeferItem)
+            selectedDeferItem->setMatrix(&objToWorld);
+        if (unselectedDeferItem)
+            unselectedDeferItem->setMatrix(&objToWorld);
+    }
+    else
+    {
+        // Set the transform array for each render item with multiple instances.
+        // Note this has to happen after the geometry and shaders are set, otherwise it will fail.
+        if (shadedItem)
+            setInstanceTransformArray(*shadedItem, instanceMatrixArray);
+        if (selectedItem)
+            setInstanceTransformArray(*selectedItem, selectedInstanceMatrixArray);
+        if (unselectedItem)
+            setInstanceTransformArray(*unselectedItem, unselectedInstanceMatrixArray);
+
+        if (selectedDeferItem)
+            setInstanceTransformArray(*selectedDeferItem, selectedInstanceMatrixArray);
+        if (unselectedDeferItem)
+            setInstanceTransformArray(*unselectedDeferItem, unselectedInstanceMatrixArray);
     }
 
     mBBChanged = false;
 }
 
-void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape* standIn, MHWRender::MRenderItem* item, bool scaled)
+MHWRender::MRenderItem* CArnoldStandInSubSceneOverride::getItem(
+    MHWRender::MSubSceneContainer& container,
+    const MString& name,
+    MHWRender::MGeometry::Primitive primitiveType,
+    unsigned int depthPriority,
+    MHWRender::MGeometry::DrawMode drawMode)
+{
+    MHWRender::MRenderItem* item = MHWRender::MRenderItem::Create(name,
+        MHWRender::MRenderItem::NonMaterialSceneItem, primitiveType);
+    item->setDrawMode(drawMode);
+    item->depthPriority(depthPriority);
+    container.add(item);
+    return item;
+}
+
+void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape* standIn, 
+    MHWRender::MRenderItem* item, const MHWRender::MShaderInstance* shader, bool scaled)
 {
     // sanity check
     if(!item)
@@ -346,7 +435,7 @@ void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape
 
     // enable the item and set the shader
     item->enable(true);
-    item->setShader(mSolidUIShader);
+    item->setShader(shader);
 
     // Get the bounding box from the stand-in
     MPoint bbMin;
@@ -392,8 +481,7 @@ void CArnoldStandInSubSceneOverride::updateWireframeCubeItem(CArnoldStandInShape
 }
 
 void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContainer& container, CArnoldStandInGeom* geom, 
-                                                          MHWRender::MRenderItem* item, size_t totalCount, 
-                                                          MHWRender::MShaderInstance* shader, bool wantNormals, bool boxMode)
+     MHWRender::MRenderItem* item, size_t totalCount, const MHWRender::MShaderInstance* shader, bool wantNormals, bool boxMode)
 {
     // sanity check
     if(!item)
@@ -618,4 +706,161 @@ void CArnoldStandInSubSceneOverride::updateShaderFromNode()
             }
         }
     }
+}
+
+void CArnoldStandInSubSceneOverride::releaseShadedMaterial()
+{
+    MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
+    if (renderer)
+    {
+        const MHWRender::MShaderManager* shaderMgr = renderer->getShaderManager();
+        if (shaderMgr && mShaderFromNode)
+            shaderMgr->releaseShader(mShaderFromNode);
+    }
+    mShaderFromNode = NULL;
+    mOneTimeUpdate = true;
+}
+
+bool CArnoldStandInSubSceneOverride::updateInstanceData(const MDagPathArray& instances)
+{
+    bool anyInstanceChanged = false;
+    bool unselectedMaterialUpdated = false;
+    bool selectedMaterialUpdated = false;
+    bool leadMaterialUpdated = false;
+
+    unsigned int instanceArrayLength = instances.length();
+    unsigned int numInstances = 0;
+
+    for (unsigned int instIdx=0; instIdx<instanceArrayLength; instIdx++)
+    {
+        const MDagPath& instance = instances[instIdx];
+        if (!instance.isValid()  || !instance.isVisible())
+            continue;
+
+        unsigned int instanceNum = instance.instanceNumber();
+
+        MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instance);
+        bool selected = (displayStatus == MHWRender::kHilite || displayStatus == MHWRender::kActive);
+        bool lead = displayStatus == MHWRender::kLead;
+        if (lead)
+            fLeadIndex = instanceNum;
+
+        // One time update for each of the shaders (selected, unselected, and lead)
+        // ************************************************************************
+        MHWRender::MShaderInstance* currentShader = NULL;
+        if (!selectedMaterialUpdated && (selectedMaterialUpdated = selected))
+            currentShader = mSelectedSolidUIShader;
+        else if (!leadMaterialUpdated && (leadMaterialUpdated = lead))
+            currentShader = mLeadSolidUIShader;
+        else if (!unselectedMaterialUpdated && (unselectedMaterialUpdated = !selected))
+            currentShader = mSolidUIShader;
+
+        if (currentShader)   
+        {
+            MColor color = MHWRender::MGeometryUtilities::wireframeColor(instance);
+            float  wireframeColor[4] = { color.r, color.g, color.b, 1.0f };
+            currentShader->setParameter(colorParameterName_, wireframeColor);
+        }
+        // **************************************************************************
+
+        InstanceInfo instanceInfo(instance, instance.inclusiveMatrix(), selected, lead);
+        InstanceInfoMap::const_iterator iter = fInstanceInfoCache.find(instanceNum);
+        if (iter == fInstanceInfoCache.end() ||
+            iter->second.fSelected != instanceInfo.fSelected ||
+            iter->second.fLead != instanceInfo.fLead ||
+            !iter->second.fTransform.isEquivalent(instanceInfo.fTransform))
+        {
+            fInstanceInfoCache[instanceNum] = instanceInfo;
+            anyInstanceChanged = true;
+        }
+        numInstances++;
+    }
+
+    if (fNumInstances != numInstances)
+    {
+        anyInstanceChanged = true;
+        fNumInstances = numInstances;
+    }
+
+    return anyInstanceChanged;
+}
+
+void CArnoldStandInSubSceneOverride::getInstanceTransforms( 
+    MMatrixArray& instanceMatrixArray, 
+    MMatrixArray& selectedInstanceMatrixArray, 
+    MMatrixArray& unselectedInstanceMatrixArray,
+    int& leadIndex)
+{
+    unsigned int numInstanceSelected = 0;
+    unsigned int numInstanceUnselected = 0;
+
+    instanceMatrixArray.setLength(fNumInstances);
+    selectedInstanceMatrixArray.setLength(fNumInstances);
+    unselectedInstanceMatrixArray.setLength(fNumInstances);
+
+    // loop over the cache and fill the arrays.
+    for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
+    {
+        InstanceInfo instanceInfo = fInstanceInfoCache[instIdx];
+        instanceMatrixArray[instIdx] = instanceInfo.fTransform;
+        if (instanceInfo.fLead)
+            leadIndex = (int)instIdx;
+        else if (instanceInfo.fSelected)
+            selectedInstanceMatrixArray[numInstanceSelected++] = instanceInfo.fTransform;
+        else
+            unselectedInstanceMatrixArray[numInstanceUnselected++] = instanceInfo.fTransform;
+    }
+
+    //collapse to correct length
+    selectedInstanceMatrixArray.setLength(numInstanceSelected);
+    unselectedInstanceMatrixArray.setLength(numInstanceUnselected);
+}
+
+bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
+    const MHWRender::MRenderItem& renderItem, const MHWRender::MIntersection& intersection, MDagPath& dagPath) const
+{
+    MString name = renderItem.name();
+
+    // Are we looking for a lead item or a poly item?
+    bool wantLeadItem = (name == leadItemName_ || name == leadDeferItemName_);
+    bool wantPolyItem = name == polyItemName_;
+
+    // Get the instance Id.  If looking for a lead item we know its id.
+    int instanceId = wantLeadItem ? fLeadIndex : intersection.instanceID()-1;
+
+    // For lead items and poly items we already have the right instance Id.
+    if (wantPolyItem || wantLeadItem)
+    {
+        InstanceInfoMap::const_iterator iter = fInstanceInfoCache.find(instanceId);
+        if (iter == fInstanceInfoCache.end())
+            return false;
+
+        dagPath.set(iter->second.fInstance);
+        if (dagPath.length() > 1)
+            dagPath.pop(); // from shape to xform.
+        return true;
+    }
+
+    // If looking for selected or unselected items loop over the cache to count items we are interested in.
+    // Stop when we find the index we are looking for and return the instance.
+    unsigned int currentInstance = 0;
+    bool wantSelectedItem = (name == selectedItemName_ || name == selectedDeferItemName_);
+    bool wantUnselectedItem = (name == unselectedItemName_ || name == unselectedDeferItemName_);
+    for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
+    {
+        // Get the instance from the cache by index.
+		InstanceInfo instanceInfo = fInstanceInfoCache.find(instIdx)->second;
+
+        if (((wantSelectedItem && instanceInfo.fSelected) ||
+            (wantUnselectedItem && !(instanceInfo.fSelected || instanceInfo.fLead))) &&
+            currentInstance++ == instanceId) // keep track of how many interesting items we visit
+        {
+            // we have found the right index so return it.
+            dagPath.set(instanceInfo.fInstance);
+            if (dagPath.length() > 1)
+                dagPath.pop(); // from shape to xform.
+            return true;
+        }
+    }
+    return false;
 }

@@ -10,6 +10,7 @@
 
 #include <ai_vector.h>
 #include <vector>
+#include <map>
 
 class CArnoldStandInShape;
 class CArnoldStandInGeom;
@@ -37,6 +38,10 @@ public:
     virtual void addUIDrawables(MHWRender::MUIDrawManager& drawManager,
                                 const MHWRender::MFrameContext& frameContext) {}
 
+    virtual bool getInstancedSelectionPath(const MHWRender::MRenderItem& renderItem, 
+                                           const MHWRender::MIntersection& intersection, 
+                                           MDagPath& dagPath) const;
+
     void invalidate() { mBBChanged = true; }
     void releaseShadedMaterial();
 
@@ -48,9 +53,10 @@ private:
                                     unsigned int depthPriority = MHWRender::MRenderItem::sActiveWireDepthPriority,
                                     MHWRender::MGeometry::DrawMode drawMode = MHWRender::MGeometry::kAll);
 
-    void updateWireframeCubeItem(CArnoldStandInShape* standIn, MHWRender::MRenderItem* wireframecube, bool scaled);
+    void updateWireframeCubeItem(CArnoldStandInShape* standIn, MHWRender::MRenderItem* wireframecube, 
+                                 const MHWRender::MShaderInstance* shader, bool scaled);
     void updateRenderItem(MHWRender::MSubSceneContainer& container, CArnoldStandInGeom* geom, 
-                          MHWRender::MRenderItem* item, size_t totalCount, MHWRender::MShaderInstance* shader, 
+                          MHWRender::MRenderItem* item, size_t totalCount, const MHWRender::MShaderInstance* shader, 
                           bool wantNormals = false, bool boxMode = false);
 
     void fillBuffers(const CArnoldStandInGeometry& standIn, unsigned int* indices, float* vertices, float* normals, 
@@ -63,13 +69,39 @@ private:
     int getDrawOverride();
     void updateShaderFromNode();
 
+    bool updateInstanceData(const MDagPathArray& instances);
+    void getInstanceTransforms(MMatrixArray& instanceMatrixArray, 
+        MMatrixArray& selectedInstanceMatrixArray, 
+        MMatrixArray& unselectedInstanceMatrixArray,
+        int& leadIndex);
+
+    bool anyChanges(const MHWRender::MSubSceneContainer& container);
+
 	MHWRender::MShaderInstance* mSolidUIShader;
+    MHWRender::MShaderInstance* mSelectedSolidUIShader;
+    MHWRender::MShaderInstance* mLeadSolidUIShader;
     MHWRender::MShaderInstance* mSolidShader;
     MHWRender::MShaderInstance* mBlinnShader;
     MHWRender::MShaderInstance* mShaderFromNode;
 	MObject mLocatorNode;
    
-   bool mBBChanged, mOneTimeUpdate;
-   MCallbackId mAttribChangedID, mGlobalOptionsChangedID;
+    unsigned int fLeadIndex;
+    unsigned int fNumInstances;
+    bool mBBChanged, mOneTimeUpdate;
+    MCallbackId mAttribChangedID, mGlobalOptionsChangedID;
+
+    struct InstanceInfo
+    {
+        MMatrix fTransform;
+        bool fSelected;
+        bool fLead;
+        MDagPath fInstance;
+
+        InstanceInfo() : fSelected(false), fLead(false) {}
+        InstanceInfo(const MDagPath& instance, const MMatrix& matrix, bool selected, bool lead) : 
+            fTransform(matrix), fSelected(selected), fLead(lead), fInstance(instance) {}
+    };
+    typedef std::map<unsigned int, InstanceInfo> InstanceInfoMap;
+    InstanceInfoMap fInstanceInfoCache;
 };
 
