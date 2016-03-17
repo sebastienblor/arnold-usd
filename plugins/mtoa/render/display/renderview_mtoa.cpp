@@ -1,7 +1,43 @@
 
 #include "renderview_mtoa.h"
-#include "scene/MayaScene.h"
 
+#ifdef MTOA_DISABLE_RV
+
+// define the functions in case we disabled the RenderView
+// so that we don't have to uncomment all the places where CRenderViewMtoA is used
+
+CRenderViewMtoA::CRenderViewMtoA() {}
+CRenderViewMtoA::~CRenderViewMtoA() {}
+
+void CRenderViewMtoA::UpdateSceneChanges(){}
+
+unsigned int CRenderViewMtoA::GetSelectionCount() {return 0;}
+void CRenderViewMtoA::GetSelection(AtNode **selectedNodes) {}
+void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append){}
+void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
+void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
+void CRenderViewMtoA::RenderViewClosed() {}
+
+CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
+CRenderViewZoomManipulator *CRenderViewMtoA::GetZoomManipulator() {return NULL;}
+CRenderViewRotateManipulator *CRenderViewMtoA::GetRotateManipulator() {return NULL;}
+   
+void CRenderViewMtoA::SelectionChangedCallback(void *) {}
+void CRenderViewMtoA::RenderLayerChangedCallback(void *) {}
+void CRenderViewMtoA::SceneSaveCallback(void *) {}
+void CRenderViewMtoA::SceneOpenCallback(void *) {}
+void CRenderViewMtoA::ColorMgtChangedCallback(void *) {}
+void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData) {}
+void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData) {}
+void CRenderViewMtoA::ResolutionChangedCallback(void *) {}
+void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
+void CRenderViewMtoA::UpdateColorManagement(){}
+
+#else
+
+// Arnold RenderView is defined
+
+#include "scene/MayaScene.h"
 
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
@@ -27,6 +63,8 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvLayerManagerChangeCb(0),
    m_rvLayerChangeCb(0),
    m_rvColorMgtCb(0),
+   m_rvResCb(0),
+   m_rvIdleCb(0),
    m_convertOptionsParam(true)
 {   
 }
@@ -62,6 +100,16 @@ CRenderViewMtoA::~CRenderViewMtoA()
    {
       MMessage::removeCallback(m_rvColorMgtCb);
       m_rvColorMgtCb = 0;
+   }
+   if (m_rvResCb)
+   {
+      MMessage::removeCallback(m_rvResCb);
+      m_rvResCb = 0;
+   }
+   if (m_rvIdleCb)
+   {
+      MMessage::removeCallback(m_rvIdleCb);
+      m_rvIdleCb = 0;
    }
 }
 // Return all renderable cameras
@@ -163,9 +211,28 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
                                               &status);
       }
 
-      if (m_convertOptionsParam) UpdateColorManagement(colorMgtObject);
+      if (m_convertOptionsParam) UpdateColorManagement();
    }
    m_convertOptionsParam = false;
+
+   MSelectionList resList;
+   resList.add(MString(":defaultResolution"));
+   
+   // get the maya node contraining the color management options         
+   if(resList.length() > 0)
+   {
+      MObject resObject;
+      resList.getDependNode(0,resObject);
+
+      if (m_rvResCb == 0)
+      {
+         m_rvResCb = MNodeMessage::addNodeDirtyCallback(resObject,
+                                              ResolutionCallback,
+                                              this,
+                                              &status);
+      }
+
+   }
 
    // Set image Dir
    MString workspace;
@@ -779,16 +846,44 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 }
 
 
-void CRenderViewMtoA::UpdateColorManagement(MObject &node)
+void CRenderViewMtoA::UpdateColorManagement()
 {
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   // get the maya node contraining the color management options         
+   if(activeList.length() == 0) return;
+   
+   MObject node;
+   activeList.getDependNode(0,node);
    MFnDependencyNode depNode(node);
 
-// cfe -> ocio enabled
-// cfp -> ocio path
-// vtn  -> view transform name
-// wsn  -> 
-// otn
-// potn 
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   // Note:
+   // For debugging purpose only, 'defaultColorMgtGlobals' attributes are:
+   // cme -> color management enabled
+   // cfe -> ocio mode enabled (false means that native mode is enabled)
+   // cfp -> ocio path, to be used only if cme and cfe are on
+   // vtn -> view transform name
+   // wsn -> working space name (also known as rendering color space)
+   // ote -> output transform enabled 
+   // otn -> output transform name 
+   // ... -> other attributes will not be used by the RenderView for now.
+
+   // Implementation: [Patrick Hodoul & Sebastien Ortega]
+   // The color transformation from the rendering color space to the 
+   // view transform must be managed by SynColor as it could imply
+   // a lot more processing. The code receiving the request should
+   // use SynColor to perform the color transformation.
 
    MStatus status;
    MPlug plug;
@@ -865,9 +960,88 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
       }
    }
 }
+void CRenderViewMtoA::ColorMgtChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+   renderViewMtoA->UpdateColorManagement();
+}
+
 void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData)
 {
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
-   rvMtoA->UpdateColorManagement(node);
+   MStatus status;
+   if(rvMtoA->m_rvIdleCb == 0)
+   {
+
+      rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                                                  CRenderViewMtoA::ColorMgtChangedCallback,
+                                                  clientData,
+                                                  &status);
+   }
+}
+void CRenderViewMtoA::ResolutionChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+
+   MSelectionList resList;
+   resList.add(MString(":defaultResolution"));
+   
+   if(resList.length() == 0) return;
+
+   MObject resObject;
+   resList.getDependNode(0,resObject);
+   MFnDependencyNode depNode(resObject);
+
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+   
+   if (renderOptions == NULL) return;
+
+   MStatus status;
+   MPlug plug = depNode.findPlug("width", &status);
+   bool updateRender = false;
+   if (status == MS::kSuccess)
+   {
+      if (plug.asInt() != renderOptions->width()) updateRender = true;
+   }
+   plug = depNode.findPlug("height", &status);
+   if (status == MS::kSuccess)
+   {
+      if (plug.asInt() != renderOptions->height()) updateRender = true;
+   }
+
+   if(updateRender)      
+      renderViewMtoA->SetOption("Update Full Scene", "1");
+}
+void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   // Early out for 1.2.7.1 as we don't want to fix #2242 in this bugfix release
+   return;
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
+   MStatus status;
+   if(rvMtoA->m_rvIdleCb == 0)
+   {
+
+      rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                                                  CRenderViewMtoA::ResolutionChangedCallback,
+                                                  clientData,
+                                                  &status);
+   }
 
 }
+
+#endif
