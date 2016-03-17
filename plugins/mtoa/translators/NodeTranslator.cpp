@@ -746,6 +746,8 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
       MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
       
+      /*
+      Commenting out patch for #2311 for bugfix 1.2.7.1 
 
       if (plugName == ".aiTranslator")
       {
@@ -757,6 +759,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->RequestUpdate(clientData);
          return;
       }
+      */
 
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {

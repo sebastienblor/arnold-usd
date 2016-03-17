@@ -1029,6 +1029,8 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
 {
+   // Early out for 1.2.7.1 as we don't want to fix #2242 in this bugfix release
+   return;
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
    MStatus status;
    if(rvMtoA->m_rvIdleCb == 0)
