@@ -15,7 +15,13 @@ enum ShadowCatcherParams
    p_diffuse_color,
    
    p_reflection,
-   p_legacy
+   p_legacy,
+   p_aov_shadow,
+   p_aov_shadow_matte,
+   p_aov_shadow_diff,
+   p_aov_shadow_mask,
+   p_aov_indirect_diffuse,
+   p_aov_reflection
 };
 
 node_parameters
@@ -24,7 +30,7 @@ node_parameters
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D19);
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
-   
+
    AiParameterBOOL("catchShadows", true);
    AiParameterRGB("backgroundColor", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("shadowColor", 0.f, 0.f, 0.f);
@@ -37,6 +43,14 @@ node_parameters
    
    AiParameterRGB("reflection", 0.f, 0.f, 0.f);
    AiParameterBOOL("legacy", false);
+
+   AiParameterStr("aov_shadow", "shadow");
+   AiParameterStr("aov_shadow_matte", "shadow_matte");
+   AiParameterStr("aov_shadow_diff", "shadow_diff");
+   AiParameterStr("aov_shadow_mask", "shadow_mask");
+   AiParameterStr("aov_indirect_diffuse", "indirect_diffuse");
+   AiParameterStr("aov_reflection", "reflection");
+
 }
 
 node_initialize
@@ -46,12 +60,12 @@ node_initialize
 
 node_update
 {
-   AiAOVRegister("shadow", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister("shadow_matte", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister("shadow_diff", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister("shadow_mask", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister("indirect_diffuse", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
-   AiAOVRegister("reflection", AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_shadow"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "shadow_matte"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "shadow_diff"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "shadow_mask"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "indirect_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "reflection"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
 }
 
 node_finish
@@ -142,12 +156,12 @@ shader_evaluate
 
    AtRGB reflection = AiShaderEvalParamRGB(p_reflection);
 
-   AiAOVSetRGB(sg, "shadow", result);
-   AiAOVSetRGB(sg, "shadow_matte", matte);
-   AiAOVSetRGB(sg, "shadow_diff", shadow_diff);
-   AiAOVSetRGB(sg, "shadow_mask", shadow_mask);
-   AiAOVSetRGB(sg, "indirect_diffuse", indirect_diffuse);
-   AiAOVSetRGB(sg, "reflection", reflection);
+   AiAOVSetRGB(sg,  AiShaderEvalParamStr(p_aov_shadow), result);
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shadow_matte), matte);
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shadow_diff), shadow_diff);
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shadow_mask), shadow_mask);
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_diffuse), indirect_diffuse);
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_reflection), reflection);
 
    result += indirect_diffuse;
    result += reflection;

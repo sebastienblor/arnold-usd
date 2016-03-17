@@ -722,6 +722,7 @@ void CNodeTranslator::RemoveUpdateCallbacks()
 }
 
 
+
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
 {
@@ -732,11 +733,31 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
+      if (translator->m_holdUpdates) // only happens for Arnold RenderView
+      {
+         // I'm still waiting to update this translator, 
+         // I can leave this place
+         return;
+      }
+      if (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()) return;
+
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
       MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
       
+
+      if (plugName == ".aiTranslator")
+      {
+         // The Arnold translator has changed :
+         // This means the current one won't be able to export as it should.
+         // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
+         // will be cleared and a new one will be generated
+         translator->m_updateMode = AI_RECREATE_TRANSLATOR;
+         translator->RequestUpdate(clientData);
+         return;
+      }
+
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {
          std::vector< CDagTranslator * > translatorsToUpdate;
@@ -957,14 +978,30 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-      translator->RemoveUpdateCallbacks();
-      // Add translator to the list of translators to update
-      m_session->QueueForUpdate(translator);
+ 
+      if (session->IsInteractiveRender() && session->IsExportingMotion()) return;
+      if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+      {
+         
+         if (!m_holdUpdates)
+         {
+            m_holdUpdates = true;
+            // Add translator to the list of translators to update
+            m_session->QueueForUpdate(translator);
+         }
+      } else
+      {
+         translator->RemoveUpdateCallbacks();
+         // Add translator to the list of translators to update
+         m_session->QueueForUpdate(translator);
+      }
    }
    else
    {
