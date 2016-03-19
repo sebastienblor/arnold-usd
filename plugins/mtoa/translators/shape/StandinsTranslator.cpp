@@ -462,6 +462,11 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
 
+      if (!AiNodeLookUpUserParameter(procedural, "allow_updates"))
+      {
+         AiNodeDeclare(procedural, "allow_updates", "constant BOOL");
+      }
+      AiNodeSetBool(procedural, "allow_updates", false); // set to true once we're sure this is working
    }
    return procedural;
 }

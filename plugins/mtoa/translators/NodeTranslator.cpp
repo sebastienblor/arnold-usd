@@ -33,6 +33,7 @@
 #include <maya/MTimerMessage.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MFnTransform.h>
+#include <maya/MEventMessage.h>
 
 #include <string>
 #include <algorithm>
@@ -721,6 +722,19 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
+void CNodeTranslator::IdleCallback(void *data)
+{
+   if (data == NULL) return;
+   CNodeTranslator* translator = static_cast< CNodeTranslator* >(data);
+
+   if(translator->m_idleCallback)
+   {
+      MMessage::removeCallback(translator->m_idleCallback);
+      translator->m_idleCallback = 0;
+   }
+   translator->m_updateMode = AI_RECREATE_NODE;
+   translator->RequestUpdate(data);
+}
 
 
 // This is a simple callback triggered when a node is marked as dirty.
@@ -739,6 +753,39 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          // I can leave this place
          return;
       }
+      
+      // procedurals need to clear and re-export at next update (ticket #2314)
+      // only for renderView to avoid new bugs.... 
+      if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+      {
+         // I first wanted to do that in CProceduralTranslator
+         if(strcmp(translator->GetArnoldNodeType().asChar(), "procedural") == 0) 
+         {
+            AtNode *rootNode = translator->GetArnoldRootNode();
+            if (rootNode != NULL)
+            {
+               bool b = false;
+
+               const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
+               bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
+               allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
+         
+               if (allowUpdates)
+               {
+                  // check if user data exists
+                  if(translator->m_idleCallback == 0)
+                  {
+                     MStatus status;
+                     translator->m_idleCallback = MEventMessage::addEventCallback("idle",
+                        CNodeTranslator::IdleCallback, (void*)translator, &status);
+                  }
+               }
+               return;
+            }
+         }
+      }
+
+
       if (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()) return;
 
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
@@ -756,7 +803,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->RequestUpdate(clientData);
          return;
       }
-      
+
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {
          std::vector< CDagTranslator * > translatorsToUpdate;
@@ -905,7 +952,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->m_updateMode = AI_RECREATE_NODE;
       else
          translator->m_updateMode = AI_UPDATE_ONLY;
-         
+      
       const char* arnoldType = translator->GetArnoldTypeName();
       if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
       {
