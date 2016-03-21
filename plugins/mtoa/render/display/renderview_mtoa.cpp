@@ -1012,16 +1012,30 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    if (renderOptions == NULL) return;
 
    MStatus status;
-   MPlug plug = depNode.findPlug("width", &status);
+   int width = 1;
+   int height = 1;
    bool updateRender = false;
+   
+   MPlug plug = depNode.findPlug("width", &status);
    if (status == MS::kSuccess)
    {
-      if (plug.asInt() != renderOptions->width()) updateRender = true;
+      width = plug.asInt();
+      if (width != renderOptions->width()) updateRender = true;
    }
    plug = depNode.findPlug("height", &status);
    if (status == MS::kSuccess)
    {
-      if (plug.asInt() != renderOptions->height()) updateRender = true;
+      height = plug.asInt();
+      if (height != renderOptions->height()) updateRender = true;
+   }
+   plug = depNode.findPlug("deviceAspectRatio", &status);
+   if (status == MS::kSuccess)
+   {
+      float pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+      if (ABS(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
+      {
+         updateRender = true;
+      }
    }
 
    if(updateRender)      
@@ -1029,9 +1043,9 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
 }
 void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
 {
-
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
    MStatus status;
+
    if(rvMtoA->m_rvIdleCb == 0)
    {
 
