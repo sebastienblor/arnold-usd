@@ -26,7 +26,10 @@ MHWRender::MPxDrawOverride* CArnoldPhotometricLightDrawOverride::creator(const M
 }
 
 CArnoldPhotometricLightDrawOverride::CArnoldPhotometricLightDrawOverride(const MObject& obj) :
-    MHWRender::MPxDrawOverride(obj, draw, false) // false = Mark as never dirty.
+    MHWRender::MPxDrawOverride(obj, draw, 
+#if MAYA_API_VERSION >= 201650
+	false // false = Mark as never dirty.
+#endif
 {
 }
 
