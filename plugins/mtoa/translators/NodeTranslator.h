@@ -119,7 +119,6 @@ protected:
       m_shaders(NULL),
       m_updateMode(AI_UPDATE_ONLY),
       m_holdUpdates(false),
-      m_idleCallback(0),
       m_handle(CNodeAttrHandle())      
    {}
 
@@ -229,11 +228,8 @@ protected:
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
-   MCallbackId m_idleCallback;
-   
    unsigned int m_updateMode;
    bool m_holdUpdates; // for Arnold RenderView only
-
 private:
    
    CNodeAttrHandle m_handle;

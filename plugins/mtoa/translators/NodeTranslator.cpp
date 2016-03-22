@@ -48,6 +48,10 @@
 #define new DEBUG_NEW
 #endif
 
+static MCallbackId s_idleCallback = 0;
+static std::vector<CNodeTranslator *> s_updatedProcedurals;
+
+
 MString GetAOVNodeType(int type)
 {
    MString nodeType = "";
@@ -724,18 +728,26 @@ void CNodeTranslator::RemoveUpdateCallbacks()
 
 void CNodeTranslator::IdleCallback(void *data)
 {
-   if (data == NULL) return;
-   CNodeTranslator* translator = static_cast< CNodeTranslator* >(data);
-
-   if(translator->m_idleCallback)
+   if(s_idleCallback)
    {
-      MMessage::removeCallback(translator->m_idleCallback);
-      translator->m_idleCallback = 0;
+      MMessage::removeCallback(s_idleCallback);
+      s_idleCallback = 0;
    }
-   translator->m_updateMode = AI_RECREATE_NODE;
-   translator->RequestUpdate(data);
-}
 
+   std::vector<CNodeTranslator *> updateProcs = s_updatedProcedurals;
+   s_updatedProcedurals.clear();
+
+   for (size_t i = 0; i < updateProcs.size(); ++i)
+   {
+      CNodeTranslator *translator = updateProcs[i];
+      
+      if (translator == NULL) continue;
+      translator->m_updateMode = AI_RECREATE_NODE;
+      translator->m_holdUpdates = false;
+      translator->RequestUpdate((void*)translator);
+
+   }
+}
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
@@ -753,7 +765,8 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          // I can leave this place
          return;
       }
-      
+  
+
       // procedurals need to clear and re-export at next update (ticket #2314)
       // only for renderView to avoid new bugs.... 
       if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
@@ -776,12 +789,15 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                if (allowUpdates)
                {
                   // check if user data exists
-                  if(translator->m_idleCallback == 0)
+                  if(s_idleCallback == 0)
                   {
                      MStatus status;
-                     translator->m_idleCallback = MEventMessage::addEventCallback("idle",
-                        CNodeTranslator::IdleCallback, (void*)translator, &status);
+                     s_idleCallback = MEventMessage::addEventCallback("idle",
+                        CNodeTranslator::IdleCallback, (void*)NULL, &status);
                   }
+                  s_updatedProcedurals.push_back(translator);
+                  translator->m_holdUpdates = true;
+
                }
                return;
             }
@@ -1038,7 +1054,6 @@ void CNodeTranslator::RequestUpdate(void *clientData)
       if (session->IsInteractiveRender() && session->IsExportingMotion()) return;
       if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
-         
          if (!m_holdUpdates)
          {
             m_holdUpdates = true;
