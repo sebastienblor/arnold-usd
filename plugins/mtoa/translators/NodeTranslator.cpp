@@ -759,6 +759,9 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
          // I first wanted to do that in CProceduralTranslator
+         // but CStandinTranslator doesn't inherit from CProceduralTranslator,
+         // and nothing guarantees that people won't create procedural nodes in whatever 
+         //  translator. So instead I'm testing the Translator Arnold NodeType
          if(strcmp(translator->GetArnoldNodeType().asChar(), "procedural") == 0) 
          {
             AtNode *rootNode = translator->GetArnoldRootNode();

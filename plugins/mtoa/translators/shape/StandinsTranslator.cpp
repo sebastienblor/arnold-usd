@@ -466,7 +466,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          AiNodeDeclare(procedural, "allow_updates", "constant BOOL");
       }
-      AiNodeSetBool(procedural, "allow_updates", false); // set to true once we're sure this is working
+      AiNodeSetBool(procedural, "allow_updates", true); // do we need a security valve here ? like a new parameter to control that ?
    }
    return procedural;
 }
