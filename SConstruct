@@ -155,7 +155,8 @@ vars.AddVariables(
     PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
-    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', '')
+    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False)
 )
 
 if system.os() == 'darwin':
@@ -521,6 +522,10 @@ if not env['SHOW_CMDS']:
     env['LINKCOMSTR']   = color_bred   + 'Linking $TARGET ...'   + color_reset
     env['SHLINKCOMSTR'] = color_bred   + 'Linking $TARGET ...'   + color_reset
 
+if env['MTOA_DISABLE_RV']:
+    print 'Disabling Arnold RenderView as MTOA_DISABLE_RV is defined'
+    env.Append(CPPDEFINES = Split('MTOA_DISABLE_RV')) 
+
 ################################
 ## BUILD TARGETS
 ################################
@@ -673,19 +678,23 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_exten
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 
-if system.os() == 'windows':
-    RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-else:
-    RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
 
-env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
+if not env['MTOA_DISABLE_RV']:
+    if system.os() == 'windows':
+        RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
+        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+    else:
+        RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
+        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+
+    env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
+
+
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -1022,7 +1031,8 @@ elif system.os() == 'darwin':
        [MTOA[0], 'plug-ins'],
     ]
 
-PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+if not env['MTOA_DISABLE_RV']:
+    PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
 
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
@@ -1073,6 +1083,7 @@ def create_installer(target, source, env):
         installPath = '/Applications/solidangle/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
+        mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.close()
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')

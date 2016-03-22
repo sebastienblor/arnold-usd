@@ -151,6 +151,7 @@ mtoaModPath = os.path.join(installDir, 'mtoa.mod')
 mtoaMod = open(mtoaModPath, 'w')
 mtoaMod.write('+ mtoa any %s\n' % installDir)
 mtoaMod.write('PATH +:= bin\n')
+mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
 mtoaMod.close()
 
 # setting up executables properly
