@@ -848,17 +848,6 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 
 void CRenderViewMtoA::UpdateColorManagement()
 {
-   MSelectionList activeList;
-   activeList.add(MString(":defaultColorMgtGlobals"));
-   
-   // get the maya node contraining the color management options         
-   if(activeList.length() == 0) return;
-   
-   MObject node;
-   activeList.getDependNode(0,node);
-   MFnDependencyNode depNode(node);
-
-
    // Maya Color Management (aka SynColor) offers a command to retrieve 
    // its complete status; the command is colorManagementPrefs.
    // At the same time it also offers
@@ -868,98 +857,42 @@ void CRenderViewMtoA::UpdateColorManagement()
    // By default the Maya Color Mgt is on; however, it could be disabled
    // at any time.
 
-   // Note:
-   // For debugging purpose only, 'defaultColorMgtGlobals' attributes are:
-   // cme -> color management enabled
-   // cfe -> ocio mode enabled (false means that native mode is enabled)
-   // cfp -> ocio path, to be used only if cme and cfe are on
-   // vtn -> view transform name
-   // wsn -> working space name (also known as rendering color space)
-   // ote -> output transform enabled 
-   // otn -> output transform name 
-   // ... -> other attributes will not be used by the RenderView for now.
+   int cmEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
 
-   // Implementation: [Patrick Hodoul & Sebastien Ortega]
-   // The color transformation from the rendering color space to the 
-   // view transform must be managed by SynColor as it could imply
-   // a lot more processing. The code receiving the request should
-   // use SynColor to perform the color transformation.
+   int cmOcioEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmConfigFileEnabled", cmOcioEnabled);
 
-   MStatus status;
-   MPlug plug;
-   plug = depNode.findPlug("cfe", &status);
-   bool ocio = false;
+   MString ocioFilepath;
+   MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", ocioFilepath);
 
-   if (status == MS::kSuccess && plug.asBool())
+   MString renderingSpace;
+   MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);
+
+   MString viewTransform;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+
+   MStringArray viewTransforms;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   std::string allViewTransforms;
+   for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
    {
-      SetOption("LUT.OCIO", "1");
-      ocio = true;
-      SetOption("LUT.Gamma", "1"); 
-      SetOption("LUT.Exposure", "0");
-
+      allViewTransforms += viewTransforms[idx].asChar();
+      allViewTransforms += ";";
    }
-   else  SetOption("LUT.OCIO", "0");
 
-   
-   plug = depNode.findPlug("cfp", &status);
-   
-   if (status == MS::kSuccess)
-   {      
-      std::string ocioFile = plug.asString().asChar();
-      if (!ocioFile.empty())
-      {
-         SetOption("LUT.OCIO File", ocioFile.c_str());
-      }
-
-      if (ocio)
-      {
-         plug = depNode.findPlug("vtn", &status);
-         if (status == MS::kSuccess)
-         {
-            const std::string viewTransform = plug.asString().asChar();
-            SetOption("LUT.View Transform", viewTransform.c_str());
-         }
-      } else
-      {
-         plug = depNode.findPlug("vtn", &status);
-         if (status == MS::kSuccess)
-         {            
-            const std::string viewTransform = plug.asString().asChar();
-            if (viewTransform == "1.8 gamma")
-            {
-               SetOption("LUT.View Transform", "Linear"); 
-               SetOption("LUT.Gamma", "1.8"); 
-               SetOption("LUT.Exposure", "0");
-            } else if (viewTransform == "2.2 gamma")
-            {
-               SetOption("LUT.View Transform", "Linear"); 
-               SetOption("LUT.Gamma", "2.2"); 
-               SetOption("LUT.Exposure", "0");
-            } else if (viewTransform == "sRGB gamma")
-            {
-               SetOption("LUT.View Transform", "sRGB");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
-            } else if (viewTransform == "Rec 709 gamma")
-            {
-               SetOption("LUT.View Transform", "Rec709");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
-            } else if (viewTransform == "Raw")
-            {
-               SetOption("LUT.View Transform", "Linear");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
-            } else if (viewTransform == "Log")
-            {
-               SetOption("LUT.View Transform", "Log");
-               SetOption("LUT.Gamma", "1");
-               SetOption("LUT.Exposure", "0");
-            }
-         }
-      }
-   }
+   // The order of initialization is important to avoid useless changes.
+   SetOption("SynColor.enabled",        "false");
+   SetOption("SynColor.ocioFilepath",   ocioFilepath.asChar()); 
+   SetOption("SynColor.ocioEnabled",    cmOcioEnabled==1 ? "true" : "false"); 
+   SetOption("SynColor.renderingSpace", renderingSpace.asChar()); 
+   SetOption("SynColor.viewTransforms", allViewTransforms.c_str()); 
+   SetOption("SynColor.viewTransform",  viewTransform.asChar()); 
+   SetOption("SynColor.Gamma",          "1"); 
+   SetOption("SynColor.Exposure",       "0");
+   SetOption("SynColor.enabled",        cmEnabled==1 ? "true" : "false");
 }
+
 void CRenderViewMtoA::ColorMgtChangedCallback(void *data)
 {
    if (data == NULL) return;
