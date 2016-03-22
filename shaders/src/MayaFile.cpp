@@ -706,7 +706,7 @@ shader_evaluate
       bool success = true;
       bool useDefaultColor = AiShaderEvalParamBool(p_use_default_color);
       bool* successP = useDefaultColor ? &success : 0;
-      if (idata->ntokens > 0)
+      if (idata->ntokens > 0 && sg->tid < idata->numThreads)
       {
          TokenData* token = idata->tokens;
          unsigned int pos = 0;
