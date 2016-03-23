@@ -108,16 +108,18 @@ elif system.os() == 'linux':
 else:
     local_env
 
-renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
-renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', maya_version_base)
+if not local_env['MTOA_DISABLE_RV']:
+    print 'Linking with Arnold RenderView'
+    renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')
+    renderViewLibFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'lib', maya_version_base)
 
-local_env.Append(LIBPATH = [renderViewLibFolder])
-local_env.Append(CPPPATH = [renderViewIncludeFolder])
+    local_env.Append(LIBPATH = [renderViewLibFolder])
+    local_env.Append(CPPPATH = [renderViewIncludeFolder])
 
-if system.os() == 'windows':
-    local_env.Append(LIBS = ['ai_renderview.lib'])
-else:
-    local_env.Append(LIBS = ['ai_renderview'])
+    if system.os() == 'windows':
+        local_env.Append(LIBS = ['ai_renderview.lib'])
+    else:
+        local_env.Append(LIBS = ['ai_renderview'])
 
 
 
