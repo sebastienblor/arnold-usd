@@ -156,7 +156,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    const int idx = sceneFileName.rindexW('.');
    if(idx==0)
    {
-      sceneFileName = "untitled";
+      sceneFileName = "";
    }
    else if(idx>=1)
    {
