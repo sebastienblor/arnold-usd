@@ -848,6 +848,54 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 
 void CRenderViewMtoA::UpdateColorManagement()
 {
+#if MAYA_API_VERSION >= 201650
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   int cmEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+
+   int cmOcioEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmConfigFileEnabled", cmOcioEnabled);
+
+   MString ocioFilepath;
+   MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", ocioFilepath);
+
+   MString renderingSpace;
+   MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);
+
+   MString viewTransform;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+
+   MStringArray viewTransforms;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   std::string allViewTransforms;
+   for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
+   {
+      allViewTransforms += viewTransforms[idx].asChar();
+      allViewTransforms += ";";
+   }
+
+   // The order of initialization is important to avoid useless changes.
+   SetOption("SynColor.enabled",        "false");
+   SetOption("SynColor.ocioFilepath",   ocioFilepath.asChar()); 
+   SetOption("SynColor.ocioEnabled",    cmOcioEnabled==1 ? "true" : "false"); 
+   SetOption("SynColor.renderingSpace", renderingSpace.asChar()); 
+   SetOption("SynColor.viewTransforms", allViewTransforms.c_str()); 
+   SetOption("SynColor.viewTransform",  viewTransform.asChar()); 
+   SetOption("SynColor.Gamma",          "1"); 
+   SetOption("SynColor.Exposure",       "0");
+   SetOption("SynColor.enabled",        cmEnabled==1 ? "true" : "false");
+   
+#else
+
    MSelectionList activeList;
    activeList.add(MString(":defaultColorMgtGlobals"));
    
@@ -959,7 +1007,9 @@ void CRenderViewMtoA::UpdateColorManagement()
          }
       }
    }
+#endif
 }
+
 void CRenderViewMtoA::ColorMgtChangedCallback(void *data)
 {
    if (data == NULL) return;
