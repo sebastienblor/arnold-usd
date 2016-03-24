@@ -174,7 +174,13 @@ if system.os() == 'windows':
     if MAYA_INCLUDE_PATH == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+
     maya_version_base = maya_version[0:4]
+   
+    # need to temporarily set 201650 as 2017
+    if int(maya_version) >= 201650:
+        maya_version_base="2017"
+
     msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
         msvc_version = '10.0'
@@ -259,6 +265,10 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+
+#need to temporarily set 201650 as 2017
+if int(maya_version) >= 201650:
+    maya_version_base = "2017"
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
@@ -794,6 +804,10 @@ if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
 
+# need to temporarily set 201650 as 2017
+if int(maya_version) >= 201650:
+    maya_base_version="2017"
+
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
 package_name = "MtoA-" + MTOA_VERSION + "-" + system.os() + "-" + maya_base_version + PACKAGE_SUFFIX
@@ -1036,7 +1050,6 @@ if not env['MTOA_DISABLE_RV']:
 
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
-
 installer_name = ''
 if system.os() == "windows":
     installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
