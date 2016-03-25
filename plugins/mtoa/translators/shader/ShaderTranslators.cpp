@@ -192,7 +192,7 @@ bool StringHasOnlyNumbersAndMinus(const std::string& str)
    return false;
 }
 
-bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, bool checkForTileToken = true)
+bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, const MStringArray &searchPaths, bool checkForTileToken = true)
 {
    size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
 #ifdef _WIN32
@@ -209,7 +209,18 @@ bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, 
    {
       std::string directory = original_filename.substr(0, slashPos);
       DIR* dp;
-      if ((dp = opendir(directory.c_str())) != 0)
+      dp = opendir(directory.c_str());
+
+      if (dp == 0)
+      {
+         for (unsigned int i = 0; i < searchPaths.length() && (dp == 0); ++i)
+         {
+            MString currentPath = searchPaths[i]+"/"+directory.c_str();
+            dp = opendir(currentPath.asChar());
+         }
+      }
+
+      if (dp != 0)   
       {
          std::string filename = original_filename.substr(slashPos + 1, original_filename.size());
          bool isUdim = true;
@@ -333,6 +344,7 @@ void CFileTranslator::Export(AtNode* shader)
          // check for <tile> and <udim> tags and replace them
          // with _u1_v1 and 1001 
          MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
+
          std::string tx_filename_tokens_original = tx_filename.asChar();
          std::string tx_filename_tokens = tx_filename_tokens_original;
          size_t tokenPos = tx_filename_tokens.find("<udim>");
@@ -351,12 +363,23 @@ void CFileTranslator::Export(AtNode* shader)
             }
          }
          std::ifstream ifile(tx_filename_tokens.c_str()); 
+         const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
          if(ifile.is_open()) 
             resolvedFilename = tx_filename;
-         else if(tokenPos != std::string::npos) // there is one found token
+         else if(tokenPos != std::string::npos && CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, searchPaths))
+            resolvedFilename = tx_filename;
+         else
          {
-            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original))
-               resolvedFilename = tx_filename;
+            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            {
+               MString currentPath = searchPaths[i]+"/"+tx_filename_tokens.c_str();
+               std::ifstream iRelFile(currentPath.asChar()); 
+               if (iRelFile.is_open())
+               {
+                  resolvedFilename = tx_filename;
+                  break;
+               }
+            }
          }
       }
       m_session->FormatTexturePath(resolvedFilename);
@@ -1361,18 +1384,34 @@ void CAiImageTranslator::Export(AtNode* image)
       if(renderOptions.useExistingTiledTextures()) 
       {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+
          std::string tx_filename_tokens_original = tx_filename.asChar();
          std::string tx_filename_tokens = tx_filename_tokens_original;
          size_t tokenPos = tx_filename_tokens.find("<udim>");
          if (tokenPos != std::string::npos)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
+
+
+         const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
          std::ifstream ifile(tx_filename_tokens.c_str()); 
          if(ifile.is_open()) 
             filename = tx_filename;
          else if (tokenPos != std::string::npos)
          {
-            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, false))
+            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, searchPaths, false))
                filename = tx_filename;
+         } else
+         {
+            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            {
+               MString currentPath = searchPaths[i]+"/"+tx_filename_tokens.c_str();
+               std::ifstream iRelFile(currentPath.asChar()); 
+               if (iRelFile.is_open())
+               {
+                  filename = tx_filename;
+                  break;
+               }
+            }
          }
       }
       m_session->FormatTexturePath(filename);
