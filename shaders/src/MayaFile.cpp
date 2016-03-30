@@ -32,10 +32,8 @@ enum TokenModes
    SHAPE_PATH,
    UDIM,
    TILE,
-   UTILE0, // 0-based u-index
-   VTILE0, // 0-based v-index
-   UTILE1, // 1-based u-index
-   VTILE1, // 1-based v-index
+   UTILE,
+   VTILE,
    USER_PARAM
 };
 
@@ -390,16 +388,13 @@ node_update
                prevToken = (int) tokens.size()-1;
                breakFound = true;
             }
-            else if (sub.substr(0, 6) == "<utile" || sub.substr(0, 2) == "<u" || sub.substr(0, 2) == "<U")
+            else if (sub.substr(0, 6) == "<utile")
             {
                // default offset
                int offset = GetTokenOptionInt(sub, 1);
 
                TokenData data;
-               if(sub.substr(0, 2) == "<u")
-                  data.mode = UTILE0;
-               else
-                  data.mode = UTILE1;
+               data.mode = UTILE;
                data.position = (int) newfname.size();
                data.extra = AiMalloc(sizeof(int));
                *((int*)data.extra) = offset;
@@ -412,15 +407,12 @@ node_update
                prevToken = (int) tokens.size()-1;
                breakFound = true;
             }
-            else if (sub.substr(0, 6) == "<vtile" || sub.substr(0, 2) == "<v" || sub.substr(0, 2) == "<V")
+            else if (sub.substr(0, 6) == "<vtile" )
             {
                int offset = GetTokenOptionInt(sub, 1);
 
                TokenData data;
-               if(sub.substr(0, 2) == "<v")
-                  data.mode = VTILE0;
-               else
-                  data.mode = VTILE1;
+               data.mode = VTILE;
                data.position = (int) newfname.size();
                data.extra = AiMalloc(sizeof(int));
                *((int*)data.extra) = offset;
@@ -882,18 +874,13 @@ shader_evaluate
                   idata->processPath[sg->tid][pos] = 0;
                   break;
                }
-               case UTILE0:
-               case UTILE1:
+               case UTILE:
                {
                   // default offset
                   int* ptr = (int*)token->extra;
                   int offset = *ptr;
 
-                  int col;
-                  if(token->mode == UTILE0)
-                     col = static_cast<int>(floorf(inU-1)) + offset;
-                  else
-                     col = static_cast<int>(floorf(inU)) + offset;
+                  int col = static_cast<int>(floorf(inU)) + offset;
                   char buf[2];
                   sprintf(buf, "%d", col);
                   int len = (int) strlen(buf);
@@ -906,18 +893,13 @@ shader_evaluate
                   idata->processPath[sg->tid][pos] = 0;
                   break;
                }
-               case VTILE0:
-               case VTILE1:
+               case VTILE:
                {
                   // default offset
                   int* ptr = (int*)token->extra;
                   int offset = *ptr;
 
-                  int row;
-                  if(token->mode == VTILE0)
-                     row = static_cast<int>(floorf(inV-1)) + offset;
-                  else
-                     row = static_cast<int>(floorf(inV)) + offset;
+                  int row = static_cast<int>(floorf(inV)) + offset;
                   char buf[2];
                   sprintf(buf, "%d", row);
                   int len = (int) strlen(buf);
