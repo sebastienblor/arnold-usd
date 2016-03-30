@@ -166,9 +166,6 @@ public:
    
    MString GetMayaObjectName(const AtNode *node) const;
 
-   inline void SetVisibilityOverride(bool visibility) { m_useVisibilityOverride = true; m_visibilityOverride = visibility; }
-   inline void ClearVisibilityOverride() { m_useVisibilityOverride = false; }
-
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -264,9 +261,6 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-
-   bool m_useVisibilityOverride;
-   bool m_visibilityOverride;
 
 protected:
    ObjectHandleToDagMap m_masterInstances;

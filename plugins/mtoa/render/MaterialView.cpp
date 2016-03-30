@@ -1,4 +1,7 @@
 #include "MaterialView.h"
+
+#ifdef ENABLE_MATERIAL_VIEW
+
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
@@ -271,7 +274,7 @@ MStatus CMaterialView::translateShader(const MUuid& id, const MObject& node)
    // Make sure the renderer is stopped
    InterruptRender(true);
 
-   if (!TranslateNode(id, node, MV_UPDATE_CONNECTED))
+   if (!TranslateNode(id, node))
    {
       return MStatus::kFailure;
    }
@@ -658,7 +661,6 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
    AtNode* arnoldNode = NULL;
 
    CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-   arnoldSession->SetVisibilityOverride(true);
 
    TranslatorLookup::iterator it = m_translatorLookup.find(id);
    if (it == m_translatorLookup.end())
@@ -681,8 +683,6 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       CNodeTranslator* translator = it->second;
       arnoldNode = UpdateNode(translator, updateMode);
    }
-
-   arnoldSession->ClearVisibilityOverride();
 
    if (arnoldNode)
    {
@@ -708,7 +708,7 @@ AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode)
       translator->DoCreateArnoldNodes();
       return translator->DoExport(0);
    }
-   return translator->DoUpdate(0, updateMode == MV_UPDATE_CONNECTED);
+   return translator->DoUpdate(0);
 }
 
 void CMaterialView::SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data)
@@ -818,3 +818,5 @@ void CMaterialView::Abort()
       s_instance->DoAbort();
    }
 }
+
+#endif // ENABLE_MATERIAL_VIEW

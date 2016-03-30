@@ -45,7 +45,7 @@ class DLLEXPORT CNodeTranslator
 
 private:
    AtNode* DoExport(unsigned int step);
-   AtNode* DoUpdate(unsigned int step, bool updateConnectedNodes = false);
+   AtNode* DoUpdate(unsigned int step);
    AtNode* DoCreateArnoldNodes();
    void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
    bool ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
@@ -119,7 +119,6 @@ protected:
       m_upstreamAOVs(),
       m_shaders(NULL),
       m_updateMode(AI_UPDATE_ONLY),
-      m_updateConnectedNodes(false),
       m_holdUpdates(false),
       m_handle(CNodeAttrHandle())      
    {}
@@ -231,7 +230,6 @@ protected:
    MCallbackIdArray m_mayaCallbackIDs;
    
    unsigned int m_updateMode;
-   bool m_updateConnectedNodes;
    bool m_holdUpdates; // for Arnold RenderView only
 
 private:

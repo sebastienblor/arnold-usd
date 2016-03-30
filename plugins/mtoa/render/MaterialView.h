@@ -1,7 +1,14 @@
 #pragma once
 
-#include <maya/MPxRenderer.h> 
+// Maya's material viewer is not availabe in versions older than 2016
+#include <maya/MTypes.h> 
+#if MAYA_API_VERSION >= 201600
+#define ENABLE_MATERIAL_VIEW
+#endif
 
+#ifdef ENABLE_MATERIAL_VIEW
+
+#include <maya/MPxRenderer.h> 
 #include "render/RenderSession.h"
 #include "translators/NodeTranslator.h"
 #include "platform/Platform.h"
@@ -70,7 +77,6 @@ private:
    enum UpdateMode
    {
       MV_UPDATE_DEFAULT,
-      MV_UPDATE_CONNECTED,
       MV_UPDATE_RECREATE
    };
 
@@ -113,3 +119,19 @@ private:
 
    static CMaterialView* s_instance;
 };
+
+
+#else // ENABLE_MATERIAL_VIEW
+
+// Dummy implementation of material view
+class CMaterialView
+{
+public:
+   void SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data) {}
+   void SendProgress(float progress) {}
+   static void Suspend() {}
+   static void Resume() {}
+   static void Abort() {}
+};
+
+#endif // ENABLE_MATERIAL_VIEW

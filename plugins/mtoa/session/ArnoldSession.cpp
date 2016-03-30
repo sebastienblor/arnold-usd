@@ -1611,8 +1611,11 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    if (node.isIntermediateObject())
       return false;
 
-   if (m_useVisibilityOverride)
-      return m_visibilityOverride;
+   // The material view objects in Maya has always visibility disabled
+   // to not show up by default in the scenes. So we need to override
+   // that here and always return true for objects in material view session
+   if (GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
+      return true;
 
    MPlug visPlug = node.findPlug("visibility", &status);
    MPlug overVisPlug = node.findPlug("overrideVisibility", &status);

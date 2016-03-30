@@ -483,7 +483,7 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
 }
 
 // internal use only
-AtNode* CNodeTranslator::DoUpdate(unsigned int step, bool updateConnectedNodes)
+AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 {
    assert(AiUniverseIsActive());
    AtNode* node = GetArnoldNode("");
@@ -501,10 +501,6 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step, bool updateConnectedNodes)
               AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
               node);
 
-   // Set internal flag for updating connected nodes
-   const bool tmp = m_updateConnectedNodes;
-   m_updateConnectedNodes = updateConnectedNodes;
-
    if (step == 0)
    {
       Update(node);
@@ -514,9 +510,6 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step, bool updateConnectedNodes)
    {
       UpdateMotion(node, step);
    }
-
-   // Restore the flag
-   m_updateConnectedNodes = tmp;
 
    return GetArnoldRootNode();
 }
@@ -1463,11 +1456,19 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
       if (srcArnoldNode == NULL)
          return NULL;
 
-      // Update the connected node if this is requested
-      if (m_updateConnectedNodes && srcNodeTranslator)
+      // For material view sessions we need to propagate any shader update upstream
+      // because it's only the root shader that gets sent for update, even if the
+      // update was caused by some upstream shader node
+      if (srcNodeTranslator && m_session->GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
       {
-         // Propagate the update upstream
-         srcNodeTranslator->DoUpdate(m_step, true);
+         // Check if the given node is a shader
+         const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
+         const int type = AiNodeEntryGetType(nodeEntry);
+         if (type == AI_NODE_SHADER)
+         {
+            // Propagate the update upstream
+            srcNodeTranslator->DoUpdate(m_step);
+         }
       }
 
       if (arnoldParamType == AI_TYPE_NODE)

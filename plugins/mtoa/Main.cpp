@@ -722,7 +722,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
-   
+
+#ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
    status = plugin.registerRenderer(CMaterialView::Name(), CMaterialView::Creator);
    CHECK_MSTATUS(status);
@@ -737,6 +738,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+#endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
    status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
@@ -951,6 +953,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    }
 #endif
 
+#ifdef ENABLE_MATERIAL_VIEW
    // Material view renderer
    status = plugin.deregisterRenderer(CMaterialView::Name());
    CHECK_MSTATUS(status);
@@ -965,6 +968,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       AiMsgError("Failed to deregister Arnold material view renderer");
       MGlobal::displayError("Failed to deregister Arnold material view renderer");
    }
+#endif // ENABLE_MATERIAL_VIEW
 
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
