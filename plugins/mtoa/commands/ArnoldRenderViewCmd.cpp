@@ -129,8 +129,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
          CMayaScene::GetRenderSession()->StartRenderView();
          return MS::kSuccess;
       }
-
       MDagPathArray cameras;
+
       if (args.isFlagSet("camera"))
       {
          MSelectionList sel;

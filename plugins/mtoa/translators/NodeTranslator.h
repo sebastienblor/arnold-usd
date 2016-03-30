@@ -29,6 +29,7 @@
 #define AI_RECREATE_NODE 2
 #define AI_RECREATE_TRANSLATOR 3
 
+
 MString GetAOVNodeType(int type);
 
 // Abstract base class for all Maya-to-Arnold node translators
@@ -107,6 +108,7 @@ public:
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
    bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
+
 
 protected:
    CNodeTranslator()  :

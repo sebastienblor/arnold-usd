@@ -165,7 +165,6 @@ public:
    bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
    MString GetMayaObjectName(const AtNode *node) const;
-
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -264,7 +263,6 @@ private:
    AtMatrix m_scaleFactorAtMatrix;
    MVector m_origin;
    std::vector<HiddenObjectCallbackPair> m_hiddenObjectsCallbacks;
-
 protected:
    ObjectHandleToDagMap m_masterInstances;
 

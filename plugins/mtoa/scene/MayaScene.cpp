@@ -519,7 +519,6 @@ void CMayaScene::FileOpenCallback(void *)
 void CMayaScene::QuitApplicationCallback(void *)
 {
    // something we might want to do when closing maya
-
    End();
 }
 
