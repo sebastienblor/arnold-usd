@@ -15,6 +15,11 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
 
+#ifdef ENABLE_VP2
+#include <maya/MColorManagementUtilities.h>
+#include <maya/MGlobal.h>
+#endif
+
 MTypeId CArnoldSkyDomeLightNode::id(ARNOLD_NODEID_SKYDOME_LIGHT);
 
 CStaticAttrHelper CArnoldSkyDomeLightNode::s_attributes(CArnoldSkyDomeLightNode::addAttribute);
@@ -49,6 +54,13 @@ MObject CArnoldSkyDomeLightNode::aLightShadowFraction;
 MObject CArnoldSkyDomeLightNode::aPreShadowIntensity;
 MObject CArnoldSkyDomeLightNode::aLightBlindData;
 MObject CArnoldSkyDomeLightNode::aLightData;
+// Color management attributes
+MObject CArnoldSkyDomeLightNode::s_colorMgtEnabled;         
+MObject CArnoldSkyDomeLightNode::s_colorMgtCfgFileEnabled;  
+MObject CArnoldSkyDomeLightNode::s_colorMgtCfgFilePath;     
+MObject CArnoldSkyDomeLightNode::s_workingSpace;            
+MObject CArnoldSkyDomeLightNode::s_colorSpace;              
+MObject CArnoldSkyDomeLightNode::s_ignoreColorSpaceRules;
 
 void* CArnoldSkyDomeLightNode::creator()
 {
@@ -205,7 +217,102 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 
+#ifdef ENABLE_VP2
+   MStatus status;
+   MFnTypedAttribute typedAttr;
+
+	s_colorMgtEnabled = nAttr.create(
+		"colorManagementEnabled", "cme", MFnNumericData::kBoolean, 0, &status);
+	nAttr.setDefault(false);
+	nAttr.setConnectable(true);
+	if(!addAttribute(s_colorMgtEnabled))
+		return MS::kFailure;
+
+	s_colorMgtCfgFileEnabled = nAttr.create(
+		"colorManagementConfigFileEnabled", "cmcfe", MFnNumericData::kBoolean, 0, &status);
+	nAttr.setDefault(false);
+	nAttr.setConnectable(true);
+	if(!addAttribute(s_colorMgtCfgFileEnabled))
+		return MS::kFailure;
+
+	s_colorMgtCfgFilePath = typedAttr.create(
+		"colorManagementConfigFilePath", "cmcfp", MFnData::kString, MObject::kNullObj, &status);
+	typedAttr.setConnectable(true);
+	typedAttr.setUsedAsFilename(false);
+	if(!addAttribute(s_colorMgtCfgFilePath))
+		return MS::kFailure;
+
+	s_workingSpace = typedAttr.create(
+		"workingSpace", "ws", MFnData::kString, MObject::kNullObj, &status);
+	typedAttr.setUsedAsFilename(false);
+	typedAttr.setConnectable(true);
+	if(!addAttribute(s_workingSpace))
+		return MS::kFailure;
+
+	// Create attributes
+	s_colorSpace = typedAttr.create(
+		"colorSpace", "cs", MFnData::kString, MObject::kNullObj, &status);
+	typedAttr.setConnectable(true);
+	typedAttr.setUsedAsFilename(false);
+	if(!addAttribute(s_colorSpace))
+		return MS::kFailure;
+
+	s_ignoreColorSpaceRules = nAttr.create(
+		"ignoreColorSpaceFileRules", "ifr", MFnNumericData::kBoolean, 1, &status);
+	nAttr.setDefault(true);
+	nAttr.setConnectable(true);
+	if(!addAttribute(s_ignoreColorSpaceRules))
+		return MS::kFailure;
+#endif
    return MS::kSuccess;
+}
+
+// Utility
+template<typename T>
+T getAttributeValue(const MObject& object, const MObject& attribute)
+{
+    T result;
+    MPlug plug(object, attribute);
+    plug.getValue(result);
+    return result;
+}
+
+void CArnoldSkyDomeLightNode::postConstructor()
+{
+      // Call parent postConstructor as it is not done automatically as the parent constructor
+      CSphereLocator::postConstructor();
+      
+      setMPSafe(true);
+
+#ifdef ENABLE_VP2
+	MObject object(thisMObject());
+	if(MColorManagementUtilities::connectDependencyNodeToColorManagement(object) == MStatus::kFailure)
+	{
+		MGlobal::displayError("Failed to connect to the defaultColorMgtGlobals node");
+	}
+
+    // The default for IBL shape nodes should be no input space
+    // transformation.  In Autodesk color management native mode, we can
+    // use the Raw input space to achieve this.  In OCIO mode, we achieve
+    // the same result by choosing an input space that is the rendering
+    // space, which produces an identity transformation.  We do this
+    // regardless of whether color management is on or off.
+    const MString inputColorSpace =
+        getAttributeValue<bool>(object, s_colorMgtCfgFileEnabled) ?
+        getAttributeValue<MString>(object, s_workingSpace) : MString("Raw");
+        
+    // Even if the rendering space can't be read, an empty string will
+    // produce a raw transform.
+    MPlug inputSpacePlug(thisMObject(), s_colorSpace);
+    if (inputSpacePlug.setValue(inputColorSpace) != MStatus::kSuccess) {
+        MGlobal::displayError(
+            "Could not set input color space on skydome node");
+    }
+#endif
+}
+
+CArnoldSkyDomeLightNode::~CArnoldSkyDomeLightNode()
+{
 }
 
 MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
