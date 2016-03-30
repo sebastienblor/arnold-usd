@@ -689,19 +689,6 @@ void CNodeTranslator::AddUpdateCallbacks()
                                            &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 
-   if (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-   {
-      // In RENDERVIEW mode, we also add AttributeChangedCallback
-      // otherwise, we might have desynchronized parameter values 
-      // (see ticket #2312)
-
-      id = MNodeMessage::addAttributeChangedCallback(object,
-                                              AttributeChangedCallback,
-                                              this,
-                                              &status);
-      if (MS::kSuccess == status) ManageUpdateCallback(id);
-   }
-
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
@@ -734,12 +721,6 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
-// In RenderView mode, attribute changed invoke nodeDirty (ticket #2312)
-void CNodeTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg, MPlug &plug, MPlug &otherPlug, void *clientData)
-{
-   MObject node = plug.node();
-   NodeDirtyCallback(node, plug, clientData);
-}
 
 
 // This is a simple callback triggered when a node is marked as dirty.
@@ -763,9 +744,8 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-      MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
+      MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
       
-
       if (plugName == ".aiTranslator")
       {
          // The Arnold translator has changed :
@@ -776,7 +756,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->RequestUpdate(clientData);
          return;
       }
-
+      
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {
          std::vector< CDagTranslator * > translatorsToUpdate;

@@ -40,7 +40,7 @@
 																					<key>GID</key>
 																					<integer>80</integer>
 																					<key>PATH</key>
-																					<string>2016/arnoldRenderer.xml</string>
+																					<string>2017/arnoldRenderer.xml</string>
 																					<key>PATH_TYPE</key>
 																					<integer>1</integer>
 																					<key>PERMISSIONS</key>
@@ -87,7 +87,7 @@
 																			<key>GID</key>
 																			<integer>80</integer>
 																			<key>PATH</key>
-																			<string>2016/mtoa.mod</string>
+																			<string>2017/mtoa.mod</string>
 																			<key>PATH_TYPE</key>
 																			<integer>1</integer>
 																			<key>PERMISSIONS</key>
@@ -143,7 +143,7 @@
 											<key>GID</key>
 											<integer>80</integer>
 											<key>PATH</key>
-											<string>maya2016</string>
+											<string>maya2017</string>
 											<key>PATH_TYPE</key>
 											<integer>0</integer>
 											<key>PERMISSIONS</key>
@@ -632,9 +632,9 @@
 				<key>CONCLUSION_ACTION</key>
 				<integer>0</integer>
 				<key>IDENTIFIER</key>
-				<string>com.solidangle.pkg.MtoAConf2016</string>
+				<string>com.solidangle.pkg.MtoAConf2017</string>
 				<key>NAME</key>
-				<string>Configure MtoA Maya 2016</string>
+				<string>Configure MtoA Maya 2017</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>RELOCATABLE</key>
@@ -669,7 +669,7 @@
 													<key>GID</key>
 													<integer>80</integer>
 													<key>PATH</key>
-													<string>2016</string>
+													<string>2017</string>
 													<key>PATH_TYPE</key>
 													<integer>1</integer>
 													<key>PERMISSIONS</key>
@@ -1172,11 +1172,11 @@
 				<key>CONCLUSION_ACTION</key>
 				<integer>0</integer>
 				<key>IDENTIFIER</key>
-				<string>com.solidangle.pkg.MtoA2016</string>
+				<string>com.solidangle.pkg.MtoA2017</string>
 				<key>LOCATION</key>
 				<integer>0</integer>
 				<key>NAME</key>
-				<string>MtoA Maya 2016</string>
+				<string>MtoA Maya 2017</string>
 				<key>OVERWRITE_PERMISSIONS</key>
 				<false/>
 				<key>VERSION</key>
@@ -1392,7 +1392,7 @@
 						<key>LANGUAGE</key>
 						<string>English</string>
 						<key>VALUE</key>
-						<string>MtoA 1.2.7.2 Maya 2016</string>
+						<string>MtoA 1.2.7.2 Maya 2017</string>
 					</dict>
 				</array>
 			</dict>

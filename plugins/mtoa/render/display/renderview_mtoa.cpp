@@ -848,6 +848,54 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 
 void CRenderViewMtoA::UpdateColorManagement()
 {
+#if MAYA_API_VERSION >= 201650
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   int cmEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+
+   int cmOcioEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmConfigFileEnabled", cmOcioEnabled);
+
+   MString ocioFilepath;
+   MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", ocioFilepath);
+
+   MString renderingSpace;
+   MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);
+
+   MString viewTransform;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+
+   MStringArray viewTransforms;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   std::string allViewTransforms;
+   for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
+   {
+      allViewTransforms += viewTransforms[idx].asChar();
+      allViewTransforms += ";";
+   }
+
+   // The order of initialization is important to avoid useless changes.
+   SetOption("SynColor.enabled",        "false");
+   SetOption("SynColor.ocioFilepath",   ocioFilepath.asChar()); 
+   SetOption("SynColor.ocioEnabled",    cmOcioEnabled==1 ? "true" : "false"); 
+   SetOption("SynColor.renderingSpace", renderingSpace.asChar()); 
+   SetOption("SynColor.viewTransforms", allViewTransforms.c_str()); 
+   SetOption("SynColor.viewTransform",  viewTransform.asChar()); 
+   SetOption("SynColor.Gamma",          "1"); 
+   SetOption("SynColor.Exposure",       "0");
+   SetOption("SynColor.enabled",        cmEnabled==1 ? "true" : "false");
+   
+#else
+
    MSelectionList activeList;
    activeList.add(MString(":defaultColorMgtGlobals"));
    
@@ -858,12 +906,32 @@ void CRenderViewMtoA::UpdateColorManagement()
    activeList.getDependNode(0,node);
    MFnDependencyNode depNode(node);
 
-// cfe -> ocio enabled
-// cfp -> ocio path
-// vtn  -> view transform name
-// wsn  -> 
-// otn
-// potn 
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   // Note:
+   // For debugging purpose only, 'defaultColorMgtGlobals' attributes are:
+   // cme -> color management enabled
+   // cfe -> ocio mode enabled (false means that native mode is enabled)
+   // cfp -> ocio path, to be used only if cme and cfe are on
+   // vtn -> view transform name
+   // wsn -> working space name (also known as rendering color space)
+   // ote -> output transform enabled 
+   // otn -> output transform name 
+   // ... -> other attributes will not be used by the RenderView for now.
+
+   // Implementation: [Patrick Hodoul & Sebastien Ortega]
+   // The color transformation from the rendering color space to the 
+   // view transform must be managed by SynColor as it could imply
+   // a lot more processing. The code receiving the request should
+   // use SynColor to perform the color transformation.
 
    MStatus status;
    MPlug plug;
@@ -939,7 +1007,9 @@ void CRenderViewMtoA::UpdateColorManagement()
          }
       }
    }
+#endif
 }
+
 void CRenderViewMtoA::ColorMgtChangedCallback(void *data)
 {
    if (data == NULL) return;
@@ -992,16 +1062,30 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    if (renderOptions == NULL) return;
 
    MStatus status;
-   MPlug plug = depNode.findPlug("width", &status);
+   int width = 1;
+   int height = 1;
    bool updateRender = false;
+   
+   MPlug plug = depNode.findPlug("width", &status);
    if (status == MS::kSuccess)
    {
-      if (plug.asInt() != renderOptions->width()) updateRender = true;
+      width = plug.asInt();
+      if (width != renderOptions->width()) updateRender = true;
    }
    plug = depNode.findPlug("height", &status);
    if (status == MS::kSuccess)
    {
-      if (plug.asInt() != renderOptions->height()) updateRender = true;
+      height = plug.asInt();
+      if (height != renderOptions->height()) updateRender = true;
+   }
+   plug = depNode.findPlug("deviceAspectRatio", &status);
+   if (status == MS::kSuccess)
+   {
+      float pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+      if (ABS(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
+      {
+         updateRender = true;
+      }
    }
 
    if(updateRender)      
@@ -1011,6 +1095,7 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 {
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
    MStatus status;
+
    if(rvMtoA->m_rvIdleCb == 0)
    {
 

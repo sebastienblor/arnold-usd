@@ -422,7 +422,6 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_motion_end);
 
    s_attributes.MakeInput("max_subdivisions");
-   s_attributes.MakeInput("shadow_terminator_fix");
 
    // textures
    s_attributes.MakeInput("texture_automip");
