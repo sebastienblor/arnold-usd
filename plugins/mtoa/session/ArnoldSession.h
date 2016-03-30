@@ -184,6 +184,9 @@ public:
       return static_cast<unsigned int>(m_aovs.size());
    }
 */
+   const MStringArray &GetTextureSearchPaths() const;
+   const MStringArray &GetProceduralSearchPaths() const;
+   
 private:
 
    CArnoldSession()

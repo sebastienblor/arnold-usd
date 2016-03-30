@@ -810,7 +810,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-      MString plugName = plug.name().substring(plug.name().rindex('.'),plug.name().length());
+      MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
       
       if (plugName == ".aiTranslator")
       {
