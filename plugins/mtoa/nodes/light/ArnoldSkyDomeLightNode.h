@@ -55,12 +55,4 @@ public:
    static MObject aPreShadowIntensity;
    static MObject aLightBlindData;
    static MObject aLightData;
-
-   // Color management attributes
-   static MObject s_colorMgtEnabled;         // Is Color Mgt enabled or not ?
-   static MObject s_colorMgtCfgFileEnabled;  // Is the OCIO Mode enabled or not ?
-   static MObject s_colorMgtCfgFilePath;     // The OCIO config to use when OCIO mode is enabled
-   static MObject s_workingSpace;            // The rendering space to use
-   static MObject s_colorSpace;              // The input color space to use
-   static MObject s_ignoreColorSpaceRules;
 };  // class CArnoldSkyDomeLightNode

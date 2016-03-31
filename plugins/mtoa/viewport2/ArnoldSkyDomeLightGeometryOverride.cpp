@@ -68,6 +68,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 	, m_wireframeShader(0)
 	, m_activeWireframeShader(0)
 	, m_texturedShader(0)
+	, m_texturedCMShader(0)
 	, p_skydomeNode(0)
 	, m_depthStencilState(0)
 	, m_cullNoneState(0)
@@ -99,6 +100,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
 				preDrawCallback, postDrawCallback);
 			m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader,
 				preDrawCallback, postDrawCallback);
+			m_texturedCMShader = 0;
 		}
 
 		createDisplayStates();
@@ -128,6 +130,11 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
 			{
 				shaderMgr->releaseShader(m_texturedShader);
 				m_texturedShader = 0;
+			}
+			if (m_texturedCMShader)
+			{
+				shaderMgr->releaseShader(m_texturedShader);
+				m_texturedCMShader = 0;
 			}
 		}
 
@@ -532,6 +539,42 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 							}
 							// Need v-flip for file textures 
 							m_flipVData = true;
+
+#if MAYA_API_VERSION >= 201650
+							MFnDependencyNode fileNode(connectedObject);
+							// Check for color management. Maya 2017 required
+							MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled");
+							if (!cmEnabledPlug.isNull())
+							{
+								MString workSpace;
+								MString colorSpace;
+
+								bool cmEnabled = false;
+								cmEnabledPlug.getValue(cmEnabled);
+								if (cmEnabled)
+								{
+									MPlug workSpacePlug = fileNode.findPlug("workingSpace");
+									workSpacePlug.getValue(workSpace);
+
+									MPlug colorSpacePlug = fileNode.findPlug("colorSpace");
+									colorSpacePlug.getValue(colorSpace);
+
+									if (workSpace != m_workSpace ||
+										colorSpace != m_colorSpace)
+									{
+										m_texturedCMShader = 
+											m_texturedShader->createShaderInstanceWithColorManagementFragment(m_colorSpace);
+										if (m_texturedCMShader)
+										{
+											shaderInst = m_texturedCMShader;
+										}
+
+										m_workSpace = workSpace;
+										m_colorSpace = colorSpace;
+									}
+								}
+							}
+#endif
 						}
 						else
 						{
