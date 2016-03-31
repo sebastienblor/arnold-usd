@@ -544,12 +544,13 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 							MFnDependencyNode fileNode(connectedObject);
 							// Check for color management. Maya 2017 required
 							MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled");
+							bool cmEnabled = false;
 							if (!cmEnabledPlug.isNull())
 							{
 								MString workSpace;
 								MString colorSpace;
 
-								bool cmEnabled = false;
+								cmEnabled = true;
 								cmEnabledPlug.getValue(cmEnabled);
 								if (cmEnabled)
 								{
@@ -564,15 +565,16 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
 									{
 										m_texturedCMShader = 
 											m_texturedShader->createShaderInstanceWithColorManagementFragment(m_colorSpace);
-										if (m_texturedCMShader)
-										{
-											shaderInst = m_texturedCMShader;
-										}
-
+										if (!m_texturedCMShader)
+											cmEnabled = false;
 										m_workSpace = workSpace;
 										m_colorSpace = colorSpace;
 									}
 								}
+							}
+							if (cmEnabled)
+							{
+								shaderInst = m_texturedCMShader;
 							}
 #endif
 						}
