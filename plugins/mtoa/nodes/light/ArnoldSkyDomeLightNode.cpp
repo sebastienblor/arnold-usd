@@ -15,7 +15,7 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
 
-#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201600
 #include <maya/MColorManagementUtilities.h>
 #include <maya/MGlobal.h>
 #endif
@@ -217,7 +217,7 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 
-#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201600
    MStatus status;
    MFnTypedAttribute typedAttr;
 
@@ -284,7 +284,7 @@ void CArnoldSkyDomeLightNode::postConstructor()
       
       setMPSafe(true);
 
-#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201600
 	MObject object(thisMObject());
 	if(MColorManagementUtilities::connectDependencyNodeToColorManagement(object) == MStatus::kFailure)
 	{
