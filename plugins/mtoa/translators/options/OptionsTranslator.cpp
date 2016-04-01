@@ -191,8 +191,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MString leftCameraName = "";
 
    if (stereo)
-   {      
-      numEyes = 2;      
+   {   
       int childCount = camDagTransform.childCount();      
       for (int i = childCount - 1; i >= 0; --i)
       {
@@ -207,7 +206,8 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
          if(rightCameraName.numChars() == 0 && childName.find("Right") != std::string::npos) rightCameraName = camChildPath.partialPathName();
          else if (leftCameraName.numChars() == 0 && childName.find("Left") != std::string::npos) leftCameraName = camChildPath.partialPathName();
       }
-      if (rightCameraName.numChars() == 0 || leftCameraName.numChars() == 0) stereo = false;
+      if (rightCameraName.numChars() > 0 && leftCameraName.numChars() > 0) numEyes = 2;
+      else  stereo = false;
    }
 
    for (int eye = 0; eye < numEyes; ++eye)
