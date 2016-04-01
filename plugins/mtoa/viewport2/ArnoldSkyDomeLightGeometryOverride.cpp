@@ -564,7 +564,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                               colorSpace != m_colorSpace)
                            {
                               m_texturedCMShader = 
-                                 m_texturedShader->createShaderInstanceWithColorManagementFragment(m_colorSpace);
+                                 m_texturedShader->createShaderInstanceWithColorManagementFragment(colorSpace);
                               if (!m_texturedCMShader)
                                  cmEnabled = false;
                               m_workSpace = workSpace;
