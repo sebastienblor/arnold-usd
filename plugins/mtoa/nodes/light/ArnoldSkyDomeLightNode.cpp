@@ -208,28 +208,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    return MS::kSuccess;
 }
 
-// Utility
-template<typename T>
-T getAttributeValue(const MObject& object, const MObject& attribute)
-{
-    T result;
-    MPlug plug(object, attribute);
-    plug.getValue(result);
-    return result;
-}
-
-void CArnoldSkyDomeLightNode::postConstructor()
-{
-      // Call parent postConstructor as it is not done automatically as the parent constructor
-      CSphereLocator::postConstructor();
-      
-      setMPSafe(true);
-}
-
-CArnoldSkyDomeLightNode::~CArnoldSkyDomeLightNode()
-{
-}
-
 MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
    if ((plug != aLightData) && (plug.parent() != aLightData))
