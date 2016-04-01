@@ -153,7 +153,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MFileObject fileObj;
    fileObj.setRawFullName(MFileIO::currentFile());
    MString sceneFileName = fileObj.resolvedName();
-   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
+   const int idx = sceneFileName.rindexW('.');
+   if(idx==0)
+   {
+      sceneFileName = "";
+   }
+   else if(idx>=1)
+   {
+      sceneFileName = sceneFileName.substringW(0, idx-1);
+   }
 
    // camera name
    MFnDagNode camDagTransform(camera.transform());

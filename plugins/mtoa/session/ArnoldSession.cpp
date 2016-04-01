@@ -201,7 +201,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
          // for this shader
-         QueueForUpdate(translator);
+         if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -320,7 +320,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
          // for this shader
-         QueueForUpdate(translator);
+         if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -435,7 +435,7 @@ MStatus CArnoldSession::End()
    MStatus status = MStatus::kSuccess;
 
    m_requestUpdate = false;
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       ClearUpdateCallbacks();
    }
@@ -642,7 +642,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    if (exportSelected)
    {
       unsigned int ns = selected->length();
-      status = FlattenSelection(selected);
+      status = FlattenSelection(selected, false); // false = don't skip root nodes (ticket #1061)
       unsigned int fns = selected->length();
       AiMsgDebug("[mtoa] Exporting selection (%i:%i)", ns, fns);
    }
@@ -725,11 +725,16 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    for (unsigned int step = 0; step < numSteps; ++step)
    {
       if ((step != 0) || (m_motion_frames[step] != m_sessionOptions.m_frame))
+      {
+         // it used to be done at if(step ==1)
+         // but we could possibly be changing the frame temporarily
+         // without setting exportingMode=true
+         // so it's better to do it here. This way we can block the NodeDirty signals as desired
+         m_isExportingMotion = true; 
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+      }
       AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
-      if (step == 1)
-         m_isExportingMotion = true;
-
+      
       // then, loop through the already processed dag translators and export for current step
       // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
       // Since all nodes *should* be exported at this point, the following calls to DoExport do not
@@ -744,7 +749,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          m_processedTranslatorList[i]->DoExport(step);
       }
    }
-   m_isExportingMotion = false;
 
    if (mb)
    {
@@ -756,15 +760,17 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       }
    }
 
-
+   m_isExportingMotion = false;
+   
    // add callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       ObjectToTranslatorMap::iterator it;
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
       }
+      m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
 
    return status;
@@ -1005,7 +1011,7 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
          DagFiltered filtered = FilteredStatus(path);
          if (filtered != MTOA_EXPORT_ACCEPTED)
          {
-            if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+            if (IsInteractiveRender())
             {
                HiddenObjectCallbackPair hiddenObj;
                hiddenObj.first = CNodeAttrHandle(obj, "");
@@ -1082,7 +1088,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
             filtered = FilteredStatus(path);
             if (filtered != MTOA_EXPORT_ACCEPTED)
             {
-               if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+               if (IsInteractiveRender())
                {
                   HiddenObjectCallbackPair hiddenObj;
                   hiddenObj.first = CNodeAttrHandle(obj, "");
@@ -1120,7 +1126,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
+MStatus CArnoldSession::FlattenSelection(MSelectionList* selected, bool skipRoot)
 {
    MStatus status;
 
@@ -1140,6 +1146,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
          // should we export all its dag paths?
          if (FilteredStatus(path) == MTOA_EXPORT_ACCEPTED)
          {
+            // add this path, unless skipRoot is true
+            if (!skipRoot) selected->add(path, MObject::kNullObj, true);
+
             for (unsigned int child = 0; (child < path.childCount()); child++)
             {
                MObject ChildObject = path.child(child);
@@ -1150,8 +1159,9 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
                if (!dgNode.isIntermediateObject())
                   selected->add (path, MObject::kNullObj, true);
                path.pop(1);
-               if (MStatus::kSuccess != FlattenSelection(&children))
+               if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
                   status = MStatus::kFailure;
+
                selected->merge(children);
             }
          }
@@ -1167,7 +1177,7 @@ MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
             // get set members, we don't set flatten to true in case we'd want a
             // test on each set recursively
             set.getMembers(children, false);
-            if (MStatus::kSuccess != FlattenSelection(&children))
+            if (MStatus::kSuccess != FlattenSelection(&children, true)) // true = skipRoot
                status = MStatus::kFailure;
             selected->merge(children);
          }
@@ -1221,11 +1231,13 @@ void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
+   if (m_isExportingMotion && IsInteractiveRender()) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
+   if (m_isExportingMotion && IsInteractiveRender()) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 
@@ -1256,10 +1268,13 @@ void CArnoldSession::DoUpdate()
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
+   
    bool aDag   = false;
    bool newDag = false;
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
+
+   bool arv = (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW);
 
    // In theory, no objectsToUpdate are supposed to be 
    // added to this list during the loop. But to make 
@@ -1271,32 +1286,50 @@ void CArnoldSession::DoUpdate()
       CNodeAttrHandle handle(m_objectsToUpdate[i].first);           // TODO : test isValid and isAlive ?
       CNodeTranslator * translator = m_objectsToUpdate[i].second;
 
-      if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
+      // Check if this translator needs to be re-created
+      if (translator != NULL && translator->m_updateMode == AI_RECREATE_TRANSLATOR)
       {
-         // A translator was provided, just add it to the list
-         if(translator->m_updateMode == AI_DELETE_NODE)
+         // delete the current translator, just like AI_DELETE_NODE does
+         translator->RemoveUpdateCallbacks();
+         translator->Delete();
+         m_processedTranslators.erase(handle); // shouldn't we delete the translator ?
+
+         // setting translator to NULL will consider that this is a new node,
+         // re-create the translator and export it appropriately
+         translator = NULL; 
+         m_objectsToUpdate[i].second = NULL; // safety
+      }
+
+      if (translator != NULL)
+      {
+         // Translator already exists
+         // check its update mode
+         if(translator->m_updateMode == AI_RECREATE_NODE)
+         {
+            // to be updated properly, the Arnold node must 
+            // be deleted and re-exported            
+            translator->Delete();
+            translator->m_atNodes.clear();
+            translator->DoCreateArnoldNodes();
+
+            translator->DoExport(0);
+            translatorsToUpdate.push_back(translator);
+         } else if(translator->m_updateMode == AI_DELETE_NODE)
          {
             translator->RemoveUpdateCallbacks();
             translator->Delete();
             m_processedTranslators.erase(handle);
-         }
+            // FIXME : when is this translator supposed to be deleted ??
+         }  
          else
-         {
+         {  
+            // AI_UPDATE_ONLY => simple update
             if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
             if (translator->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
-      }
-      else if(translator != NULL && translator->m_updateMode == AI_RECREATE_NODE)
-      {
-         translator->Delete();
-         translator->m_atNodes.clear();
-         translator->DoCreateArnoldNodes();
 
-         translator->DoExport(0);
-         translatorsToUpdate.push_back(translator);
-      }
-      else
+      } else
       {
          // No translator was provided, it's either a new node creation or
          // the undo of a delete node
@@ -1377,7 +1410,6 @@ void CArnoldSession::DoUpdate()
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request
 
-
    if (!reqMob)
    {
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
@@ -1409,7 +1441,7 @@ void CArnoldSession::DoUpdate()
    }
 
    // Refresh translator callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       for (std::vector<CNodeAttrHandle>::iterator iter = newToUpdate.begin();
          iter != newToUpdate.end(); ++iter)
@@ -1429,8 +1461,21 @@ void CArnoldSession::DoUpdate()
          CNodeTranslator* translator = (*iter);
          if (translator != NULL)
          {
-            translator->RemoveUpdateCallbacks();
-            translator->AddUpdateCallbacks();
+            if (arv)
+            {
+               // For RenderView, we don't clear the update callbacks
+               // we just add them if they're missing
+               if (!translator->HasUpdateCallbacks())
+               {
+                  translator->AddUpdateCallbacks();
+               } 
+
+              translator->m_holdUpdates = false; // I'm allowed to receive updates once again
+            } else
+            {
+               translator->RemoveUpdateCallbacks();
+               translator->AddUpdateCallbacks();
+            }
          }
       }
    }
@@ -1448,7 +1493,6 @@ void CArnoldSession::DoUpdate()
       m_objectsToUpdate.clear();
       m_requestUpdate = false;
    }     
-
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
@@ -1594,3 +1638,11 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
    return "";
 }
 
+const MStringArray &CArnoldSession::GetTextureSearchPaths() const
+{
+   return m_sessionOptions.GetTextureSearchPaths();   
+}
+const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
+{
+   return m_sessionOptions.GetProceduralSearchPaths();
+}

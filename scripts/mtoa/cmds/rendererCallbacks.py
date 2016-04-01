@@ -36,7 +36,7 @@ def aiNodeCanBeUsedAsMaterialCallback(nodeId, nodeOwner ) :
         return 1
     else:
         return 0
-   
+
 def castSelf(selfid):
     # Can't pass self as an object.
     # It's cast to id(self) by the caller
@@ -107,7 +107,13 @@ def aiExport( self, objs, filename, lod, materialNS ):
     cmds.currentTime( prevTime )
     
     self.progress = lastProgress
-        
+
+def aiPreventDeletionFromCleanUpSceneCommandCallback(shader, plug, connection) :
+    if (plug == "defaultArnoldRenderOptions"):
+        return True
+    else:
+        return False
+               
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
     aiExport( self, self.invokeArgs[0], self.invokeArgs[1], self.invokeArgs[2], self.invokeArgs[3] )
@@ -182,6 +188,9 @@ def registerCallbacks():
     cmds.callbacks(addCallback=aiNodeCanBeUsedAsMaterialCallback,
                    hook="nodeCanBeUsedAsMaterial",
                    owner="arnold")
+    cmds.callbacks(addCallback=aiPreventDeletionFromCleanUpSceneCommandCallback,
+               hook="preventMaterialDeletionFromCleanUpSceneCommand",
+               owner="arnold")
 
 def clearCallbacks():
     if cmds.about(batch=True):

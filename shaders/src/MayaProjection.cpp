@@ -9,6 +9,7 @@
 #endif
 #include <cmath>
 
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaProjectionMtd);
 
 namespace
@@ -242,7 +243,7 @@ AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
    float ay = N.y > 0.0f ? N.y : -N.y;
    float az = N.z > 0.0f ? N.z : -N.z;
 
-   if (ax > ay && ax > az)
+   if (ax >= ay && ax > az)
    {
       // yz plane
       st.x = V.z;
@@ -403,16 +404,22 @@ node_update
    }
 
    data->image_aspect = 1.0f;
-   AtNode *n = AiNodeGetLink(node, "image");
-   if (n != NULL)
+      
+   if(AiNodeGetInt(node, "projType") == PT_PERSPECTIVE && AiNodeGetInt(node, "fitType") != FIT_NONE && AiNodeGetBool(node, "wrap") == true)
    {
-      const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(n), "filename");
-      if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
+      // I will need the input image aspect ratio, so I need to open it and get its resolution
+      // note that this may fail in some situations (ticket #2325)
+      AtNode *n = AiNodeGetLink(node, "image");
+      if (n != NULL)
       {
-         unsigned int tw, th;
-         if (AiTextureGetResolution(AiNodeGetStr(n, "filename"), &tw, &th))
+         const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(n), "filename");
+         if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
          {
-            data->image_aspect = float(tw) / float(th);
+            unsigned int tw, th;
+            if (AiTextureGetResolution(AiNodeGetStr(n, "filename"), &tw, &th))
+            {
+               data->image_aspect = float(tw) / float(th);
+            }
          }
       }
    }

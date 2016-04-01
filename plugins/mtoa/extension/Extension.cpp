@@ -91,7 +91,7 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    MString libext = MString(LIBEXT);
    unsigned int next = libext.numChars();
    MString searchFile = file;
-   if (nchars < next || libext != file.substringW(nchars-next, nchars))
+   if (nchars < next || libext != file.substringW(nchars-next, nchars-1))
    {
       searchFile += libext;
    }
@@ -227,7 +227,7 @@ MStatus CExtension::setFile(const MString &file)
    unsigned int next = libext.numChars();
    if (nchars > next + 1)
    {
-      MString ext = name.substringW(nchars-next, nchars);
+      MString ext = name.substringW(nchars-next, nchars-1);
       if (ext == libext)
       {
          name = name.substringW(0, nchars-next-1);
@@ -920,7 +920,7 @@ MStringArray CExtension::FindLibraries(const MString &path,
          unsigned int next = libext.numChars();
          if (nchars > next)
          {
-            MString ext = entry.substringW(nchars-next, nchars);
+            MString ext = entry.substringW(nchars-next, nchars-1);
             if (entry.substringW(0,0) != "." && ext == libext)
             {
                std::string filePath = (dir + DIRSEP + entry).asChar();

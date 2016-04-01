@@ -143,7 +143,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
    MString libext = MString(LIBEXT);
    unsigned int next = libext.numChars();
    MString searchFile = file;
-   if (nchars < next || libext != file.substringW(nchars-next, nchars))
+   if (nchars < next || libext != file.substringW(nchars-next, nchars-1))
    {
       searchFile += libext;
    }

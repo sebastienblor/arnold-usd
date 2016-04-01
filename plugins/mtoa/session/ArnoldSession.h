@@ -143,6 +143,7 @@ public:
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};
 
    bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
+   bool IsInteractiveRender() const {return (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_IPR); }
 
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
@@ -183,6 +184,9 @@ public:
       return static_cast<unsigned int>(m_aovs.size());
    }
 */
+   const MStringArray &GetTextureSearchPaths() const;
+   const MStringArray &GetProceduralSearchPaths() const;
+   
 private:
 
    CArnoldSession()
@@ -214,7 +218,7 @@ private:
    
    MStatus Export(MSelectionList* selected = NULL);
 
-   MStatus FlattenSelection(MSelectionList* selected);
+   MStatus FlattenSelection(MSelectionList* selected, bool skipRoot = false);
 
    MStatus ExportCameras(MSelectionList* selected = NULL);
    MStatus ExportLights(MSelectionList* selected = NULL);
