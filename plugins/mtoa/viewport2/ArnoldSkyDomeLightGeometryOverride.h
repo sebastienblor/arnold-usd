@@ -34,7 +34,7 @@ private:
    MHWRender::MShaderInstance* m_wireframeShader;
    MHWRender::MShaderInstance* m_activeWireframeShader;
    MHWRender::MShaderInstance* m_texturedShader;
-   MHWRender::MShaderInstance* m_texturedCMShader;
+   MHWRender::MShaderInstance* m_texturedColorManagedShader;
 
    // Depth stencil and rasterizer states for filled item
    void createDisplayStates();
@@ -72,9 +72,9 @@ private:
    // 1 - Angular
    // 2 - LatLong
    bool m_geometryDirty;
-   // CM data
-   MString m_colorSpace;
-   MString m_workSpace;
+   // Data for color management
+   MString m_inputColorSpace;
+   MString m_workingColorSpace;
 
    static void createFilledSkyDomeGeometry(unsigned int divisions[2],
       float radius );

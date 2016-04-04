@@ -68,7 +68,7 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
    , m_wireframeShader(0)
    , m_activeWireframeShader(0)
    , m_texturedShader(0)
-   , m_texturedCMShader(0)
+   , m_texturedColorManagedShader(0)
    , p_skydomeNode(0)
    , m_depthStencilState(0)
    , m_cullNoneState(0)
@@ -100,7 +100,6 @@ CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const M
             preDrawCallback, postDrawCallback);
          m_texturedShader = shaderMgr->getStockShader(MHWRender::MShaderManager::k3dSolidTextureShader,
             preDrawCallback, postDrawCallback);
-         m_texturedCMShader = 0;
       }
 
       createDisplayStates();
@@ -131,10 +130,10 @@ CArnoldSkyDomeLightGeometryOverride::~CArnoldSkyDomeLightGeometryOverride()
             shaderMgr->releaseShader(m_texturedShader);
             m_texturedShader = 0;
          }
-         if (m_texturedCMShader)
+         if (m_texturedColorManagedShader)
          {
             shaderMgr->releaseShader(m_texturedShader);
-            m_texturedCMShader = 0;
+            m_texturedColorManagedShader = 0;
          }
       }
 
@@ -547,34 +546,47 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      bool cmEnabled = false;
                      if (!cmEnabledPlug.isNull())
                      {
-                        MString workSpace;
+                        MString workingColorSpace;
                         MString colorSpace;
 
                         cmEnabled = true;
                         cmEnabledPlug.getValue(cmEnabled);
                         if (cmEnabled)
                         {
-                           MPlug workSpacePlug = fileNode.findPlug("workingSpace");
-                           workSpacePlug.getValue(workSpace);
+                           MPlug workingColorSpacePlug = fileNode.findPlug("workingSpace");
+                           workingColorSpacePlug.getValue(workingColorSpace);
 
                            MPlug colorSpacePlug = fileNode.findPlug("colorSpace");
                            colorSpacePlug.getValue(colorSpace);
 
-                           if (workSpace != m_workSpace ||
-                              colorSpace != m_colorSpace)
+                           // If working or input color space changes then 
+                           // we need to create a new shader. Previous shader resource
+                           // will be released when a new one is created
+                           if (workingColorSpace != m_workingColorSpace ||
+                               colorSpace != m_inputColorSpace)
                            {
-                              m_texturedCMShader = 
+                              m_texturedColorManagedShader = 
                                  m_texturedShader->createShaderInstanceWithColorManagementFragment(colorSpace);
-                              if (!m_texturedCMShader)
+                              if (!m_texturedColorManagedShader)
                                  cmEnabled = false;
-                              m_workSpace = workSpace;
-                              m_colorSpace = colorSpace;
+
+                              m_workingColorSpace = workingColorSpace;
+                              m_inputColorSpace = colorSpace;
                            }
                         }
                      }
                      if (cmEnabled)
                      {
-                        shaderInst = m_texturedCMShader;
+                        shaderInst = m_texturedColorManagedShader;
+                     }
+                     else
+                     {
+                        // Release the shader resource as it is not required
+                        if (m_texturedColorManagedShader)
+                        {
+                           shaderMgr->releaseShader(m_texturedColorManagedShader);
+                           m_texturedColorManagedShader = 0;
+                        }
                      }
 #endif
                   }
