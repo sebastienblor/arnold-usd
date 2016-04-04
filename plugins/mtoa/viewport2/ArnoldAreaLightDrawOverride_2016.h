@@ -1,4 +1,4 @@
-#if MAYA_API_VERSION >= 2017
+#if MAYA_API_VERSION < 201700
 
 #pragma once
 
@@ -7,15 +7,12 @@
 #include <maya/MPxDrawOverride.h>
 #include <maya/MUserData.h>
 #include <maya/MDrawContext.h>
-#include <maya/MObject.h>
-#include <maya/MPointArray.h>
-#include <maya/MUintArray.h>
 
-class CArnoldPhotometricLightDrawOverride : public MHWRender::MPxDrawOverride{
+class CArnoldAreaLightDrawOverride : public MHWRender::MPxDrawOverride{
 public:
     static MHWRender::MPxDrawOverride* creator(const MObject& obj);
 
-    ~CArnoldPhotometricLightDrawOverride();
+    ~CArnoldAreaLightDrawOverride();
 
     virtual bool isBounded(
         const MDagPath& objPath,
@@ -34,21 +31,25 @@ public:
         MUserData* oldData);
 
     virtual MHWRender::DrawAPI supportedDrawAPIs() const;
-
-	virtual bool hasUIDrawables() const { return true; }
-	virtual void addUIDrawables(
-		const MDagPath& objPath,
-		MHWRender::MUIDrawManager& drawManager,
-		const MHWRender::MFrameContext& frameContext,
-		const MUserData* data);
-
     static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
+    static void clearGPUResources();
 private:
-	CArnoldPhotometricLightDrawOverride(const MObject& obj);
+    CArnoldAreaLightDrawOverride(const MObject& obj);
 
-	static void initializeUserData();
-    static MPointArray s_positions;
-    static MUintArray s_indexing;
+    static void initializeGPUResources();
+
+    #ifdef _WIN32
+    static CDXConstantBuffer* s_pDXConstantBuffer;
+    static DXShader* s_pDXShader;
+    #endif
+    
+    static GLuint s_vertexShader;
+    static GLuint s_fragmentShader;
+    static GLuint s_program;
+
+    static GLint s_modelLoc;
+    static GLint s_viewProjLoc;
+    static GLint s_shadeColorLoc;
 
     static bool s_isValid;
     static bool s_isInitialized;

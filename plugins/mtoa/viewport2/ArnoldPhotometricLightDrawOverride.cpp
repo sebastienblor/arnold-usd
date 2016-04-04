@@ -1,3 +1,5 @@
+#if MAYA_API_VERSION >= 2017
+
 #include "ArnoldPhotometricLightDrawOverride.h"
 
 #include <maya/MHWGeometryUtilities.h>
@@ -158,3 +160,5 @@ void CArnoldPhotometricLightDrawOverride::addUIDrawables(const MDagPath& objPath
 		&CArnoldPhotometricLightDrawOverride::s_indexing );
 	drawManager.endDrawable();
 }
+
+#endif

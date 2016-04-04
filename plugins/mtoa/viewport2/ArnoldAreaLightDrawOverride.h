@@ -1,3 +1,5 @@
+#if MAYA_API_VERSION >= 2017
+
 #pragma once
 
 #include "utils/DrawUtils.h"
@@ -46,3 +48,5 @@ private:
 	static bool s_isValid;
     static bool s_isInitialized;
 };
+
+#endif

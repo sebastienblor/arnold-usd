@@ -1,3 +1,5 @@
+#if MAYA_API_VERSION >= 2017
+
 #include "ArnoldAreaLightDrawOverride.h"
 
 #include <iostream>
@@ -236,3 +238,5 @@ void CArnoldAreaLightDrawOverride::addUIDrawables(const MDagPath& objPath,
 		userData->p_positions, NULL, NULL, &userData->p_indices );
 	drawManager.endDrawable();
 }
+
+#endif
