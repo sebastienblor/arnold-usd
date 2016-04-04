@@ -960,6 +960,16 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       "arnoldLightBlockerNodeOverride");
    CHECK_MSTATUS(status);
 
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_SKYDOME_LIGHT_CLASSIFICATION,
+      "arnoldSkyDomeLightNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_SKYNODE_CLASSIFICATION,
+      "arnoldSkyNodeOverride");
+   CHECK_MSTATUS(status);
+
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
       //CArnoldPhotometricLightDrawOverride::clearGPUResources();

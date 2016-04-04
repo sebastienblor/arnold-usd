@@ -562,7 +562,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                            // If working or input color space changes then 
                            // we need to create a new shader. Previous shader resource
                            // will be released when a new one is created
-                           if (workingColorSpace != m_workingColorSpace ||
+                           if (!m_texturedColorManagedShader || 
+                               workingColorSpace != m_workingColorSpace ||
                                colorSpace != m_inputColorSpace)
                            {
                               m_texturedColorManagedShader = 
@@ -575,7 +576,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                            }
                         }
                      }
-                     if (cmEnabled)
+                     if (cmEnabled && m_texturedColorManagedShader)
                      {
                         shaderInst = m_texturedColorManagedShader;
                      }
