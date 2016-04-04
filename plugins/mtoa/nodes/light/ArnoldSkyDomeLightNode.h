@@ -12,7 +12,13 @@ class CArnoldSkyDomeLightNode
 {
 
 public:
-   virtual void postConstructor();
+   virtual void postConstructor()
+   {
+      // Call parent postConstructor as it is not done automatically as the parent constructor
+      CSphereLocator::postConstructor();
+      
+      setMPSafe(true);
+   }
 
    static void* creator();
    static MStatus initialize();
@@ -20,16 +26,6 @@ public:
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
 #ifdef ENABLE_VP2
    virtual MSelectionMask getShapeSelectionMask() const;
-#if MAYA_API_VERSION >= 201650
-   virtual MStatus connectionMade( const MPlug& plug,
-											 const MPlug& otherPlug,
-											 bool asSrc );
-	virtual MStatus connectionBroken( const MPlug& plug,
-											 const MPlug& otherPlug,
-											 bool asSrc );
-	static void nodeDirtyEventCallback(MObject& node, MPlug& plug, void* clientData);
-   MCallbackId m_dirtyCallbackId;
-#endif
 #endif
    static MTypeId id;
 

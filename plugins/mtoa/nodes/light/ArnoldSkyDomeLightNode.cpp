@@ -15,10 +15,6 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
 
-#ifdef ENABLE_VP2
-#include <maya/MViewport2Renderer.h>
-#endif
-
 MTypeId CArnoldSkyDomeLightNode::id(ARNOLD_NODEID_SKYDOME_LIGHT);
 
 CStaticAttrHelper CArnoldSkyDomeLightNode::s_attributes(CArnoldSkyDomeLightNode::addAttribute);
@@ -211,63 +207,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    return MS::kSuccess;
 }
-
-void CArnoldSkyDomeLightNode::postConstructor()
-{
-   // Call parent postConstructor as it is not done automatically as the parent constructor
-   CSphereLocator::postConstructor();
-      
-   setMPSafe(true);
-
-}
-
-#ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
-MStatus CArnoldSkyDomeLightNode::connectionMade( const MPlug& plug,
-											const MPlug& otherPlug,
-											bool asSrc )
-{
-   // Monitor node connected to color attribute on this node
-   if (plug.attribute() == s_color)
-   {
-      MObject 	object = otherPlug.node();
-	   m_dirtyCallbackId = MNodeMessage::addNodeDirtyCallback(
-							   object,
-							   nodeDirtyEventCallback,
-							   this); 
-      return MStatus::kSuccess;
-   }
-   return MPxNode::connectionMade(plug, otherPlug, asSrc);
-}
-
-MStatus CArnoldSkyDomeLightNode::connectionBroken( const MPlug& plug,
-											const MPlug& otherPlug,
-											bool asSrc )
-{
-   if (plug.attribute() == s_color)
-   {
-      MMessage::removeCallback( m_dirtyCallbackId );
-      m_dirtyCallbackId = 0;
-      return MStatus::kSuccess;
-   }
-   return MPxNode::connectionBroken(plug, otherPlug, asSrc);
-}
-
-// Callback to trigger dirty for VP2 draw
-void CArnoldSkyDomeLightNode::nodeDirtyEventCallback(MObject& node, 
-                                                     MPlug&	plug,
-	                                                  void*	clientData)
-{
-   if (clientData)
-   {
-      CArnoldSkyDomeLightNode* node = (CArnoldSkyDomeLightNode* )clientData; 
-      MObject object(node->thisMObject());
-      MHWRender::MRenderer::setGeometryDrawDirty(object);
-   }
-}
-#endif
-#endif
-
 
 MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
 {

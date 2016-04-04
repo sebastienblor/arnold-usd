@@ -52,6 +52,19 @@ public:
    void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();
 
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+   virtual MStatus connectionMade( const MPlug& plug,
+											 const MPlug& otherPlug,
+											 bool asSrc );
+	virtual MStatus connectionBroken( const MPlug& plug,
+											 const MPlug& otherPlug,
+											 bool asSrc );
+	static void nodeDirtyEventCallback(MObject& node, MPlug& plug, void* clientData);
+   MCallbackId m_dirtyCallbackId;
+#endif
+#endif
+
    // Input attributes
    static MObject s_colorR;
    static MObject s_colorG;
