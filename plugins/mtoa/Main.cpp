@@ -6,13 +6,12 @@
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
-#if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
+#if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include <maya/MSelectionMask.h>
 #else
-#include "viewport2/ArnoldPhotometricLightDrawOverride_2016.h"
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
 #include "viewport2/ArnoldLightBlockerDrawOverride.h"
 #endif
