@@ -408,7 +408,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       if (NULL != existingMayaNode)
       {
          // TODO : allow node overriding?
-         AiMsgError("[mtoa] [%s] Tried to replace Maya node %s, provided by %s(%s) with Maya node %s, provided by %s(%s).)",
+         AiMsgError("[mtoa] [%s] Tried to replace Maya node %s, provided by %s(%s) with Maya node %s, provided by %s(%s).",
                extName.asChar(),
                mayaNode->name.asChar(), mayaNode->provider.asChar(), mayaNode->file.asChar(),
                existingMayaNode->name.asChar(), existingMayaNode->provider.asChar(), existingMayaNode->file.asChar());
