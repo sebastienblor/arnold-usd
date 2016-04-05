@@ -781,7 +781,8 @@ CGPUPrimitive* CGBoxPrimitive::generate(CGPUPrimitive* prim)
 	return prim;
 }
 
-void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, double scale[3])
+void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, double scale[3], 
+								  double offset[3], bool atOrigin)
 {
 	const unsigned int numVertices = 24;
 	static const float vertices [numVertices] = {
@@ -793,6 +794,16 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, 
 		0.5f, 0.5f, -0.5f,
 		0.5f, 0.5f, 0.5f,
 		-0.5f, 0.5f, 0.5f
+	};
+	static const float vertices2 [numVertices] = {
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f
 	};
 
 	static const unsigned int indices[numVertices] = {
@@ -807,7 +818,10 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, 
 		const unsigned int i3 = i * 3;
 		const unsigned int i31 = i3 + 1;
 		const unsigned int i32 = i3 + 2;
-		positions.set(i, scale[0]*vertices[i3], scale[1]*vertices[i31], scale[2]*vertices[i32]);
+		if (atOrigin)
+			positions.set(i, scale[0]*vertices[i3] + offset[0], scale[1]*vertices[i31] + offset[1], scale[2]*vertices[i32] + offset[2]);
+		else
+			positions.set(i, scale[0]*vertices2[i3] + offset[0], scale[1]*vertices2[i31] + offset[1], scale[2]*vertices2[i32] + offset[2]);
 	}
 
 	mindices.setLength(numVertices);
@@ -817,7 +831,8 @@ void CGBoxPrimitive::generateData(MPointArray &positions, MUintArray &mindices, 
 	}
 }
 
-void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mindices, double scale[3])
+void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mindices, double scale[3], 
+								  double offset[3], bool atOrigin)
 {
 	const unsigned int numVertices = 24;
 	static const float vertices [numVertices] = {
@@ -829,6 +844,16 @@ void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mind
 		0.5f, 0.5f, -0.5f,
 		0.5f, 0.5f, 0.5f,
 		-0.5f, 0.5f, 0.5f
+	};
+	static const float vertices2 [numVertices] = {
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f
 	};
 
 	static const unsigned int indices[numVertices] = {
@@ -843,7 +868,10 @@ void CGBoxPrimitive::generateData(MFloatVectorArray &positions, MUintArray &mind
 		const unsigned int i3 = i * 3;
 		const unsigned int i31 = i3 + 1;
 		const unsigned int i32 = i3 + 2;
-		positions.set(MPoint( scale[0]*vertices[i3], scale[1]*vertices[i31], scale[2]*vertices[i32]), i);
+		if (atOrigin)
+			positions.set(MPoint( scale[0]*vertices[i3] + offset[0], scale[1]*vertices[i31] + offset[1], scale[2]*vertices[i32] + + offset[2]), i);
+		else
+			positions.set(MPoint( scale[0]*vertices2[i3] + offset[0], scale[1]*vertices2[i31] + offset[1], scale[2]*vertices2[i32] + + offset[2]), i);
 	}
 
 	mindices.setLength(numVertices);

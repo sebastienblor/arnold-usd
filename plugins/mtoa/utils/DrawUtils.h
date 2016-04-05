@@ -122,8 +122,8 @@ public:
 
 class CGBoxPrimitive{
 public:
-   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
-   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3]);
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3], double offset[3], bool atOrigin=true);
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3], double offset[3], bool atOrigin=true);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 

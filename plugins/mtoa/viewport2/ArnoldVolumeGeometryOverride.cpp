@@ -1,9 +1,11 @@
-#include "ArnoldLightBlockerGeometryOverride.h"
+
+#include "ArnoldVolumeGeometryOverride.h"
 
 #include <iostream>
 #include <vector>
 
 #include "ViewportUtils.h"
+#include "nodes/shape/ArnoldVolume.h"
 
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MFnDependencyNode.h>
@@ -14,21 +16,22 @@
 
 #if MAYA_API_VERSION >= 201650
 
-MString CArnoldLightBlockerGeometryOverride::s_wireframeItemName = "wireframeBlocker";
-MString CArnoldLightBlockerGeometryOverride::s_activeWireframeItemName = "active_wireframeBlocker";
+MString CArnoldVolumeGeometryOverride::s_wireframeItemName = "volumeBox";
+MString CArnoldVolumeGeometryOverride::s_activeWireframeItemName = "active_volumeBox";
 
 static MString colorParameterName_   = "solidColor";
 
-MHWRender::MPxGeometryOverride* CArnoldLightBlockerGeometryOverride::Creator(const MObject& obj)
+MHWRender::MPxGeometryOverride* CArnoldVolumeGeometryOverride::Creator(const MObject& obj)
 {
-    return new CArnoldLightBlockerGeometryOverride(obj);
+    return new CArnoldVolumeGeometryOverride(obj);
 }
 
-CArnoldLightBlockerGeometryOverride::CArnoldLightBlockerGeometryOverride(const MObject& obj) :
+CArnoldVolumeGeometryOverride::CArnoldVolumeGeometryOverride(const MObject& obj) :
     MHWRender::MPxGeometryOverride(obj)
-	, m_primitiveType(6)
 	, m_geometryDirty(true)
 {
+	m_scale[0] = m_scale[1] = m_scale[2] = 1.0f;
+	m_offset[0] = m_offset[1] = m_offset[2] = 0.0f;
     m_wireframeColor[0] = m_wireframeColor[1] = m_wireframeColor[2] = m_wireframeColor[3];
 
 	// Acquire resources
@@ -44,7 +47,7 @@ CArnoldLightBlockerGeometryOverride::CArnoldLightBlockerGeometryOverride(const M
 	}
 }
 
-CArnoldLightBlockerGeometryOverride::~CArnoldLightBlockerGeometryOverride()
+CArnoldVolumeGeometryOverride::~CArnoldVolumeGeometryOverride()
 {
 	MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 	if (renderer)
@@ -67,22 +70,22 @@ CArnoldLightBlockerGeometryOverride::~CArnoldLightBlockerGeometryOverride()
 	}
 }
 
-MHWRender::DrawAPI CArnoldLightBlockerGeometryOverride::supportedDrawAPIs() const
+MHWRender::DrawAPI CArnoldVolumeGeometryOverride::supportedDrawAPIs() const
 {
     return (MHWRender::kAllDevices);
 }
 
-bool CArnoldLightBlockerGeometryOverride::isIndexingDirty(const MHWRender::MRenderItem &item) 
+bool CArnoldVolumeGeometryOverride::isIndexingDirty(const MHWRender::MRenderItem &item) 
 { 
 	return true; 
 }
 
-bool CArnoldLightBlockerGeometryOverride::isStreamDirty(const MHWRender::MVertexBufferDescriptor &desc) 
+bool CArnoldVolumeGeometryOverride::isStreamDirty(const MHWRender::MVertexBufferDescriptor &desc) 
 { 
 	return true; 
 }
 
-void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path, MHWRender::MRenderItemList& list)
+void CArnoldVolumeGeometryOverride::updateRenderItems(const MDagPath &path, MHWRender::MRenderItemList& list)
 {
 	MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
 	if (!renderer)
@@ -92,18 +95,56 @@ void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path
 	if (!shaderMgr)
 		return;
 
-	MFnDependencyNode depNode(path.node());
+	// Check for scale and offset
+	AtVector mn = {
+		-1.0f, -1.0f, -1.0f
+    };
 
-	// Check for a change in geometry type
+    AtVector mx = {
+        1.0f, 1.0f, 1.0f
+    };
 	MStatus status;
-	short primitiveType = 0;
-    MPlug plug = depNode.findPlug("geometryType", &status);
-    if (status && !plug.isNull())
+	MFnDependencyNode depNode(path.node(), &status);
+    if(MStatus::kSuccess == status)
     {
-		primitiveType = plug.asShort();
+        CArnoldVolumeShape * shapeNode = dynamic_cast<CArnoldVolumeShape*>(depNode.userNode());
+        if( shapeNode != NULL)
+        {
+            MBoundingBox * bbox = shapeNode->geometry();
+            mn.x = (float) bbox->min().x;
+            mn.y = (float) bbox->min().y;
+            mn.z = (float) bbox->min().z;
+               
+            mx.x = (float) bbox->max().x;
+            mx.y = (float) bbox->max().y;
+            mx.z = (float) bbox->max().z;
+        }
+    }
+
+	float newScale[3] = { mx.x - mn.x, mx.y - mn.y, mx.z - mn.z };
+    if (m_geometryDirty ||
+		newScale[0] != m_scale[0] || 
+		newScale[1] != m_scale[1] || 
+		newScale[2] != m_scale[2])
+	{
+		m_scale[0] = newScale[0];
+		m_scale[1] = newScale[1];
+		m_scale[2] = newScale[2];
+		m_geometryDirty = true;
 	}
-	m_geometryDirty = (m_primitiveType != primitiveType);	
-	m_primitiveType = primitiveType;
+	if (m_geometryDirty || 
+		m_offset[0] != mn.x ||
+		m_offset[1] != mn.y ||
+		m_offset[2] != mn.z)
+	{
+		m_offset[0] = mn.x;
+		m_offset[1] = mn.y;
+		m_offset[2] = mn.z;
+		m_geometryDirty = true;
+	}
+
+	// If scale == 0 then we should still try and draw something. 
+	// We can try to use a different display.
 
 	// Disable when not required
 	bool needActiveItem = false;
@@ -118,6 +159,13 @@ void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path
 	default:
 		break;
 	};
+
+	// Get color
+	MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
+	m_wireframeColor[0] = color.r;
+	m_wireframeColor[1] = color.g;
+	m_wireframeColor[2] = color.b;
+	m_wireframeColor[3] = color.a;
 
 	// 1. Add in a dormant wireframe render item
 	MHWRender::MRenderItem* wireframeItem = 0;
@@ -143,25 +191,8 @@ void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path
 		// Need dormant if not drawing active item
 		wireframeItem->enable(!needActiveItem);
 
-		// Update the wireframe color
-		if (MHWRender::kDormant == MHWRender::MGeometryUtilities::displayStatus(path))
-		{
-			m_wireframeColor[0] = 0.75f;
-			m_wireframeColor[1] = 0.f;
-			m_wireframeColor[2] = 0.f;
-			m_wireframeColor[3] = 1.0f;
-		}
-		else
-		{
-			MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
-			m_wireframeColor[0] = color.r;
-			m_wireframeColor[1] = color.g;
-			m_wireframeColor[2] = color.b;
-			m_wireframeColor[3] = color.a;
-		}
-
-		// Update the color
-		m_wireframeShader->setParameter(colorParameterName_, m_wireframeColor);
+		// Update the color and shader
+		m_wireframeShader->setParameter(colorParameterName_, m_wireframeColor);	
 		wireframeItem->setShader(m_wireframeShader);
 	}
 
@@ -189,17 +220,13 @@ void CArnoldLightBlockerGeometryOverride::updateRenderItems(const MDagPath &path
 		// Enable if need active item
 		activeWireframeItem->enable(needActiveItem);
 
-		MColor color = MHWRender::MGeometryUtilities::wireframeColor(path);
-		m_wireframeColor[0] = color.r;
-		m_wireframeColor[1] = color.g;
-		m_wireframeColor[2] = color.b;
-		m_wireframeColor[3] = color.a;
-		m_activeWireframeShader->setParameter(colorParameterName_, m_wireframeColor);
+		// Update the color and shader
+		m_activeWireframeShader->setParameter(colorParameterName_, m_wireframeColor);	
 		activeWireframeItem->setShader(m_activeWireframeShader);
 	}
 }
 
-void CArnoldLightBlockerGeometryOverride::populateGeometry(const MHWRender::MGeometryRequirements &requirements, 
+void CArnoldVolumeGeometryOverride::populateGeometry(const MHWRender::MGeometryRequirements &requirements, 
 	const MHWRender::MRenderItemList &renderItems, 
 	MHWRender::MGeometry &data)
 {
@@ -214,29 +241,9 @@ void CArnoldLightBlockerGeometryOverride::populateGeometry(const MHWRender::MGeo
 	// Build geometry if dirty
 	if (m_geometryDirty)
 	{
-		// Change in primitive type
-        if (m_primitiveType == 0) // Box
-        {
-			double scale[3] = { 1.0, 1.0, 1.0 };
-			double offset[3] = { 0.0, 0.0, 0.0 };
-			CGBoxPrimitive::generateData(m_wirePositions, m_wireIndexing, scale, offset);
-        }
-        else if (m_primitiveType == 1) // Sphere
-        {
-			const double radius = 0.5;
-			const unsigned int dimensions = 16;
-			CGSpherePrimitive::generateData(m_wirePositions, m_wireIndexing, radius, dimensions);
-		}
-        else if (m_primitiveType == 2) // Plane
-        {
-			double scale[3] = { 0.5, 0.5, 0.5 };
-			CGQuadPrimitive::generateData(m_wirePositions, m_wireIndexing, scale);
-		}
-        else if (m_primitiveType == 3) // Cylinder
-        {
-			double scale[3] = { 0.5, 0.5, 0.5 };
-			CGCylinderPrimitive::generateData(m_wirePositions, m_wireIndexing, scale);
-		}
+		double scale[3] = { m_scale[0], m_scale[1], m_scale[2] };
+		double offset[3] = { m_offset[0], m_offset[1], m_offset[2] };
+		CGBoxPrimitive::generateData(m_wirePositions, m_wireIndexing, scale, offset, false);
 		m_geometryDirty = false;
 	}
 
@@ -305,7 +312,7 @@ void CArnoldLightBlockerGeometryOverride::populateGeometry(const MHWRender::MGeo
 	}
 }
 
-void CArnoldLightBlockerGeometryOverride::cleanUp() 
+void CArnoldVolumeGeometryOverride::cleanUp() 
 {
 }
 

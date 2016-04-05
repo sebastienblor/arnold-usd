@@ -10,6 +10,7 @@
 #if MAYA_API_VERSION >= 201650
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
+#include "viewport2/ArnoldVolumeGeometryOverride.h"
 #include <maya/MSelectionMask.h>
 #else
 #include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
@@ -17,6 +18,10 @@
 #endif
 #include <maya/MDrawRegistry.h>
 #endif
+
+// Must be included to export MapiVersion properly which
+// sets the API version to a valid version versus "unknown"
+#include <maya/MApiVersion.h>
 
 #include "utils/Version.h"
 #include "platform/Platform.h"
@@ -233,18 +238,17 @@ namespace // <anonymous>
          "arnoldSkyDomeLightNodeOverride",
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          CArnoldSkyDomeLightDrawOverride::creator
-      } , 
+      } , {
+         "arnoldVolumeNodeOverride",
+         AI_VOLUME_CLASSIFICATION,
+         CArnoldVolumeDrawOverride::creator
+      } ,
 #endif
       {
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
          CArnoldPhotometricLightDrawOverride::creator
-      } ,
-      {
-         "arnoldVolumeNodeOverride",
-         AI_VOLUME_CLASSIFICATION,
-         CArnoldVolumeDrawOverride::creator
-      } 
+      }  
    };
 #endif
 
@@ -881,6 +885,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       "arnoldLightBlockerNodeOverride",
 		CArnoldLightBlockerGeometryOverride::Creator);
    CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_VOLUME_CLASSIFICATION,
+      "arnoldVolumeNodeOverride",
+	  CArnoldVolumeGeometryOverride::Creator);
+   CHECK_MSTATUS(status); 
 #endif
 #endif
    
@@ -972,11 +982,6 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       CHECK_MSTATUS(status);
    }
    
-   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
-      AI_LIGHT_FILTER_CLASSIFICATION,
-      "arnoldLightBlockerNodeOverride");
-   CHECK_MSTATUS(status);
-
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
 #if MAYA_API_VERSION < 201650
@@ -984,9 +989,18 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       CArnoldAreaLightDrawOverride::clearGPUResources();
 #endif
       CArnoldStandInDrawOverride::clearGPUResources();
-      CArnoldVolumeDrawOverride::clearGPUResources();
    }
 #if MAYA_API_VERSION >= 201650
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_LIGHT_FILTER_CLASSIFICATION,
+      "arnoldLightBlockerNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_VOLUME_CLASSIFICATION,
+      "arnoldVolumeNodeOverride");
+   CHECK_MSTATUS(status);
+
    // Register a custom selection mask
    MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 #endif

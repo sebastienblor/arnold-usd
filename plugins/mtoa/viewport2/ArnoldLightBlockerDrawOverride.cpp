@@ -62,7 +62,8 @@ struct CArnoldLightBlockerUserData : public MUserData{
 			if (primitiveTypeChanged)
 			{
 				double scale[3] = { 1.0, 1.0, 1.0 };
-				CGBoxPrimitive::generateData(p_positions, p_indices, scale);
+				double offset[3] = { 0.0, 0.0, 0.0 };
+				CGBoxPrimitive::generateData(p_positions, p_indices, scale, offset);
 			}
 			m_primitiveType = 0;
         }
