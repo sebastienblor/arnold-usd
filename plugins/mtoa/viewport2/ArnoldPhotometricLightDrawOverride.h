@@ -6,7 +6,7 @@
 #include <maya/MUserData.h>
 #include <maya/MDrawContext.h>
 #include <maya/MObject.h>
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201650
 #include <maya/MPointArray.h>
 #include <maya/MUintArray.h>
 #endif
@@ -35,7 +35,7 @@ public:
 
    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
 
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201650
    virtual bool hasUIDrawables() const { return true; }
    virtual void addUIDrawables(
       const MDagPath& objPath,
@@ -44,13 +44,13 @@ public:
       const MUserData* data);
 #endif
    static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
-#if MAYA_API_VERSION < 201700
+#if MAYA_API_VERSION < 201650
    static void clearGPUResources();
 #endif
 private:
    CArnoldPhotometricLightDrawOverride(const MObject& obj);
 
-#if MAYA_API_VERSION < 201700
+#if MAYA_API_VERSION < 201650
    static void initializeGPUResources();
 
 #ifdef _WIN32

@@ -7,7 +7,7 @@
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201650
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include <maya/MSelectionMask.h>
@@ -228,18 +228,18 @@ namespace // <anonymous>
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
       } , 
-#if MAYA_API_VERSION < 201700
+#if MAYA_API_VERSION < 201650
       {
          "arnoldSkyDomeLightNodeOverride",
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          CArnoldSkyDomeLightDrawOverride::creator
       } , 
+#endif
       {
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
          CArnoldPhotometricLightDrawOverride::creator
       } ,
-#endif
       {
          "arnoldVolumeNodeOverride",
          AI_VOLUME_CLASSIFICATION,
@@ -857,7 +857,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       CHECK_MSTATUS(status);
    }
 	
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201650
    // Skydome light and sky shader share the same override as
    // they are drawn the same way.
    status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
@@ -979,14 +979,14 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
-#if MAYA_API_VERSION < 201700
+#if MAYA_API_VERSION < 201650
       CArnoldPhotometricLightDrawOverride::clearGPUResources();
       CArnoldAreaLightDrawOverride::clearGPUResources();
 #endif
       CArnoldStandInDrawOverride::clearGPUResources();
       CArnoldVolumeDrawOverride::clearGPUResources();
    }
-#if MAYA_API_VERSION >= 201700
+#if MAYA_API_VERSION >= 201650
    // Register a custom selection mask
    MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 #endif
