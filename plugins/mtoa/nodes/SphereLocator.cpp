@@ -542,11 +542,14 @@ bool CSphereLocator::excludeAsLocator() const
    return false;
 }
 
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
 MSelectionMask CSphereLocator::getShapeSelectionMask() const
 {
 	return MSelectionMask("arnoldLightSelection");
 }
-
+#endif
+#endif
 
 MStatus CSphereLocator::initialize()
 {
