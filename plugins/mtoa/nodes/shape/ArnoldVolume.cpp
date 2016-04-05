@@ -34,6 +34,11 @@
 #include <maya/MSelectionMask.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnNumericData.h>
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+#include <maya/MViewport2Renderer.h>
+#endif
+#endif
 
 #include <cstdio>
 #include <fstream>
@@ -222,6 +227,54 @@ MStatus CArnoldVolumeShape::initialize()
    return MStatus::kSuccess;
 }
 
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+/* override */
+MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
+//
+// Description
+//     This method is overriden to support interactive object selection in Viewport 2.0
+//
+// Returns
+//
+//    The selection mask of the shape
+//
+{
+	// Assume these are categorized as meshes for now
+	MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
+	return selType;
+}
+
+MStatus CArnoldVolumeShape::setDependentsDirty( const MPlug& plug, MPlugArray& plugArray)
+{
+	// If more attributes are added which require update, they
+	// shoukd be added here
+	if (plug == s_type ||
+		plug == s_dso ||
+		plug == s_data ||
+		plug == s_loadAtInit ||
+		plug == s_stepSize ||
+		plug == s_boundingBoxMin ||
+		plug == s_boundingBoxMax ||
+
+		plug == s_filename ||
+		plug == s_grids ||
+		plug == s_frame ||
+		plug == s_padding ||
+
+		plug == s_velocity_grids ||
+		plug == s_velocity_scale ||
+		plug == s_velocity_fps ||
+		plug == s_velocity_shutter_start ||
+		plug == s_velocity_shutter_end)
+	{
+		// Signal to VP2 that we require an update
+		MHWRender::MRenderer::setGeometryDrawDirty(thisMObject());
+	}
+	return MS::kSuccess;
+}
+#endif
+#endif
 
 MBoundingBox* CArnoldVolumeShape::geometry()
 {
@@ -279,25 +332,32 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       AtMatrix matrix;
       AiM4Identity(matrix);
       AiNodeSetMatrix(volume, "matrix", matrix);
-      
+
+	  MString dso;
       if(m_type == VT_CUSTOM)
       {
-         MString dso = m_dso.expandEnvironmentVariablesAndTilde();
-      
-         unsigned int nchars = dso.numChars();
-         if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
-         {
-            dso = dso.substringW(0, nchars-4)+LIBEXT;
-         }
-         else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
-         {
-            dso = dso.substringW(0, nchars-5)+LIBEXT;
-         }
-         else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
-         {
-            dso = dso.substringW(0, nchars-7)+LIBEXT;
-         }
-         
+         dso = m_dso.expandEnvironmentVariablesAndTilde();
+	  }
+	  else // openvdb
+	  {
+         dso = MString(getenv("MTOA_PATH")) + MString("/procedurals/volume_openvdb.so");
+	  }
+	  unsigned int nchars = dso.numChars();
+	  if (nchars > 3 && dso.substringW(nchars-3, nchars) == ".so")
+	  {
+		  dso = dso.substringW(0, nchars-4)+LIBEXT;
+	  }
+	  else if (nchars > 4 && dso.substringW(nchars-4, nchars) == ".dll")
+	  {
+		  dso = dso.substringW(0, nchars-5)+LIBEXT;
+	  }
+	  else if (nchars > 6 && dso.substringW(nchars-6, nchars) == ".dylib")
+	  {
+		  dso = dso.substringW(0, nchars-7)+LIBEXT;
+	  }
+
+      if(m_type == VT_CUSTOM)
+      {
          AiNodeSetStr(volume, "dso", dso.asChar());
       
          int sizeData = strlen(m_data.asChar());
@@ -306,10 +366,9 @@ MBoundingBox* CArnoldVolumeShape::geometry()
             AiNodeSetStr(volume, "data", m_data.expandEnvironmentVariablesAndTilde().asChar());
          }
       }
-      else
+      else // openvdb
       {
-         MString openVDB = MString(getenv("MTOA_PATH")) + MString("/procedurals/volume_openvdb.so");
-         AiNodeSetStr(volume, "dso", openVDB.expandEnvironmentVariablesAndTilde().asChar());
+		 AiNodeSetStr(volume, "dso", dso.expandEnvironmentVariablesAndTilde().asChar());
          
          int start = 0;
          int end = 0;
@@ -368,6 +427,14 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       AtBBox bbox;
       bbox = AiUniverseGetSceneBounds();
       
+      if (AiUniverseCreated) ArnoldUniverseEnd();
+
+	  if (AiBBoxIsEmpty(bbox))
+	  {
+		 m_bbox = MBoundingBox (MPoint(-1,-1,-1), MPoint(1,1,1));
+         return &m_bbox;
+	  }
+
       float minCoords[4];
       float maxCoords[4];
       
@@ -380,8 +447,6 @@ MBoundingBox* CArnoldVolumeShape::geometry()
       maxCoords[1] = bbox.max.y;
       maxCoords[2] = bbox.max.z;
       maxCoords[3] = 0.0f;
-
-      if (AiUniverseCreated) ArnoldUniverseEnd();
       
       m_bbox = MBoundingBox (minCoords, maxCoords);
    }

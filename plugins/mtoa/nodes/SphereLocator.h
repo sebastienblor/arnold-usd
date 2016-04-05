@@ -7,6 +7,7 @@
 #include <maya/M3dView.h>
 #include <maya/MDagPath.h>
 #include <maya/MBoundingBox.h>
+#include <maya/MSelectionMask.h>
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
@@ -40,6 +41,11 @@ public:
    virtual bool excludeAsLocator() const;
    virtual MBoundingBox boundingBox() const;
    virtual bool setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context);
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+   virtual MSelectionMask getShapeSelectionMask() const;
+#endif
+#endif
 
    static void* creator();
    bool isAbstractClass();
@@ -49,6 +55,19 @@ public:
    void DrawSphereWireframe(float radius, int divisionsX, int divisionsY);
    void DrawSphereFilled(float radius, int divisionsX, int divisionsY);
    unsigned int NumSampleBase();
+
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+   virtual MStatus connectionMade( const MPlug& plug,
+											 const MPlug& otherPlug,
+											 bool asSrc );
+	virtual MStatus connectionBroken( const MPlug& plug,
+											 const MPlug& otherPlug,
+											 bool asSrc );
+	static void nodeDirtyEventCallback(MObject& node, MPlug& plug, void* clientData);
+   MCallbackId m_dirtyCallbackId;
+#endif
+#endif
 
    // Input attributes
    static MObject s_colorR;
