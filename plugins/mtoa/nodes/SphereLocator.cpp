@@ -23,6 +23,12 @@
 #include <maya/MItDependencyGraph.h>
 #include <maya/MStringArray.h>
 
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+#include <maya/MViewport2Renderer.h>
+#endif
+#endif
+
 MTypeId CSphereLocator::id(ARNOLD_NODEID_SPHERE_LOCATOR);
 
 MObject CSphereLocator::s_colorR;
@@ -54,6 +60,53 @@ bool CSphereLocator::isAbstractClass()
 {
    return true;
 }
+
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201650
+MStatus CSphereLocator::connectionMade( const MPlug& plug,
+											const MPlug& otherPlug,
+											bool asSrc )
+{
+   // Monitor node connected to color attribute on this node
+   if (plug.attribute() == s_color)
+   {
+      MObject 	object = otherPlug.node();
+	   m_dirtyCallbackId = MNodeMessage::addNodeDirtyCallback(
+							   object,
+							   nodeDirtyEventCallback,
+							   this); 
+      return MStatus::kSuccess;
+   }
+   return MPxNode::connectionMade(plug, otherPlug, asSrc);
+}
+
+MStatus CSphereLocator::connectionBroken( const MPlug& plug,
+											const MPlug& otherPlug,
+											bool asSrc )
+{
+   if (plug.attribute() == s_color)
+   {
+      MMessage::removeCallback( m_dirtyCallbackId );
+      m_dirtyCallbackId = 0;
+      return MStatus::kSuccess;
+   }
+   return MPxNode::connectionBroken(plug, otherPlug, asSrc);
+}
+
+// Callback to trigger dirty for VP2 draw
+void CSphereLocator::nodeDirtyEventCallback(MObject& node, 
+                                                     MPlug&	plug,
+	                                                  void*	clientData)
+{
+   if (clientData)
+   {
+      CSphereLocator* node = (CSphereLocator* )clientData; 
+      MObject object(node->thisMObject());
+      MHWRender::MRenderer::setGeometryDrawDirty(object);
+   }
+}
+#endif
+#endif
 
 AtVector SphereVertex(float phi, float theta)
 {
