@@ -391,13 +391,9 @@ node_update
             else if (sub.substr(0, 6) == "<utile" || sub.substr(0, 3) == "<u>" || sub.substr(0, 3) == "<U>")
             {
                // default offset
-               int offset;
-               if (sub.substr(0, 6) == "<utile")
-                  offset = GetTokenOptionInt(sub, 1);
-               else if (sub.substr(0, 3) == "<u>")
-                  offset = -1;
-               else if (sub.substr(0, 3) == "<U>")
-                  offset = 0;
+               int offset = GetTokenOptionInt(sub, 1);
+               if (sub.substr(0, 3) == "<u>")
+                  offset -= 1;
 
                TokenData data;
                data.mode = UTILE;
@@ -415,13 +411,10 @@ node_update
             }
             else if (sub.substr(0, 6) == "<vtile" || sub.substr(0, 3) == "<v>" || sub.substr(0, 3) == "<V>")
             {
-               int offset;
-               if (sub.substr(0, 6) == "<vtile")
-                  offset = GetTokenOptionInt(sub, 1);
-               else if (sub.substr(0, 3) == "<v>")
-                  offset = -1;
-               else if (sub.substr(0, 3) == "<V>")
-                  offset = 0;
+               // default offset
+               int offset = GetTokenOptionInt(sub, 1);
+               if (sub.substr(0, 3) == "<v>")
+                  offset -= 1;
 
                TokenData data;
                data.mode = VTILE;
