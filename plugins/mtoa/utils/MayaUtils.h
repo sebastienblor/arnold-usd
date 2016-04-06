@@ -19,7 +19,8 @@ DLLEXPORT MString getFileName(
                             const MString& fileRuleType="",
                             const MString& path="",
                             const bool* isSequence=NULL,
-                            const bool* stricAOVs=NULL
+                            const bool* stricAOVs=NULL,
+                            const MString& eye=""
                             );
 
 DLLEXPORT MStringArray getSourceImagesPath();

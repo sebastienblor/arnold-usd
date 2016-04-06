@@ -93,7 +93,8 @@ typedef struct AtImageData
    AtTextureHandle* texture_handle;
    bool useCustomUVSet;
    std::string uvSetName;
-   
+   int numThreads;
+
    static void* operator new(size_t s)
    {
       return AiMalloc(s);
@@ -445,9 +446,9 @@ node_update
 
          // For each thread, create a processPath with the first text chunk already copied to it.
          AtNode* nodeOpt = AiUniverseGetOptions();
-         int threads = AiNodeGetInt(nodeOpt, "threads");
-         idata->processPath = (char**) AiMalloc(sizeof(char*) * threads);
-         for(int k = 0; k < threads; k++)
+         idata->numThreads = AiNodeGetInt(nodeOpt, "threads");
+         idata->processPath = (char**) AiMalloc(sizeof(char*) * idata->numThreads);
+         for(int k = 0; k < idata->numThreads; k++)
          {
             idata->processPath[k] = (char*) AiMalloc(sizeof(char) * MAX_FILENAME);
             memcpy(idata->processPath[k],idata->origPath,firstBreak);
@@ -483,9 +484,7 @@ node_finish
          AiFree(idata->tokens);
          AiFree(idata->origPath);
 
-         AtNode* nodeOpt = AiUniverseGetOptions();
-         int threads = AiNodeGetInt(nodeOpt, "threads");
-         for(int k = 0; k < threads; k++)
+         for(int k = 0; k < idata->numThreads; k++)
          {
             if (idata->processPath[k] != NULL)
                AiFree(idata->processPath[k]);
@@ -707,7 +706,7 @@ shader_evaluate
       bool success = true;
       bool useDefaultColor = AiShaderEvalParamBool(p_use_default_color);
       bool* successP = useDefaultColor ? &success : 0;
-      if (idata->ntokens > 0)
+      if (idata->ntokens > 0 && sg->tid < idata->numThreads)
       {
          TokenData* token = idata->tokens;
          unsigned int pos = 0;

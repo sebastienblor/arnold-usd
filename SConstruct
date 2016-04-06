@@ -174,7 +174,13 @@ if system.os() == 'windows':
     if MAYA_INCLUDE_PATH == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+
     maya_version_base = maya_version[0:4]
+   
+    # need to temporarily set 201650 as 2017
+    if int(maya_version) >= 201650:
+        maya_version_base="2017"
+
     msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
         msvc_version = '10.0'
@@ -259,6 +265,10 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+
+#need to temporarily set 201650 as 2017
+if int(maya_version) >= 201650:
+    maya_version_base = "2017"
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
@@ -678,23 +688,34 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_exten
 
 env.Install(env['TARGET_BINARIES'], dylibs)
 
+OCIO_DYLIBPATH =""
 
 if not env['MTOA_DISABLE_RV']:
     if system.os() == 'windows':
         RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+
+        #temporarily copying OpenColorIO dll as it's currently dynamic for windows and versions >= 2016.5 no longer 
+        # have OpenColorIO.dll in the install folder
+        if int(maya_version) >= 201650:
+            OCIO_DYLIB = 'OpenColorIO'+ get_library_extension()
+            OCIO_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, OCIO_DYLIB)
+            env.Install(env['TARGET_BINARIES'], glob.glob(OCIO_DYLIBPATH))
     else:
         RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
 
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
+    
+
+
 
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -793,6 +814,10 @@ maya_base_version = maya_version[:4]
 if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
+
+# need to temporarily set 201650 as 2017
+if int(maya_version) >= 201650:
+    maya_base_version="2017"
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
@@ -1033,10 +1058,11 @@ elif system.os() == 'darwin':
 
 if not env['MTOA_DISABLE_RV']:
     PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+    if OCIO_DYLIBPATH != "":
+        PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
 
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
-
 installer_name = ''
 if system.os() == "windows":
     installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
@@ -1083,6 +1109,7 @@ def create_installer(target, source, env):
         installPath = '/Applications/solidangle/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
+        mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.close()
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')

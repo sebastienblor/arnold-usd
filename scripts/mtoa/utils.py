@@ -330,6 +330,14 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
                        isSequence=isSequence,
                        leaveUnmatchedTokens=leaveUnmatchedTokens))
 
+
+    if 'Eye' in tokens:
+        # adding automatically the Eye token for stereo rendering
+        # do we want to test if it's already present in 'path'
+        # and only add the token if it's not there ?
+        if (tokens['Eye'] != ''):
+            path += '.<Eye>'
+
     # get info from globals
     # NOTE: there is a bug in the wrapper of this class that prevents us from retrieving the
     # 'namePattern' property, so that must be properly passed in via the 'path' argument
@@ -353,6 +361,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
                    '',
                    '.<Extension>',
                    '.<Extension>')
+
     path += schemes[settings.namingScheme]
 
     if '<Extension>' in path and 'Extension' not in tokens:
@@ -422,6 +431,7 @@ registerFileToken(fileTokenRenderPass, 'RenderPass')
 registerFileToken(fileTokenCamera, 'Camera')
 registerFileToken(fileTokenRenderLayer, 'RenderLayer')
 registerFileToken(fileTokenVersion, 'Version')
+registerFileToken(fileTokenVersion, 'Eye')
 
 def convertToUnicode(s):
     try:

@@ -164,7 +164,6 @@ def createArnoldTargetFilePreview():
 
     # Now we establish scriptJobs to invoke the procedure which updates the
     # target file preview when any of the above attributes change.
-
     for attr in attrArray:
         pm.scriptJob(attributeChange = (attr,updateArnoldTargetFilePreview),
                         parent='targetFilePreview')
@@ -216,7 +215,12 @@ def updateArnoldTargetFilePreview(*args):
 
     kwargs['createDirectory'] = False
     kwargs['leaveUnmatchedTokens'] = True
+
+    if not pm.objExists('defaultArnoldRenderOptions'):
+        return
+
     aovsEnabled = pm.getAttr('defaultArnoldRenderOptions.aovMode') and aovs.getAOVs(enabled=True, exclude=['beauty', 'RGBA', 'RGB'])
+
     if aovsEnabled:
         tokens['RenderPass'] = '<RenderPass>'
     kwargs['strictAOVs'] = not (aovsEnabled and not pm.getAttr('defaultArnoldDriver.mergeAOVs'))

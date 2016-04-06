@@ -13,7 +13,8 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      const MString& fileRuleType,
                      const MString& path,
                      const bool* isSequence,
-                     const bool* strictAOVs)
+                     const bool* strictAOVs,
+                     const MString& eye)
 {
    MString cmd = "import mtoa.utils;mtoa.utils.getFileName(";
    cmd += pathType;
@@ -28,6 +29,8 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
       cmd += "Extension=" + fileFormat + " ";
    if (sceneFileName.numChars())
       cmd += "Scene=\"" + sceneFileName + "\"";
+   if (eye.numChars())
+      cmd+= " Eye="+eye+"";
    cmd += "', ";
    cmd += MString("frame=") + frameNumber + ", ";
    if (path.numChars())

@@ -266,3 +266,20 @@ void CArnoldSkyDomeLightNode::draw(M3dView& view, const MDagPath& DGpath, M3dVie
    if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;
    CSphereLocator::draw(view, DGpath, style, status);
 }
+
+#ifdef ENABLE_VP2
+/* override */
+MSelectionMask CArnoldSkyDomeLightNode::getShapeSelectionMask() const
+//
+// Description
+//     This method is overriden to support interactive object selection in Viewport 2.0
+//
+// Returns
+//
+//    The selection mask of the shape
+//
+{
+	//MSelectionMask::SelectionType selType = MSelectionMask::kSelectLights;
+    return MSelectionMask("arnoldLightSelection");
+}
+#endif

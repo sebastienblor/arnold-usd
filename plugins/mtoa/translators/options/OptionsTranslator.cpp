@@ -141,6 +141,7 @@ void COptionsTranslator::ExportAOVs()
 /// Set the filenames for all output drivers
 void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 {
+
    MDagPath camera = m_session->GetExportCamera();
    if (!camera.isValid())
    {
@@ -153,7 +154,15 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MFileObject fileObj;
    fileObj.setRawFullName(MFileIO::currentFile());
    MString sceneFileName = fileObj.resolvedName();
-   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
+   const int idx = sceneFileName.rindexW('.');
+   if(idx==0)
+   {
+      sceneFileName = "";
+   }
+   else if(idx>=1)
+   {
+      sceneFileName = sceneFileName.substringW(0, idx-1);
+   }
 
    // camera name
    MFnDagNode camDagTransform(camera.transform());
@@ -171,130 +180,206 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
       pathType = defaultRenderGlobalsData.kFullPathTmp;
    }
 
+   // we're only doing stereo rendering for Batch sessions (ass export / batch render)
+   bool stereo = (m_session->IsBatch() && camera.node().hasFn(MFn::kStereoCameraMaster));
+
+   int numEyes = 1;
    // loop through aovs
-
    unsigned int nAOVs = m_aovData.size();
-   for (unsigned int i = 0; i < nAOVs; ++i)
-   {
-      CAOVOutputArray& aovData = m_aovData[i];
+   std::vector<CAOVOutputArray> stereoAovData;
+   MString rightCameraName = "";
+   MString leftCameraName = "";
 
-      // loop through outputs
-      unsigned int nOutputs = aovData.outputs.size();
-      for (unsigned int j=0; j < nOutputs; ++j)
+   if (stereo)
+   {   
+      int childCount = camDagTransform.childCount();      
+      for (int i = childCount - 1; i >= 0; --i)
       {
-         CAOVOutput& output = aovData.outputs[j];
-         if (output.driver == NULL)
-         {
-            AiMsgWarning("[mtoa] Output driver %d for AOV \"%s\" is null", j, aovData.name.asChar());
-            continue;
-         }
-         if (output.filter == NULL)
-         {
-            AiMsgWarning("[mtoa] Output filter %d for AOV \"%s\" is null", j, aovData.name.asChar());
-            continue;
-         }
-         const AtNodeEntry* driverEntry = AiNodeGetNodeEntry(output.driver);
-         // handle drivers with filename parameters
-         if (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL)
-         {
-            const char* ext = "";
-            AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
-            if(strcmp (ext,"deepexr") == 0)
-               ext = "exr";
-            
-            MString tokens = aovData.tokens;
-            MString path = output.prefix;
-            if (path == "")
-               // No override provided, use globals default
-               path = defaultRenderGlobalsData.name;
+         MFnDagNode childNode(camDagTransform.child(i));
+         MDagPath camChildPath;
+         if (childNode.getPath(camChildPath) != MS::kSuccess) continue;
+         camChildPath.extendToShape();
+         std::string childName = camChildPath.partialPathName().asChar();
 
-            bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
+         // if there's a way to get the Right-Left cameras through the Maya API it would be way better...
+         // for now we're going through the cameras names, but this could fail if manually renamed.
+         if(rightCameraName.numChars() == 0 && childName.find("Right") != std::string::npos) rightCameraName = camChildPath.partialPathName();
+         else if (leftCameraName.numChars() == 0 && childName.find("Left") != std::string::npos) leftCameraName = camChildPath.partialPathName();
+      }
+      if (rightCameraName.numChars() > 0 && leftCameraName.numChars() > 0) numEyes = 2;
+      else  stereo = false;
+   }
 
-            MString filename = getFileName( pathType,
-                                            fileFrameNumber,
-                                            sceneFileName,
-                                            nameCamera,
-                                            ext,
-                                            renderLayer,
-                                            tokens,
-                                            true,
-                                            "images",
-                                            path,
-                                            NULL,
-                                            &strictAOVs);
+   for (int eye = 0; eye < numEyes; ++eye)
+   {
+      // we're not storing the stereo cameras in m_aovData
+      // if this function is called several times, I'd be scared that we double 
+      // the amount of AOVs multiple times.
+      // Here this stereo treatment only happens for batch sessions, 
+      // so the m_aovData list is cleared after export anyway...
+      if (eye > 0) stereoAovData = m_aovData;  // copying the aovData list for the Right eye
 
-            MString nodeTypeName = AiNodeEntryGetName(driverEntry);
-            std::map<std::string, AtNode*>::iterator it;
-            it = m_multiDriverMap.find(filename.asChar());
-            if (it == m_multiDriverMap.end())
+      for (unsigned int i = 0; i < nAOVs; ++i)
+      {
+         CAOVOutputArray& aovData = (eye > 0) ? stereoAovData[i] : m_aovData[i];
+
+         MString cameraToken = nameCamera;
+
+         // loop through outputs
+         unsigned int nOutputs = aovData.outputs.size();
+         for (unsigned int j=0; j < nOutputs; ++j)
+         {
+            CAOVOutput& output = aovData.outputs[j];
+            if (output.driver == NULL)
             {
-               // The filename has not been encountered yet.
+               AiMsgWarning("[mtoa] Output driver %d for AOV \"%s\" is null", j, aovData.name.asChar());
+               continue;
+            }
+            if (output.filter == NULL)
+            {
+               AiMsgWarning("[mtoa] Output filter %d for AOV \"%s\" is null", j, aovData.name.asChar());
+               continue;
+            }
+            const AtNodeEntry* driverEntry = AiNodeGetNodeEntry(output.driver);
+            // handle drivers with filename parameters
+            if (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL)
+            {
+               
+               const char* ext = "";
+               AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
+               if(strcmp (ext,"deepexr") == 0)
+                  ext = "exr";
+               
+               MString tokens = aovData.tokens;
+               MString path = output.prefix;
 
-               // The same AtNode* driver may appear in m_aovData several times.  This happens because
-               // ExportNode() caches the results of previous exports to avoid creating duplicates.
-               // When a single aiAOVDriver node produces multiple files with unique names (via tokens)
-               // AND that node appears elsewhere in our list of output drivers then we have to clone the node.
+               if (path == "")
+                  // No override provided, use globals default
+                  path = defaultRenderGlobalsData.name;
 
-               bool found = false;
-               for (it = m_multiDriverMap.begin(); it != m_multiDriverMap.end(); ++it)
+               bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
+
+            
+               MString eyeToken = "";
+               if (stereo)
                {
-                  if (it->second == output.driver)
+                  // Setting the <Eye> token for Stereo rendering
+                  if (eye == 0)
                   {
-                     found = true;
-                     break;
+                     eyeToken = "Left";
+                     cameraToken = leftCameraName;
+                  } else
+                  {
+                     eyeToken = "Right";
+                     cameraToken = rightCameraName;
                   }
                }
-               MString driverName = AiNodeGetName(output.driver);
-               driverName += "." + aovData.name;
 
-               if (found)
-                  output.driver = AiNodeClone(output.driver);
+               MString filename = getFileName( pathType,
+                                               fileFrameNumber,
+                                               sceneFileName,
+                                               nameCamera,
+                                               ext,
+                                               renderLayer,
+                                               tokens,
+                                               true,
+                                               "images",
+                                               path,
+                                               NULL,
+                                               &strictAOVs,
+                                               eyeToken);
 
-               AiNodeSetStr(output.driver, "name", driverName.asChar());
-               m_multiDriverMap[filename.asChar()] = output.driver;
-            }
-            else
-            {
-               // Found an existing driver with the same filename.
-               // Check that it's the same driver.
-               if (output.driver != it->second)
+               MString nodeTypeName = AiNodeEntryGetName(driverEntry);
+               std::map<std::string, AtNode*>::iterator it;
+               it = m_multiDriverMap.find(filename.asChar());
+               if (it == m_multiDriverMap.end())
                {
-                  // NOTE: it could be possible to merge the output of multiple drivers of the same type, but if their settings differ
-                  // it will be unclear to the user which node's settings should be used
-                  AiMsgWarning("[mtoa] Two drivers produced the same output path. AOV merging is only supported using a single driver node: \"%s\", \"%s\"",
-                               AiNodeGetName(output.driver), AiNodeGetName(it->second));
-                  // skip this output
-                  continue;
+                  // The filename has not been encountered yet.
+
+                  // The same AtNode* driver may appear in m_aovData several times.  This happens because
+                  // ExportNode() caches the results of previous exports to avoid creating duplicates.
+                  // When a single aiAOVDriver node produces multiple files with unique names (via tokens)
+                  // AND that node appears elsewhere in our list of output drivers then we have to clone the node.
+
+                  // This situation also happens for stereo rendering, we'll have a new filename but the same output.driver as before
+                  bool found = false;
+                  for (it = m_multiDriverMap.begin(); it != m_multiDriverMap.end(); ++it)
+                  {
+                     if (it->second == output.driver)
+                     {
+                        found = true;
+                        break;
+                     }
+                  }
+                  MString driverName = AiNodeGetName(output.driver);
+
+                  if (found && stereo && eye  > 0)
+                  {
+                     // For Stereo we don't want to add the aov name to the driver's name (we could, but names would become confusing), 
+                     // so we're just adding th suffix ".Right"
+                     // we could also add it for the left eye (without testing eye > 0), but I'm trying to minimize the possible issues
+                     driverName += "."+eyeToken;
+                  } else  driverName += "." + aovData.name;
+                  
+                  if (found)
+                     output.driver = AiNodeClone(output.driver);
+
+                  AiNodeSetStr(output.driver, "name", driverName.asChar());
+                  m_multiDriverMap[filename.asChar()] = output.driver;
                }
-            }
+               else
+               {  
+                  // for stereo, if AOVs are merged we'll have multiple times the same filename 
+                  // but output.driver still contains the previous (Left) driver
+                  if (eye > 0) output.driver = it->second;
 
-            if (strictAOVs && (path.indexW("<RenderPass>") > -1))
+                  // Found an existing driver with the same filename.
+                  // Check that it's the same driver.
+                  if (output.driver != it->second)
+                  {
+                     // NOTE: it could be possible to merge the output of multiple drivers of the same type, but if their settings differ
+                     // it will be unclear to the user which node's settings should be used
+                     AiMsgWarning("[mtoa] Two drivers produced the same output path. AOV merging is only supported using a single driver node: \"%s\", \"%s\"",
+                                  AiNodeGetName(output.driver), AiNodeGetName(it->second));
+                     // skip this output
+                     continue;
+                  }
+               }
+
+               if (strictAOVs && (path.indexW("<RenderPass>") > -1))
+               {
+                  AiMsgWarning("[mtoa] Driver \"%s\" set to merge AOVs, but path prefix includes <RenderPass> token. Resulting outputs will not be merged",
+                               AiNodeGetName(output.driver));
+               }
+
+               AiNodeSetStr(output.driver, "filename", filename.asChar());
+               // FIXME: isn't this already handled by getImageName?
+               CreateFileDirectory(filename);
+            }
+            // output statement
+            char str[1024];
+            if (output.raw)
             {
-               AiMsgWarning("[mtoa] Driver \"%s\" set to merge AOVs, but path prefix includes <RenderPass> token. Resulting outputs will not be merged",
-                            AiNodeGetName(output.driver));
+               sprintf(str, "%s", AiNodeGetName(output.driver));
             }
+            else if (stereo)
+            {
+               sprintf(str, "%s %s %s %s %s",cameraToken.asChar(), aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                       AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+            } else
+            {
+               sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                       AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+            }
+            AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
 
-            AiNodeSetStr(output.driver, "filename", filename.asChar());
-            // FIXME: isn't this already handled by getImageName?
-            CreateFileDirectory(filename);
-         }
-         // output statement
-         char str[1024];
-         if (output.raw)
-         {
-            sprintf(str, "%s", AiNodeGetName(output.driver));
-         }
-         else
-         {
-            sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
-                    AiNodeGetName(output.filter), AiNodeGetName(output.driver));
-         }
-         AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
+            outputs.append(MString(str));
 
-         outputs.append(MString(str));
+         }
       }
    }
    m_multiDriverMap.clear();
+
 }
 
 void COptionsTranslator::CreateFileDirectory(const MString &filename) const
@@ -412,6 +497,7 @@ void COptionsTranslator::SetCamera(AtNode *options)
    MStringArray outputStrings;
    SetImageFilenames(outputStrings);
 
+   
    // OUTPUT STRINGS
    unsigned int ndrivers = outputStrings.length();
    AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
@@ -508,8 +594,6 @@ void COptionsTranslator::Update(AtNode *options)
    if (GetSessionMode() == MTOA_SESSION_RENDERVIEW) ExportAOVs();
    // set the camera
    SetCamera(options);
-
-
 
    const AtNodeEntry* optionsEntry = AiNodeGetNodeEntry(options);
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(options));
