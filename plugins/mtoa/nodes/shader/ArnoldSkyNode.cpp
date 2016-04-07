@@ -67,6 +67,13 @@ MStatus CArnoldSkyNode::initialize()
    return MS::kSuccess;
 }
 
+// Make sure this is marked to be excluded when
+// the locator display filter is enabled
+bool CArnoldSkyNode::excludeAsLocator() const
+{
+	return true;
+}
+
 void CArnoldSkyNode::draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status)
 {
    if ((view.objectDisplay() & M3dView::kDisplayLocators) == 0) return;

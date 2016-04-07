@@ -1638,3 +1638,11 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
    return "";
 }
 
+const MStringArray &CArnoldSession::GetTextureSearchPaths() const
+{
+   return m_sessionOptions.GetTextureSearchPaths();   
+}
+const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
+{
+   return m_sessionOptions.GetProceduralSearchPaths();
+}

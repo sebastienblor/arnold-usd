@@ -1,6 +1,16 @@
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 
+!include "FileFunc.nsh"
+!insertmacro GetParameters
+!insertmacro GetOptions
+
+Function .onInit
+  ${GetParameters} $R0
+  ClearErrors
+  ${GetOptions} $R0 /FORCE_UNINSTALL= $3
+FunctionEnd
+
 Name "MtoA $%MTOA_VERSION_NAME% Maya $%MAYA_VERSION%"
 OutFile "MtoA.exe"
 
@@ -48,6 +58,11 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   ReadRegStr $R0 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
   StrCmp $R0 "" NotInstalled Installed
   Installed:
+  IfSilent 0 +4
+    IntCmp $3 1 0 QuitPart QuitPart
+      Exec "$R0 /S"
+      Goto NotInstalled
+    
   MessageBox MB_TOPMOST|MB_OKCANCEL  \
     "MtoA for Maya $%MAYA_VERSION% is already installed. Remove installed version?" \
     IDOK Uninstall IDCANCEL QuitPart
@@ -127,7 +142,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     
     ;Add a mtoa.mod file in the Maya modules folder
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
-    ${If} "$%MAYA_VERSION%" == "2016"
+    ${If} "$%MAYA_VERSION%" >= "2016"
     CreateDirectory "$R1\maya\$%MAYA_VERSION%\modules"
     FileOpen $0 "$R1\maya\$%MAYA_VERSION%\modules\mtoa.mod" w
     ${Else}
