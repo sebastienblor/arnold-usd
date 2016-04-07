@@ -347,10 +347,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                AiNodeSetArray(options, "outputs", newOutputs);
             }
 
-            if (renderSession->DoBatchRender() != AI_SUCCESS)
+            int batchStatus = renderSession->DoBatchRender();
+            if (batchStatus != AI_SUCCESS)
             {
                CMayaScene::End();
                MGlobal::displayError("[mtoa] Failed batch render");
+               if(port != -1 && batchStatus == AI_ABORT){
+                   MRenderUtil::sendRenderProgressInfo("", -111); // magic number for abort/kill
+               }
                return MS::kFailure;
             }
          }
