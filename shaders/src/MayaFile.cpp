@@ -886,7 +886,7 @@ shader_evaluate
                   int offset = *ptr;
 
                   int col = static_cast<int>(floorf(inU)) + offset;
-                  char buf[2];
+                  char buf[8];
                   sprintf(buf, "%d", col);
                   int len = (int) strlen(buf);
                   memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
@@ -905,7 +905,7 @@ shader_evaluate
                   int offset = *ptr;
 
                   int row = static_cast<int>(floorf(inV)) + offset;
-                  char buf[2];
+                  char buf[8];
                   sprintf(buf, "%d", row);
                   int len = (int) strlen(buf);
                   memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
