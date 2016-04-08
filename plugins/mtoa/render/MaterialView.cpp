@@ -142,6 +142,8 @@ MStatus CMaterialView::translateMesh(const MUuid& id, const MObject& node)
       return MStatus::kFailure;
    }
 
+   AiNodeSetBool(geometryNode, "opaque", false);
+
    if (m_activeShader)
    {
       AiNodeSetPtr(geometryNode, "shader", m_activeShader);
