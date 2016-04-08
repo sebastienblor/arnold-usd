@@ -8,6 +8,8 @@
 #include <maya/MPointArray.h>
 #include <maya/MMessage.h>
 
+#if MAYA_API_VERSION >= 201650
+
 #include <ai_vector.h>
 #include <vector>
 #include <map>
@@ -105,3 +107,4 @@ private:
     InstanceInfoMap fInstanceInfoCache;
 };
 
+#endif
