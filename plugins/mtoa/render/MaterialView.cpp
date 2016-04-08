@@ -45,6 +45,7 @@ CMaterialView::CMaterialView()
 , m_active(false)
 , m_running(false)
 , m_suspended(false)
+, m_interrupted(false)
 , m_terminationRequested(false)
 , m_refreshEvent(true, false)
 , m_refreshAllowed(false)
@@ -548,10 +549,12 @@ void CMaterialView::InitOptions()
 void CMaterialView::InterruptRender(bool waitFinished)
 {
    {
-      // Remove any scheduled refresh
+      // Remove any scheduled refresh and 
+      // set interrupt state
       CCritSec::CScopedLock sc(m_refreshLock);
       m_refreshAllowed = false;
       m_refreshEvent.unset();
+      m_interrupted = true;
    }
 
    if (AiRendering())
@@ -574,9 +577,14 @@ bool CMaterialView::WaitForRefresh(unsigned int msTimeout)
    CCritSec::CScopedLock sc(m_refreshLock);
    if (result && m_refreshAllowed)
    {
+      // A refresh has been requested.
+      // Clear interrupt state and refresh event,
+      // then return true to trigger the refresh.
+      m_interrupted = false;
       m_refreshEvent.unset();
       return true;
    }
+   // No refresh requested yet
    return false;
 }
 
@@ -759,10 +767,10 @@ unsigned int CMaterialView::RenderThread(void* data)
          {
             AiNodeSetInt(options, "AA_samples", sampleRate[i]);
 
-            // Begin a render!
             AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA of %d AA", sampleRate[i], sampleRate[numIterations-1]);
 
-            status = AiRender(AI_RENDER_MODE_CAMERA);
+            // Start the render if not interrupted already
+            status = view->m_interrupted ? AI_INTERRUPT : AiRender(AI_RENDER_MODE_CAMERA);
             if (status != AI_SUCCESS)
             {
                break;

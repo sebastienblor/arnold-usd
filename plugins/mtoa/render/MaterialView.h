@@ -55,12 +55,6 @@ public:
    static void Resume();
    static void Abort();
 
-   class ScopedSuspend {
-   public:
-      ScopedSuspend() { CMaterialView::Suspend(); }
-      ~ScopedSuspend() { CMaterialView::Resume(); }
-   };
-
 private:
    bool BeginSession();
    void EndSession();
@@ -110,6 +104,7 @@ private:
    volatile bool m_active;
    volatile bool m_running;
    volatile bool m_suspended;
+   volatile bool m_interrupted;
    volatile bool m_terminationRequested;
    volatile bool m_refreshAllowed;
    CEvent        m_refreshEvent;
