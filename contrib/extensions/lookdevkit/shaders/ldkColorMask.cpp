@@ -59,7 +59,7 @@ shader_evaluate
    {
       if (!AiShaderEvalParamBool(p_preserveColor))
       {
-         sg->out.RGB = inColor * (1.0f - maskAlpha) + maskColor * maskAlpha;
+         sg->out.RGB = inColor * (1.0f - maskAlpha);
       }
       sg->out.RGBA.a -= maskAlpha;
    }
