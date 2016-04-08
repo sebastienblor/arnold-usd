@@ -2,7 +2,7 @@
 
 // Maya's material viewer is not availabe in versions older than 2016
 #include <maya/MTypes.h> 
-#if MAYA_API_VERSION >= 201600
+#if MAYA_API_VERSION >= 201700
 #define ENABLE_MATERIAL_VIEW
 #endif
 
