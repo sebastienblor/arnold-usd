@@ -388,10 +388,12 @@ node_update
                prevToken = (int) tokens.size()-1;
                breakFound = true;
             }
-            else if (sub.substr(0, 6) == "<utile")
+            else if (sub.substr(0, 6) == "<utile" || sub.substr(0, 3) == "<u>" || sub.substr(0, 3) == "<U>")
             {
                // default offset
                int offset = GetTokenOptionInt(sub, 1);
+               if (sub.substr(0, 3) == "<u>")
+                  offset -= 1;
 
                TokenData data;
                data.mode = UTILE;
@@ -407,9 +409,12 @@ node_update
                prevToken = (int) tokens.size()-1;
                breakFound = true;
             }
-            else if (sub.substr(0, 6) == "<vtile" )
+            else if (sub.substr(0, 6) == "<vtile" || sub.substr(0, 3) == "<v>" || sub.substr(0, 3) == "<V>")
             {
+               // default offset
                int offset = GetTokenOptionInt(sub, 1);
+               if (sub.substr(0, 3) == "<v>")
+                  offset -= 1;
 
                TokenData data;
                data.mode = VTILE;
@@ -881,7 +886,7 @@ shader_evaluate
                   int offset = *ptr;
 
                   int col = static_cast<int>(floorf(inU)) + offset;
-                  char buf[2];
+                  char buf[8];
                   sprintf(buf, "%d", col);
                   int len = (int) strlen(buf);
                   memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
@@ -900,7 +905,7 @@ shader_evaluate
                   int offset = *ptr;
 
                   int row = static_cast<int>(floorf(inV)) + offset;
-                  char buf[2];
+                  char buf[8];
                   sprintf(buf, "%d", row);
                   int len = (int) strlen(buf);
                   memcpy(&(idata->processPath[sg->tid][pos]),buf,len);
