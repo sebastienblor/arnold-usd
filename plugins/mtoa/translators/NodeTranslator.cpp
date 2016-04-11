@@ -1430,10 +1430,26 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
    {
       // process connections
       MPlug srcMayaPlug = connections[0];
-      AtNode* srcArnoldNode = ExportNode(srcMayaPlug);
+      CNodeTranslator* srcNodeTranslator = NULL;
+      AtNode* srcArnoldNode = ExportNode(srcMayaPlug, true, &srcNodeTranslator);
 
       if (srcArnoldNode == NULL)
          return NULL;
+
+      // For material view sessions we need to propagate any shader update upstream
+      // because it's only the root shader that gets sent for update, even if the
+      // update was caused by some upstream shader node
+      if (srcNodeTranslator && m_session->GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
+      {
+         // Check if the given node is a shader
+         const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
+         const int type = AiNodeEntryGetType(nodeEntry);
+         if (type == AI_NODE_SHADER)
+         {
+            // Propagate the update upstream
+            srcNodeTranslator->DoUpdate(m_step);
+         }
+      }
 
       if (arnoldParamType == AI_TYPE_NODE)
       {

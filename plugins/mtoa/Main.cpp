@@ -78,6 +78,7 @@
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
+#include "render/MaterialView.h"
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
@@ -744,8 +745,24 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
-   
-   
+
+#ifdef ENABLE_MATERIAL_VIEW
+   // Material view renderer
+   status = plugin.registerRenderer(CMaterialView::Name(), CMaterialView::Creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgDebug("Successfully registered Arnold material view renderer");
+   }
+   else
+   {
+      AiMsgError("Failed to register Arnold material view renderer");
+      MGlobal::displayError("Failed to register Arnold material view renderer");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+#endif // ENABLE_MATERIAL_VIEW
+
    // Swatch renderer
    status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
    CHECK_MSTATUS(status);
@@ -1005,7 +1022,24 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    MSelectionMask::deregisterSelectionType("arnoldLightSelection");
 #endif
 #endif
-   
+
+#ifdef ENABLE_MATERIAL_VIEW
+   // Material view renderer
+   status = plugin.deregisterRenderer(CMaterialView::Name());
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold material view renderer");
+      MGlobal::displayInfo("Successfully deregistered Arnold material view renderer");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold material view renderer");
+      MGlobal::displayError("Failed to deregister Arnold material view renderer");
+   }
+#endif // ENABLE_MATERIAL_VIEW
+
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
    CHECK_MSTATUS(status);
