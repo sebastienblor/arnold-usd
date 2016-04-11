@@ -255,6 +255,7 @@ env['ENABLE_XGEN'] = 0
 env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
+env['ENABLE_LOOKDEVKIT'] = 0
 
 
 # Get arnold and maya versions used for this build
@@ -265,6 +266,7 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+    env['ENABLE_LOOKDEVKIT'] = 1
 
 #need to temporarily set 201650 as 2017
 if int(maya_version) >= 201650:
@@ -505,6 +507,8 @@ if env['ENABLE_VP2'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_VP2'))
 if env['ENABLE_BIFROST'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
+if env['ENABLE_LOOKDEVKIT'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
 
 ## platform related defines
 if system.os() == 'windows':
@@ -886,9 +890,10 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost')):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
+
     if os.path.isdir(ext_dir):        
         EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
@@ -1004,6 +1009,10 @@ if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+
+if env['ENABLE_LOOKDEVKIT'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
