@@ -102,8 +102,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
       progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+#ifdef MTOA_ENABLE_GAMMA
       displayGamma = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
    }
+#else
+   }
+   displayGamma = 1.f;
+#endif
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {

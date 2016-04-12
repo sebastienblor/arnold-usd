@@ -510,6 +510,9 @@ if env['ENABLE_BIFROST'] == 1:
 if env['ENABLE_LOOKDEVKIT'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
 
+if int(maya_version_base) < 2017:
+    env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
+
 ## platform related defines
 if system.os() == 'windows':
     env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
