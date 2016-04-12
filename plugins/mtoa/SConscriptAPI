@@ -121,6 +121,11 @@ if system.os() == 'windows':
         local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
     else:
         local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib'])
+elif system.os() == 'linux':
+    if (int(maya_version) < 201650):
+        local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+    else:
+        local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL'])
 else:
     local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
 
