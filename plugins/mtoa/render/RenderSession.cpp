@@ -527,7 +527,7 @@ MString CRenderSession::GetAssName(const MString& customName,
    unsigned int nscn = sceneFileName.numChars();
    if (nscn > 3)
    {
-      MString ext = sceneFileName.substringW(nscn-3, nscn);
+      MString ext = sceneFileName.substringW(nscn-3, nscn-1);
       if (ext == ".ma" || ext == ".mb")
       {
          sceneFileName = sceneFileName.substringW(0, nscn-4);
