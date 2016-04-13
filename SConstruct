@@ -698,13 +698,6 @@ if not env['MTOA_DISABLE_RV']:
     if system.os() == 'windows':
         RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-
-        #temporarily copying OpenColorIO dll as it's currently dynamic for windows and versions >= 2016.5 no longer 
-        # have OpenColorIO.dll in the install folder
-        if int(maya_version) >= 201650:
-            OCIO_DYLIB = 'OpenColorIO'+ get_library_extension()
-            OCIO_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, OCIO_DYLIB)
-            env.Install(env['TARGET_BINARIES'], glob.glob(OCIO_DYLIBPATH))
     else:
         RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
