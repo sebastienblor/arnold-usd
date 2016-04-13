@@ -26,6 +26,9 @@ def _uiName(tag):
 global _updating
 _updating = False
 
+global _tabEditor
+_tabEditor = None
+
 AOV_CALLBACK_ATTRS = ('type', 'defaultValue')
 
 class AOVBrowser(object):
@@ -313,8 +316,9 @@ class AOVItem(object):
 
     def fixOptionMenus(self):
         for menu in self.getMenus():
-            pm.optionMenu(menu, edit=True, visible=False)
-            pm.optionMenu(menu, edit=True, visible=True)
+            if pm.optionMenu(menu, exists=True):
+                pm.optionMenu(menu, edit=True, visible=False)
+                pm.optionMenu(menu, edit=True, visible=True)
 
     def delete(self):
         '''
@@ -563,8 +567,9 @@ class AOVOutputItem(object):
         self.aovItem.outputsChanged = True
 
     def fixOptionMenus(self):
-        pm.optionMenu(self.filterMenu, edit=True, visible=False)
-        pm.optionMenu(self.filterMenu, edit=True, visible=True)
+        if pm.optionMenu(self.filterMenu, exists=True):
+            pm.optionMenu(self.filterMenu, edit=True, visible=False)
+            pm.optionMenu(self.filterMenu, edit=True, visible=True)
 
 class ArnoldAOVEditor(object):
 
@@ -772,7 +777,8 @@ def createArnoldAOVTab():
 
     cmds.columnLayout('arnoldTabColumn', adjustableColumn=True)
 
-    ed = ArnoldAOVEditor(aovNode)
+    global _tabEditor
+    _tabEditor = ArnoldAOVEditor(aovNode)
 
     cmds.formLayout(parentForm,
                edit=True,
@@ -788,11 +794,16 @@ def createArnoldAOVTab():
     pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     cmds.setParent(parentForm)
-    pm.evalDeferred(ed.fixOptionMenus)
-    ed.setEnabledState()
-    pm.scriptJob(attributeChange = (aovNode.node.aovMode, ed.setEnabledState), parent=ed.mainCol)
+    pm.evalDeferred(_tabEditor.fixOptionMenus)
+    _tabEditor.setEnabledState()
+    pm.scriptJob(attributeChange = (aovNode.node.aovMode, _tabEditor.setEnabledState), parent=_tabEditor.mainCol)
 
     #cmds.setUITemplate(popTemplate=True)
 
 def updateArnoldAOVTab():
     pass
+
+def refreshArnoldAOVTab():
+    global _tabEditor
+    if _tabEditor:
+        _tabEditor.refresh()
