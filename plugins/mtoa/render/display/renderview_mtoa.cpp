@@ -846,7 +846,7 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
 
 void CRenderViewMtoA::UpdateColorManagement()
 {
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
    // Maya Color Management (aka SynColor) offers a command to retrieve 
    // its complete status; the command is colorManagementPrefs.

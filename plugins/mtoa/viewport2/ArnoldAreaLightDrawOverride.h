@@ -30,7 +30,7 @@ public:
 
    virtual MHWRender::DrawAPI supportedDrawAPIs() const;
 
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
    static void clearGPUResources();
 #else
    virtual bool hasUIDrawables() const { return true; }
@@ -45,7 +45,7 @@ public:
 private:
    CArnoldAreaLightDrawOverride(const MObject& obj);
 
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
    static void initializeGPUResources();
 
     #ifdef _WIN32

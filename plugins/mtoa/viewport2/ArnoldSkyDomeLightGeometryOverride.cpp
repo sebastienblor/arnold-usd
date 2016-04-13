@@ -18,7 +18,7 @@
 
 #include <ai.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
 // Static depth stencil and rasterizer states
 const MHWRender::MDepthStencilState* s_oldDepthStencilState = 0;
@@ -533,7 +533,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      // Need v-flip for file textures 
                      m_flipVData = true;
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
                      MFnDependencyNode fileNode(connectedObject);
                      // Check for color management. Maya 2017 required
                      MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled");

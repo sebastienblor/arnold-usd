@@ -7,7 +7,7 @@
 #include <maya/MDrawContext.h>
 #include <maya/MFloatVectorArray.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
 class CArnoldVolumeGeometryOverride : public MHWRender::MPxGeometryOverride{
 public:

@@ -7,7 +7,7 @@
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
 #include "viewport2/ArnoldVolumeGeometryOverride.h"
@@ -234,7 +234,7 @@ namespace // <anonymous>
          AI_STANDIN_CLASSIFICATION,
          CArnoldStandInDrawOverride::creator
       } , 
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
       {
          "arnoldSkyDomeLightNodeOverride",
          AI_SKYDOME_LIGHT_CLASSIFICATION,
@@ -878,7 +878,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       CHECK_MSTATUS(status);
    }
 	
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    // Skydome light and sky shader share the same override as
    // they are drawn the same way.
    status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
@@ -1001,13 +1001,13 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
       CArnoldPhotometricLightDrawOverride::clearGPUResources();
       CArnoldAreaLightDrawOverride::clearGPUResources();
 #endif
       CArnoldStandInDrawOverride::clearGPUResources();
    }
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
       AI_LIGHT_FILTER_CLASSIFICATION,
       "arnoldLightBlockerNodeOverride");

@@ -12,7 +12,7 @@
 #include <maya/MFloatVectorArray.h>
 #include <maya/MUintArray.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
 MString CArnoldLightBlockerGeometryOverride::s_wireframeItemName = "wireframeBlocker";
 MString CArnoldLightBlockerGeometryOverride::s_activeWireframeItemName = "active_wireframeBlocker";

@@ -109,7 +109,7 @@ MHWRender::MPxDrawOverride* CArnoldLightBlockerDrawOverride::creator(const MObje
 
 CArnoldLightBlockerDrawOverride::CArnoldLightBlockerDrawOverride(const MObject& obj) :
     MHWRender::MPxDrawOverride(obj, draw
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 	, false 
 #endif
 	)

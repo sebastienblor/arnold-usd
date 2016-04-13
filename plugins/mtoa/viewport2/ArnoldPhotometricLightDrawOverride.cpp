@@ -13,7 +13,7 @@
 
 #include <ai.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 #include <maya/MUIDrawManager.h>
 #include <maya/MEventMessage.h>
 
@@ -70,7 +70,7 @@ MHWRender::MPxDrawOverride* CArnoldPhotometricLightDrawOverride::creator(const M
 
 CArnoldPhotometricLightDrawOverride::CArnoldPhotometricLightDrawOverride(const MObject& obj) :
    MHWRender::MPxDrawOverride(obj, draw
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    , false // false = Mark as never dirty.
 #endif
    )
@@ -112,7 +112,7 @@ struct SArnoldPhotometricLightUserData : public MUserData{
 
    void update(const MDagPath& objPath)
    {
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
       // Update the wireframe color
       if (MHWRender::kDormant == MHWRender::MGeometryUtilities::displayStatus(objPath))
       {
@@ -144,7 +144,7 @@ MUserData* CArnoldPhotometricLightDrawOverride::prepareForDraw(
    const MHWRender::MFrameContext& frameContext,
    MUserData* oldData)
 {
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
    initializeGPUResources();
 #else
    initializeUserData();
@@ -167,7 +167,7 @@ MHWRender::DrawAPI CArnoldPhotometricLightDrawOverride::supportedDrawAPIs() cons
 
 void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& context, const MUserData* data)
 {
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
    if (!s_isValid)
       return;
    if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
@@ -222,7 +222,7 @@ void CArnoldPhotometricLightDrawOverride::draw(const MHWRender::MDrawContext& co
 #endif
 }
 
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
 void CArnoldPhotometricLightDrawOverride::initializeGPUResources()
 {
    if (s_isInitialized == false)
