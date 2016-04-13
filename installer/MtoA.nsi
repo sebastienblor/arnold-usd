@@ -60,7 +60,7 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   Installed:
   IfSilent 0 +4
     IntCmp $3 1 0 QuitPart QuitPart
-      Exec "$R0 /S"
+      ExecWait "$R0 /S"
       Goto NotInstalled
     
   MessageBox MB_TOPMOST|MB_OKCANCEL  \
@@ -74,6 +74,8 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   NotInstalled:
   SetOutPath "$INSTDIR"
   File /r /x *.nsi /x mtoa.mod *.*
+  File /x *.nsi /x mtoa.mod *.*
+  
 
   ;Add a mtoa.mod file in the installer folder
   FileOpen $0 "$INSTDIR\mtoa.mod" w

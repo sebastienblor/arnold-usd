@@ -102,8 +102,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
       progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+#ifdef MTOA_ENABLE_GAMMA
       displayGamma = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
    }
+#else
+   }
+   displayGamma = 1.f;
+#endif
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
@@ -347,10 +352,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                AiNodeSetArray(options, "outputs", newOutputs);
             }
 
-            if (renderSession->DoBatchRender() != AI_SUCCESS)
+            int batchStatus = renderSession->DoBatchRender();
+            if (batchStatus != AI_SUCCESS)
             {
                CMayaScene::End();
                MGlobal::displayError("[mtoa] Failed batch render");
+               if(port != -1 && batchStatus == AI_ABORT){
+                   MRenderUtil::sendRenderProgressInfo("", -111); // magic number for abort/kill
+               }
                return MS::kFailure;
             }
          }

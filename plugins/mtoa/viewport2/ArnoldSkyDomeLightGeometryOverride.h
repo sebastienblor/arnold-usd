@@ -9,7 +9,7 @@
 #include <maya/MFloatArray.h>
 #include <maya/MUintArray.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
 class CArnoldSkyDomeLightGeometryOverride : public MHWRender::MPxGeometryOverride{
 public:
@@ -78,20 +78,17 @@ private:
    MString m_inputColorSpace;
    MString m_workingColorSpace;
 
-   static void createFilledSkyDomeGeometry(unsigned int divisions[2],
+   void createFilledSkyDomeGeometry(unsigned int divisions[2],
       float radius );
-   static void createWireSkyDomeGeometry(unsigned int divisions[2],
+   void createWireSkyDomeGeometry(unsigned int divisions[2],
       float radius);
 
-   // Cleared from main, like clear GPU resources....
-   static unsigned int s_divisions[2];
+   MFloatVectorArray m_filledPositions;
+   MFloatArray  m_filledUvs[3]; // One set for each uv format
+   MUintArray m_filledIndexing;
 
-   static MFloatVectorArray s_filledPositions;
-   static MFloatArray  s_filledUvs[3]; // One set for each uv format
-   static MUintArray s_filledIndexing;
-
-   static MFloatVectorArray s_wirePositions;
-   static MUintArray s_wireIndexing;
+   MFloatVectorArray m_wirePositions;
+   MUintArray m_wireIndexing;
 };
 
 #endif

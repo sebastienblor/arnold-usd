@@ -42,6 +42,7 @@ class DLLEXPORT CNodeTranslator
    friend class CExtensionsManager;
    friend class CExtension;
    friend class CRenderSwatchGenerator;
+   friend class CMaterialView;
 
 private:
    AtNode* DoExport(unsigned int step);

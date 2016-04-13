@@ -24,7 +24,7 @@
 #include <maya/MStringArray.h>
 
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 #include <maya/MViewport2Renderer.h>
 #endif
 #endif
@@ -62,7 +62,7 @@ bool CSphereLocator::isAbstractClass()
 }
 
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 MStatus CSphereLocator::connectionMade( const MPlug& plug,
 											const MPlug& otherPlug,
 											bool asSrc )
@@ -543,7 +543,7 @@ bool CSphereLocator::excludeAsLocator() const
 }
 
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 MSelectionMask CSphereLocator::getShapeSelectionMask() const
 {
 	return MSelectionMask("arnoldLightSelection");

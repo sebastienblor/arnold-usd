@@ -18,15 +18,7 @@
 
 #include <ai.h>
 
-#if MAYA_API_VERSION >= 201650
-
-// Static CPU data buffers for reuse
-MFloatVectorArray CArnoldSkyDomeLightGeometryOverride::s_filledPositions;
-MFloatArray CArnoldSkyDomeLightGeometryOverride::s_filledUvs[3];
-MUintArray CArnoldSkyDomeLightGeometryOverride::s_filledIndexing;
-MFloatVectorArray CArnoldSkyDomeLightGeometryOverride::s_wirePositions;
-MUintArray CArnoldSkyDomeLightGeometryOverride::s_wireIndexing;
-unsigned int CArnoldSkyDomeLightGeometryOverride::s_divisions[2] = { 0, 0 };
+#if MAYA_API_VERSION >= 201700
 
 // Static depth stencil and rasterizer states
 const MHWRender::MDepthStencilState* s_oldDepthStencilState = 0;
@@ -541,7 +533,7 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      // Need v-flip for file textures 
                      m_flipVData = true;
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
                      MFnDependencyNode fileNode(connectedObject);
                      // Check for color management. Maya 2017 required
                      MPlug cmEnabledPlug = fileNode.findPlug("colorManagementEnabled");
@@ -740,11 +732,11 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
    unsigned int divisionsX1 = divisions[0] + 1;
    unsigned int divisionsY1 = divisions[1] + 1;
    unsigned int numVertices = divisionsX1 * divisionsY1;
-   s_filledPositions.setLength(numVertices);
-   s_filledUvs[0].setLength(numVertices*2);
-   s_filledUvs[1].setLength(numVertices*2);
-   s_filledUvs[2].setLength(numVertices*2);
-   s_filledIndexing.setLength(numIndices);
+   m_filledPositions.setLength(numVertices);
+   m_filledUvs[0].setLength(numVertices*2);
+   m_filledUvs[1].setLength(numVertices*2);
+   m_filledUvs[2].setLength(numVertices*2);
+   m_filledIndexing.setLength(numIndices);
 
    AtVector dir;
    float u, v, u2, v2, u3, v3;
@@ -769,19 +761,19 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
 
          const int id = x + y * divisionsX1;
 
-         s_filledUvs[0][id*2] = u;
-         s_filledUvs[0][id*2+1] = v;	
+         m_filledUvs[0][id*2] = u;
+         m_filledUvs[0][id*2+1] = v;	
 
-         s_filledUvs[1][id*2] = u2;
-         s_filledUvs[1][id*2+1] = v2;
+         m_filledUvs[1][id*2] = u2;
+         m_filledUvs[1][id*2+1] = v2;
 
          // Based on starting from PI, fix up any issues at poles 
          // and avoid duplicate u value when wrapping around at 360 degrees.
          // by enforcing a fixed u value per division.
-         s_filledUvs[2][id*2] = mdelta;
-         s_filledUvs[2][id*2+1] = v3;
+         m_filledUvs[2][id*2] = mdelta;
+         m_filledUvs[2][id*2+1] = v3;
 
-         s_filledPositions[id] = MFloatVector( dir.x*radius,
+         m_filledPositions[id] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
       }
@@ -794,13 +786,13 @@ void CArnoldSkyDomeLightGeometryOverride::createFilledSkyDomeGeometry(unsigned i
       for (unsigned int y = 0; y < (unsigned int)divisions[1]; ++y)
       {
          const int y1 = y + 1;
-         s_filledIndexing[indexCounter++] = x + y * divisionsX1;
-         s_filledIndexing[indexCounter++] = x1 + y * divisionsX1;
-         s_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
+         m_filledIndexing[indexCounter++] = x + y * divisionsX1;
+         m_filledIndexing[indexCounter++] = x1 + y * divisionsX1;
+         m_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
 
-         s_filledIndexing[indexCounter++] = x1 + y * divisionsX1;
-         s_filledIndexing[indexCounter++] = x1 + y1 * divisionsX1;
-         s_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
+         m_filledIndexing[indexCounter++] = x1 + y * divisionsX1;
+         m_filledIndexing[indexCounter++] = x1 + y1 * divisionsX1;
+         m_filledIndexing[indexCounter++] = x + y1 * divisionsX1;
       }  
    }
 }
@@ -812,8 +804,8 @@ void CArnoldSkyDomeLightGeometryOverride::createWireSkyDomeGeometry(unsigned int
    // Allocate memory
    unsigned int numVertices_wire = divisions[0] * divisions[1] * 8;
    unsigned int numIndicies_wire = divisions[0] * divisions[1] * 8;
-   s_wirePositions.setLength(numVertices_wire);
-   s_wireIndexing.setLength(numIndicies_wire);
+   m_wirePositions.setLength(numVertices_wire);
+   m_wireIndexing.setLength(numIndicies_wire);
 
    // Create wireframe data
    unsigned int index = 0;
@@ -827,45 +819,45 @@ void CArnoldSkyDomeLightGeometryOverride::createWireSkyDomeGeometry(unsigned int
          float thetaE = (float)AI_PI * (float)(y + 1) / (float)divisions[1];
 
          AtVector dir = SphereVertex(phiB, thetaB);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
          dir = SphereVertex(phiE, thetaB);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
 
          dir = SphereVertex(phiB, thetaE);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
          dir = SphereVertex(phiE, thetaE);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
 
          dir = SphereVertex(phiB, thetaB);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
          dir = SphereVertex(phiB, thetaE);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
 
          dir = SphereVertex(phiE, thetaB);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
          dir = SphereVertex(phiE, thetaE);
-         s_wirePositions[index++] = MFloatVector( dir.x*radius,
+         m_wirePositions[index++] = MFloatVector( dir.x*radius,
             dir.y*radius,
             dir.z*radius);
       }
    }
    for (unsigned int x = 0; x < divisions[0]*divisions[1]*8; ++x)
    {
-      s_wireIndexing[x] = x;
+      m_wireIndexing[x] = x;
    }
 }
 
@@ -918,26 +910,26 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
             // Update position buffer for textured render item
             if (vertexBufforDescriptor.name() == s_texturedItemName)
             {		
-               unsigned int totalVerts = s_filledPositions.length();
+               unsigned int totalVerts = m_filledPositions.length();
                if (totalVerts > 0)
                {
                   filledPositionBuffer = data.createVertexBuffer(vertexBufforDescriptor);
                   if (filledPositionBuffer)
                   {
-                     filledPositionBuffer->update(&s_filledPositions[0], 0, totalVerts, true);
+                     filledPositionBuffer->update(&m_filledPositions[0], 0, totalVerts, true);
                   }
                }
             }
             // Update position buffer for wireframe render item
             else 
             {
-               unsigned int totalVerts = s_wirePositions.length();
+               unsigned int totalVerts = m_wirePositions.length();
                if (totalVerts > 0)
                {
                   wirePositionBuffer = data.createVertexBuffer(vertexBufforDescriptor);
                   if (wirePositionBuffer)
                   {
-                     wirePositionBuffer->update(&s_wirePositions[0], 0, totalVerts, true);
+                     wirePositionBuffer->update(&m_wirePositions[0], 0, totalVerts, true);
                   }
                }
             }
@@ -949,13 +941,13 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
             if (vertexBufforDescriptor.name() == s_texturedItemName)
             {	
                // Get the set of uvs based on the format
-               unsigned int numUvs = s_filledUvs[m_format].length() / 2;
+               unsigned int numUvs = m_filledUvs[m_format].length() / 2;
                if (numUvs > 0)
                {
                   filledUvBuffer = data.createVertexBuffer(vertexBufforDescriptor);
                   if (filledUvBuffer)
                   {
-                     MStatus status = filledUvBuffer->update(&(s_filledUvs[m_format][0]), 0, numUvs, true);
+                     MStatus status = filledUvBuffer->update(&(m_filledUvs[m_format][0]), 0, numUvs, true);
                      if (status != MStatus::kSuccess)
                      {
                         //MGlobal::displayInfo("Unable to load UVS for skydome");
@@ -985,13 +977,13 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
       MString renderItemName = item->name();
       if (item->name() == s_texturedItemName)
       {
-         unsigned int indexCount = s_filledIndexing.length();
+         unsigned int indexCount = m_filledIndexing.length();
          if (indexCount)
          {
             filledIndexBuffer = data.createIndexBuffer(MHWRender::MGeometry::kUnsignedInt32);
             if (filledIndexBuffer)
             {
-               filledIndexBuffer->update(&s_filledIndexing[0], 0, indexCount, true);
+               filledIndexBuffer->update(&m_filledIndexing[0], 0, indexCount, true);
                item->associateWithIndexBuffer(filledIndexBuffer);
             }
          }
@@ -999,13 +991,13 @@ void CArnoldSkyDomeLightGeometryOverride::populateGeometry(const MHWRender::MGeo
       else if (item->name() == s_wireframeItemName ||
          item->name() == s_activeWireframeItemName)
       {
-         unsigned int indexCount = s_wireIndexing.length();
+         unsigned int indexCount = m_wireIndexing.length();
          if (indexCount)
          {
             wireIndexBuffer = data.createIndexBuffer(MHWRender::MGeometry::kUnsignedInt32);
             if (wireIndexBuffer)
             {
-               wireIndexBuffer->update(&s_wireIndexing[0], 0, indexCount, true);
+               wireIndexBuffer->update(&m_wireIndexing[0], 0, indexCount, true);
                item->associateWithIndexBuffer(wireIndexBuffer);
             }
          }

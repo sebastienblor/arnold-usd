@@ -176,10 +176,6 @@ if system.os() == 'windows':
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 
     maya_version_base = maya_version[0:4]
-   
-    # need to temporarily set 201650 as 2017
-    if int(maya_version) >= 201650:
-        maya_version_base="2017"
 
     msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
@@ -255,6 +251,7 @@ env['ENABLE_XGEN'] = 0
 env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
+env['ENABLE_LOOKDEVKIT'] = 0
 
 
 # Get arnold and maya versions used for this build
@@ -265,10 +262,8 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+    env['ENABLE_LOOKDEVKIT'] = 1
 
-#need to temporarily set 201650 as 2017
-if int(maya_version) >= 201650:
-    maya_version_base = "2017"
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
@@ -345,10 +340,15 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-    compiler_version = env['COMPILER_VERSION']
-    if compiler_version != '':
-        env['CC']  = 'gcc' + compiler_version
-        env['CXX'] = 'g++' + compiler_version
+    if env['SHCC'] != '':
+        env['CC'] = env['SHCC']
+        env['CXX'] = env['SHCXX']
+    else:
+        compiler_version = env['COMPILER_VERSION']
+        if compiler_version != '':
+            env['CC']  = 'gcc' + compiler_version
+            env['CXX'] = 'g++' + compiler_version
+
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
     if env['MODE'] == 'opt': 
@@ -505,6 +505,11 @@ if env['ENABLE_VP2'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_VP2'))
 if env['ENABLE_BIFROST'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
+if env['ENABLE_LOOKDEVKIT'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
+
+if int(maya_version_base) < 2017:
+    env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
 
 ## platform related defines
 if system.os() == 'windows':
@@ -694,13 +699,6 @@ if not env['MTOA_DISABLE_RV']:
     if system.os() == 'windows':
         RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-
-        #temporarily copying OpenColorIO dll as it's currently dynamic for windows and versions >= 2016.5 no longer 
-        # have OpenColorIO.dll in the install folder
-        if int(maya_version) >= 201650:
-            OCIO_DYLIB = 'OpenColorIO'+ get_library_extension()
-            OCIO_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, OCIO_DYLIB)
-            env.Install(env['TARGET_BINARIES'], glob.glob(OCIO_DYLIBPATH))
     else:
         RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
@@ -815,9 +813,6 @@ if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
 
-# need to temporarily set 201650 as 2017
-if int(maya_version) >= 201650:
-    maya_base_version="2017"
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
@@ -886,9 +881,10 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost')):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
+
     if os.path.isdir(ext_dir):        
         EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
@@ -1005,6 +1001,10 @@ if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
 
+if env['ENABLE_LOOKDEVKIT'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit_shaders%s' % get_library_extension()), 'shaders'])
+
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
 elif system.os() == 'linux':
@@ -1118,7 +1118,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, platform.system().lower()))
+        commandFile.write('python ./unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))
