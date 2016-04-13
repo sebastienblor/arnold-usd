@@ -756,7 +756,12 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AiNodeSetPtr(render_view, "swatch", image.floatPixels());
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
+#ifdef MTOA_ENABLE_GAMMA
    float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+#else
+   float gamma = 1.f;
+#endif
+
    AiNodeSetFlt(render_view, "gamma", gamma);
 
    AtNode* filter = AiNode("gaussian_filter");

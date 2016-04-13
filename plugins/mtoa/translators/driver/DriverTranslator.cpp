@@ -59,7 +59,12 @@ void CDriverTranslator::Export(AtNode *shader)
    {
       MFnDependencyNode fnOpts(GetArnoldRenderOptions());
       if (AiNodeEntryLookUpParameter(entry, "gamma") != NULL)
+#ifdef MTOA_ENABLE_GAMMA
          AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma").asFloat());
+#else
+         AiNodeSetFlt(shader, "gamma", 1.f); 
+#endif
+
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
          AiNodeSetBool(shader, "progressive", m_session->IsProgressive());
    }
