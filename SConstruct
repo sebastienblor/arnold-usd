@@ -347,10 +347,15 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-    compiler_version = env['COMPILER_VERSION']
-    if compiler_version != '':
-        env['CC']  = 'gcc' + compiler_version
-        env['CXX'] = 'g++' + compiler_version
+    if env['SHCC'] != '':
+        env['CC'] = env['SHCC']
+        env['CXX'] = env['SHCXX']
+    else:
+        compiler_version = env['COMPILER_VERSION']
+        if compiler_version != '':
+            env['CC']  = 'gcc' + compiler_version
+            env['CXX'] = 'g++' + compiler_version
+
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
     if env['MODE'] == 'opt': 

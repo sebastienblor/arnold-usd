@@ -1075,13 +1075,13 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    if (status == MS::kSuccess)
    {
       width = plug.asInt();
-      if (width != renderOptions->width()) updateRender = true;
+      if (width != (int)renderOptions->width()) updateRender = true;
    }
    plug = depNode.findPlug("height", &status);
    if (status == MS::kSuccess)
    {
       height = plug.asInt();
-      if (height != renderOptions->height()) updateRender = true;
+      if (height != (int)renderOptions->height()) updateRender = true;
    }
    plug = depNode.findPlug("deviceAspectRatio", &status);
    if (status == MS::kSuccess)

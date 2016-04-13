@@ -155,7 +155,7 @@ T BfGradientGetValue(AtShaderGlobals* sg, float v, GradientDescriptionElement<T>
       const int e = MIN(b + 1, resolution - 1);
       const float pf = p - (float)pi;
 
-      T dd = data[b] * (1.f - pf) + data[e] * pf;
+      //T dd = data[b] * (1.f - pf) + data[e] * pf;
       
       return data[b] * (1.f - pf) + data[e] * pf;
    }
