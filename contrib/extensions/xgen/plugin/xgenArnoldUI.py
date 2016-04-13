@@ -33,11 +33,6 @@ k_RenderAPIRenderer = "Renderman"
 k_RenderAPIRendererObj = k_RenderAPIRenderer + "Renderer"
 k_RenderAPIRendererInit = False
 
-if 'DpiScale' not in locals():
-    def DpiScale(x):
-        return x
-    locals()['DpiScale'] = DpiScale
-
 def castSelf(selfid):
     # Can't pass self as an object.
     # It's cast to id(self) by the caller
@@ -49,6 +44,12 @@ def castSelf(selfid):
 
 def addMethod( self, method ):
     self.__dict__[method.__name__] = types.MethodType( method, self, xg.ui.tabs.RendermanRendererTabUI )
+    
+if 'DpiScale' not in locals():
+    def DpiScale(x):
+        return x
+    locals()['DpiScale'] = DpiScale
+    
 #
 # RenderAPI RendererTab UI callbacks
 
@@ -333,6 +334,10 @@ def xgArnoldRefresh(selfid):
                 cmds.setAttr( nExistsName + ".render_mode", 3 ) #  batch = 3
         else:
             print "Couldn't find Description Shape!"
+
+def xgArnoldArchiveExportInit(selfid):
+    self = castSelf(selfid)
+    self.batch_plugins.append( "mtoa" )
 
 # Callback after description creation to switch to Arnold render
 def xgArnoldOnCreateDescription( param ):
