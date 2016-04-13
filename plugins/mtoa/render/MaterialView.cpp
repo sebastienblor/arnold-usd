@@ -15,7 +15,10 @@
 #include <maya/MEulerRotation.h>
 #include <maya/MAngle.h>
 #include <assert.h>
+#ifdef _LINUX
 #include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
