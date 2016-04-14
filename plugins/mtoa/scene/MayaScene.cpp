@@ -177,7 +177,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       // renderOptions.SetBatch(false);
       status = SetupIPRCallbacks();
    }
-   else if (mode == MTOA_SESSION_RENDER)
+   else if (mode == MTOA_SESSION_RENDER || mode == MTOA_SESSION_SEQUENCE)
    {
       // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
@@ -186,6 +186,8 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    else if (mode == MTOA_SESSION_BATCH)
    {
       // renderOptions.SetBatch(true);
+      renderOptions.SetProgressive(false);
+      sessionOptions.SetProgressive(false);
    }
 
    // Init both render and export sessions

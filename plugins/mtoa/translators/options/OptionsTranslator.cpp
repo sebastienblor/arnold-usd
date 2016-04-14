@@ -171,7 +171,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (m_session->IsBatch())
+   if (m_session->GetSessionMode() == MTOA_SESSION_BATCH || m_session->GetSessionMode() == MTOA_SESSION_ASS || m_session->GetSessionMode() == MTOA_SESSION_SEQUENCE)
    {
       pathType = defaultRenderGlobalsData.kFullPathImage;
    }
