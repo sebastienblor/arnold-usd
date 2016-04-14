@@ -495,6 +495,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          float colorGain[3] = { 1.0f, 1.0f, 1.0f };
          float colorOffset[3] = { 0.0f, 0.0f, 0.0f };
          bool invert = false;
+         bool alphaIsLuminance = false;
+         float exposure = 0.0f;
 
          // Get texture
          MHWRender::MTexture* texture = 0;
@@ -573,13 +575,6 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      if (cmEnabled && m_texturedColorManagedShader)
                      {
                         shaderInst = m_texturedColorManagedShader;
-
-                        // Update exposure
-                        const MString exposureString("exposure");
-                        float exposure = 0.0f;
-                        MPlug exposurePlug = fileNode.findPlug(exposureString);
-                        exposurePlug.getValue(exposure);
-                        shaderInst->setParameter(exposureString, exposure);
                      }
                      else
                      {
@@ -590,6 +585,16 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                            m_texturedColorManagedShader = 0;
                         }
                      }
+
+                     // Update exposure
+                     MPlug exposurePlug = fileNode.findPlug("exposure");
+                     if (!exposurePlug.isNull())
+                        exposurePlug.getValue(exposure);
+
+                     // Update alpha is luminance
+                     MPlug alphaIsLuminancePlug = fileNode.findPlug("alphaIsLuminance");
+                     if (!alphaIsLuminancePlug.isNull())
+                        alphaIsLuminancePlug.getValue(alphaIsLuminance);
 #endif
                   }
                   else
@@ -700,11 +705,13 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          shaderInst->setIsTransparent(hwTexAlpha < 1.0f);
 
          // Set color effects
+         shaderInst->setParameter("exposure", exposure);
          shaderInst->setParameter("colorGain", colorGain);
          shaderInst->setParameter("colorOffset", colorOffset);
          shaderInst->setParameter("alphaOffset", alphaOffset);
          shaderInst->setParameter("alphaGain", alphaGain);
          shaderInst->setParameter("invert", invert);
+         shaderInst->setParameter("alphaIsLuminance", alphaIsLuminance);
 
          // Set sampler
          shaderInst->setParameter("samp", MHWRender::MSamplerState::kAnisotropic);
