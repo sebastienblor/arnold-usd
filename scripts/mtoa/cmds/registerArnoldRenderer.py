@@ -251,8 +251,6 @@ def _register():
                                                       utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
-    pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
-    pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
     utils.pyToMelProc(updateBackgroundSettings, useName=True)
     utils.pyToMelProc(updateAtmosphereSettings, useName=True)
     #We have to source this file otherwise maya will override
