@@ -573,6 +573,13 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
                      if (cmEnabled && m_texturedColorManagedShader)
                      {
                         shaderInst = m_texturedColorManagedShader;
+
+                        // Update exposure
+                        const MString exposureString("exposure");
+                        float exposure = 0.0f;
+                        MPlug exposurePlug = fileNode.findPlug(exposureString);
+                        exposurePlug.getValue(exposure);
+                        shaderInst->setParameter(exposureString, exposure);
                      }
                      else
                      {
