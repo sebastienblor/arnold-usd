@@ -190,7 +190,7 @@ if installMode == 1: # do the proper installation
         mayaBaseDir = os.path.join(homeDir, 'Library', 'Preferences', 'Autodesk', 'maya%s' % mayaVersionDir)
     else:
         mayaBaseDir = os.path.join(homeDir, 'maya', mayaVersionDir)
-    if not os.path.exists(mayaBaseDir):
+    if not EnsureDir(mayaBaseDir):
         if not silent:
             os.system('clear')
             print('Home directory for Maya %s does not exists.' % mayaVersion)
