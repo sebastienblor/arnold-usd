@@ -37,8 +37,8 @@ try:
             aovs = []
             drivers = []
             filters = []
-            uniqueDrivers = set([])
-            uniqueFilters = set([])
+            uniqueDrivers = set()
+            uniqueFilters = set()
 
             # Iterate over our aovNodes (aiAOV nodes)
             for aovNode in aovNodes:
@@ -126,36 +126,26 @@ try:
                                 driverNewNameMap[driverName] = newDriverName
                                 
                         # Setup our filter and driver connections.
-                        if outputIndex > 0 or cmds.listConnections(key + ".outputs[" + str(outputIndex) + "].filter")[0] != filterName:
-                            cmds.connectAttr(newFilterName + ".message", key + ".outputs[" + str(outputIndex) + "].filter", force=True)
-                        if outputIndex > 0 or cmds.listConnections(key + ".outputs[" + str(outputIndex) + "].driver")[0] != driverName:
-                            cmds.connectAttr(newDriverName + ".message", key + ".outputs[" + str(outputIndex) + "].driver", force=True)
+                        for outputType, outputName, newOutputName in ["filter", filterName, newFilterName], ["driver", driverName, newDriverName]:
+                            if outputIndex > 0 or cmds.listConnections(key + ".outputs[" + str(outputIndex) + "]." + outputType)[0] != outputName:
+                                cmds.connectAttr(newOutputName + ".message", key + ".outputs[" + str(outputIndex) + "]." + outputType, force=True)
 
             # Iterate over our AOVs and decode them
             aovs = aovsJSON["aovs"]
             for aov in aovs:
                 for aovName, aovJSON in aov.iteritems():
                     basicNodeExporter.decode(aovJSON)
-                    
-            # Iterate over our filters and decode them
-            filters = aovsJSON["filters"]
-            for filter in filters:
-                for filterName, filterJSON in filter.iteritems():
-                    # If our filter name doesn't match our new filter name, 
-                    # then we need to rename the filter in our JSON data.
-                    if filterName in filterNewNameMap:
-                        filterJSON = json.loads(json.dumps(filterJSON).replace(filterName, filterNewNameMap[filterName]))
-                    basicNodeExporter.decode(filterJSON)
 
-            # Iterate over our drivers and decode them
-            drivers = aovsJSON["drivers"]
-            for driver in drivers:
-                for driverName, driverJSON in driver.iteritems():
-                    # If our driver name doesn't match our new driver name, 
-                    #then we need to rename the driver in our JSON data.
-                    if driverName in driverNewNameMap:
-                        driverJSON = json.loads(json.dumps(driverJSON).replace(driverName, driverNewNameMap[driverName]))
-                    basicNodeExporter.decode(driverJSON)
+            # Iterate over our filters/drivers and decode them
+            for outputType, outputNewNameMap in ["filters", filterNewNameMap], ["drivers", driverNewNameMap]:
+                outputs = aovsJSON[outputType]
+                for output in outputs:
+                    for outputName, outputJSON in output.iteritems():
+                        # If our output name doesn't match our new output name, 
+                        # then we need to rename the output in our JSON data.
+                        if outputName in outputNewNameMap:
+                            outputJSON = json.loads(json.dumps(outputJSON).replace(outputName, outputNewNameMap[outputName]))
+                        basicNodeExporter.decode(outputJSON)
             
             # Rebuild Arnold AOV tab as it has changed.
             aoveditor.refreshArnoldAOVTab()
@@ -171,11 +161,12 @@ try:
             if cmds.nodeType(aovNode) == "aiAOV":
                 return cmds.getAttr(aovNode + ".name")
             else:
-                aovNode2 = cmds.listConnections(aovNode)[0]
-                if cmds.nodeType(aovNode2) == "aiAOV":
-                    return self.getAOVName(aovNode2)
+                # The first item in the returned list of connections should be the attached aiAOV node.
+                aiAOVNode = cmds.listConnections(aovNode)[0]
+                if cmds.nodeType(aiAOVNode) == "aiAOV":
+                    return self.getAOVName(aiAOVNode)
                 else:
-                    return ""
+                    raise ValueError('The attached item is not an aiAOV node as required.')
 
         # Creates a selector for the AOV Collection that selects all aovNodes (aiAOV, aiAOVDriver, aiAOVFilter nodes)
         def getCollectionSelector(self, selectorName):
@@ -187,11 +178,12 @@ try:
             currentSelector.setIncludeHierarchy(False)
             return returnSelectorName
 
-        # Creates a selector for the AOV Child Collection for a particular AOV name.
+        # Creates a selector for the AOV Child Collection for a particular AOV name. Retrieves the AOV node (aiAOV) from
+        # the AOV name and then uses include hierarchy to select the attached nodes (aiAOVFilter and aiAOVDriver nodes).
         def getChildCollectionSelector(self, selectorName, aovName):
             returnSelectorName = cmds.createNode(selector.BasicSelector.kTypeName, name=selectorName, skipSelect=True)
             currentSelector = renderSetupUtils.nameToUserNode(returnSelectorName)
-            aovNodeName = str(AOVInterface().getAOVNode(aovName))
+            aovNodeName = AOVInterface().getAOVNode(aovName).name()
             currentSelector.staticSelection.setWithoutExistenceCheck([aovNodeName])
             currentSelector.setIncludeHierarchy(True)
             return returnSelectorName
