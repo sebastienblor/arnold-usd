@@ -189,13 +189,16 @@ if installMode == 1: # do the proper installation
     if sys.platform == 'darwin':
         mayaBaseDir = os.path.join(homeDir, 'Library', 'Preferences', 'Autodesk', 'maya%s' % mayaVersionDir)
     else:
-        mayaBaseDir = os.path.join(homeDir, 'maya', mayaVersionDir)
+        mayaBaseDir = os.path.join('/usr', 'autodesk', 'modules', 'maya', sys.argv[1])
     if not EnsureDir(mayaBaseDir):
         if not silent:
             os.system('clear')
             print('Home directory for Maya %s does not exists.' % mayaVersion)
         sys.exit(1)
-    modulesDir = os.path.join(mayaBaseDir, 'modules')
+    if sys.platform == 'darwin':
+        modulesDir = os.path.join(mayaBaseDir, 'modules')
+    else:
+        modulesDir = mayaBaseDir
     if not EnsureDir(modulesDir):
         if not silent:
             os.system('clear')
