@@ -126,7 +126,7 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
     
     ;Add a mtoa.mod file in the Maya modules folder
     ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
-    ${If} "$%MAYA_VERSION%" == "2016"
+    ${If} "$%MAYA_VERSION%" >= "2016"
     CreateDirectory "$R1\maya\$%MAYA_VERSION%\modules"
     FileOpen $0 "$R1\maya\$%MAYA_VERSION%\modules\mtoa.mod" w
     ${Else}
