@@ -340,7 +340,7 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-    if env['SHCC'] != '':
+    if system.os() == 'linux' and env['SHCC'] != '':
         env['CC'] = env['SHCC']
         env['CXX'] = env['SHCXX']
     else:
