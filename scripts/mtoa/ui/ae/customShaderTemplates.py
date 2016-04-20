@@ -4,6 +4,7 @@ import mtoa.ui.ae.templates as templates
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.aoveditor as aoveditor
 from collections import defaultdict
+import pymel.versions as versions
 
 class DisplacementShaderTemplate(templates.AttributeTemplate):
     def setup(self):
@@ -27,7 +28,10 @@ class Bump2dTemplate(templates.AttributeTemplate):
         self.addControl('aiFlipG', label='Flip G Channel')
         self.addControl('aiSwapTangents', label='Swap Tangents')
         self.addControl('aiUseDerivatives', label='Use Derivatives')
-        self.addControl('aiGammaCorrect', label='Gamma Correct')
+
+        maya_version = versions.shortName()
+        if int(maya_version) < 2017:
+            self.addControl('aiGammaCorrect', label='Gamma Correct')
 
 templates.registerAETemplate(Bump2dTemplate, 'bump2d')
 

@@ -530,7 +530,7 @@ MString CRenderSession::GetAssName(const MString& customName,
    unsigned int nscn = sceneFileName.numChars();
    if (nscn > 3)
    {
-      MString ext = sceneFileName.substringW(nscn-3, nscn);
+      MString ext = sceneFileName.substringW(nscn-3, nscn-1);
       if (ext == ".ma" || ext == ".mb")
       {
          sceneFileName = sceneFileName.substringW(0, nscn-4);
@@ -759,7 +759,12 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AiNodeSetPtr(render_view, "swatch", image.floatPixels());
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
+#ifdef MTOA_ENABLE_GAMMA
    float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+#else
+   float gamma = 1.f;
+#endif
+
    AiNodeSetFlt(render_view, "gamma", gamma);
 
    AtNode* filter = AiNode("gaussian_filter");

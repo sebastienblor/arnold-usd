@@ -4,6 +4,7 @@ from mtoa.callbacks import *
 import mtoa.core as core
 import arnold as ai
 import maya.cmds as cmds
+import pymel.versions as versions
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -511,7 +512,7 @@ def createArnoldGammaSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
-
+    
     pm.attrControlGrp('ss_driver_gamma',
                         label="Display Driver gamma",
                         attribute='defaultArnoldRenderOptions.display_gamma')
@@ -1314,9 +1315,12 @@ def createArnoldRendererGlobalsTab():
 
     # Gamma correction
     #
-    pm.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
-    createArnoldGammaSettings()
-    pm.setParent('..')
+    
+    maya_version = versions.shortName()
+    if int(maya_version) < 2017:
+        pm.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
+        createArnoldGammaSettings()
+        pm.setParent('..')
 
     # Gamma correction
     #

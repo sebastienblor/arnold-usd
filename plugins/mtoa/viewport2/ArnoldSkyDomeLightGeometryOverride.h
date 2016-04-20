@@ -9,7 +9,7 @@
 #include <maya/MFloatArray.h>
 #include <maya/MUintArray.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
 class CArnoldSkyDomeLightGeometryOverride : public MHWRender::MPxGeometryOverride{
 public:

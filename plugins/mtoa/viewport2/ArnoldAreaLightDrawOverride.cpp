@@ -10,7 +10,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/M3dView.h>
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 #include <maya/MUIDrawManager.h>
 #include <maya/MPointArray.h>
 #include <maya/MUintArray.h>
@@ -58,7 +58,7 @@ DXShader* CArnoldAreaLightDrawOverride::s_pDXShader = 0;
 bool CArnoldAreaLightDrawOverride::s_isValid = false;
 bool CArnoldAreaLightDrawOverride::s_isInitialized = false;
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 // TODO check about delete after use, and
 // how to reuse buffers, rather than always
 // recreating them, this might won't cause
@@ -306,7 +306,7 @@ MUserData* CArnoldAreaLightDrawOverride::prepareForDraw(
    const MHWRender::MFrameContext& frameContext,
    MUserData* oldData)
 {
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    initializeUserData();
 #else
    initializeGPUResources();
@@ -328,7 +328,7 @@ MHWRender::DrawAPI CArnoldAreaLightDrawOverride::supportedDrawAPIs() const
    return (MHWRender::kAllDevices);
 }
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 // Generate user data for each primitive type
 void CArnoldAreaLightDrawOverride::initializeUserData()
 {
@@ -457,7 +457,7 @@ void CArnoldAreaLightDrawOverride::draw(
    const MHWRender::MDrawContext& context,
    const MUserData* data)
 {
-#if MAYA_API_VERSION < 201650
+#if MAYA_API_VERSION < 201700
    if (s_isValid == false)
       return;
    if ((M3dView::active3dView().objectDisplay() & M3dView::kDisplayLights) == 0)
@@ -513,7 +513,7 @@ void CArnoldAreaLightDrawOverride::draw(
 #endif
 }
 
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 void CArnoldAreaLightDrawOverride::addUIDrawables(const MDagPath& objPath,
                                                   MHWRender::MUIDrawManager& drawManager,
                                                   const MHWRender::MFrameContext& frameContext,

@@ -287,6 +287,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
                switch (chType[ch])
                {
+                  default:
                   {
                   case Bifrost::API::FloatType:
                      const float *val = reinterpret_cast<const float*>(chBase[ch]) + i;

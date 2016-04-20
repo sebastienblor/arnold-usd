@@ -15,6 +15,9 @@
 #include <maya/MEulerRotation.h>
 #include <maya/MAngle.h>
 #include <assert.h>
+#ifdef _LINUX
+#include <unistd.h>
+#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -42,14 +45,14 @@ CMaterialView::CMaterialView()
 , m_dummyShader(NULL)
 , m_environmentShader(NULL)
 , m_environmentImage(NULL)
+, m_renderThread(NULL)
 , m_active(false)
 , m_running(false)
 , m_suspended(false)
 , m_interrupted(false)
 , m_terminationRequested(false)
-, m_refreshEvent(true, false)
 , m_refreshAllowed(false)
-, m_renderThread(NULL)
+, m_refreshEvent(true, false)
 , m_width(1)
 , m_height(1)
 {

@@ -87,7 +87,7 @@ node_finish
 shader_evaluate
 {
    AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
-   AtPoint2 uvFilterSize = AiShaderEvalParamPnt2(p_uvFilterSize);
+   //AtPoint2 uvFilterSize = AiShaderEvalParamPnt2(p_uvFilterSize);  NOT USED ?
    const float scale = AiShaderEvalParamFlt(p_scale);
    const float amplitude = AiShaderEvalParamFlt(p_amplitude);
    const float threshold = AiShaderEvalParamFlt(p_threshold);

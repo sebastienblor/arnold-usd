@@ -42,7 +42,7 @@ public:
    virtual MBoundingBox boundingBox() const;
    virtual bool setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context);
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    virtual MSelectionMask getShapeSelectionMask() const;
 #endif
 #endif
@@ -57,7 +57,7 @@ public:
    unsigned int NumSampleBase();
 
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    virtual MStatus connectionMade( const MPlug& plug,
 											 const MPlug& otherPlug,
 											 bool asSrc );

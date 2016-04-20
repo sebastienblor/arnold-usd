@@ -841,14 +841,12 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
    transformPath.translateBy(nextRt - previousRt, MSpace::kWorld);
    transformPath.setRotatePivotTranslation(previousRt, MSpace::kWorld);
    m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
-
-
 }
 
 
 void CRenderViewMtoA::UpdateColorManagement()
 {
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 
    // Maya Color Management (aka SynColor) offers a command to retrieve 
    // its complete status; the command is colorManagementPrefs.
@@ -884,15 +882,22 @@ void CRenderViewMtoA::UpdateColorManagement()
    }
 
    // The order of initialization is important to avoid useless changes.
-   SetOption("SynColor.enabled",        "false");
-   SetOption("SynColor.ocioFilepath",   ocioFilepath.asChar()); 
-   SetOption("SynColor.ocioEnabled",    cmOcioEnabled==1 ? "true" : "false"); 
-   SetOption("SynColor.renderingSpace", renderingSpace.asChar()); 
-   SetOption("SynColor.viewTransforms", allViewTransforms.c_str()); 
-   SetOption("SynColor.viewTransform",  viewTransform.asChar()); 
-   SetOption("SynColor.Gamma",          "1"); 
-   SetOption("SynColor.Exposure",       "0");
-   SetOption("SynColor.enabled",        cmEnabled==1 ? "true" : "false");
+   SetOption("Color Management.Enabled",        "false");
+   SetOption("Color Management.OCIO File",   ocioFilepath.asChar()); 
+   SetOption("Color Management.OCIO",    cmOcioEnabled==1 ? "true" : "false"); 
+   SetOption("Color Management.Rendering Space", renderingSpace.asChar()); 
+   if (cmEnabled == 1)
+   {
+      SetOption("Color Management.View Transforms", allViewTransforms.c_str()); 
+      SetOption("Color Management.View Transform",  viewTransform.asChar()); 
+   } else
+   {
+      SetOption("Color Management.View Transforms", ""); 
+      SetOption("Color Management.View Transform",  ""); 
+   }
+   SetOption("Color Management.Gamma",          "1"); 
+   SetOption("Color Management.Exposure",       "0");
+   SetOption("Color Management.Enabled",        cmEnabled==1 ? "true" : "false");
    
 #else
 
@@ -940,13 +945,13 @@ void CRenderViewMtoA::UpdateColorManagement()
 
    if (status == MS::kSuccess && plug.asBool())
    {
-      SetOption("LUT.OCIO", "1");
+      SetOption("Color Management.OCIO", "1");
       ocio = true;
-      SetOption("LUT.Gamma", "1"); 
-      SetOption("LUT.Exposure", "0");
+      SetOption("Color Management.Gamma", "1"); 
+      SetOption("Color Management.Exposure", "0");
 
    }
-   else  SetOption("LUT.OCIO", "0");
+   else  SetOption("Color Management.OCIO", "0");
 
    
    plug = depNode.findPlug("cfp", &status);
@@ -956,7 +961,7 @@ void CRenderViewMtoA::UpdateColorManagement()
       std::string ocioFile = plug.asString().asChar();
       if (!ocioFile.empty())
       {
-         SetOption("LUT.OCIO File", ocioFile.c_str());
+         SetOption("Color Management.OCIO File", ocioFile.c_str());
       }
 
       if (ocio)
@@ -965,7 +970,7 @@ void CRenderViewMtoA::UpdateColorManagement()
          if (status == MS::kSuccess)
          {
             const std::string viewTransform = plug.asString().asChar();
-            SetOption("LUT.View Transform", viewTransform.c_str());
+            SetOption("Color Management.View Transform", viewTransform.c_str());
          }
       } else
       {
@@ -975,34 +980,34 @@ void CRenderViewMtoA::UpdateColorManagement()
             const std::string viewTransform = plug.asString().asChar();
             if (viewTransform == "1.8 gamma")
             {
-               SetOption("LUT.View Transform", "Linear"); 
-               SetOption("LUT.Gamma", "1.8"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Linear"); 
+               SetOption("Color Management.Gamma", "1.8"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "2.2 gamma")
             {
-               SetOption("LUT.View Transform", "Linear"); 
-               SetOption("LUT.Gamma", "2.2"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Linear"); 
+               SetOption("Color Management.Gamma", "2.2"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "sRGB gamma")
             {
-               SetOption("LUT.View Transform", "sRGB");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "sRGB");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "Rec 709 gamma")
             {
-               SetOption("LUT.View Transform", "Rec709");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Rec709");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "Raw")
             {
-               SetOption("LUT.View Transform", "Linear");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Linear");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "Log")
             {
-               SetOption("LUT.View Transform", "Log");
-               SetOption("LUT.Gamma", "1");
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Log");
+               SetOption("Color Management.Gamma", "1");
+               SetOption("Color Management.Exposure", "0");
             }
          }
       }
@@ -1070,13 +1075,13 @@ void CRenderViewMtoA::ResolutionChangedCallback(void *data)
    if (status == MS::kSuccess)
    {
       width = plug.asInt();
-      if (width != renderOptions->width()) updateRender = true;
+      if (width != (int)renderOptions->width()) updateRender = true;
    }
    plug = depNode.findPlug("height", &status);
    if (status == MS::kSuccess)
    {
       height = plug.asInt();
-      if (height != renderOptions->height()) updateRender = true;
+      if (height != (int)renderOptions->height()) updateRender = true;
    }
    plug = depNode.findPlug("deviceAspectRatio", &status);
    if (status == MS::kSuccess)

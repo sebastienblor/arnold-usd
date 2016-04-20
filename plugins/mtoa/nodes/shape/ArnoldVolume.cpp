@@ -35,7 +35,7 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnNumericData.h>
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 #include <maya/MViewport2Renderer.h>
 #endif
 #endif
@@ -228,7 +228,7 @@ MStatus CArnoldVolumeShape::initialize()
 }
 
 #ifdef ENABLE_VP2
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
 /* override */
 MSelectionMask CArnoldVolumeShape::getShapeSelectionMask() const
 //

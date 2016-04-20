@@ -176,10 +176,6 @@ if system.os() == 'windows':
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 
     maya_version_base = maya_version[0:4]
-   
-    # need to temporarily set 201650 as 2017
-    if int(maya_version) >= 201650:
-        maya_version_base="2017"
 
     msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
@@ -268,9 +264,6 @@ if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
     env['ENABLE_LOOKDEVKIT'] = 1
 
-#need to temporarily set 201650 as 2017
-if int(maya_version) >= 201650:
-    maya_version_base = "2017"
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
@@ -347,10 +340,15 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-    compiler_version = env['COMPILER_VERSION']
-    if compiler_version != '':
-        env['CC']  = 'gcc' + compiler_version
-        env['CXX'] = 'g++' + compiler_version
+    if system.os() == 'linux' and env['SHCC'] != '':
+        env['CC'] = env['SHCC']
+        env['CXX'] = env['SHCXX']
+    else:
+        compiler_version = env['COMPILER_VERSION']
+        if compiler_version != '':
+            env['CC']  = 'gcc' + compiler_version
+            env['CXX'] = 'g++' + compiler_version
+
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
     if env['MODE'] == 'opt': 
@@ -509,6 +507,9 @@ if env['ENABLE_BIFROST'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
 if env['ENABLE_LOOKDEVKIT'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
+
+if int(maya_version_base) < 2017:
+    env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
 
 ## platform related defines
 if system.os() == 'windows':
@@ -698,13 +699,6 @@ if not env['MTOA_DISABLE_RV']:
     if system.os() == 'windows':
         RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-
-        #temporarily copying OpenColorIO dll as it's currently dynamic for windows and versions >= 2016.5 no longer 
-        # have OpenColorIO.dll in the install folder
-        if int(maya_version) >= 201650:
-            OCIO_DYLIB = 'OpenColorIO'+ get_library_extension()
-            OCIO_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, OCIO_DYLIB)
-            env.Install(env['TARGET_BINARIES'], glob.glob(OCIO_DYLIBPATH))
     else:
         RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
@@ -819,9 +813,6 @@ if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
 
-# need to temporarily set 201650 as 2017
-if int(maya_version) >= 201650:
-    maya_base_version="2017"
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
@@ -987,6 +978,7 @@ PACKAGE_FILES = [
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
