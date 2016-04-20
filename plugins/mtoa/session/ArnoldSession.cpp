@@ -405,7 +405,7 @@ MStatus CArnoldSession::End()
    {
       ClearUpdateCallbacks();
    }
-   else if ((GetSessionMode() == MTOA_SESSION_ASS || GetSessionMode() == MTOA_SESSION_SEQUENCE) && MGlobal::mayaState() == MGlobal::kInteractive && IsMotionBlurEnabled())
+   else if (GetSessionMode() == MTOA_SESSION_ASS && MGlobal::mayaState() == MGlobal::kInteractive && IsMotionBlurEnabled())
    {
       // reset to export frame
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));

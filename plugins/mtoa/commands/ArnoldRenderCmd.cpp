@@ -36,6 +36,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("ofn", "origFileName", MSyntax::kString);
    syntax.addFlag("seq", "frameSequence", MSyntax::kString);
+   syntax.addFlag("srv", "saveToRenderView", MSyntax::kString);
 
    return syntax;
 }
@@ -76,7 +77,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-   int port = args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
+   int port = batch && args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
@@ -252,22 +253,45 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          byframestep = 1;
       }
 
+      // Find cameras to render
       MDagPathArray cameras;
-      MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-      // get all renderable cameras
-      for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+      if (args.isFlagSet("camera"))
       {
-         if (!dagIterCameras.getPath(dagPath))
+         MSelectionList sel;
+         args.getFlagArgument("camera", 0, sel);
+         MDagPath dagPath;
+         if (sel.getDagPath(0, dagPath) != MStatus::kSuccess)
          {
-            AiMsgError("[mtoa] Could not get path for DAG iterator");
-            return status;
+            AiMsgError("[mtoa] Could not get path to camera");
+            return MStatus::kFailure;
          }
+         cameras.append(dagPath);
+      }
+      else
+      {
+         MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+         // get all renderable cameras
+         for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+         {
+            if (!dagIterCameras.getPath(dagPath))
+            {
+               AiMsgError("[mtoa] Could not get path for DAG iterator");
+               return MStatus::kFailure;
+            }
 
-         MFnDependencyNode camDag(dagIterCameras.item());
-         if (camDag.findPlug("renderable").asBool())
-         {
-            cameras.append(dagPath);
+            MFnDependencyNode camDag(dagIterCameras.item());
+            if (camDag.findPlug("renderable").asBool())
+            {
+               cameras.append(dagPath);
+            }
          }
+      }
+
+      // Check if any camera should be saved to render view
+      MString saveToRenderView = "";
+      if (renderViewPanelName.length() > 0 && args.isFlagSet("saveToRenderView"))
+      {
+         saveToRenderView = args.flagArgumentString("saveToRenderView", 0);
       }
 
       std::set<double> frameSet;
@@ -323,9 +347,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          arnoldSession->SetExportFrame(framerender);
 
          CMayaScene::Export(selectedPtr);
-         // Reset resolution and output since it's a new export, new options node
-         renderSession->SetResolution(width, height);
-         
+
          if (renderViewPanelName.length() > 0)
             renderSession->SetRenderViewPanelName(renderViewPanelName);
 
@@ -335,14 +357,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                            "batch_progress_driver", "mtoa",
                            (AtNodeMethods*) batch_progress_driver_mtd, AI_VERSION);
          }
-         
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
+            const MDagPath& cameraDagPath = cameras[arrayIter];
+
             // It is ok to set the camera here, because if camera is no set at export time,
             // all the cameras are exported during the export.
-            arnoldSession->SetExportCamera(cameras[arrayIter]);
-            
+            arnoldSession->SetExportCamera(cameraDagPath);
+            renderSession->SetResolution(width, height);
+
             // append the batch progress driver at the end of the list if port flag has been added
             if (port != -1)
             {
@@ -378,19 +402,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                int status = renderSession->DoInteractiveRender();
                if (status == AI_SUCCESS)
                {
-                  if (renderViewPanelName.length() > 0)
+                  if (saveToRenderView == "all" || saveToRenderView == MFnDependencyNode(cameraDagPath.transform()).name()) {
                      CMayaScene::ExecuteScript("renderWindowMenuCommand(\"keepImageInRenderView\", \"" + renderViewPanelName + "\")");
-               }
-               else if (status == AI_INTERRUPT)
-               {
-                  CMayaScene::End();
-                  MGlobal::displayInfo("[mtoa] Sequence render aborted");
-                  return MS::kSuccess;
+                  }
                }
                else
                {
                   CMayaScene::End();
-                  MGlobal::displayError("[mtoa] Failed sequence render");
+                  if (status == AI_INTERRUPT)
+                     MGlobal::displayInfo("[mtoa] Sequence render aborted");
+                  else
+                     MGlobal::displayError("[mtoa] Failed sequence render");
                   return MS::kFailure;
                }
             }
