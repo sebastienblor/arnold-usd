@@ -57,6 +57,10 @@ MObject CArnoldAreaLightNode::aLightShadowFraction;
 MObject CArnoldAreaLightNode::aPreShadowIntensity;
 MObject CArnoldAreaLightNode::aLightBlindData;
 MObject CArnoldAreaLightNode::aLightData;
+MObject CArnoldAreaLightNode::aDropOff;
+MObject CArnoldAreaLightNode::aDecayRate;
+MObject CArnoldAreaLightNode::aUseRayTraceShadows;
+MObject CArnoldAreaLightNode::aDepthMapResolution;
 
 CArnoldAreaLightNode::CArnoldAreaLightNode() :
         m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
@@ -290,7 +294,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setReadable(true);
    nAttr.setWritable(false);
-   nAttr.setDefault(-1.0f, 0.0f, 0.0f);
+   nAttr.setDefault(0.0f, 0.0f, -1.0f);
 
    aLightIntensity = nAttr.createColor("lightIntensity", "li");
    nAttr.setStorable(false);
@@ -349,7 +353,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setWritable(false);
    lAttr.setStorable(false);
    lAttr.setHidden(true);
-   lAttr.setDefault(-1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.2f,
+   lAttr.setDefault(0.0f, 0.0f, -1.0f, 1.0f, 0.5f, 0.2f,
                      true, true, true, 0.0f, 1.0f, NULL);
 
    addAttribute(aLightData);
@@ -371,6 +375,32 @@ MStatus CArnoldAreaLightNode::initialize()
    attributeAffects(s_intensity, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
+
+   // Area light attributes for display control
+   aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(2.0);
+   addAttribute(aDropOff);
+
+   aDecayRate = nAttr.create( "decayRate", "de", MFnNumericData::kShort);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(2);
+   addAttribute(aDecayRate);
+
+   // Maya shadowing attributes
+   aUseRayTraceShadows = nAttr.create( "useRayTraceShadows", "urs", MFnNumericData::kBoolean);
+   nAttr.setDefault(true);   
+   addAttribute(aUseRayTraceShadows);
+
+   aDepthMapResolution = nAttr.create( "dmapResolution", "dr", MFnNumericData::kShort);
+   nAttr.setDefault(1024);   
+   addAttribute(aDepthMapResolution);
 
    return MS::kSuccess;
 }

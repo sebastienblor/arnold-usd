@@ -55,7 +55,7 @@ public:
    static  MObject s_OUT_transparencyG;
    static  MObject s_OUT_transparencyB;
    static  MObject s_OUT_transparency;
-   // Maya specific intputs
+   // Maya specific inputs
    static  MObject s_pointCamera;
    static  MObject s_normalCamera;
    // Maya specific Outputs
@@ -68,5 +68,12 @@ public:
    static  MObject aPreShadowIntensity;
    static  MObject aLightBlindData;
    static  MObject aLightData;
+   // Maya spot light inputs
+   static  MObject aConeAngle;
+   static  MObject aPenumbraAngle;
+   static  MObject aDropOff;
+   static  MObject aDecayRate;
+   static  MObject aUseRayTraceShadows;
+   static  MObject aDepthMapResolution;
    
 };  // class CArnoldPhotometricLightNode

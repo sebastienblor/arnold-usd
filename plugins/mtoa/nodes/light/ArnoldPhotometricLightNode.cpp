@@ -44,7 +44,7 @@ MObject CArnoldPhotometricLightNode::s_OUT_transparencyR;
 MObject CArnoldPhotometricLightNode::s_OUT_transparencyG;
 MObject CArnoldPhotometricLightNode::s_OUT_transparencyB;
 MObject CArnoldPhotometricLightNode::s_OUT_transparency;
-// Maya specific intputs
+// Maya specific inputs
 MObject CArnoldPhotometricLightNode::s_pointCamera;
 MObject CArnoldPhotometricLightNode::s_normalCamera;
 // Maya specific Outputs
@@ -57,7 +57,13 @@ MObject CArnoldPhotometricLightNode::aLightShadowFraction;
 MObject CArnoldPhotometricLightNode::aPreShadowIntensity;
 MObject CArnoldPhotometricLightNode::aLightBlindData;
 MObject CArnoldPhotometricLightNode::aLightData;
-
+// Maya spotlight inputs
+MObject CArnoldPhotometricLightNode::aConeAngle;
+MObject CArnoldPhotometricLightNode::aPenumbraAngle;
+MObject CArnoldPhotometricLightNode::aDropOff;
+MObject CArnoldPhotometricLightNode::aDecayRate;
+MObject CArnoldPhotometricLightNode::aUseRayTraceShadows;
+MObject CArnoldPhotometricLightNode::aDepthMapResolution;
 
 CArnoldPhotometricLightNode::CArnoldPhotometricLightNode() :
         m_boundingBox(MPoint(1.0, 0.7, 0.7), MPoint(-0.7, -2.0, -0.7))
@@ -148,7 +154,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setReadable(true);
    nAttr.setWritable(false);
-   nAttr.setDefault(-1.0f, 0.0f, 0.0f);
+   nAttr.setDefault(0.0f, -1.0f, 0.0f);
 
    aLightIntensity = nAttr.createColor("lightIntensity", "li");
    nAttr.setStorable(false);
@@ -207,7 +213,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setWritable(false);
    lAttr.setStorable(false);
    lAttr.setHidden(true);
-   lAttr.setDefault(-1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.2f,
+   lAttr.setDefault(0.0f, -1.0f, 0.0f, 1.0f, 0.5f, 0.2f,
                      true, true, true, 0.0f, 1.0f, NULL);
 
    addAttribute(aLightData);
@@ -230,7 +236,49 @@ MStatus CArnoldPhotometricLightNode::initialize()
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 
+   // Spot light attributes for display control
+   aConeAngle = nAttr.create("coneAngle", "ca", MFnNumericData::kDouble);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(120.0);
+   addAttribute(aConeAngle);
+
+   aPenumbraAngle = nAttr.create("penumbraAngle", "pa", MFnNumericData::kDouble);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(20.0);
+   addAttribute(aPenumbraAngle);
+
+   aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(2.0);
+   addAttribute(aDropOff);
+
+   aDecayRate = nAttr.create( "decayRate", "de", MFnNumericData::kShort);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(2);
+   addAttribute(aDecayRate);
+
+   aUseRayTraceShadows = nAttr.create( "useRayTraceShadows", "urs", MFnNumericData::kBoolean);
+   nAttr.setDefault(true);   
+   addAttribute(aUseRayTraceShadows);
+
+   aDepthMapResolution = nAttr.create( "dmapResolution", "dr", MFnNumericData::kShort);
+   nAttr.setDefault(1024);   
+   addAttribute(aDepthMapResolution);
+
    return MS::kSuccess;
+
 }
 
 MStatus CArnoldPhotometricLightNode::compute(const MPlug& plug, MDataBlock& block)
