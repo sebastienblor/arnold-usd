@@ -12,7 +12,7 @@ try:
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
     import maya.app.renderSetup.model.selector as selector
     import maya.app.renderSetup.model.utils as renderSetupUtils
-    from mtoa.aovs import AOVInterface, clearAOVChangedCallbacks
+    from mtoa.aovs import AOVInterface
     import mtoa.ui.aoveditor as aoveditor
     import json
 
