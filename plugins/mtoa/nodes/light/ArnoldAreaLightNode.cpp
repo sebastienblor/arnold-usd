@@ -68,6 +68,20 @@ CArnoldAreaLightNode::CArnoldAreaLightNode() :
 
 CArnoldAreaLightNode::~CArnoldAreaLightNode() {}
 
+
+#if MAYA_API_VERSION >= 201700
+void CArnoldAreaLightNode::postConstructor()
+{
+   // Always make the node not receive or cast shadows
+   //
+   MFnDependencyNode node(thisMObject());
+   MPlug plug = node.findPlug("receiveShadows");
+   plug.setValue(false);
+   plug = node.findPlug("castsShadows");
+   plug.setValue(false);
+}
+#endif
+
 MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
    // no need for GL stuff in the batch mode

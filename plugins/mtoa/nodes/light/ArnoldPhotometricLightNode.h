@@ -22,6 +22,9 @@ public:
    CArnoldPhotometricLightNode();
    virtual ~CArnoldPhotometricLightNode();
 
+#if MAYA_API_VERSION >= 201700
+   virtual void            postConstructor();
+#endif
    virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
    virtual bool            isBounded() const;
