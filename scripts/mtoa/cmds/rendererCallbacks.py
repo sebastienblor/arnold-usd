@@ -12,9 +12,8 @@ try:
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
     import maya.app.renderSetup.model.selector as selector
     import maya.app.renderSetup.model.utils as renderSetupUtils
-    from mtoa.aovs import AOVInterface
+    from mtoa.aovs import AOVInterface, clearAOVChangedCallbacks
     import mtoa.ui.aoveditor as aoveditor
-    import mtoa.callbacks as callbacks
     import json
 
     class ArnoldAOVCallbacks(rendererCallbacks.AOVCallbacks):
@@ -28,11 +27,9 @@ try:
                 cmds.window("unifiedRenderGlobalsWindow", edit=True, visible=False)
     
         def encode(self):
-            self._createUnifiedRenderGlobalsWindowIfNeeded()
             aovsJSON = {}
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
 
-            aovNodes = AOVInterface().getAOVNodes()
             outputs = []
             aovs = []
             drivers = []
@@ -40,39 +37,44 @@ try:
             uniqueDrivers = set()
             uniqueFilters = set()
 
-            # Iterate over our aovNodes (aiAOV nodes)
-            for aovNode in aovNodes:
-                aovNodeName = aovNode.name()
-                numOutputs = cmds.getAttr(aovNodeName + ".outputs", size=True)
-                currentOutputs = []
-                
-                # Iterate over our output connections which have driver and filter connections
-                for outputNum in range(0, numOutputs):
-                    driver = cmds.listConnections(aovNodeName + ".outputs[" + str(outputNum) + "].driver")[0]
-                    filter = cmds.listConnections(aovNodeName + ".outputs[" + str(outputNum) + "].filter")[0]
-
-                    # If we don't have this driver yet, add it to the list
-                    if not driver in uniqueDrivers:
-                        uniqueDrivers.add(driver)
-                        basicNodeExporter.setNodes([driver])
-                        drivers.append({driver : basicNodeExporter.encode()})
-
-                    # If we don't have this filter yet, add it to the list
-                    if not filter in uniqueFilters:
-                        uniqueFilters.add(filter)
-                        basicNodeExporter.setNodes([filter])
-                        filters.append({filter : basicNodeExporter.encode()})
+            try:
+                aovNodes = AOVInterface().getAOVNodes()
+            except Exception:
+                pass
+            else:
+                # Iterate over our aovNodes (aiAOV nodes)
+                for aovNode in aovNodes:
+                    aovNodeName = aovNode.name()
+                    numOutputs = cmds.getAttr(aovNodeName + ".outputs", size=True)
+                    currentOutputs = []
                     
-                    # Append our current aovNode's driver and filter to the currentOutputs
-                    currentOutputs.append( { "driver" : driver, "filter" : filter } )
-                    
-                # Set the outputs for the specified node name.
-                outputs.append({ aovNodeName : currentOutputs })
+                    # Iterate over our output connections which have driver and filter connections
+                    for outputNum in range(0, numOutputs):
+                        driver = cmds.listConnections(aovNodeName + ".outputs[" + str(outputNum) + "].driver")[0]
+                        filter = cmds.listConnections(aovNodeName + ".outputs[" + str(outputNum) + "].filter")[0]
 
-                # Set the AOV information for the current AOV node name.
-                basicNodeExporter.setNodes([aovNodeName])
-                aovs.append( { aovNodeName : basicNodeExporter.encode() })
-                
+                        # If we don't have this driver yet, add it to the list
+                        if not driver in uniqueDrivers:
+                            uniqueDrivers.add(driver)
+                            basicNodeExporter.setNodes([driver])
+                            drivers.append({driver : basicNodeExporter.encode()})
+
+                        # If we don't have this filter yet, add it to the list
+                        if not filter in uniqueFilters:
+                            uniqueFilters.add(filter)
+                            basicNodeExporter.setNodes([filter])
+                            filters.append({filter : basicNodeExporter.encode()})
+                        
+                        # Append our current aovNode's driver and filter to the currentOutputs
+                        currentOutputs.append( { "driver" : driver, "filter" : filter } )
+                        
+                    # Set the outputs for the specified node name.
+                    outputs.append({ aovNodeName : currentOutputs })
+
+                    # Set the AOV information for the current AOV node name.
+                    basicNodeExporter.setNodes([aovNodeName])
+                    aovs.append( { aovNodeName : basicNodeExporter.encode() })
+
             # Set the AOV, filters, drivers, and outputs values
             aovsJSON["aovs"] = aovs
             aovsJSON["filters"] = filters
@@ -141,8 +143,11 @@ try:
                 outputs = aovsJSON[outputType]
                 for output in outputs:
                     for outputName, outputJSON in output.iteritems():
-                        # If our output name doesn't match our new output name, 
-                        # then we need to rename the output in our JSON data.
+                        # If you have an existing scene of AOV nodes and are doing a merge import,
+                        # then you may have a name collision as the saved out node names may be
+                        # the same as nodes existing in the scene. In this case the nodes we are
+                        # importing need to be renamed to the unique node name that is assigned to
+                        # them on creation.
                         if outputName in outputNewNameMap:
                             outputJSON = json.loads(json.dumps(outputJSON).replace(outputName, outputNewNameMap[outputName]))
                         basicNodeExporter.decode(outputJSON)
@@ -150,7 +155,7 @@ try:
             # Rebuild Arnold AOV tab as it has changed.
             aoveditor.refreshArnoldAOVTab()
 
-        # Displays the AOV unifiedRenderGlobalsWindow tab
+        # Displays the AOV unifiedRenderGlobalsWindow tab. This is needed as each renderer stores its AOVs in a unique location.
         def displayMenu(self):
             mel.eval('unifiedRenderGlobalsWindow')
             mel.eval('setCurrentTabInRenderGlobalsWindow(\"AOVs\")')
@@ -166,7 +171,7 @@ try:
                 if cmds.nodeType(aiAOVNode) == "aiAOV":
                     return self.getAOVName(aiAOVNode)
                 else:
-                    raise ValueError('The attached item is not an aiAOV node as required.')
+                    raise ValueError(_L10N(kAiAOVNodeNotFound, 'The attached item is not an aiAOV node as required.'))
 
         # Creates a selector for the AOV Collection that selects all aovNodes (aiAOV, aiAOVDriver, aiAOVFilter nodes)
         def getCollectionSelector(self, selectorName):
