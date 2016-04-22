@@ -77,7 +77,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-   int port = batch && args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
@@ -238,6 +237,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    {
       // TODO: This really needs to go. We're translating the whole scene for a couple of
       // render options.
+
+      // If in batch rendering mode, check if a port was given to use for communication
+      int port = batch && args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
 
       double startframe;
       double endframe;
@@ -463,8 +465,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       renderSession->DoInteractiveRender();
 
       CMayaScene::End();
-      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
-
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);
       // DEBUG_MEMORY;
    }
 
