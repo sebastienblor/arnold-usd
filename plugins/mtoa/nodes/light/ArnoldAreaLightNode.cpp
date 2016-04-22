@@ -47,6 +47,7 @@ MObject CArnoldAreaLightNode::s_OUT_transparency;
 // Maya specific intputs
 MObject CArnoldAreaLightNode::s_pointCamera;
 MObject CArnoldAreaLightNode::s_normalCamera;
+
 // Maya specific Outputs
 MObject CArnoldAreaLightNode::aLightDirection;
 MObject CArnoldAreaLightNode::aLightIntensity;
@@ -57,28 +58,88 @@ MObject CArnoldAreaLightNode::aLightShadowFraction;
 MObject CArnoldAreaLightNode::aPreShadowIntensity;
 MObject CArnoldAreaLightNode::aLightBlindData;
 MObject CArnoldAreaLightNode::aLightData;
+#if MAYA_API_VERSION >= 201700
+// Maya area light attributes
 MObject CArnoldAreaLightNode::aDropOff;
 MObject CArnoldAreaLightNode::aDecayRate;
 MObject CArnoldAreaLightNode::aUseRayTraceShadows;
 MObject CArnoldAreaLightNode::aDepthMapResolution;
+#endif
 
 CArnoldAreaLightNode::CArnoldAreaLightNode() :
         m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
+        , m_aiCastShadows(true), m_aiCastVolumetricShadows(true)
 { }
 
-CArnoldAreaLightNode::~CArnoldAreaLightNode() {}
-
+CArnoldAreaLightNode::~CArnoldAreaLightNode() 
+{
+#if MAYA_API_VERSION >= 201700
+   MMessage::removeCallback( m_attrChangeId );
+#endif
+}
 
 #if MAYA_API_VERSION >= 201700
 void CArnoldAreaLightNode::postConstructor()
 {
-   // Always make the node not receive or cast shadows
+   // Make the node not receive shadows but cast shadows
    //
-   MFnDependencyNode node(thisMObject());
+   MObject me = thisMObject();    
+
+   MFnDependencyNode node(me);
    MPlug plug = node.findPlug("receiveShadows");
    plug.setValue(false);
    plug = node.findPlug("castsShadows");
-   plug.setValue(false);
+   plug.setValue(true);
+
+   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
+}
+
+// Map node's attribute value changes to ones understood by Maya
+void CArnoldAreaLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
+{
+   if (msg & MNodeMessage::kAttributeSet)
+   {
+      CArnoldAreaLightNode *node = static_cast<CArnoldAreaLightNode*>(clientData);
+      if (!node)
+         return; 
+      
+      bool updateShadowAttr = false;
+      MFnAttribute fnAttr(plug.attribute());
+      if (fnAttr.name() == "aiCastShadows")
+      {
+         node->m_aiCastShadows = plug.asBool();
+         updateShadowAttr = true;
+      }
+      else if (fnAttr.name() == "aiCastVolumetricShadows")
+      {
+         node->m_aiCastVolumetricShadows = plug.asBool();
+         updateShadowAttr = true;
+      }
+      else if (fnAttr.name() == "aiDecayType")
+      {
+         int decayType = plug.asInt();
+         int decayRate = 2;
+         if (decayType == 0)
+         {
+            decayRate = 0;
+         }
+         else
+         {
+            decayRate = 2;
+         }
+         MPlug plug(node->thisMObject(), aDecayRate);
+         plug.setValue( decayRate );
+      }
+      else if (fnAttr.name() == "aiShadowColor")
+      {
+      }
+
+      if (updateShadowAttr)
+      {
+         MPlug plug(node->thisMObject(), aUseRayTraceShadows);
+         plug.setValue(node->m_aiCastShadows || node->m_aiCastVolumetricShadows);
+      }
+   }
 }
 #endif
 
@@ -87,11 +148,11 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    // no need for GL stuff in the batch mode
    if (plug != s_update || MGlobal::mayaState() == MGlobal::kBatch)
       return MS::kUnknownParameter;
-   
+
    // do this calculation every time if
    // the mesh is changed, because aiTranslator cannot affect update
    block.setClean(s_update);
-      
+
    return MS::kSuccess;
 }
 
@@ -106,8 +167,8 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    MObject tmo = thisMObject();
    MFnDependencyNode myNode(tmo);
    MPlug translatorPlug = myNode.findPlug("aiTranslator");
-   MString areaType = translatorPlug.asString();   
-   
+   MString areaType = translatorPlug.asString();
+
    view.beginGL();
    // Get all GL bits
    glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT);
@@ -137,16 +198,16 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       break;
    }
    bool setBoundingBox = true;
-   
+
    // Disk
    if (areaType == "disk")
-   {      
+   {
       glPushMatrix();
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
       transformMatrix.getScale(scale, MSpace::kWorld);
       if (scale[0] != scale[1]) // non uniform scaling across x and y
-      {     
+      {
          if (scale[0] != 0.0)
             glScaled(1.0 / scale[0], 1.0, 1.0);
          if (scale[1] != 0)
@@ -167,12 +228,12 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    // Cylinder
    else if (areaType == "cylinder")
    {
-      glPushMatrix();      
+      glPushMatrix();
       MTransformationMatrix transformMatrix(dagPath.inclusiveMatrix());
       double scale[3];
       transformMatrix.getScale(scale, MSpace::kWorld);
       if (scale[0] != scale[2]) // non uniform scaling across x and y
-      {     
+      {
          if (scale[0] != 0.0)
             glScaled(1.0 / scale[0], 1.0, 1.0);
          if (scale[2] != 0)
@@ -189,13 +250,13 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    {
       glBegin(GL_LINES);
       glVertex3f(-1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f, 1.0f, 0.0f);      
       glVertex3f( 1.0f, 1.0f, 0.0f);
-      glVertex3f( 1.0f,-1.0f, 0.0f);      
+      glVertex3f( 1.0f, 1.0f, 0.0f);
       glVertex3f( 1.0f,-1.0f, 0.0f);
-      glVertex3f(-1.0f,-1.0f, 0.0f);      
+      glVertex3f( 1.0f,-1.0f, 0.0f);
       glVertex3f(-1.0f,-1.0f, 0.0f);
-      glVertex3f(-1.0f, 1.0f, 0.0f);      
+      glVertex3f(-1.0f,-1.0f, 0.0f);
+      glVertex3f(-1.0f, 1.0f, 0.0f);
       glVertex3f(-1.0f, 1.0f, 0.0f);
       glVertex3f( 1.0f,-1.0f, 0.0f);
       glVertex3f(-1.0f,-1.0f, 0.0f);
@@ -205,15 +266,15 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       glVertex3f( 0.0f, 0.0f,-1.0f);
       glEnd();
    }
-   
-   
-   
+
+
+
    // There is a reason for this
    // I can`t set attributeAffects with aiTranslator
    // because that parameter is not created in this node
    if (setBoundingBox)
       m_boundingBox = MBoundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0));
-   
+
    // Restore all GL bits
    glPopAttrib();
    view.endGL();
@@ -288,7 +349,7 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setWritable(true);
    nAttr.setChannelBox(true);
    addAttribute(s_normalCamera);
-   
+
    s_update = nAttr.create("update", "upt", MFnNumericData::kBoolean);
    nAttr.setDefault(false);
    addAttribute(s_update);
@@ -390,31 +451,29 @@ MStatus CArnoldAreaLightNode::initialize()
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 
+#if MAYA_API_VERSION >= 201700
    // Area light attributes for display control
    aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);
-   nAttr.setStorable(false);
    nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(2.0);
    addAttribute(aDropOff);
 
    aDecayRate = nAttr.create( "decayRate", "de", MFnNumericData::kShort);
-   nAttr.setStorable(false);
    nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(2);
    addAttribute(aDecayRate);
 
    // Maya shadowing attributes
    aUseRayTraceShadows = nAttr.create( "useRayTraceShadows", "urs", MFnNumericData::kBoolean);
-   nAttr.setDefault(true);   
+   nAttr.setDefault(true);
+   nAttr.setHidden(true);
    addAttribute(aUseRayTraceShadows);
 
    aDepthMapResolution = nAttr.create( "dmapResolution", "dr", MFnNumericData::kShort);
-   nAttr.setDefault(1024);   
+   nAttr.setHidden(true);
+   nAttr.setDefault(1024);
    addAttribute(aDepthMapResolution);
+#endif
 
    return MS::kSuccess;
 }

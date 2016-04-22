@@ -14,12 +14,15 @@
 #include <maya/MPlug.h>
 #include <maya/MDagPath.h>
 #include <maya/MDataBlock.h>
+#if MAYA_API_VERSION >= 201700
+#include <maya/MNodeMessage.h>
+#endif
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
-#else 
+#else
    #include <GL/gl.h>
-#endif   
+#endif
 
 class CArnoldAreaLightNode : public MPxLocatorNode
 {
@@ -29,6 +32,7 @@ public:
 
 #if MAYA_API_VERSION >= 201700
    virtual void            postConstructor();
+   static void             attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
 #endif
    virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
@@ -74,13 +78,22 @@ public:
    static  MObject aPreShadowIntensity;
    static  MObject aLightBlindData;
    static  MObject aLightData;
+#if MAYA_API_VERSION >= 201700
    // Maya shadowing inputs
    static  MObject aDropOff;
    static  MObject aDecayRate;
    static  MObject aUseRayTraceShadows;
    static  MObject aDepthMapResolution;
+#endif
 
 public:
    MBoundingBox         m_boundingBox;
    static   MTypeId     id;
+
+#if MAYA_API_VERSION >= 201700
+private:
+   MCallbackId m_attrChangeId;
+   bool  m_aiCastShadows;
+   bool  m_aiCastVolumetricShadows;
+#endif
 };  // class CArnoldAreaLightNode

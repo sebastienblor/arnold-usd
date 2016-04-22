@@ -57,6 +57,7 @@ MObject CArnoldPhotometricLightNode::aLightShadowFraction;
 MObject CArnoldPhotometricLightNode::aPreShadowIntensity;
 MObject CArnoldPhotometricLightNode::aLightBlindData;
 MObject CArnoldPhotometricLightNode::aLightData;
+#if MAYA_API_VERSION >= 201700
 // Maya spotlight inputs
 MObject CArnoldPhotometricLightNode::aConeAngle;
 MObject CArnoldPhotometricLightNode::aPenumbraAngle;
@@ -64,12 +65,18 @@ MObject CArnoldPhotometricLightNode::aDropOff;
 MObject CArnoldPhotometricLightNode::aDecayRate;
 MObject CArnoldPhotometricLightNode::aUseRayTraceShadows;
 MObject CArnoldPhotometricLightNode::aDepthMapResolution;
+#endif
 
 CArnoldPhotometricLightNode::CArnoldPhotometricLightNode() :
         m_boundingBox(MPoint(1.0, 0.7, 0.7), MPoint(-0.7, -2.0, -0.7))
 { }
 
-CArnoldPhotometricLightNode::~CArnoldPhotometricLightNode() {}
+CArnoldPhotometricLightNode::~CArnoldPhotometricLightNode() 
+{
+#if MAYA_API_VERSION >= 201700
+   MMessage::removeCallback( m_attrChangeId );
+#endif
+}
 
 void* CArnoldPhotometricLightNode::creator()
 {
@@ -114,13 +121,13 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setKeyable(true);
    nAttr.setChannelBox(true);
    addAttribute(s_affectSpecular);
-   
+
    /*s_filename = tAttr.create("aiFilename", "ai_filename", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_filename);*/
-   
-   
+
+
 
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
@@ -236,47 +243,38 @@ MStatus CArnoldPhotometricLightNode::initialize()
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 
+#if MAYA_API_VERSION >= 201700
    // Spot light attributes for display control
    aConeAngle = nAttr.create("coneAngle", "ca", MFnNumericData::kDouble);
-   nAttr.setStorable(false);
    nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(120.0);
    addAttribute(aConeAngle);
 
    aPenumbraAngle = nAttr.create("penumbraAngle", "pa", MFnNumericData::kDouble);
-   nAttr.setStorable(false);
    nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(20.0);
    addAttribute(aPenumbraAngle);
 
    aDropOff = nAttr.create("dropoff", "dro", MFnNumericData::kDouble);
-   nAttr.setStorable(false);
    nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(2.0);
    addAttribute(aDropOff);
 
    aDecayRate = nAttr.create( "decayRate", "de", MFnNumericData::kShort);
-   nAttr.setStorable(false);
    nAttr.setHidden(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(false);
    nAttr.setDefault(2);
    addAttribute(aDecayRate);
 
    aUseRayTraceShadows = nAttr.create( "useRayTraceShadows", "urs", MFnNumericData::kBoolean);
-   nAttr.setDefault(true);   
+   nAttr.setHidden(true);
+   nAttr.setDefault(true);
    addAttribute(aUseRayTraceShadows);
 
    aDepthMapResolution = nAttr.create( "dmapResolution", "dr", MFnNumericData::kShort);
-   nAttr.setDefault(1024);   
+   nAttr.setHidden(true);
+   nAttr.setDefault(1024);
    addAttribute(aDepthMapResolution);
-
+#endif
    return MS::kSuccess;
 
 }
@@ -284,13 +282,50 @@ MStatus CArnoldPhotometricLightNode::initialize()
 #if MAYA_API_VERSION >= 201700
 void CArnoldPhotometricLightNode::postConstructor()
 {
-   // Always make the node not receive or cast shadows
+   // Make the node not receive shadows but cast shadows
    //
-   MFnDependencyNode node(thisMObject());
+   MObject me = thisMObject();    
+
+   MFnDependencyNode node(me);
    MPlug plug = node.findPlug("receiveShadows");
    plug.setValue(false);
    plug = node.findPlug("castsShadows");
-   plug.setValue(false);
+   plug.setValue(true);
+
+   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
+}
+
+// Map node's attribute value changes to ones understood by Maya
+void CArnoldPhotometricLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
+{
+   if (msg & MNodeMessage::kAttributeSet)
+   {
+      CArnoldPhotometricLightNode *node = static_cast<CArnoldPhotometricLightNode*>(clientData);
+      if (!node)
+         return; 
+      
+      bool updateShadowAttr = false;
+      MFnAttribute fnAttr(plug.attribute());
+      if (fnAttr.name() == "aiCastShadows")
+      {
+         node->m_aiCastShadows = plug.asBool();
+         updateShadowAttr = true;
+      }
+      else if (fnAttr.name() == "aiCastVolumetricShadows")
+      {
+         node->m_aiCastVolumetricShadows = plug.asBool();
+         updateShadowAttr = true;
+      }
+      else if (fnAttr.name() == "aiShadowColor")
+      {
+      }
+
+      if (updateShadowAttr)
+      {
+         MPlug plug(node->thisMObject(), aUseRayTraceShadows);
+         plug.setValue(node->m_aiCastShadows || node->m_aiCastVolumetricShadows);
+      }
+   }
 }
 #endif
 
@@ -305,11 +340,11 @@ MStatus CArnoldPhotometricLightNode::compute(const MPlug& plug, MDataBlock& bloc
 
 void CArnoldPhotometricLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
 {
-   if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;    
+   if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;
    M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
 
    MStatus status;
-   
+
    view.beginGL();
    // only push the bits that are actually changed
    glPushAttrib(GL_POLYGON_BIT | GL_CURRENT_BIT);
@@ -333,7 +368,7 @@ void CArnoldPhotometricLightNode::draw( M3dView & view, const MDagPath & dagPath
 
    static CPhotometricLightPrimitive primitive;
    primitive.draw();
-   
+
    // Restore all GL bits
    glPopAttrib();
    view.endGL();
@@ -353,4 +388,3 @@ bool CArnoldPhotometricLightNode::excludeAsLocator() const
 {
    return false;
 }
-

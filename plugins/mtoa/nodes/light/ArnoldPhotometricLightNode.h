@@ -9,9 +9,9 @@
 
 #if defined(_DARWIN)
    #include <OpenGL/gl.h>
-#else 
+#else
    #include <GL/gl.h>
-#endif 
+#endif
 
 
 class CArnoldPhotometricLightNode
@@ -24,6 +24,7 @@ public:
 
 #if MAYA_API_VERSION >= 201700
    virtual void            postConstructor();
+   static void             attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
 #endif
    virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
@@ -35,7 +36,7 @@ public:
 
    static MTypeId       id;
    MBoundingBox         m_boundingBox;
-   
+
    static CStaticAttrHelper s_attributes;
 
    // Input attributes
@@ -46,7 +47,7 @@ public:
    static  MObject s_intensity;
    static  MObject s_affectDiffuse;
    static  MObject s_affectSpecular;
-   
+
    static  MObject s_filename;
 
    // Arnold outputs
@@ -71,6 +72,7 @@ public:
    static  MObject aPreShadowIntensity;
    static  MObject aLightBlindData;
    static  MObject aLightData;
+#if MAYA_API_VERSION >= 201700
    // Maya spot light inputs
    static  MObject aConeAngle;
    static  MObject aPenumbraAngle;
@@ -78,5 +80,10 @@ public:
    static  MObject aDecayRate;
    static  MObject aUseRayTraceShadows;
    static  MObject aDepthMapResolution;
-   
+
+private:
+   MCallbackId m_attrChangeId;
+   bool  m_aiCastShadows;
+   bool  m_aiCastVolumetricShadows;
+#endif
 };  // class CArnoldPhotometricLightNode
