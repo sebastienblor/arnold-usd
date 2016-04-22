@@ -210,9 +210,13 @@ def _register():
                                            ('int', 'doShadows'), ('int', 'doGlowPass'),
                                            ('string', 'camera'), ('string', 'options')])
     args['renderRegionProcedure'] = 'mayaRenderRegion'
-    args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
+
+    maya_version = versions.shortName()
+    if int(maya_version) >= 2017:
+        args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
                                           [('int', 'width'), ('int', 'height'),
                                            ('string', 'camera'), ('string', 'saveToRenderView')])
+
     args['commandRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                     [('string', 'option')])
     args['batchRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
