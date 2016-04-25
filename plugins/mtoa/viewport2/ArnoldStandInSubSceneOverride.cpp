@@ -25,12 +25,13 @@
 const MString colorParameterName_       = "solidColor";
 const MString diffuseColorParameterName_ = "diffuseColor";
 
-const MString unselectedItemName_       = "UI";
+const MString unselectedItemName_       = "unselected_UI";
 const MString selectedItemName_         = "selected_UI";
 const MString leadItemName_             = "lead_UI";
 const MString polyItemName_             = "polygons";
+const MString shadedPolyItemName_       = "polygons_shaded";
 
-const MString unselectedDeferItemName_  = "defer_UI";
+const MString unselectedDeferItemName_  = "unselected_defer_UI";
 const MString selectedDeferItemName_    = "selected_defer_UI";
 const MString leadDeferItemName_        = "lead_defer_UI";
 
@@ -65,16 +66,19 @@ static const float cube[][3] = { {0.0f, 0.0f, 0.0f},
 static const int kCubeCount = 24;
 
 namespace {
-    void standInAttributeChanged(MNodeMessage::AttributeMessage /*msg*/, MPlug& /*plug*/, MPlug& /*otherPlug*/, void *clientData)
+    void standInAttributeChanged(MNodeMessage::AttributeMessage /*msg*/, MPlug& plug, MPlug& /*otherPlug*/, void *clientData)
     {
-        static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate();
+        MFnAttribute attr(plug.attribute());
+        MString attrName = attr.name();
+        bool reuse = (attrName == "mode" || attrName == "standInDrawOverride" || attrName == "deferStandinLoad") ? true : false;
+        static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(reuse);
     }
 
     void globalOptionsChanged(MNodeMessage::AttributeMessage /*msg*/, MPlug& plug, MPlug& /*otherPlug*/, void *clientData)
     {
         // invalidate the draw data if the global draw override changes.
         if (plug.attribute() == CArnoldOptionsNode::s_enable_standin_draw)
-            static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate();
+            static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(true);
     }
 
     // Helper class for link lost callback
@@ -106,6 +110,7 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mShaderFromNode(NULL)
 , mLocatorNode(obj)
 , mBBChanged(true)
+, mReuseBuffers(false)
 , mOneTimeUpdate(true)
 , mAttribChangedID(0)
 , fNumInstances(0)
@@ -204,6 +209,31 @@ bool CArnoldStandInSubSceneOverride::anyChanges(const MHWRender::MSubSceneContai
     return mOneTimeUpdate||mBBChanged;
 }
 
+namespace {
+    void clearRenderItem(MHWRender::MSubSceneContainer& container, const MString& itemName, bool reuse)
+    {
+        MHWRender::MRenderItem* item = container.find(itemName);
+        if (item) // delete or disable the item 
+        {
+            if (reuse)
+                item->enable(false);
+            else
+                container.remove(itemName);
+        }
+    }
+
+    MHWRender::MRenderItem* findRenderItem(MHWRender::MSubSceneContainer& container, const MString& itemName, bool reuse)
+    {
+        MHWRender::MRenderItem* item = container.find(itemName);
+        if (item && !reuse)
+        {
+            container.remove(itemName);
+            return NULL;
+        }
+        return item;
+    }
+}
+
 void CArnoldStandInSubSceneOverride::update(
     MHWRender::MSubSceneContainer& container, const MHWRender::MFrameContext& frameContext)
 {
@@ -212,13 +242,13 @@ void CArnoldStandInSubSceneOverride::update(
 
     // initialize
     mOneTimeUpdate = false;
-    container.clear();
+    //container.clear();
 
     // get data to use later.
     MStatus status;
     MFnDagNode node(mLocatorNode, &status);
     CArnoldStandInShape* standIn = static_cast<CArnoldStandInShape*>(node.userNode());
-    CArnoldStandInGeom* geom = standIn->geometry();
+    CArnoldStandInGeom* geom = NULL;
 
     if (fNumInstances == 0)
         return; //early out if there are no instances
@@ -242,7 +272,7 @@ void CArnoldStandInSubSceneOverride::update(
     int drawOverride = getDrawOverride();
 
     // get the draw mode
-    int mode = geom->mode;
+    int mode = standIn->drawMode();
     if (drawOverride == 1 || drawOverride == 3)
         mode = 0; // bounding box
     else if (drawOverride == 2)
@@ -255,7 +285,7 @@ void CArnoldStandInSubSceneOverride::update(
     bool wantWireframe(mode==2||mode==3||mode==5);
     bool wantPoints(mode==4);
     bool wantShaded(mode==5||mode==6);
-    bool wantDeferBox = (geom->deferStandinLoad && drawOverride <= 0);
+    bool wantDeferBox = (standIn->deferStandinLoad() && drawOverride <= 0);
 
     MHWRender::MRenderItem* shadedItem = NULL;
     MHWRender::MRenderItem* selectedItem = NULL;
@@ -267,45 +297,70 @@ void CArnoldStandInSubSceneOverride::update(
 
     if (wantShaded)
     {
-        size_t sharedVertexCount = geom->SharedVertexCount();
-        if (sharedVertexCount > 0)
+        // TODO: There are currently problems with flipped normals or negatively scaled geometry with the shader from node for some reason.
+        //if (!mShaderFromNode)
+        //    updateShaderFromNode();
+
+        shadedItem = findRenderItem(container, shadedPolyItemName_, mReuseBuffers);
+        if (!shadedItem)
         {
-            // TODO: There are currently problems with flipped normals or negatively scaled geometry with the shader from node for some reason.
-            if (!mShaderFromNode)
-                updateShaderFromNode();
+            geom = geom ? geom : standIn->geometry(); // load this as late as possible
 
-            shadedItem = getItem(container, polyItemName_, MHWRender::MGeometry::kTriangles,
-                MHWRender::MRenderItem::sDormantFilledDepthPriority);
-            updateRenderItem(container, geom, shadedItem, sharedVertexCount, (mShaderFromNode ? mShaderFromNode : mBlinnShader), true);
-
-            if (!wantWireframe && !wantDeferBox)
+            size_t sharedVertexCount = geom->SharedVertexCount();
+            if (sharedVertexCount > 0)
             {
-                // if only drawing shaded mode then draw a box for the selected instances 
-                // to give some indication of the selection.  Don't draw any boxes for unselected items.
-                wantBox = true;
-                anyInstanceUnselected = false;
+                shadedItem = getItem(container, shadedPolyItemName_, MHWRender::MGeometry::kTriangles,
+                    MHWRender::MRenderItem::sDormantFilledDepthPriority);
+                updateRenderItem(container, geom, shadedItem, sharedVertexCount, (mShaderFromNode ? mShaderFromNode : mBlinnShader), true);
+            }
+            else // no normals, try solid
+            {
+                wantShaded = false;
+                wantSolid = true;
             }
         }
-        else // no normals, try solid
-            wantSolid = true;
+        else
+            shadedItem->enable(true);
+ 
+        if (!wantWireframe && !wantDeferBox)
+        {
+            // if only drawing shaded mode then draw a box for the selected instances 
+            // to give some indication of the selection.  Don't draw any boxes for unselected items.
+            wantBox = true;
+            anyInstanceUnselected = false;
+        }
     }
+    if (!wantShaded) // clear or reset the item if not used
+        clearRenderItem(container, shadedPolyItemName_, mReuseBuffers);
 
-    size_t totalPoints = geom->PointCount();
     if (wantSolid)
     {
-        if (geom->TriangleIndexCount())
+        shadedItem = findRenderItem(container, polyItemName_, mReuseBuffers);
+        if (!shadedItem)
         {
-	        shadedItem = getItem(container, polyItemName_, MHWRender::MGeometry::kTriangles, 
-	            MHWRender::MRenderItem::sDormantFilledDepthPriority);
-	        updateRenderItem(container, geom, shadedItem, totalPoints, mSolidShader);
-        } 
-        else // no triangles, try wireframe
-            wantWireframe = true;
+            geom = geom ? geom : standIn->geometry(); // load this as late as possible
+
+            if (geom->TriangleIndexCount())
+            {
+                size_t totalPoints = geom->PointCount();
+                shadedItem = getItem(container, polyItemName_, MHWRender::MGeometry::kTriangles,
+                    MHWRender::MRenderItem::sDormantFilledDepthPriority);
+                updateRenderItem(container, geom, shadedItem, totalPoints, mSolidShader);
+
+            }
+            else // no triangles, try wireframe
+            {
+                wantSolid = false;
+                wantWireframe = true;
+            }
+        }
+        else
+            shadedItem->enable(true);
     }
+    if (!wantSolid) // clear or reset the item if not used
+        clearRenderItem(container, polyItemName_, mReuseBuffers);
 
     // update the UI items
-    bool hasUIItems = false;
-    bool boxMode = false;
     MHWRender::MGeometry::Primitive geometryType = MHWRender::MGeometry::kLines;
 
     // arrays of elements each to handle selected, unselected, and lead items
@@ -313,59 +368,79 @@ void CArnoldStandInSubSceneOverride::update(
     MHWRender::MRenderItem** items[] = {&unselectedItem, &selectedItem, &leadItem};
     MHWRender::MRenderItem** deferItems[] = { &unselectedDeferItem, &selectedDeferItem, &leadDeferItem };
     const MString itemNames[] = { unselectedItemName_, selectedItemName_, leadItemName_};
-    const MString deferItemNames[] = { unselectedDeferItemName_, selectedDeferItemName_, leadDeferItemName_ };
     const MHWRender::MShaderInstance* shaders[] = { mSolidUIShader, mSelectedSolidUIShader, mLeadSolidUIShader };
 
     if (wantWireframe)
     {
-        hasUIItems = geom->WireIndexCount() > 0;
-        wantPoints = !hasUIItems; // if no wireframe try points
+        geom = geom ? geom : standIn->geometry(); // load this as late as possible
+        wantPoints = (geom->WireIndexCount() == 0); // if no wireframe try points
     }
     if (wantPoints)
     {
-        hasUIItems = geom->PointCount() > 0;
-        geometryType = hasUIItems ? MHWRender::MGeometry::kPoints : geometryType;
-        wantBoxes = !hasUIItems; // if no points, try bounding boxes.
+        geom = geom ? geom : standIn->geometry(); // load this as late as possible
+        wantBoxes = (geom->PointCount() == 0); // if no points, try bounding boxes.
+        if (!wantBoxes)
+            geometryType = MHWRender::MGeometry::kPoints;
     }
     if (wantBoxes)
     {
-        hasUIItems = geom->VisibleGeometryCount() > 0;
-        totalPoints = hasUIItems ? geom->VisibleGeometryCount()*kCubeCount : totalPoints;
-        boxMode = true;
-        wantBox = !hasUIItems; // no visible geometry.  Draw a single box.
+        geom = geom ? geom : standIn->geometry(); // load this as late as possible
+        wantBox = (geom->VisibleGeometryCount() == 0); // no visible geometry.  Draw a single box.
     }
-    if (wantBox)
-        hasUIItems = true;
+
+    const bool testType[] = { wantWireframe, wantPoints, wantBoxes, wantBox, wantDeferBox };
+    const MString typeNames[] = { "_wires", "_points", "_boxes", "_box", "_deferBox" };
 
     // if we have any UI items to draw then add them here
-    if (hasUIItems || wantDeferBox)
-    {
-        MHWRender::MRenderItem* thisItem = NULL;
-        // three different states (selected, unselected, and lead)
-        // same geometry, different shaders.
-        for (int x = 0; x < 3; ++x)
-        {
-            if (test[x])
-            {
-                if (hasUIItems)
-                {
-                    // Create the ui render item if needed
-                    thisItem = getItem(container, itemNames[x], geometryType, MHWRender::MRenderItem::sActiveLineDepthPriority);
-                    if (wantBox)
-                        updateWireframeCubeItem(standIn, thisItem, shaders[x], false);
-                    else
-                        updateRenderItem(container, geom, thisItem, totalPoints, shaders[x], false, boxMode);
-                    *(items[x]) = thisItem;
-                }
+    MHWRender::MRenderItem* thisItem = NULL;
 
-                if (wantDeferBox)
+    // three different states (selected, unselected, and lead)
+    // same geometry, different shaders.
+    for (int x = 0; x < 3; ++x)
+    {
+        if (test[x])
+        {
+            // five different types (wires, points, boxes, box, and/or deferBox)
+            for (int i = 0; i < 5; ++i)
+            {
+                MString itemName = itemNames[x];
+                itemName += typeNames[i];
+
+                if (testType[i])
                 {
-                    // Create the ui render item used to indicate deferred load if needed
-                    thisItem = getItem(container, deferItemNames[x], MHWRender::MGeometry::kLines,
-                        MHWRender::MRenderItem::sActiveLineDepthPriority);
-                    updateWireframeCubeItem(standIn, thisItem, shaders[x], false);
-                    *(deferItems[x]) = thisItem;
+                    bool isDeferBox = (i == 4);
+                    thisItem = findRenderItem(container, itemName, mReuseBuffers);
+                    if (!thisItem)
+                    {
+                        // Create the ui render item if needed
+                        thisItem = getItem(container, itemName, geometryType, MHWRender::MRenderItem::sActiveLineDepthPriority);
+                        if (i > 2) // first three are not cubes, last two are.
+                            updateWireframeCubeItem(standIn, thisItem, shaders[x], isDeferBox);
+                        else
+                        {
+                            bool boxMode = (i == 2);
+                            size_t totalPoints = wantBoxes ? geom->VisibleGeometryCount()*kCubeCount : geom->PointCount();
+                            updateRenderItem(container, geom, thisItem, totalPoints, shaders[x], false, boxMode);
+                        }
+                    }
+                    else
+                        thisItem->enable(true);
+
+                    if (isDeferBox)
+                        *(deferItems[x]) = thisItem;
+                    else
+                        *(items[x]) = thisItem;
                 }
+                else // clear or reset the item if not used
+                    clearRenderItem(container, itemName, mReuseBuffers);
+            }
+        }
+        else
+        {
+            // clear or reset the item if it is not used.  This includes the wires, points, boxes, box and deferred box.
+            for (int i = 0; i < 5; ++i)
+            {
+                clearRenderItem(container, itemNames[x] + typeNames[i], mReuseBuffers);
             }
         }
     }
@@ -412,6 +487,7 @@ void CArnoldStandInSubSceneOverride::update(
     }
 
     mBBChanged = false;
+    mReuseBuffers = true;
 }
 
 MHWRender::MRenderItem* CArnoldStandInSubSceneOverride::getItem(
@@ -825,8 +901,8 @@ bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
     MString name = renderItem.name();
 
     // Are we looking for a lead item or a poly item?
-    bool wantLeadItem = (name == leadItemName_ || name == leadDeferItemName_);
-    bool wantPolyItem = name == polyItemName_;
+    bool wantLeadItem = (name.indexW("lead") == 0); // starts with lead
+    bool wantPolyItem = (name.indexW("polygon") == 0); // starts with polygon
 
     // Get the instance Id.  If looking for a lead item we know its id.
     int instanceId = wantLeadItem ? fLeadIndex : intersection.instanceID()-1;
@@ -847,8 +923,8 @@ bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
     // If looking for selected or unselected items loop over the cache to count items we are interested in.
     // Stop when we find the index we are looking for and return the instance.
     unsigned int currentInstance = 0;
-    bool wantSelectedItem = (name == selectedItemName_ || name == selectedDeferItemName_);
-    bool wantUnselectedItem = (name == unselectedItemName_ || name == unselectedDeferItemName_);
+    bool wantSelectedItem = (name.indexW("selected") == 0); // starts with selected
+    bool wantUnselectedItem = (name.indexW("unselected") == 0); // starts with unselected
     for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
     {
         // Get the instance from the cache by index.

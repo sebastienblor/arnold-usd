@@ -211,15 +211,19 @@ public:
 
             // try to insert the multi-indices tuple to the hash map
             IndexTuple tuple(indices, fNumStreams, (unsigned int)i);
-            std::pair<typename IndicesMap::iterator,bool> ret = indicesMap.insert(std::make_pair(tuple, 0));
 
-            if (ret.second) {
-                // a success insert, allocate a vertex attrib index to the multi-index combination
-                ret.first->second = vertexAttribIndex++;
+            IndicesMap::iterator got = indicesMap.find(tuple);
+            if (got == indicesMap.end())
+            {
+                size_t val = vertexAttribIndex++;
+                indicesMap.emplace(tuple, val);
+                mappedFaceIndices[i] = (index_type)val;
             }
-
-            // remap face indices
-            mappedFaceIndices[i] = (index_type)ret.first->second;
+            else
+            {
+                // remap face indices
+                mappedFaceIndices[i] = (index_type)got->second;
+            }
         }
 
         // the number of unique combination is the size of vertex attrib arrays

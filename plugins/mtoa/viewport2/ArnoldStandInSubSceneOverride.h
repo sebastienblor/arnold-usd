@@ -44,7 +44,12 @@ public:
                                            const MHWRender::MIntersection& intersection, 
                                            MDagPath& dagPath) const;
 
-    void invalidate() { mBBChanged = true; }
+    void invalidate(bool tryToReuse) 
+    { 
+        mBBChanged = true; 
+        mReuseBuffers &= tryToReuse;
+    }
+
     void releaseShadedMaterial();
 
 private:
@@ -89,7 +94,7 @@ private:
    
     unsigned int fLeadIndex;
     unsigned int fNumInstances;
-    bool mBBChanged, mOneTimeUpdate;
+    bool mBBChanged, mOneTimeUpdate, mReuseBuffers;
     MCallbackId mAttribChangedID, mGlobalOptionsChangedID;
 
     struct InstanceInfo

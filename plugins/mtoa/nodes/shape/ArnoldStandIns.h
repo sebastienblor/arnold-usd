@@ -85,6 +85,9 @@ public:
    static MStatus initialize();
    CArnoldStandInGeom* geometry();
 
+   int drawMode();
+   bool deferStandinLoad();
+
    static MTypeId id;
 
 private:

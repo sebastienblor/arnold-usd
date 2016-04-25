@@ -937,6 +937,26 @@ MStatus CArnoldStandInShape::initialize()
 }
 
 //
+// This function gets the draw mode from the shape
+//
+int CArnoldStandInShape::drawMode()
+{
+    MPlug plug(thisMObject(), s_mode);
+    plug.getValue(fGeometry.mode);
+    return fGeometry.mode;
+}
+
+//
+// This function returns true if loading the standin should be deferred.
+//
+bool CArnoldStandInShape::deferStandinLoad()
+{
+    MPlug plug(thisMObject(), s_deferStandinLoad);
+    plug.getValue(fGeometry.deferStandinLoad);
+    return fGeometry.deferStandinLoad;
+}
+
+//
 // This function gets the values of all the attributes and
 // assigns them to the fGeometry. Calling MPlug::getValue
 // will ensure that the values are up-to-date.
