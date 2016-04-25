@@ -80,40 +80,6 @@ namespace // <anonymous>
             return false;
    }
 
-   bool IsVisible(MFnDagNode &node)
-   {
-      MStatus status;
-
-      if (node.isIntermediateObject())
-         return false;
-
-      MPlug visPlug = node.findPlug("visibility", &status);
-      MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
-
-      if (status == MStatus::kFailure)
-         return false;
-
-      if (visPlug.asBool() && overVisPlug.asBool())
-         return true;
-      else
-         return false;
-   }
-
-   bool IsVisiblePath(MDagPath dagPath)
-   {
-
-      MStatus stat = MStatus::kSuccess;
-      while (stat == MStatus::kSuccess)
-      {
-         MFnDagNode node;
-         node.setObject(dagPath.node());
-         if (!IsVisible(node))
-            return false;
-         stat = dagPath.pop();
-      }
-      return true;
-   }
-
    bool IsTemplatedPath(MDagPath dagPath)
    {
 
@@ -1636,6 +1602,45 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
    }
 
    return "";
+}
+
+bool CArnoldSession::IsVisible(MFnDagNode &node) const
+{
+   MStatus status;
+
+   if (node.isIntermediateObject())
+      return false;
+
+   // The material view objects in Maya has always visibility disabled
+   // to not show up by default in the scenes. So we need to override
+   // that here and always return true for objects in material view session
+   if (GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
+      return true;
+
+   MPlug visPlug = node.findPlug("visibility", &status);
+   MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
+
+   if (status == MStatus::kFailure)
+      return false;
+
+   if (visPlug.asBool() && overVisPlug.asBool())
+      return true;
+   else
+      return false;
+}
+
+bool CArnoldSession::IsVisiblePath(MDagPath dagPath) const
+{
+   MStatus stat = MStatus::kSuccess;
+   while (stat == MStatus::kSuccess)
+   {
+      MFnDagNode node;
+      node.setObject(dagPath.node());
+      if (!IsVisible(node))
+         return false;
+      stat = dagPath.pop();
+   }
+   return true;
 }
 
 const MStringArray &CArnoldSession::GetTextureSearchPaths() const

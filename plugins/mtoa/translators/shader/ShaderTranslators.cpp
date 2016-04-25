@@ -440,9 +440,11 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "use_derivatives";
    helper.MakeInputBoolean(data);
    
+#ifdef MTOA_ENABLE_GAMMA
    data.name = "aiGammaCorrect";
    data.shortName = "gamma_correct";
    helper.MakeInputBoolean(data);
+#endif
 }
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
@@ -471,8 +473,11 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
+#ifdef MTOA_ENABLE_GAMMA
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
-
+#else
+   AiNodeSetFlt(shader, "gamma_correct", 1.f);
+#endif
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");
 

@@ -177,7 +177,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
-      
+
    }
    else if (mode == "refresh")
    {

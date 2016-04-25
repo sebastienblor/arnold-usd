@@ -41,6 +41,7 @@ class DLLEXPORT CNodeTranslator
    friend class CExtensionsManager;
    friend class CExtension;
    friend class CRenderSwatchGenerator;
+   friend class CMaterialView;
 
 private:
    AtNode* DoExport(unsigned int step);
@@ -106,7 +107,7 @@ public:
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
    bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
-   
+
 protected:
    CNodeTranslator()  :
       m_abstract(CAbTranslator()),

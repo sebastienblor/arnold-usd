@@ -27,6 +27,7 @@ public:
       setMPSafe(true);
    }
 
+   virtual bool excludeAsLocator() const;
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
 
    static void* creator();
