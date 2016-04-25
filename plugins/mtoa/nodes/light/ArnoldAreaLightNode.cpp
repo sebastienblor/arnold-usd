@@ -64,6 +64,7 @@ MObject CArnoldAreaLightNode::aDropOff;
 MObject CArnoldAreaLightNode::aDecayRate;
 MObject CArnoldAreaLightNode::aUseRayTraceShadows;
 MObject CArnoldAreaLightNode::aDepthMapResolution;
+MObject CArnoldAreaLightNode::aShadowColor;
 #endif
 
 CArnoldAreaLightNode::CArnoldAreaLightNode() :
@@ -127,11 +128,33 @@ void CArnoldAreaLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage ms
          {
             decayRate = 2;
          }
-         MPlug plug(node->thisMObject(), aDecayRate);
-         plug.setValue( decayRate );
+         MPlug plug2(node->thisMObject(), aDecayRate);
+         plug2.setValue( decayRate );
       }
-      else if (fnAttr.name() == "aiShadowColor")
+      else if (fnAttr.name() == "aiShadowColor" ||
+               fnAttr.name() == "aiShadowColorR" ||
+               fnAttr.name() == "aiShadowColorG" ||
+               fnAttr.name() == "aiShadowColorB")
       {
+         float shadowColorR = 0.0f;
+         float shadowColorG = 0.0f;
+         float shadowColorB = 0.0f;
+
+         MFnDependencyNode dependNode(plug.node());
+
+         MPlug srcR = dependNode.findPlug("aiShadowColorR");
+         srcR.getValue(shadowColorR);
+         MPlug srcG = dependNode.findPlug("aiShadowColorG");
+         srcG.getValue(shadowColorG);
+         MPlug srcB = dependNode.findPlug("aiShadowColorB");
+         srcB.getValue(shadowColorB);
+
+         MPlug destR = dependNode.findPlug("shadowColorR");
+			destR.setValue(shadowColorR);
+         MPlug destG = dependNode.findPlug("shadowColorG");
+			destG.setValue(shadowColorG);
+         MPlug destB = dependNode.findPlug("shadowColorB");
+			destB.setValue(shadowColorB);
       }
 
       if (updateShadowAttr)
@@ -473,6 +496,12 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setDefault(1024);
    addAttribute(aDepthMapResolution);
+
+   // There is short-name clash so use shc versus sc
+   aShadowColor = nAttr.createColor( "shadowColor", "shc" );
+   nAttr.setHidden(true);
+   nAttr.setDefault(0.0f, 0.0f, 0.0f);
+   addAttribute(aShadowColor);
 #endif
 
    return MS::kSuccess;

@@ -65,6 +65,7 @@ MObject CArnoldPhotometricLightNode::aDropOff;
 MObject CArnoldPhotometricLightNode::aDecayRate;
 MObject CArnoldPhotometricLightNode::aUseRayTraceShadows;
 MObject CArnoldPhotometricLightNode::aDepthMapResolution;
+MObject CArnoldPhotometricLightNode::aShadowColor;
 #endif
 
 CArnoldPhotometricLightNode::CArnoldPhotometricLightNode() :
@@ -274,6 +275,12 @@ MStatus CArnoldPhotometricLightNode::initialize()
    nAttr.setHidden(true);
    nAttr.setDefault(1024);
    addAttribute(aDepthMapResolution);
+
+   // There is short-name clash so use shc versus sc
+   aShadowColor = nAttr.createColor( "shadowColor", "shc" );
+   nAttr.setHidden(true);
+   nAttr.setDefault(0.0f, 0.0f, 0.0f);
+   addAttribute(aShadowColor);
 #endif
    return MS::kSuccess;
 
@@ -316,10 +323,31 @@ void CArnoldPhotometricLightNode::attrChangedCallBack(MNodeMessage::AttributeMes
          node->m_aiCastVolumetricShadows = plug.asBool();
          updateShadowAttr = true;
       }
-      else if (fnAttr.name() == "aiShadowColor")
+      else if (fnAttr.name() == "aiShadowColor" ||
+               fnAttr.name() == "aiShadowColorR" ||
+               fnAttr.name() == "aiShadowColorG" ||
+               fnAttr.name() == "aiShadowColorB")
       {
-      }
+         float shadowColorR = 0.0f;
+         float shadowColorG = 0.0f;
+         float shadowColorB = 0.0f;
 
+         MFnDependencyNode dependNode(plug.node());
+
+         MPlug srcR = dependNode.findPlug("aiShadowColorR");
+         srcR.getValue(shadowColorR);
+         MPlug srcG = dependNode.findPlug("aiShadowColorG");
+         srcG.getValue(shadowColorG);
+         MPlug srcB = dependNode.findPlug("aiShadowColorB");
+         srcB.getValue(shadowColorB);
+
+         MPlug destR = dependNode.findPlug("shadowColorR");
+			destR.setValue(shadowColorR);
+         MPlug destG = dependNode.findPlug("shadowColorG");
+			destG.setValue(shadowColorG);
+         MPlug destB = dependNode.findPlug("shadowColorB");
+			destB.setValue(shadowColorB);
+      }
       if (updateShadowAttr)
       {
          MPlug plug(node->thisMObject(), aUseRayTraceShadows);

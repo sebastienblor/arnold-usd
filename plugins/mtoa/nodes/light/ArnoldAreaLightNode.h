@@ -84,6 +84,7 @@ public:
    static  MObject aDecayRate;
    static  MObject aUseRayTraceShadows;
    static  MObject aDepthMapResolution;
+   static  MObject aShadowColor;
 #endif
 
 public:
