@@ -270,6 +270,7 @@ if int(maya_version_base) >= 2014:
         env['REQUIRE_DXSDK'] = 1
 
 mercurial_id = ""
+
 try:
     p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
     mercurial_id, err = p.communicate()
@@ -812,6 +813,9 @@ maya_base_version = maya_version[:4]
 if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
+if maya_base_version == '2016':
+    if int(maya_version[-2:]) >= 50:
+        maya_base_version = '20165'
 
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
@@ -1073,6 +1077,8 @@ else:
     installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
+
+    
     import tempfile
     import shutil
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
@@ -1094,6 +1100,8 @@ def create_installer(target, source, env):
         mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
         mayaVersionString = maya_base_version
         mayaVersionString = mayaVersionString.replace('20135', '2013.5')
+        mayaVersionString = mayaVersionString.replace('20165', '2016.5')
+
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
