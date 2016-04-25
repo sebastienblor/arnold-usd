@@ -10,10 +10,12 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MNodeMessage.h>
+#include <maya/MDGMessage.h>
 #include <maya/MBoundingBox.h>
 #include <maya/MPlugArray.h>
 #include <maya/MGlobal.h>
 #include <maya/MSelectionContext.h>
+#include <maya/M3dView.h>
 
 #include <iostream>
 
@@ -79,6 +81,8 @@ namespace {
         // invalidate the draw data if the global draw override changes.
         if (plug.attribute() == CArnoldOptionsNode::s_enable_standin_draw)
             static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(true);
+
+        M3dView::scheduleRefreshAllViews();
     }
 
     // Helper class for link lost callback
@@ -113,6 +117,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mReuseBuffers(false)
 , mOneTimeUpdate(true)
 , mAttribChangedID(0)
+, mGlobalOptionsChangedID(0)
+, mGlobalOptionsCreatedID(0)
 , fNumInstances(0)
 , fLeadIndex(0)
 {
@@ -135,8 +141,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
     mBlinnShader->setParameter(diffuseColorParameterName_, solidColor);
 
     mAttribChangedID = MNodeMessage::addAttributeChangedCallback(mLocatorNode, standInAttributeChanged, this);
+    mGlobalOptionsCreatedID = MDGMessage::addNodeAddedCallback(CArnoldStandInSubSceneOverride::globalOptionsAdded, "aiOptions", this);
 
-    // TODO: Need to do something different if the option node does not yet exist. (like create it)
     MObject arnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
     if (!arnoldRenderOptionsNode.isNull())
         mGlobalOptionsChangedID = MNodeMessage::addAttributeChangedCallback(arnoldRenderOptionsNode, globalOptionsChanged, this);
@@ -172,8 +178,25 @@ CArnoldStandInSubSceneOverride::~CArnoldStandInSubSceneOverride()
     mShaderFromNode = NULL;
 
     MNodeMessage::removeCallback(mAttribChangedID);
+    if (mGlobalOptionsCreatedID != 0)
+        MNodeMessage::removeCallback(mGlobalOptionsCreatedID);
     if (mGlobalOptionsChangedID != 0)
         MNodeMessage::removeCallback(mGlobalOptionsChangedID);
+}
+
+// Static callback is called whenever a aiOptions node is created
+void CArnoldStandInSubSceneOverride::globalOptionsAdded(MObject& node, void* clientData)
+{
+    CArnoldStandInSubSceneOverride* ssOverride = static_cast<CArnoldStandInSubSceneOverride*>(clientData);
+    ssOverride->globalOptionsAdded(node);
+}
+
+void CArnoldStandInSubSceneOverride::globalOptionsAdded(MObject& node)
+{
+    if (mGlobalOptionsChangedID != 0)
+        MNodeMessage::removeCallback(mGlobalOptionsChangedID);
+
+    mGlobalOptionsChangedID = MNodeMessage::addAttributeChangedCallback(node, globalOptionsChanged, this);
 }
 
 MHWRender::DrawAPI CArnoldStandInSubSceneOverride::supportedDrawAPIs() const
@@ -379,8 +402,6 @@ void CArnoldStandInSubSceneOverride::update(
     {
         geom = geom ? geom : standIn->geometry(); // load this as late as possible
         wantBoxes = (geom->PointCount() == 0); // if no points, try bounding boxes.
-        if (!wantBoxes)
-            geometryType = MHWRender::MGeometry::kPoints;
     }
     if (wantBoxes)
     {
@@ -388,7 +409,7 @@ void CArnoldStandInSubSceneOverride::update(
         wantBox = (geom->VisibleGeometryCount() == 0); // no visible geometry.  Draw a single box.
     }
 
-    const bool testType[] = { wantWireframe, wantPoints, wantBoxes, wantBox, wantDeferBox };
+    const bool testType[] = { wantPoints, wantWireframe, wantBoxes, wantBox, wantDeferBox };
     const MString typeNames[] = { "_wires", "_points", "_boxes", "_box", "_deferBox" };
 
     // if we have any UI items to draw then add them here
@@ -413,6 +434,7 @@ void CArnoldStandInSubSceneOverride::update(
                     if (!thisItem)
                     {
                         // Create the ui render item if needed
+                        geometryType = (i > 0) ? MHWRender::MGeometry::kLines : MHWRender::MGeometry::kPoints;
                         thisItem = getItem(container, itemName, geometryType, MHWRender::MRenderItem::sActiveLineDepthPriority);
                         if (i > 2) // first three are not cubes, last two are.
                             updateWireframeCubeItem(standIn, thisItem, shaders[x], isDeferBox);

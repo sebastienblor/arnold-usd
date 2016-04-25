@@ -53,6 +53,10 @@ public:
     void releaseShadedMaterial();
 
 private:
+
+    static void globalOptionsAdded(MObject& node, void* clientData);
+    void globalOptionsAdded(MObject& node);
+
 	CArnoldStandInSubSceneOverride(const MObject& obj);
 
     MHWRender::MRenderItem* getItem(MHWRender::MSubSceneContainer& container, const MString& name, 
@@ -95,7 +99,7 @@ private:
     unsigned int fLeadIndex;
     unsigned int fNumInstances;
     bool mBBChanged, mOneTimeUpdate, mReuseBuffers;
-    MCallbackId mAttribChangedID, mGlobalOptionsChangedID;
+    MCallbackId mAttribChangedID, mGlobalOptionsChangedID, mGlobalOptionsCreatedID;
 
     struct InstanceInfo
     {
