@@ -289,7 +289,7 @@ MStatus CArnoldPhotometricLightNode::initialize()
 #if MAYA_API_VERSION >= 201700
 void CArnoldPhotometricLightNode::postConstructor()
 {
-   // Make the node not receive shadows but cast shadows
+   // Make the node not cast nor receive shadows
    //
    MObject me = thisMObject();    
 
@@ -297,7 +297,7 @@ void CArnoldPhotometricLightNode::postConstructor()
    MPlug plug = node.findPlug("receiveShadows");
    plug.setValue(false);
    plug = node.findPlug("castsShadows");
-   plug.setValue(true);
+   plug.setValue(false);
 
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
 }

@@ -69,7 +69,9 @@ MObject CArnoldAreaLightNode::aShadowColor;
 
 CArnoldAreaLightNode::CArnoldAreaLightNode() :
         m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
+#if MAYA_API_VERSION >= 201700
         , m_aiCastShadows(true), m_aiCastVolumetricShadows(true)
+#endif
 { }
 
 CArnoldAreaLightNode::~CArnoldAreaLightNode() 
@@ -82,7 +84,7 @@ CArnoldAreaLightNode::~CArnoldAreaLightNode()
 #if MAYA_API_VERSION >= 201700
 void CArnoldAreaLightNode::postConstructor()
 {
-   // Make the node not receive shadows but cast shadows
+   // Make the node not cast nor receive shadows
    //
    MObject me = thisMObject();    
 
@@ -90,7 +92,7 @@ void CArnoldAreaLightNode::postConstructor()
    MPlug plug = node.findPlug("receiveShadows");
    plug.setValue(false);
    plug = node.findPlug("castsShadows");
-   plug.setValue(true);
+   plug.setValue(false);
 
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
 }
