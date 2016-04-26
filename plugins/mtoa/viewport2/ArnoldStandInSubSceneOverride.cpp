@@ -68,10 +68,15 @@ static const float cube[][3] = { {0.0f, 0.0f, 0.0f},
 static const int kCubeCount = 24;
 
 namespace {
-    void standInAttributeChanged(MNodeMessage::AttributeMessage /*msg*/, MPlug& plug, MPlug& /*otherPlug*/, void *clientData)
+    void standInAttributeChanged(MObject& /*node*/, MPlug& plug, void* clientData)
     {
         MFnAttribute attr(plug.attribute());
         MString attrName = attr.name();
+
+        if (attrName == "MinBoundingBox0" || attrName == "MinBoundingBox1" || attrName == "MinBoundingBox2" ||
+            attrName == "MaxBoundingBox0" || attrName == "MaxBoundingBox1" || attrName == "MaxBoundingBox2")
+            return; // we don't care about changes to these attributes.  They are set when processing the geometry.
+
         bool reuse = (attrName == "mode" || attrName == "standInDrawOverride" || attrName == "deferStandinLoad") ? true : false;
         static_cast<CArnoldStandInSubSceneOverride*>(clientData)->invalidate(reuse);
     }
@@ -140,7 +145,8 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
     mSolidShader->setParameter(colorParameterName_, solidColor);
     mBlinnShader->setParameter(diffuseColorParameterName_, solidColor);
 
-    mAttribChangedID = MNodeMessage::addAttributeChangedCallback(mLocatorNode, standInAttributeChanged, this);
+
+    mAttribChangedID = MNodeMessage::addNodeDirtyPlugCallback(mLocatorNode, standInAttributeChanged, this);
     mGlobalOptionsCreatedID = MDGMessage::addNodeAddedCallback(CArnoldStandInSubSceneOverride::globalOptionsAdded, "aiOptions", this);
 
     MObject arnoldRenderOptionsNode = CArnoldOptionsNode::getOptionsNode();
