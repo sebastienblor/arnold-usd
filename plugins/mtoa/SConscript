@@ -90,15 +90,19 @@ if not os.path.isdir(mayaQtFolder):
 local_env['QT_ROOT_DIR'] = mayaQtFolder
 
 local_env.Append(CPPPATH = [mayaQtFolder])
+
 if system.os() == 'darwin':
     maya_qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
-    qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
-    if not os.path.isdir(qt_lib_dir):
-        os.makedirs(qt_lib_dir)
+    if (int(maya_version_base) <= 2016):
+        qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
+        if not os.path.isdir(qt_lib_dir):
+            os.makedirs(qt_lib_dir)
 
-    copyfile(os.path.join(maya_qt_lib_dir, 'QtCore'), os.path.join(qt_lib_dir, 'libQtCore.dylib'))
-    copyfile(os.path.join(maya_qt_lib_dir, 'QtGui'), os.path.join(qt_lib_dir, 'libQtGui.dylib'))
-    copyfile(os.path.join(maya_qt_lib_dir, 'QtOpenGL'), os.path.join(qt_lib_dir, 'libQtOpenGL.dylib'))
+        copyfile(os.path.join(maya_qt_lib_dir, 'QtCore'), os.path.join(qt_lib_dir, 'libQtCore.dylib'))
+        copyfile(os.path.join(maya_qt_lib_dir, 'QtGui'), os.path.join(qt_lib_dir, 'libQtGui.dylib'))
+        copyfile(os.path.join(maya_qt_lib_dir, 'QtOpenGL'), os.path.join(qt_lib_dir, 'libQtOpenGL.dylib'))
+    else:
+        qt_lib_dir = maya_qt_lib_dir
 
 
 else:
@@ -110,11 +114,17 @@ if system.os() == 'windows':
         local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
     else:
         local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib'])
+elif system.os() == 'linux':
+    if (int(maya_version_base) <= 2016):
+        local_env.Append(LIBS = ['QtCore4', 'QtGui4', 'QtOpenGL4'])
+    else:
+        local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL'])
+
 else:
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
     else:
-        local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL'])
+        local_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5'])
 
 if not local_env['MTOA_DISABLE_RV']:
     print 'Linking with Arnold RenderView'
