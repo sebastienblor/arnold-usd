@@ -6,9 +6,9 @@ Triangulator::Triangulator(
     const std::vector<unsigned int>& faceIndices,
     std::vector<float>* normals,
     std::vector<unsigned int>* normalIndices) :
-    fPositions(positions)
-    , fFaceCounts(faceCounts)
+      fFaceCounts(faceCounts)
     , fFaceIndices(faceIndices)
+    , fPositions(positions)
     , fNormals(normals)
     , fNormalIndices(normalIndices)
 {

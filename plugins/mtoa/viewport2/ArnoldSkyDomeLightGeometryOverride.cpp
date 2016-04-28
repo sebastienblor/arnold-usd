@@ -57,8 +57,8 @@ MHWRender::MPxGeometryOverride*
 
 CArnoldSkyDomeLightGeometryOverride::CArnoldSkyDomeLightGeometryOverride(const MObject& obj) 
    : MHWRender::MPxGeometryOverride(obj)
-   , m_format(0)
    , m_radius(0)
+   , m_format(0)
    , m_wireframeShader(0)
    , m_activeWireframeShader(0)
    , m_texturedShader(0)

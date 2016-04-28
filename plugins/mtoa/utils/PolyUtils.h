@@ -9,7 +9,7 @@
 
 #include <maya/MFnMesh.h>
 #include <maya/MFloatVector.h>
-
+#include <string.h>
 // This class is used for generating wireframe indices.
 //
 using namespace std;
@@ -37,7 +37,7 @@ public:
 
         // pre-allocate buffers for the worst case
         size_t maxNumWires = fNumFaceIndices;
-        typedef std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+        typedef typename std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
         WireSet wireSet(size_t(maxNumWires / 0.75f));
 
         // insert all wires to the set
@@ -79,7 +79,7 @@ public:
         std::vector<index_type> wireIndices(numWires * 2);
 
         size_t wireCount = 0;
-        for (WireSet::iterator it = wireSet.begin(); it != wireSet.end(); ++it, ++wireCount)
+        for (typename WireSet::iterator it = wireSet.begin(); it != wireSet.end(); ++it, ++wireCount)
         {
             const WirePair& pair = (*it);
             wireIndices[wireCount * 2] = pair.fMappedV1;
@@ -212,7 +212,7 @@ public:
             // try to insert the multi-indices tuple to the hash map
             IndexTuple tuple(indices, fNumStreams, (unsigned int)i);
 
-            IndicesMap::iterator got = indicesMap.find(tuple);
+            typename IndicesMap::iterator got = indicesMap.find(tuple);
             if (got == indicesMap.end())
             {
                 size_t val = vertexAttribIndex++;
@@ -234,9 +234,9 @@ public:
         std::vector<unsigned int> vertAttribsIndices(numVertex);
 
         // build the indices (how the new vertex maps to the poly vert)
-        for (IndicesMap::iterator it = indicesMap.begin(); it != indicesMap.end(); ++it)
+        for (typename IndicesMap::iterator it = indicesMap.begin(); it != indicesMap.end(); ++it)
         {
-            const IndicesMap::value_type& pair = (*it);
+            const typename IndicesMap::value_type& pair = (*it);
             vertAttribsIndices[pair.second] = pair.first.faceIndex();
         }
 
@@ -260,12 +260,12 @@ private:
     {
     public:
         IndexTuple(index_type* indices, unsigned int size, unsigned int faceIndex)
-            : fIndices(indices), fSize(size), fFaceIndex(faceIndex)
+            : fIndices(indices), fFaceIndex(faceIndex), fSize(size)
         {}
 
         const index_type& operator[](unsigned int index) const
         {
-            assert(index < fSize);
+            //assert(index < fSize);
             return fIndices[index];
         }
 
