@@ -71,7 +71,7 @@ public:
 
    // Render Methods.
    /// Render into the Render View, not IPR.
-   void DoInteractiveRender(const MString& postRenderMel="");
+   int DoInteractiveRender();
    /// Render in the background of Maya.
    int DoBatchRender();
 

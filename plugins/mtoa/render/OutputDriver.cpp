@@ -769,7 +769,7 @@ void EndImage()
       }
 
       rvInfo += "\") " + s_panel_name;
-      MGlobal::executeCommandOnIdle(rvInfo, false);
+      MGlobal::executeCommand(rvInfo, false);
    }
 
    MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;", false);

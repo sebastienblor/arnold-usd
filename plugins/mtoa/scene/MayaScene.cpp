@@ -100,9 +100,11 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
    MStatus status = MStatus::kSuccess;
 
-   // Suspend material view during all render sessions, except swatches
-   // which has lower priority and will be aborted by material viewer
-   if (mode != MTOA_SESSION_MATERIALVIEW && mode != MTOA_SESSION_SWATCH)
+   // Suspend material view during all render sessions, except for 
+   // sequence rendering that handles this seperatelly, and swatches
+   // which has lower priority and will be aborted by material viewer,
+   // 
+   if (mode != MTOA_SESSION_MATERIALVIEW && mode != MTOA_SESSION_SEQUENCE && mode != MTOA_SESSION_SWATCH)
    {
       CMaterialView::Suspend();
    }
@@ -177,7 +179,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       // renderOptions.SetBatch(false);
       status = SetupIPRCallbacks();
    }
-   else if (mode == MTOA_SESSION_RENDER)
+   else if (mode == MTOA_SESSION_RENDER || mode == MTOA_SESSION_SEQUENCE)
    {
       // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
@@ -186,6 +188,8 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    else if (mode == MTOA_SESSION_BATCH)
    {
       // renderOptions.SetBatch(true);
+      renderOptions.SetProgressive(false);
+      sessionOptions.SetProgressive(false);
    }
 
    // Init both render and export sessions
@@ -250,7 +254,13 @@ MStatus CMayaScene::End()
    }
 
    // Resume material view if previously suspended
-   CMaterialView::Resume();
+   // Ignore for sequence rendering which handles this seperatelly, since 
+   // the whole sequence of frames might not be completed yet and we don't 
+   // want to resume in the middle of the sequence
+   if (GetSessionMode() != MTOA_SESSION_SEQUENCE)
+   {
+      CMaterialView::Resume();
+   }
 
    return status;
 }

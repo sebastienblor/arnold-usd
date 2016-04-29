@@ -629,7 +629,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    // First "real" export
    MGlobal::viewFrame(m_sessionOptions.m_frame);
-   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW)
+   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || 
+      exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW || exportMode == MTOA_SESSION_SEQUENCE)
    {
       // Either for a specific camera or export all cameras
       // Note : in "render selected" mode Maya exports all lights and cameras
@@ -719,7 +720,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    if (mb)
    {
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
-      // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSessions::End().
+      // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSession::End().
       if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
          MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
