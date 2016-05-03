@@ -344,6 +344,9 @@ if env['COMPILER'] == 'gcc':
     if system.os() == 'linux' and env['SHCC'] != '':
         env['CC'] = env['SHCC']
         env['CXX'] = env['SHCXX']
+        env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
+        env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
+
     else:
         compiler_version = env['COMPILER_VERSION']
         if compiler_version != '':
@@ -359,6 +362,7 @@ if env['COMPILER'] == 'gcc':
     env.Append(CCFLAGS = Split('-fvisibility=hidden'))
     env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
     env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+
 
     ## Hardcode '.' directory in RPATH in linux
     if system.os() == 'linux':
