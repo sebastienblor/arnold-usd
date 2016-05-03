@@ -80,6 +80,8 @@ extern AtNodeMethods* UserDataIntMtd;
 extern AtNodeMethods* MayaBump2DMtd;
 extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* MayaMarbleMtd;
+extern AtNodeMethods* MayaMountainMtd;
+extern AtNodeMethods* MayaWaterMtd;
 extern AtNodeMethods* MayaSingleShadingSwitchMtd;
 extern AtNodeMethods* MayaDoubleShadingSwitchMtd;
 extern AtNodeMethods* MayaTripleShadingSwitchMtd;
@@ -173,6 +175,8 @@ enum{
    SHADER_BUMP2D,
    SHADER_MAYAFLUID,
    SHADER_MAYAMARBLE,
+   SHADER_MAYAMOUNTAIN,
+   SHADER_MAYAWATER,
    SHADER_MAYASINGLESHADINGSWITCH,
    SHADER_MAYADOUBLESHADINGSWITCH,
    SHADER_MAYATRIPLESHADINGSWITCH,
@@ -730,6 +734,20 @@ node_loader
       node->name        = "mayaMarble";
       node->node_type   = AI_NODE_SHADER;
       break;
+
+   case SHADER_MAYAMOUNTAIN:
+       node->methods = MayaMountainMtd;
+       node->output_type = AI_TYPE_RGBA;
+       node->name = "mayaMountain";
+       node->node_type = AI_NODE_SHADER;
+       break;
+
+   case SHADER_MAYAWATER:
+       node->methods = MayaWaterMtd;
+       node->output_type = AI_TYPE_RGBA;
+       node->name = "mayaWater";
+       node->node_type = AI_NODE_SHADER;
+       break;
 
    case SHADER_MAYASINGLESHADINGSWITCH:
       node->methods     = MayaSingleShadingSwitchMtd;

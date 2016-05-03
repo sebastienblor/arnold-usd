@@ -49,6 +49,9 @@ SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
 SHADER_TRANSLATOR(CMayaPhongTranslator);
+SHADER_TRANSLATOR(CMayaPhongETranslator);
+SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
+SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
 
 class CMayaShadingSwitchTranslator : public CShaderTranslator{
