@@ -299,9 +299,12 @@ print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 if system.os() == 'linux':
     try:
-        p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
-        compiler_version, err = p.communicate()
-        print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+        if env['SHCC'] != '' and env['SHCC'] != '$CC':
+            print 'Compiler       : %s'  % (env['SHCC'])
+        else:
+            p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
+            compiler_version, err = p.communicate()
+            print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
     except:
         pass
 elif system.os() == 'windows':
@@ -341,11 +344,11 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-    if system.os() == 'linux' and env['SHCC'] != '':
+    if system.os() == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
         env['CC'] = env['SHCC']
         env['CXX'] = env['SHCXX']
-        env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
-        env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
+        #env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
+        #env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
 
     else:
         compiler_version = env['COMPILER_VERSION']
@@ -362,6 +365,9 @@ if env['COMPILER'] == 'gcc':
     env.Append(CCFLAGS = Split('-fvisibility=hidden'))
     env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
     env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+
+    env.Append(CXXFLAGS = Split('-Wno-reorder'))
+    env.Append(CCFLAGS = Split('-Wno-reorder'))
 
 
     ## Hardcode '.' directory in RPATH in linux
