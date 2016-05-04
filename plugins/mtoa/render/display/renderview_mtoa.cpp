@@ -1,6 +1,7 @@
 
 #include "renderview_mtoa.h"
 
+
 #ifdef MTOA_DISABLE_RV
 
 // define the functions in case we disabled the RenderView
@@ -32,7 +33,7 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 void CRenderViewMtoA::ResolutionChangedCallback(void *) {}
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
 void CRenderViewMtoA::UpdateColorManagement(){}
-void CRenderViewMtoA::RenderSequence(int first, int last, int step) {}
+void CRenderViewMtoA::RenderSequence(float first, float last, float step) {}
 
 #else
 
@@ -56,15 +57,15 @@ void CRenderViewMtoA::RenderSequence(int first, int last, int step) {}
 #include <maya/MNodeMessage.h>
 #include <maya/MProgressWindow.h>
 #include <maya/MSceneMessage.h>
-
+#include <maya/MTimerMessage.h>
 
 
 struct CARVSequenceData
 {
-   int first;
-   int last;
-   int current;
-   int step;
+   float first;
+   float last;
+   float current;
+   float step;
    bool renderStarted;
    std::string sceneUpdatesValue;
    std::string saveImagesValue;
@@ -546,6 +547,18 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
    ReceiveSelectionChanges(false);
+   if (s_sequenceData != NULL)
+   {
+      SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+      SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+      if (m_rvIdleCb)
+      {
+         MMessage::removeCallback(m_rvIdleCb);
+         m_rvIdleCb = 0;
+      }
+      delete s_sequenceData;
+      s_sequenceData = NULL;
+   }
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
@@ -554,6 +567,8 @@ void CRenderViewMtoA::RenderViewClosed()
    }
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
+
+   MProgressWindow::endProgress();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -1126,24 +1141,23 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 
 }
 
-void CRenderViewMtoA::SequenceRenderCallback(void *data)
+void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, void *data)
 {
    if (s_sequenceData == NULL){return;}
 
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)data;
 
-   if (rvMtoA->m_rvIdleCb)
-   {
-      MMessage::removeCallback(rvMtoA->m_rvIdleCb);
-      rvMtoA->m_rvIdleCb = 0;
-   }
    if (MProgressWindow::isCancelled())
    {
       CMayaScene::GetRenderSession()->InterruptRender(true);
       MProgressWindow::endProgress();
       rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
       rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
-
+      if (rvMtoA->m_rvIdleCb)
+      {
+         MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+         rvMtoA->m_rvIdleCb = 0;
+      }
       return;
    }
 
@@ -1162,6 +1176,11 @@ void CRenderViewMtoA::SequenceRenderCallback(void *data)
             MProgressWindow::endProgress();
             rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
             rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+            if (rvMtoA->m_rvIdleCb)
+            {
+               MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+               rvMtoA->m_rvIdleCb = 0;
+            }
             return;
          }
          s_sequenceData->renderStarted = false;
@@ -1180,37 +1199,25 @@ void CRenderViewMtoA::SequenceRenderCallback(void *data)
       }
    }
 
-   // connect to next idle signal
-   MStatus status;
-   rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
-                                                  CRenderViewMtoA::SequenceRenderCallback,
-                                                  data,
-                                                  &status);
 }
 
 
-MStatus CRenderViewMtoA::RenderSequence(int first, int last, int step)
+MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
 {
-   if (s_sequenceData) 
-   {
-      delete s_sequenceData;
-      s_sequenceData = NULL;
-
-      if (m_rvIdleCb)
-      {
-         MMessage::removeCallback(m_rvIdleCb);
-         m_rvIdleCb = 0;
-      }      
-   }
-   
-   // make sure no render is going on
-   CMayaScene::GetRenderSession()->InterruptRender(true);
-
    if (m_rvIdleCb)
    {
       MMessage::removeCallback(m_rvIdleCb);
       m_rvIdleCb = 0;
+   } 
+   // make sure no render is going on
+   CMayaScene::GetRenderSession()->InterruptRender(true);
+
+   if (s_sequenceData) 
+   {
+      delete s_sequenceData;
+      s_sequenceData = NULL;
    }
+
 
    /*
    FIXME : we'd need to find the original value of scene updates / save final images
@@ -1227,8 +1234,6 @@ MStatus CRenderViewMtoA::RenderSequence(int first, int last, int step)
    {
    }
    */
-   s_sequenceData->sceneUpdatesValue = "1";
-   s_sequenceData->saveImagesValue = "0";
 
    SetOption("Scene Updates", "0");
    SetOption("Save Final Images", "1");
@@ -1239,22 +1244,8 @@ MStatus CRenderViewMtoA::RenderSequence(int first, int last, int step)
    s_sequenceData->last = last;
    s_sequenceData->step = step;
    s_sequenceData->renderStarted = false;
-
-
-   MGlobal::viewFrame(first);
-   MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
-   MProgressWindow::setProgressStatus(progressStr);
-   MGlobal::displayInfo(progressStr);
-
-   SetOption("Update Full Scene", "1");
-   
-   // connect to Idle
-   MStatus status;
-
-   m_rvIdleCb = MEventMessage::addEventCallback("idle",
-                                                  CRenderViewMtoA::SequenceRenderCallback,
-                                                  this,
-                                                  &status);
+   s_sequenceData->sceneUpdatesValue = "1";
+   s_sequenceData->saveImagesValue = "0";
 
    if (!MProgressWindow::reserve())
    {
@@ -1274,6 +1265,22 @@ MStatus CRenderViewMtoA::RenderSequence(int first, int last, int step)
 
    MGlobal::displayInfo(progressWindowState);
    MProgressWindow::startProgress();
+
+   MGlobal::viewFrame(first);
+   MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+   MProgressWindow::setProgressStatus(progressStr);
+   MGlobal::displayInfo(progressStr);
+
+   SetOption("Update Full Scene", "1");
+   
+   // connect to Idle
+   MStatus status;
+
+   m_rvIdleCb = MTimerMessage::addTimerCallback(0.1f,
+                                                  CRenderViewMtoA::SequenceRenderCallback,
+                                                  this,
+                                                  &status);
+
    return status;
 }
 

@@ -47,12 +47,21 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MArgDatabase args(syntax(), argList);
    MDagPath dagPath;
 
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
+   
    const bool batch = args.isFlagSet("batch") ? true : false;
    const bool sequence = args.isFlagSet("frameSequence") ? true : false;
    const bool multiframe = batch || sequence;
+
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+   if (sequence && !batch)
+   {
+      // Sequence interactive rendering
+      // RenderSession will try to render it with the Arnold RenderView.
+      // If it can't it will return false, and we'll keep using Maya's native one
+      if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
+   }
 
    // Rendered camera
    MString camera = "";
