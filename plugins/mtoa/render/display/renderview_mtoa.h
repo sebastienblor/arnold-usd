@@ -80,8 +80,13 @@ public:
    static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionChangedCallback(void *);
-
+   static void SequenceRenderCallback(void *);
+   
    void OpenMtoARenderView(int width, int height);
+
+   MStatus RenderSequence(int first, int last, int step);
+
+
 private:
    void UpdateColorManagement();
 
