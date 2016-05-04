@@ -13,7 +13,10 @@
 #include <fstream>
 #include <fcntl.h>
 
+#ifndef _DARWIN
+// This would need a proper fix to be enabled in OSX !
 #include <maya/MTypes.h>
+#endif
 
 #include "../../../plugins/mtoa/utils/HashUtils.h"
 

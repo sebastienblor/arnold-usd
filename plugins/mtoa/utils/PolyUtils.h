@@ -343,7 +343,7 @@ public:
     IndicesDropper(const float* attribArray, const index_type* indexArray, size_t numVerts)
     {
         // map the indexed array to direct array
-        std::vector<float> mappedAttribs(new float[numVerts * SIZE]);
+        std::vector<float> mappedAttribs(numVerts * SIZE);
         for (size_t i = 0; i < numVerts; i++) {
             for (size_t j = 0; j < SIZE; j++) {
                 mappedAttribs[i * SIZE + j] = attribArray[indexArray[i] * SIZE + j];
