@@ -38,6 +38,7 @@ external/qt-4.8.5-include/*
 external/qt-4.8.6-include/*
 external/qt-5.6.0-include/*
 external/QtLibs/*
+builds
 syntax: regexp
 \.launch$
 syntax: regexp
