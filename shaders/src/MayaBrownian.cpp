@@ -28,13 +28,13 @@ node_parameters
    AtMatrix id;
    AiM4Identity(id);
 
-   AiParameterFLT("lacunarity", 4.0f);
-   AiParameterFLT("increment", 0.1f);
-   AiParameterFLT("octaves", 3.0f);
-   AiParameterVEC("weight3d", 1.0f, 1.0f, 1.0f);
-   AiParameterMTX("placementMatrix", id);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
+   AiParameterFlt("lacunarity", 4.0f);
+   AiParameterFlt("increment", 0.1f);
+   AiParameterFlt("octaves", 3.0f);
+   AiParameterVec("weight3d", 1.0f, 1.0f, 1.0f);
+   AiParameterMtx("placementMatrix", id);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
    AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "brownian");
@@ -59,9 +59,9 @@ shader_evaluate
    bool wrap = AiShaderEvalParamBool(p_wrap);
    bool local = AiShaderEvalParamBool(p_local);
 
-   AtPoint P;
+   AtVector P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
@@ -117,12 +117,12 @@ shader_evaluate
 
       noise = noise * 0.5f + 0.5f;
 
-      AiRGBACreate(sg->out.RGBA, noise, noise, noise, 1.0f);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(noise, noise, noise, 1.0f);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

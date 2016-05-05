@@ -16,7 +16,7 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaBlendColorsMtd);
 
 node_parameters
 {
-   AiParameterFLT("blender", 0.5f);
+   AiParameterFlt("blender", 0.5f);
    AiParameterRGB("color1", 1, 0, 0);
    AiParameterRGB("color2", 0, 0, 1);
 
@@ -28,14 +28,14 @@ shader_evaluate
 {
    float blend  = AiShaderEvalParamFlt(p_blender);
    if (blend == 0.0f)
-      sg->out.RGB = AiShaderEvalParamRGB(p_color2);
+      sg->out.RGB() = AiShaderEvalParamRGB(p_color2);
    else if (blend == 1.0f)
-      sg->out.RGB = AiShaderEvalParamRGB(p_color1);
+      sg->out.RGB() = AiShaderEvalParamRGB(p_color1);
    else
    {
       AtRGB   color1 = AiShaderEvalParamRGB(p_color1);
       AtRGB   color2 = AiShaderEvalParamRGB(p_color2);
-      AiColorLerp(sg->out.RGB, blend, color2, color1);
+      sg->out.RGB() = AiColorLerp(blend, color2, color1);
    }
 }
 

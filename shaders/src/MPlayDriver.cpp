@@ -58,7 +58,6 @@ ArraySize arraySize(int arnold_type)
 
     case AI_TYPE_RGB:
     case AI_TYPE_VECTOR:
-    case AI_TYPE_POINT:
     default:
         return ARRAY_SIZE_RGB;
     }
@@ -91,7 +90,7 @@ void openPipeCommand(DriverData* ctx)
 
     SECURITY_ATTRIBUTES sa_attrs;
     sa_attrs.nLength = sizeof(SECURITY_ATTRIBUTES); 
-    sa_attrs.bInheritHandle = TRUE; 
+    sa_attrs.bInheritHandle = true; 
     sa_attrs.lpSecurityDescriptor = NULL;
     ctx->read_pipe = NULL;
     ctx->write_pipe = NULL;
@@ -124,7 +123,7 @@ void openPipeCommand(DriverData* ctx)
                 "imdisplay.exe -f -n Arnold -k -p",
                 NULL,
                 NULL,
-                TRUE,
+                true,
                 CREATE_NO_WINDOW,
                 NULL,
                 HB,
@@ -132,7 +131,7 @@ void openPipeCommand(DriverData* ctx)
                 &ctx->process_information
             );
 
-        if (success != TRUE)
+        if (success != true)
         {
             ctx->fp = 0;
             DWORD lastError = GetLastError();
@@ -167,7 +166,7 @@ bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData
     DWORD bytesToWrite = static_cast<DWORD>(elem_size * elem_count);
     LPOVERLAPPED pOverlapped = reinterpret_cast<LPOVERLAPPED>(malloc(sizeof(OVERLAPPED)));
     ZeroMemory(pOverlapped, sizeof(OVERLAPPED));
-    if (WriteFileEx(ctx->write_pipe, data, bytesToWrite, pOverlapped, writeCompletionCallback) == TRUE)
+    if (WriteFileEx(ctx->write_pipe, data, bytesToWrite, pOverlapped, writeCompletionCallback) == true)
         return true;
     else
     {
@@ -182,7 +181,7 @@ bool writeData(const void* data, size_t elem_size, size_t elem_count, DriverData
 void flushData(DriverData* ctx)
 {
 #ifdef _WIN32
-    //if (FlushFileBuffers(ctx->write_pipe) != TRUE)
+    //if (FlushFileBuffers(ctx->write_pipe) != true)
     //    AiMsgWarning("Error flushing the write pipe, error code : %i", GetLastError());
 #else
     fflush(ctx->fp);
@@ -309,7 +308,7 @@ void writeEndOfImage(DriverData* ctx)
 /// Driver parameters
 node_parameters
 {
-    AiParameterPTR("swatch", NULL);
+    AiParameterPtr("swatch", NULL);
     AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
     AiMetaDataSetStr(mds, NULL, "maya.translator", "mplay");
     AiMetaDataSetBool(mds, NULL, "single_layer_driver", false);
@@ -339,7 +338,6 @@ driver_supports_pixel_type
     case AI_TYPE_RGBA:
     case AI_TYPE_VECTOR:
     case AI_TYPE_FLOAT:
-    case AI_TYPE_POINT:
         return true;
 
     default:
@@ -468,5 +466,4 @@ node_finish
     if (ctx->fp)
         writeEndOfImage(ctx);
     delete ctx;
-    AiDriverDestroy(node);
 }

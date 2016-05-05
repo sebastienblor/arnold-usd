@@ -28,12 +28,12 @@ node_parameters
    AtMatrix id;
    AiM4Identity(id);
 
-   AiParameterFLT("shaker", 20.0f);
+   AiParameterFlt("shaker", 20.0f);
    AiParameterRGB("channel1", 1.0f, 0.0f, 0.0f);
    AiParameterRGB("channel2", 0.0f, 0.0f, 1.0f);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("placementMatrix", id);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
+   AiParameterMtx("placementMatrix", id);
    AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "stucco");
@@ -61,9 +61,9 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
 
-   AtPoint P;
+   AtVector P;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
@@ -93,18 +93,18 @@ shader_evaluate
 
       float a = shaker / 10.0f;
 
-      float b = MIN(2.0f, 4.0f / MAX(a, 0.001f));
+      float b = AiMin(2.0f, 4.0f / AiMax(a, 0.001f));
 
       float mix = pow(1.0f - pow(2.0f * fabs(noise - 0.5f), b), 4.0f*a*a);
 
       AtRGB out = Mix(channel1, channel2, mix);
 
-      AiRGBtoRGBA(out, sg->out.RGBA);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(out);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

@@ -15,7 +15,7 @@ inline T GetValueFromSG(AtShaderGlobals* sg, int outputType = AI_TYPE_RGB)
 template <>
 inline float GetValueFromSG(AtShaderGlobals* sg, int outputType)
 {
-   return sg->out.FLT;
+   return sg->out.FLT();
 }
 
 template <>
@@ -25,14 +25,14 @@ inline AtRGB GetValueFromSG(AtShaderGlobals* sg, int outputType)
    switch (outputType)
    {
    case AI_TYPE_FLOAT:
-      ret = sg->out.FLT;
+      ret = sg->out.FLT();
       break;
-   case AI_TYPE_POINT2:
-      ret.r = sg->out.PNT2.x;
-      ret.g = sg->out.PNT2.y;
+   case AI_TYPE_VECTOR2:
+      ret.r = sg->out.VEC2().x;
+      ret.g = sg->out.VEC2().y;
       break;
    default:
-      ret = sg->out.RGB;
+      ret = sg->out.RGB();
    }   
    return ret;
 }
@@ -43,6 +43,17 @@ enum gradientInterps{
    GI_SMOOTH,
    GI_SPLINE
 };
+
+
+inline void AiColorGamma(AtColor *color, float gamma)
+{
+   if (gamma == 1.0f)
+      return;
+   gamma = 1.0f / gamma;
+   color->r = powf(color->r, gamma);
+   color->g = powf(color->g, gamma);
+   color->b = powf(color->b, gamma);
+}
 
 template <typename T>
 inline void GammaCorrect(T& d, float gamma)
@@ -55,9 +66,9 @@ inline void GammaCorrect<AtRGB>(AtRGB& d, float gamma)
 {
    if (gamma != 1.f)
    {
-      d.r = MAX(0.f, d.r);
-      d.g = MAX(0.f, d.g);
-      d.b = MAX(0.f, d.b);
+      d.r = AiMax(0.f, d.r);
+      d.g = AiMax(0.f, d.g);
+      d.b = AiMax(0.f, d.b);
       AiColorGamma(&d, gamma);
    }
 }
@@ -73,7 +84,7 @@ public:
       int outputType;
    };
    GradientDescriptionElement* elements;
-   AtUInt32 nelements;
+   uint32_t nelements;
    float inputBias;
    float gamma;
    
@@ -108,7 +119,7 @@ public:
       }
    }
    
-   inline T GetElement(AtShaderGlobals* sg, AtUInt32 elem) const
+   inline T GetElement(AtShaderGlobals* sg, uint32_t elem) const
    {
       if (M && (elements[elem].node != 0))
       {
@@ -128,7 +139,7 @@ public:
          const float p = v * resolution;
          const int pi = (int)p;
          const int b = CLAMP(pi, 0, resolution - 1);
-         const int e = MIN(b + 1, resolution - 1);
+         const int e = AiMin(b + 1, resolution - 1);
          const float pf = p - (float)pi;
          return data[b] * (1.f - pf) + data[e] * pf;
       }
@@ -141,8 +152,8 @@ public:
       v = ApplyBias(v, inputBias);
       
       // look for the proper segment
-      AtUInt32 index = nelements;
-      for (AtUInt32 i = 0; i < nelements; ++i)
+      uint32_t index = nelements;
+      for (uint32_t i = 0; i < nelements; ++i)
       {
          if (v < elements[i].position)
          {
@@ -160,7 +171,7 @@ public:
          return GetElement(sg, nelements - 1);
       
       // interpolate between two values
-      const AtUInt32 prevIndex = index - 1;
+      const uint32_t prevIndex = index - 1;
       const int interp = elements[prevIndex].interp;
       T ret = GetDefaultValue<T>();
       switch(interp)
@@ -229,21 +240,21 @@ public:
                }
 
                const static float tanSize = .2f;
-               const float tx = MAX(tanSize * dp, AI_EPSILON);
+               const float tx = AiMax(tanSize * dp, AI_EPSILON);
 
-               float sx = MAX(p2 - p0, AI_EPSILON);
+               float sx = AiMax(p2 - p0, AI_EPSILON);
                T sy = v2 - v0;
 
                sy *= tanSize * dp / sx;
                const T m1 = sy / tx;
-               sx = MAX(p3 - p1, AI_EPSILON);
+               sx = AiMax(p3 - p1, AI_EPSILON);
                sy = v3 - v1;
 
                sy *= tanSize * dp / sx;
                const T m2 = sy / tx;
 
                float tFromP1 = (v - p1);
-               float length = MIN(1.f / (dp * dp), AI_BIG);
+               float length = AiMin(1.f / (dp * dp), AI_BIG);
                const T d1 = dp * m1;
                const T d2 = dp * m2;
 
@@ -273,14 +284,14 @@ public:
       else
          gamma = 1.f / invGamma;
       
-      nelements = positionsArray->nelements;      
+      nelements = AiArrayGetNumElements(positionsArray);
       if (nelements == 0)
          elements = 0;
       else
       {
          bool isConnected = false;
          elements = (GradientDescriptionElement*)AiMalloc(sizeof(GradientDescriptionElement) * nelements);
-         for (AtUInt32 i = 0; i < nelements; ++i)
+         for (uint32_t i = 0; i < nelements; ++i)
          {
             elements[i].position = AiArrayGetFlt(positionsArray, i);
             elements[i].interp = AiArrayGetInt(interpsArray, i);
@@ -326,7 +337,7 @@ public:
 template <typename T, bool M, bool G, bool IS3D>
 T GetValue(AtShaderGlobals* sg, const CMayaFluidData<IS3D>* fluidData, const AtVector& lPt, const GradientDescription<T, M, G>& gradient, int filterType, float texture, const AtVector& velocityScale)
 {
-   static const AtVector middlePoint = {0.5f, 0.5f, 0.5f};
+   static const AtVector middlePoint(0.5f, 0.5f, 0.5f);
    float gradientValue = 0.f;
    switch (gradient.type)
    {
@@ -420,9 +431,9 @@ inline float CalculateDropoff(const CMayaFluidData<IS3D>* data, const AtVector& 
                return 1.f;
          }
       case DS_CUBE:
-         cPt.x = (1.f - ABS(cPt.x)) / edgeDropoff;
-         cPt.y = (1.f - ABS(cPt.y)) / edgeDropoff;
-         cPt.z = (1.f - ABS(cPt.z)) / edgeDropoff;
+         cPt.x = (1.f - fabsf(cPt.x)) / edgeDropoff;
+         cPt.y = (1.f - fabsf(cPt.y)) / edgeDropoff;
+         cPt.z = (1.f - fabsf(cPt.z)) / edgeDropoff;
          if (cPt.x < 0.f || cPt.y < 0.f || cPt.z < 0.f)
             return 0.f;
          else
@@ -443,7 +454,7 @@ inline float CalculateDropoff(const CMayaFluidData<IS3D>* data, const AtVector& 
          }
       case DS_CONE:
          {
-            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + ABS(cPt.z + 1.f);
+            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + fabsf(cPt.z + 1.f);
             if (d < 0.f)
                return 0.f;
             else if (d < edgeDropoff)
@@ -453,7 +464,7 @@ inline float CalculateDropoff(const CMayaFluidData<IS3D>* data, const AtVector& 
          }
       case DS_DOUBLE_CONE:         
          {
-            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + ABS(cPt.z);
+            const float d = -2.f * sqrtf(cPt.x * cPt.x + cPt.y * cPt.y) + fabsf(cPt.z);
             if (d < 0.f)
                return 0.f;
             else if (d < edgeDropoff)

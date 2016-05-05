@@ -95,23 +95,23 @@ node_finish
 shader_evaluate
 {
    MayaFluidTexture2D* data = reinterpret_cast<MayaFluidTexture2D*>(AiNodeGetLocalData(node));
-   AtVector lPt = {sg->u, sg->v, 0.0f};
+   AtVector lPt(sg->u, sg->v, 0.0f);
    float dropoff = CalculateDropoff(data->fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType);
-   const AtRGB opacity = MAX(0.f, GetValue(sg, data->fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, AI_V3_ONE)) * dropoff * AI_RGB_WHITE; // * data->transparency;
+   const AtRGB opacity = AiMax(0.f, GetValue(sg, data->fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, AI_V3_ONE)) * dropoff * AI_RGB_WHITE; // * data->transparency;
    AtRGB color = AI_RGB_BLACK;
    if (data->fluidData->colorGridEmpty())
       color = GetValue(sg, data->fluidData, lPt, data->colorGradient, data->filterType, 1.0f, AI_V3_ONE);
    else
       color = data->fluidData->readColors(lPt, FT_LINEAR);
 
-   color.r = MAX(0.f, color.r);
-   color.g = MAX(0.f, color.g);
-   color.b = MAX(0.f, color.b);
+   color.r = AiMax(0.f, color.r);
+   color.g = AiMax(0.f, color.g);
+   color.b = AiMax(0.f, color.b);
    AtRGB incandescence = GetValue(sg, data->fluidData, lPt, data->incandescenceGradient, data->filterType, 1.0f, AI_V3_ONE);
-   incandescence.r = MAX(0.f, incandescence.r);
-   incandescence.g = MAX(0.f, incandescence.g);
-   incandescence.b = MAX(0.f, incandescence.b); // do we need this?
+   incandescence.r = AiMax(0.f, incandescence.r);
+   incandescence.g = AiMax(0.f, incandescence.g);
+   incandescence.b = AiMax(0.f, incandescence.b); // do we need this?
 
-   sg->out.RGB = color + incandescence;
+   sg->out.RGB() = color + incandescence;
    sg->out_opacity = opacity;
 }

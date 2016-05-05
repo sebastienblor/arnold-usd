@@ -49,7 +49,7 @@ class P3DTData
 {
 public:
 
-   typedef std::map<AtByte, AtMatrix*> ThreadMatrixMap;
+   typedef std::map<uint8_t, AtMatrix*> ThreadMatrixMap;
 
    P3DTData()
       : mBeingDestroyed(false)
@@ -115,18 +115,18 @@ node_parameters
    AtMatrix id;
    AiM4Identity(id);
    
-   AiParameterVEC("translate", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("rotate", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("scale", 1.0f, 1.0f, 1.0f);
-   AiParameterVEC("shear", 0.0f, 0.0f, 0.0f);
-   AiParameterENUM("rotateOrder", 0, gs_RotateOrderNames);
-   AiParameterVEC("rotateAxis", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("scalePivot", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("rotatePivot", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("scalePivotTranslate", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("rotatePivotTranslate", 0.0f, 0.0f, 0.0f);
-   AiParameterBOOL("inheritsTransform", true);
-   AiParameterMTX("parentMatrix", id);
+   AiParameterVec("translate", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("rotate", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("scale", 1.0f, 1.0f, 1.0f);
+   AiParameterVec("shear", 0.0f, 0.0f, 0.0f);
+   AiParameterEnum("rotateOrder", 0, gs_RotateOrderNames);
+   AiParameterVec("rotateAxis", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("scalePivot", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("rotatePivot", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("scalePivotTranslate", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("rotatePivotTranslate", 0.0f, 0.0f, 0.0f);
+   AiParameterBool("inheritsTransform", true);
+   AiParameterMtx("parentMatrix", id);
 
    //AiMetaDataSetStr(mds, NULL, "maya.name", "place3dTexture");
    //AiMetaDataSetInt(mds, NULL, "maya.id", 0x52504c44);
@@ -151,16 +151,16 @@ shader_evaluate
 {
    P3DTData *data = reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node));
 
-   AtVector translate = AiShaderEvalParamPnt(p_translate);
-   AtVector rotate = AiShaderEvalParamPnt(p_rotate);
-   AtVector scale = AiShaderEvalParamPnt(p_scale);
-   AtVector shear = AiShaderEvalParamPnt(p_shear);
+   AtVector translate = AiShaderEvalParamVec(p_translate);
+   AtVector rotate = AiShaderEvalParamVec(p_rotate);
+   AtVector scale = AiShaderEvalParamVec(p_scale);
+   AtVector shear = AiShaderEvalParamVec(p_shear);
    int rotateOrder = AiShaderEvalParamInt(p_rotate_order);
-   AtVector rotateAxis = AiShaderEvalParamPnt(p_rotate_axis);
-   AtVector scalePivot = AiShaderEvalParamPnt(p_scale_pivot);
-   AtVector rotatePivot = AiShaderEvalParamPnt(p_rotate_pivot);
-   AtVector scalePivotTranslate = AiShaderEvalParamPnt(p_scale_pivot_translate);
-   AtVector rotatePivotTranslate = AiShaderEvalParamPnt(p_rotate_pivot_translate);
+   AtVector rotateAxis = AiShaderEvalParamVec(p_rotate_axis);
+   AtVector scalePivot = AiShaderEvalParamVec(p_scale_pivot);
+   AtVector rotatePivot = AiShaderEvalParamVec(p_rotate_pivot);
+   AtVector scalePivotTranslate = AiShaderEvalParamVec(p_scale_pivot_translate);
+   AtVector rotatePivotTranslate = AiShaderEvalParamVec(p_rotate_pivot_translate);
    bool inheritsTransform = (AiShaderEvalParamBool(p_inherits_transform) == true);
    AtMatrix *parentMatrix = AiShaderEvalParamMtx(p_parent_matrix);
 
@@ -259,6 +259,6 @@ shader_evaluate
       AiM4Copy(M, tmp);
    }
 
-   sg->out.pMTX = pM;
+   sg->out.pMTX() = pM;
 }
 

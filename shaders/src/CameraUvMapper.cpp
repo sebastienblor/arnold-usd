@@ -39,10 +39,10 @@ public:
       unsigned int idx[3];
    };
    struct BakeVertex {
-      BakeVertex(const AtPoint& p, const AtVector& n, const AtVector2& u) :
+      BakeVertex(const AtVector& p, const AtVector& n, const AtVector2& u) :
       position(p), normal(n), uv(u) {}
 
-      AtPoint position;
+      AtVector position;
       AtVector normal;
       AtVector2 uv;
    };
@@ -56,16 +56,16 @@ public:
 
 
    bool intersect(const unsigned int& element,
-      const AtVector2& uv, AtPoint& pout, AtVector& nout) const
+      const AtVector2& uv, AtVector& pout, AtVector& nout) const
    {
       const BakeTriangle &tri = mTriangles[element];
-      const AtPoint2& A = mVertices[tri.idx[0]].uv;
-      const AtPoint2& B = mVertices[tri.idx[1]].uv;
-      const AtPoint2& C = mVertices[tri.idx[2]].uv;
+      const AtVector2& A = mVertices[tri.idx[0]].uv;
+      const AtVector2& B = mVertices[tri.idx[1]].uv;
+      const AtVector2& C = mVertices[tri.idx[2]].uv;
 
-      const AtVector2 v0 = { C.x - A.x, C.y - A.y };
-      const AtVector2 v1 = { B.x - A.x, B.y - A.y };
-      const AtVector2 v2 = { uv.x - A.x, uv.y - A.y };
+      const AtVector2 v0( C.x - A.x, C.y - A.y );
+      const AtVector2 v1( B.x - A.x, B.y - A.y );
+      const AtVector2 v2( uv.x - A.x, uv.y - A.y );
 
       const float dot00 = AiV2Dot(v0, v0);
       const float dot01 = AiV2Dot(v0, v1);
@@ -78,7 +78,7 @@ public:
          return false;
 
       const float invDenom = 1.0f / denom;
-      AtPoint2 bary;
+      AtVector2 bary;
       bary.x = (dot11 * dot02 - dot01 * dot12) * invDenom;
       bary.y = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
@@ -90,14 +90,14 @@ public:
 
          nout = mVertices[tri.idx[0]].normal * w + mVertices[tri.idx[1]].normal * bary.y
             + mVertices[tri.idx[2]].normal * bary.x;
-         AiV3Normalize(nout, nout);
+         nout = AiV3Normalize(nout);
 
          return true;
       }
       return false;
    }
 
-   bool findSurfacePoint(const AtPoint2& uv, AtPoint& pout, AtVector& nout)
+   bool findSurfacePoint(const AtVector2& uv, AtVector& pout, AtVector& nout)
    {
       pout = AI_V3_ZERO;
       nout = AI_V3_ZERO;
@@ -136,8 +136,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
 {
    if (node != 0 && AiNodeIs(node, "polymesh"))
    {
-      AtMatrix localToWorld;
-      AiNodeGetMatrix(node, "matrix", localToWorld);
+      AtMatrix localToWorld = AiNodeGetMatrix(node, "matrix");
 
       int gridSize = AiNodeGetInt(camera_node, "grid_size");
       float u_offset = AiNodeGetFlt(camera_node, "u_offset");
@@ -159,9 +158,9 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
       sg->Rt = AI_RAY_CAMERA;
       sg->time = 0.f;
 
-      AtPoint localPos[3], worldPos[3];
+      AtVector localPos[3], worldPos[3];
       AtVector localNormal[3], worldNormal[3];
-      AtPoint2 uv[3];
+      AtVector2 uv[3];
 
       unsigned int triangleIndex = 0;
       unsigned int vertexIndex = 0;
@@ -214,10 +213,10 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          }
 
          // get Uv Bbox for this Triangle
-         bbox[0] = MIN(uv[0].x, MIN(uv[1].x, uv[2].x));
-         bbox[1] = MIN(uv[0].y, MIN(uv[1].y, uv[2].y));
-         bbox[2] = MAX(uv[0].x, MAX(uv[1].x, uv[2].x));
-         bbox[3] = MAX(uv[0].y, MAX(uv[1].y, uv[2].y));
+         bbox[0] = AiMin(uv[0].x, uv[1].x, uv[2].x);
+         bbox[1] = AiMin(uv[0].y, uv[1].y, uv[2].y);
+         bbox[2] = AiMax(uv[0].x, uv[1].x, uv[2].x);
+         bbox[3] = AiMax(uv[0].y, uv[1].y, uv[2].y);
 
          // convert that into XY grid coordinates
          coords[0] = (unsigned int)CLAMP((int)((bbox[0] - 0.001f) * grid_f), 0, (int)grid_max);
@@ -247,7 +246,7 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          if (no_uvs)  errLog += "doesn't have any valid UVs => Impossible to Render as a Texture";
          else         errLog += "is empty or hasn't been properly initialized";
 
-         AiMsgError(errLog.c_str());
+         AiMsgError("%s", errLog.c_str());
       }
    }
    else
@@ -262,11 +261,11 @@ PolymeshUvMapper::~PolymeshUvMapper()
 
 node_parameters
 {
-   AiParameterSTR("polymesh", "");
-   AiParameterFLT("offset", 0.1f);
-   AiParameterINT("grid_size", 16);
-   AiParameterFLT("u_offset", 0.0f);
-   AiParameterFLT("v_offset", 0.0f);
+   AiParameterStr("polymesh", "");
+   AiParameterFlt("offset", 0.1f);
+   AiParameterInt("grid_size", 16);
+   AiParameterFlt("u_offset", 0.0f);
+   AiParameterFlt("v_offset", 0.0f);
 }
 
 struct CameraUvMapperData{
@@ -298,7 +297,7 @@ node_initialize
    // the polymesh triangles have been correctly initialized
    // Until we find a solution, we need to run first a Free render,
    // and then abort it. We also need to make sure that preserve_scene_data
-   // is TRUE.
+   // is true.
 
    CameraUvMapperData* data = new CameraUvMapperData();
    AiCameraInitialize(node, data);
@@ -316,7 +315,7 @@ node_initialize
       if (input_node == 0)
       {
          AiMsgError("The input object can't be found!");
-         AiMsgError(polymesh);
+         AiMsgError("%s", polymesh);
       }
       else
       {
@@ -343,7 +342,6 @@ node_finish
 {
    CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node);
    delete data;
-   AiCameraDestroy(node);
 }
 
 camera_create_ray
@@ -355,9 +353,9 @@ camera_create_ray
    if (data->uvMapper == 0)
       return;
 
-   const AtPoint2 screen_uv = { (input->sx + 1.0f) * 0.5f, (input->sy + 1.0f) * 0.5f };
+   const AtVector2 screen_uv( (input->sx + 1.0f) * 0.5f, (input->sy + 1.0f) * 0.5f );
 
-   AtPoint position;
+   AtVector position;
    AtVector normal;
 
    if (data->uvMapper->findSurfacePoint(screen_uv, position, normal))
@@ -372,4 +370,10 @@ camera_create_ray
       output->dOdy = AI_V3_ZERO;
       output->weight = 1.0f;
    }
+}
+
+camera_reverse_ray
+{
+//TODO: implement this!
+   return true;
 }

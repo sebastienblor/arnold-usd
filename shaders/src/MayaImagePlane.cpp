@@ -56,16 +56,16 @@ const char* display_mode_enum[] =
 
 node_parameters
 {
-   AiParameterSTR("filename", "");
+   AiParameterStr("filename", "");
    AiParameterRGB("color", 1.0f, 0.0f, 0.0f);
-   AiParameterENUM("displayMode", 1, display_mode_enum);
+   AiParameterEnum("displayMode", 1, display_mode_enum);
    AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaGain", 1.0f);
-   AiParameterPNT2("coverage", 1.0f, 1.0f);
-   AiParameterPNT2("translate", 0.0f, 0.0f);
+   AiParameterFlt("alphaGain", 1.0f);
+   AiParameterVec2("coverage", 1.0f, 1.0f);
+   AiParameterVec2("translate", 0.0f, 0.0f);
 
-   AiParameterNODE("camera", NULL); 
+   AiParameterNode("camera", NULL); 
 
    AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
    AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
@@ -121,8 +121,8 @@ shader_evaluate
    AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);
    AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);
    float alphaGain = AiShaderEvalParamFlt(p_alphaGain);
-   AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
-   AtPoint2 translate = AiShaderEvalParamPnt2(p_translate);
+   AtVector2 coverage = AiShaderEvalParamVec2(p_coverage);
+   AtVector2 translate = AiShaderEvalParamVec2(p_translate);
    int displayMode = AiShaderEvalParamInt(p_display_mode);
    
    AtRGBA result; 
@@ -219,7 +219,7 @@ shader_evaluate
        result.g = result.a;
        result.b = result.a;
        result.a = 1.0f;
-       sg->out.RGBA = result;
+       sg->out.RGBA() = result;
        return;
    }
   
@@ -227,6 +227,6 @@ shader_evaluate
    result.g = (result.g * colorGain.g) + colorOffset.g;
    result.b = (result.b * colorGain.b) + colorOffset.b;
    result.a = (result.a * alphaGain);
-   sg->out.RGBA = result;
+   sg->out.RGBA() = result;
    sg->out_opacity *= alphaGain;
 }

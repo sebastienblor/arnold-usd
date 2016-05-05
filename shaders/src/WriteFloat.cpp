@@ -26,15 +26,15 @@ node_parameters
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("input", 0.0f);
-   AiParameterSTR("aov_name", "");
+   AiParameterFlt("input", 0.0f);
+   AiParameterStr("aov_name", "");
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_beauty);
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamFlt(p_input));
+      AiAOVSetFlt(sg, AtString(AiShaderEvalParamStr(p_name)), AiShaderEvalParamFlt(p_input));
 }
 
 node_initialize

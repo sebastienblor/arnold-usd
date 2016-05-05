@@ -36,5 +36,5 @@ node_finish
 
 shader_evaluate
 {
-   sg->out.FLT = Luminance(AiShaderEvalParamRGB(p_value));
+   sg->out.FLT() = Luminance(AiShaderEvalParamRGB(p_value));
 }

@@ -1,5 +1,15 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString shadow("shadow");
+   static const AtString shadow_matte("shadow_matte");
+   static const AtString shadow_diff("shadow_diff");
+   static const AtString shadow_mask("shadow_mask");
+   static const AtString indirect_diffuse("indirect_diffuse");
+   static const AtString reflection("reflection");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(ShadowCatcherMtd);
 
 enum ShadowCatcherParams
@@ -31,18 +41,18 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
-   AiParameterBOOL("catchShadows", true);
+   AiParameterBool("catchShadows", true);
    AiParameterRGB("backgroundColor", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("shadowColor", 0.f, 0.f, 0.f);
-   AiParameterFLT("backlighting", 0.f);
-   AiParameterBOOL("enableTransparency", false);
+   AiParameterFlt("backlighting", 0.f);
+   AiParameterBool("enableTransparency", false);
    AiParameterRGB("shadowTransparency", 0.0f, 0.0f, 0.0f);
    
-   AiParameterBOOL("catchDiffuse", false);
+   AiParameterBool("catchDiffuse", false);
    AiParameterRGB("diffuseColor", 1.0f, 1.0f, 1.0f);
    
    AiParameterRGB("reflection", 0.f, 0.f, 0.f);
-   AiParameterBOOL("legacy", false);
+   AiParameterBool("legacy", false);
 
    AiParameterStr("aov_shadow", "shadow");
    AiParameterStr("aov_shadow_matte", "shadow_matte");
@@ -144,7 +154,7 @@ shader_evaluate
       AtRGB diffuse_color = AiShaderEvalParamRGB(p_diffuse_color);
       Kd = diffuse_color;
       if (!AiColorIsSmall(diffuse_color))
-         indirect_diffuse = diffuse_color * AiIndirectDiffuse(&sg->Nf, sg) * backgroundColor;
+         indirect_diffuse = diffuse_color * AiIndirectDiffuse(&sg->Nf, sg, AI_RGB_WHITE) * backgroundColor;
    }
    float resultAlpha = (matte.r + matte.g + matte.b) / 3.0f;      
    
@@ -156,18 +166,19 @@ shader_evaluate
 
    AtRGB reflection = AiShaderEvalParamRGB(p_reflection);
 
-   AiAOVSetRGB(sg,  AiShaderEvalParamStr(p_aov_shadow), result);
-   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shadow_matte), matte);
-   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shadow_diff), shadow_diff);
-   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_shadow_mask), shadow_mask);
-   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_diffuse), indirect_diffuse);
-   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_reflection), reflection);
+   AiAOVSetRGB(sg, MSTR::shadow, result);
+   AiAOVSetRGB(sg, MSTR::shadow_matte, matte);
+   AiAOVSetRGB(sg, MSTR::shadow_diff, shadow_diff);
+   AiAOVSetRGB(sg, MSTR::shadow_mask, shadow_mask);
+   AiAOVSetRGB(sg, MSTR::indirect_diffuse, indirect_diffuse);
+   AiAOVSetRGB(sg, MSTR::reflection, reflection);
+
 
    result += indirect_diffuse;
    result += reflection;
 
-   sg->out.RGB = result;
+   sg->out.RGB() = result;
    sg->out_opacity = resultOpacity;
-   sg->out.RGBA.a = resultAlpha;
+   sg->out.RGBA().a = resultAlpha;
    
 }

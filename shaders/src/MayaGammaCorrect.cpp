@@ -15,8 +15,8 @@ enum MayaGammaCorrectParams
 
 node_parameters
 {
-   AiParameterVEC("value", 0, 0, 0);
-   AiParameterVEC("gamma", 1, 1, 1);
+   AiParameterVec("value", 0, 0, 0);
+   AiParameterVec("gamma", 1, 1, 1);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "gammaCorrect");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x5247414d);
@@ -47,8 +47,8 @@ shader_evaluate
    if (gamma.y < AI_EPSILON) gamma.y = (float) AI_EPSILON; 
    if (gamma.z < AI_EPSILON) gamma.z = (float) AI_EPSILON; 
 
-   sg->out.RGB.r = powf(value.x, 1.f / gamma.x);
-   sg->out.RGB.g = powf(value.y, 1.f / gamma.y);
-   sg->out.RGB.b = powf(value.z, 1.f / gamma.z);
+   sg->out.RGB().r = powf(value.x, 1.f / gamma.x);
+   sg->out.RGB().g = powf(value.y, 1.f / gamma.y);
+   sg->out.RGB().b = powf(value.z, 1.f / gamma.z);
 
 }

@@ -12,6 +12,11 @@
 #include "MayaFluidData.h"
 #include "FluidUtils.h"
 
+namespace MSTR
+{
+   static const AtString mtoa_fluid_data("mtoa_fluid_data");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFluidMtd);
 
 const char* textureTypeEnums[] = {"Perlin Noise", "Billow", "Volume Wave", "Wispy", "Space Time", "Mandelbrot", 0};
@@ -339,7 +344,7 @@ shader_evaluate
       if (it == data->fluidDataMap[sg->tid].end())
       {
          AtNode* fluidDataContainer = 0;
-         if (AiUDataGetNode("mtoa_fluid_data", &fluidDataContainer) && (fluidDataContainer != 0))
+         if (AiUDataGetNode(MSTR::mtoa_fluid_data, &fluidDataContainer) && (fluidDataContainer != 0))
             fluidData = (CMayaFluidData<true>*)AiNodeGetLocalData(fluidDataContainer);
          data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData<true>*>(sg->Op, fluidData));         
       }
@@ -365,7 +370,7 @@ shader_evaluate
 
    if (data->textureDisabledInShadows && (sg->Rt & AI_RAY_SHADOW))
    {
-      const float opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = AiMax(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, 1.0f, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
@@ -373,8 +378,10 @@ shader_evaluate
    float opacityNoise = 1.0f;
    float colorNoise = 1.f; // colors?
    float incandNoise = 1.f;
-   const float old_area = sg->area;
-   sg->area = 0.f;
+   const AtVector old_dPdx = sg->dPdx;
+   const AtVector old_dPdy = sg->dPdy;
+   sg->dPdx = AI_V3_ZERO;
+   sg->dPdy = AI_V3_ZERO;
    if (data->volumeTexture)
    {
       if ((data->coordinateMethod == CM_GRID) && !fluidData->coordinatesEmpty())
@@ -389,7 +396,7 @@ shader_evaluate
       }
       else
          AiShaderEvaluate(data->volumeTexture, sg);
-      float volumeNoise = sg->out.FLT;
+      float volumeNoise = sg->out.FLT();
       if (data->textureAffectColor)
          colorNoise = volumeNoise;
       if (data->textureAffectIncand)
@@ -407,9 +414,9 @@ shader_evaluate
       ApplyImplode(P, AiShaderEvalParamFlt(p_implode), AiShaderEvalParamVec(p_implode_center));     
       
       AtVector textureScale = AiShaderEvalParamVec(p_texture_scale);
-      textureScale.x = MAX(AI_EPSILON, textureScale.x);
-      textureScale.y = MAX(AI_EPSILON, textureScale.y);
-      textureScale.z = MAX(AI_EPSILON, textureScale.z);
+      textureScale.x = AiMax(AI_EPSILON, textureScale.x);
+      textureScale.y = AiMax(AI_EPSILON, textureScale.y);
+      textureScale.z = AiMax(AI_EPSILON, textureScale.z);
       const float frequency = AiShaderEvalParamFlt(p_frequency);
       P.x *= frequency / textureScale.x;
       P.y *= frequency / textureScale.y;
@@ -460,16 +467,16 @@ shader_evaluate
 
                      AtVector v, d;
 
-                     AiV3Create(v, tmp, 0, 0);
+                     v = AtVector(tmp, 0, 0);
                      d.x = AiPerlin3(v);
 
-                     AiV3Create(v, 0, tmp, 0);
+                     v = AtVector(0, tmp, 0);
                      d.y = AiPerlin3(v);
 
-                     AiV3Create(v, 0, 0, tmp);
+                     v = AtVector(0, 0, tmp);
                      d.z = AiPerlin3(v);
 
-                     AiV3Normalize(d, d);
+                     d = AiV3Normalize(d);
 
                      waveVal += cosf((float)AI_PITIMES2 * AiV3Dot(P, d) + textureTime);
                   }
@@ -517,7 +524,7 @@ shader_evaluate
          volumeNoise = 0.f;
       
       if (data->invertTexture)
-         volumeNoise = MAX(1.f - volumeNoise, 0.f);
+         volumeNoise = AiMax(1.f - volumeNoise, 0.f);
       if (data->colorTexture)
          colorNoise = data->colorTexGain * volumeNoise;
       if (data->incandTexture)
@@ -525,29 +532,30 @@ shader_evaluate
       if (data->opacityTexture)
          opacityNoise *= data->opacityTexGain * volumeNoise;
    }
-   sg->area = old_area;
+   sg->dPdx = old_dPdx;
+   sg->dPdy = old_dPdy;
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      const float opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
+      const float opacity = AiMax(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * AiShaderEvalParamFlt(p_shadow_opacity);
       AiShaderGlobalsSetVolumeAttenuation(sg, data->transparency * opacity);
       return;
    }
    
-   const AtRGB opacity = MAX(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * data->transparency;
+   const AtRGB opacity = AiMax(0.f, GetValue(sg, fluidData, lPt, data->opacityGradient, data->filterType, opacityNoise, data->velocityScale)) * dropoff * data->transparency;
    AtRGB color = AI_RGB_BLACK;
    if (fluidData->colorGridEmpty())
       color = GetValue(sg, fluidData, lPt, data->colorGradient, data->filterType, colorNoise, data->velocityScale);
    else
       color = fluidData->readColors(lPt, data->filterType);
 
-   color.r = MAX(0.f, color.r);
-   color.g = MAX(0.f, color.g);
-   color.b = MAX(0.f, color.b);
+   color.r = AiMax(0.f, color.r);
+   color.g = AiMax(0.f, color.g);
+   color.b = AiMax(0.f, color.b);
    AtRGB incandescence = GetValue(sg, fluidData, lPt, data->incandescenceGradient, data->filterType, incandNoise, data->velocityScale);
-   incandescence.r = MAX(0.f, incandescence.r);
-   incandescence.g = MAX(0.f, incandescence.g);
-   incandescence.b = MAX(0.f, incandescence.b);
+   incandescence.r = AiMax(0.f, incandescence.r);
+   incandescence.g = AiMax(0.f, incandescence.g);
+   incandescence.b = AiMax(0.f, incandescence.b);
    
    AiShaderGlobalsSetVolumeAttenuation(sg, opacity * AI_RGB_WHITE);
    AiShaderGlobalsSetVolumeEmission(sg, opacity * incandescence);

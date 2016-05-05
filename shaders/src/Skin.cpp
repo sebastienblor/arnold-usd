@@ -1,5 +1,11 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString previous_roughness("previous_roughness");
+}
+
+
 AI_SHADER_NODE_EXPORT_METHODS(SkinMtd);
 
 struct SkinData
@@ -15,38 +21,38 @@ struct SkinData
 
 node_parameters
 {
-   AiParameterFLT("sss_weight", 1.0f);
+   AiParameterFlt("sss_weight", 1.0f);
    AiParameterRGB("shallow_scatter_color", 1.0f, 0.909f, 0.769f);
    AiMetaDataSetBool(mds, "shallow_scatter_color", "always_linear", true);
-   AiParameterFLT("shallow_scatter_weight", 0.5f);
-   AiParameterFLT("shallow_scatter_radius", 0.15f);
+   AiParameterFlt("shallow_scatter_weight", 0.5f);
+   AiParameterFlt("shallow_scatter_radius", 0.15f);
    AiParameterRGB("mid_scatter_color", 0.949f, 0.714f, 0.56f);
    AiMetaDataSetBool(mds, "mid_scatter_color", "always_linear", true);
-   AiParameterFLT("mid_scatter_weight", 0.25f);
-   AiParameterFLT("mid_scatter_radius", 0.25f);
+   AiParameterFlt("mid_scatter_weight", 0.25f);
+   AiParameterFlt("mid_scatter_radius", 0.25f);
    AiParameterRGB("deep_scatter_color", 0.7f, 0.1f, 0.1f);
    AiMetaDataSetBool(mds, "deep_scatter_color", "always_linear", true);
-   AiParameterFLT("deep_scatter_weight", 1.0f);
-   AiParameterFLT("deep_scatter_radius", 0.6f);
+   AiParameterFlt("deep_scatter_weight", 1.0f);
+   AiParameterFlt("deep_scatter_radius", 0.6f);
    AiParameterRGB("specular_color", 1.0f, 1.0f, 1.0f);
    AiMetaDataSetBool(mds, "specular_color", "always_linear", true);
-   AiParameterFLT("specular_weight", 0.8f);
-   AiParameterFLT("specular_roughness", 0.5f);
-   AiParameterFLT("specular_ior", 1.44f);
+   AiParameterFlt("specular_weight", 0.8f);
+   AiParameterFlt("specular_roughness", 0.5f);
+   AiParameterFlt("specular_ior", 1.44f);
    AiParameterRGB("sheen_color", 1.0f, 1.0f, 1.0f);
    AiMetaDataSetBool(mds, "sheen_color", "always_linear", true);
-   AiParameterFLT("sheen_weight", 0.0f);
-   AiParameterFLT("sheen_roughness", 0.35f);
-   AiParameterFLT("sheen_ior", 1.44f);
-   AiParameterFLT("global_sss_radius_multiplier", 1.0f);
-   AiParameterBOOL("specular_in_secondary_rays", false);
+   AiParameterFlt("sheen_weight", 0.0f);
+   AiParameterFlt("sheen_roughness", 0.35f);
+   AiParameterFlt("sheen_ior", 1.44f);
+   AiParameterFlt("global_sss_radius_multiplier", 1.0f);
+   AiParameterBool("specular_in_secondary_rays", false);
    AiParameterStr("aov_specular", "specular");
    AiParameterStr("aov_sheen", "sheen");
    AiParameterStr("aov_sss", "sss");
    AiParameterStr("aov_direct_sss", "direct_sss");
    AiParameterStr("aov_indirect_sss", "indirect_sss");
    AiParameterBool("fresnel_affect_sss", true);
-   AiParameterFLT("opacity", 1.0f);
+   AiParameterFlt("opacity", 1.0f);
    AiParameterRGB("opacity_color", 1.0f, 1.0f, 1.0f);
    AiMetaDataSetBool(mds, "opacity_color", "always_linear", true);
 
@@ -157,7 +163,7 @@ shader_evaluate
    {
       // after a specular bounce clamp in proportion to its roughness (scaled by a "sharpness" coefficient)
       float minRoughness = 0;
-      AiStateGetMsgFlt("previous_roughness", &minRoughness);
+      AiStateGetMsgFlt(MSTR::previous_roughness, &minRoughness);
       minRoughness  = 0.9f * minRoughness;
    }
 
@@ -183,10 +189,10 @@ shader_evaluate
          float specularExponent = AiShaderEvalParamFlt(p_sheen_roughness);
          specularExponent *= specularExponent;
          if (sg->Rr_gloss > 0)
-            specularExponent = MAX(specularExponent, minRoughness);
+            specularExponent = AiMax(specularExponent, minRoughness);
          if (specularExponent < lastSpecRoughness)
-            AiStateSetMsgFlt("previous_roughness", specularExponent);
-         void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+            AiStateSetMsgFlt(MSTR::previous_roughness, specularExponent);
+         void* brdfData = AiMicrofacetMISCreateData(sg, AI_MICROFACET_BECKMANN, &sg->dPdu, 0.0f, specularExponent, specularExponent);
          AiLightsPrepare(sg);
          while (AiLightsGetSample(sg))
          {
@@ -194,11 +200,11 @@ shader_evaluate
             {
                const float affectSpecular = AiLightGetSpecular(sg->Lp);
                if (affectSpecular > AI_EPSILON)
-                  sheen += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+                  sheen += AiEvaluateLightSample(sg, brdfData, NULL, NULL, NULL) * affectSpecular;
             }
          }
 
-         sheen += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         sheen += AiBRDFIntegrate(sg, brdfData, NULL, NULL, NULL, AI_RAY_GLOSSY, AI_RGB_WHITE);
          sheen *= sheenWeight;
       }
 
@@ -211,9 +217,9 @@ shader_evaluate
          float specularExponent = AiShaderEvalParamFlt(p_specular_roughness); 
          specularExponent *= specularExponent;
          if (sg->Rr_gloss > 0)
-            specularExponent = MAX(specularExponent, minRoughness);
-         AiStateSetMsgFlt("previous_roughness", specularExponent);
-         void* brdfData = AiCookTorranceMISCreateData(sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+            specularExponent = AiMax(specularExponent, minRoughness);
+         AiStateSetMsgFlt(MSTR::previous_roughness, specularExponent);
+         void* brdfData = AiMicrofacetMISCreateData(sg, AI_MICROFACET_BECKMANN, &sg->dPdu, 0.0f, specularExponent, specularExponent);
          AiLightsPrepare(sg);
          while (AiLightsGetSample(sg))
          {
@@ -221,10 +227,10 @@ shader_evaluate
             {
                const float affectSpecular = AiLightGetSpecular(sg->Lp);
                if (affectSpecular > AI_EPSILON)
-                  specular += AiEvaluateLightSample(sg, brdfData, AiCookTorranceMISSample, AiCookTorranceMISBRDF, AiCookTorranceMISPDF) * affectSpecular;
+                  specular += AiEvaluateLightSample(sg, brdfData, NULL, NULL, NULL) * affectSpecular;
             }
          }
-         specular += AiCookTorranceIntegrate(&sg->Nf, sg, &sg->dPdu, &sg->dPdv, specularExponent, specularExponent);
+         specular += AiBRDFIntegrate(sg, brdfData, NULL, NULL, NULL, AI_RAY_GLOSSY, AI_RGB_WHITE);
          specular *= specularWeight;
       }
    }
@@ -254,7 +260,7 @@ shader_evaluate
       // sss = AiBSSRDFCubic(sg, radiuses, colorWeights, 3);
    }
 
-   sg->out.RGB = specular + sheen + sss;
+   sg->out.RGB() = specular + sheen + sss;
    sg->out_opacity = AiColorClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
 
    if (sg->Rt & AI_RAY_CAMERA)

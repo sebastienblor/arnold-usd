@@ -41,7 +41,7 @@ node_parameters
 {
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 
-   AiParameterENUM("mode", 0, mode_enum);
+   AiParameterEnum("mode", 0, mode_enum);
 }
 
 node_initialize
@@ -70,27 +70,27 @@ shader_evaluate
    switch (AiShaderEvalParamEnum(p_mode))
    {
    case POINT_WORLD:
-      sg->out.VEC = sg->P;
+      sg->out.VEC() = sg->P;
       break;
    case POINT_OBJ:
-      sg->out.VEC = sg->Po;
+      sg->out.VEC() = sg->Po;
       break;
    case POINT_CAMERA:
-      AiM4PointByMatrixMult(&sg->out.VEC, *worldToCam, &sg->P);
+      AiM4PointByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->P);
       break;
    case NORMAL_CAMERA:
-      AiM4VectorByMatrixMult(&sg->out.VEC, *worldToCam, &sg->N);
+      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->N);
       break;
    case RAY_DIRECTION:
-      AiM4VectorByMatrixMult(&sg->out.VEC, *worldToCam, &sg->Rd);
+      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->Rd);
       break;
    case TANGENT_U_CAMERA:
-      AiM4VectorByMatrixMult(&sg->out.VEC, *worldToCam, &sg->dPdu);
-      sg->out.VEC = AiV3Normalize(sg->out.VEC);
+      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->dPdu);
+      sg->out.VEC() = AiV3Normalize(sg->out.VEC());
       break;
    case TANGENT_V_CAMERA:
-      AiM4VectorByMatrixMult(&sg->out.VEC, *worldToCam, &sg->dPdv);
-      sg->out.VEC = AiV3Normalize(sg->out.VEC);
+      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->dPdv);
+      sg->out.VEC() = AiV3Normalize(sg->out.VEC());
       break;
    }
 }

@@ -15,14 +15,14 @@ AI_SHADER_NODE_EXPORT_METHODS(AnimFloatMtd);
 
 node_parameters
 {
-   AiParameterARRAY("values", AiArray(0, 0, AI_TYPE_FLOAT));
+   AiParameterArray("values", AiArray(0, 0, AI_TYPE_FLOAT));
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 shader_evaluate
 {
-   sg->out.FLT = AiArrayInterpolateFlt(AiShaderEvalParamArray(p_values), sg->time, 0);
+   sg->out.FLT() = AiArrayInterpolateFlt(AiShaderEvalParamArray(p_values), sg->time, 0);
 }
 
 node_initialize

@@ -43,5 +43,5 @@ shader_evaluate
       }
    }
 
-   sg->out.FLT = Luminance(diffuse);
+   sg->out.FLT() = Luminance(diffuse);
 }

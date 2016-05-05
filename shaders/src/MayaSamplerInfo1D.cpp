@@ -30,7 +30,7 @@ node_parameters
 {
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 
-   AiParameterENUM("mode", 0, mode_enum);
+   AiParameterEnum("mode", 0, mode_enum);
 }
 
 node_initialize
@@ -50,10 +50,10 @@ shader_evaluate
    switch (AiShaderEvalParamEnum(p_mode))
    {
    case FACING_RATIO:
-      sg->out.FLT = AiV3Dot(sg->Nf, - sg->Rd);
+      sg->out.FLT() = AiV3Dot(sg->Nf, - sg->Rd);
       break;
    case FLIPPED_NORMAL:
-      sg->out.FLT = (AiV3Dot(sg->Nf, sg->N) < 0.0f ? 1.0f : 0.0f);
+      sg->out.FLT() = (AiV3Dot(sg->Nf, sg->N) < 0.0f ? 1.0f : 0.0f);
       break;
    }
 }

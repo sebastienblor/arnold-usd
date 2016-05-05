@@ -32,8 +32,8 @@ const char* MathOperationNames[] =
 
 node_parameters
 {
-   AiParameterENUM("operation", OP_PLUS, MathOperationNames);
-   AiParameterARRAY("input1D", AiArray(0, 0, AI_TYPE_FLOAT));
+   AiParameterEnum("operation", OP_PLUS, MathOperationNames);
+   AiParameterArray("input1D", AiArray(0, 0, AI_TYPE_FLOAT));
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -57,20 +57,20 @@ shader_evaluate
    
    float result = 0.0f;
 
-   if (inputs->nelements > 0)
+   if (AiArrayGetNumElements(inputs) > 0)
    {
       switch (operation)
       {
          case OP_PLUS:
          case OP_AVERAGE:
-            for (AtUInt32 i=0; i<inputs->nelements; ++i)
+            for (uint32_t i=0; i<AiArrayGetNumElements(inputs); ++i)
             {
                result += AiArrayGetFlt(inputs, i);
             }
             break;
          case OP_MINUS:
             result = AiArrayGetFlt(inputs, 0);
-            for (AtUInt32 i=1; i<inputs->nelements; ++i)
+            for (uint32_t i=1; i<AiArrayGetNumElements(inputs); ++i)
             {
                result -= AiArrayGetFlt(inputs, i);
             }
@@ -82,10 +82,10 @@ shader_evaluate
 
       if (operation == OP_AVERAGE)
       {
-         float divider = 1.0f / float(inputs->nelements);
+         float divider = 1.0f / float(AiArrayGetNumElements(inputs));
          result *= divider;
       }
    }
 
-   sg->out.FLT = result;
+   sg->out.FLT() = result;
 }

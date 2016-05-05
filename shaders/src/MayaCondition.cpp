@@ -39,9 +39,9 @@ const char* enum_operation[] =
 
 node_parameters
 {
-   AiParameterENUM("operation", 0, enum_operation);
-   AiParameterFLT("firstTerm", 0);
-   AiParameterFLT("secondTerm", 0);
+   AiParameterEnum("operation", 0, enum_operation);
+   AiParameterFlt("firstTerm", 0);
+   AiParameterFlt("secondTerm", 0);
    AiParameterRGB("colorIfTrue", 0, 0, 0);
    AiParameterRGB("colorIfFalse", 1, 1, 1);
 
@@ -72,22 +72,22 @@ shader_evaluate
    switch (op)
    {
    case OP_EQUAL:
-      sg->out.RGB = (firstTerm == secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm == secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_NOT_EQUAL:
-      sg->out.RGB = (firstTerm != secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm != secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_GREATER_THAN:
-      sg->out.RGB = (firstTerm > secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm > secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_GREATER_OR_EQUAL:
-      sg->out.RGB = (firstTerm >= secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm >= secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_LESS_THAN:
-      sg->out.RGB = (firstTerm < secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm < secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    case OP_LESS_OR_EQUAL:
-      sg->out.RGB = (firstTerm <= secondTerm) ? colorIfTrue : colorIfFalse;
+      sg->out.RGB() = (firstTerm <= secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    }
 }

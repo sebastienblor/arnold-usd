@@ -92,7 +92,7 @@ typedef struct AtImageData
    unsigned int ntokens;
    AtTextureHandle* texture_handle;
    bool useCustomUVSet;
-   std::string uvSetName;
+   AtString uvSetName;
    int numThreads;
 
    static void* operator new(size_t s)
@@ -124,7 +124,7 @@ namespace { // anonymus namespace
                                         int &col, int &row,
                                         int udim_dim)
    {
-      AtPoint2 uvs[3];
+      AtVector2 uvs[3];
       if (AiShaderGlobalsGetVertexUVs(sg, uvs))
       {
          // if triangles never crossed a tile boundary we could use the UV centroid for
@@ -145,7 +145,7 @@ namespace { // anonymus namespace
          row = static_cast<int>(ceilf(adjusted_v) - 1 );
          col = static_cast<int>(ceilf(adjusted_u) - 1 );
          // rows cannot be negative, and there are idata->udim_dim columns
-         row = MAX(row, 0);
+         row = AiMax(row, 0);
          col = CLAMP(col, 0, udim_dim - 1);
          udim_u = CLAMP(sg->u - col, 0.0f, 1.0f);
          udim_v = CLAMP(sg->v - row, 0.0f, 1.0f);
@@ -167,7 +167,7 @@ namespace { // anonymus namespace
          // rows cannot be negative, and there are idata->udim_dim columns
          udim_u = col < 0 ? 0 : (col >= udim_dim ? 1 : udim_u);
          udim_v = row < 0 ? 0 : udim_v;
-         row = MAX(row, 0);
+         row = AiMax(row, 0);
          col = CLAMP(col, 0, udim_dim - 1);
       }
    }
@@ -175,23 +175,23 @@ namespace { // anonymus namespace
 
 node_parameters
 {
-   AiParameterPNT2("coverage", 1.0f, 1.0f);
-   AiParameterPNT2("translateFrame", 0.0f, 0.0f);
-   AiParameterFLT("rotateFrame", 0.0f);
-   AiParameterBOOL("mirrorU", false);
-   AiParameterBOOL("mirrorV", false);
-   AiParameterBOOL("wrapU", true);
-   AiParameterBOOL("wrapV", true);
-   AiParameterBOOL("stagger", false);
-   AiParameterPNT2("repeatUV", 1.0f, 1.0f);
-   AiParameterPNT2("offsetUV", 0.0f, 0.0f);
-   AiParameterFLT("rotateUV", 0.0f);
-   AiParameterSTR("filename", "");
-   AiParameterPNT2("noiseUV", 0.0f, 0.0f);
-   AiParameterINT("mipBias", 0);
-   AiParameterSTR("uvSetName", "");
-   AiParameterENUM("filter", 3, filterNames);
-   AiParameterBOOL("useDefaultColor", true);
+   AiParameterVec2("coverage", 1.0f, 1.0f);
+   AiParameterVec2("translateFrame", 0.0f, 0.0f);
+   AiParameterFlt("rotateFrame", 0.0f);
+   AiParameterBool("mirrorU", false);
+   AiParameterBool("mirrorV", false);
+   AiParameterBool("wrapU", true);
+   AiParameterBool("wrapV", true);
+   AiParameterBool("stagger", false);
+   AiParameterVec2("repeatUV", 1.0f, 1.0f);
+   AiParameterVec2("offsetUV", 0.0f, 0.0f);
+   AiParameterFlt("rotateUV", 0.0f);
+   AiParameterStr("filename", "");
+   AiParameterVec2("noiseUV", 0.0f, 0.0f);
+   AiParameterInt("mipBias", 0);
+   AiParameterStr("uvSetName", "");
+   AiParameterEnum("filter", 3, filterNames);
+   AiParameterBool("useDefaultColor", true);
    AddMayaColorBalanceParams(params, mds);   
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -222,7 +222,7 @@ node_update
    // lookup and avoid the token computation
    if (!AiNodeGetLink(node, "filename"))
    {
-      const char *filename = params[p_filename].STR;
+      const char *filename = params[p_filename].STR();
 
       // calculate file tokens
       std::vector<TokenData> tokens;
@@ -505,18 +505,18 @@ shader_evaluate
 {
    AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
    
-   AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
-   AtPoint2 translate = AiShaderEvalParamPnt2(p_translate_frame);
+   AtVector2 coverage = AiShaderEvalParamVec2(p_coverage);
+   AtVector2 translate = AiShaderEvalParamVec2(p_translate_frame);
    float frotate = AiShaderEvalParamFlt(p_rotate_frame);
    bool mirrorU = (AiShaderEvalParamBool(p_mirror_u) == true);
    bool mirrorV = (AiShaderEvalParamBool(p_mirror_v) == true);
    bool wrapU = (AiShaderEvalParamBool(p_wrap_u) == true);
    bool wrapV = (AiShaderEvalParamBool(p_wrap_v) == true);
    bool stagger = (AiShaderEvalParamBool(p_stagger) == true);
-   AtPoint2 repeat = AiShaderEvalParamPnt2(p_repeat);
-   AtPoint2 offset = AiShaderEvalParamPnt2(p_offset);
+   AtVector2 repeat = AiShaderEvalParamVec2(p_repeat);
+   AtVector2 offset = AiShaderEvalParamVec2(p_offset);
    float rotate = AiShaderEvalParamFlt(p_rotate);
-   AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
+   AtVector2 noise = AiShaderEvalParamVec2(p_noise);
 
    const float oldU = sg->u;
    const float oldV = sg->v;   
@@ -526,13 +526,13 @@ shader_evaluate
    const float oldVdy = sg->dvdy;
    if (idata->useCustomUVSet)
    {
-      AtPoint2 altuv;
-      if (AiUDataGetPnt2(idata->uvSetName.c_str(), &altuv))
+      AtVector2 altuv;
+      if (AiUDataGetVec2(idata->uvSetName, &altuv))
       {         
          sg->u = altuv.x;
          sg->v = altuv.y;
-         AtPoint2 altuvDx, altuvDy; 
-         if (AiUDataGetDxyDerivativesPnt2(idata->uvSetName.c_str(), &altuvDx, &altuvDy)) 
+         AtVector2 altuvDx, altuvDy; 
+         if (AiUDataGetDxyDerivativesVec2(idata->uvSetName, &altuvDx, &altuvDy)) 
          { 
             sg->dudx = altuvDx.x; 
             sg->dvdx = altuvDx.y; 
@@ -559,13 +559,13 @@ shader_evaluate
 
    if (noise.x > 0.0f)
    {
-      AtVector2 uv = {inU * 16, inV * 16};
+      AtVector2 uv(inU * 16, inV * 16);
       outU += noise.x * AiPerlin2(uv);
    }
 
    if (noise.y > 0.0f)
    {
-      AtVector2 uv = {(1 - inU) * 16, (1 - inV) * 16};
+      AtVector2 uv((1 - inU) * 16, (1 - inV) * 16);
       outV += noise.y * AiPerlin2(uv);
    }
 
@@ -603,7 +603,7 @@ shader_evaluate
        (!wrapU && (outU < 0 || outU > coverage.x)) ||
        (!wrapV && (outV < 0 || outV > coverage.y)))
    {      
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);      
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());      
       // restore shader globals
       sg->u = oldU;
       sg->v = oldV;
@@ -775,11 +775,11 @@ shader_evaluate
                case USER_PARAM:
                {
                   // user attributes
-                  const char* value;
-                  if (AiUDataGetStr((const char*)token->extra, &value))
+                  AtString value;
+                  if (AiUDataGetStr(AtString((const char*)token->extra), &value)) // TODO: store as AtString
                   {
-                     int len = (int) strlen(value);
-                     memcpy(&(idata->processPath[sg->tid][pos]),value,len);
+                     int len = value.length();
+                     memcpy(&(idata->processPath[sg->tid][pos]),value.c_str(),len);
                      pos += (unsigned int) len;
                      // Copy next text chunk to the "processPath"
                      memcpy(&(idata->processPath[sg->tid][pos]),&(idata->origPath[token->position]),token->nextSize);
@@ -826,7 +826,7 @@ shader_evaluate
                   udim_u = col < 0 ? 0.0f : (col >= dim ? 1.0f : udim_u);
                   udim_v = row < 0 ? 0.0f : udim_v;
 
-                  row = MAX(row, 0);
+                  row = AiMax(row, 0);
                   col = CLAMP(col, 0, dim - 1);
 
                   const float eps = static_cast<float>(dim) / 65536.0f;
@@ -921,15 +921,15 @@ shader_evaluate
          }
 
          if (success)
-            sg->out.RGBA = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
+            sg->out.RGBA() = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
       }
       else if (idata->texture_handle != NULL)
       {
-         sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, successP);
+         sg->out.RGBA() = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, successP);
       }
       else
       {       
-         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
+         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
       }
       sg->u = oldU;
       sg->v = oldV;
@@ -938,8 +938,8 @@ shader_evaluate
       sg->dvdx = oldVdx; 
       sg->dvdy = oldVdy;
       if (useDefaultColor && !success)
-         MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+         MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       else if (success)
-         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);     
+         MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());     
    }
 }

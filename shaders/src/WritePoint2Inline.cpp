@@ -21,17 +21,17 @@ node_parameters
    // Node metadata
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 
-   AiParameterPnt2("input", 0.0f, 0.0f);
-   AiParameterSTR("aov_name", "");
-   AiParameterARRAY("sets", AiArray(0, 0, AI_TYPE_STRING));
+   AiParameterVec2("input", 0.0f, 0.0f);
+   AiParameterStr("aov_name", "");
+   AiParameterArray("sets", AiArray(0, 0, AI_TYPE_STRING));
 }
 
 shader_evaluate
 {
-   sg->out.PNT2 = AiShaderEvalParamPnt2(p_input);
+   sg->out.VEC2() = AiShaderEvalParamVec2(p_input);
 
    if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup((AtArray*)AiNodeGetLocalData(node), sg))
-      AiAOVSetPnt2(sg, AiShaderEvalParamStr(p_name), sg->out.PNT2);
+      AiAOVSetVec2(sg, AtString(AiShaderEvalParamStr(p_name)), sg->out.VEC2());
 }
 
 node_initialize

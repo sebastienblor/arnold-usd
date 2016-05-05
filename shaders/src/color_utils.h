@@ -15,7 +15,7 @@ inline AtColor XYZToxyY(const AtColor& xyz)
     AtColor result;
     float sum = xyz.r + xyz.g + xyz.b;
     if (sum > 0.00001f)
-        AiColorCreate(result, xyz.r / sum, xyz.g / sum, xyz.g);
+        result = AtRGB(xyz.r / sum, xyz.g / sum, xyz.g);
     else
         result = AI_RGB_BLACK;
     return result;
@@ -23,8 +23,7 @@ inline AtColor XYZToxyY(const AtColor& xyz)
 
 inline AtColor xyYToXYZ(const AtColor& xyY)
 {
-    AtColor result;
-    AiColorCreate(result,
+    AtColor result(
                   xyY.b * xyY.r / xyY.g,
                   xyY.b,
                   xyY.b * (1.0f - xyY.r - xyY.g) / xyY.g);

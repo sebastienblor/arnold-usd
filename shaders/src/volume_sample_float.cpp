@@ -54,8 +54,8 @@ enum InputFrom
 
 struct ShaderData
 {
-    std::string channel;
-    AtPoint position_offset;
+    AtString channel;
+    AtVector position_offset;
     bool position_offset_is_linked;
     InputFrom position_offset_from;
     int interpolation;
@@ -158,7 +158,7 @@ shader_evaluate
    ShaderData *data = reinterpret_cast<ShaderData*>(AiNodeGetLocalData(node));
 
    // sampling position offset
-   AtPoint Po_orig;
+   AtVector Po_orig;
 
    switch (data->position_offset_from)
    {
@@ -181,8 +181,8 @@ shader_evaluate
    // or NaNs might occur in optimized builds (htoa#374)
    float value = 0.0f;
 
-   if (data->channel.size() > 0)
-      AiVolumeSampleFlt(data->channel.c_str(), data->interpolation, &value);
+   if (!data->channel.empty())
+      AiVolumeSampleFlt(data->channel, data->interpolation, &value);
    else
        value = 0.0f;
 
@@ -195,7 +195,7 @@ shader_evaluate
    if (data->clamp_min) value = std::max(value, data->output_min);
    if (data->clamp_max) value = std::min(value, data->output_max);
 
-   sg->out.FLT = value;
+   sg->out.FLT() = value;
 
    // restore sampling position
    if (data->position_offset_from != INPUT_FROM_NONE)

@@ -1,6 +1,14 @@
 #include "MayaUtils.h"
 #include <string>
 #include <vector>
+#include <cmath>
+
+namespace MSTR
+{
+   static const AtString mtoa_shading_groups("mtoa_shading_groups");
+   static const AtString Pref("Pref");
+   static const AtString Nref("Nref");
+}
 
 namespace
 {
@@ -34,9 +42,9 @@ float RampLuminance(const AtRGB &color)
 template <typename ValType>
 void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)
 {
-   unsigned int inext = p->nelements;
+   unsigned int inext = AiArrayGetNumElements(p);
 
-   for (unsigned int i = 0; (i < p->nelements); ++i)
+   for (unsigned int i = 0; (i < AiArrayGetNumElements(p)); ++i)
    {
       if (t < AiArrayGetFlt(p, shuffle[i]))
       {
@@ -45,9 +53,9 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       }
    }
 
-   if (inext >= p->nelements)
+   if (inext >= AiArrayGetNumElements(p))
    {
-      result = getv(c, shuffle[p->nelements - 1]);
+      result = getv(c, shuffle[AiArrayGetNumElements(p) - 1]);
       return;
    }
 
@@ -139,7 +147,7 @@ float Luminosity(const AtRGB &color)
 
 float Luminosity(const AtRGBA &color)
 {
-   return RGBtoHSL(AiRGBAtoRGB(color)).z;
+   return RGBtoHSL(color.rgb()).z;
 }
 
 // This one is defined for the RampT template function to work properly
@@ -188,7 +196,7 @@ float UnmapValue(float v, float vmin, float vmax)
    return (vmin + (vmax - vmin) * v);
 }
 
-bool IsValidUV(AtPoint2 &uv)
+bool IsValidUV(AtVector2 &uv)
 {
    // place2dTexture return (UV_INVALID, UV_INVALID) for invalid UVs
    return (uv.x > UV_INVALID && uv.y > UV_INVALID);
@@ -196,27 +204,27 @@ bool IsValidUV(AtPoint2 &uv)
 
 float Integral(float t, float nedge)
 {
-   return ((1.0f - nedge) * FLOOR(t) + MAX(0.0f, t - FLOOR(t) - nedge));
+   return ((1.0f - nedge) * floorf(t) + AiMax(0.0f, t - floorf(t) - nedge));
 }
 
 float Mod(float n, float d)
 {
-   return (n - (floor(n / d) * d));
+   return (n - (std::floor(n / d) * d));
 }
 
 bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle)
 {
    bool modified = false;
 
-   if (a && shuffle && a->nelements > 0)
+   if (a && shuffle && AiArrayGetNumElements(a) > 0)
    {
       float p0, p1;
       int tmp;
 
       bool swapped = true;
-      AtUInt32 n = a->nelements;
+      uint32_t n = AiArrayGetNumElements(a);
 
-      for (AtUInt32 i = 0; (i < n); ++i)
+      for (uint32_t i = 0; (i < n); ++i)
       {
          shuffle[i] = i;
       }
@@ -225,7 +233,7 @@ bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle)
       {
          swapped = false;
          n -= 1;
-         for (AtUInt32 i = 0; (i < n); ++i)
+         for (uint32_t i = 0; (i < n); ++i)
          {
             p0 = AiArrayGetFlt(a, shuffle[i]);
             p1 = AiArrayGetFlt(a, shuffle[i + 1]);
@@ -262,9 +270,9 @@ InterpolationType InterpolationNameToType(const char *n)
 template <typename ValType>
 void InterpolateShuffleT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)
 {
-   unsigned int inext = p->nelements;
+   unsigned int inext = AiArrayGetNumElements(p);
 
-   for (unsigned int i = 0; (i < p->nelements); ++i)
+   for (unsigned int i = 0; (i < AiArrayGetNumElements(p)); ++i)
    {
       if (t < AiArrayGetFlt(p, shuffle[i]))
       {
@@ -273,9 +281,9 @@ void InterpolateShuffleT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &
       }
    }
 
-   if (inext >= p->nelements)
+   if (inext >= AiArrayGetNumElements(p))
    {
-      result = getv(v, shuffle[p->nelements - 1]);
+      result = getv(v, shuffle[AiArrayGetNumElements(p) - 1]);
       return;
    }
 
@@ -339,7 +347,7 @@ void InterpolateShuffleT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &
          // Calculate next to next position and value
          float p3;
          ValType v3;
-         if (inext == v->nelements - 1)
+         if (inext == AiArrayGetNumElements(v) - 1)
          {
             p3 = p2 + dp;
             v3 = v2;
@@ -359,7 +367,7 @@ void InterpolateShuffleT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &
          }
          
          // Compute start tangent
-         float sx = p2-p0;	
+         float sx = p2-p0;
          ValType sy = v2-y0;
          if( sx < AI_EPSILON )
          {
@@ -369,8 +377,8 @@ void InterpolateShuffleT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &
          ValType m1 = sy / tx;
          
          // Compute end tangent
-         sx = p3-p1;	
-         sy = v3-v1;	
+         sx = p3-p1;
+         sy = v3-v1;
          if( sx < AI_EPSILON )
          {
             sx = AI_EPSILON;
@@ -438,11 +446,11 @@ void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds)
    AiParameterRGB ("defaultColor", 0.5f, 0.5f, 0.5f);
    AiParameterRGB ("colorGain", 1.0f, 1.0f, 1.0f);
    AiParameterRGB ("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT ("alphaGain", 1.0f);
-   AiParameterFLT ("alphaOffset", 0.0f);
-   AiParameterBOOL("alphaIsLuminance", false);
-   AiParameterBOOL("invert", false);
-   AiParameterFLT ("exposure", 0.0f);
+   AiParameterFlt ("alphaGain", 1.0f);
+   AiParameterFlt ("alphaOffset", 0.0f);
+   AiParameterBool("alphaIsLuminance", false);
+   AiParameterBool("invert", false);
+   AiParameterFlt ("exposure", 0.0f);
 
    AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
    AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
@@ -486,7 +494,7 @@ void MayaDefaultColor(AtShaderGlobals* sg,
                         AtRGBA & result)
 {
    const AtRGB defaultColor   = AiShaderEvalParamFuncRGB(sg, node, p_start + 0);  //p_defaultColor);
-   AiRGBtoRGBA(defaultColor, result);
+   result = AtRGBA(defaultColor);
    result.a = 0.0f;
 }
 
@@ -494,8 +502,8 @@ AtVector RGBtoHSV(AtRGB inRgb)
 {
    AtVector output(AI_V3_ZERO);
 
-   const float min = MIN3(inRgb.r, inRgb.g, inRgb.b);
-   const float max = MAX3(inRgb.r, inRgb.g, inRgb.b);
+   const float min = AiMin(inRgb.r, inRgb.g, inRgb.b);
+   const float max = AiMax(inRgb.r, inRgb.g, inRgb.b);
 
    if (max > min)
    {
@@ -525,8 +533,8 @@ AtVector RGBtoHSL(AtRGB inRgb)
 {
    AtVector output(AI_V3_ZERO);
 
-   const float min = MIN3(inRgb.r, inRgb.g, inRgb.b);
-   const float max = MAX3(inRgb.r, inRgb.g, inRgb.b);
+   const float min = AiMin(inRgb.r, inRgb.g, inRgb.b);
+   const float max = AiMax(inRgb.r, inRgb.g, inRgb.b);
 
    // L
    output.z = 0.5f * (min + max);
@@ -635,7 +643,7 @@ float FilteredPulseTrain(float edge, float period, float x, float dx)
 
    if (x0 == x1)
    {
-     result = (x0 - FLOOR(x0) < nedge) ? 0.0f : 1.0f;
+     result = (x0 - floorf(x0) < nedge) ? 0.0f : 1.0f;
    }
    else
    {
@@ -658,7 +666,7 @@ float Bias(float b, float x)
 }
 
 float fBm(AtShaderGlobals *sg,
-          const AtPoint &p,
+          const AtVector &p,
           float time,
           float initialAmplitude,
           int octaves[2],
@@ -667,7 +675,7 @@ float fBm(AtShaderGlobals *sg,
           float ratio)
 {
    float amp = initialAmplitude;
-   AtPoint pp = p;
+   AtVector pp = p;
    float sum = 0;
    int i = 0;
    float lacunarity = initialLacunarity;
@@ -697,7 +705,7 @@ float fBm(AtShaderGlobals *sg,
 }
 
 float fTurbulence(AtShaderGlobals *sg,
-                  const AtPoint &point,
+                  const AtVector &point,
                   float time,
                   float lacunarity,
                   float frequencyRatio,
@@ -708,8 +716,7 @@ float fTurbulence(AtShaderGlobals *sg,
    int i = 0;
    float mix = 0.0f;
    float amp = 1.0f;
-   AtPoint pp;
-   AiV3Create(pp, ripples[0], ripples[1], ripples[2]);
+   AtVector pp(ripples[0], ripples[1], ripples[2]);
    pp = point * pp / 2.0f;
 
    // NOTE: this is wrong, sg->area is "world-space" area
@@ -720,8 +727,7 @@ float fTurbulence(AtShaderGlobals *sg,
 
    while ((i < octaves[1] && pixel > niquist) || i < octaves[0])
    {
-      AtPoint2 offset;
-      AiV2Create(offset, lacunarity, lacunarity);
+      AtVector2 offset(lacunarity, lacunarity);
       mix += amp * fabs(AiPerlin4((pp + AiPerlin2(offset)) * lacunarity, time));
       lacunarity *= frequencyRatio;
       amp *= ratio;
@@ -731,8 +737,7 @@ float fTurbulence(AtShaderGlobals *sg,
 
    if (pixel > pixelSize && i <= octaves[1])
    {
-      AtVector2 offset;
-      AiV2Create(offset, lacunarity, lacunarity);
+      AtVector2 offset(lacunarity, lacunarity);
       float weight = CLAMP((pixel/pixelSize - 1.0f), 0.0f, 1.0f);
       mix += weight * amp * fabs(AiPerlin4((pp+AiPerlin2(offset)) * lacunarity, time));
    }
@@ -740,32 +745,31 @@ float fTurbulence(AtShaderGlobals *sg,
    return mix;
 }
 
-AtPoint AnimatedCellNoise(const AtPoint &p, float tt)
+AtVector AnimatedCellNoise(const AtVector &p, float tt)
 {
    float t = AiCellNoise4(p, tt);
    float tbase = floor(t);
 
-   AtPoint n1 = AiVCellNoise4(p, tbase);
+   AtVector n1 = AiVCellNoise4(p, tbase);
    float d = t - tbase;
-   AtPoint n2 = AiVCellNoise4(p, tbase + 1.0f);
+   AtVector n2 = AiVCellNoise4(p, tbase + 1.0f);
    n1 += d * (n2 - n1);
 
    return n1;
 }
 
-int SuspendedParticles(const AtPoint &Pn,
+int SuspendedParticles(const AtVector &Pn,
                        float time,
                        float particleRadius,
                        float jitter,
                        float octave,
                        float &f1,
-                       AtPoint &pos1,
+                       AtVector &pos1,
                        float &f2,
-                       AtPoint &pos2,
-                       AtPoint (&particlePos)[27])
+                       AtVector &pos2,
+                       AtVector (&particlePos)[27])
 {
-   AtPoint thiscell;
-   AiV3Create(thiscell, floor(Pn.x)+0.5f, floor(Pn.y)+0.5f, floor(Pn.z)+0.5f);
+   AtVector thiscell(floor(Pn.x)+0.5f, floor(Pn.y)+0.5f, floor(Pn.z)+0.5f);
 
    f1 = f2 = 1e36f;
    int i, j, k;
@@ -777,9 +781,8 @@ int SuspendedParticles(const AtPoint &Pn,
       {
          for (k=-1; k<=1; ++k)
          {
-            AtVector testvec;
-            AiV3Create(testvec, (float)i, (float)j, (float)k);
-            AtPoint testcell = thiscell + testvec;
+            AtVector testvec((float)i, (float)j, (float)k);
+            AtVector testcell = thiscell + testvec;
 
             if (jitter > 0)
             {
@@ -812,15 +815,14 @@ int SuspendedParticles(const AtPoint &Pn,
    return curr_particle;
 }
 
-int SuspendedParticles2d(const AtPoint &Pn,
+int SuspendedParticles2d(const AtVector &Pn,
                          float time,
                          float particleRadius,
                          float jitter,
                          float octave,
-                         AtPoint (&particlePos)[27])
+                         AtVector (&particlePos)[27])
 {
-   AtPoint thiscell;
-   AiV3Create(thiscell, floor(Pn.x)+0.5f, floor(Pn.y)+0.5f, 0.0f);
+   AtVector thiscell(floor(Pn.x)+0.5f, floor(Pn.y)+0.5f, 0.0f);
 
    int i, j;
    unsigned int curr_particle = 0;
@@ -829,9 +831,8 @@ int SuspendedParticles2d(const AtPoint &Pn,
    {
       for (j=-1; j<=1; ++j)
       {
-         AtVector testvec;
-         AiV3Create(testvec, (float)i, (float)j, 0.0f);
-         AtPoint testcell = thiscell + testvec;
+         AtVector testvec((float)i, (float)j, 0.0f);
+         AtVector testcell = thiscell + testvec;
          
          if (jitter > 0.0f)
          {
@@ -854,8 +855,8 @@ int SuspendedParticles2d(const AtPoint &Pn,
 }
 
 float ParticleDensity(int falloff,
-                      const AtPoint &particleCenter,
-                      const AtPoint &P,
+                      const AtVector &particleCenter,
+                      const AtVector &P,
                       float radius)
 {
    float distanceToCenter = AiV3Dist(particleCenter, P);
@@ -883,7 +884,7 @@ float ParticleDensity(int falloff,
    return 1.0f - fadeout;
 }
 
-float BillowNoise(const AtPoint &p,
+float BillowNoise(const AtVector &p,
                   float time,
                   int dim,
                   float radius,
@@ -896,16 +897,15 @@ float BillowNoise(const AtPoint &p,
                   float ratio,
                   float amplitude)
 {
-   AtVector v;
-   AiV3Create(v, 0.425f, 0.6f, dim == 3 ? 0.215f : 0.0f);
-   AtPoint pp = p + v;
+   AtVector v(0.425f, 0.6f, dim == 3 ? 0.215f : 0.0f);
+   AtVector pp = p + v;
 
    int i, j;
    float lacunarity = 1.0f;
 
-   AtPoint particles[27];
+   AtVector particles[27];
    float f1, f2;
-   AtPoint /*p1,*/ p2;
+   AtVector /*p1,*/ p2;
    int numParticles;
    float sum = 0.0f;
    float amp = 1.0f;
@@ -937,8 +937,7 @@ float BillowNoise(const AtPoint &p,
 
             if (spottyness > 0)
             {
-               AtVector v;
-               AiV3Create(v, 1.0f, 7.0f, 1023.0f);
+               AtVector v(1.0f, 7.0f, 1023.0f);
                float l = spottyness * (AiCellNoise3(particles[j]+v)*2.0f-1.0f);
                density += density * l;
                density = CLAMP(density, 0.0f, 1.0f);
@@ -973,17 +972,15 @@ float CosWaves(float posX,
    for (i=1; i<=numWaves; ++i)
    {
       float generator = (float)i * (float)AI_PI / (float)numWaves;
-      AtPoint v;
-      AiV3Create(v, generator, 0.0f, 0.0f);
+      AtVector v(generator, 0.0f, 0.0f);
       dirX = AiPerlin3(v);
-      AiV3Create(v, 0.0f, generator, 0.0f);
+      v = AtVector(0.0f, generator, 0.0f);
       dirY = AiPerlin3(v);
-      AiV3Create(v, 0.0f, 0.0f, generator);
+      v = AtVector(0.0f, 0.0f, generator);
       float offset = AiPerlin3(v);
       generator = 50.0f * dirX * dirY;
 
-      AtPoint2 v2;
-      AiV2Create(v2, generator, generator);
+      AtVector2 v2(generator, generator);
       float freqNoise = AiPerlin2(v2);
 
       norm = sqrt(dirX * dirX + dirY * dirY);
@@ -1002,32 +999,32 @@ float CosWaves(float posX,
 
 bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg)
 {
-   if (set_ids != NULL && set_ids->nelements > 0)
+   if (set_ids != NULL && AiArrayGetNumElements(set_ids) > 0)
    {
-      //AiMsgInfo("set_ids length: %d", set_ids->nelements);
+      //AiMsgInfo("set_ids length: %d", AiArrayGetNumElements(set_ids));
       //AtArray *sets = AiNodeGetArray(sg->Op, "shader");
-      //if (sets != NULL && sets->nelements > 0)
+      //if (sets != NULL && AiArrayGetNumElements(sets) > 0)
       AtArray *sets = NULL;
-      if (AiUDataGetArray("mtoa_shading_groups", &sets) && sets->nelements > 0)
+      if (AiUDataGetArray(MSTR::mtoa_shading_groups, &sets) && AiArrayGetNumElements(sets) > 0)
       {
-         if (sets->nelements == 1)
+         if (AiArrayGetNumElements(sets) == 1)
          {
             AtNode* shader = (AtNode*)AiArrayGetPtr(sets, 0);
-            for (unsigned int i=0; i < set_ids->nelements; ++i)
+            for (unsigned int i=0; i < AiArrayGetNumElements(set_ids); ++i)
             {
                if (shader == (AtNode*)AiArrayGetPtr(set_ids, i))
                   return true;
             }
             return false;
          }
-//         else if (sets->nelements > 1)
+//         else if (AiArrayGetNumElements(sets) > 1)
 //         {
 //            //AiMsgInfo("here1 %s", AiNodeGetName(sg->Op));
 //            AtArray* shidxs = AiNodeGetArray(sg->Op, "shidxs");
 //            if (shidxs != NULL)
 //            {
-//               //AiMsgInfo("here2 %d %d", shidxs->nelements, sg->fi);
-//               if (shidxs->nelements > 0)
+//               //AiMsgInfo("here2 %d %d", AiArrayGetNumElements(shidxs), sg->fi);
+//               if (AiArrayGetNumElements(shidxs) > 0)
 //               {
 //                  AtByte index = AiArrayGetByte(shidxs, sg->fi);
 //                  if (set_id != AiArrayGetPtr(sets, index))
@@ -1046,7 +1043,7 @@ bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg)
 AtArray* StringArrayToNodeArray(AtArray* setNames)
 {
    std::vector<AtNode*> setNodes;
-   for (unsigned int i=0; i < setNames->nelements; i++)
+   for (unsigned int i=0; i < AiArrayGetNumElements(setNames); i++)
    {
       const char* nodeName = AiArrayGetStr(setNames, i);
       AtNode* setNode = AiNodeLookUpByName(nodeName);
@@ -1069,7 +1066,7 @@ AtArray* StringArrayToNodeArray(AtArray* setNames)
 // How to use it in your shader :
 // At the beginning of shader_evaluate, place these lines :
 //
-//       AtPoint tmpPts;
+//       AtVector tmpPts;
 //      bool usePref = SetRefererencePoints(sg, tmpPts);
 //
 // Use  RestorePoints() when you don't use Pref anymore :
@@ -1080,10 +1077,10 @@ AtArray* StringArrayToNodeArray(AtArray* setNames)
 // @param tmpTps   keep the original sg->P in this variable.
 // @return          True if Pref was found and sg->P replaced.
 //
-bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts)
+bool SetRefererencePoints(AtShaderGlobals *sg, AtVector &tmpPts)
 {
-   AtPoint Pref;
-   bool usePref = AiUDataGetPnt("Pref",&Pref);
+   AtVector Pref;
+   bool usePref = AiUDataGetVec(MSTR::Pref,&Pref);
    if (usePref)
    {
       tmpPts = sg->P;
@@ -1112,7 +1109,7 @@ bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts)
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs)
 {
    AtVector Nref;
-   bool useNref = AiUDataGetVec("Nref",&Nref);
+   bool useNref = AiUDataGetVec(MSTR::Nref,&Nref);
    if (useNref)
    {
       tmpNmrs = sg->N;
@@ -1127,7 +1124,7 @@ bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs)
 // @param sg      shading global.
 // @param tmpTps   The original P, given by SetRefererencePoints.
 //
-void RestorePoints(AtShaderGlobals *sg, AtPoint tmpPts)
+void RestorePoints(AtShaderGlobals *sg, AtVector tmpPts)
 {
    sg->P = tmpPts;
 }

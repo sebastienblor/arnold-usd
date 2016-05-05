@@ -32,7 +32,7 @@ enum MayaFractalParams
 inline float get2DNoise(float x, float y, float px, float py, bool inflection)
 {
    float noise;
-   AtPoint2 p;
+   AtVector2 p;
    p.x = x;
    p.y = y;
 
@@ -45,8 +45,7 @@ inline float get2DNoise(float x, float y, float px, float py, bool inflection)
 inline float get3DNoise(float x, float y, float z, float px, float py, float pz, bool inflection)
 {
    float noise;
-   AtPoint p;
-   AiV3Create(p, x, y, z);
+   AtVector p(x, y, z);
 
    noise = AiPeriodicPerlin3(p, (int)px, (int)py, (int)pz);  
    if (inflection) noise = fabs(noise);
@@ -58,18 +57,18 @@ inline float get3DNoise(float x, float y, float z, float px, float py, float pz,
 
 node_parameters
 {
-   AiParameterFLT("amplitude", 1.0f);
-   AiParameterFLT("threshold", 0.0f);
-   AiParameterFLT("ratio", 0.707f);
-   AiParameterFLT("frequencyRatio", 2.0f);
-   AiParameterFLT("levelMin", 0.0f);
-   AiParameterFLT("levelMax", 9.0f);
-   AiParameterFLT("bias", 0.0f);
-   AiParameterBOOL("inflection", false);
-   AiParameterBOOL("animated", false);
-   AiParameterFLT("time", 0.0f);
-   AiParameterFLT("timeRatio", 2.0f);
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
+   AiParameterFlt("amplitude", 1.0f);
+   AiParameterFlt("threshold", 0.0f);
+   AiParameterFlt("ratio", 0.707f);
+   AiParameterFlt("frequencyRatio", 2.0f);
+   AiParameterFlt("levelMin", 0.0f);
+   AiParameterFlt("levelMax", 9.0f);
+   AiParameterFlt("bias", 0.0f);
+   AiParameterBool("inflection", false);
+   AiParameterBool("animated", false);
+   AiParameterFlt("time", 0.0f);
+   AiParameterFlt("timeRatio", 2.0f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
    AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "fractal");
@@ -86,10 +85,10 @@ node_update
    // should use globals as following Maya's behavior
    if (!AiNodeGetLink(node, "uvCoord"))
    {
-      AtPoint2 uv = AI_P2_ZERO;
+      AtVector2 uv = AI_P2_ZERO;
       if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
       if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-      AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+      AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
    }
 }
 
@@ -99,15 +98,15 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 uv;
-   uv = AiShaderEvalParamPnt2(p_uvCoord);
+   AtVector2 uv;
+   uv = AiShaderEvalParamVec2(p_uvCoord);
    // Will be set to GLOBALS by update if unconnected
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
    if (!IsValidUV(uv))
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       return;
    }
 
@@ -191,7 +190,7 @@ shader_evaluate
      
    float n = noiseval;
    
-   AiRGBACreate(sg->out.RGBA, n, n, n, 1.0f);
-   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+   sg->out.RGBA() = AtRGBA(n, n, n, 1.0f);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 }
 

@@ -80,7 +80,7 @@ struct AOVLayer
 {
    AtRGB color;
    AtRGB opacity;
-   const char* name;
+   AtString name;
 };
 
 struct ShaderData
@@ -143,8 +143,8 @@ AtRGBA post_process(const AtRGB &curColor, const AtRGB &curOpacity)
 
 node_parameters
 {
-   AiParameterENUM("compositingFlag", 0, gs_CompositingFlagNames);
-   AiParameterUINT("numInputs", 0);
+   AiParameterEnum("compositingFlag", 0, gs_CompositingFlagNames);
+   AiParameterUInt("numInputs", 0);
    AiParameterRGB("color0", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
@@ -177,22 +177,22 @@ node_parameters
    AiParameterRGB("transparency13", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency14", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency15", 1.0f, 1.0f, 1.0f);
-   AiParameterBOOL("useTransparency0", false);
-   AiParameterBOOL("useTransparency1", false);
-   AiParameterBOOL("useTransparency2", false);
-   AiParameterBOOL("useTransparency3", false);
-   AiParameterBOOL("useTransparency4", false);
-   AiParameterBOOL("useTransparency5", false);
-   AiParameterBOOL("useTransparency6", false);
-   AiParameterBOOL("useTransparency7", false);
-   AiParameterBOOL("useTransparency8", false);
-   AiParameterBOOL("useTransparency9", false);
-   AiParameterBOOL("useTransparency10", false);
-   AiParameterBOOL("useTransparency11", false);
-   AiParameterBOOL("useTransparency12", false);
-   AiParameterBOOL("useTransparency13", false);
-   AiParameterBOOL("useTransparency14", false);
-   AiParameterBOOL("useTransparency15", false);
+   AiParameterBool("useTransparency0", false);
+   AiParameterBool("useTransparency1", false);
+   AiParameterBool("useTransparency2", false);
+   AiParameterBool("useTransparency3", false);
+   AiParameterBool("useTransparency4", false);
+   AiParameterBool("useTransparency5", false);
+   AiParameterBool("useTransparency6", false);
+   AiParameterBool("useTransparency7", false);
+   AiParameterBool("useTransparency8", false);
+   AiParameterBool("useTransparency9", false);
+   AiParameterBool("useTransparency10", false);
+   AiParameterBool("useTransparency11", false);
+   AiParameterBool("useTransparency12", false);
+   AiParameterBool("useTransparency13", false);
+   AiParameterBool("useTransparency14", false);
+   AiParameterBool("useTransparency15", false);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -211,7 +211,7 @@ node_update
    {
       localData->aovs = AiNodeGetArray(node, "mtoa_aovs");
       if (localData->aovs)
-         localData->naovs = localData->aovs->nelements;
+         localData->naovs = AiArrayGetNumElements(localData->aovs);
    }
    AiNodeSetLocalData(node, localData);
 }
@@ -227,7 +227,7 @@ shader_evaluate
    unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
    int flag = AiShaderEvalParamInt(p_compositingFlag);
 
-   AtRGBA result = AI_RGBA_BLACK;
+   AtRGBA result = AI_RGBA_ZERO;
    AtRGB outOpacity = AI_RGB_WHITE;
 
    if (numInputs > 0)
@@ -302,6 +302,6 @@ shader_evaluate
       }
    }
 
-   sg->out.RGBA = result;
+   sg->out.RGBA() = result;
    sg->out_opacity = outOpacity;
 }

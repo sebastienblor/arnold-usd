@@ -79,20 +79,20 @@ struct ShaderData
     bool position_offset_is_linked;
 
     AtRGB scattering;
-    std::string scattering_channel;
+    AtString scattering_channel;
     AtRGB scattering_color;
     float scattering_intensity;
     float anisotropy;
     int attenuation_mode;
     AtRGB attenuation;
     AtRGB attenuation_color;
-    std::string attenuation_channel;
+    AtString attenuation_channel;
     float attenuation_intensity;
     AtRGB emission;
-    std::string emission_channel;
+    AtString emission_channel;
     AtRGB emission_color;
     float emission_intensity;
-    AtPoint position_offset;
+    AtVector position_offset;
     int interpolation;
 
     int scattering_source;
@@ -296,7 +296,7 @@ shader_evaluate
     ShaderData* data = reinterpret_cast<ShaderData*>(AiNodeGetLocalData(node));
 
     // sampling position offset
-    AtPoint Po_orig;
+    AtVector Po_orig;
 
     switch (data->position_offset_from)
     {
@@ -325,7 +325,7 @@ shader_evaluate
     {
         switch (data->scattering_from)
         {
-        case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->scattering_channel.c_str(), data->interpolation, &scattering); break;
+        case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->scattering_channel, data->interpolation, &scattering); break;
         case INPUT_FROM_EVALUATE: scattering = AiShaderEvalParamRGB(p_scattering); break;
         case INPUT_FROM_CACHE:    scattering = data->scattering; break;
         default: assert("invalid value for data->scattering_from"); break;
@@ -349,7 +349,7 @@ shader_evaluate
     // attenuation
     switch (data->attenuation_from)
     {
-    case INPUT_FROM_CHANNEL:    AiVolumeSampleRGB(data->attenuation_channel.c_str(), data->interpolation, &attenuation); break;
+    case INPUT_FROM_CHANNEL:    AiVolumeSampleRGB(data->attenuation_channel, data->interpolation, &attenuation); break;
     case INPUT_FROM_EVALUATE:   attenuation = AiShaderEvalParamRGB(p_attenuation); break;
     case INPUT_FROM_CACHE:      attenuation = data->attenuation; break;
     case INPUT_FROM_SCATTERING: attenuation = scattering; break;
@@ -376,7 +376,7 @@ shader_evaluate
 
         switch (data->emission_from)
         {
-        case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->emission_channel.c_str(), data->interpolation, &emission); break;
+        case INPUT_FROM_CHANNEL:  AiVolumeSampleRGB(data->emission_channel, data->interpolation, &emission); break;
         case INPUT_FROM_EVALUATE: emission = AiShaderEvalParamRGB(p_emission); break;
         case INPUT_FROM_CACHE:    emission = data->emission; break;
         default: assert("invalid value for data->emission_from"); break;

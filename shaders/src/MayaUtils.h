@@ -25,7 +25,7 @@ AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t);
 float MapValue(float v, float vmin, float vmax);
 float UnmapValue(float v, float vmin, float vmax);
 
-bool IsValidUV(AtPoint2 &uv);
+bool IsValidUV(AtVector2 &uv);
 float Integral(float t, float nedge);
 float Mod(float n, float d);
 
@@ -100,22 +100,22 @@ float SmoothStep(float e0, float e1, float x);
 
 float Bias(float b, float x);
 
-float fBm(AtShaderGlobals *sg, const AtPoint &p, float time, float initialAmplitude,
+float fBm(AtShaderGlobals *sg, const AtVector &p, float time, float initialAmplitude,
                  int octaves[2], float initialLacunarity, float frequencyRatio, float ratio);
 
-float fTurbulence(AtShaderGlobals *sg, const AtPoint &point, float time, float lacunarity,
+float fTurbulence(AtShaderGlobals *sg, const AtVector &point, float time, float lacunarity,
                          float frequencyRatio, int octaves[2], float ratio, float ripples[3]);
 
-AtPoint AnimatedCellNoise(const AtPoint &p, float tt);
+AtVector AnimatedCellNoise(const AtVector &p, float tt);
 
-int SuspendedParticles(const AtPoint &Pn, float time, float particleRadius, float jitter, float octave,
-                              float &f1, AtPoint &pos1, float &f2, AtPoint &pos2, AtPoint (&particlePos)[27]);
+int SuspendedParticles(const AtVector &Pn, float time, float particleRadius, float jitter, float octave,
+                              float &f1, AtVector &pos1, float &f2, AtVector &pos2, AtVector (&particlePos)[27]);
 
-int SuspendedParticles2d(const AtPoint &Pn, float time, float particleRadius, float jitter, float octave, AtPoint (&particlePos)[27]);
+int SuspendedParticles2d(const AtVector &Pn, float time, float particleRadius, float jitter, float octave, AtVector (&particlePos)[27]);
 
-float ParticleDensity(int falloff, const AtPoint &particleCenter, const AtPoint &P, float radius);
+float ParticleDensity(int falloff, const AtVector &particleCenter, const AtVector &P, float radius);
 
-float BillowNoise(const AtPoint &p, float time, int dim, float radius, float sizeRand, float jitter,
+float BillowNoise(const AtVector &p, float time, int dim, float radius, float sizeRand, float jitter,
                          int falloff, float spottyness, int octaves, float frequencyRatio, float ratio, float amplitude);
 
 float CosWaves(float posX, float posY, float posTime, int numWaves);
@@ -124,9 +124,9 @@ float CosWaves(float posX, float posY, float posTime, int numWaves);
 bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg);
 AtArray* StringArrayToNodeArray(AtArray* setNames);
 
-bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts);
+bool SetRefererencePoints(AtShaderGlobals *sg, AtVector &tmpPts);
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs);
-void RestorePoints(AtShaderGlobals *sg, AtPoint tmpPts);
+void RestorePoints(AtShaderGlobals *sg, AtVector tmpPts);
 void RestoreNormals(AtShaderGlobals *sg, AtVector tmpNmrs);
 
 // some random tools from Borja

@@ -27,18 +27,18 @@ node_parameters
 
    AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterSTR("aov_name", "");
-   AiParameterBOOL("blend", false);
+   AiParameterStr("aov_name", "");
+   AiParameterBool("blend", false);
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+   sg->out.RGBA() = AiShaderEvalParamRGBA(p_beauty);
 
    if (sg->Rt & AI_RAY_CAMERA)
    {
       const AtRGBA input = AiShaderEvalParamRGBA(p_input);
-      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), input);
+      AiAOVSetRGBA(sg, AtString(AiShaderEvalParamStr(p_name)), input);
    }
 }
 

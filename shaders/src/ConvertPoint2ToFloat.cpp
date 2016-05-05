@@ -30,8 +30,8 @@ const char* enum_component[] =
 
 node_parameters
 {
-   AiParameterPNT2("input", 0, 0);
-   AiParameterENUM("component", CH_X, enum_component);
+   AiParameterVec2("input", 0, 0);
+   AiParameterEnum("component", CH_X, enum_component);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -50,15 +50,15 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 point = AiShaderEvalParamPnt2(p_input);
+   AtVector2 point = AiShaderEvalParamVec2(p_input);
    int component = AiShaderEvalParamEnum(p_component);
    switch (component)
    {
    case CH_X:
-      sg->out.FLT = point.x;
+      sg->out.FLT() = point.x;
       break;
    case CH_Y:
-      sg->out.FLT = point.y;
+      sg->out.FLT() = point.y;
       break;
    }
 }

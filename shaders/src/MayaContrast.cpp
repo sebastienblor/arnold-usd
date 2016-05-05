@@ -22,9 +22,9 @@ enum MayaContrastParams
 
 node_parameters
 {
-   AiParameterVEC("value", 0.0f, 0.0f, 0.0f);
-   AiParameterVEC("contrast", 2.0f, 2.0f, 2.0f);
-   AiParameterVEC("bias", 0.5f, 0.5f, 0.5f);
+   AiParameterVec("value", 0.0f, 0.0f, 0.0f);
+   AiParameterVec("contrast", 2.0f, 2.0f, 2.0f);
+   AiParameterVec("bias", 0.5f, 0.5f, 0.5f);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "contrast");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x52434f4e);
@@ -74,9 +74,9 @@ shader_evaluate
    outValue.y = CLAMP(outValue.y, 0.0f, 1.0f);
    outValue.z = CLAMP(outValue.z, 0.0f, 1.0f);
 
-   sg->out.RGBA.r = outValue.x;
-   sg->out.RGBA.g = outValue.y;
-   sg->out.RGBA.b = outValue.z;
+   sg->out.RGBA().r = outValue.x;
+   sg->out.RGBA().g = outValue.y;
+   sg->out.RGBA().b = outValue.z;
 
 }
 

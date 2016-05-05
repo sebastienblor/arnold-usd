@@ -3,24 +3,29 @@
 #include <cmath>
 #include "MayaUtils.h"
 
+namespace MSTR
+{
+   static const AtString geo_opacity("geo_opacity");
+   static const AtString curve_id("curve_id");
+}
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaHairMtd);
 
 node_parameters
 {
    AiParameterRGB("hairColor", .4f, .4f, .4f); // check the default values!
-   AiParameterFLT("opacity", 1.f);
-   AiParameterFLT("translucence", .5f);
+   AiParameterFlt("opacity", 1.f);
+   AiParameterFlt("translucence", .5f);
    AiParameterRGB("specularColor", .35f, .35f, .299995f);
-   AiParameterFLT("specularPower", 3.f);
-   AiParameterBOOL("castShadows", true);
+   AiParameterFlt("specularPower", 3.f);
+   AiParameterBool("castShadows", true);
    
-   AiParameterFLT("diffuseRand", .2f);
-   AiParameterFLT("specularRand", .4f);
-   AiParameterFLT("hueRand", .0f);
-   AiParameterFLT("satRand", .0f);
-   AiParameterFLT("valRand", .0f);
-   AiParameterFLT("indirectDiffuse", 1.0f);
+   AiParameterFlt("diffuseRand", .2f);
+   AiParameterFlt("specularRand", .4f);
+   AiParameterFlt("hueRand", .0f);
+   AiParameterFlt("satRand", .0f);
+   AiParameterFlt("valRand", .0f);
+   AiParameterFlt("indirectDiffuse", 1.0f);
 
    AtArray* dummy = AiArray(2, 1, AI_TYPE_RGB, AI_RGB_WHITE, AI_RGB_WHITE);
    AiParameterArray("hairColorScale", dummy);
@@ -67,7 +72,7 @@ shader_evaluate
 {
    AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
    float geo_opacity;
-   if (AiUDataGetFlt("geo_opacity", &geo_opacity))
+   if (AiUDataGetFlt(MSTR::geo_opacity, &geo_opacity))
       opacity *= geo_opacity;
    
    if (sg->Rt & AI_RAY_SHADOW)
@@ -82,15 +87,15 @@ shader_evaluate
    AtRGB hairColor = AiShaderEvalParamRGB(p_hair_color);
    
    AtArray* hairColorScale = AiShaderEvalParamArray(p_hair_color_scale);
-   if (hairColorScale->nelements > 1)
+   if (AiArrayGetNumElements(hairColorScale) > 1)
    {
-      const float id = (float)hairColorScale->nelements * sg->v;
+      const float id = (float)AiArrayGetNumElements(hairColorScale) * sg->v;
       const float idbf = floorf(id);
       const int idb = (int)idbf;
       if (idb < 0)
          hairColor *= AiArrayGetRGB(hairColorScale, 0);
-      else if (idb >= (int)(hairColorScale->nelements - 1))
-         hairColor *= AiArrayGetRGB(hairColorScale, hairColorScale->nelements - 1);
+      else if (idb >= (int)(AiArrayGetNumElements(hairColorScale) - 1))
+         hairColor *= AiArrayGetRGB(hairColorScale, AiArrayGetNumElements(hairColorScale) - 1);
       else
       {
          const AtRGB b0 = AiArrayGetRGB(hairColorScale, idb);
@@ -109,7 +114,7 @@ shader_evaluate
    
    unsigned int seed = 0;
    if (enableHSVRand)
-      AiUDataGetUInt("curve_id", &seed); // the translator exports curve_ids   
+      AiUDataGetUInt(MSTR::curve_id, &seed); // the translator exports curve_ids   
    // when needed, so no need for an extra check   
    
    const float diffuseRand = AiShaderEvalParamFlt(p_diffuse_rand);
@@ -132,7 +137,7 @@ shader_evaluate
    
    sg->fhemi = false;
    
-   AtRGB diffuse = {0.f, 0.f, 0.f};
+   AtRGB diffuse(0.f, 0.f, 0.f);
    
    const AtVector T = AiV3Normalize(sg->dPdv);
    const AtVector V = -sg->Rd;
@@ -152,14 +157,14 @@ shader_evaluate
             diffuse += sg->Li * sg->we * d;
          }
       }
-      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(&V, sg) * indirectDiffuse;
+      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(&V, sg, AI_RGB_WHITE) * indirectDiffuse;
 
       diffuse *= hairColor;
    }
    
    AtRGB specularColor = AiShaderEvalParamRGB(p_specular_color);
    
-   AtRGB specular = {0.f, 0.f, 0.f};
+   AtRGB specular(0.f, 0.f, 0.f);
    
    const float specularRand = AiShaderEvalParamFlt(p_specular_rand);
    if ((specularRand > AI_EPSILON) && enableHSVRand)
@@ -198,7 +203,7 @@ shader_evaluate
       specular *= specularColor;
    }
    
-   sg->out.RGB = diffuse + specular;
-   sg->out.RGBA.a = 1.0f;
+   sg->out.RGB() = diffuse + specular;
+   sg->out.RGBA().a = 1.0f;
    sg->out_opacity = opacity;
 }

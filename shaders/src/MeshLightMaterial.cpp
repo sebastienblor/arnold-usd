@@ -1,5 +1,10 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString mesh_light_beauty("mesh_light_beauty");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(MeshLightMaterialMtd);
 
 enum MeshLightMaterialParams{
@@ -39,19 +44,19 @@ shader_evaluate
 {
    if (sg->Rt & (AI_RAY_DIFFUSE | AI_RAY_GLOSSY | AI_RAY_SHADOW))
    {
-      sg->out.RGBA = AI_RGBA_BLACK;   
+      sg->out.RGBA() = AI_RGBA_ZERO;   
       return;
    }
    
    if (AiV3Dot(sg->Ng, sg->Ngf) < 0)
    {
-      sg->out.RGBA = AI_RGBA_BLACK;   
+      sg->out.RGBA() = AI_RGBA_ZERO;
       return;
    }
 
-   sg->out.RGB = AiShaderEvalParamRGB(p_color) * AiShaderEvalParamRGB(p_color_multiplier);
-   sg->out.RGBA.a = 1.f;
+   sg->out.RGB() = AiShaderEvalParamRGB(p_color) * AiShaderEvalParamRGB(p_color_multiplier);
+   sg->out.RGBA().a = 1.f;
 
    if (sg->Rt & AI_RAY_CAMERA)
-      AiAOVSetRGB(sg, "mesh_light_beauty", sg->out.RGB); // we should check if this aov exists, could be done in node_update
+      AiAOVSetRGB(sg, MSTR::mesh_light_beauty, sg->out.RGB()); // we should check if this aov exists, could be done in node_update
 }

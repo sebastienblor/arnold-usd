@@ -1,7 +1,25 @@
 #include <ai.h>
 #include <algorithm>
 
+inline void AiColorGamma(AtColor *color, float gamma)
+{
+   if (gamma == 1.0f)
+      return;
+   gamma = 1.0f / gamma;
+   color->r = powf(color->r, gamma);
+   color->g = powf(color->g, gamma);
+   color->b = powf(color->b, gamma);
+   
+}
+
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaBump2DMtd);
+
+namespace MSTR
+{
+   static const AtString tangent("tangent");
+   static const AtString bitangent("bitangent");
+}
 
 static const char* useAsNames[] = {"bump", "tangent_normal", "object_normal", 0}; 
 
@@ -86,7 +104,7 @@ node_update
    data->bumpMultiplier = AiNodeGetFlt(options, "bump_multiplier");
    if (AiNodeGetBool(options, "ignore_bump"))
       data->bumpMap = 0;
-   if (ABS(data->bumpMultiplier) < AI_EPSILON)
+   if (fabsf(data->bumpMultiplier) < AI_EPSILON)
       data->bumpMap = 0;
    data->flipR = AiNodeGetBool(node, "flip_r");
    data->flipG = AiNodeGetBool(node, "flip_g");
@@ -111,7 +129,7 @@ static float BumpFunction(AtShaderGlobals* sg, void* d)
 {
    BumpEvalData* data = (BumpEvalData*)d;
    AiShaderEvaluate(data->bumpMap, sg);
-   return (sg->out.FLT - .5f) * data->bumpHeight;
+   return (sg->out.FLT() - .5f) * data->bumpHeight;
 }
 
 shader_evaluate
@@ -119,7 +137,7 @@ shader_evaluate
    mayaBump2DData* data = (mayaBump2DData*)AiNodeGetLocalData(node);
    if (data->shader == 0 || sg->Op == 0)
    {
-      sg->out.RGBA = data->shaderValue;
+      sg->out.RGBA() = data->shaderValue;
       return;
    }
    
@@ -127,7 +145,7 @@ shader_evaluate
    {      
       AiShaderEvaluate(data->shader, sg);
       if (data->isShaderRGBA == false)
-         sg->out.RGBA.a = 1.f;
+         sg->out.RGBA().a = 1.f;
       return;
    }
    
@@ -137,7 +155,7 @@ shader_evaluate
    if (data->bumpMode == BM_BUMP) // do classic bump mapping
    {
       const float bumpHeight = AiShaderEvalParamFlt(p_bump_height) * data->bumpMultiplier;
-      if (ABS(bumpHeight) > AI_EPSILON)
+      if (fabsf(bumpHeight) > AI_EPSILON)
       {
          BumpEvalData evalData;
          evalData.bumpHeight = bumpHeight;
@@ -158,8 +176,8 @@ shader_evaluate
       AtVector bitangent = sg->dPdv;
       if (!data->useDerivatives)
       {
-         AiUDataGetVec("tangent", &tangent);
-         AiUDataGetVec("bitangent", &bitangent);
+         AiUDataGetVec(MSTR::tangent, &tangent);
+         AiUDataGetVec(MSTR::bitangent, &bitangent);
       }
       tangent = AiV3Normalize(tangent);
       bitangent = AiV3Normalize(bitangent);
@@ -186,7 +204,7 @@ shader_evaluate
       AtRGB normalMap = AiShaderEvalParamRGB(p_normal_map);
       if (data->gammaCorrect != 1.f)
          AiColorGamma(&normalMap, data->gammaCorrect);
-      AtVector normalMapV = {normalMap.r, normalMap.g, normalMap.b};
+      AtVector normalMapV(normalMap.r, normalMap.g, normalMap.b);
       AiM4VectorByMatrixMult(&sg->N, sg->M, &normalMapV);
       sg->Nf = sg->N;
       AiFaceViewer(sg, sg->Nf);
@@ -194,7 +212,7 @@ shader_evaluate
    
    AiShaderEvaluate(data->shader, sg);
    if (data->isShaderRGBA == false)
-      sg->out.RGBA.a = 1.f;
+      sg->out.RGBA().a = 1.f;
    
    sg->N = oldN;
    sg->Nf = oldNf;

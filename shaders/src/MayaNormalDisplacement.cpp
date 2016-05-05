@@ -66,7 +66,7 @@ shader_evaluate
    float scale = AiShaderEvalParamFlt(p_scale);
    float zeroValue = AiShaderEvalParamFlt(p_zeroValue);
    
-   sg->out.FLT = (disp - zeroValue) * scale;
+   sg->out.FLT() = (disp - zeroValue) * scale;
 }
 
 node_initialize

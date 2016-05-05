@@ -13,6 +13,16 @@ AI_SHADER_NODE_EXPORT_METHODS(VolumeSampleRgbMethods)
 
 namespace {
 
+inline void AiColorGamma(AtColor *color, float gamma)
+{
+   if (gamma == 1.0f)
+      return;
+   gamma = 1.0f / gamma;
+   color->r = powf(color->r, gamma);
+   color->g = powf(color->g, gamma);
+   color->b = powf(color->b, gamma);
+}
+
 enum Params
 {
     p_channel,
@@ -40,8 +50,8 @@ enum InputFrom
 
 struct ShaderData
 {
-    std::string channel;
-    AtPoint position_offset;
+    AtString channel;
+    AtVector position_offset;
     bool position_offset_is_linked;
     InputFrom position_offset_from;
     int interpolation;
@@ -125,12 +135,12 @@ shader_evaluate
 
    if (data->multiply == 0.0f)
    {
-       sg->out.RGB = data->add;
+       sg->out.RGB() = data->add;
        return;
    }
 
    // sampling position offset
-   AtPoint Po_orig;
+   AtVector Po_orig;
 
    switch (data->position_offset_from)
    {
@@ -153,8 +163,8 @@ shader_evaluate
    // or NaNs will occur in optimized builds (htoa#374)
    AtColor color = AI_RGB_BLACK;
 
-   if (data->channel.size() > 0)
-       AiVolumeSampleRGB(data->channel.c_str(), data->interpolation, &color);
+   if (!data->channel.empty())
+       AiVolumeSampleRGB(data->channel, data->interpolation, &color);
    else
        color = AI_RGB_BLACK;
 
@@ -185,7 +195,7 @@ shader_evaluate
    if (data->add != 0.0f)
        color += data->add;
 
-   sg->out.RGB = color;
+   sg->out.RGB() = color;
 
    // restore sampling position
    if (data->position_offset_from != INPUT_FROM_NONE)

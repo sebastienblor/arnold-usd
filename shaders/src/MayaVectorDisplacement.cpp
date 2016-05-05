@@ -1,5 +1,11 @@
 #include <ai.h>
 
+namespace MSTR
+{
+   static const AtString tangent("tangent");
+   static const AtString bitangent("bitangent");
+}
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaVectorDisplacementMtd);
 
 namespace
@@ -90,14 +96,14 @@ shader_evaluate
       
       N = AiV3Normalize(sg->N);
 
-      if (!AiV3IsZero(tangent))
+      if (!AiV3IsSmall(tangent))
       {
          T = AiV3Normalize(tangent);
          B = AiV3Cross(N,T);
       }
-      else if (!AiUDataGetVec("tangent", &T) || !AiUDataGetVec("bitangent", &B))
+      else if (!AiUDataGetVec(MSTR::tangent, &T) || !AiUDataGetVec(MSTR::bitangent, &B))
       {
-         if (!AiV3IsZero(sg->dPdu) && !AiV3IsZero(sg->dPdv))
+         if (!AiV3IsSmall(sg->dPdu) && !AiV3IsSmall(sg->dPdv))
          {
             // tangents available, use them
             T = AiV3Normalize(sg->dPdu - AiV3Dot(sg->dPdu, N) * N);
@@ -115,7 +121,7 @@ shader_evaluate
    
    totalDisp += transformedVectorDisplacement;
    
-   sg->out.VEC = totalDisp * scale;
+   sg->out.VEC() = totalDisp * scale;
 }
 
 node_initialize

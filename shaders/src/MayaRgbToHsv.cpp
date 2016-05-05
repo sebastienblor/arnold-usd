@@ -36,5 +36,5 @@ node_finish
 
 shader_evaluate
 {
-   sg->out.VEC = RGBtoHSV(AiShaderEvalParamRGB(p_inRgb));
+   sg->out.VEC() = RGBtoHSV(AiShaderEvalParamRGB(p_inRgb));
 }

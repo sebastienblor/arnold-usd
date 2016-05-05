@@ -56,7 +56,6 @@ extern AtNodeMethods* WriteFloatInlineMtd;
 extern AtNodeMethods* WriteVectorInlineMtd;
 extern AtNodeMethods* WritePointInlineMtd;
 extern AtNodeMethods* WritePoint2InlineMtd;
-extern AtNodeMethods* AnimMatrixMtd;
 extern AtNodeMethods* AnimFloatMtd;
 extern AtNodeMethods* AnimPointMtd;
 extern AtNodeMethods* AnimVectorMtd;
@@ -148,7 +147,6 @@ enum{
    SHADER_WRITEFLOAT,
    SHADER_WRITEFLOATINLINE,
    SHADER_ENVSPHERE,
-   SHADER_ANIMMATRIX,
    SHADER_ANIMFLOAT,
    SHADER_ANIMPOINT,
    SHADER_ANIMVECTOR,
@@ -243,7 +241,7 @@ node_loader
 
    case SHADER_SAMPLERINFO2D:
       node->methods     = MayaSamplerInfo2DMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaSamplerInfo2D";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -257,7 +255,7 @@ node_loader
 
    case SHADER_PLUSMINUSAVERAGE2D:
       node->methods     = MayaPlusMinusAverage2DMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaPlusMinusAverage2D";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -299,7 +297,7 @@ node_loader
 
    case SHADER_PLACE2DTEXTURE:
       node->methods     = MayaPlace2DTextureMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaPlace2DTexture";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -556,13 +554,6 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;      
 
-   case SHADER_ANIMMATRIX:
-      node->methods     = AnimMatrixMtd;
-      node->output_type = AI_TYPE_MATRIX;
-      node->name        = "anim_matrix";
-      node->node_type   = AI_NODE_SHADER;
-      break;
-
    case SHADER_ANIMFLOAT:
       node->methods     = AnimFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
@@ -572,7 +563,7 @@ node_loader
 
    case SHADER_ANIMPOINT:
       node->methods     = AnimPointMtd;
-      node->output_type = AI_TYPE_POINT;
+      node->output_type = AI_TYPE_VECTOR;
       node->name        = "anim_point";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -642,14 +633,14 @@ node_loader
 
    case SHADER_WRITEPOINTINLINE:
       node->methods     = WritePointInlineMtd;
-      node->output_type = AI_TYPE_POINT;
+      node->output_type = AI_TYPE_VECTOR;
       node->name        = "aovWritePoint";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case SHADER_WRITEPOINT2INLINE:
       node->methods     = WritePoint2InlineMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "aovWritePoint2";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -698,7 +689,7 @@ node_loader
 
    case SHADER_USERDATAPNT2:
       node->methods     = UserDataPnt2Mtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "userDataPnt2";
       node->node_type   = AI_NODE_SHADER;
       break;
@@ -740,7 +731,7 @@ node_loader
 
    case SHADER_MAYADOUBLESHADINGSWITCH:
       node->methods     = MayaDoubleShadingSwitchMtd;
-      node->output_type = AI_TYPE_POINT2;
+      node->output_type = AI_TYPE_VECTOR2;
       node->name        = "MayaDoubleShadingSwitch";
       node->node_type   = AI_NODE_SHADER;
       break;

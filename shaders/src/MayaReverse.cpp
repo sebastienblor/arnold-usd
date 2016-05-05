@@ -36,5 +36,5 @@ shader_evaluate
 {
    AtColor input = AiShaderEvalParamRGB(p_input);
 
-   AiColorSub(sg->out.RGB, AI_RGB_WHITE, input);
+   sg->out.RGB() = AI_RGB_WHITE - input;
 }

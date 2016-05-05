@@ -19,9 +19,9 @@ enum MayaBulgeParams
 
 node_parameters
 {
-   AiParameterFLT("uWidth", 0.1f);
-   AiParameterFLT("vWidth", 0.1f);
-   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
+   AiParameterFlt("uWidth", 0.1f);
+   AiParameterFlt("vWidth", 0.1f);
+   AiParameterVec2("uvCoord", 0.0f, 0.0f);
    AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "bulge");
@@ -38,10 +38,10 @@ node_update
    // should use globals as following Maya's behavior
    if (!AiNodeGetLink(node, "uvCoord"))
    {
-      AtPoint2 uv = AI_P2_ZERO;
+      AtVector2 uv = AI_P2_ZERO;
       if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
       if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
-      AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+      AiNodeSetVec2(node, "uvCoord", uv.x, uv.y);
    }
 }
 
@@ -51,15 +51,15 @@ node_finish
 
 shader_evaluate
 {
-   AtPoint2 uv;
-   uv = AiShaderEvalParamPnt2(p_uvCoord);
+   AtVector2 uv;
+   uv = AiShaderEvalParamVec2(p_uvCoord);
    // Will be set to GLOBALS by update if unconnected
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
    if (!IsValidUV(uv))
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
       return;
    }
 
@@ -75,6 +75,6 @@ shader_evaluate
    float b = SmoothStep(vWidth * 0.5f, 0.5f, tt) * (1 - SmoothStep(0.5f, 1.0f - (vWidth * 0.5f), tt));
    float r = sqrt(fabs(a * b));
 
-   AiRGBACreate(sg->out.RGBA, r, r, r, r);
-   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+   sg->out.RGBA() = AtRGBA(r, r, r, r);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
 }

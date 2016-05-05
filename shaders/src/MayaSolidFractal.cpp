@@ -31,7 +31,7 @@ enum MayaSolidFractalParams
    MAYA_COLOR_BALANCE_ENUM
 };
 
-static float Noise3D(const AtPoint &p, bool inflection)
+static float Noise3D(const AtVector &p, bool inflection)
 {
    float noise = AiPerlin3(p);
 
@@ -43,7 +43,7 @@ static float Noise3D(const AtPoint &p, bool inflection)
    return noise;
 }
 
-static float Noise4D(const AtPoint &p, float time, bool inflection)
+static float Noise4D(const AtVector &p, float time, bool inflection)
 {
    float noise = AiPerlin4(p, time);  
 
@@ -62,20 +62,20 @@ node_parameters
    AtMatrix id;
    AiM4Identity(id);
 
-   AiParameterFLT("threshold", 0.0f);
-   AiParameterFLT("amplitude", 1.0f);
-   AiParameterFLT("ratio", 0.707f);
-   AiParameterFLT("frequencyRatio", 2.0f);
-   AiParameterVEC("ripples", 1.0f, 1.0f, 1.0f);
-   AiParameterPNT2("depth", 0.0f, 8.0f);
-   AiParameterFLT("bias", 0.0f);
-   AiParameterBOOL("inflection", false);
-   AiParameterBOOL("animated", false);
-   AiParameterFLT("time", 0.0f);
-   AiParameterFLT("timeRatio", 2.0f);
-   AiParameterMTX("placementMatrix", id);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
+   AiParameterFlt("threshold", 0.0f);
+   AiParameterFlt("amplitude", 1.0f);
+   AiParameterFlt("ratio", 0.707f);
+   AiParameterFlt("frequencyRatio", 2.0f);
+   AiParameterVec("ripples", 1.0f, 1.0f, 1.0f);
+   AiParameterVec2("depth", 0.0f, 8.0f);
+   AiParameterFlt("bias", 0.0f);
+   AiParameterBool("inflection", false);
+   AiParameterBool("animated", false);
+   AiParameterFlt("time", 0.0f);
+   AiParameterFlt("timeRatio", 2.0f);
+   AiParameterMtx("placementMatrix", id);
+   AiParameterBool("wrap", true);
+   AiParameterBool("local", false);
    AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "solidFractal");
@@ -101,7 +101,7 @@ shader_evaluate
    float ratio = AiShaderEvalParamFlt(p_ratio);
    float frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
-   AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
+   AtVector2 depth = AiShaderEvalParamVec2(p_depth);
    float bias = AiShaderEvalParamFlt(p_bias);
    bool inflection = AiShaderEvalParamBool(p_inflection);
    bool animated = AiShaderEvalParamBool(p_animated);
@@ -109,11 +109,11 @@ shader_evaluate
    bool wrap = AiShaderEvalParamBool(p_wrap);
    bool local = AiShaderEvalParamBool(p_local);
 
-   AtPoint P;
+   AtVector P;
    float time = 0.0f;
    float timeRatio = 0.0f;
 
-   AtPoint tmpPts;
+   AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
    AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
@@ -148,7 +148,7 @@ shader_evaluate
          if((maxP * curFreq) >= LONG_MAX)
             break;
             
-         AtPoint sampleP = P * curFreq;
+         AtVector sampleP = P * curFreq;
 
          if (animated)
          {
@@ -169,7 +169,7 @@ shader_evaluate
       }
       if ((maxP * curFreq) < LONG_MAX && pixel > pixelSize && i <= depth.y)
       {
-         AtPoint sampleP = P * curFreq;
+         AtVector sampleP = P * curFreq;
 
          if (animated)
          {
@@ -210,12 +210,12 @@ shader_evaluate
 
       noise = CLAMP(noise, 0.0f, 1.0f);
 
-      AiRGBACreate(sg->out.RGBA, noise, noise, noise, 1.0f);
-      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+      sg->out.RGBA() = AtRGBA(noise, noise, noise, 1.0f);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA());
    }
    else
    {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA());
    }
    if (usePref) RestorePoints(sg, tmpPts);
 }

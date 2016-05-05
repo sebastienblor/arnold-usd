@@ -22,8 +22,8 @@ node_parameters
 
    AiParameterRGB("image", 0, 0, 0);
    //AiParameterVec2("shearUV", 0, 0);
-   AiParameterBOOL("flip", false);
-   AiParameterMTX("placementMatrix", id);
+   AiParameterBool("flip", false);
+   AiParameterMtx("placementMatrix", id);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "envSphere");
 }
@@ -85,7 +85,7 @@ shader_evaluate
    *pV = 1 - (acosf(rdir.z/R) / (float)AI_PI);
 
    // call input
-   sg->out.RGB = AiShaderEvalParamRGB(p_image);
+   sg->out.RGB() = AiShaderEvalParamRGB(p_image);
 
    // restore globals
    sg->u = inU;

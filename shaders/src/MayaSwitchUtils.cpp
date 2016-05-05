@@ -12,11 +12,11 @@ void UpdateShadingSwitch(AtNode* node)
    data->shapes.clear();
    AtArray* inputs = AiNodeGetArray(node, "inputs");
    AtArray* shapes = AiNodeGetArray(node, "shapes");
-   if (inputs->nelements == 0)
+   if (AiArrayGetNumElements(inputs) == 0)
       return;
-   data->inputs.reserve(inputs->nelements);
-   data->shapes.reserve(shapes->nelements);
-   for (unsigned int i = 0; i < inputs->nelements; ++i)
+   data->inputs.reserve(AiArrayGetNumElements(inputs));
+   data->shapes.reserve(AiArrayGetNumElements(shapes));
+   for (unsigned int i = 0; i < AiArrayGetNumElements(inputs); ++i)
    {
       data->inputs.push_back((AtNode*)AiArrayGetPtr(inputs, i));
       data->shapes.push_back((AtNode*)AiArrayGetPtr(shapes, i));
