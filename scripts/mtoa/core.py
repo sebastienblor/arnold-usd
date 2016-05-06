@@ -263,8 +263,8 @@ def createShadingGroupIfNeeded(nodeType, node):
         shadingNodeGroupName = node + "SG"
         group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=shadingNodeGroupName)
         outAttr = node
-        if mel.eval("attributeExists(\"outValue\", \"" + node + "\")"):
-            outAttr += ".outValue"
+        if mel.eval("attributeExists(\"outColor\", \"" + node + "\")"):
+            outAttr += ".outColor"
         else:
             outAttr += ".message"
         cmds.connectAttr(outAttr, group + ".surfaceShader")
