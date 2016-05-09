@@ -8,30 +8,89 @@
 //*****************************************************************************
 
 #include "bifrostObjectUserData.h"
-#include "rapidjson.h"
-
 
 #include <map>
 #include <iomanip>
+#include <iostream>
 
 namespace
 {
+	// The necessary information to access the data to render is stored in a 
+	// Bifrost::API::Dictionary.  It will contain the 
+	// - ID to the state server 
+	// - Name of the object
+	// 
+	// To be backward compatible with previous simulation outputs the 
+	// keys to access the data are the same.
+	char const * stateServerID = "StateServerID";
+	char const * objectID      = "Object";
 
-// A global cache to hold the state servers for cache files.
-static std::map<std::string,Bifrost::API::StateID> gFileStateServers;
+	// A global cache to hold the state servers for cache files.
+	typedef std::map<Bifrost::API::String,Bifrost::API::StateID> FileStateServersCache; 
+	static  FileStateServersCache gFileStateServers;
 
+	// Extract the necessary data for render from a Bifrost query. This function also supports the old json string format as
+	// described above.
+	// 
+	// \param in_jsonDescriptor Bifrost query encoded in json
+	// \return The results of the query (object + state server id) are returned as a Bifrost::API::Dictionary. 
+	// note: we could probably use a simple std::pair for storing the data instead of a Dictionary which seems to be way too much
+	Bifrost::API::Dictionary extractObjectAndSSID( std::string const & in_jsonDescriptor )
+	{
+		// Initialize output
+		Bifrost::API::ObjectModel om;
+		Bifrost::API::Dictionary outDict = om.createDictionary();
+
+		Bifrost::API::Query query = om.createQuery();
+		if( !query.load( in_jsonDescriptor.c_str() ) ){
+			// failed to load the query
+			
+			// attempt to load the string as json dictionary 
+			outDict.loadJSON( in_jsonDescriptor.c_str() );
+
+			if ( !(outDict.hasValue( stateServerID ) && outDict.hasValue( objectID )) ) {
+				// wrong format
+				outDict.clear();
+			}
+			return outDict;
+		}
+
+		Bifrost::API::RefArray results = query.run();
+		if ( results.count() != 1 ) {
+			// query not returning the expected results
+			return outDict;
+		}
+
+		// return the data in a dictionary
+		Bifrost::API::Object object = results[0];
+		outDict.setValue( stateServerID, object.stateID() );
+		outDict.setValue( objectID, object.name() );
+
+		return outDict;
+	}
 }
 
 BifrostObjectUserData::BifrostObjectUserData(const std::string& object, const std::string& file)
-	: m_object(object), m_file(file)
-{}
+	:  m_file(file.c_str() )
+{
+	 m_object = extractObjectAndSSID( object );
+
+	 // note: If I understand, when extractObjectAndSSID returns an empty m_object it means we are probably not 
+	 // in a runtime environment (where active graphs are always available). In which case we should be able to bind 
+	 // m_file (assuming it's a bif) to the input query (object) in order to get the data requested by the render. 
+	 // Likewise, we should also support a state server id as binding.
+	 //
+	 // However, when in a standalone render environment, we should be able to load an active graph upfront 
+	 // just by scanning the bif cache folder. At this point the client would be able to run the query without worrying 
+	 // about setting any new binding, etc... This would make the render support waaaay much easier to implement. 
+}
 
 bool BifrostObjectUserData::objectExists() const
 {
 	// Parse the JSON object representation
-	unsigned int ssid;
-	std::string object;
-	if (!parseJsonObject(m_object, ssid, object))
+	Bifrost::API::StateID ssid;
+	Bifrost::API::String  object;
+	if (!parseDictObject(m_object, ssid, object))
 		return false;
 
 	// Find the state server.
@@ -41,7 +100,40 @@ bool BifrostObjectUserData::objectExists() const
 		return false;
 
 	// Find the object within the state server.
-	Bifrost::API::Object obj = state.findObject(object.c_str());
+	Bifrost::API::Object obj = state.findObject(object);
+	if (!obj.valid())
+		return false;
+
+	return true;
+}
+
+bool BifrostObjectUserData::objectExists(const float frame) const
+{
+	// Parse the JSON object representation
+	Bifrost::API::StateID ssid;
+	Bifrost::API::String  object;
+	if (!parseDictObject(m_object, ssid, object))
+		return false;
+
+	// Find the state server.
+	Bifrost::API::ObjectModel om;
+	Bifrost::API::StateServer state = om.stateServer(ssid);
+	if (!state.valid())
+		return false;
+
+	// Get the dictionary of the state server
+	const Bifrost::API::Dictionary dict = state.dictionary();
+
+	// Reject cold data if the frame number mismatch
+	if (dict.hasValue("bifrostMR_frameNumber"))
+	{
+		const int frameNumber = static_cast<int>(std::floor(frame));
+		if (dict.value<int>("bifrostMR_frameNumber") != frameNumber)
+			return false;
+	}
+
+	// Find the object within the state server.
+	Bifrost::API::Object obj = state.findObject(object);
 	if (!obj.valid())
 		return false;
 
@@ -52,8 +144,8 @@ Bifrost::API::Ref BifrostObjectUserData::stateServer() const
 {
 	// Parse the JSON object representation
 	Bifrost::API::StateID ssid;
-	std::string object;
-	if (!parseJsonObject(m_object, ssid, object))
+	Bifrost::API::String  object;
+	if (!parseDictObject(m_object, ssid, object))
 		return Bifrost::API::Ref();
 
 	// Find the state server
@@ -65,8 +157,8 @@ Bifrost::API::Ref BifrostObjectUserData::findChannel(const Bifrost::API::TypeID&
 {
 	// Parse the JSON object representation
 	Bifrost::API::StateID ssid;
-	std::string objectName;
-	if (!parseJsonObject(m_object, ssid, objectName))
+	Bifrost::API::String  objectName;
+	if (!parseDictObject(m_object, ssid, objectName))
 		return Bifrost::API::Ref();
 
 	// Find the state server
@@ -76,7 +168,7 @@ Bifrost::API::Ref BifrostObjectUserData::findChannel(const Bifrost::API::TypeID&
 		return Bifrost::API::Ref();
 
 	// Find the object
-	Bifrost::API::Object object = state.findObject(objectName.c_str());
+	Bifrost::API::Object object = state.findObject(objectName);
 	if (!object.valid())
 		return Bifrost::API::Ref();
 
@@ -151,8 +243,8 @@ Bifrost::API::Ref BifrostObjectUserData::createChannel(
 {
 	// Parse the JSON object representation
 	Bifrost::API::StateID ssid;
-	std::string objectName;
-	if (!parseJsonObject(m_object, ssid, objectName))
+	Bifrost::API::String  objectName;
+	if (!parseDictObject(m_object, ssid, objectName))
 		return Bifrost::API::Ref();
 
 	// Find the state server
@@ -162,7 +254,7 @@ Bifrost::API::Ref BifrostObjectUserData::createChannel(
 		return Bifrost::API::Ref();
 
 	// Find the object
-	Bifrost::API::Object object = state.findObject(objectName.c_str());
+	Bifrost::API::Object object = state.findObject(objectName);
 	if (!object.valid())
 		return Bifrost::API::Ref();
 
@@ -197,22 +289,9 @@ Bifrost::API::Ref BifrostObjectUserData::createChannel(
 
 bool BifrostObjectUserData::loadFromFile(const float frame)
 {
-	// Parse the JSON object representation
-	unsigned int ssid;
-	std::string object;
-	if (!parseJsonObject(m_object, ssid, object))
-		return false;
-
-	// Strip the |main|1 part of the object name when loading from a file
-	{
-		size_t firstBar = object.find('|');
-		if (firstBar != std::string::npos)
-			object = object.substr(0, firstBar);
-	}
-
 	// file includes both the cacheDir and the cacheName. This was done to reduce the changes to the .mi parameters.
 	// file has the cacheDir and cacheName so we extract them
-	std::string cacheDir, cacheName;
+	Bifrost::API::String cacheDir, cacheName;
 	{
 		if (m_file.size() > 1) // protect size()-1
 		{
@@ -226,31 +305,54 @@ bool BifrostObjectUserData::loadFromFile(const float frame)
 	}
 
 	// Determine the final BIF file name
-	std::string bif;
+	Bifrost::API::String bif;
 	{
-		const std::string path = cacheDir + cacheName + ".#.bif";
+		const Bifrost::API::String path = cacheDir + cacheName + ".#.bif";
 		const int frameNumber  = (int)floorf(frame);
-		bif = Bifrost::API::File::resolveFramePadding(path.c_str(), frameNumber).c_str();
+		bif = Bifrost::API::File::resolveFramePadding(path, frameNumber);
 	}
 
 	// Load BIF cache now
 	Bifrost::API::ObjectModel om;
-	Bifrost::API::FileIO fileio = om.createFileIO( bif.c_str() );
+	Bifrost::API::FileIO fileio = om.createFileIO( bif );
 	Bifrost::API::StateServer state = fileio.load();
 	if (!state.valid())
 	{
-		//SEB mi_warning("Unable to load BIF cache: %s", bif.c_str());
+		std::cerr<<"Unable to load BIF cache: "<<bif<<std::endl;;
 		return false;
 	}
 
+	// fileio.load() above returned a new state server with our object in it.
+	// It should be the only object in the state server
+	Bifrost::API::RefArray allObjects = state.objects();
+	if( allObjects.count() != 1 ) {
+		std::cerr<<"Unable to find object of loaded BIF cache: "<<bif<<std::endl;
+		return false;
+	}
+
+	// Extract name of the object.   
+	Bifrost::API::Object anObject( allObjects[0] /*only one object in state server, see above test*/ );
+	Bifrost::API::String objectName = anObject.name();
+
+	// For old scenes... Strip the |main|1 part of the object name when loading from a file
+	{
+		size_t firstBar = objectName.find('|');
+		if (firstBar != std::string::npos)
+			objectName = objectName.substr(0, firstBar);
+	}
+
+	// Tag the state server with frame number
+	Bifrost::API::Dictionary dict = state.dictionary();
+	dict.setValue<int>("bifrostMR_frameNumber", static_cast<int>(std::floor(frame)));
+
 	// Update the JSON object
-	m_object = writeJsonObject((unsigned int)state.stateID(), object);
+	m_object = writeDictObject( state.stateID(), objectName );
 
 	// Dispose the previous file state server.
 	// This means we are rendering a second frame and this usually happen when calling mental ray standalone with a sequence of files.
 	{
 		// Find the state server that we were using
-		std::map<std::string,Bifrost::API::StateID>::iterator it =
+		FileStateServersCache::iterator it =
 			gFileStateServers.find(m_file);
 		if (it != gFileStateServers.end())
 		{
@@ -266,38 +368,26 @@ bool BifrostObjectUserData::loadFromFile(const float frame)
 	return true;
 }
 
-bool BifrostObjectUserData::parseJsonObject(const std::string& json, unsigned int& ssid, std::string& object)
+bool BifrostObjectUserData::parseDictObject( Bifrost::API::Dictionary const & dict, Bifrost::API::StateID & ssid, Bifrost::API::String & object)
 {
-	if (json.empty())
-		return false;
-
-	// Parse the JSON object representation
-	rapidjson::Document doc;
-	doc.Parse<0>(json.c_str());
-
-	// Check the DOM object
-	if (!doc.HasParseError() && doc.HasMember("StateServerID") && doc.HasMember("Object"))
-	{
-		ssid	= doc["StateServerID"].GetUint();
-		object	= doc["Object"].GetString();
-		return true;
+	bool status = false;
+	if( dict.hasValue( stateServerID ) && dict.hasValue( objectID ) ) {
+		ssid   = dict.value<Bifrost::API::StateID>( stateServerID );
+		object = dict.value<Bifrost::API::String>( objectID );
+		status = true;
 	}
-
-	return false;
+	return status;
 }
 
-std::string BifrostObjectUserData::writeJsonObject(const unsigned int ssid, const std::string& object)
+Bifrost::API::Dictionary BifrostObjectUserData::writeDictObject( Bifrost::API::StateID const & ssid, Bifrost::API::String const & object)
 {
-	rapidjson::StringBuffer buff;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buff);
 
-	writer.StartObject();
-	writer.String("StateServerID");
-	writer.Uint(ssid);
-	writer.String("Object");
-	writer.String(object.c_str());
-	writer.EndObject();
+	// Initialize output
+	Bifrost::API::ObjectModel om;
+	Bifrost::API::Dictionary  outDict = om.createDictionary();
 
-	std::string json(buff.GetString());
-	return json;
+	outDict.setValue( stateServerID, ssid );
+	outDict.setValue( objectID, object );
+
+	return outDict;
 }

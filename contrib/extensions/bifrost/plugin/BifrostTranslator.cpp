@@ -40,32 +40,53 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
 
    m_render_type = (RenderType)bifrostDesc.findPlug("bifrostRenderType").asInt();
 
-   MString obj_str = bifrostDesc.findPlug("object").asString();
+   MPlug objectPlug = bifrostDesc.findPlug("object");
+   MString obj_str = objectPlug.asString();
    
    m_object = obj_str.asChar();
 
-   MString cache_dir = bifrostDesc.findPlug("cacheDir").asString();
-   MString cache_name = bifrostDesc.findPlug("cacheName").asString();
 
-   m_file = cache_dir.asChar();
-   m_file += "/";
-   m_file += cache_name.asChar();
 
+
+   MFnDependencyNode bfContainer(objectPlug.source().node());    
 
    switch (m_render_type)
    {
+      {
       default:
       case CBIFROST_AERO:
+         
+         MPlug containerPlug = bfContainer.findPlug("aeroCacheProperties");
+         MFnDependencyNode bfAeroProps(containerPlug.source().node());
+      
+         MString cache_dir = bfAeroProps.findPlug("aeroCachePath").asString();
+         MString cache_name = bfAeroProps.findPlug("aeroCacheFileName").asString();
+
+         MString fullBifPath = cache_dir + cache_name + "/AeroObject//AeroObject_volume";
+         m_file = fullBifPath.asChar();
+         
          return AddArnoldNode("volume");
+      }
 
       case CBIFROST_LIQUID:
          AiMsgError("[BIFROST]: liquid not implemented yet : %s", m_object.c_str());
       // not implemented for now
       break;
 
+      {
       case CBIFROST_FOAM:
+         
+         MPlug containerPlug = bfContainer.findPlug("foamCacheProperties");
+         MFnDependencyNode bfAeroProps(containerPlug.source().node());
+      
+         MString cache_dir = bfAeroProps.findPlug("foamCachePath").asString();
+         MString cache_name = bfAeroProps.findPlug("foamCacheFileName").asString();
+
+         MString fullBifPath = cache_dir + cache_name + "/Foam//Foam_particle";
+         m_file = fullBifPath.asChar();
       // export geometry as points
          return AddArnoldNode("points");
+      }
    }
 
    // for non-implemented Render Types
@@ -96,7 +117,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
       const float frame = (float)MAnimControl::currentTime().value();
       const bool loaded = objectRef.loadFromFile(frame);
-
+      
       if (!loaded || !objectRef.objectExists())
       {
          AiMsgError("[BIFROST]: foam data %s  not found", m_object.c_str());
@@ -338,7 +359,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
 // Check if we have hot data in the current state server
    BifrostObjectUserData objectRef(m_object, m_file);
-
+   
    if (!objectRef.objectExists())
    {
       // The specified object doesn't exist in the current state server.
@@ -349,7 +370,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
       if (!loaded || !objectRef.objectExists())
       {
-         AiMsgError("[BIFROST]: foam data %s  not found", m_object.c_str());
+         AiMsgError("[BIFROST]: Aero data %s  not found", m_object.c_str());
          return;
       }
    }
