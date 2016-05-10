@@ -6,6 +6,7 @@
 #include <maya/MTime.h>
 #include <maya/MGlobal.h>
 
+#include <maya/MTypes.h>
 #ifdef WIN32
 #undef min
 #undef max
@@ -45,15 +46,12 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    
    m_object = obj_str.asChar();
 
-
-
-
-   MFnDependencyNode bfContainer(objectPlug.source().node());    
-
+#if MAYA_API_VERSION >= 201650
+   
+   MFnDependencyNode bfContainer(objectPlug.source().node());
    switch (m_render_type)
    {
       {
-      default:
       case CBIFROST_AERO:
          
          MPlug containerPlug = bfContainer.findPlug("aeroCacheProperties");
@@ -64,18 +62,10 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
 
          MString fullBifPath = cache_dir + cache_name + "/AeroObject//AeroObject_volume";
          m_file = fullBifPath.asChar();
-         
-         return AddArnoldNode("volume");
+         break;
       }
-
-      case CBIFROST_LIQUID:
-         AiMsgError("[BIFROST]: liquid not implemented yet : %s", m_object.c_str());
-      // not implemented for now
-      break;
-
       {
       case CBIFROST_FOAM:
-         
          MPlug containerPlug = bfContainer.findPlug("foamCacheProperties");
          MFnDependencyNode bfAeroProps(containerPlug.source().node());
       
@@ -84,11 +74,39 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
 
          MString fullBifPath = cache_dir + cache_name + "/Foam//Foam_particle";
          m_file = fullBifPath.asChar();
-      // export geometry as points
-         return AddArnoldNode("points");
+         break;
       }
+
+      default:
+         break;
    }
 
+#else
+   MString cache_dir = bifrostDesc.findPlug("cacheDir").asString();
+   MString cache_name = bifrostDesc.findPlug("cacheName").asString();
+    
+   m_file = cache_dir.asChar();
+   m_file += "/";
+   m_file += cache_name.asChar();
+
+#endif
+
+
+   switch (m_render_type)
+   {
+      default:
+      case CBIFROST_AERO:
+         return AddArnoldNode("volume");
+
+      case CBIFROST_LIQUID:
+         AiMsgError("[BIFROST]: liquid not implemented yet : %s", m_object.c_str());
+      // not implemented for now
+      break;
+
+      case CBIFROST_FOAM:
+      // export geometry as points
+         return AddArnoldNode("points");
+   }
    // for non-implemented Render Types
    return AddArnoldNode("procedural");
 }
