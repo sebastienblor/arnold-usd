@@ -82,6 +82,10 @@ extern AtNodeMethods* MayaFluidMtd;
 extern AtNodeMethods* MayaMarbleMtd;
 extern AtNodeMethods* MayaMountainMtd;
 extern AtNodeMethods* MayaWaterMtd;
+extern AtNodeMethods* MayaCraterMtd;
+extern AtNodeMethods* MayaLeatherMtd;
+extern AtNodeMethods* MayaGraniteMtd;
+extern AtNodeMethods* MayaRockMtd;
 extern AtNodeMethods* MayaSingleShadingSwitchMtd;
 extern AtNodeMethods* MayaDoubleShadingSwitchMtd;
 extern AtNodeMethods* MayaTripleShadingSwitchMtd;
@@ -177,7 +181,11 @@ enum{
    SHADER_MAYAMARBLE,
    SHADER_MAYAMOUNTAIN,
    SHADER_MAYAWATER,
-   SHADER_MAYASINGLESHADINGSWITCH,
+   SHADER_MAYACRATER,
+   SHADER_MAYALEATHER,
+   SHADER_MAYAGRANITE,
+   SHADER_MAYAROCK,
+    SHADER_MAYASINGLESHADINGSWITCH,
    SHADER_MAYADOUBLESHADINGSWITCH,
    SHADER_MAYATRIPLESHADINGSWITCH,
    SHADER_MAYAQUADSHADINGSWITCH,
@@ -746,6 +754,34 @@ node_loader
        node->methods = MayaWaterMtd;
        node->output_type = AI_TYPE_RGBA;
        node->name = "mayaWater";
+       node->node_type = AI_NODE_SHADER;
+       break;
+
+   case SHADER_MAYACRATER:
+       node->methods = MayaCraterMtd;
+       node->output_type = AI_TYPE_RGBA;
+       node->name = "mayaCrater";
+       node->node_type = AI_NODE_SHADER;
+       break;
+
+   case SHADER_MAYALEATHER:
+       node->methods = MayaLeatherMtd;
+       node->output_type = AI_TYPE_RGBA;
+       node->name = "mayaLeather";
+       node->node_type = AI_NODE_SHADER;
+       break;
+
+   case SHADER_MAYAGRANITE:
+       node->methods = MayaGraniteMtd;
+       node->output_type = AI_TYPE_RGBA;
+       node->name = "mayaGranite";
+       node->node_type = AI_NODE_SHADER;
+       break;
+
+   case SHADER_MAYAROCK:
+       node->methods = MayaRockMtd;
+       node->output_type = AI_TYPE_RGBA;
+       node->name = "mayaRock";
        node->node_type = AI_NODE_SHADER;
        break;
 
