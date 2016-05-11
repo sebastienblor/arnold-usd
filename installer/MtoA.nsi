@@ -75,7 +75,6 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   SetOutPath "$INSTDIR"
   File /r /x *.nsi /x mtoa.mod *.*
   File /x *.nsi /x mtoa.mod *.*
-  File /r *.lic
   
 
   ;Add a mtoa.mod file in the installer folder
