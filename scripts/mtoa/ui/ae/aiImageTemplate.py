@@ -80,6 +80,7 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("offset", label="Offset")
         self.addSeparator()
         
+        self.addControl("AiAutoTx", label="Auto-generate TX Textures")
         self.addControl("ignoreMissingTiles", label="Ignore Missing Tiles")
         self.addControl("missingTileColor", label="Missing Tile Color")
         self.endLayout()

@@ -341,7 +341,7 @@ void CFileTranslator::Export(AtNode* shader)
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
       renderOptions.GetFromMaya(); 
 
-      if (renderOptions.autoTx())
+      if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
       {
           makeTx(resolvedFilename);
       }
@@ -419,6 +419,12 @@ void CFileTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("mipBias");
    helper.MakeInput("filter");
    helper.MakeInput("useDefaultColor");
+
+   CAttrData data;
+   data.defaultValue.BOOL = true;
+   data.name = "aiAutoTx";
+   data.shortName = "autotx";
+   helper.MakeInputBoolean(data);
 }
 
 // Bump2d
@@ -1394,7 +1400,7 @@ void CAiImageTranslator::Export(AtNode* image)
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
 
-      if (renderOptions.autoTx())
+      if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
       {
           makeTx(filename);
       }
@@ -1435,6 +1441,16 @@ void CAiImageTranslator::Export(AtNode* image)
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
    }
+}
+
+void CAiImageTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "AiImage");
+   CAttrData data;
+   data.defaultValue.BOOL = true;
+   data.name = "aiAutoTx";
+   data.shortName = "autotx";
+   helper.MakeInputBoolean(data);
 }
 
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)
