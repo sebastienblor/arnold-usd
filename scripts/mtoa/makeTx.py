@@ -3,7 +3,7 @@ import os
 import platform
 import re
 import subprocess
-from arnold import AiTextureInvalidate
+# from arnold import AiTextureInvalidate
 
 # startupinfo to prevent Windows processes to display a console window
 if platform.system().lower() == 'windows':
@@ -88,7 +88,8 @@ def makeTx(filename, colorspace='auto'):
             mo = re.search(_maketx_rx_stats, res)
             if mo:
                 print '[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1))
-                AiTextureInvalidate(os.path.splitext(tile)[0] + '.tx')
+                # FIXME this API function has no Python binding yet, see core#5293
+                # AiTextureInvalidate(os.path.splitext(tile)[0] + '.tx') 
                 status['updated'] += 1
             else:
                 print '[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace)
