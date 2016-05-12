@@ -3,7 +3,31 @@ import os
 import platform
 import re
 import subprocess
-# from arnold import AiTextureInvalidate
+from arnold import *
+
+# FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
+# so we'll temporarily provide bindings until this is resolved, see core #5293
+
+AiTextureGetFormatFunc = ai.AiTextureGetFormat
+AiTextureGetFormatFunc.argtypes = [AtString, POINTER(c_uint)]
+AiTextureGetFormatFunc.restype = c_bool
+
+def AiTextureGetFormat(filename):
+    fmt = c_uint(0)
+    success = AiTextureGetFormatFunc(filename, fmt)
+    return int(fmt.value) if success else None
+
+AiTextureGetBitDepthFunc = ai.AiTextureGetBitDepth
+AiTextureGetBitDepthFunc.argtypes = [AtString, POINTER(c_uint)]
+AiTextureGetBitDepthFunc.restype = c_bool
+
+def AiTextureGetBitDepth(filename):
+    bit_depth = c_uint(0)
+    success = AiTextureGetBitDepthFunc(filename, bit_depth)
+    return int(bit_depth.value) if success else None
+
+AiTextureInvalidate = ai.AiTextureInvalidate
+AiTextureInvalidate.argtypes = [AtString]
 
 # startupinfo to prevent Windows processes to display a console window
 if platform.system().lower() == 'windows':
@@ -25,40 +49,20 @@ def expandTokens(filename):
     expand_glob = re.sub(_token_tile_rx, '_u[0-9]*_v[0-9]*', expand_glob)
     expand_glob = re.sub(_token_attr_rx, '*', expand_glob)
     
-    # retain only image files that OIIO can read
-    return filter(lambda p: subprocess.call(['oiiotool', '-info', p], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window) == 0, glob.glob(expand_glob))
-
-## Compiled regex for imageInfo()
-_oiiotool_rx = re.compile(r'(.*\w) +: +(\d+) +x +(\d+)( x +\d+)?, (\d+) channel, (deep )?(volume )?(\w+)(.+)? (\w+)')
-_oiiotool_depth = { 'uint8': 8, 'uint16': 16, 'uint': 32, 'uint64': 64,
-                     'int8': 8,  'int16': 16,  'int': 32,  'int64': 64,
-                    'half': 16, 'float': 32, 'double':64, 'pointer': 64 }
-
-def imageInfo(filename):
-    '''Get image information from oiiotool'''
-    mo = re.search(_oiiotool_rx, subprocess.Popen(['oiiotool', '--info', filename], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0])
-    if mo:
-        type_name = mo.group(8)
-        bit_depth = _oiiotool_depth[type_name] if type_name in _oiiotool_depth else 0
-        
-        return { 'filename': mo.group(1),
-                 'resolution': [int(mo.group(2)), int(mo.group(3))],
-                 'channels': int(mo.group(5)),
-                 'type': type_name,
-                 'format': mo.group(10),
-                 'depth': bit_depth }
-    else:
-        return None 
+    # retain only image files that Arnold can read
+    return filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
 
 def guessColorspace(filename):
     '''Guess the colorspace of the input image filename.
     @return: a string suitable for the --colorconvert option of maketx (linear, sRGB, Rec709)
     '''
-    iinfo = imageInfo(filename)
-    
-    if iinfo and iinfo['depth'] <= 16 and iinfo['type'].startswith('uint'):
-        return 'sRGB'
-    else:
+    try:
+        if AiTextureGetFormat(filename) == AI_TYPE_UINT and AiTextureGetBitDepth(filename) <= 16:
+            return 'sRGB'
+        else:
+            return 'linear'
+    except:
+        print '[maketx] Error: Could not guess colorspace for "%s"' % filename
         return 'linear'
 
 ## Compiled regexes for makeTx()
@@ -88,39 +92,10 @@ def makeTx(filename, colorspace='auto'):
             mo = re.search(_maketx_rx_stats, res)
             if mo:
                 print '[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1))
-                # FIXME this API function has no Python binding yet, see core#5293
-                # AiTextureInvalidate(os.path.splitext(tile)[0] + '.tx') 
+                AiTextureInvalidate(os.path.splitext(tile)[0] + '.tx') 
                 status['updated'] += 1
             else:
                 print '[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace)
                 status['error'] += 1
                 
     return status
-
-def hasTx(filename):
-    '''Does the filename have existing corresponding TX file(s)?
-    '''
-    base, ext = os.path.splitext(filename)
-    
-    if not ext:
-        print '[maketx] Warning: No extension for filename "%s": Cannot check TX existence, returning False' % filename
-        return False
-
-    txfile = base + '.tx'
-    return len(expandTokens(txfile)) > 0
-        
-def txTexture(filename):
-    '''Return the corresponding .tx texture if it exists, or filename if not
-    '''
-    base, ext = os.path.splitext(filename)
-    
-    if not ext:
-        print '[maketx] Warning: No extension for filename "%s": Cannot check TX existence, returning filename' % filename
-        return filename
-    
-    txfile = base + '.tx'
-    if expandTokens(txfile):
-        print '[maketx] Using existing .tx texture for %s' % txfile
-        return txfile
-    else:
-        return filename
