@@ -851,10 +851,13 @@ def createArnoldTextureSettings():
                         label="Accept Untiled",
                         attribute='defaultArnoldRenderOptions.textureAcceptUntiled')
 
+    pm.attrControlGrp('autotx', 
+                        label="Auto-convert Textures to .tx ", 
+                        attribute='defaultArnoldRenderOptions.autotx')
+
     pm.attrControlGrp('use_existing_tiled_textures', 
                         label="Use Existing .tx Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
-    
     
     cmds.separator()
     

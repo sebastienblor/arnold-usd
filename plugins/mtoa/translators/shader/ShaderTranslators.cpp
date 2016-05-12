@@ -3,6 +3,7 @@
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
 #include "platform/Platform.h"
+#include "utils/MakeTx.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -339,6 +340,12 @@ void CFileTranslator::Export(AtNode* shader)
       CRenderOptions renderOptions; 
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
       renderOptions.GetFromMaya(); 
+
+      if (renderOptions.autoTx())
+      {
+          makeTx(resolvedFilename);
+      }
+
       if(renderOptions.useExistingTiledTextures()) 
       {
          // check for <tile> and <udim> tags and replace them
@@ -1386,6 +1393,12 @@ void CAiImageTranslator::Export(AtNode* image)
       renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
+
+      if (renderOptions.autoTx())
+      {
+          makeTx(filename);
+      }
+
       if(renderOptions.useExistingTiledTextures()) 
       {         
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
