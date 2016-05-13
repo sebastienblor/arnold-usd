@@ -9,12 +9,104 @@ import types
 global arnoldAOVCallbacks
 
 try:
+    import maya.app.renderSetup.model.renderSetup as renderSetup
     import maya.app.renderSetup.model.rendererCallbacks as rendererCallbacks
+    import maya.app.renderSetup.model.typeIDs as typeIDs
     import maya.app.renderSetup.model.selector as selector
+    from maya.app.renderSetup.model.selection import Selection
+    import maya.app.renderSetup.model.undo as undo
     import maya.app.renderSetup.model.utils as renderSetupUtils
+    import maya.app.renderSetup.model.aovselector as aovselector
     from mtoa.aovs import AOVInterface
     import mtoa.ui.aoveditor as aoveditor
     import json
+    import maya.api.OpenMaya as OpenMaya
+
+    class ArnoldAOVChildSelector(selector.Selector):
+        kTypeId = typeIDs.arnoldAOVChildSelector
+        kTypeName = 'arnoldAOVChildSelector'
+        aAOVNodeName = OpenMaya.MObject()
+
+        @classmethod
+        def initializer(cls):
+            cls.inheritAttributesFrom(selector.Selector.kTypeName)
+
+            default = OpenMaya.MFnStringData().create('')
+            attr = OpenMaya.MFnTypedAttribute()
+            cls.aAOVNodeName = cls.createInput(attr,["arnoldAOVNodeName", "ann", OpenMaya.MFnData.kString, default])
+            cls.addAttribute(cls.aAOVNodeName)
+            cls.affectsOutput(cls.aAOVNodeName)
+
+        def contentType(self):
+            return selector.Selector.kNonDagOnly
+
+        def isAbstractClass(self):
+            return False
+
+        def __init__(self):
+            super(ArnoldAOVChildSelector, self).__init__()
+            self._cache = set()
+
+        # ACCESSORS / MUTATORS / QUERIES
+        def _getInputAttr(self, attr, dataBlock=None):
+            return dataBlock.inputValue(attr) if dataBlock else OpenMaya.MPlug(self.thisMObject(), attr)
+
+        def getAOVNodeName(self, dataBlock=None):
+            return self._getInputAttr(self.aAOVNodeName, dataBlock).asString()
+
+        def setAOVNodeName(self, val):
+            if val != self.getAOVNodeName():
+                with undo.NotifyCtxMgr(selector.kSet % (self.name(), 'arnoldAOVNodeName', val), self._AOVNodeNameChanged):
+                    cmds.setAttr( self.name() + '.arnoldAOVNodeName', val, type='string')
+
+        def _AOVNodeNameChanged(self):
+            self.selectionChanged()
+
+        def acceptsType(self, typeName, dataBlock=None):
+            return typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"]
+
+        def _update(self, dataBlock):
+            self._cache = set()
+            aovNodeName = self.getAOVNodeName(dataBlock)
+            self._cache.add(aovNodeName)
+            outputsAttr = aovNodeName + ".outputs"
+            numOutputs = cmds.getAttr(outputsAttr, size=True)
+            for i in range(numOutputs):
+                outputIndex = outputsAttr + "[" + str(i) + "]"
+                for outputType in [".filter", ".driver"]:
+                    output = cmds.listConnections(outputIndex + outputType)[0]
+                    self._cache.add(output)
+
+        def selection(self):
+            names = self.names()
+            if not self._selection:
+                self._selection = Selection(names)
+            return self._selection
+
+        @selector.Selector.synced
+        def names(self):
+            return self._cache
+
+        def onNodeAdded(self, **kwargs):
+            if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+                self.selectionChanged()
+        
+        def onNodeRemoved(self, **kwargs):
+            if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName() in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+                self.selectionChanged()
+        
+        def onNodeRenamed(self, **kwargs):
+            if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+                self.selectionChanged()
+        
+        def onNodeReparented(self, **kwargs):
+            if cmds.nodeType(kwargs['child'].fullPathName()) in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+                self.selectionChanged()
+                
+        def onConnectionChanged(self, **kwargs):
+            if cmds.nodeType(kwargs['srcPlug']) in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+                self.selectionChanged()
+
 
     class ArnoldAOVCallbacks(rendererCallbacks.AOVCallbacks):
         DEFAULT_ARNOLD_DRIVER_NAME = "defaultArnoldDriver"
@@ -99,7 +191,7 @@ try:
                 for key, value in output.iteritems():
 
                     # If we're doing a merge, we need to delete the nodes that overlap with the nodes we are importing.
-                    aovName = key.lstrip("aiAOV_")
+                    aovName = key[6:] # Remove aiAOV_ from the start of the string
                     if decodeType == self.DECODE_TYPE_MERGE and AOVInterface().getAOVNode(aovName) != None:
                         AOVInterface().removeAOV(aovName)
 
@@ -175,24 +267,23 @@ try:
 
         # Creates a selector for the AOV Collection that selects all aovNodes (aiAOV, aiAOVDriver, aiAOVFilter nodes)
         def getCollectionSelector(self, selectorName):
-            returnSelectorName = cmds.createNode(selector.BasicSelector.kTypeName, name=selectorName, skipSelect=True)
+            returnSelectorName = cmds.createNode(selector.SimpleSelector.kTypeName, name=selectorName, skipSelect=True)
             currentSelector = renderSetupUtils.nameToUserNode(returnSelectorName)
             currentSelector.setPattern("*")
             currentSelector.setFilterType(selector.Filters.kCustom)
             currentSelector.setCustomFilterValue("aiAOV aiAOVDriver aiAOVFilter")
-            currentSelector.setIncludeHierarchy(False)
             return returnSelectorName
 
         # Creates a selector for the AOV Child Collection for a particular AOV name. Retrieves the AOV node (aiAOV) from
         # the AOV name and then uses include hierarchy to select the attached nodes (aiAOVFilter and aiAOVDriver nodes).
         def getChildCollectionSelector(self, selectorName, aovName):
-            returnSelectorName = cmds.createNode(selector.BasicSelector.kTypeName, name=selectorName, skipSelect=True)
+            returnSelectorName = cmds.createNode(aovselector.ArnoldAOVChildSelector.kTypeName, name=selectorName, skipSelect=True)
             currentSelector = renderSetupUtils.nameToUserNode(returnSelectorName)
             aovNodeName = AOVInterface().getAOVNode(aovName).name()
-            currentSelector.staticSelection.setWithoutExistenceCheck([aovNodeName])
-            currentSelector.setIncludeHierarchy(True)
+            currentSelector.setAOVNodeName(aovNodeName)
             return returnSelectorName
 
+    renderSetup.registerNode(ArnoldAOVChildSelector)
     arnoldAOVCallbacks = ArnoldAOVCallbacks()
 except ImportError:
     arnoldAOVCallbacks = None
@@ -392,3 +483,6 @@ def clearCallbacks():
     except:
         pass
 
+    if not arnoldAOVCallbacks is None:
+        rendererCallbacks.unregisterCallbacks("arnold", rendererCallbacks.CALLBACKS_TYPE_AOVS)
+        renderSetup.unregisterNode(ArnoldAOVChildSelector)

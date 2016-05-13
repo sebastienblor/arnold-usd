@@ -316,8 +316,11 @@ class AOVItem(object):
 
     def fixOptionMenus(self):
         for menu in self.getMenus():
-            pm.optionMenu(menu, edit=True, visible=False)
-            pm.optionMenu(menu, edit=True, visible=True)
+            try:
+                pm.optionMenu(menu, edit=True, visible=False)
+                pm.optionMenu(menu, edit=True, visible=True)
+            except:
+                pass
 
     def delete(self):
         '''
@@ -566,8 +569,11 @@ class AOVOutputItem(object):
         self.aovItem.outputsChanged = True
 
     def fixOptionMenus(self):
-        pm.optionMenu(self.filterMenu, edit=True, visible=False)
-        pm.optionMenu(self.filterMenu, edit=True, visible=True)
+        try:
+            pm.optionMenu(self.filterMenu, edit=True, visible=False)
+            pm.optionMenu(self.filterMenu, edit=True, visible=True)
+        except:
+            pass
 
 class ArnoldAOVEditor(object):
 
@@ -670,7 +676,10 @@ class ArnoldAOVEditor(object):
         Delete and rebuild the AOV control rows
         '''
         self.waitingToRefresh = False
-        pm.setParent(self.aovCol)
+        try:
+            pm.setParent(self.aovCol)
+        except:
+            return
         pm.cmds.columnLayout(self.aovCol, edit=True, visible=False)
         numDeleted = len(self.optionMenus)
         for ctrl in self.aovControls:
@@ -680,8 +689,11 @@ class ArnoldAOVEditor(object):
         self.aovRows = {}
 
         # add all control rows
-        if self.renderOptions.node.exists():
-            self.addRows()
+        try:
+            if self.renderOptions.node.exists():
+                self.addRows()
+        except:
+            return
 
         self.browser.updateActiveAOVs()
 
@@ -716,8 +728,11 @@ class ArnoldAOVEditor(object):
         #print self.idle_id, self.idle_ticker
         for menu in self.optionMenus:
             #print "fixing", menu
-            pm.optionMenu(menu, edit=True, visible=False)
-            pm.optionMenu(menu, edit=True, visible=True)
+            try:
+                pm.optionMenu(menu, edit=True, visible=False)
+                pm.optionMenu(menu, edit=True, visible=True)
+            except:
+                pass
 
 
         
@@ -759,7 +774,7 @@ def createArnoldAOVTab():
     # we must remove it or we'll leave behind invalid copies
     global _aovDisplayCtrl
     if _aovDisplayCtrl is not None:
-        aovs.removeAOVChangedCallback(_aovDisplayCtrl.update)
+        aovs.removeAOVChangedCallback(_aovDisplayCtrl.safeUpdate)
 
     _aovDisplayCtrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', 'displayAOV', label='Render View AOV',
                                            allowCreation=False,
