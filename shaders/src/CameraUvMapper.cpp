@@ -299,8 +299,10 @@ node_initialize
    // and then abort it. We also need to make sure that preserve_scene_data
    // is true.
 
+   AiCameraInitialize(node);
+
    CameraUvMapperData* data = new CameraUvMapperData();
-   AiCameraInitialize(node, data);
+   AiNodeSetLocalData(node, data);
 
    const char* polymesh = AiNodeGetStr(node, "polymesh");
    AtNode* input_node = AiNodeLookUpByName(polymesh);
@@ -340,35 +342,35 @@ node_update
 
 node_finish
 {
-   CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node);
+   CameraUvMapperData *data = (CameraUvMapperData*)AiNodeGetLocalData(node);
    delete data;
 }
 
 camera_create_ray
 {
 
-   CameraUvMapperData *data = (CameraUvMapperData*)AiCameraGetLocalData(node);
-   output->weight = 0.0f;
+   CameraUvMapperData *data = (CameraUvMapperData*)AiNodeGetLocalData(node);
+   output.weight = 0.0f;
 
    if (data->uvMapper == 0)
       return;
 
-   const AtVector2 screen_uv( (input->sx + 1.0f) * 0.5f, (input->sy + 1.0f) * 0.5f );
+   const AtVector2 screen_uv( (input.sx + 1.0f) * 0.5f, (input.sy + 1.0f) * 0.5f );
 
    AtVector position;
    AtVector normal;
 
    if (data->uvMapper->findSurfacePoint(screen_uv, position, normal))
    {
-      output->dir = -normal;
-      output->origin = position + data->p_offset * normal;
+      output.dir = -normal;
+      output.origin = position + data->p_offset * normal;
 
       // could we compute derivatives ?
-      output->dDdx = AI_V3_ZERO;
-      output->dDdy = AI_V3_ZERO;
-      output->dOdx = AI_V3_ZERO;
-      output->dOdy = AI_V3_ZERO;
-      output->weight = 1.0f;
+      output.dDdx = AI_V3_ZERO;
+      output.dDdy = AI_V3_ZERO;
+      output.dOdx = AI_V3_ZERO;
+      output.dOdy = AI_V3_ZERO;
+      output.weight = 1.0f;
    }
 }
 
