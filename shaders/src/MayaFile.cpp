@@ -222,7 +222,7 @@ node_update
    // lookup and avoid the token computation
    if (!AiNodeGetLink(node, "filename"))
    {
-      const char *filename = params[p_filename].STR();
+      const char *filename = AiNodeGetStr(node, "filename");
 
       // calculate file tokens
       std::vector<TokenData> tokens;
