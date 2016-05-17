@@ -344,7 +344,7 @@ shader_evaluate
       if (it == data->fluidDataMap[sg->tid].end())
       {
          AtNode* fluidDataContainer = 0;
-         if (AiUDataGetNode(MSTR::mtoa_fluid_data, &fluidDataContainer) && (fluidDataContainer != 0))
+         if (AiUDataGetNode(MSTR::mtoa_fluid_data, fluidDataContainer) && (fluidDataContainer != 0))
             fluidData = (CMayaFluidData<true>*)AiNodeGetLocalData(fluidDataContainer);
          data->fluidDataMap[sg->tid].insert(std::pair<AtNode*, CMayaFluidData<true>*>(sg->Op, fluidData));         
       }

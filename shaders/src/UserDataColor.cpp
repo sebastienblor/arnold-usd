@@ -48,7 +48,7 @@ shader_evaluate
    
    if (strcmp (name, transp) == 0)
    {
-      if (AiUDataGetFlt(name, &val.FLT()))
+      if (AiUDataGetFlt(name, val.FLT()))
       {
          valid = true;
          sg->out.RGB().r = sg->out.RGB().g = sg->out.RGB().b = val.FLT();
@@ -62,14 +62,14 @@ shader_evaluate
       switch (valueType)
       {
          case AI_TYPE_FLOAT:
-         if (AiUDataGetFlt(name, &val.FLT()))
+         if (AiUDataGetFlt(name, val.FLT()))
          {
             valid = true;
             sg->out.RGB().r = sg->out.RGB().g = sg->out.RGB().b = val.FLT();
          }
          break;
          case AI_TYPE_RGB:
-         if (AiUDataGetRGB(name, &val.RGB()))
+         if (AiUDataGetRGB(name, val.RGB()))
          {
             valid = true;
             sg->out.RGB().r = val.RGB().r;
@@ -78,7 +78,7 @@ shader_evaluate
          }
          break;
          case AI_TYPE_RGBA:
-         if (AiUDataGetRGBA(name, &val.RGBA()))
+         if (AiUDataGetRGBA(name, val.RGBA()))
          {
             valid = true;
             sg->out.RGB().r = val.RGBA().r;
@@ -87,35 +87,35 @@ shader_evaluate
          }
          break;
          case AI_TYPE_BYTE:
-         if (AiUDataGetByte(name, &val.BYTE()))
+         if (AiUDataGetByte(name, val.BYTE()))
          {
             valid = true;
             sg->out.RGB().r = sg->out.RGB().g = sg->out.RGB().b = (float)val.BYTE();			
          }
          break;
          case AI_TYPE_INT:
-         if (AiUDataGetInt(name, &val.INT()))
+         if (AiUDataGetInt(name, val.INT()))
          {
             valid = true;
             sg->out.RGB().r = sg->out.RGB().g = sg->out.RGB().b = (float)val.INT();			
          }		 
          break;
          case AI_TYPE_UINT:
-         if (AiUDataGetUInt(name, &val.UINT()))
+         if (AiUDataGetUInt(name, val.UINT()))
          {
             valid = true;
             sg->out.RGB().r = sg->out.RGB().g = sg->out.RGB().b = (float)val.UINT();			
          }
          break;
          case AI_TYPE_BOOLEAN:
-         if (AiUDataGetBool(name, &val.BOOL()))
+         if (AiUDataGetBool(name, val.BOOL()))
          {
             valid = true;
             sg->out.RGB().r = sg->out.RGB().g = sg->out.RGB().b = (val.BOOL() ? 1.f : 0.f);			
          }
          break;
          case AI_TYPE_VECTOR2:
-         if (AiUDataGetVec2(name, &val.VEC2()))
+         if (AiUDataGetVec2(name, val.VEC2()))
          {
             valid = true;
             sg->out.RGB().r = val.VEC2().x;
@@ -124,7 +124,7 @@ shader_evaluate
          }
          break;
          case AI_TYPE_VECTOR:
-         if (AiUDataGetVec(name, &val.VEC()))
+         if (AiUDataGetVec(name, val.VEC()))
          {
             valid = true;
             sg->out.RGB().r = val.VEC().x;

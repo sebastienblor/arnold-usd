@@ -178,12 +178,12 @@ shader_evaluate
 
        // do texture lookup
        AtTextureParams texparams;
-       AiTextureParamsSetDefaults(&texparams);
+       AiTextureParamsSetDefaults(texparams);
        // setup filter?
        texparams.wrap_s = AI_WRAP_BLACK;
        texparams.wrap_t = AI_WRAP_BLACK;
 
-       result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
+       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
        //AtRGBA result = color;
        sg->u = inU;
        sg->v = inV;
@@ -192,12 +192,12 @@ shader_evaluate
    {   
        // do texture lookup
        AtTextureParams texparams;
-       AiTextureParamsSetDefaults(&texparams);
+       AiTextureParamsSetDefaults(texparams);
        // setup filter?
        texparams.wrap_s = AI_WRAP_BLACK;
        texparams.wrap_t = AI_WRAP_BLACK;
 
-       result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
+       result = AiTextureHandleAccess(sg, idata->texture_handle, texparams, NULL);
    }
    if (displayMode == 2)
    {

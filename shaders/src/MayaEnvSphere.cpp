@@ -42,8 +42,7 @@ node_finish
 
 shader_evaluate
 {
-   AtVector rdir;
-   AiReflectSafe(&sg->Rd, &sg->Nf, &sg->Ng, &rdir);
+   AtVector rdir = AiReflectSafe(sg->Rd, sg->Nf, sg->Ng);
 
    AtMatrix *matrix = AiShaderEvalParamMtx(p_matrix);
    AiM4VectorByMatrixMult(&rdir, *matrix, &rdir);

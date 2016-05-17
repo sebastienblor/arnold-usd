@@ -72,7 +72,7 @@ shader_evaluate
 {
    AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
    float geo_opacity;
-   if (AiUDataGetFlt(MSTR::geo_opacity, &geo_opacity))
+   if (AiUDataGetFlt(MSTR::geo_opacity, geo_opacity))
       opacity *= geo_opacity;
    
    if (sg->Rt & AI_RAY_SHADOW)
@@ -114,7 +114,7 @@ shader_evaluate
    
    unsigned int seed = 0;
    if (enableHSVRand)
-      AiUDataGetUInt(MSTR::curve_id, &seed); // the translator exports curve_ids   
+      AiUDataGetUInt(MSTR::curve_id, seed); // the translator exports curve_ids   
    // when needed, so no need for an extra check   
    
    const float diffuseRand = AiShaderEvalParamFlt(p_diffuse_rand);
@@ -157,7 +157,7 @@ shader_evaluate
             diffuse += sg->Li * sg->we * d;
          }
       }
-      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(&V, sg, AI_RGB_WHITE) * indirectDiffuse;
+      if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(V, sg, AI_RGB_WHITE) * indirectDiffuse;
 
       diffuse *= hairColor;
    }

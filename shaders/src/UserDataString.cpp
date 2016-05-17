@@ -42,7 +42,7 @@ shader_evaluate
    AtString name = AtString(AiShaderEvalParamStr(p_stringAttrName));
    AtString value;
 
-   if (AiUDataGetStr(name, &value))
+   if (AiUDataGetStr(name, value))
       sg->out.STR() = value;
    else
       sg->out.STR() = AtString(AiShaderEvalParamStr(p_defaultValue));

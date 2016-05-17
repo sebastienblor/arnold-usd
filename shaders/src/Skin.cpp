@@ -176,8 +176,7 @@ shader_evaluate
    if ((sg->Rr_diff == 0) && !sampleOnlySSS)
    {
       AtRGB sheenWeight = AiShaderEvalParamRGB(p_sheen_color);
-      AtVector reflected;
-      AiReflect(&sg->Rd, &sg->Ns, &reflected);
+      AtVector reflected = AiReflect(sg->Rd, sg->Ns);
       const AtVector N = (AiV3Dot(sg->Ngf, reflected) < 0) ? sg->Ngf : sg->Nf;
       const float RDNF = -AiV3Dot(sg->Rd, N);
       sheenFresnel = SimpleFresnel(RDNF, AiShaderEvalParamFlt(p_sheen_ior)) * AiShaderEvalParamFlt(p_sheen_weight);

@@ -65,7 +65,7 @@ shader_evaluate
    switch (what)
    {
    case TANGENT:
-      if (AiUDataGetVec(MSTR::tangent, &v))
+      if (AiUDataGetVec(MSTR::tangent, v))
       {
          sg->out.RGB().r = v.x;
          sg->out.RGB().g = v.y;
@@ -77,7 +77,7 @@ shader_evaluate
       }
       break;
    case BITANGENT:
-      if (AiUDataGetVec(MSTR::bitangent, &v))
+      if (AiUDataGetVec(MSTR::bitangent, v))
       {
          sg->out.RGB().r = v.x;
          sg->out.RGB().g = v.y;
@@ -90,7 +90,7 @@ shader_evaluate
       break;
    case COLOR:
       name = AtString(AiShaderEvalParamStr(p_colorSetName));
-      if (AiUDataGetRGBA(name, &c))
+      if (AiUDataGetRGBA(name, c))
       {
          sg->out.RGB().r = c.r;
          sg->out.RGB().g = c.g;

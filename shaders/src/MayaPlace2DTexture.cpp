@@ -122,7 +122,7 @@ shader_evaluate
    if (data->useCustomUVSet)
    {
       AtVector2 altuv;
-      if (AiUDataGetVec2(data->uvSetName, &altuv))
+      if (AiUDataGetVec2(data->uvSetName, altuv))
       {         
          inU = altuv.x;
          inV = altuv.y;

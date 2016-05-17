@@ -101,7 +101,7 @@ shader_evaluate
          T = AiV3Normalize(tangent);
          B = AiV3Cross(N,T);
       }
-      else if (!AiUDataGetVec(MSTR::tangent, &T) || !AiUDataGetVec(MSTR::bitangent, &B))
+      else if (!AiUDataGetVec(MSTR::tangent, T) || !AiUDataGetVec(MSTR::bitangent, B))
       {
          if (!AiV3IsSmall(sg->dPdu) && !AiV3IsSmall(sg->dPdv))
          {
@@ -112,7 +112,7 @@ shader_evaluate
          else
          {
             // no tangents given, compute a pair
-            AiBuildLocalFramePolar(&T, &B, &sg->N);
+            AiBuildLocalFramePolar(T, B, sg->N);
          }
       }
       transformedVectorDisplacement = vectorDisp.x * T + vectorDisp.z * B + vectorDisp.y * N;

@@ -527,12 +527,12 @@ shader_evaluate
    if (idata->useCustomUVSet)
    {
       AtVector2 altuv;
-      if (AiUDataGetVec2(idata->uvSetName, &altuv))
+      if (AiUDataGetVec2(idata->uvSetName, altuv))
       {         
          sg->u = altuv.x;
          sg->v = altuv.y;
          AtVector2 altuvDx, altuvDy; 
-         if (AiUDataGetDxyDerivativesVec2(idata->uvSetName, &altuvDx, &altuvDy)) 
+         if (AiUDataGetDxyDerivativesVec2(idata->uvSetName, altuvDx, altuvDy))
          { 
             sg->dudx = altuvDx.x; 
             sg->dvdx = altuvDx.y; 
@@ -703,7 +703,7 @@ shader_evaluate
 
       // do texture lookup
       AtTextureParams texparams;
-      AiTextureParamsSetDefaults(&texparams);
+      AiTextureParamsSetDefaults(texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
       texparams.filter = AiShaderEvalParamInt(p_filter);
       if ((sg->Rt & AI_RAY_DIFFUSE) && (texparams.filter > AI_TEXTURE_BILINEAR))
@@ -776,7 +776,7 @@ shader_evaluate
                {
                   // user attributes
                   AtString value;
-                  if (AiUDataGetStr(AtString((const char*)token->extra), &value)) // TODO: store as AtString
+                  if (AiUDataGetStr(AtString((const char*)token->extra), value)) // TODO: store as AtString
                   {
                      int len = value.length();
                      memcpy(&(idata->processPath[sg->tid][pos]),value.c_str(),len);
@@ -921,15 +921,15 @@ shader_evaluate
          }
 
          if (success)
-            sg->out.RGBA() = AiTextureAccess(sg, idata->processPath[sg->tid], &texparams, successP);
+            sg->out.RGBA() = AiTextureAccess(sg, idata->processPath[sg->tid], texparams, successP);
       }
       else if (idata->texture_handle != NULL)
       {
-         sg->out.RGBA() = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, successP);
+         sg->out.RGBA() = AiTextureHandleAccess(sg, idata->texture_handle, texparams, successP);
       }
       else
       {       
-         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, successP);
+         sg->out.RGBA() = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), texparams, successP);
       }
       sg->u = oldU;
       sg->v = oldV;

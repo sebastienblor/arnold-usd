@@ -154,7 +154,7 @@ shader_evaluate
       AtRGB diffuse_color = AiShaderEvalParamRGB(p_diffuse_color);
       Kd = diffuse_color;
       if (!AiColorIsSmall(diffuse_color))
-         indirect_diffuse = diffuse_color * AiIndirectDiffuse(&sg->Nf, sg, AI_RGB_WHITE) * backgroundColor;
+         indirect_diffuse = diffuse_color * AiIndirectDiffuse(sg->Nf, sg, AI_RGB_WHITE) * backgroundColor;
    }
    float resultAlpha = (matte.r + matte.g + matte.b) / 3.0f;      
    

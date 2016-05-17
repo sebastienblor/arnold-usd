@@ -1005,7 +1005,7 @@ bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg)
       //AtArray *sets = AiNodeGetArray(sg->Op, "shader");
       //if (sets != NULL && AiArrayGetNumElements(sets) > 0)
       AtArray *sets = NULL;
-      if (AiUDataGetArray(MSTR::mtoa_shading_groups, &sets) && AiArrayGetNumElements(sets) > 0)
+      if (AiUDataGetArray(MSTR::mtoa_shading_groups, sets) && AiArrayGetNumElements(sets) > 0)
       {
          if (AiArrayGetNumElements(sets) == 1)
          {
@@ -1080,7 +1080,7 @@ AtArray* StringArrayToNodeArray(AtArray* setNames)
 bool SetRefererencePoints(AtShaderGlobals *sg, AtVector &tmpPts)
 {
    AtVector Pref;
-   bool usePref = AiUDataGetVec(MSTR::Pref,&Pref);
+   bool usePref = AiUDataGetVec(MSTR::Pref, Pref);
    if (usePref)
    {
       tmpPts = sg->P;
@@ -1109,7 +1109,7 @@ bool SetRefererencePoints(AtShaderGlobals *sg, AtVector &tmpPts)
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs)
 {
    AtVector Nref;
-   bool useNref = AiUDataGetVec(MSTR::Nref,&Nref);
+   bool useNref = AiUDataGetVec(MSTR::Nref, Nref);
    if (useNref)
    {
       tmpNmrs = sg->N;

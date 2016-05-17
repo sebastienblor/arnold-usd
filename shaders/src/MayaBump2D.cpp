@@ -161,7 +161,7 @@ shader_evaluate
          evalData.bumpHeight = bumpHeight;
          evalData.bumpMap = data->bumpMap;
          sg->N = AiShaderGlobalsEvaluateBump(sg, BumpFunction, &evalData);
-         AiFaceForward(&sg->N, oldN);
+         AiFaceForward(sg->N, oldN);
          sg->N = -sg->N;
          AiFaceViewer(sg, sg->Nf);         
       }
@@ -176,8 +176,8 @@ shader_evaluate
       AtVector bitangent = sg->dPdv;
       if (!data->useDerivatives)
       {
-         AiUDataGetVec(MSTR::tangent, &tangent);
-         AiUDataGetVec(MSTR::bitangent, &bitangent);
+         AiUDataGetVec(MSTR::tangent, tangent);
+         AiUDataGetVec(MSTR::bitangent, bitangent);
       }
       tangent = AiV3Normalize(tangent);
       bitangent = AiV3Normalize(bitangent);
