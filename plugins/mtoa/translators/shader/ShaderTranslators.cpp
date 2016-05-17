@@ -343,7 +343,7 @@ void CFileTranslator::Export(AtNode* shader)
 
       if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
       {
-          makeTx(resolvedFilename);
+          makeTx(resolvedFilename, FindMayaPlug("colorSpace").asString());
       }
 
       if(renderOptions.useExistingTiledTextures()) 
@@ -1400,9 +1400,9 @@ void CAiImageTranslator::Export(AtNode* image)
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
 
-      if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
+      if (renderOptions.autoTx() && FindMayaPlug("autoTx").asBool())
       {
-          makeTx(filename);
+          makeTx(filename, FindMayaPlug("colorSpace").asString());
       }
 
       if(renderOptions.useExistingTiledTextures()) 
@@ -1445,11 +1445,41 @@ void CAiImageTranslator::Export(AtNode* image)
 
 void CAiImageTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "AiImage");
+   CExtensionAttrHelper helper(context.maya, "image");
    CAttrData data;
    data.defaultValue.BOOL = true;
-   data.name = "aiAutoTx";
+   data.name = "autoTx";
    data.shortName = "autotx";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "colorManagementConfigFileEnabled";
+   data.shortName = "cmcf";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.STR = "";
+   data.name = "colorManagementConfigFilePath";
+   data.shortName = "cmcp";
+   helper.MakeInputString(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "colorManagementEnabled";
+   data.shortName = "cme";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.INT = 0;
+   data.name = "colorProfile";
+   data.shortName = "cp";
+   helper.MakeInputInt(data);
+
+   data.defaultValue.STR = "";
+   data.name = "colorSpace";
+   data.shortName = "cs";
+   helper.MakeInputString(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "ignoreColorSpaceFileRules";
+   data.shortName = "ifr";
    helper.MakeInputBoolean(data);
 }
 

@@ -3,6 +3,7 @@ import os
 import platform
 import re
 import subprocess
+import maya.cmds as cmds
 from arnold import *
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
@@ -68,11 +69,25 @@ def guessColorspace(filename):
 ## Compiled regexes for makeTx()
 _maketx_rx_stats = re.compile('maketx run time \(seconds\):\s*(.+)')
 _maketx_rx_noupdate = re.compile('no update required')
+_maketx_binary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'maketx')
 
 def makeTx(filename, colorspace='auto'):
     '''Generate a TX texture with maketx
     '''
     status = {'updated': 0, 'skipped': 0, 'error': 0}
+    
+    if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
+        color_engine = 'ocio'
+        color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
+    else:
+        color_engine = 'syncolor'
+        color_config = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cmds.__file__)))))), 'synColor')
+
+    render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
+    
+    if colorspace not in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
+        print '[maketx] Warning: Invalid input colorspace "%s" for "%s" with color engine "%s", falling back to rendering colorspace ("%s")' % (colorspace, filename, color_engine, render_colorspace)
+        colorspace = render_colorspace
 
     for tile in expandTokens(filename):
         if os.path.splitext(tile)[1] == '.tx':
@@ -83,7 +98,8 @@ def makeTx(filename, colorspace='auto'):
         if colorspace == 'auto':
             colorspace = guessColorspace(tile)
         
-        res = subprocess.Popen(['maketx', '-v', '-u', '--unpremult', '--oiio', '--colorconvert', colorspace, 'linear', tile], stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
+        cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio', '--colorengine', color_engine, '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace, tile]
+        res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
         
         if re.search(_maketx_rx_noupdate, res):
             print '[maketx] TX texture is up to date for "%s" (%s)' % (tile, colorspace)
