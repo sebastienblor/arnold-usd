@@ -321,7 +321,8 @@ node_initialize
     AiMsgDebug("[mplay_driver] node_initialize");
     DriverData* ctx = new DriverData;
     ctx->fp = 0;
-    AiDriverInitialize(node, true, ctx);
+    AiNodeSetLocalData(node, ctx);
+    AiDriverInitialize(node, true);
 }
 
 node_update
@@ -356,7 +357,7 @@ driver_open
 {
     AiMsgDebug("[mplay_driver] driver_open");
 
-    DriverData* ctx = reinterpret_cast<DriverData*>(AiDriverGetLocalData(node));
+    DriverData* ctx = reinterpret_cast<DriverData*>(AiNodeGetLocalData(node));
 
     if (ctx->fp)
         return;
@@ -396,7 +397,7 @@ driver_prepare_bucket
     if (bucket_size_x < 6 || bucket_size_y < 6)
         return;
 
-    DriverData* ctx = reinterpret_cast<DriverData*>(AiDriverGetLocalData(node));
+    DriverData* ctx = reinterpret_cast<DriverData*>(AiNodeGetLocalData(node));
 
     if (ctx->fp == 0)
         return;
@@ -434,7 +435,7 @@ driver_process_bucket
 /// @note the renderer locks around this function
 driver_write_bucket
 {
-    DriverData* ctx = reinterpret_cast<DriverData*>(AiDriverGetLocalData(node));
+    DriverData* ctx = reinterpret_cast<DriverData*>(AiNodeGetLocalData(node));
 
     if (ctx->fp == 0)
         return;
@@ -462,7 +463,7 @@ driver_close
 node_finish
 {
     AiMsgDebug("[mplay_driver] node_finish");
-    DriverData* ctx = reinterpret_cast<DriverData*>(AiDriverGetLocalData(node));
+    DriverData* ctx = reinterpret_cast<DriverData*>(AiNodeGetLocalData(node));
     if (ctx->fp)
         writeEndOfImage(ctx);
     delete ctx;
