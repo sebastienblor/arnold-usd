@@ -18,8 +18,8 @@ node_parameters
 {
    AiParameterRGB("inRgb", 0.0f, 0.0f, 0.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "rgbToHsv");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52523248);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "rgbToHsv");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52523248);
 }
 
 node_initialize

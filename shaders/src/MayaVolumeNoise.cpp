@@ -104,10 +104,10 @@ node_parameters
    AiParameterMtx("placementMatrix", id);
    AiParameterBool("wrap", true);
    AiParameterBool("local", false);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
    
-   AiMetaDataSetStr(mds, NULL, "maya.name", "volumeNoise");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52545633);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "volumeNoise");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52545633);
 }
 
 node_initialize

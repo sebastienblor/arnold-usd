@@ -35,7 +35,7 @@ node_parameters
    AiParameterVec("input", 0, 0, 0);
    AiParameterEnum("component", CH_X, enum_component);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

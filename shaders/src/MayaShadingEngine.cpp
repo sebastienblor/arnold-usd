@@ -22,8 +22,8 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaShadingEngineMtd);
 node_parameters
 {
    // Node metadata
-   //AiMetaDataSetStr(mds, NULL, "maya.name", "shadingEngine");
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   //AiMetaDataSetStr(nentry, NULL, "maya.name", "shadingEngine");
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
    AiParameterRGBA("beauty", 0.f, 0.f, 0.f, 0.f);
    AiParameterRGB("volume", 0.f, 0.f, 0.f);

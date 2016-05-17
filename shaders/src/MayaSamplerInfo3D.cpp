@@ -39,7 +39,7 @@ const char* mode_enum[] =
 
 node_parameters
 {
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 
    AiParameterEnum("mode", 0, mode_enum);
 }

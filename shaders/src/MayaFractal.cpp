@@ -69,10 +69,10 @@ node_parameters
    AiParameterFlt("time", 0.0f);
    AiParameterFlt("timeRatio", 2.0f);
    AiParameterVec2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "fractal");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52543246);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "fractal");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52543246);
 }
 
 node_initialize

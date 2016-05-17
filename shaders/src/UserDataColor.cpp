@@ -17,10 +17,10 @@ enum UserDataColorParams
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataColor");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATACOLOR);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataColor");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATACOLOR);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterStr("colorAttrName", "");
    AiParameterRGB("defaultValue", 0.f, 0.f, 0.f);

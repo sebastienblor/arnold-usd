@@ -52,7 +52,7 @@ node_parameters
    InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params, false);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

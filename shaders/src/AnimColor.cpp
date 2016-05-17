@@ -17,7 +17,7 @@ node_parameters
 {
    AiParameterArray("values", AiArray(0, 0, AI_TYPE_RGBA));
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 shader_evaluate

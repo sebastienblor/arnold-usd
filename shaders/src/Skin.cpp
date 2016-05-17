@@ -23,24 +23,24 @@ node_parameters
 {
    AiParameterFlt("sss_weight", 1.0f);
    AiParameterRGB("shallow_scatter_color", 1.0f, 0.909f, 0.769f);
-   AiMetaDataSetBool(mds, "shallow_scatter_color", "always_linear", true);
+   AiMetaDataSetBool(nentry, "shallow_scatter_color", "always_linear", true);
    AiParameterFlt("shallow_scatter_weight", 0.5f);
    AiParameterFlt("shallow_scatter_radius", 0.15f);
    AiParameterRGB("mid_scatter_color", 0.949f, 0.714f, 0.56f);
-   AiMetaDataSetBool(mds, "mid_scatter_color", "always_linear", true);
+   AiMetaDataSetBool(nentry, "mid_scatter_color", "always_linear", true);
    AiParameterFlt("mid_scatter_weight", 0.25f);
    AiParameterFlt("mid_scatter_radius", 0.25f);
    AiParameterRGB("deep_scatter_color", 0.7f, 0.1f, 0.1f);
-   AiMetaDataSetBool(mds, "deep_scatter_color", "always_linear", true);
+   AiMetaDataSetBool(nentry, "deep_scatter_color", "always_linear", true);
    AiParameterFlt("deep_scatter_weight", 1.0f);
    AiParameterFlt("deep_scatter_radius", 0.6f);
    AiParameterRGB("specular_color", 1.0f, 1.0f, 1.0f);
-   AiMetaDataSetBool(mds, "specular_color", "always_linear", true);
+   AiMetaDataSetBool(nentry, "specular_color", "always_linear", true);
    AiParameterFlt("specular_weight", 0.8f);
    AiParameterFlt("specular_roughness", 0.5f);
    AiParameterFlt("specular_ior", 1.44f);
    AiParameterRGB("sheen_color", 1.0f, 1.0f, 1.0f);
-   AiMetaDataSetBool(mds, "sheen_color", "always_linear", true);
+   AiMetaDataSetBool(nentry, "sheen_color", "always_linear", true);
    AiParameterFlt("sheen_weight", 0.0f);
    AiParameterFlt("sheen_roughness", 0.35f);
    AiParameterFlt("sheen_ior", 1.44f);
@@ -54,21 +54,21 @@ node_parameters
    AiParameterBool("fresnel_affect_sss", true);
    AiParameterFlt("opacity", 1.0f);
    AiParameterRGB("opacity_color", 1.0f, 1.0f, 1.0f);
-   AiMetaDataSetBool(mds, "opacity_color", "always_linear", true);
+   AiMetaDataSetBool(nentry, "opacity_color", "always_linear", true);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiSkin");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D20);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", true);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiSkin");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D20);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", true);
 
     // unlinkable parameters
-   AiMetaDataSetBool(mds, "specular_in_secondary_rays", "linkable", false);
-   AiMetaDataSetBool(mds, "fresnel_affect_sss", "linkable", false);
-   AiMetaDataSetBool(mds, "aov_specular", "linkable", false);
-   AiMetaDataSetBool(mds, "aov_sheen", "linkable", false);
-   AiMetaDataSetBool(mds, "aov_sss", "linkable", false);
-   AiMetaDataSetBool(mds, "aov_direct_sss", "linkable", false);
-   AiMetaDataSetBool(mds, "aov_indirect_sss", "linkable", false);
+   AiMetaDataSetBool(nentry, "specular_in_secondary_rays", "linkable", false);
+   AiMetaDataSetBool(nentry, "fresnel_affect_sss", "linkable", false);
+   AiMetaDataSetBool(nentry, "aov_specular", "linkable", false);
+   AiMetaDataSetBool(nentry, "aov_sheen", "linkable", false);
+   AiMetaDataSetBool(nentry, "aov_sss", "linkable", false);
+   AiMetaDataSetBool(nentry, "aov_direct_sss", "linkable", false);
+   AiMetaDataSetBool(nentry, "aov_indirect_sss", "linkable", false);
 }
 enum SSSParams {
    p_sss_weight,

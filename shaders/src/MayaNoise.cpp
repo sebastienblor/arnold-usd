@@ -93,10 +93,10 @@ node_parameters
    AiParameterEnum("falloff", 2, falloff_type_enum);
    AiParameterInt("numWaves", 6);
    AiParameterVec2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "noise");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544e33);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "noise");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544e33);
 }
 
 node_initialize

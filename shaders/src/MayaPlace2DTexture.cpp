@@ -81,7 +81,7 @@ node_parameters
    AiParameterVec2("noiseUV", 0.0f, 0.0f);
    AiParameterStr("uvSetName", "");
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

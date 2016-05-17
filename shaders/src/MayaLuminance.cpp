@@ -18,8 +18,8 @@ node_parameters
 {
    AiParameterRGB("value", 0, 0, 0);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "luminance");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x524c554d);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "luminance");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x524c554d);
 }
 
 node_initialize

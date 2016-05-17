@@ -35,12 +35,12 @@ node_parameters
    AiParameterFlt("vWidth", 0.1f);
    AiParameterFlt("contrast", 1.0);
    AiParameterVec2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
    AiParameterFlt("filter", 1.0f);
    AiParameterFlt("filterOffset", 0.0f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "grid");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544744);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "grid");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544744);
 }
 
 node_initialize

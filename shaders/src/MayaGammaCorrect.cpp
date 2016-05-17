@@ -18,8 +18,8 @@ node_parameters
    AiParameterVec("value", 0, 0, 0);
    AiParameterVec("gamma", 1, 1, 1);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "gammaCorrect");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x5247414d);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "gammaCorrect");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x5247414d);
 }
 
 node_initialize

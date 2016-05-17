@@ -18,11 +18,11 @@ node_parameters
    AiParameterRGB("color", 0.f, 0.f, 0.f);
    AiParameterRGB("color_multiplier", 0.0f, 0.0f, 0.0f);
    
-   AiMetaDataSetBool(mds, "color", "always_linear", true); // no gamma correction
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiMeshLightMaterial");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D1B);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetBool(nentry, "color", "always_linear", true); // no gamma correction
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiMeshLightMaterial");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D1B);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
 }
 
 node_initialize

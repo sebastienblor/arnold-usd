@@ -53,11 +53,11 @@ node_parameters
    AiParameterBool("local", false);
    AiParameterBool("wrap", true);
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "cloud");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544344);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "cloud");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544344);
 }
 
 node_initialize

@@ -41,7 +41,7 @@ node_parameters
    AiParameterBool("gamma_correct", true);
    AiParameterEnum("use_as", 0, useAsNames)
    AiParameterRGBA("shader", 0.f, 0.f, 0.f, 1.f);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 enum mayaBump2DParams {

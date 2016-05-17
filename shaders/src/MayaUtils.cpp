@@ -441,7 +441,7 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out,
 }
 
 
-void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds)
+void AddMayaColorBalanceParams(AtList *params, AtNodeEntry* nentry)
 {
    AiParameterRGB ("defaultColor", 0.5f, 0.5f, 0.5f);
    AiParameterRGB ("colorGain", 1.0f, 1.0f, 1.0f);
@@ -452,8 +452,8 @@ void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds)
    AiParameterBool("invert", false);
    AiParameterFlt ("exposure", 0.0f);
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 }
 
 void MayaColorBalance(AtShaderGlobals* sg,

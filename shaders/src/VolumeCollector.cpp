@@ -129,21 +129,21 @@ node_parameters
     AiParameterVec("position_offset", 0, 0, 0);
     AiParameterEnum("interpolation", AI_VOLUME_INTERP_TRILINEAR, interpolation_labels);
 
-    AiMetaDataSetBool(mds, "scattering_source"         , "linkable", false);
-    AiMetaDataSetBool(mds, "attenuation_source"        , "linkable", false);
-    AiMetaDataSetBool(mds, "emission_source"           , "linkable", false);
-    AiMetaDataSetBool(mds, "interpolation"             , "linkable", false);
-    AiMetaDataSetBool(mds, "scattering_channel"        , "linkable", false);
-    AiMetaDataSetBool(mds, "attenuation_channel"       , "linkable", false);
-    AiMetaDataSetBool(mds, "emission_channel"          , "linkable", false);
-    AiMetaDataSetBool(mds, "attenuation_mode"          , "linkable", false);
+    AiMetaDataSetBool(nentry, "scattering_source"         , "linkable", false);
+    AiMetaDataSetBool(nentry, "attenuation_source"        , "linkable", false);
+    AiMetaDataSetBool(nentry, "emission_source"           , "linkable", false);
+    AiMetaDataSetBool(nentry, "interpolation"             , "linkable", false);
+    AiMetaDataSetBool(nentry, "scattering_channel"        , "linkable", false);
+    AiMetaDataSetBool(nentry, "attenuation_channel"       , "linkable", false);
+    AiMetaDataSetBool(nentry, "emission_channel"          , "linkable", false);
+    AiMetaDataSetBool(nentry, "attenuation_mode"          , "linkable", false);
 
-    AiMetaDataSetBool(mds, "scattering"       , "always_linear", true);
-    AiMetaDataSetBool(mds, "scattering_color" , "always_linear", true);
-    AiMetaDataSetBool(mds, "attenuation"      , "always_linear", true);
-    AiMetaDataSetBool(mds, "attenuation_color", "always_linear", true);
-    AiMetaDataSetBool(mds, "emission"         , "always_linear", true);
-    AiMetaDataSetBool(mds, "emission_color"   , "always_linear", true);
+    AiMetaDataSetBool(nentry, "scattering"       , "always_linear", true);
+    AiMetaDataSetBool(nentry, "scattering_color" , "always_linear", true);
+    AiMetaDataSetBool(nentry, "attenuation"      , "always_linear", true);
+    AiMetaDataSetBool(nentry, "attenuation_color", "always_linear", true);
+    AiMetaDataSetBool(nentry, "emission"         , "always_linear", true);
+    AiMetaDataSetBool(nentry, "emission_color"   , "always_linear", true);
 }
 
 node_initialize

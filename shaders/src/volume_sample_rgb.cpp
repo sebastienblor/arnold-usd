@@ -81,16 +81,16 @@ node_parameters
     AiParameterFlt("multiply", 1.0f);
     AiParameterFlt("add", 0.0f);
 
-    AiMetaDataSetBool(mds, "channel", "linkable", false);
-    AiMetaDataSetBool(mds, "interpolation", "linkable", false);
-    AiMetaDataSetBool(mds, "gamma", "linkable", false);
-    AiMetaDataSetBool(mds, "hue_shift", "linkable", false);
-    AiMetaDataSetBool(mds, "saturation", "linkable", false);
-    AiMetaDataSetBool(mds, "contrast", "linkable", false);
-    AiMetaDataSetBool(mds, "contrast_pivot", "linkable", false);
-    AiMetaDataSetBool(mds, "exposure", "linkable", false);
-    AiMetaDataSetBool(mds, "multiply", "linkable", false);
-    AiMetaDataSetBool(mds, "add", "linkable", false);
+    AiMetaDataSetBool(nentry, "channel", "linkable", false);
+    AiMetaDataSetBool(nentry, "interpolation", "linkable", false);
+    AiMetaDataSetBool(nentry, "gamma", "linkable", false);
+    AiMetaDataSetBool(nentry, "hue_shift", "linkable", false);
+    AiMetaDataSetBool(nentry, "saturation", "linkable", false);
+    AiMetaDataSetBool(nentry, "contrast", "linkable", false);
+    AiMetaDataSetBool(nentry, "contrast_pivot", "linkable", false);
+    AiMetaDataSetBool(nentry, "exposure", "linkable", false);
+    AiMetaDataSetBool(nentry, "multiply", "linkable", false);
+    AiMetaDataSetBool(nentry, "add", "linkable", false);
 }
 
 node_initialize

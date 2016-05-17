@@ -25,7 +25,7 @@ node_parameters
    AiParameterBool("flip", false);
    AiParameterMtx("placementMatrix", id);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "envSphere");
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "envSphere");
 }
 
 node_initialize

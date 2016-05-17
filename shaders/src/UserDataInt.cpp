@@ -18,10 +18,10 @@ enum UserDataPnt2Params
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataInt");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USER_DATA_INT);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataInt");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USER_DATA_INT);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterStr("intAttrName", "");
    AiParameterInt("defaultValue", 0);

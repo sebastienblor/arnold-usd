@@ -22,10 +22,10 @@ node_parameters
    AiParameterFlt("uWidth", 0.1f);
    AiParameterFlt("vWidth", 0.1f);
    AiParameterVec2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "bulge");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544255);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "bulge");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544255);
 }
 
 node_initialize

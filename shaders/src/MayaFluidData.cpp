@@ -100,7 +100,7 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaFluidDataMtd);
 node_parameters
 {
    InitializeFluidShaderParameters(params);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

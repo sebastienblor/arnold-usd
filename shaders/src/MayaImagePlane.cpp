@@ -67,10 +67,10 @@ node_parameters
 
    AiParameterNode("camera", NULL); 
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

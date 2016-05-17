@@ -346,20 +346,20 @@ node_parameters
    AiParameterEnum("fitFill", 0, gs_FillTypeNames);
    AiParameterNode("linkedCamera", NULL);
 
-   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
-   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(nentry, "colorOffset", "always_linear", true);
 
    // hide from auto-translation
    AiParameterFlt("cameraNearPlane", 1.0f);
-   AiMetaDataSetBool(mds, "cameraNearPlane", "maya.hide", true);
+   AiMetaDataSetBool(nentry, "cameraNearPlane", "maya.hide", true);
    AiParameterFlt("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
-   AiMetaDataSetBool(mds, "cameraHorizontalFOV", "maya.hide", true);
+   AiMetaDataSetBool(nentry, "cameraHorizontalFOV", "maya.hide", true);
    AiParameterFlt("cameraAspectRatio", 1.0f);
-   AiMetaDataSetBool(mds, "cameraAspectRatio", "maya.hide", true);
+   AiMetaDataSetBool(nentry, "cameraAspectRatio", "maya.hide", true);
 
    AiParameterBool("useReferenceObject", true);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 typedef struct 

@@ -16,10 +16,10 @@ enum UserDataFloatParams
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataFloat");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATAFLOAT);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiUserDataFloat");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_USERDATAFLOAT);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterStr("floatAttrName", "");
    AiParameterFlt("defaultValue", 0.f);

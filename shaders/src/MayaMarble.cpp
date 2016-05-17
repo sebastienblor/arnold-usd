@@ -50,10 +50,10 @@ node_parameters
    AiParameterBool("wrap", true);
    AiParameterBool("local", false);
    AiParameterMtx("placementMatrix", id);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "marble");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544D52);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "marble");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544D52);
 }
 
 node_initialize

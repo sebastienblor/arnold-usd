@@ -31,12 +31,12 @@ node_parameters
    AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
    AiParameterFlt("contrast", 1.0);
    AiParameterVec2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params, mds);
+   AddMayaColorBalanceParams(params, nentry);
    AiParameterFlt("filter", 1.0f);
    AiParameterFlt("filterOffset", 0.0f);
    
-   AiMetaDataSetStr(mds, NULL, "maya.name", "checker");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544348);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "checker");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52544348);
 }
 
 node_initialize

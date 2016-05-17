@@ -192,9 +192,9 @@ node_parameters
    AiParameterStr("uvSetName", "");
    AiParameterEnum("filter", 3, filterNames);
    AiParameterBool("useDefaultColor", true);
-   AddMayaColorBalanceParams(params, mds);   
+   AddMayaColorBalanceParams(params, nentry);   
    
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

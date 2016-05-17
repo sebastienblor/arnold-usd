@@ -37,8 +37,8 @@ node_parameters
    AiParameterVec("input2", 0.0f, 0.0f, 0.0f);
    AiParameterEnum("operation", 0, MathOperationNames);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "multiplyDivide");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x524d4449);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "multiplyDivide");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x524d4449);
 }
 
 node_initialize

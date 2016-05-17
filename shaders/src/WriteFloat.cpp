@@ -20,10 +20,10 @@ AI_SHADER_NODE_EXPORT_METHODS(WriteFloatMtd);
 node_parameters
 {
    // Node metadata
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteFloat");
-   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_WRITEFLOAT);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiWriteFloat");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", ARNOLD_NODEID_WRITEFLOAT);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterFlt("input", 0.0f);

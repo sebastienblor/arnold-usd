@@ -35,7 +35,7 @@ node_parameters
    AiParameterEnum("operation", OP_PLUS, MathOperationNames);
    AiParameterArray("input1D", AiArray(0, 0, AI_TYPE_FLOAT));
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

@@ -94,18 +94,18 @@ node_parameters
     AiParameterBool("clamp_min", false);
     AiParameterBool("clamp_max", false);
 
-    AiMetaDataSetBool(mds, "channel", "linkable", false);
-    AiMetaDataSetBool(mds, "interpolation", "linkable", false);
-    AiMetaDataSetBool(mds, "input_min", "linkable", false);
-    AiMetaDataSetBool(mds, "input_max", "linkable", false);
-    AiMetaDataSetBool(mds, "contrast", "linkable", false);
-    AiMetaDataSetBool(mds, "contrast_pivot", "linkable", false);
-    AiMetaDataSetBool(mds, "bias", "linkable", false);
-    AiMetaDataSetBool(mds, "gain", "linkable", false);
-    AiMetaDataSetBool(mds, "output_min", "linkable", false);
-    AiMetaDataSetBool(mds, "output_max", "linkable", false);
-    AiMetaDataSetBool(mds, "clamp_min", "linkable", false);
-    AiMetaDataSetBool(mds, "clamp_max", "linkable", false);
+    AiMetaDataSetBool(nentry, "channel", "linkable", false);
+    AiMetaDataSetBool(nentry, "interpolation", "linkable", false);
+    AiMetaDataSetBool(nentry, "input_min", "linkable", false);
+    AiMetaDataSetBool(nentry, "input_max", "linkable", false);
+    AiMetaDataSetBool(nentry, "contrast", "linkable", false);
+    AiMetaDataSetBool(nentry, "contrast_pivot", "linkable", false);
+    AiMetaDataSetBool(nentry, "bias", "linkable", false);
+    AiMetaDataSetBool(nentry, "gain", "linkable", false);
+    AiMetaDataSetBool(nentry, "output_min", "linkable", false);
+    AiMetaDataSetBool(nentry, "output_max", "linkable", false);
+    AiMetaDataSetBool(nentry, "clamp_min", "linkable", false);
+    AiMetaDataSetBool(nentry, "clamp_max", "linkable", false);
 }
 
 node_initialize

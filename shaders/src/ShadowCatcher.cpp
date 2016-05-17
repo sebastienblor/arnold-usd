@@ -36,10 +36,10 @@ enum ShadowCatcherParams
 
 node_parameters
 {
-   AiMetaDataSetStr(mds, NULL, "maya.name", "aiShadowCatcher");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D19);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "aiShadowCatcher");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x00115D19);
+   AiMetaDataSetStr(nentry, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 
    AiParameterBool("catchShadows", true);
    AiParameterRGB("backgroundColor", 0.0f, 0.0f, 0.0f);

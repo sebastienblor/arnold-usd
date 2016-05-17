@@ -45,8 +45,8 @@ node_parameters
    AiParameterRGB("colorIfTrue", 0, 0, 0);
    AiParameterRGB("colorIfFalse", 1, 1, 1);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "condition");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52434e44);
+   AiMetaDataSetStr(nentry, NULL, "maya.name", "condition");
+   AiMetaDataSetInt(nentry, NULL, "maya.id", 0x52434e44);
 }
 
 node_initialize

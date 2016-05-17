@@ -309,10 +309,10 @@ void writeEndOfImage(DriverData* ctx)
 node_parameters
 {
     AiParameterPtr("swatch", NULL);
-    AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
-    AiMetaDataSetStr(mds, NULL, "maya.translator", "mplay");
-    AiMetaDataSetBool(mds, NULL, "single_layer_driver", false);
-    AiMetaDataSetBool(mds, NULL, "display_driver", true);   
+    AiMetaDataSetBool(nentry, "swatch", "maya.hide", true);
+    AiMetaDataSetStr(nentry, NULL, "maya.translator", "mplay");
+    AiMetaDataSetBool(nentry, NULL, "single_layer_driver", false);
+    AiMetaDataSetBool(nentry, NULL, "display_driver", true);   
 }
 
 /// Instance initialization

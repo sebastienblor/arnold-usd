@@ -39,7 +39,7 @@ node_parameters
    AiParameterRGBA("input", 0, 0, 0, 1);
    AiParameterEnum("component", CH_LUMINANCE, enum_component);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

@@ -46,7 +46,7 @@ node_parameters
    AiParameterEnum("filter_type", FT_LINEAR, filterTypeEnums);
    
    AiParameterRGB("transparency", .1f, .1f, .1f);
-   AiMetaDataSetBool(mds, "transparency", "always_linear", true);
+   AiMetaDataSetBool(nentry, "transparency", "always_linear", true);
    AiParameterFlt("phase_func", 0.f);
    
    AiParameterBool("color_texture", false);
@@ -104,8 +104,8 @@ node_parameters
    InitializeFluidShaderAdditionalParameters(params);
    InitializeFluidShaderParameters(params);
    
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.swatch", false);
 }
 
 enum MayaFluidParams{

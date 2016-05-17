@@ -524,7 +524,7 @@ node_parameters
    AiParameterBool("visible14", false);
    AiParameterBool("visible15", false);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

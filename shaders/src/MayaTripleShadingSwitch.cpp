@@ -11,7 +11,7 @@ node_parameters
    AiParameterArray("inputs", AiArrayAllocate(0, 1, AI_TYPE_NODE));
    AiParameterArray("shapes", AiArrayAllocate(0, 1, AI_TYPE_NODE));
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize

@@ -35,7 +35,7 @@ node_parameters
    AiParameterFlt("outputMin", 0.0f);
    AiParameterFlt("outputMax", 1.0f);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(nentry, NULL, "maya.hide", true);
 }
 
 node_initialize
