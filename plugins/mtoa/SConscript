@@ -93,7 +93,7 @@ local_env.Append(CPPPATH = [mayaQtFolder])
 
 if system.os() == 'darwin':
     maya_qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
-    if (int(maya_version_base) <= 2016):
+    if (int(maya_version_base) <= 2016) and not local_env['MTOA_DISABLE_RV']:
         qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
         if not os.path.isdir(qt_lib_dir):
             os.makedirs(qt_lib_dir)

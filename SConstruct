@@ -71,7 +71,7 @@ vars.AddVariables(
     BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
-    ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
+    ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops -msse4.2'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
@@ -349,12 +349,17 @@ if env['COMPILER'] == 'gcc':
         env['CXX'] = env['SHCXX']
         #env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
         #env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
+        env['CC']  = '/solidangle/toolchain/3.0/bin/clang'
+        env['CXX'] = '/solidangle/toolchain/3.0/bin/clang++'
 
     else:
         compiler_version = env['COMPILER_VERSION']
         if compiler_version != '':
             env['CC']  = 'gcc' + compiler_version
             env['CXX'] = 'g++' + compiler_version
+        else:
+            env['CC']  = '/opt/local/bin/clang'# + compiler_version
+            env['CXX'] = '/opt/local/bin/clang++'# + compiler_version
 
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
@@ -387,19 +392,17 @@ if env['COMPILER'] == 'gcc':
     if env['MODE'] == 'opt' or env['MODE'] == 'profile':
         env.Append(CCFLAGS = Split(env['GCC_OPT_FLAGS']))
     if env['MODE'] == 'debug' or env['MODE'] == 'profile':
-        if system.os() == 'darwin': 
-            env.Append(CCFLAGS = Split('-gstabs')) 
-            env.Append(LINKFLAGS = Split('-gstabs')) 
-        else: 
-            env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
-            env.Append(LINKFLAGS = Split('-g')) 
+        env.Append(CCFLAGS   = Split('-g'))
+        env.Append(LINKFLAGS = Split('-g'))
+        if system.os() == 'linux':
+            env.Append(CCFLAGS = Split('-fno-omit-frame-pointer'))
 
     if system.os() == 'darwin':
         ## tell gcc to compile a 64 bit binary
         env.Append(CCFLAGS = Split('-arch x86_64'))
         env.Append(LINKFLAGS = Split('-arch x86_64'))
-        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.7'))
-        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.7'))
+        env.Append(CCFLAGS = env.Split('-mmacosx-version-min=10.8'))
+        env.Append(LINKFLAGS = env.Split('-mmacosx-version-min=10.8'))
         env.Append(CCFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split('-isysroot %s/MacOSX%s.sdk/' % (env['SDK_PATH'], env['SDK_VERSION'])))
         env.Append(LINKFLAGS = env.Split(['-framework', 'Security']))
