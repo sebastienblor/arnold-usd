@@ -19,8 +19,10 @@ def doCreateStandInFile():
     LoadStandInButtonPush(node.name())
 
 def doExportStandin():
-    pm.mel.eval('ExportSelection')
-    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
+    # pm.mel.eval('ExportSelection')
+    # pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
+
+    createExportArnoldWindowPythonReady()
 
 def doExportOptionsStandin():
     pm.mel.eval('ExportSelectionOptions')
@@ -295,8 +297,8 @@ def createArnoldMenu():
                     c=lambda *args: doCreateStandInFile())
         pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export',
                     c=lambda *args: doExportStandin())
-        pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
-                    c=lambda *args: doExportOptionsStandin())
+        # pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
+        #            c=lambda *args: doExportOptionsStandin())
 
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
@@ -395,3 +397,31 @@ def createArnoldMenu():
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
 
+def createExportArnoldWindowPythonReady():
+    workspaceDir = cmds.workspace(fullName = True)
+
+    file = cmds.fileDialog2(returnFilter = 1,
+                            caption = "Export Arnold File",
+                            fileMode = 0,
+                            okCaption = "Export",
+                            fileFilter = "ASS Export (*.ass)",
+                            selectFileFilter = "ASS Export",
+                            startingDirectory = workspaceDir,
+                            optionsUICreate = "fileOperationsOptionsUISetup ExportActive",
+                            optionsUIInit = "fileOperationsOptionsUIInitValues ExportActive",
+                            selectionChanged = "fileOperationsSelectionChangedCallback ExportActive",
+                            optionsUICommit2 = "fileOperationsOptionsUICallback ExportActive",
+                            fileTypeChanged = "setCurrentFileTypeOption ExportActive")
+
+    if file is None:
+        # No operation was performed
+        return 0
+
+    length = int(len(file))
+
+    if( length > 0 and file[0] != "" and file[length-1] == "ASS Export"):
+        cmds.file(file[0], exportSelected = True, type = file[length-1], force = True)
+    else:
+        # Empty return means file operation was not performed
+        return 0
+    return 1
