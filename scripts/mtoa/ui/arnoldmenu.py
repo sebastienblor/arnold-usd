@@ -22,8 +22,9 @@ def doExportStandin():
     # pm.mel.eval('ExportSelection')
     # pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
 
-    createExportArnoldWindowPythonReady()
+    createExportArnoldWindow()
 
+#Obsolete
 def doExportOptionsStandin():
     pm.mel.eval('ExportSelectionOptions')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
@@ -397,7 +398,7 @@ def createArnoldMenu():
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
 
-def createExportArnoldWindowPythonReady():
+def createExportArnoldWindow():
     workspaceDir = cmds.workspace(fullName = True)
 
     file = cmds.fileDialog2(returnFilter = 1,
