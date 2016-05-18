@@ -71,7 +71,7 @@ vars.AddVariables(
     BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
     ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
     ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
-    ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops -msse4.2'),
+    ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
     BoolVariable('DISABLE_COMMON', 'Disable shaders found in the common repository', False),
     PathVariable('BUILD_DIR',
                  'Directory where temporary build files are placed by scons', 
@@ -360,6 +360,8 @@ if env['COMPILER'] == 'gcc':
         else:
             env['CC']  = '/opt/local/bin/clang'# + compiler_version
             env['CXX'] = '/opt/local/bin/clang++'# + compiler_version
+
+	env.Append(CCFLAGS = Split('-msse4.2')) # matches Arnold and ensures same math symbols
 
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
