@@ -20,6 +20,7 @@
 #include <maya/MPointArray.h>
 #include <maya/MFloatVectorArray.h>
 #include <maya/MUintArray.h>
+class MFnMesh;
 
 class CLinePrimitiveData{
 protected:
@@ -60,6 +61,12 @@ class CPhotometricLightPrimitive : public CLinePrimitiveData{
 public:
    CPhotometricLightPrimitive();
 };
+
+class CMeshPrimitive : public CLinePrimitiveData{
+public:
+   CMeshPrimitive(const MFnMesh& mesh);
+};
+
 
 #ifdef ENABLE_VP2
 

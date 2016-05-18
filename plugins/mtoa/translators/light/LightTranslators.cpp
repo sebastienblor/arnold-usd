@@ -389,19 +389,20 @@ AtNode* CMeshLightTranslator::ExportSimpleMesh(const MObject& meshObject)
 
    AiNodeSetPtr(meshNode, "shader", NULL);
 
-   const int subdivision = FindMayaPlug("aiSubdivType").asInt();
+   const int subdivision = GetPlug(meshObject, "aiSubdivType").asInt();
    if (subdivision!=0)
    {
       if (subdivision==1)
          AiNodeSetStr(meshNode, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(meshNode, "subdiv_type",           "linear");
-      AiNodeSetByte(meshNode, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
-      AiNodeSetInt(meshNode, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(meshNode, "subdiv_adaptive_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
-      AiNodeSetInt(meshNode, "subdiv_adaptive_space",    FindMayaPlug("aiSubdivAdaptiveSpace").asInt());
-      AiNodeSetInt(meshNode, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
-      AiNodeSetBool(meshNode, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
+
+      AiNodeSetByte(meshNode, "subdiv_iterations",      GetPlug(meshObject, "aiSubdivIterations").asInt());
+      AiNodeSetInt(meshNode,  "subdiv_adaptive_metric", GetPlug(meshObject, "aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(meshNode,  "subdiv_adaptive_error",  GetPlug(meshObject, "aiSubdivPixelError").asFloat());
+      AiNodeSetInt(meshNode,  "subdiv_adaptive_space",  GetPlug(meshObject, "aiSubdivAdaptiveSpace").asInt());
+      AiNodeSetInt(meshNode,  "subdiv_uv_smoothing",    GetPlug(meshObject, "aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(meshNode, "subdiv_smooth_derivs",   GetPlug(meshObject, "aiSubdivSmoothDerivs").asBool());
 
       ProcessParameter(meshNode, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
    }
@@ -428,9 +429,13 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    
    MObject meshObject = GetMeshObject();
+   if (meshObject == MObject::kNullObj)
+   {
+      AiMsgWarning("[mtoa] No mesh found for mesh_light");
+      return;
+   }
+
    AtNode* meshNode = ExportSimpleMesh(meshObject);
-   
-   
    if (meshNode == NULL)
    {
       AiMsgWarning("[mtoa] Failed to export mesh for mesh_light");
@@ -582,4 +587,61 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
       }
       
    }  
+}
+
+MObject CMeshLightNewTranslator::GetMeshObject() const
+{
+   MPlug inMesh = GetPlug(m_dagPath.node(), "inMesh");
+   if (inMesh.isDestination())
+   {
+      MObject sourceNode = inMesh.source().node();
+      if (sourceNode.hasFn(MFn::kMesh))
+      {
+         return sourceNode;
+      }
+   }
+   return MObject::kNullObj;
+}
+
+void CMeshLightNewTranslator::AddUpdateCallbacks()
+{
+   // Add callback to track mesh node changes
+   MObject meshObject = GetMeshObject();
+   if (meshObject != MObject::kNullObj)
+   {
+      MStatus status;
+      MCallbackId id = MNodeMessage::addNodeDirtyCallback(meshObject, MeshDirtyCallback, this, &status);
+      if (status == MS::kSuccess)
+      {
+         ManageUpdateCallback(id);
+      }
+   }
+
+   // Add callbacks for parent classes
+   CMeshLightTranslator::AddUpdateCallbacks();
+}
+
+void CMeshLightNewTranslator::MeshDirtyCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   MFnDependencyNode dnode(node);
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | MeshDirtyCallback: plug that fired: %s, client data: %p.",
+         dnode.name().asChar(), plug.name().asChar(), clientData);
+
+   CMeshLightNewTranslator* translator = static_cast< CMeshLightNewTranslator* >(clientData);
+   if (translator != NULL)
+   {
+      if (translator->m_holdUpdates ||
+         (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()))
+      {
+         return;
+      }
+
+      const MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+      if (node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" ||
+         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/)
+      {
+         translator->m_updateMode = AI_RECREATE_NODE;
+         translator->RequestUpdate(clientData);
+      }
+   }
 }

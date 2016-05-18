@@ -57,6 +57,7 @@
 #include "nodes/light/ArnoldAreaLightNode.h"
 #include "nodes/light/ArnoldLightBlockerNode.h"
 #include "nodes/light/ArnoldPhotometricLightNode.h"
+#include "nodes/light/ArnoldMeshLightNode.h"
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
@@ -160,6 +161,8 @@ namespace // <anonymous>
 #else
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
 #endif
+   const MString AI_MESH_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/meshLight";
+   const MString AI_MESH_LIGHT_NO_SWATCH = LIGHT_NO_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION;
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
 
@@ -203,6 +206,10 @@ namespace // <anonymous>
          "aiPhotometricLight", CArnoldPhotometricLightNode::id,
          CArnoldPhotometricLightNode::creator, CArnoldPhotometricLightNode::initialize,
          MPxNode::kLocatorNode, &AI_PHOTOMETRIC_LIGHT_WITH_SWATCH
+      } , {
+         "aiMeshLight", CArnoldMeshLightNode::id,
+         CArnoldMeshLightNode::creator, CArnoldMeshLightNode::initialize,
+         MPxNode::kLocatorNode, &AI_MESH_LIGHT_NO_SWATCH
       } , {
          "aiLightBlocker", CArnoldLightBlockerNode::id,
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
@@ -375,6 +382,10 @@ namespace // <anonymous>
                                     "",
                                     CPhotometricLightTranslator::creator,
                                     CPhotometricLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiMeshLight",
+                                    "",
+                                    CMeshLightNewTranslator::creator,
+                                    CMeshLightNewTranslator::NodeInitializer);
 
       builtin->RegisterTranslator("lightLinker",
                                     "",

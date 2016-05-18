@@ -3,6 +3,7 @@
 #include "DrawUtils.h"
 
 #include <maya/MPxLocatorNode.h>
+#include <maya/MFnMesh.h>
 
 #if defined(_DARWIN)
 #include <OpenGL/gl.h>
@@ -270,6 +271,33 @@ CPhotometricLightPrimitive::CPhotometricLightPrimitive()
 	indices[id++] = idb + 4; indices[id++] = idb + 5;
 	indices[id++] = idb + 6; indices[id++] = idb + 7;
 }
+
+CMeshPrimitive::CMeshPrimitive(const MFnMesh& mesh)
+{
+   const int numVertices = mesh.numVertices();
+   const int numEdges = mesh.numEdges();
+
+   vertices.resize(numVertices * 3);
+   indices.resize(numEdges * 2);
+
+   MPoint pos;
+   for (int i=0, j=0; i<numVertices; ++i)
+   {
+      mesh.getPoint(i, pos);
+      vertices[j++] = float(pos.x);
+      vertices[j++] = float(pos.y);
+      vertices[j++] = float(pos.z);
+   }
+
+   int2 edgeVertexIndices;
+   for (int i=0, j=0; i<numEdges; ++i)
+   {
+      mesh.getEdgeVertices(i, edgeVertexIndices);
+      indices[j++] = edgeVertexIndices[0];
+      indices[j++] = edgeVertexIndices[1];
+   }
+}
+
 
 #ifdef ENABLE_VP2
 

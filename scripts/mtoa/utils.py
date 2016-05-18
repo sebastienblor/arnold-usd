@@ -475,6 +475,27 @@ def createLocator(locatorType, asLight=False):
         pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
+def createMeshLight(legacy=False):
+    sls = cmds.ls(sl=True, et='transform')
+    if len(sls) == 0:
+        cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
+        return
+    meshTransform = sls[0]
+    shs = cmds.listRelatives(meshTransform, type='mesh')
+    if shs is None or len(shs) == 0:
+        cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
+        return
+    meshShape = shs[0]
+    if legacy:
+        cmds.setAttr('%s.aiTranslator' % meshShape, 'mesh_light', type='string')
+    else:
+        (lightShape,lightTransform) = createLocator('aiMeshLight', asLight=True)
+        cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
+        cmds.matchTransform(lightTransform, meshTransform)
+        cmds.parent(meshTransform, lightTransform)
+        cmds.setAttr('%s.intermediateObject' % meshShape, 1)
+        cmds.select(lightTransform)
+
 def getSourceImagesDir():
     sourceImagesRule = cmds.workspace(fileRuleEntry='sourceImages')
     if sourceImagesRule != None:
