@@ -77,10 +77,8 @@ def makeTx(filename, colorspace='auto'):
     status = {'updated': 0, 'skipped': 0, 'error': 0}
     
     if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
-        color_engine = 'ocio'
         color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
     else:
-        color_engine = 'syncolor'
         color_config = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cmds.__file__)))))), 'synColor')
 
     render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
@@ -98,7 +96,7 @@ def makeTx(filename, colorspace='auto'):
         if colorspace == 'auto':
             colorspace = guessColorspace(tile)
         
-        cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio', '--colorengine', color_engine, '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace, tile]
+        cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio', '--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace, tile]
         res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
         
         if re.search(_maketx_rx_noupdate, res):
