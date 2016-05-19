@@ -6,7 +6,7 @@
 #include <maya/MUserData.h>
 #include <maya/MDrawContext.h>
 
-class CArnoldMeshLightDrawOverride : public MHWRender::MPxDrawOverride{
+class CArnoldMeshLightDrawOverride : public MHWRender::MPxDrawOverride {
 public:
    static MHWRender::MPxDrawOverride* creator(const MObject& obj);
 
@@ -42,6 +42,7 @@ public:
 #endif
 
    static void draw(const MHWRender::MDrawContext& context, const MUserData* data);
+
 private:
    CArnoldMeshLightDrawOverride(const MObject& obj);
 

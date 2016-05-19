@@ -5,10 +5,13 @@ import mtoa.ui.ae.templates as templates
 
 class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
 
+    def addSwatch(self):
+        self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
+
     def setup(self):
+        self.addSwatch()
         self.beginScrollLayout()
         self.beginLayout("Arnold Mesh Light Attributes", collapse=False)
-
         self.addControl("inMesh")
         self.addSeparator()
         self.addControl("color")
@@ -30,38 +33,56 @@ class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiShadowDensity")
         self.addControl("aiShadowColor")
         self.addSeparator()
-
         self.commonLightAttributes()
-
         self.endLayout()
 
-        # include/call base class/node attributes
+        # Do not show extra attributes
+        extras = ["visibility",
+                  "intermediateObject",
+                  "template",
+                  "ghosting",
+                  "instObjGroups",
+                  "useObjectColor",
+                  "objectColor",
+                  "drawOverride",
+                  "lodVisibility",
+                  "renderInfo",
+                  "renderLayerInfo",
+                  "ghostingControl",
+                  "ghostCustomSteps",
+                  "ghostFrames",
+                  "ghostRangeStart",
+                  "ghostRangeEnd",
+                  "ghostDriver",
+                  "ghostColorPreA",
+                  "ghostColorPre",
+                  "ghostColorPostA",
+                  "ghostColorPost",
+                  "motionBlur",
+                  "visibleInReflections",
+                  "visibleInRefractions",
+                  "castsShadows",
+                  "receiveShadows",
+                  "maxVisibilitySamplesOverride",
+                  "maxVisibilitySamples",
+                  "geometryAntialiasingOverride",
+                  "antialiasingLevel",
+                  "shadingSamplesOverride",
+                  "shadingSamples",
+                  "maxShadingSamples",
+                  "volumeSamplesOverride",
+                  "volumeSamples",
+                  "depthJitter",
+                  "ignoreSelfShadowing",
+                  "primaryVisibility",
+                  "compInstObjGroups",
+                  "localPosition",
+                  "localScale"]
+
+        for extra in extras:
+            self.suppress(extra)
+        
         pm.mel.AEdependNodeTemplate(self.nodeName)
 
         self.addExtraControls()
-        suppressList = ['aiShadowDensity', 'aiCastShadows', 'update',
-            'aiSamples', 'aiNormalize', 'aiColorTemperature',
-            'aiShadowColor', 'aiResolution', 'ghostFrames',
-            'motionBlur', 'visibleInReflections', 'visibleInRefractions',
-            'castsShadows', 'receiveShadows', 'maxVisibilitySamplesOverride',
-            'maxVisibilitySamples', 'geometryAntialiasingOverride', 'antialiasingLevel',
-            'shadingSamplesOverride', 'shadingSamples', 'maxShadingSamples',
-            'volumeSamplesOverride', 'volumeSamples', 'layerRenderable',
-            'ghostingControl', 'ghostCustomSteps', 'ghostColorPreA',
-            'ghostColorPre', 'ghostColorPostA', 'ghostColorPost',
-            'ghostRangeStart', 'ghostRangeEnd', 'ghostDriver',
-            'depthJitter', 'ignoreSelfShadowing', 'primaryVisibility',
-            'localPosition', 'localScale', 'pointCamera', 'normalCamera',
-            'visibility', 'intermediateObject', 'template', 'ghosting',
-            'objectColorRGB', 'useObjectColor', 'objectColor',
-            'containerType', 'creationDate', 'creator',
-            'customTreatment', 'uiTreatment', 'templateVersion',
-            'viewMode', 'iconName', 'viewName', 'templatePath',
-            'rmbCommand', 'blackBox', 'drawOverride',
-            'renderInfo', 'renderLayerInfo', 'compInstObjGroups',
-            'lodVisibility', 'templateName', 'selectionChildHighlighting']
-        for sup in suppressList:
-            self.suppress(sup)
         self.endScrollLayout()
-
-templates.registerAETemplate(templates.TranslatorControl, "aiMeshLight", label="Light Shape")

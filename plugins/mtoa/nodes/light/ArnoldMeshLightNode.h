@@ -44,6 +44,7 @@ public:
 
    MObject GetMeshObject() const;
 
+   static MTypeId id;
    static CStaticAttrHelper s_attributes;
 
    // Input attributes
@@ -56,7 +57,6 @@ public:
    static  MObject s_affectDiffuse;
    static  MObject s_affectSpecular;
    static  MObject s_lightVisible;
-   static  MObject s_update;
 
    // Arnold outputs
    static  MObject s_OUT_colorR;
@@ -68,7 +68,6 @@ public:
    static  MObject s_OUT_transparencyB;
    static  MObject s_OUT_transparency;
 
-/*
    // Maya specific inputs
    static  MObject s_pointCamera;
    static  MObject s_normalCamera;
@@ -82,7 +81,6 @@ public:
    static  MObject aPreShadowIntensity;
    static  MObject aLightBlindData;
    static  MObject aLightData;
-*/
 
 #if MAYA_API_VERSION >= 201700
    // Maya shadowing inputs
@@ -92,10 +90,6 @@ public:
    static  MObject aDepthMapResolution;
    static  MObject aShadowColor;
 #endif
-
-public:
-   MBoundingBox         m_boundingBox;
-   static   MTypeId     id;
 
 #if MAYA_API_VERSION >= 201700
 private:

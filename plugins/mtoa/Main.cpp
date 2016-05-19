@@ -6,6 +6,7 @@
 #include "viewport2/ArnoldVolumeDrawOverride.h"
 #include "viewport2/ArnoldAreaLightDrawOverride.h"
 #include "viewport2/ArnoldPhotometricLightDrawOverride.h"
+#include "viewport2/ArnoldMeshLightDrawOverride.h"
 #if MAYA_API_VERSION >= 201700
 #include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
 #include "viewport2/ArnoldLightBlockerGeometryOverride.h"
@@ -162,7 +163,11 @@ namespace // <anonymous>
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
 #endif
    const MString AI_MESH_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/meshLight";
-   const MString AI_MESH_LIGHT_NO_SWATCH = LIGHT_NO_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION;
+#if MAYA_API_VERSION >= 201700
+   const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION + ":drawdb/light/pointLight";
+#else
+   const MString AI_MESH_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_MESH_LIGHT_CLASSIFICATION;
+#endif
    const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
    const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
 
@@ -209,7 +214,7 @@ namespace // <anonymous>
       } , {
          "aiMeshLight", CArnoldMeshLightNode::id,
          CArnoldMeshLightNode::creator, CArnoldMeshLightNode::initialize,
-         MPxNode::kLocatorNode, &AI_MESH_LIGHT_NO_SWATCH
+         MPxNode::kLocatorNode, &AI_MESH_LIGHT_WITH_SWATCH
       } , {
          "aiLightBlocker", CArnoldLightBlockerNode::id,
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
@@ -273,6 +278,11 @@ namespace // <anonymous>
          "arnoldPhotometricLightNodeOverride",
          AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
          CArnoldPhotometricLightDrawOverride::creator
+      } ,
+      {
+         "arnoldMeshLightNodeOverride",
+         AI_MESH_LIGHT_CLASSIFICATION,
+         CArnoldMeshLightDrawOverride::creator
       }  
    };
 #endif

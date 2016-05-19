@@ -35,7 +35,6 @@ MObject CArnoldMeshLightNode::s_intensity;
 MObject CArnoldMeshLightNode::s_affectDiffuse;
 MObject CArnoldMeshLightNode::s_affectSpecular;
 MObject CArnoldMeshLightNode::s_lightVisible;
-MObject CArnoldMeshLightNode::s_update;
 // Arnold outputs
 MObject CArnoldMeshLightNode::s_OUT_colorR;
 MObject CArnoldMeshLightNode::s_OUT_colorG;
@@ -46,8 +45,7 @@ MObject CArnoldMeshLightNode::s_OUT_transparencyG;
 MObject CArnoldMeshLightNode::s_OUT_transparencyB;
 MObject CArnoldMeshLightNode::s_OUT_transparency;
 
-/*
-// Maya specific intputs
+// Maya specific inputs
 MObject CArnoldMeshLightNode::s_pointCamera;
 MObject CArnoldMeshLightNode::s_normalCamera;
 // Maya specific Outputs
@@ -60,7 +58,6 @@ MObject CArnoldMeshLightNode::aLightShadowFraction;
 MObject CArnoldMeshLightNode::aPreShadowIntensity;
 MObject CArnoldMeshLightNode::aLightBlindData;
 MObject CArnoldMeshLightNode::aLightData;
-*/
 
 #if MAYA_API_VERSION >= 201700
 // Maya area light attributes
@@ -71,12 +68,11 @@ MObject CArnoldMeshLightNode::aDepthMapResolution;
 MObject CArnoldMeshLightNode::aShadowColor;
 #endif
 
-CArnoldMeshLightNode::CArnoldMeshLightNode() :
-        m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
+CArnoldMeshLightNode::CArnoldMeshLightNode()
 #if MAYA_API_VERSION >= 201700
-        , m_aiCastShadows(true), m_aiCastVolumetricShadows(true)
+   : m_aiCastShadows(true), m_aiCastVolumetricShadows(true)
 #endif
-{ }
+{}
 
 CArnoldMeshLightNode::~CArnoldMeshLightNode() 
 {
@@ -90,7 +86,7 @@ void CArnoldMeshLightNode::postConstructor()
 {
    // Make the node not cast nor receive shadows
    //
-   MObject me = thisMObject();    
+   MObject me = thisMObject();
 
    MFnDependencyNode node(me);
    MPlug plug = node.findPlug("receiveShadows");
@@ -156,11 +152,11 @@ void CArnoldMeshLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage ms
          srcB.getValue(shadowColorB);
 
          MPlug destR = dependNode.findPlug("shadowColorR");
-			destR.setValue(shadowColorR);
+         destR.setValue(shadowColorR);
          MPlug destG = dependNode.findPlug("shadowColorG");
-			destG.setValue(shadowColorG);
+         destG.setValue(shadowColorG);
          MPlug destB = dependNode.findPlug("shadowColorB");
-			destB.setValue(shadowColorB);
+         destB.setValue(shadowColorB);
       }
 
       if (updateShadowAttr)
@@ -174,13 +170,8 @@ void CArnoldMeshLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage ms
 
 MStatus CArnoldMeshLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
-   // no need for GL stuff in the batch mode
-   if (plug != s_update || MGlobal::mayaState() == MGlobal::kBatch)
+   if ((plug != aLightData) && (plug.parent() != aLightData))
       return MS::kUnknownParameter;
-
-   // do this calculation every time if
-   // the mesh is changed, because aiTranslator cannot affect update
-   block.setClean(s_update);
 
    return MS::kSuccess;
 }
@@ -226,8 +217,6 @@ void CArnoldMeshLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    CMeshPrimitive primitive(mesh);
    primitive.draw();
 
-   m_boundingBox = MBoundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0));
-
    // Restore all GL bits
    glPopAttrib();
    view.endGL();
@@ -240,7 +229,9 @@ bool CArnoldMeshLightNode::isBounded() const
 
 MBoundingBox CArnoldMeshLightNode::boundingBox() const
 {
-   return m_boundingBox;
+   MObject meshObj = GetMeshObject();
+   MFnMesh mesh(meshObj);
+   return mesh.boundingBox();
 }
 
 void* CArnoldMeshLightNode::creator()
@@ -299,19 +290,13 @@ MStatus CArnoldMeshLightNode::initialize()
    nAttr.setChannelBox(true);
    addAttribute(s_lightVisible);
 
-   s_update = nAttr.create("update", "upt", MFnNumericData::kBoolean);
-   nAttr.setDefault(false);
-   addAttribute(s_update);
-
    // OUTPUT ATTRIBUTES
-
    MAKE_COLOR(s_OUT_color, "outColor", "ocl", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);
 
    MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_transparency);
 
-/*
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
    nAttr.setKeyable(true);
@@ -416,7 +401,6 @@ MStatus CArnoldMeshLightNode::initialize()
    attributeAffects(s_intensity, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
-*/
 
 #if MAYA_API_VERSION >= 201700
    // Area light attributes for display control
