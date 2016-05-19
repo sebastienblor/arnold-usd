@@ -31,6 +31,8 @@ try:
         def initializer(cls):
             cls.inheritAttributesFrom(selector.Selector.kTypeName)
 
+            # The Arnold AOV Node Name is the name of the aiAOV node for a particular AOV name.
+            # It is attached to an aiAOVDriver and aiAOVFilter.
             default = OpenMaya.MFnStringData().create('')
             attr = OpenMaya.MFnTypedAttribute()
             cls.aAOVNodeName = cls.createInput(attr,["arnoldAOVNodeName", "ann", OpenMaya.MFnData.kString, default])
@@ -56,11 +58,8 @@ try:
 
         def setAOVNodeName(self, val):
             if val != self.getAOVNodeName():
-                with undo.NotifyCtxMgr(selector.kSet % (self.name(), 'arnoldAOVNodeName', val), self._AOVNodeNameChanged):
+                with undo.NotifyCtxMgr(selector.kSet % (self.name(), 'arnoldAOVNodeName', val), self.selectionChanged):
                     cmds.setAttr( self.name() + '.arnoldAOVNodeName', val, type='string')
-
-        def _AOVNodeNameChanged(self):
-            self.selectionChanged()
 
         def acceptsType(self, typeName, dataBlock=None):
             return typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"]
@@ -87,24 +86,24 @@ try:
         def names(self):
             return self._cache
 
+        @selector.Selector.synced
+        def nodes(self):
+            return self.selection().nodes()
+
         def onNodeAdded(self, **kwargs):
             if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
                 self.selectionChanged()
         
         def onNodeRemoved(self, **kwargs):
-            if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName() in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+            if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
                 self.selectionChanged()
         
         def onNodeRenamed(self, **kwargs):
             if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
                 self.selectionChanged()
-        
-        def onNodeReparented(self, **kwargs):
-            if cmds.nodeType(kwargs['child'].fullPathName()) in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
-                self.selectionChanged()
-                
+   
         def onConnectionChanged(self, **kwargs):
-            if cmds.nodeType(kwargs['srcPlug']) in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
+            if cmds.nodeType(kwargs['srcPlug']) == "aiAOV" and cmds.nodeType(kwargs['dstPlug']) in ["aiAOVDriver", "aiAOVFilter"]:
                 self.selectionChanged()
 
 
@@ -191,7 +190,7 @@ try:
                 for key, value in output.iteritems():
 
                     # If we're doing a merge, we need to delete the nodes that overlap with the nodes we are importing.
-                    aovName = key[6:] # Remove aiAOV_ from the start of the string
+                    aovName = key[len('aiAOV_'):] # Remove aiAOV_ from the start of the string
                     if decodeType == self.DECODE_TYPE_MERGE and AOVInterface().getAOVNode(aovName) != None:
                         AOVInterface().removeAOV(aovName)
 
@@ -275,7 +274,7 @@ try:
             return returnSelectorName
 
         # Creates a selector for the AOV Child Collection for a particular AOV name. Retrieves the AOV node (aiAOV) from
-        # the AOV name and then uses include hierarchy to select the attached nodes (aiAOVFilter and aiAOVDriver nodes).
+        # the AOV name and then uses a custom selector to find aiAOVFilter and aiAOVDriver nodes from the aiAOV node.
         def getChildCollectionSelector(self, selectorName, aovName):
             returnSelectorName = cmds.createNode(aovselector.ArnoldAOVChildSelector.kTypeName, name=selectorName, skipSelect=True)
             currentSelector = renderSetupUtils.nameToUserNode(returnSelectorName)
