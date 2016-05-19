@@ -1,0 +1,63 @@
+# vim: filetype=python
+
+import system, os
+from build_tools import find_files_recursive
+
+##############################################################3
+####  HAIR PHYSICAL SHADER TRANSLATOR
+# import build env
+Import('ext_env')
+local_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'hairPhysicalShader', 'plugin')
+
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+mayaRoot = local_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+local_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+
+if system.os() =='windows':
+   local_env.Append(CPPPATH = ['.'])   
+   local_env.Append(LIBS=Split('ai.lib'))
+else:
+   local_env.Append(CPPPATH = ['.'])
+   local_env.Append(LIBS=Split('ai'))
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+EXT = local_env.SharedLibrary('hairPhysicalShaderTranslator', source_files, LIBPREFIX='')
+
+###########################################################3
+#### HAIR PHYSICAL SHADER SHADERS
+# import build env
+Import('ext_env')
+shader_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'hairPhysicalShader', 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+mayaRoot = shader_env['MAYA_ROOT']
+if system.os() == 'darwin':
+    mayaRoot = mayaRoot.replace('Maya.app/Contents', '')
+    mayaRoot = mayaRoot.replace('//', '/')
+
+shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
+
+if system.os() =='windows':
+   shader_env.Append(CPPPATH = ['.'])   
+   shader_env.Append(LIBS=Split('ai.lib'))
+else:
+   shader_env.Append(CPPPATH = ['.'])
+   shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+EXT_SHADERS = shader_env.SharedLibrary('hairPhysicalShader_shaders', source_files, LIBPREFIX='')
+
+Return('EXT EXT_SHADERS')
