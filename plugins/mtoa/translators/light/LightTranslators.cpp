@@ -417,11 +417,20 @@ MObject CMeshLightTranslator::GetMeshObject() const
 void CMeshLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
-   
+
+   AtNode* meshNode = GetArnoldNode("mesh");
+
+   // Set mesh node visibility according to light node visibility
+   if (!m_session->IsRenderablePath(m_dagPath))
+   {
+      AiNodeSetDisabled(meshNode, true);
+      return; // early out since light is not visible
+   }
+   AiNodeSetDisabled(meshNode, false);
+
    MStatus status;
-   
    MFnDependencyNode fnDepNode(m_dagPath.node());
-   
+
    AiNodeSetInt(light, "decay_type", FindMayaPlug("aiDecayType").asInt());
    AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(),
            FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
@@ -435,7 +444,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       return;
    }
 
-   AtNode* meshNode = ExportSimpleMesh(meshObject);
+   meshNode = ExportSimpleMesh(meshObject);
    if (meshNode == NULL)
    {
       AiMsgWarning("[mtoa] Failed to export mesh for mesh_light");

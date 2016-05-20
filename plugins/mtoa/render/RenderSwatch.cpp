@@ -331,7 +331,35 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       AiV3Create(frame[3], 0.707107f, -0.408248f, 0.57735f);
       AiM4Frame(matrix, &frame[0], &frame[1], &frame[2], &frame[3]);
 
-      AiNodeSetMatrix(arnoldNode, "matrix", matrix);
+      if (strcmp(AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)), "mesh_light") == 0)
+      {
+         // Special case for mesh lights.
+         // The mesh can be of any size and shape and will not give a consistent 
+         // result. So instead use a quad light stand-in with the same properties.
+         AtNode *light = AiNode("quad_light");
+         AiNodeSetStr(light, "name", "light");
+         AiNodeSetMatrix(light, "matrix", matrix);
+         AtRGB color = AiNodeGetRGB(arnoldNode, "color");
+         AiNodeSetRGB(light,  "color", color.r, color.g, color.b);
+         AiNodeSetFlt(light,  "intensity",       AiNodeGetFlt(arnoldNode, "intensity"));
+         AiNodeSetFlt(light,  "exposure",        AiNodeGetFlt(arnoldNode, "exposure"));
+         AiNodeSetInt(light,  "samples",         AiNodeGetInt(arnoldNode, "samples"));
+         AiNodeSetBool(light, "normalize",       AiNodeGetBool(arnoldNode, "normalize"));
+         AiNodeSetInt(light,  "decay_type",      AiNodeGetInt(arnoldNode, "decay_type"));
+         AiNodeSetBool(light, "affect_diffuse",  AiNodeGetBool(arnoldNode, "affect_diffuse"));
+         AiNodeSetBool(light, "affect_specular", AiNodeGetBool(arnoldNode, "affect_specular"));
+         AiNodeSetFlt(light,  "diffuse",         AiNodeGetFlt(arnoldNode, "diffuse"));
+         AiNodeSetFlt(light,  "specular",        AiNodeGetFlt(arnoldNode, "specular"));
+
+         // Hide original mesh light
+         AtNode* meshNode = translator->GetArnoldNode("mesh");
+         AiNodeSetDisabled(meshNode, true);
+         AiNodeSetDisabled(arnoldNode, true);
+      }
+      else
+      {
+         AiNodeSetMatrix(arnoldNode, "matrix", matrix);
+      }
    }
    else if (m_swatchClass == SWATCH_LIGHTFILTER || m_swatchClass == SWATCH_ATMOSPHERE)
    {
