@@ -84,7 +84,7 @@ def makeTx(filename, colorspace='auto'):
     render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
     
     if colorspace not in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
-        print '[maketx] Warning: Invalid input colorspace "%s" for "%s" with color engine "%s", falling back to rendering colorspace ("%s")' % (colorspace, filename, color_engine, render_colorspace)
+        print '[maketx] Warning: Invalid input colorspace "%s" for "%s", falling back to rendering colorspace ("%s")' % (colorspace, filename, render_colorspace)
         colorspace = render_colorspace
 
     for tile in expandTokens(filename):
