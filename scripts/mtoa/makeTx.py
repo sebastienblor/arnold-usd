@@ -70,22 +70,27 @@ def guessColorspace(filename):
 _maketx_rx_stats = re.compile('maketx run time \(seconds\):\s*(.+)')
 _maketx_rx_noupdate = re.compile('no update required')
 _maketx_binary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'maketx')
+_maketx_cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio']
 
 def makeTx(filename, colorspace='auto'):
     '''Generate a TX texture with maketx
     '''
     status = {'updated': 0, 'skipped': 0, 'error': 0}
+    cmd = _maketx_cmd
     
-    if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
-        color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
-    else:
-        color_config = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cmds.__file__)))))), 'synColor')
+    if cmds.colorManagementPrefs(q=True, cmEnabled=True):
+        if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
+            if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
+                color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
+            else:
+                color_config = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cmds.__file__)))))), 'synColor')
 
-    render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
-    
-    if colorspace not in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
-        print '[maketx] Warning: Invalid input colorspace "%s" for "%s", falling back to rendering colorspace ("%s")' % (colorspace, filename, render_colorspace)
-        colorspace = render_colorspace
+            render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
+            
+            if colorspace != render_colorspace:
+                cmd += ['--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace]
+        else:
+            print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
 
     for tile in expandTokens(filename):
         if os.path.splitext(tile)[1] == '.tx':
@@ -96,8 +101,7 @@ def makeTx(filename, colorspace='auto'):
         if colorspace == 'auto':
             colorspace = guessColorspace(tile)
         
-        cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio', '--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace, tile]
-        res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
+        res = subprocess.Popen(cmd + [tile], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
         
         if re.search(_maketx_rx_noupdate, res):
             print '[maketx] TX texture is up to date for "%s" (%s)' % (tile, colorspace)
