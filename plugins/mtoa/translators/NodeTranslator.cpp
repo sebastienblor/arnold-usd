@@ -759,14 +759,13 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      if (translator->m_holdUpdates) // only happens for Arnold RenderView
-      {
-         // I'm still waiting to update this translator, 
-         // I can leave this place
-         return;
-      }
+      // only happens for Arnold RenderView
+      // it means I'm still waiting to update this translator 
+      if (translator->m_holdUpdates) return;
+      
+      // must this specific parameter trigger a render update ?
+      if (!translator->RequireUpdate(plug)) return;
   
-
       // procedurals need to clear and re-export at next update (ticket #2314)
       // only for renderView to avoid new bugs.... 
       if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
@@ -1038,6 +1037,11 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
    }
 }
 
+// By default, all parameters must trigger a render update
+bool CNodeTranslator::RequireUpdate(const MPlug &param)
+{
+   return true;
+}
 /// add this node's AOVs into the passed AOVSet
 void CNodeTranslator::RequestUpdate(void *clientData)
 {

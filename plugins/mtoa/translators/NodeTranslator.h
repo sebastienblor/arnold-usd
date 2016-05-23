@@ -104,6 +104,10 @@ public:
    // Used by the Update callbacks.
    virtual void RequestUpdate(void * clientData = NULL);
 
+   // Ask the translator if this parameter has to trigger a render update or not
+   // default is true
+   virtual bool RequireUpdate(const MPlug &param);
+
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
    bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
