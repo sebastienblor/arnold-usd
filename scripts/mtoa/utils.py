@@ -475,6 +475,21 @@ def createLocator(locatorType, asLight=False):
         pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
+def centerPivot(node):
+    cmds.xform(node, centerPivots=True)
+    m = cmds.xform(node, query=True, matrix=True)
+    p = cmds.xform(node, query=True, objectSpace=True, scalePivot=True)
+    oldPos = [
+        (p[0]*m[0] + p[1]*m[4]+ p[2]*m[8]  + m[12]),
+        (p[0]*m[1] + p[1]*m[5]+ p[2]*m[9]  + m[13]),
+        (p[0]*m[2] + p[1]*m[6]+ p[2]*m[10] + m[14])
+    ]
+    cmds.xform(node, zeroTransformPivots=True)
+    # Translate node back to previous pivot (preserving child transform positions and geometry positions)
+    [newPos] = cmds.getAttr(node + ".translate")
+    cmds.move(oldPos[0]-newPos[0], oldPos[1]-newPos[1], oldPos[2]-newPos[2], node,
+        preserveChildPosition=True, preserveGeometryPosition=True, localSpace=True, relative=True)
+
 def createMeshLight(legacy=False):
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
@@ -491,6 +506,7 @@ def createMeshLight(legacy=False):
     else:
         (lightShape,lightTransform) = createLocator('aiMeshLight', asLight=True)
         cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
+        centerPivot(meshTransform)
         cmds.matchTransform(lightTransform, meshTransform)
         cmds.parent(meshTransform, lightTransform)
         cmds.setAttr('%s.intermediateObject' % meshShape, 1)
