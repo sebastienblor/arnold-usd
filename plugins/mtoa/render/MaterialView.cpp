@@ -9,6 +9,7 @@
 #include "translators/DagTranslator.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/ExtensionsManager.h"
+#include "attributes/AttrHelper.h"
 
 #include <maya/MSwatchRenderBase.h>
 #include <maya/MTransformationMatrix.h>
@@ -547,8 +548,27 @@ void CMaterialView::InitOptions()
    AiNodeSetInt(options, "bucket_size", 32);
    AiNodeSetStr(options, "pin_threads", "off");
    AiNodeSetInt(options, "threads", m_job.maxThreads);
-   AiNodeSetInt(options, "GI_sss_samples", 4);
-   AiNodeSetInt(options, "GI_diffuse_depth", 1);
+
+   // Setup ray depth and sampling options
+   // Default setting will be used if the options node
+   // has not been created yet
+   MSelectionList list;
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      MObject renderOptions;
+      list.getDependNode(0, renderOptions);
+      MFnDependencyNode fnArnoldRenderOptions(renderOptions);
+      AiNodeSetInt(options, "GI_diffuse_samples",    fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_samples")).asInt());
+      AiNodeSetInt(options, "GI_glossy_samples",     fnArnoldRenderOptions.findPlug(toMayaStyle("GI_glossy_samples")).asInt());
+      AiNodeSetInt(options, "GI_refraction_samples", fnArnoldRenderOptions.findPlug(toMayaStyle("GI_refraction_samples")).asInt());
+      AiNodeSetInt(options, "GI_sss_samples",        fnArnoldRenderOptions.findPlug(toMayaStyle("GI_sss_samples")).asInt());
+      AiNodeSetInt(options, "GI_total_depth",        fnArnoldRenderOptions.findPlug(toMayaStyle("GI_total_depth")).asInt());
+      AiNodeSetInt(options, "GI_diffuse_depth",      fnArnoldRenderOptions.findPlug(toMayaStyle("GI_diffuse_depth")).asInt());
+      AiNodeSetInt(options, "GI_glossy_depth",       fnArnoldRenderOptions.findPlug(toMayaStyle("GI_glossy_depth")).asInt());
+      AiNodeSetInt(options, "GI_reflection_depth",   fnArnoldRenderOptions.findPlug(toMayaStyle("GI_reflection_depth")).asInt());
+      AiNodeSetInt(options, "GI_refraction_depth",   fnArnoldRenderOptions.findPlug(toMayaStyle("GI_refraction_depth")).asInt());
+   }
 }
 
 void CMaterialView::InterruptRender(bool waitFinished)

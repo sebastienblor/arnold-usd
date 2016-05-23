@@ -11,14 +11,7 @@ class CArnoldSkyDomeLightNode
 {
 
 public:
-   virtual void postConstructor()
-   {
-      // Call parent postConstructor as it is not done automatically as the parent constructor
-      CSphereLocator::postConstructor();
-      
-      setMPSafe(true);
-   }
-
+   virtual void postConstructor();
 
    static void* creator();
    static MStatus initialize();

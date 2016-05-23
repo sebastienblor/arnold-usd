@@ -452,7 +452,7 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
    return 0;
 }
 
-void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
+int CRenderSession::DoInteractiveRender()
 {
    assert(AiUniverseIsActive());
 
@@ -465,6 +465,8 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
                                     AI_PRIORITY_LOW);
+
+   int status = AI_SUCCESS;
    // DEBUG_MEMORY;
    // Block until the render finishes
    s_comp = new MComputation();
@@ -472,7 +474,10 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    while (MAtomic::compareAndSwap(&s_renderingFinished, 1, 1) != 1)
    {
       if (s_comp->isInterruptRequested())
+      {
          AiRenderInterrupt();
+         status = AI_INTERRUPT;
+      }
       CCritSec::CScopedLock sc(m_render_lock);
       if (m_renderCallback != 0)
          m_renderCallback();
@@ -491,11 +496,9 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
       m_render_thread = 0;
-   } 
+   }
 
-   CMayaScene::End();
-
-   CMayaScene::ExecuteScript(postRenderMel, false, true);   
+   return status;
 }
 
 

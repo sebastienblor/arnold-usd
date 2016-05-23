@@ -75,8 +75,8 @@ elif (int(maya_version_base) == 2016):
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.6-include') 
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.6-include.tar.gz')
 elif (int(maya_version_base) == 2017):
-    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.0-include') 
-    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.0-include.tar.gz')
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
 
 if not os.path.isdir(mayaQtFolder):
     if os.path.exists(mayaQtTarGz):
@@ -116,7 +116,7 @@ if system.os() == 'windows':
         local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib'])
 elif system.os() == 'linux':
     if (int(maya_version_base) <= 2016):
-        local_env.Append(LIBS = ['QtCore4', 'QtGui4', 'QtOpenGL4'])
+        local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
     else:
         local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL'])
 
