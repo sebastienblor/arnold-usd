@@ -24,11 +24,11 @@
     <properties>
         <float3 name="color" ref="standardShaderCombiner.color" />
         <float3 name="KsColor" ref="standardShaderCombiner.specularColor" />
-        <float name="Kd" ref="standardShaderDiffuse.Kd" />
+        <float name="Kd" ref="standardShaderCombiner.Kd" />
         <float name="Ks" ref="standardShaderCombiner.Ks" />
         <float name="directDiffuse" ref="standardShaderCombiner.directDiffuse" />
         <float name="directSpecular" ref="standardShaderCombiner.directSpecular" />
-        <float name="specularRoughness" ref="standardShaderSpecular.roughness" />
+        <float name="specularRoughness" ref="standardShaderSpecular.specularRoughness" />
         <float3 name="emissionColor" ref="standardShaderEmission.emissionColor" />
         <float name="emission" ref="standardShaderEmission.emission" />
         <bool name="specularFresnel" ref="standardShaderCombiner.specularFresnel" />
@@ -36,6 +36,8 @@
         <bool name="FresnelUseIOR" ref="standardShaderCombiner.FresnelUseIOR" />
         <float name="Ksn" ref="standardShaderCombiner.Ksn" />
         <float name="IOR" ref="standardShaderCombiner.IOR" />
+        <float3 name="IrradianceEnv" ref="standardShaderCombiner.IrradianceEnv" />
+        <float3 name="SpecularEnv" ref="standardShaderCombiner.SpecularEnv" />
         <float3 name="Nw" ref="standardShaderLightingCombiner.N" flags="varyingInputParam" />-
         <float3 name="Vw" ref="standardShaderLightingCombiner.V" flags="varyingInputParam" />
         <float3 name="Lw" ref="standardShaderLightingCombiner.L" flags="varyingInputParam" />

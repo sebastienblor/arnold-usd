@@ -405,6 +405,11 @@ MStatus CArnoldStandardNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Ks);
 
+   s_specular_roughness = nAttr.create("specular_roughness", "dsgh", MFnNumericData::kFloat, 0.5f);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_specular_roughness);
+
    MAKE_COLOR(s_Ks_color, "Ks_color", "ksc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Ks_color);
 
