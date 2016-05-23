@@ -462,6 +462,13 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
       }
 
+      /*   FIXME : we're still having crashes when updating standins. For examples when nodes from one file reference nodes from another file
+      if (!AiNodeLookUpUserParameter(procedural, "allow_updates"))
+      {
+         AiNodeDeclare(procedural, "allow_updates", "constant BOOL");
+      }
+      AiNodeSetBool(procedural, "allow_updates", true); // do we need a security valve here ? like a new parameter to control that ?
+      */
    }
    return procedural;
 }

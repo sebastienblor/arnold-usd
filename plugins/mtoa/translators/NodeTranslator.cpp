@@ -33,6 +33,7 @@
 #include <maya/MTimerMessage.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MFnTransform.h>
+#include <maya/MEventMessage.h>
 
 #include <string>
 #include <algorithm>
@@ -46,6 +47,10 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+static MCallbackId s_idleCallback = 0;
+static std::vector<CNodeTranslator *> s_updatedProcedurals;
+
 
 MString GetAOVNodeType(int type)
 {
@@ -721,7 +726,28 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
+void CNodeTranslator::IdleCallback(void *data)
+{
+   if(s_idleCallback)
+   {
+      MMessage::removeCallback(s_idleCallback);
+      s_idleCallback = 0;
+   }
 
+   std::vector<CNodeTranslator *> updateProcs = s_updatedProcedurals;
+   s_updatedProcedurals.clear();
+
+   for (size_t i = 0; i < updateProcs.size(); ++i)
+   {
+      CNodeTranslator *translator = updateProcs[i];
+      
+      if (translator == NULL) continue;
+      translator->m_updateMode = AI_RECREATE_NODE;
+      translator->m_holdUpdates = false;
+      translator->RequestUpdate((void*)translator);
+
+   }
+}
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
@@ -739,6 +765,46 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          // I can leave this place
          return;
       }
+  
+
+      // procedurals need to clear and re-export at next update (ticket #2314)
+      // only for renderView to avoid new bugs.... 
+      if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+      {
+         // I first wanted to do that in CProceduralTranslator
+         // but CStandinTranslator doesn't inherit from CProceduralTranslator,
+         // and nothing guarantees that people won't create procedural nodes in whatever 
+         //  translator. So instead I'm testing the Translator Arnold NodeType
+         if(strcmp(translator->GetArnoldNodeType().asChar(), "procedural") == 0) 
+         {
+            AtNode *rootNode = translator->GetArnoldRootNode();
+            if (rootNode != NULL)
+            {
+               bool b = false;
+
+               const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
+               bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
+               allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
+         
+               if (allowUpdates)
+               {
+                  // check if user data exists
+                  if(s_idleCallback == 0)
+                  {
+                     MStatus status;
+                     s_idleCallback = MEventMessage::addEventCallback("idle",
+                        CNodeTranslator::IdleCallback, (void*)NULL, &status);
+                  }
+                  s_updatedProcedurals.push_back(translator);
+                  translator->m_holdUpdates = true;
+
+               }
+               return;
+            }
+         }
+      }
+
+
       if (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()) return;
 
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
@@ -756,7 +822,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->RequestUpdate(clientData);
          return;
       }
-      
+
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {
          std::vector< CDagTranslator * > translatorsToUpdate;
@@ -905,7 +971,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->m_updateMode = AI_RECREATE_NODE;
       else
          translator->m_updateMode = AI_UPDATE_ONLY;
-         
+      
       const char* arnoldType = translator->GetArnoldTypeName();
       if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
       {
@@ -988,7 +1054,6 @@ void CNodeTranslator::RequestUpdate(void *clientData)
       if (session->IsInteractiveRender() && session->IsExportingMotion()) return;
       if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
-         
          if (!m_holdUpdates)
          {
             m_holdUpdates = true;
