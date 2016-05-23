@@ -3,6 +3,7 @@
     <properties>
         <float3 name="hardwareColor" />
         <float3 name="diffuseInput" />
+        <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
         <float3 name="hardwareColor" value="1.0 1.0 1.0" />

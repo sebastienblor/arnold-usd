@@ -15,6 +15,7 @@
         <float name="Ksn" />
         <float name="Ks" />
         <float name="IOR" />
+        <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
         <float3 name="color" value="1.0 1.0 1.0" />
