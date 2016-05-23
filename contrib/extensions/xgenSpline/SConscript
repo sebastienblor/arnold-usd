@@ -10,7 +10,7 @@ Import('ext_env')
 local_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'xgen', 'plugin')
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'xgenSpline', 'plugin')
 
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
@@ -30,17 +30,16 @@ else:
    local_env.Append(LIBS=Split('ai'))
    local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
-EXT = local_env.SharedLibrary('xgenTranslator', source_files, LIBPREFIX='')
+EXT = local_env.SharedLibrary('xgenSplineTranslator', source_files, LIBPREFIX='')
 
 ###########################################################3
-#### XGEN SHADERS  (currently none)
+#### XGEN SHADERS
 # import build env
-'''
 Import('ext_env')
 shader_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
-src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'xgen', 'shaders')
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'xgenSpline', 'shaders')
 source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
@@ -52,6 +51,7 @@ if system.os() == 'darwin':
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'include')])
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include')])
 shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen')])
+shader_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen')])
 shader_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 
 if system.os() =='windows':
@@ -66,8 +66,7 @@ else:
    shader_env.Append(LIBS=Split('AdskXGen'))
    shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
-EXT_SHADERS = shader_env.SharedLibrary('xgen_shaders', source_files, LIBPREFIX='')
-'''
+EXT_SHADERS = shader_env.SharedLibrary('xgenSpline_shaders', source_files, LIBPREFIX='')
 
 ##########################################################
 ## XGEN  PROCEDURAL
@@ -75,9 +74,9 @@ EXT_SHADERS = shader_env.SharedLibrary('xgen_shaders', source_files, LIBPREFIX='
 Import('env')
 proc_env = env.Clone()
 
-src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'contrib', 'extensions', 'xgen','procedural')
-include_files =  [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+src_base_dir  = os.path.join(proc_env['ROOT_DIR'], 'contrib', 'extensions', 'xgenSpline','procedural')
 source_files  = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('procedural', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
 mayaRoot = proc_env['MAYA_ROOT']
 if system.os() == 'darwin':
@@ -90,8 +89,6 @@ proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include')
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'xgen')])
 proc_env.Append(CPPPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'include', 'XGen')])
 proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
-
-proc_env.Append(CPPDEFINES = Split('_BOOL'))
 
 if system.os() =='windows':
    proc_env.Append(CPPPATH = ['.'])   
@@ -106,8 +103,7 @@ else:
    proc_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x -stdlib=libc++')) # hide symbols by default
    proc_env.Append(LINKFLAGS = Split('-lc++')) # hide symbols by default
 
-EXT_PROCS = proc_env.SharedLibrary('xgen_procedural', source_files, LIBPREFIX='')
+EXT_PROCS = proc_env.SharedLibrary('xgenSpline_procedural', source_files, LIBPREFIX='')
 EXT_PROCS.target_type = 'procedural'
 
-#Return('EXT EXT_SHADERS EXT_PROCS')
-Return('EXT EXT_PROCS')
+Return('EXT EXT_SHADERS EXT_PROCS')
