@@ -103,7 +103,8 @@ else:
    proc_env.Append(LIBS=Split('ai'))
    proc_env.Append(LIBS=Split('AdskSeExpr'))
    proc_env.Append(LIBS=Split('AdskXGen'))
-   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x -stdlib=libc++')) # hide symbols by default
+   proc_env.Append(LINKFLAGS = Split('-lc++')) # hide symbols by default
 
 EXT_PROCS = proc_env.SharedLibrary('xgen_procedural', source_files, LIBPREFIX='')
 EXT_PROCS.target_type = 'procedural'
