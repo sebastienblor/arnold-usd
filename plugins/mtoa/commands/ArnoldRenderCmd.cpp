@@ -1,5 +1,6 @@
 #include "ArnoldRenderCmd.h"
 #include "scene/MayaScene.h"
+#include "render/OutputDriver.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
@@ -466,6 +467,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       CMayaScene::End();
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);
+
+      // Workaround for overriding the render view caption that Maya
+      // sets after rendering is finished. Set the last caption again 
+      // deferred to override Maya's caption.
+      const MString& captionCmd = GetLastRenderViewCaptionCommand();
+      if (captionCmd != "")
+      {
+         MGlobal::executeCommandOnIdle(captionCmd, false);
+      }
+
       // DEBUG_MEMORY;
    }
 
