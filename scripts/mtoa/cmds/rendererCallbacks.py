@@ -18,6 +18,7 @@ try:
     import maya.app.renderSetup.model.utils as renderSetupUtils
     import maya.app.renderSetup.model.aovselector as aovselector
     from mtoa.aovs import AOVInterface
+    import mtoa.core as core
     import mtoa.ui.aoveditor as aoveditor
     import json
     import maya.api.OpenMaya as OpenMaya
@@ -111,12 +112,6 @@ try:
         DEFAULT_ARNOLD_DRIVER_NAME = "defaultArnoldDriver"
         DEFAULT_ARNOLD_FILTER_NAME = "defaultArnoldFilter"
     
-        # The Arnold AOV nodes only exist if the unifiedRenderGlobalsWindow has been opened.
-        def _createUnifiedRenderGlobalsWindowIfNeeded(self):
-            if not cmds.window("unifiedRenderGlobalsWindow", exists=True):
-                mel.eval("unifiedRenderGlobalsWindow()")
-                cmds.window("unifiedRenderGlobalsWindow", edit=True, visible=False)
-    
         def encode(self):
             aovsJSON = {}
             basicNodeExporter = rendererCallbacks.BasicNodeExporter()
@@ -175,7 +170,7 @@ try:
          
         def decode(self, aovsJSON, decodeType):
             
-            self._createUnifiedRenderGlobalsWindowIfNeeded()
+            core.createOptions()
 
             # We're doing a replace, so remove all previous AOVs
             if decodeType == self.DECODE_TYPE_OVERWRITE:
