@@ -19,35 +19,14 @@ def doCreateStandInFile():
     LoadStandInButtonPush(node.name())
 
 def doExportStandIn():
-    # Get the workspace path
-    workspaceDir = cmds.workspace(fullName = True)
-
-    # Open a file Dialog with Export Active Template
-    file = cmds.fileDialog2(returnFilter = 1,
-                            caption = "Export Arnold File",
-                            fileMode = 0,
-                            okCaption = "Export",
-                            fileFilter = "ASS Export (*.ass)",
-                            selectFileFilter = "ASS Export",
-                            startingDirectory = workspaceDir,
-                            optionsUICreate = "fileOperationsOptionsUISetup ExportActive",
-                            optionsUIInit = "fileOperationsOptionsUIInitValues ExportActive",
-                            selectionChanged = "fileOperationsSelectionChangedCallback ExportActive",
-                            optionsUICommit2 = "fileOperationsOptionsUICallback ExportActive",
-                            fileTypeChanged = "setCurrentFileTypeOption ExportActive")
-
-    if file is None:
-        # No operation was performed
-        return 0
-
-    length = int(len(file))
-
-    if( length > 0 and file[0] != "" and file[length-1] == "ASS Export"):
-        cmds.file(file[0], exportSelected = True, type = file[length-1], force = True)
-    else:
-        # Empty return means file operation was not performed
-        return 0
-    return 1
+    #Save the defaultType
+    default = cmds.optionVar(q='defaultFileExportActiveType')
+    try:
+        #Change it to ASS
+        cmds.optionVar(sv=('defaultFileExportActiveType', "ASS Export"))
+        pm.mel.eval('ExportSelection')
+    finally:
+        cmds.optionVar(sv=('defaultFileExportActiveType', default))
     
 def doCreateMeshLight():
     sls = cmds.ls(sl=True, et='transform')
