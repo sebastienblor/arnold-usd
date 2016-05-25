@@ -55,6 +55,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
+   /* Ticket #2377 : 
+   Commenting this for now, as we don't know if we really want ARV to be used for sequence rendering
+   
    if (sequence && !batch)
    {
       // Sequence interactive rendering
@@ -62,6 +65,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // If it can't it will return false, and we'll keep using Maya's native one
       if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
    }
+   */
 
    // Rendered camera
    MString camera = "";
