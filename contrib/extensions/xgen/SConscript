@@ -94,17 +94,20 @@ proc_env.Append(LIBPATH = [os.path.join(mayaRoot, 'plug-ins', 'xgen', 'lib')])
 proc_env.Append(CPPDEFINES = Split('_BOOL'))
 
 if system.os() =='windows':
-   proc_env.Append(CPPPATH = ['.'])   
-   proc_env.Append(LIBS=Split('ai.lib'))
-   proc_env.Append(LIBS=Split('libAdskSeExpr.lib'))
-   proc_env.Append(LIBS=Split('libAdskXGen.lib'))
+    proc_env.Append(CPPPATH = ['.'])   
+    proc_env.Append(LIBS=Split('ai.lib'))
+    proc_env.Append(LIBS=Split('libAdskSeExpr.lib'))
+    proc_env.Append(LIBS=Split('libAdskXGen.lib'))
 else:
-   proc_env.Append(CPPPATH = ['.'])
-   proc_env.Append(LIBS=Split('ai'))
-   proc_env.Append(LIBS=Split('AdskSeExpr'))
-   proc_env.Append(LIBS=Split('AdskXGen'))
-   proc_env.Append(CCFLAGS = Split('-fvisibility=hidden -std=c++0x -stdlib=libc++')) # hide symbols by default
-   proc_env.Append(LINKFLAGS = Split('-lc++')) # hide symbols by default
+    proc_env.Append(CPPPATH = ['.'])
+    proc_env.Append(LIBS=Split('ai'))
+    proc_env.Append(LIBS=Split('AdskSeExpr'))
+    proc_env.Append(LIBS=Split('AdskXGen'))
+    proc_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+    
+    if system.os() == 'darwin':
+        proc_env.Append(CCFLAGS = Split('-std=c++0x -stdlib=libc++'))
+        proc_env.Append(LINKFLAGS = Split('-lc++'))
 
 EXT_PROCS = proc_env.SharedLibrary('xgen_procedural', source_files, LIBPREFIX='')
 EXT_PROCS.target_type = 'procedural'
