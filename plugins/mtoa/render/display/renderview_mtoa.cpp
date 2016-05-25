@@ -33,7 +33,7 @@ void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clien
 void CRenderViewMtoA::ResolutionChangedCallback(void *) {}
 void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
 void CRenderViewMtoA::UpdateColorManagement(){}
-void CRenderViewMtoA::RenderSequence(float first, float last, float step) {}
+MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step) {return MStatus::kSuccess;}
 
 #else
 
