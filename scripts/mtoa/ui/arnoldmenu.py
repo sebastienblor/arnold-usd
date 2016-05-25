@@ -27,6 +27,10 @@ def doExportStandIn():
         pm.mel.eval('ExportSelection')
     finally:
         cmds.optionVar(sv=('defaultFileExportActiveType', default))
+
+def doExportOptionsStandIn():
+    pm.mel.eval('ExportSelectionOptions')
+    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
     
 def doCreateMeshLight():
     sls = cmds.ls(sl=True, et='transform')
@@ -297,6 +301,8 @@ def createArnoldMenu():
                     c=lambda *args: doCreateStandInFile())
         pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export',
                     c=lambda *args: doExportStandIn())
+        pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
+                    c=lambda *args: doExportOptionsStandIn())
 
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True, tearOff=True)
         
