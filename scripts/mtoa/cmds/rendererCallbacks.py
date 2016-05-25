@@ -16,7 +16,6 @@ try:
     from maya.app.renderSetup.model.selection import Selection
     import maya.app.renderSetup.model.undo as undo
     import maya.app.renderSetup.model.utils as renderSetupUtils
-    import maya.app.renderSetup.model.aovselector as aovselector
     from mtoa.aovs import AOVInterface
     import mtoa.core as core
     import mtoa.ui.aoveditor as aoveditor
@@ -271,7 +270,7 @@ try:
         # Creates a selector for the AOV Child Collection for a particular AOV name. Retrieves the AOV node (aiAOV) from
         # the AOV name and then uses a custom selector to find aiAOVFilter and aiAOVDriver nodes from the aiAOV node.
         def getChildCollectionSelector(self, selectorName, aovName):
-            returnSelectorName = cmds.createNode(aovselector.ArnoldAOVChildSelector.kTypeName, name=selectorName, skipSelect=True)
+            returnSelectorName = cmds.createNode(ArnoldAOVChildSelector.kTypeName, name=selectorName, skipSelect=True)
             currentSelector = renderSetupUtils.nameToUserNode(returnSelectorName)
             aovNodeName = AOVInterface().getAOVNode(aovName).name()
             currentSelector.setAOVNodeName(aovNodeName)
