@@ -24,10 +24,7 @@ try:
     import mtoa.ui.exportass as exportass
     import mtoa.ui.nodeTreeLister as nodeTreeLister
     import mtoa.ui.globals.common
-    from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings, updateAtmosphereSettings, createArnoldRendererOverrideTab, updateArnoldRendererOverrideTab
-    from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab
-    from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
+    from mtoa.ui.globals.settings import updateBackgroundSettings, updateAtmosphereSettings
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu
     import mtoa.cmds.arnoldRender as arnoldRender
