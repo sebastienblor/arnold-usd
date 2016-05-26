@@ -389,6 +389,10 @@ def aiPreventDeletionFromCleanUpSceneCommandCallback(shader, plug, connection) :
     else:
         return False
                
+def aiCreateRenderNodeCommandCallback(postCommand, type):
+    if cmds.getClassification(type, sat="rendernode/arnold"):
+        return "python(\"import mtoa.core as core ; core.createArnoldNode(\\\"" + type + "\\\")\")"
+
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
     aiExport( self, self.invokeArgs[0], self.invokeArgs[1], self.invokeArgs[2], self.invokeArgs[3] )
@@ -464,9 +468,14 @@ def registerCallbacks():
     cmds.callbacks(addCallback=aiNodeCanBeUsedAsMaterialCallback,
                    hook="nodeCanBeUsedAsMaterial",
                    owner="arnold")
+
     cmds.callbacks(addCallback=aiPreventDeletionFromCleanUpSceneCommandCallback,
-               hook="preventMaterialDeletionFromCleanUpSceneCommand",
-               owner="arnold")
+                   hook="preventMaterialDeletionFromCleanUpSceneCommand",
+                   owner="arnold")
+               
+    cmds.callbacks(addCallback=aiCreateRenderNodeCommandCallback,
+                   hook="createRenderNodeCommand",
+                   owner="arnold")   
 
 def clearCallbacks():
     if cmds.about(batch=True):
