@@ -8,9 +8,6 @@ import subprocess
 import threading
 import makeTx
 
-def getUdims(texture):
-    return glob.glob(re.sub(r'(<udim[:]?[0-9]*>)','????',texture))
-    
 def isImage(file):
     ext = os.path.splitext(file)[1]
     if (ext == '.jpeg' or ext == '.jpg' or ext == '.tiff' or ext == '.tif' or
@@ -82,29 +79,29 @@ class MakeTxThread (threading.Thread):
             if not self.txManager.process:
                 break
 
-            msg = os.path.basename(texture)
-            msg += '\n'
-            msg += 'has conflicting Color Spaces.\n'
-            msg += 'Use ('
-            msg += colorSpace
-            msg += ') ?'
+            if conflictSpace:
+                msg = os.path.basename(texture)
+                msg += '\n'
+                msg += 'has conflicting Color Spaces.\n'
+                msg += 'Use ('
+                msg += colorSpace
+                msg += ') ?'
 
-            result = cmds.confirmDialog(
-                title='Conflicting Color Spaces',
-                message=msg,
-                button=['OK', 'Cancel'],
-                defaultButton='OK',
-                cancelButton='Cancel',
-                dismissString='Cancel')
+                result = cmds.confirmDialog(
+                    title='Conflicting Color Spaces',
+                    message=msg,
+                    button=['OK', 'Cancel'],
+                    defaultButton='OK',
+                    cancelButton='Cancel',
+                    dismissString='Cancel')
 
-            if result == 'Cancel':
-                break
+                if result == 'Cancel':
+                    break
 
 
-            # FIXME : we should rather call it for all corresponding files inside a < > token
-            # Process all the files that match the <udim> tag    
-            if 'udim' in os.path.basename(texture):
-                udims = getUdims(texture)
+            # Process all the files that match the <>  tokens
+            if '<' in os.path.basename(texture):
+                udims = makeTx.expandTokens(texture)
                 for udim in udims:
                     # stopCreation has been called   
                     if not self.txManager.process:
@@ -219,25 +216,25 @@ class MtoATxManager(object):
 
             # A .tx texture
             if(ext == '.tx'):
-                # File, does not have <udim> tag and does not exists
-                if not 'udim' in os.path.basename(texturesList[i]) and not os.path.exists(texturesList[i]):
+                # File, does not have <> token and does not exists
+                if not '<' in os.path.basename(texturesList[i]) and not os.path.exists(texturesList[i]):
                     txFlag = -1
                     missingFiles+=1
                     
-                # File has <udim> tag
-                elif 'udim' in os.path.basename(texturesList[i]):
-                    udims = getUdims(texturesList[i])
-                    # If any file match to the <udim> tag, the file exists
+                # File has <> tokens
+                elif '<' in os.path.basename(texturesList[i]):
+                    udims = makeTx.expandTokens(texturesList[i])
+                    # If any file match to the <> token, the file exists
                     if(len(udims) > 0):
                         txFlag = 0
                         totalFiles+=len(udims)
                         
-                    # If no files match the <udim> tag, the file does not exists.
+                    # If no files match the <> token, the file does not exists.
                     else:
                         txFlag = -1
                         missingFiles+=1
                         
-                # File, does not have <udim> tag and exists
+                # File, does not have <> token and exists
                 else:
                     txFlag = 0
                     totalFiles+=1
@@ -249,15 +246,15 @@ class MtoATxManager(object):
                     txFlag=1
                     totalFiles+=1
                 else:
-                    # File has <udim> tag
-                    if('udim' in os.path.basename(texturesList[i])):
-                        udims = getUdims(texturesList[i])
+                    # File has <> tag
+                    if('<' in os.path.basename(texturesList[i])):
+                        udims = makeTx.expandTokens(texturesList[i])
                         allTxExists = True
                         for udim in udims:
                             if not os.path.exists(os.path.splitext(udim)[0]+'.tx'):
                                 allTxExists = False
                                 break
-                        # If no files match the <udim> tag, the file does not exists.
+                        # If no files match the <> token, the file does not exists.
                         if len(udims) == 0:
                             txFlag = -1
                             missingFiles+=1
@@ -269,7 +266,7 @@ class MtoATxManager(object):
                         else:
                             txFlag = 2
                             totalFiles+=len(udims)
-                    # File without <udim> tag and without processed .tx file
+                    # File without <> token and without processed .tx file
                     else:
                         # The file does not exists
                         if not os.path.exists(texturesList[i]):
@@ -426,9 +423,8 @@ class MtoATxManager(object):
             self.selectedItems.append(self.txItems[lineIndex])
             texture = self.selectedItems[i][0]
             
-            #FIXME : replace udim by general tokens < >
-            if 'udim' in os.path.basename(texture):
-                udims = getUdims(texture)
+            if '<' in os.path.basename(texture):
+                udims = makeTx.expandTokens(texture)
                 self.filesToCreate += len(udims)
             else:
                 self.filesToCreate += 1
@@ -507,8 +503,8 @@ class MtoATxManager(object):
             texture = textureLine[0]
             if not texture:
                 continue;
-            if 'udim' in os.path.basename(texture):
-                udims = getUdims(texture)
+            if '<' in os.path.basename(texture):
+                udims = makeTx.expandTokens(texture)
                 for udim in udims:
                     txFile = os.path.splitext(udim)[0]+".tx"
                     if os.path.isfile(txFile):
