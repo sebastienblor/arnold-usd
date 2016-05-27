@@ -4,6 +4,7 @@ import platform
 import re
 import subprocess
 import maya.cmds as cmds
+import shlex
 from arnold import *
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
@@ -72,12 +73,19 @@ _maketx_rx_noupdate = re.compile('no update required')
 _maketx_binary = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'bin', 'maketx')
 _maketx_cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio']
 
-def makeTx(filename, colorspace='auto'):
+def makeTx(filename, colorspace='auto', arguments=''):
     '''Generate a TX texture with maketx
     '''
     status = {'updated': 0, 'skipped': 0, 'error': 0}
-    cmd = _maketx_cmd
-    
+    if arguments == '':
+        cmd = _maketx_cmd
+    else:
+        cmd_str = _maketx_binary
+        cmd_str += ' '
+        cmd_str += arguments
+        cmd = shlex.split(cmd_str, posix=False)
+        
+
     if cmds.colorManagementPrefs(q=True, cmEnabled=True):
         if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
             if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
