@@ -272,22 +272,25 @@ CPhotometricLightPrimitive::CPhotometricLightPrimitive()
 	indices[id++] = idb + 6; indices[id++] = idb + 7;
 }
 
-CMeshPrimitive::CMeshPrimitive(const MFnMesh& mesh)
+void CMeshPrimitive::update(const MObject& obj)
 {
+   MStatus status;
+   MFnMesh mesh(obj, &status);
+   if (status != MS::kSuccess)
+   {
+      vertices.resize(0);
+      indices.resize(0);
+      return;
+   }
+
    const int numVertices = mesh.numVertices();
    const int numEdges = mesh.numEdges();
 
    vertices.resize(numVertices * 3);
    indices.resize(numEdges * 2);
 
-   MPoint pos;
-   for (int i=0, j=0; i<numVertices; ++i)
-   {
-      mesh.getPoint(i, pos);
-      vertices[j++] = float(pos.x);
-      vertices[j++] = float(pos.y);
-      vertices[j++] = float(pos.z);
-   }
+   float* vertexData = &vertices[0];
+   memcpy(vertexData, mesh.getRawPoints(&status), numVertices * 3 * sizeof(float));
 
    int2 edgeVertexIndices;
    for (int i=0, j=0; i<numEdges; ++i)

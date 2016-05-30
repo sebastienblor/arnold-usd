@@ -96,30 +96,35 @@ struct CArnoldMeshLightUserData : public MUserData
       }
 
       MFnDependencyNode fnNode(objPath.node());
-      const MPxNode* userNode = fnNode.userNode();
-      const CArnoldMeshLightNode* meshLightNode = static_cast<const CArnoldMeshLightNode*>(userNode);
+      MPxNode* userNode = fnNode.userNode();
+      CArnoldMeshLightNode* meshLightNode = static_cast<CArnoldMeshLightNode*>(userNode);
 
-      MObject meshObj = meshLightNode->GetMeshObject();
-      if (meshObj != MObject::kNullObj)
+      if (meshLightNode->m_vp2GeometryUpdate)
       {
-         MFnMesh mesh(meshObj);
+         meshLightNode->m_vp2GeometryUpdate = false;
 
-         mesh.getPoints(m_positions);
-
-         const int numEdges = mesh.numEdges();
-         m_indices.setLength(numEdges * 2);
-         int2 edgeVertexIndices;
-         for (int i=0, j=0; i<numEdges; ++i)
+         MObject meshObj = meshLightNode->GetMeshObject();
+         if (meshObj != MObject::kNullObj)
          {
-            mesh.getEdgeVertices(i, edgeVertexIndices);
-            m_indices[j++] = edgeVertexIndices[0];
-            m_indices[j++] = edgeVertexIndices[1];
+            MFnMesh mesh(meshObj);
+
+            mesh.getPoints(m_positions);
+
+            const int numEdges = mesh.numEdges();
+            m_indices.setLength(numEdges * 2);
+            int2 edgeVertexIndices;
+            for (int i=0, j=0; i<numEdges; ++i)
+            {
+               mesh.getEdgeVertices(i, edgeVertexIndices);
+               m_indices[j++] = edgeVertexIndices[0];
+               m_indices[j++] = edgeVertexIndices[1];
+            }
          }
-      }
-      else
-      {
-         m_positions.setLength(0);
-         m_indices.setLength(0);
+         else
+         {
+            m_positions.setLength(0);
+            m_indices.setLength(0);
+         }
       }
    }
 
@@ -169,34 +174,40 @@ struct CArnoldMeshLightUserData : public MUserData
       }
 
       MFnDependencyNode fnNode(objPath.node());
-      const MPxNode* userNode = fnNode.userNode();
-      const CArnoldMeshLightNode* meshLightNode = static_cast<const CArnoldMeshLightNode*>(userNode);
-      MObject meshObj = meshLightNode->GetMeshObject();
-      if (meshObj != MObject::kNullObj)
+      MPxNode* userNode = fnNode.userNode();
+      CArnoldMeshLightNode* meshLightNode = static_cast<CArnoldMeshLightNode*>(userNode);
+
+      if (meshLightNode->m_vp2GeometryUpdate)
       {
-         MStatus status;
-         MFnMesh mesh(meshObj);
+         meshLightNode->m_vp2GeometryUpdate = false;
 
-         const int numVertices = mesh.numVertices();
-         m_positions.resize(numVertices * 3);
-         float* positionData = &m_positions[0];
-         memcpy(positionData, mesh.getRawPoints(&status), numVertices * 3 * sizeof(float));
-
-         const int numEdges = mesh.numEdges();
-         m_indices.resize(numEdges * 2);
-         int2 edgeVertexIndices;
-         for (int i=0, j=0; i<numEdges; ++i)
+         MObject meshObj = meshLightNode->GetMeshObject();
+         if (meshObj != MObject::kNullObj)
          {
-            mesh.getEdgeVertices(i, edgeVertexIndices);
-            m_indices[j++] = edgeVertexIndices[0];
-            m_indices[j++] = edgeVertexIndices[1];
-         }
+            MStatus status;
+            MFnMesh mesh(meshObj);
 
-         m_primitive->setPrimitiveData(positionData, numVertices*3, &m_indices[0], numEdges*2);
-      }
-      else
-      {
-         m_primitive->setPrimitiveData(NULL, 0, NULL, 0);
+            const int numVertices = mesh.numVertices();
+            m_positions.resize(numVertices * 3);
+            float* positionData = &m_positions[0];
+            memcpy(positionData, mesh.getRawPoints(&status), numVertices * 3 * sizeof(float));
+
+            const int numEdges = mesh.numEdges();
+            m_indices.resize(numEdges * 2);
+            int2 edgeVertexIndices;
+            for (int i=0, j=0; i<numEdges; ++i)
+            {
+               mesh.getEdgeVertices(i, edgeVertexIndices);
+               m_indices[j++] = edgeVertexIndices[0];
+               m_indices[j++] = edgeVertexIndices[1];
+            }
+
+            m_primitive->setPrimitiveData(positionData, numVertices*3, &m_indices[0], numEdges*2);
+         }
+         else
+         {
+            m_primitive->setPrimitiveData(NULL, 0, NULL, 0);
+         }
       }
 
       MTransformationMatrix modelMatrix(objPath.inclusiveMatrix());

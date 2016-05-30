@@ -26,14 +26,16 @@
 
 class CArnoldMeshLightNode : public MPxLocatorNode
 {
+   friend struct CArnoldMeshLightUserData;
+
 public:
    CArnoldMeshLightNode();
    virtual ~CArnoldMeshLightNode();
 
-#if MAYA_API_VERSION >= 201700
    virtual void            postConstructor();
-   static void             attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
-#endif
+   static void             attrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData);
+   static void             meshDirtyCallback(MObject& node, MPlug& plug, void *clientData);
+
    virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
    virtual bool            isBounded() const;
@@ -91,9 +93,13 @@ public:
    static  MObject aShadowColor;
 #endif
 
-#if MAYA_API_VERSION >= 201700
 private:
    MCallbackId m_attrChangeId;
+   MCallbackId m_meshDirtyId;
+   bool m_vp1GeometryUpdate;
+   bool m_vp2GeometryUpdate;
+   CMeshPrimitive m_drawPrimitive;
+#if MAYA_API_VERSION >= 201700
    bool  m_aiCastShadows;
    bool  m_aiCastVolumetricShadows;
 #endif

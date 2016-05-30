@@ -69,43 +69,51 @@ MObject CArnoldMeshLightNode::aShadowColor;
 #endif
 
 CArnoldMeshLightNode::CArnoldMeshLightNode()
+   : m_attrChangeId(0)
+   , m_meshDirtyId(0)
+   , m_vp1GeometryUpdate(true)
+   , m_vp2GeometryUpdate(true)
 #if MAYA_API_VERSION >= 201700
-   : m_aiCastShadows(true), m_aiCastVolumetricShadows(true)
+   , m_aiCastShadows(true)
+   , m_aiCastVolumetricShadows(true)
 #endif
 {}
 
 CArnoldMeshLightNode::~CArnoldMeshLightNode() 
 {
-#if MAYA_API_VERSION >= 201700
-   MMessage::removeCallback( m_attrChangeId );
-#endif
+   if (m_attrChangeId != 0)
+      MMessage::removeCallback(m_attrChangeId);
+   if (m_meshDirtyId != 0)
+      MMessage::removeCallback(m_meshDirtyId);
 }
 
-#if MAYA_API_VERSION >= 201700
 void CArnoldMeshLightNode::postConstructor()
 {
    // Make the node not cast nor receive shadows
    //
    MObject me = thisMObject();
 
+#if MAYA_API_VERSION >= 201700
    MFnDependencyNode node(me);
    MPlug plug = node.findPlug("receiveShadows");
    plug.setValue(false);
    plug = node.findPlug("castsShadows");
    plug.setValue(false);
+#endif
 
-   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallBack, this);
+   m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallback, this);
 }
 
 // Map node's attribute value changes to ones understood by Maya
-void CArnoldMeshLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
+void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* clientData)
 {
+   CArnoldMeshLightNode *node = static_cast<CArnoldMeshLightNode*>(clientData);
+   if (!node)
+      return; 
+
+#if MAYA_API_VERSION >= 201700
    if (msg & MNodeMessage::kAttributeSet)
    {
-      CArnoldMeshLightNode *node = static_cast<CArnoldMeshLightNode*>(clientData);
-      if (!node)
-         return; 
-      
       bool updateShadowAttr = false;
       MFnAttribute fnAttr(plug.attribute());
       if (fnAttr.name() == "aiCastShadows")
@@ -165,8 +173,44 @@ void CArnoldMeshLightNode::attrChangedCallBack(MNodeMessage::AttributeMessage ms
          plug.setValue(node->m_aiCastShadows || node->m_aiCastVolumetricShadows);
       }
    }
-}
 #endif
+
+   if (plug == s_inMesh)
+   {
+      if (msg & MNodeMessage::kConnectionMade)
+      {
+         if (otherPlug.node().hasFn(MFn::kMesh))
+         {
+            if (node->m_meshDirtyId != 0)
+            {
+               MMessage::removeCallback(node->m_meshDirtyId);
+            }
+            node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlug.node(), meshDirtyCallback, node);
+         }
+      }
+      else if (msg & MNodeMessage::kConnectionBroken)
+      {
+         if (node->m_meshDirtyId != 0)
+         {
+            MMessage::removeCallback(node->m_meshDirtyId);
+         }
+      }
+   }
+}
+
+void CArnoldMeshLightNode::meshDirtyCallback(MObject& node, MPlug& plug, void *clientData)
+{
+   CArnoldMeshLightNode *lightNode = static_cast<CArnoldMeshLightNode*>(clientData);
+   if (!lightNode)
+      return;
+
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   if(plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution")
+   {
+      lightNode->m_vp1GeometryUpdate = true;
+      lightNode->m_vp2GeometryUpdate = true;
+   }
+}
 
 MStatus CArnoldMeshLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
@@ -180,13 +224,6 @@ void CArnoldMeshLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
 {
    if ((view.objectDisplay() & M3dView::kDisplayLights) == 0)
    {
-      return;
-   }
-
-   MObject meshObj = GetMeshObject();
-   if (meshObj == MObject::kNullObj)
-   {
-      // TODO: draw placeholder
       return;
    }
 
@@ -213,9 +250,14 @@ void CArnoldMeshLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       break;
    }
 
-   MFnMesh mesh(meshObj);
-   CMeshPrimitive primitive(mesh);
-   primitive.draw();
+   if (m_vp1GeometryUpdate)
+   {
+      m_vp1GeometryUpdate = false;
+      MObject meshObj = GetMeshObject();
+      m_drawPrimitive.update(meshObj);
+   }
+
+   m_drawPrimitive.draw();
 
    // Restore all GL bits
    glPopAttrib();
