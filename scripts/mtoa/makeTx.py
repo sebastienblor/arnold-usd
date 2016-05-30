@@ -91,7 +91,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
             if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
                 color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
             else:
-                color_config = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cmds.__file__)))))), 'synColor')
+                color_config = cmds.internalVar(userPrefDir=True)
 
             render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
             
