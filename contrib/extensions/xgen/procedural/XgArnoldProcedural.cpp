@@ -955,8 +955,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       float constantWidth = pc->get( PC(ConstantWidth) );
 
       XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
-      {string s = "Constant width: " + ftoa(constantWidth) + "\n";
-      printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
     }
     // Add Varying Widths
