@@ -26,6 +26,7 @@ import math
 import re
 
 import pymel.core as pm
+import pymel.versions as versions
 
 import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
@@ -2247,6 +2248,19 @@ def createArnoldRendererCommonGlobalsTab():
     createArnoldCommonResolution()
 
     pm.setParent(commonTabColumn)
+    
+    # Scene Assembly Section
+    #
+    maya_version = versions.shortName()
+    if int(maya_version) >= 2017:
+        pm.frameLayout('sceneAssemblyFrame',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSceneAssembly"),
+                        collapsable=True,
+                        collapse=True)
+
+        pm.mel.eval('createCommonSceneAssembly()')
+    
+        pm.setParent(commonTabColumn)
 
     # Render Options
     #
