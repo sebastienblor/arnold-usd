@@ -357,12 +357,9 @@ void CFileTranslator::Export(AtNode* shader)
          // with _u1_v1 and 1001 
          MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
 
-         std::string tx_filename_tokens_original = tx_filename.asChar();
-         std::string tx_filename_tokens = tx_filename_tokens_original;
-         size_t tokenPos = tx_filename_tokens.find("<udim>");
-         if (tokenPos != std::string::npos)
-            tx_filename_tokens.replace(tokenPos, 6, "1001");
-         else
+         MStringArray expandedFilenames = expandTokens(tx_filename);
+         // if expandedFilenames.length >= 1 then we're OK ?
+         if (expandedFilenames.length() > 0)
          {
             resolvedFilename = tx_filename;
          }
