@@ -350,8 +350,7 @@ void CFileTranslator::Export(AtNode* shader)
          {
             makeTx(resolvedFilename, FindMayaPlug("colorSpace").asString());
          }
-      }
-
+      }      
       if(renderOptions.useExistingTiledTextures()) 
       {
          // check for <tile> and <udim> tags and replace them
@@ -365,38 +364,10 @@ void CFileTranslator::Export(AtNode* shader)
             tx_filename_tokens.replace(tokenPos, 6, "1001");
          else
          {
-            tokenPos = tx_filename_tokens.find("<UDIM>");
-            if (tokenPos != std::string::npos)
-               tx_filename_tokens.replace(tokenPos, 6, "1001");
-            else
-            {
-               tokenPos = tx_filename_tokens.find("<tile>");
-               if (tokenPos != std::string::npos)
-                  tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
-            }
-         }
-         std::ifstream ifile(tx_filename_tokens.c_str()); 
-         const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-         if(ifile.is_open()) 
             resolvedFilename = tx_filename;
-         else if(tokenPos != std::string::npos && CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, searchPaths))
-            resolvedFilename = tx_filename;
-         else
-         {
-            for (unsigned int i = 0; i < searchPaths.length(); ++i)
-            {
-               MString currentPath = searchPaths[i]+"/"+tx_filename_tokens.c_str();
-               std::ifstream iRelFile(currentPath.asChar()); 
-               if (iRelFile.is_open())
-               {
-                  resolvedFilename = tx_filename;
-                  break;
-               }
-            }
          }
       }
       m_session->FormatTexturePath(resolvedFilename);
-      
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
 

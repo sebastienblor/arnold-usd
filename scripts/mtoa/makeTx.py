@@ -39,17 +39,21 @@ else:
     _no_window = None
 
 ## Compiled regex for expandTokens()
-_token_attr_rx = re.compile('<attr:[^>]*>')
-_token_udim_rx = re.compile('<udim:?[^>]*>')
-_token_tile_rx = re.compile('<tile:?[^>]*>')
+#_token_attr_rx = re.compile('<attr:[^>]*>')
+#_token_udim_rx = re.compile('<udim:?[^>]*>')
+#_token_tile_rx = re.compile('<tile:?[^>]*>')
+_token_generic_rx = re.compile('<[^>]*>')
 
 def expandTokens(filename):
     '''Return a list of image filenames with all tokens expanded.
-    The supported tokens are <udim>, <tile>, <attr:>.
+       Since there is a long list of supported tokens, we're now searching for
+       them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
     '''
-    expand_glob = re.sub(_token_udim_rx, '[1-9][0-9][0-9][0-9]', filename)
-    expand_glob = re.sub(_token_tile_rx, '_u[0-9]*_v[0-9]*', expand_glob)
-    expand_glob = re.sub(_token_attr_rx, '*', expand_glob)
+    expand_glob = re.sub(_token_generic_rx, '*', filename)
+    
+#    expand_glob = re.sub(_token_udim_rx, '[1-9][0-9][0-9][0-9]', filename)
+#    expand_glob = re.sub(_token_tile_rx, '_u[0-9]*_v[0-9]*', expand_glob)
+#    expand_glob = re.sub(_token_attr_rx, '*', expand_glob)
     
     # retain only image files that Arnold can read
     return filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
