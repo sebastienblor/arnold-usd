@@ -341,9 +341,15 @@ void CFileTranslator::Export(AtNode* shader)
       renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
       renderOptions.GetFromMaya(); 
 
-      if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
+      // Do not call makeTx if we're doing swatch rendering or material view
+      int sessionMode = m_session->GetSessionMode();
+      if (sessionMode != MTOA_SESSION_MATERIALVIEW && sessionMode != MTOA_SESSION_SWATCH &&
+         sessionMode != MTOA_SESSION_UNDEFINED)
       {
-          makeTx(resolvedFilename, FindMayaPlug("colorSpace").asString());
+         if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
+         {
+            makeTx(resolvedFilename, FindMayaPlug("colorSpace").asString());
+         }
       }
 
       if(renderOptions.useExistingTiledTextures()) 
@@ -1400,13 +1406,24 @@ void CAiImageTranslator::Export(AtNode* image)
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
 
-      if (renderOptions.autoTx() && FindMayaPlug("autoTx").asBool())
+      // do not call makeTx if we're doing a swatch rendering or material view
+      int sessionMode = m_session->GetSessionMode();
+      if (sessionMode != MTOA_SESSION_MATERIALVIEW && sessionMode != MTOA_SESSION_SWATCH &&
+         sessionMode != MTOA_SESSION_UNDEFINED)
       {
-          makeTx(filename, FindMayaPlug("colorSpace").asString());
+         if (renderOptions.autoTx() && FindMayaPlug("autoTx").asBool())
+         {
+            makeTx(filename, FindMayaPlug("colorSpace").asString());
+         }
       }
 
+      // FIXME : we should append the .tx to the full filename without removing the original extension
+
       if(renderOptions.useExistingTiledTextures()) 
-      {         
+      {
+         // FIXME we should support other tokens than <udim>
+         // and check for all existing files matching a token
+
          MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
 
          std::string tx_filename_tokens_original = tx_filename.asChar();
