@@ -491,7 +491,11 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // check if we don't have an alembic
       if (!info.hasAlembicFile) // we don't have the alembic
       {
-         AiMsgError("[xgen] Can't motion blur, alembic file '%s' has not been exported", strGeomFile.c_str());
+         // Only print the error if motion blur is enabled
+         if (info.moblur != 2 && info.motionBlurSteps > 1 && info.moblurFactor > 0.0f)
+         {
+            AiMsgError("[xgen] Can't motion blur, alembic file '%s' has not been exported", strGeomFile.c_str());
+         }
 
          info.moblur = 2; // turning off xgen motion blur
          info.renderMode = 1; // set to live mode  for good measure
