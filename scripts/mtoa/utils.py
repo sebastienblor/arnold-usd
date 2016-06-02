@@ -504,6 +504,19 @@ def createMeshLight(legacy=False):
     if legacy:
         cmds.setAttr('%s.aiTranslator' % meshShape, 'mesh_light', type='string')
     else:
+        # Make sure the shape has not been converted already
+        existing = cmds.listConnections('%s.outMesh' % meshShape, shapes=True, type='aiMeshLight')
+        if existing and len(existing) > 0:
+            cmds.confirmDialog(title='Error', message='Mesh light already created!', button='Ok')
+            return
+
+        # Make sure the shape has only a single parent
+        # Multiple light instances are not supported
+        allPaths = cmds.listRelatives(meshShape, allParents=True, fullPath=True)
+        if len(allPaths) != 1:
+            cmds.confirmDialog(title='Error', message='The mesh has multiple instances. Light instances are not supported!', button='Ok')
+            return
+
         (lightShape,lightTransform) = createLocator('aiMeshLight', asLight=True)
         cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
         centerPivot(meshTransform)
@@ -511,6 +524,37 @@ def createMeshLight(legacy=False):
         cmds.parent(meshTransform, lightTransform)
         cmds.setAttr('%s.intermediateObject' % meshShape, 1)
         cmds.select(lightTransform)
+
+def revertMeshLight(node):
+    reply = cmds.confirmDialog(title="Confirm", message="Revert to Mesh will delete the light node and all light settings will be lost.", \
+        button=["OK","Cancel"], defaultButton="Cancel", cancelButton="Cancel", dismissString="Cancel")
+    if reply != "OK":
+        return
+    meshShape = None
+    lightShape = None
+    nodeType = cmds.nodeType(node)
+    if nodeType == 'mesh':
+        meshShape = node
+        connected = cmds.listConnections('%s.outMesh' % meshShape, shapes=True, type='aiMeshLight')
+        if connected and len(connected) > 0:
+            lightShape = connected[0]
+    elif nodeType == 'aiMeshLight':
+        lightShape = node
+        connected = cmds.listConnections('%s.inMesh' % lightShape, shapes=True, type='mesh')
+        if connected and len(connected) > 0:
+            meshShape = connected[0]
+    else:
+        cmds.error('Given node is not a mesh light!')
+        return
+
+    if meshShape:
+        cmds.setAttr('%s.aiTranslator' % meshShape, 'poly_mesh', type='string')
+        cmds.setAttr('%s.intermediateObject' % meshShape, 0)
+    if lightShape:
+        parents = cmds.listRelatives(lightShape, parent=True, fullPath=True)
+        cmds.delete(lightShape)
+        if parents and len(parents)>0:
+            cmds.ungroup(parents[0])
 
 def getSourceImagesDir():
     sourceImagesRule = cmds.workspace(fileRuleEntry='sourceImages')

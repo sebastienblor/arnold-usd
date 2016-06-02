@@ -102,6 +102,7 @@ void CArnoldMeshLightNode::postConstructor()
 #endif
 
    m_attrChangeId = MNodeMessage::addAttributeChangedCallback(me, attrChangedCallback, this);
+   scheduleGeometryUpdate();
 }
 
 // Map node's attribute value changes to ones understood by Maya
@@ -186,6 +187,7 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
                MMessage::removeCallback(node->m_meshDirtyId);
             }
             node->m_meshDirtyId = MNodeMessage::addNodeDirtyCallback(otherPlug.node(), meshDirtyCallback, node);
+            node->scheduleGeometryUpdate();
          }
       }
       else if (msg & MNodeMessage::kConnectionBroken)
@@ -194,6 +196,7 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
          {
             MMessage::removeCallback(node->m_meshDirtyId);
          }
+         node->scheduleGeometryUpdate();
       }
    }
 }
@@ -207,8 +210,7 @@ void CArnoldMeshLightNode::meshDirtyCallback(MObject& node, MPlug& plug, void *c
    MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
    if(plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution")
    {
-      lightNode->m_vp1GeometryUpdate = true;
-      lightNode->m_vp2GeometryUpdate = true;
+      lightNode->scheduleGeometryUpdate();
    }
 }
 
@@ -494,4 +496,10 @@ MObject CArnoldMeshLightNode::GetMeshObject() const
       }
    }
    return MObject::kNullObj;
+}
+
+void CArnoldMeshLightNode::scheduleGeometryUpdate()
+{
+   m_vp1GeometryUpdate = true;
+   m_vp2GeometryUpdate = true;
 }

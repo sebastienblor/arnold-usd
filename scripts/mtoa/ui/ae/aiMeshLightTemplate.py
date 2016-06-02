@@ -1,7 +1,20 @@
+import maya.cmds as cmds
 import pymel.core as pm
 import mtoa.ui.ae.lightTemplate as lightTemplate
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
+import mtoa.utils as utils
+
+def revertToMeshReplace(plugName):
+    nodeAndAttrs = plugName.split(".")
+    node = nodeAndAttrs[0]
+    connected = cmds.listConnections('%s.inMesh' % node, shapes=True, type='mesh')
+    enabled = (connected and len(connected) > 0)
+    cmds.button("aiMeshLightRevertButton", edit=True, enable=enabled, command="import mtoa.utils as utils; utils.revertMeshLight(\"%s\")" % node)
+
+def revertToMeshNew(plugName):
+    cmds.button("aiMeshLightRevertButton", label="Revert to Mesh")
+    revertToMeshReplace(plugName)
 
 class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
 
@@ -11,9 +24,13 @@ class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.addSwatch()
         self.beginScrollLayout()
-        self.beginLayout("Arnold Mesh Light Attributes", collapse=False)
+
+        self.beginLayout("Mesh Attributes", collapse=False)
         self.addControl("inMesh")
-        self.addSeparator()
+        self.addCustom("message", revertToMeshNew, revertToMeshReplace)
+        self.endLayout()
+
+        self.beginLayout("Light Attributes", collapse=False)
         self.addControl("color")
         self.addControl("intensity")
         self.addControl("aiExposure", label = "Exposure")

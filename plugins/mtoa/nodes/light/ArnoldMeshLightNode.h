@@ -94,6 +94,8 @@ public:
 #endif
 
 private:
+   void scheduleGeometryUpdate();
+
    MCallbackId m_attrChangeId;
    MCallbackId m_meshDirtyId;
    bool m_vp1GeometryUpdate;
