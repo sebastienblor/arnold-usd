@@ -67,17 +67,11 @@ class AEaiImageTemplate(ShaderAETemplate):
         except:
             pass
 
-    def colorManagementEnabledConnect(self, attrName):
-        if not cmds.isConnected('defaultColorMgtGlobals.cmEnabled', self.nodeAttr('colorManagementEnabled')):
-            cmds.connectAttr('defaultColorMgtGlobals.cmEnabled', self.nodeAttr('colorManagementEnabled'))
-        
-    def colorManagementConfigFileEnabledConnect(self, attrName):
-        if not cmds.isConnected('defaultColorMgtGlobals.configFileEnabled', self.nodeAttr('colorManagementConfigFileEnabled')):
-            cmds.connectAttr('defaultColorMgtGlobals.configFileEnabled', self.nodeAttr('colorManagementConfigFileEnabled'))
-        
-    def colorManagementConfigFilePathConnect(self, attrName):
-        if not cmds.isConnected('defaultColorMgtGlobals.configFilePath', self.nodeAttr('colorManagementConfigFilePath')):
-            cmds.connectAttr('defaultColorMgtGlobals.configFilePath', self.nodeAttr('colorManagementConfigFilePath'))
+##   In case we need an attribute "imageName" so that colorSpace is updated correctly
+#    def imageNameConnect(self, attrName):
+#        if not cmds.isConnected(self.nodeAttr('filename'), self.nodeAttr('imageName')):
+#            cmds.connectAttr(self.nodeAttr('filename'), self.nodeAttr('imageName'))
+
 
     def setup(self):
         self.addSwatch()
@@ -90,9 +84,9 @@ class AEaiImageTemplate(ShaderAETemplate):
         self.addControl("mipmap_bias", label="Mipmap Bias")
         self.addControl("multiply", label="Multiply")
         self.addControl("offset", label="Offset")
-        self.addCustom('colorManagementEnabled', self.colorManagementEnabledConnect, self.colorManagementEnabledConnect)
-        self.addCustom('colorManagementConfigFileEnabled', self.colorManagementConfigFileEnabledConnect, self.colorManagementConfigFileEnabledConnect)
-        self.addCustom('colorManagementConfigFilePath', self.colorManagementConfigFilePathConnect, self.colorManagementConfigFilePathConnect)
+        # self.addCustom('imageName', self.imageNameConnect, self.imageNameConnect)
+    
+
         cmds.editorTemplate('AEcolorSpaceNew', 'AEcolorSpaceReplace', 'colorSpace', callCustom=True)
         self.addControl("ignoreColorSpaceFileRules", label="Ignore Color Space File Rules")
         self.addControl("autoTx", label="Auto-generate TX Textures")
