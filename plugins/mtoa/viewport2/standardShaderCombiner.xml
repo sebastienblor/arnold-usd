@@ -14,7 +14,10 @@
         <bool name="FresnelUseIOR" />
         <float name="Ksn" />
         <float name="Ks" />
+        <float name="Kd" />
         <float name="IOR" />
+        <float3 name="IrradianceEnv" />
+        <float3 name="SpecularEnv" />
         <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
@@ -23,6 +26,8 @@
         <float3 name="diffuseInput" value="1.0 1.0 1.0" />
         <float3 name="specularInput" value="0.0 0.0 0.0" />
         <float3 name="emissionInput" value="0.0 0.0 0.0" />
+        <float3 name="IrradianceEnv" value="0.0 0.0 0.0" />
+        <float3 name="SpecularEnv" value="0.0 0.0 0.0" />
     </values>
     <outputs>
         <struct name="standardShaderCombiner" struct_name="mayaSurfaceShaderOutput" />
@@ -46,11 +51,14 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 bool FresnelUseIOR,
                 float Ksn,
                 float Ks,
-                float IOR)
+                float Kd,
+                float IOR,
+                float3 IrradianceEnv,
+                float3 SpecularEnv)
 {
     mayaSurfaceShaderOutput result;
-    float3 diffuse = color * diffuseInput * directDiffuse;
-    float3 specular = specularColor * specularInput * directSpecular * Ks;
+    float3 diffuse = color * ((diffuseInput * directDiffuse) + IrradianceEnv) * Kd;
+    float3 specular = specularColor * (specularInput + SpecularEnv) * directSpecular * Ks;
     if (specularFresnel)
     {
         float fresnel = 1.0f;
@@ -102,11 +110,14 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 bool FresnelUseIOR,
                 float Ksn,
                 float Ks,
-                float IOR)
+                float Kd,
+                float IOR,
+                float3 IrradianceEnv,
+                float3 SpecularEnv)
 {
     mayaSurfaceShaderOutput result;
-    float3 diffuse = color * diffuseInput * directDiffuse;
-    float3 specular = specularColor * specularInput * directSpecular * Ks;
+    float3 diffuse = color * ((diffuseInput * directDiffuse) + IrradianceEnv) * Kd;
+    float3 specular = specularColor * (specularInput + SpecularEnv) * directSpecular * Ks;
     if (specularFresnel)
     {
         float fresnel = 1.0f;
@@ -158,11 +169,14 @@ mayaSurfaceShaderOutput standardShaderCombiner(
                 bool FresnelUseIOR,
                 float Ksn,
                 float Ks,
-                float IOR)
+                float Kd,
+                float IOR,
+                float3 IrradianceEnv,
+                float3 SpecularEnv)
 {
     mayaSurfaceShaderOutput result;
-    float3 diffuse = color * diffuseInput * directDiffuse;
-    float3 specular = specularColor * specularInput * directSpecular * Ks;
+    float3 diffuse = color * ((diffuseInput * directDiffuse) + IrradianceEnv) * Kd;
+    float3 specular = specularColor * (specularInput + SpecularEnv) * directSpecular * Ks;
     if (specularFresnel)
     {
         float fresnel = 1.0f;
