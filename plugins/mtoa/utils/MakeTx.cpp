@@ -1,18 +1,23 @@
 #include "MakeTx.h"
 #include <maya/MGlobal.h>
 
-void makeTx(MString filename, MString colorspace)
+void makeTx(MString filename, MString colorspace, int *createdFiles, int *skippedFiles, int *errorFiles)
 {
    MString cmd;
+   MStringArray result;
    cmd.format("import mtoa.makeTx; mtoa.makeTx.makeTx('^1s', '^2s')", filename, colorspace);
-   MGlobal::executePythonCommand(cmd);
+   MGlobal::executePythonCommand(cmd, result);
+   if (createdFiles) *createdFiles = result[0].asInt();
+   if (skippedFiles) *skippedFiles = result[1].asInt();
+   if (errorFiles) *errorFiles = result[2].asInt();
+   
 }
 
-MStringArray expandTokens(MString filename)
+MStringArray expandFilename(MString filename)
 {
    MStringArray result;
    MString cmd;
-   cmd.format("import mtoa.makeTx; mtoa.makeTx.expandTokens('^1s')", filename);
+   cmd.format("import mtoa.makeTx; mtoa.makeTx.expandFilename('^1s')", filename);
    MGlobal::executePythonCommand(cmd, result);
    return result;
 }

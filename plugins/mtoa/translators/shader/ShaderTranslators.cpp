@@ -194,78 +194,6 @@ bool StringHasOnlyNumbersAndMinus(const std::string& str)
    return false;
 }
 
-bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, const MStringArray &searchPaths, bool checkForTileToken = true)
-{
-   size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
-#ifdef _WIN32
-   if (slashPos == std::string::npos) // we don't get the right slashes from the aiImage node
-      slashPos = original_filename.rfind('\\');
-   else
-   {
-      size_t slashPos2 = original_filename.rfind('\\');
-      if (slashPos2 != std::string::npos)
-         slashPos = MAX(slashPos2, slashPos);
-   }
-#endif
-   if (slashPos != std::string::npos)
-   {
-      std::string directory = original_filename.substr(0, slashPos);
-      DIR* dp;
-      dp = opendir(directory.c_str());
-
-      if (dp == 0)
-      {
-         for (unsigned int i = 0; i < searchPaths.length() && (dp == 0); ++i)
-         {
-            MString currentPath = searchPaths[i]+"/"+directory.c_str();
-            dp = opendir(currentPath.asChar());
-         }
-      }
-
-      if (dp != 0)   
-      {
-         std::string filename = original_filename.substr(slashPos + 1, original_filename.size());
-         bool isUdim = true;
-         size_t tp = filename.find("<udim>");
-         if (checkForTileToken && tp == std::string::npos)
-         {
-            isUdim = false;
-            tp = filename.find("<tile>");
-         }
-
-         std::string filenamePre = filename.substr(0, tp);
-         std::string filenamePost = filename.substr(tp + 6, filename.size());
-         dirent* de;
-         while((de = readdir(dp)) != 0)
-         {
-            std::string current_filename = de->d_name;
-            if (current_filename.find(filenamePre) != 0)
-               continue;
-            current_filename = current_filename.substr(filenamePre.size(), current_filename.size());
-            tp = current_filename.rfind(filenamePost);
-            if (tp == std::string::npos)
-               continue;
-            std::string token = current_filename.substr(0, tp);
-            // check for udim
-            if (isUdim && StringHasOnlyNumbersAndMinus(token))
-               return true;
-            else if (!isUdim)
-            {
-               if ((tp = current_filename.find("_u")) == std::string::npos)
-                  continue;
-               current_filename.replace(tp, 2, "");
-               if ((tp = current_filename.find("_v")) == std::string::npos)
-                  continue;
-               current_filename.replace(tp, 2, "");
-               if (StringHasOnlyNumbersAndMinus(current_filename))
-                  return true;
-            }
-         }
-      }
-   }
-   return false;
-}
-
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
@@ -349,20 +277,52 @@ void CFileTranslator::Export(AtNode* shader)
       {
          if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
          {
-            makeTx(resolvedFilename, FindMayaPlug("colorSpace").asString());
+            MString colorSpace = FindMayaPlug("colorSpace").asString();
+            int createdFiles = 0;
+            int skippedFiles = 0;
+            int errorFiles = 0;
+            makeTx(resolvedFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+
+            if (createdFiles + skippedFiles + errorFiles == 0)
+            {               
+               // no file has been found
+               // let's try with the search paths
+               const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
+               for (unsigned int i = 0; i < searchPaths.length(); ++i)
+               {
+                  MString searchFilename = searchPaths[i] + resolvedFilename;
+                  makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+
+                  if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
+               }
+            }
          }
       }      
       if(renderOptions.useExistingTiledTextures()) 
       {
-         // check for <tile> and <udim> tags and replace them
-         // with _u1_v1 and 1001 
-         MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
+         MString txFilename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
+         MStringArray expandedFilenames = expandFilename(txFilename);
 
-         MStringArray expandedFilenames = expandTokens(tx_filename);
+         if(expandedFilenames.length() == 0)
+         {
+            // No file was found for this filename
+            // we should check in the search paths
+            const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
+         
+            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            {
+
+               MString searchFilename = searchPaths[i] + txFilename;
+               expandedFilenames = expandFilename(searchFilename);
+               
+               // we found the texture, stop searching
+               if (expandedFilenames.length() > 0) break;
+            }
+         }
          // if expandedFilenames.length >= 1 then we're OK ?
          if (expandedFilenames.length() > 0)
          {
-            resolvedFilename = tx_filename;
+            resolvedFilename = txFilename;
          }
       }
       m_session->FormatTexturePath(resolvedFilename);
@@ -1383,7 +1343,23 @@ void CAiImageTranslator::Export(AtNode* image)
       {
          if (renderOptions.autoTx() && FindMayaPlug("autoTx").asBool())
          {
-            makeTx(filename, FindMayaPlug("colorSpace").asString());
+            MString colorSpace = FindMayaPlug("colorSpace").asString();
+            int createdFiles = 0;
+            int skippedFiles = 0;
+            int errorFiles = 0;
+            makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+            if (createdFiles + skippedFiles + errorFiles == 0)
+            {
+               // no file has been found
+               // let's try with the search paths
+               const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
+               for (unsigned int i = 0; i < searchPaths.length(); ++i)
+               {
+                  MString searchFilename = searchPaths[i] + filename;
+                  makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+                  if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
+               }
+            }
          }
       }
 
@@ -1391,39 +1367,30 @@ void CAiImageTranslator::Export(AtNode* image)
 
       if(renderOptions.useExistingTiledTextures()) 
       {
-         // FIXME we should support other tokens than <udim>
-         // and check for all existing files matching a token
+         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+         MStringArray expandedFilenames = expandFilename(txFilename);
 
-         MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
-
-         std::string tx_filename_tokens_original = tx_filename.asChar();
-         std::string tx_filename_tokens = tx_filename_tokens_original;
-         size_t tokenPos = tx_filename_tokens.find("<udim>");
-         if (tokenPos != std::string::npos)
-            tx_filename_tokens.replace(tokenPos, 6, "1001");
-
-
-         const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-         std::ifstream ifile(tx_filename_tokens.c_str()); 
-         if(ifile.is_open()) 
-            filename = tx_filename;
-         else if (tokenPos != std::string::npos)
+         if(expandedFilenames.length() == 0)
          {
-            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, searchPaths, false))
-               filename = tx_filename;
-         } else
-         {
+            // No file was found for this filename
+            // we should check in the search paths
+            const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
+         
             for (unsigned int i = 0; i < searchPaths.length(); ++i)
             {
-               MString currentPath = searchPaths[i]+"/"+tx_filename_tokens.c_str();
-               std::ifstream iRelFile(currentPath.asChar()); 
-               if (iRelFile.is_open())
-               {
-                  filename = tx_filename;
-                  break;
-               }
+               MString searchFilename = searchPaths[i] + "/" + txFilename;
+               expandedFilenames = expandFilename(searchFilename);
+
+               // we found the texture, stop searching
+               if (expandedFilenames.length() > 0) break;
             }
          }
+         // if expandedFilenames.length >= 1 then we're OK ?
+         if (expandedFilenames.length() > 0)
+         {
+            filename = txFilename;
+         }
+
       }
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());

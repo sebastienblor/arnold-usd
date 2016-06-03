@@ -38,13 +38,13 @@ if platform.system().lower() == 'windows':
 else:
     _no_window = None
 
-## Compiled regex for expandTokens()
+## Compiled regex for expandFilename()
 #_token_attr_rx = re.compile('<attr:[^>]*>')
 #_token_udim_rx = re.compile('<udim:?[^>]*>')
 #_token_tile_rx = re.compile('<tile:?[^>]*>')
 _token_generic_rx = re.compile('<[^>]*>')
 
-def expandTokens(filename):
+def expandFilename(filename):
     '''Return a list of image filenames with all tokens expanded.
        Since there is a long list of supported tokens, we're now searching for
        them in a more generic way (instead of specially looking for <udim>, <tile>, <attr:>)
@@ -56,6 +56,7 @@ def expandTokens(filename):
 #    expand_glob = re.sub(_token_attr_rx, '*', expand_glob)
     
     # retain only image files that Arnold can read
+
     return filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
 
 def guessColorspace(filename):
@@ -80,7 +81,11 @@ _maketx_cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio']
 def makeTx(filename, colorspace='auto', arguments=''):
     '''Generate a TX texture with maketx
     '''
-    status = {'updated': 0, 'skipped': 0, 'error': 0}
+    # status[0] contains the amount of created tx files
+    # status[1] the amount of skipped tx files
+    # status[2] the amount of errors
+
+    status = [0,0,0]
     if arguments == '':
         cmd = _maketx_cmd
     else:
@@ -104,10 +109,10 @@ def makeTx(filename, colorspace='auto', arguments=''):
         else:
             print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
 
-    for tile in expandTokens(filename):
+    for tile in expandFilename(filename):
         if os.path.splitext(tile)[1] == '.tx':
             print '[maketx] Skipping native TX texture: %s' % tile
-            status['skipped'] += 1
+            status[1] += 1
             continue
 
         if colorspace == 'auto':
@@ -117,15 +122,15 @@ def makeTx(filename, colorspace='auto', arguments=''):
         
         if re.search(_maketx_rx_noupdate, res):
             print '[maketx] TX texture is up to date for "%s" (%s)' % (tile, colorspace)
-            status['skipped'] += 1
+            status[1] += 1
         else:
             mo = re.search(_maketx_rx_stats, res)
             if mo:
                 print '[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1))
                 AiTextureInvalidate(os.path.splitext(tile)[0] + '.tx') 
-                status['updated'] += 1
+                status[0] += 1
             else:
                 print '[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace)
-                status['error'] += 1
-                
+                status[2] += 1
+       
     return status
