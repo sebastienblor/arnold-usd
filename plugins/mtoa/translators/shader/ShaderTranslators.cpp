@@ -31,6 +31,7 @@
 #include <string>
 #include <fstream>
 
+
 // Sky
 //
 AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
@@ -389,6 +390,7 @@ void CFileTranslator::Export(AtNode* shader)
 
 void CFileTranslator::NodeInitializer(CAbTranslator context)
 {
+
    CExtensionAttrHelper helper(context.maya, "MayaFile");
    helper.MakeInput("mipBias");
    helper.MakeInput("filter");
@@ -1462,6 +1464,20 @@ void CAiImageTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "cs";
    helper.MakeInputString(data);
 
+   data.defaultValue.STR = "";
+   data.name = "workingSpace";
+   data.shortName = "ws";
+   helper.MakeInputString(data);
+
+/* 
+   // In case we need to have an attribute named imageName
+   // so that it's recognized to update color spaces
+   
+   data.defaultValue.STR = "";
+   data.name = "imageName";
+   data.shortName = "in";
+   helper.MakeInputString(data);
+*/
    data.defaultValue.BOOL = false;
    data.name = "ignoreColorSpaceFileRules";
    data.shortName = "ifr";
