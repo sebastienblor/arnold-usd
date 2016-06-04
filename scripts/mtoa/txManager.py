@@ -101,25 +101,23 @@ class MakeTxThread (threading.Thread):
 
             # Process all the files that match the <>  tokens
             if '<' in os.path.basename(texture):
-                udims = makeTx.expandTokens(texture)
-                for udim in udims:
+                expandedFilenames = makeTx.expandFilename(texture)
+                for expandedFilename in expandedFilenames:
                     # stopCreation has been called   
                     if not self.txManager.process:
                         break;
-                    if self.runMakeTx(udim, colorSpace) is 0:
-                        self.filesCreated += 1
-                    else:
-                        self.createdErrors += 1
-                        
+
+                    status = self.runMakeTx(expandedFilename, colorSpace)
+                    self.filesCreated += status[0]
+                    self.createdErrors += status[2]
                         
                     utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
                         
             else:
-                if self.runMakeTx(texture, colorSpace) is 0:
-                    self.filesCreated += 1
-                else:
-                    self.createdErrors += 1
-                    
+                status = self.runMakeTx(texture, colorSpace)
+                self.filesCreated += status[0]
+                self.createdErrors += status[2]
+                
             utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
         
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
@@ -223,11 +221,11 @@ class MtoATxManager(object):
                     
                 # File has <> tokens
                 elif '<' in os.path.basename(texturesList[i]):
-                    udims = makeTx.expandTokens(texturesList[i])
+                    expandedFilenames = makeTx.expandFilenames(texturesList[i])
                     # If any file match to the <> token, the file exists
-                    if(len(udims) > 0):
+                    if(len(expandedFilenames) > 0):
                         txFlag = 0
-                        totalFiles+=len(udims)
+                        totalFiles+=len(expandedFilenames)
                         
                     # If no files match the <> token, the file does not exists.
                     else:
@@ -248,24 +246,24 @@ class MtoATxManager(object):
                 else:
                     # File has <> tag
                     if('<' in os.path.basename(texturesList[i])):
-                        udims = makeTx.expandTokens(texturesList[i])
+                        expandedFilenames = makeTx.expandFilenames(texturesList[i])
                         allTxExists = True
-                        for udim in udims:
-                            if not os.path.exists(os.path.splitext(udim)[0]+'.tx'):
+                        for expandedFilename in expandedFilenames:
+                            if not os.path.exists(os.path.splitext(expandedFilename)[0]+'.tx'):
                                 allTxExists = False
                                 break
                         # If no files match the <> token, the file does not exists.
-                        if len(udims) == 0:
+                        if len(expandedFilenames) == 0:
                             txFlag = -1
                             missingFiles+=1
                         # All the matching files has a processed .tx file
                         elif allTxExists:
                             txFlag = 1
-                            totalFiles+=len(udims)
+                            totalFiles+=len(expandedFilenames)
                         # Any matching file does not have a processed .tx file
                         else:
                             txFlag = 2
-                            totalFiles+=len(udims)
+                            totalFiles+=len(expandedFilenames)
                     # File without <> token and without processed .tx file
                     else:
                         # The file does not exists
@@ -424,8 +422,8 @@ class MtoATxManager(object):
             texture = self.selectedItems[i][0]
             
             if '<' in os.path.basename(texture):
-                udims = makeTx.expandTokens(texture)
-                self.filesToCreate += len(udims)
+                expandedFilenames = makeTx.expandFilenames(texture)
+                self.filesToCreate += len(expandedFilenames)
             else:
                 self.filesToCreate += 1
         
@@ -504,9 +502,9 @@ class MtoATxManager(object):
             if not texture:
                 continue;
             if '<' in os.path.basename(texture):
-                udims = makeTx.expandTokens(texture)
-                for udim in udims:
-                    txFile = os.path.splitext(udim)[0]+".tx"
+                expandedFilenames = makeTx.expandFilenames(texture)
+                for expandedFilename in expandedFilenames:
+                    txFile = os.path.splitext(expandedFilename)[0]+".tx"
                     if os.path.isfile(txFile):
                         os.remove(txFile)
                         self.deletedFiles += 1
