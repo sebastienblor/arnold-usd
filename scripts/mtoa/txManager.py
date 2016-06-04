@@ -49,7 +49,7 @@ class MakeTxThread (threading.Thread):
             return 1
 
         return 0
-        
+                
     def createTx(self):
         if not self.txManager.selectedItems:
             return
@@ -214,67 +214,47 @@ class MtoATxManager(object):
 
             # A .tx texture
             if(ext == '.tx'):
-                # File, does not have <> token and does not exists
-                if not '<' in os.path.basename(texturesList[i]) and not os.path.exists(texturesList[i]):
-                    txFlag = -1
-                    missingFiles+=1
-                    
-                # File has <> tokens
-                elif '<' in os.path.basename(texturesList[i]):
-                    expandedFilenames = makeTx.expandFilenames(texturesList[i])
-                    # If any file match to the <> token, the file exists
-                    if(len(expandedFilenames) > 0):
-                        txFlag = 0
-                        totalFiles+=len(expandedFilenames)
-                        
-                    # If no files match the <> token, the file does not exists.
-                    else:
-                        txFlag = -1
-                        missingFiles+=1
-                        
-                # File, does not have <> token and exists
-                else:
+
+                expandedFilenames = makeTx.expandFilenames(texturesList[i])
+
+                # check in search paths !
+                #if len(expandedFilenames) == 0:
+
+                if len(expandedFilenames) > 0:
+                    # File exists
                     txFlag = 0
-                    totalFiles+=1
+                    totalFiles += len(expandedFilenames)
+                else:
+                    # No file found for this filename
+                    txFlag = -1
+                    missingFiles += 1
                     
             # Not a .tx texture
             else:
-                # File exists and has a processed .tx file
-                if(os.path.exists(os.path.splitext(texturesList[i])[0]+'.tx') and os.path.exists(texturesList[i]) ):
-                    txFlag=1
-                    totalFiles+=1
+                inputFiles = makeTx.expandFilenames(texturesList[i])
+                
+                if len(inputFiles) == 0:
+                    # missing input file
+                    txFlag = -1
+                    missingFiles += 1
+
                 else:
-                    # File has <> tag
-                    if('<' in os.path.basename(texturesList[i])):
-                        expandedFilenames = makeTx.expandFilenames(texturesList[i])
-                        allTxExists = True
-                        for expandedFilename in expandedFilenames:
-                            if not os.path.exists(os.path.splitext(expandedFilename)[0]+'.tx'):
-                                allTxExists = False
-                                break
-                        # If no files match the <> token, the file does not exists.
-                        if len(expandedFilenames) == 0:
-                            txFlag = -1
-                            missingFiles+=1
-                        # All the matching files has a processed .tx file
-                        elif allTxExists:
-                            txFlag = 1
-                            totalFiles+=len(expandedFilenames)
-                        # Any matching file does not have a processed .tx file
-                        else:
+                    # input file exists
+                    totalFiles += len(inputFiles)
+
+                    # loop over files since we need to make sure each expanded texture has its .tx version
+                    missingOutputTx = 0
+                    txFlag = 1
+                    for inputFile in inputFiles:
+                        # note that inputFile is already expanded here
+                        outputTx = os.path.splitext(inputFile)[0]+'.tx'
+                        outputTxFiles = makeTx.expandFilenames(outputTx)
+
+                        if len(outputTxFiles) == 0:
+                            # un-processed File
                             txFlag = 2
-                            totalFiles+=len(expandedFilenames)
-                    # File without <> token and without processed .tx file
-                    else:
-                        # The file does not exists
-                        if not os.path.exists(texturesList[i]):
-                            txFlag = -1
-                            missingFiles+=1
-                        # Existing un processed file
-                        else:
-                            txFlag = 2
-                            totalFiles+=1
-            
+                            break
+
             # set textures element as a list : [filename, txFlag, textureColorSpace, node]
             nodesList = [nodes[i]]
             self.txItems.append([texturesList[i], txFlag, colorSpaces[i], nodesList])
@@ -383,8 +363,6 @@ class MtoATxManager(object):
             if node:
                 print ('  '+node)
                 cmds.select(node, add=True)
-
-
 
     
     # Set the variables self.selectedItems, self.filesToCreate, self.filesCreated and self.createdErrors
