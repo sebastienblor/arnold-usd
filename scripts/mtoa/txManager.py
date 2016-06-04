@@ -49,7 +49,7 @@ class MakeTxThread (threading.Thread):
             return 1
 
         return 0
-                
+
     def createTx(self):
         if not self.txManager.selectedItems:
             return
@@ -79,6 +79,7 @@ class MakeTxThread (threading.Thread):
             if not self.txManager.process:
                 break
 
+            # if a conflict is found, pop-up a dialog
             if conflictSpace:
                 msg = os.path.basename(texture)
                 msg += '\n'
@@ -98,27 +99,20 @@ class MakeTxThread (threading.Thread):
                 if result == 'Cancel':
                     break
 
+            # Process all the files that were found previously for this texture (eventually multiple tokens)
+            for inputFile in textureLine[4]:
+                # here inputFile is already expanded, and only corresponds to existing files
 
-            # Process all the files that match the <>  tokens
-            if '<' in os.path.basename(texture):
-                expandedFilenames = makeTx.expandFilename(texture)
-                for expandedFilename in expandedFilenames:
-                    # stopCreation has been called   
-                    if not self.txManager.process:
-                        break;
+                if not self.txManager.process:
+                    # stopCreation has been called
+                    break;
 
-                    status = self.runMakeTx(expandedFilename, colorSpace)
+                    status = self.runMakeTx(inputFile, colorSpace)
                     self.filesCreated += status[0]
                     self.createdErrors += status[2]
                         
                     utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
-                        
-            else:
-                status = self.runMakeTx(texture, colorSpace)
-                self.filesCreated += status[0]
-                self.createdErrors += status[2]
-                
-            utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors)
+
         
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
         utils.executeDeferred(cmds.button, ctrlPath, edit=True, enable=False);
@@ -133,11 +127,12 @@ class MtoATxManager(object):
         path = os.path.dirname(os.path.abspath(__file__))
         self.uiFile = os.path.join(path,'txManager.ui');
         self.window = '';
-        self.txItems = []   # pairs [texture_name, status] where status is:
-                             #   -1 (does not exists),
-                             #    0 (.tx file),
-                             #    1 (has a processed .tx file),
-                             #    2 (does not have a processed .tx file)
+        self.txItems = []   # arrays [texture_name, status, colorSpace, nodeList, inputFiles] 
+                            # where status is:
+                            #   -1 (does not exists),
+                            #    0 (.tx file),
+                            #    1 (has a processed .tx file),
+                            #    2 (does not have a processed .tx file)
         self.listElements = []
         self.selectedItems = []
         self.filesToCreate = 0
@@ -208,42 +203,24 @@ class MtoATxManager(object):
         totalFiles = 0;
         missingFiles = 0;    
         for i in range(len(texturesList)):
-            ext = os.path.splitext(texturesList[i])[1]
+
+            inputFiles = makeTx.expandFilenames(texturesList[i])
+            totalFiles += len(inputFiles)
             
             txFlag = 0
 
-            # A .tx texture
-            if(ext == '.tx'):
-
-                expandedFilenames = makeTx.expandFilenames(texturesList[i])
-
-                # check in search paths !
-                #if len(expandedFilenames) == 0:
-
-                if len(expandedFilenames) > 0:
-                    # File exists
-                    txFlag = 0
-                    totalFiles += len(expandedFilenames)
-                else:
-                    # No file found for this filename
-                    txFlag = -1
-                    missingFiles += 1
-                    
-            # Not a .tx texture
+           if len(inputFiles) == 0:
+                # missing input file
+                txFlag = -1
+                missingFiles += 1
             else:
-                inputFiles = makeTx.expandFilenames(texturesList[i])
-                
-                if len(inputFiles) == 0:
-                    # missing input file
-                    txFlag = -1
-                    missingFiles += 1
-
+                ext = os.path.splitext(texturesList[i])[1]
+                # A .tx texture
+                if(ext == '.tx'):
+                    txFlag = 0
                 else:
-                    # input file exists
-                    totalFiles += len(inputFiles)
-
+                    # Not a .tx texture
                     # loop over files since we need to make sure each expanded texture has its .tx version
-                    missingOutputTx = 0
                     txFlag = 1
                     for inputFile in inputFiles:
                         # note that inputFile is already expanded here
@@ -257,7 +234,7 @@ class MtoATxManager(object):
 
             # set textures element as a list : [filename, txFlag, textureColorSpace, node]
             nodesList = [nodes[i]]
-            self.txItems.append([texturesList[i], txFlag, colorSpaces[i], nodesList])
+            self.txItems.append([texturesList[i], txFlag, colorSpaces[i], nodesList, inputFiles])
 
 
         ctrlPath = '|'.join([self.window, 'groupBox', 'listWidget']);
@@ -399,7 +376,7 @@ class MtoATxManager(object):
             self.selectedItems.append(self.txItems[lineIndex])
             texture = self.selectedItems[i][0]
             
-            if '<' in os.path.basename(texture):
+            if '<' in texture:
                 expandedFilenames = makeTx.expandFilenames(texture)
                 self.filesToCreate += len(expandedFilenames)
             else:
@@ -479,15 +456,10 @@ class MtoATxManager(object):
             texture = textureLine[0]
             if not texture:
                 continue;
-            if '<' in os.path.basename(texture):
-                expandedFilenames = makeTx.expandFilenames(texture)
-                for expandedFilename in expandedFilenames:
-                    txFile = os.path.splitext(expandedFilename)[0]+".tx"
-                    if os.path.isfile(txFile):
-                        os.remove(txFile)
-                        self.deletedFiles += 1
-            else:
-                txFile = os.path.splitext(texture)[0]+".tx"
+
+            # loop over the previously listed files
+            for inputFile in textureLine[4]:
+                txFile = os.path.splitext(inputFile)[0]+".tx"
                 if os.path.isfile(txFile):
                     os.remove(txFile)
                     self.deletedFiles += 1
