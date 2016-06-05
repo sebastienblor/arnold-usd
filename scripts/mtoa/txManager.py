@@ -7,6 +7,7 @@ import sys, os
 import subprocess
 import threading
 import makeTx
+import platform
 
 def isImage(file):
     ext = os.path.splitext(file)[1]
@@ -189,8 +190,7 @@ class MtoATxManager(object):
                 colorSpace = cmds.getAttr(node+'.colorSpace')
                 colorSpaces.append(colorSpace)
                 nodes.append(node)
-                
-                    
+                                    
         list = cmds.ls(type='aiImage')
         for node in list:
             texture = cmds.getAttr(node+'.filename')
@@ -200,16 +200,38 @@ class MtoATxManager(object):
                 colorSpaces.append(colorSpace)
                 nodes.append(node)
             
-        totalFiles = 0;
-        missingFiles = 0;    
+        totalFiles = 0
+        missingFiles = 0
+
+        textureSearchPaths = cmds.getAttr('defaultArnoldRenderOptions.texture_searchpath')
+        searchPaths = []
+
+        if platform.system().lower() == 'windows':
+            searchPaths = textureSearchPaths.split(';')    
+        else:
+            searchPaths = textureSearchPaths.split(':')
+        
         for i in range(len(texturesList)):
 
-            inputFiles = makeTx.expandFilenames(texturesList[i])
+            inputFiles = makeTx.expandFilename(texturesList[i])
+            
+            if len(inputFiles) == 0:
+                # file not found, need to search in the Texture Search Paths
+                for searchPath in searchPaths:
+                    if searchPath.endswith('/'):
+                        currentSearchTexture = searchPath + texturesList[i]
+                    else:
+                        currentSearchTexture = searchPath + '/'+texturesList[i]
+                
+                    inputFiles = makeTx.expandFilename(currentSearchTexture)
+                    if len(inputFiles) > 0:
+                        break
+            
             totalFiles += len(inputFiles)
             
             txFlag = 0
 
-           if len(inputFiles) == 0:
+            if len(inputFiles) == 0:
                 # missing input file
                 txFlag = -1
                 missingFiles += 1
@@ -225,7 +247,7 @@ class MtoATxManager(object):
                     for inputFile in inputFiles:
                         # note that inputFile is already expanded here
                         outputTx = os.path.splitext(inputFile)[0]+'.tx'
-                        outputTxFiles = makeTx.expandFilenames(outputTx)
+                        outputTxFiles = makeTx.expandFilename(outputTx)
 
                         if len(outputTxFiles) == 0:
                             # un-processed File
@@ -376,12 +398,8 @@ class MtoATxManager(object):
             self.selectedItems.append(self.txItems[lineIndex])
             texture = self.selectedItems[i][0]
             
-            if '<' in texture:
-                expandedFilenames = makeTx.expandFilenames(texture)
-                self.filesToCreate += len(expandedFilenames)
-            else:
-                self.filesToCreate += 1
-        
+            self.filesToCreate += len(self.selectedItems[i][4])
+            
         updateProgressMessage(self.window, self.filesCreated, self.filesToCreate, 0)
         ctrlPath = '|'.join([self.window, 'groupBox_3', 'label_10']);
         cmds.text(ctrlPath, edit=True, label="");
