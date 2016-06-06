@@ -41,18 +41,18 @@ float3 standardShaderDiffuse(
                 ]]>
             </source>
         </implementation>
-        <implementation render="OGSRenderer" language="HLSL" lang_version="10.0">
+        <implementation render="OGSRenderer" language="GLSL" lang_version="3.0">
             <function_name val="standardShaderDiffuse" />
             <source>
                 <![CDATA[
-float3 standardShaderDiffuse(
+vec3 standardShaderDiffuse(
         standardShaderLightingData lightingData)
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
         return lightingData.diffuse * NDL;
     else
-        return float3(0.0f, 0.0f, 0.0f);
+        return vec3(0.0f, 0.0f, 0.0f);
 }
                 ]]>
             </source>
