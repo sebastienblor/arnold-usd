@@ -90,6 +90,18 @@ try:
         def nodes(self):
             return self.selection().nodes()
 
+        def _encodeProperties(self, dict):
+            encoders = [(self.aAOVNodeName,  self.getAOVNodeName)]
+            for attr, encode in encoders:
+                dict[OpenMaya.MPlug(self.thisMObject(), attr).partialName(useLongNames=True)] = encode()
+            
+        def _decodeProperties(self, dict):
+            decoders = [(self.aAOVNodeName,  self.setAOVNodeName)]
+            for attr, decode in decoders:
+                name = OpenMaya.MPlug(self.thisMObject(), attr).partialName(useLongNames=True)
+                if name in dict:
+                    decode(dict[name])
+
         def onNodeAdded(self, **kwargs):
             if OpenMaya.MFnDependencyNode(kwargs['obj']).typeName in ["aiAOV", "aiAOVDriver", "aiAOVFilter"] and not self.isDirty():
                 self.selectionChanged()
@@ -275,6 +287,10 @@ try:
             aovNodeName = AOVInterface().getAOVNode(aovName).name()
             currentSelector.setAOVNodeName(aovNodeName)
             return returnSelectorName
+
+        # This function returns the child selector AOV node name from the provided dictionary
+        def getChildCollectionSelectorAOVNodeFromDict(self, d):
+            return d["selector"]["arnoldAOVChildSelector"]["arnoldAOVNodeName"]
 
     renderSetup.registerNode(ArnoldAOVChildSelector)
     arnoldAOVCallbacks = ArnoldAOVCallbacks()
