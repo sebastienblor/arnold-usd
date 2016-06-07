@@ -67,11 +67,10 @@ try:
         def _update(self, dataBlock):
             self._cache = set()
             aovNodeName = self.getAOVNodeName(dataBlock)
-            self._cache.add(aovNodeName)
             # If the aovNodeName does not exist because we don't have an AOV 
-            # associated with the aovNodeName, then this will fail and we
-            # should empty the cache.
-            try:
+            # associated with the aovNodeName, then we should empty the cache.
+            if(cmds.objExists(aovNodeName)):
+                self._cache.add(aovNodeName)
                 outputsAttr = aovNodeName + ".outputs"
                 numOutputs = cmds.getAttr(outputsAttr, size=True)
                 for i in range(numOutputs):
@@ -79,7 +78,7 @@ try:
                     for outputType in [".filter", ".driver"]:
                         output = cmds.listConnections(outputIndex + outputType)[0]
                         self._cache.add(output)
-            except:
+            else:
                 self._cache = set()
 
         def selection(self):
