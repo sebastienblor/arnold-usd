@@ -28,6 +28,7 @@ try:
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu
     import mtoa.cmds.arnoldRender as arnoldRender
+    from mtoa.cmds.rendererCallbacks import aiRenderSettingsBuiltCallback
 except:
     import traceback
     traceback.print_exc(file=sys.__stderr__) # goes to the console
@@ -235,6 +236,8 @@ def _register():
     args['changeIprRegionProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
                                                     [('string', 'renderPanel')])
     pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
+    if int(maya_version) < 2017:
+        aiRenderSettingsBuiltCallback("arnold")
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')
