@@ -8,6 +8,7 @@ import subprocess
 import threading
 import makeTx
 import platform
+from arnold import *
 
 def isImage(file):
     ext = os.path.splitext(file)[1]
@@ -46,10 +47,7 @@ class MakeTxThread (threading.Thread):
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'lineEdit']);
         arg_options = utils.executeInMainThreadWithResult(cmds.textField, ctrlPath, query=True, text=True)
         status = utils.executeInMainThreadWithResult( makeTx.makeTx, texture, colorspace=space, arguments=arg_options)
-        if (status['error'] > 0):
-            return 1
-
-        return 0
+        return status
 
     def createTx(self):
         if not self.txManager.selectedItems:
@@ -108,11 +106,11 @@ class MakeTxThread (threading.Thread):
                     # stopCreation has been called
                     break;
 
-                    status = self.runMakeTx(inputFile, colorSpace)
-                    self.filesCreated += status[0]
-                    self.createdErrors += status[2]
-                        
-                    utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
+                status = self.runMakeTx(inputFile, colorSpace)
+                self.filesCreated += status[0]
+                self.createdErrors += status[2]
+                    
+                utils.executeDeferred(updateProgressMessage, self.txManager.window, self.filesCreated, self.txManager.filesToCreate, self.createdErrors) 
 
         
         ctrlPath = '|'.join([self.txManager.window, 'groupBox_2', 'pushButton_7']);
@@ -479,6 +477,7 @@ class MtoATxManager(object):
             for inputFile in textureLine[4]:
                 txFile = os.path.splitext(inputFile)[0]+".tx"
                 if os.path.isfile(txFile):
+                    AiTextureInvalidate(txFile)
                     os.remove(txFile)
                     self.deletedFiles += 1
 

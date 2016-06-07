@@ -81,9 +81,11 @@ _maketx_cmd = [_maketx_binary, '-v', '-u', '--unpremult', '--oiio']
 def makeTx(filename, colorspace='auto', arguments=''):
     '''Generate a TX texture with maketx
     '''
+
     # status[0] contains the amount of created tx files
     # status[1] the amount of skipped tx files
     # status[2] the amount of errors
+
 
     status = [0,0,0]
     if arguments == '':
@@ -118,8 +120,11 @@ def makeTx(filename, colorspace='auto', arguments=''):
         if colorspace == 'auto':
             colorspace = guessColorspace(tile)
         
+        outputTx = os.path.splitext(tile)[0] + '.tx'
+        AiTextureInvalidate(outputTx)
+
         res = subprocess.Popen(cmd + [tile], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
-        
+
         if re.search(_maketx_rx_noupdate, res):
             print '[maketx] TX texture is up to date for "%s" (%s)' % (tile, colorspace)
             status[1] += 1
@@ -127,7 +132,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
             mo = re.search(_maketx_rx_stats, res)
             if mo:
                 print '[maketx] Generated TX for "%s" (%s) in %s seconds' % (tile, colorspace, mo.group(1))
-                AiTextureInvalidate(os.path.splitext(tile)[0] + '.tx') 
+                AiTextureInvalidate(outputTx) 
                 status[0] += 1
             else:
                 print '[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace)
