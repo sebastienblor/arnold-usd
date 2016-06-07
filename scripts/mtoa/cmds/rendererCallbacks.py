@@ -68,13 +68,19 @@ try:
             self._cache = set()
             aovNodeName = self.getAOVNodeName(dataBlock)
             self._cache.add(aovNodeName)
-            outputsAttr = aovNodeName + ".outputs"
-            numOutputs = cmds.getAttr(outputsAttr, size=True)
-            for i in range(numOutputs):
-                outputIndex = outputsAttr + "[" + str(i) + "]"
-                for outputType in [".filter", ".driver"]:
-                    output = cmds.listConnections(outputIndex + outputType)[0]
-                    self._cache.add(output)
+            # If the aovNodeName does not exist because we don't have an AOV 
+            # associated with the aovNodeName, then this will fail and we
+            # should empty the cache.
+            try:
+                outputsAttr = aovNodeName + ".outputs"
+                numOutputs = cmds.getAttr(outputsAttr, size=True)
+                for i in range(numOutputs):
+                    outputIndex = outputsAttr + "[" + str(i) + "]"
+                    for outputType in [".filter", ".driver"]:
+                        output = cmds.listConnections(outputIndex + outputType)[0]
+                        self._cache.add(output)
+            except:
+                self._cache = set()
 
         def selection(self):
             names = self.names()
@@ -260,12 +266,16 @@ try:
             
         # Given an aovNode (aiAOV, aiAOVFilter, or aiAOVDriver type node), returns the aovName.
         def getAOVName(self, aovNode):
-            if cmds.nodeType(aovNode) == "aiAOV":
+            try:
+                nodeType = cmds.nodeType(aovNode)
+            except:
+                return aovNode[len('aiAOV_'):]
+            if nodeType == "aiAOV":
                 return cmds.getAttr(aovNode + ".name")
             else:
                 # The first item in the returned list of connections should be the attached aiAOV node.
                 aiAOVNode = cmds.listConnections(aovNode)[0]
-                if cmds.nodeType(aiAOVNode) == "aiAOV":
+                if nodeType == "aiAOV":
                     return self.getAOVName(aiAOVNode)
                 else:
                     raise ValueError(_L10N(kAiAOVNodeNotFound, 'The attached item is not an aiAOV node as required.'))
@@ -284,7 +294,7 @@ try:
         def getChildCollectionSelector(self, selectorName, aovName):
             returnSelectorName = cmds.createNode(ArnoldAOVChildSelector.kTypeName, name=selectorName, skipSelect=True)
             currentSelector = renderSetupUtils.nameToUserNode(returnSelectorName)
-            aovNodeName = AOVInterface().getAOVNode(aovName).name()
+            aovNodeName = "aiAOV_" + aovName
             currentSelector.setAOVNodeName(aovNodeName)
             return returnSelectorName
 
