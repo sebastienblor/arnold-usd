@@ -162,7 +162,7 @@ shader_evaluate
    AtRGB shadow_diff = AI_ONEOVERPI * Kd * (Liu - Li);
 
    // shadow mask
-   AtRGB shadow_mask = AiColorIsZero(matte) ? AI_RGB_BLACK : AI_RGB_WHITE;
+   AtRGB shadow_mask = AiAll(matte < AI_EPSILON) ? AI_RGB_BLACK : AI_RGB_WHITE;
 
    AtRGB reflection = AiShaderEvalParamRGB(p_reflection);
 

@@ -264,21 +264,21 @@ node_update
 
     // detect constant zero values for color and intensity
     if ((!data->scattering_intensity_is_linked && data->scattering_intensity == 0.0f) ||
-        (!data->scattering_color_is_linked && AiColorEqual(data->scattering_color, AI_RGB_BLACK)))
+        (!data->scattering_color_is_linked && data->scattering_color == AI_RGB_BLACK))
     {
         data->scattering_from = INPUT_FROM_CACHE;
         data->scattering = AI_RGB_BLACK;
     }
 
     if ((!data->attenuation_intensity_is_linked && data->attenuation_intensity == 0.0f) ||
-        (!data->attenuation_color_is_linked && AiColorEqual(data->attenuation_color, AI_RGB_BLACK)))
+        (!data->attenuation_color_is_linked && data->attenuation_color == AI_RGB_BLACK))
     {
         data->attenuation_from = INPUT_FROM_CACHE;
         data->attenuation = AI_RGB_BLACK;
     }
 
     if ((!data->emission_intensity_is_linked && data->emission_intensity == 0.0f) ||
-        (!data->emission_color_is_linked && AiColorEqual(data->emission_color, AI_RGB_BLACK)))
+        (!data->emission_color_is_linked && data->emission_color == AI_RGB_BLACK))
     {
         data->emission_from = INPUT_FROM_NONE;
         data->emission = AI_RGB_BLACK;
@@ -389,7 +389,7 @@ shader_evaluate
         AiColorClipToZero(emission);
 
         // update volume shader globals
-        if (!AiColorIsZero(emission))
+        if (AiAny(emission > AI_EPSILON))
             AiShaderGlobalsSetVolumeEmission(sg, emission);
     }
 
