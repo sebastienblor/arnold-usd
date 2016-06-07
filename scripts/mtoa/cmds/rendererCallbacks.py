@@ -5,6 +5,18 @@ from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnol
 import mtoa.ui.ae.templates as templates
 import ctypes
 import types
+import pymel.core as pm
+
+try:
+    import mtoa.utils as utils
+    from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
+    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, createArnoldRendererOverrideTab, updateArnoldRendererOverrideTab
+    from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab
+    from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
+except:
+    import traceback
+    traceback.print_exc(file=sys.__stderr__) # goes to the console
+    raise
 
 global arnoldAOVCallbacks
 
@@ -393,6 +405,27 @@ def aiCreateRenderNodeCommandCallback(postCommand, type):
     if cmds.getClassification(type, sat="rendernode/arnold"):
         return "python(\"import mtoa.core as core ; core.createArnoldNode(\\\"" + type + "\\\")\")"
 
+def aiRenderSettingsBuiltCallback(currentRenderer):
+    if currentRenderer == "arnold":
+        pm.renderer('arnold', edit=True, addGlobalsTab=('Common',
+                                                        utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
+                                                        utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
+        pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
+                                                        utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
+                                                        utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
+        pm.renderer('arnold', edit=True, addGlobalsTab=('System', 
+                                                        utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
+                                                        utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
+        pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
+                                                        utils.pyToMelProc(createArnoldAOVTab, useName=True), 
+                                                        utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
+        pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
+                                                        utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
+                                                        utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
+        pm.renderer('arnold', edit=True, addGlobalsTab=('Override', 
+                                                        utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
+                                                        utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
+
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
     aiExport( self, self.invokeArgs[0], self.invokeArgs[1], self.invokeArgs[2], self.invokeArgs[3] )
@@ -476,6 +509,10 @@ def registerCallbacks():
     cmds.callbacks(addCallback=aiCreateRenderNodeCommandCallback,
                    hook="createRenderNodeCommand",
                    owner="arnold")   
+
+    cmds.callbacks(addCallback=aiRenderSettingsBuiltCallback,
+                   hook="renderSettingsBuilt",
+                   owner="arnold")
 
 def clearCallbacks():
     if cmds.about(batch=True):
