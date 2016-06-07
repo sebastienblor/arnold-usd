@@ -112,7 +112,7 @@ shader_evaluate
          else
          {
             // no tangents given, compute a pair
-            AiBuildLocalFramePolar(T, B, sg->N);
+            AiV3BuildLocalFramePolar(T, B, sg->N);
          }
       }
       transformedVectorDisplacement = vectorDisp.x * T + vectorDisp.z * B + vectorDisp.y * N;
