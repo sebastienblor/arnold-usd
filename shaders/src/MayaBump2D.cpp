@@ -163,7 +163,7 @@ shader_evaluate
          sg->N = AiShaderGlobalsEvaluateBump(sg, BumpFunction, &evalData);
          AiFaceForward(sg->N, oldN);
          sg->N = -sg->N;
-         AiFaceViewer(sg, sg->Nf);         
+         sg->Nf = AiFaceViewer(sg);
       }
    }
    else if(data->bumpMode == BM_TANGENT_NORMAL) // tangent space normal mapping
@@ -196,7 +196,7 @@ shader_evaluate
       else
       {
          sg->Nf = sg->N;
-         AiFaceViewer(sg, sg->Nf);
+         sg->Nf = AiFaceViewer(sg);
       }
    }
    else // object space normal mapping
@@ -207,7 +207,7 @@ shader_evaluate
       AtVector normalMapV(normalMap.r, normalMap.g, normalMap.b);
       AiM4VectorByMatrixMult(&sg->N, sg->M, &normalMapV);
       sg->Nf = sg->N;
-      AiFaceViewer(sg, sg->Nf);
+      sg->Nf = AiFaceViewer(sg);
    }
    
    AiShaderEvaluate(data->shader, sg);
