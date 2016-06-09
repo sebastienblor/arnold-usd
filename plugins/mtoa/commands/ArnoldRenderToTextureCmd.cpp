@@ -2,6 +2,7 @@
 #include "../scene/MayaScene.h"
 #include "../extension/ExtensionsManager.h"
 #include "../translators/shader/ShaderTranslator.h"
+#include "../utils/MercurialID.h"
 #include <maya/MStatus.h>
 #include <maya/MArgList.h>
 #include <maya/MSelectionList.h>
@@ -287,15 +288,19 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
    // assign it to the render options
    AiNodeSetArray(options_node, "outputs", outputs);
 
+   MString mayaVersion = MGlobal::mayaVersion();     
+   MString appString = MString("MtoA ") + MTOA_VERSION + " " + MERCURIAL_ID + " Maya " + mayaVersion;
+   AiSetAppString(appString.asChar());
+
    // Dirty hack... this is initializing all the polymeshes triangles
    // which is necessary for CameraUvMapper to work correctly
    AiRender(AI_RENDER_MODE_FREE);
    AiRenderAbort();
 
-   // for every selected object
+   std::vector<AtNode*> nodes;
+   // convert list of Maya selection to list of AtNodes selection
    for (unsigned int i = 0; i < selected.length(); ++i)
    {
-
       MDagPath dagPath;
       if (selected.getDagPath(i, dagPath) == MS::kFailure) continue;
 
@@ -305,6 +310,72 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       }
       MFnDagNode dagNode(dagPath);
       MString meshName = dagNode.partialPathName();
+
+      AtNode* node = AiNodeLookUpByName(meshName.asChar());
+      if (node == NULL)
+      {
+         const char *arnoldName = arnoldSession->GetArnoldObjectName(meshName.asChar());
+         if (arnoldName != "")
+         {
+            node = AiNodeLookUpByName(arnoldName);
+         }
+      }
+      if (node == NULL)
+      {
+         std::string errorLog = "[mtoa] Render to Texture : Object ";
+         errorLog += meshName.asChar();
+         errorLog += " not exported to Arnold world";
+         MGlobal::displayError(errorLog.c_str());
+         continue;
+      }
+
+      const char *typeName = AiNodeEntryGetName(AiNodeGetNodeEntry(node));
+      if(strcmp(typeName, "procedural") == 0) 
+      {
+         // this is a procedural node...
+         // need to get all the children nodes
+
+         // we loop over the entire Arnold Scene, and check which have this node as parent
+         AtNodeIterator* nodeIter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
+   
+         while (!AiNodeIteratorFinished(nodeIter))
+         {
+            AtNode *loopNode = AiNodeIteratorGetNext(nodeIter);
+            if (loopNode == NULL) continue;
+
+            AtNode *rootNode = loopNode;
+            AtNode *parentNode = AiNodeGetParent(rootNode);
+            while(parentNode)
+            {
+               rootNode = parentNode;
+               parentNode = AiNodeGetParent(rootNode);
+            }
+            // test if the root parent node is the one I'm treating
+            if (rootNode != node) continue;
+            
+            if (AiNodeIs(loopNode, "polymesh") )
+            {
+               nodes.push_back(loopNode);
+            }
+         }
+         AiNodeIteratorDestroy(nodeIter);
+
+      } else if (AiNodeIs(node, "polymesh"))
+      {
+         nodes.push_back(node);
+      } else
+      {         
+         MString errLog = "[mtoa] Render to Texture : ";
+         errLog += typeName;
+         errLog += " nodes are not supported types";
+         MGlobal::displayError(errLog);
+      }
+   }
+
+   for (size_t i = 0; i < nodes.size(); ++i)
+   {
+      AtNode *mesh = nodes[i];
+      const char *meshName = AiNodeGetName(mesh);
 
       if (progressBar)
       {
@@ -317,11 +388,11 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          }
          if (MProgressWindow::isCancelled()) break;
 
-         MString progressStatus = meshName;
+         MString progressStatus = AiNodeGetName(mesh);
          progressStatus += " (";
-         progressStatus += (i + 1);
+         progressStatus += (unsigned int)(i + 1);
          progressStatus += "/";
-         progressStatus += selected.length();
+         progressStatus += (unsigned int)nodes.size();
          progressStatus += ")";
          MProgressWindow::setProgressStatus(progressStatus);
 
@@ -334,39 +405,29 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          }
          else
          {
-            MProgressWindow::setProgress(i * 100 / selected.length());
+            MProgressWindow::setProgress(i * 100 / nodes.size());
          }
       }
-
-      AtNode*input_object = AiNodeLookUpByName(meshName.asChar());
-      if (input_object == 0)
-      {
-         std::string errorLog = "[mtoa] Render to Texture : Object ";
-         errorLog += meshName.asChar();
-         errorLog += " not exported to Arnold world";
-         MGlobal::displayError(errorLog.c_str());
-         continue;
-      }
-
+      
       // specific shader to be assigned to geometry
       if (shaderNode)
       {
-         AiNodeSetPtr(input_object, "shader", shaderNode);
+         AiNodeSetPtr(mesh, "shader", shaderNode);
       }
       // get assigned shader name
       const char* shader_name = NULL;
       {
-         AtNode* shader = (AtNode*)AiNodeGetPtr(input_object, "shader");
+         AtNode* shader = (AtNode*)AiNodeGetPtr(mesh, "shader");
          if (shader)
             shader_name = AiNodeGetName(shader);
       }
 
-      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + meshName);
+      MGlobal::displayInfo(MString("[mtoa] Render to Texture : Rendering polymesh ") + MString(meshName));
 
       if (allUdims || udimsSet.size()>0)
       {
 
-         AtArray* uv_list = AiNodeGetArray(input_object, "uvlist");
+         AtArray* uv_list = AiNodeGetArray(mesh, "uvlist");
 
          /// find all affected udims
          if (allUdims)
@@ -385,7 +446,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             const int& v_offset = it->second;
 
             std::ostringstream ss_filename;
-            ss_filename << folderName.asChar() << "/" << shader_name << "_" << meshName.asChar() << "_" << 1000 + u_offset + 1 + v_offset * 10 << ".exr";
+            ss_filename << folderName.asChar() << "/" << shader_name << "_" << meshName << "_" << 1000 + u_offset + 1 + v_offset * 10 << ".exr";
 
             // comment for mayabatch
             std::cout << "[mtoa] Render to Texture : UDIM " << u_offset << ":" << v_offset << " Rendered to " << ss_filename.str() << "\n";
@@ -398,7 +459,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
 
             AiNodeSetStr(camera, "name", "cameraUvBaker");
-            AiNodeSetStr(camera, "polymesh", meshName.asChar());
+            AiNodeSetStr(camera, "polymesh", meshName);
             AiNodeSetFlt(camera, "u_offset", -(float)u_offset);
             AiNodeSetFlt(camera, "v_offset", -(float)v_offset);
             AiNodeSetPtr(options_node, "camera", camera);
@@ -428,7 +489,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
          MString filename = folderName + "/" + meshName + ".exr";
 
          AiNodeSetStr(camera, "name", "cameraUvBaker");
-         AiNodeSetStr(camera, "polymesh", meshName.asChar());
+         AiNodeSetStr(camera, "polymesh", meshName);
          AiNodeSetPtr(options_node, "camera", camera);
          AiNodeSetStr(driver, "filename", filename.asChar());
 
@@ -438,7 +499,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
 
          AiNodeDestroy(camera);
       }
-   }// end for selected
+   }
    MProgressWindow::endProgress();
 
    AiEnd();

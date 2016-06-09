@@ -1,6 +1,6 @@
 
 #include <maya/MTypes.h>
-
+#include <ai.h>
 #if MAYA_API_VERSION >= 201650
 
 //*****************************************************************************
@@ -323,15 +323,16 @@ bool BifrostObjectUserData::loadFromFile(const float frame)
 	Bifrost::API::StateServer state = fileio.load();
 	if (!state.valid())
 	{
-		std::cerr<<"Unable to load BIF cache: "<<bif<<std::endl;;
+		AiMsgError("Unable to load BIF cache: %s", bif.c_str());		
 		return false;
 	}
 
 	// fileio.load() above returned a new state server with our object in it.
 	// It should be the only object in the state server
 	Bifrost::API::RefArray allObjects = state.objects();
-	if( allObjects.count() != 1 ) {
-		std::cerr<<"Unable to find object of loaded BIF cache: "<<bif<<std::endl;
+	if( allObjects.count() != 1 ) 
+	{
+		AiMsgError("Unable to find object of loaded BIF cache: %s", bif.c_str());
 		return false;
 	}
 

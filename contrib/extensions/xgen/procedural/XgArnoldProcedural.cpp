@@ -13,10 +13,7 @@
 #include <fstream>
 #include <fcntl.h>
 
-#ifndef _DARWIN
-// This would need a proper fix to be enabled in OSX !
 #include <maya/MTypes.h>
-#endif
 
 #include "../../../plugins/mtoa/utils/HashUtils.h"
 
@@ -958,8 +955,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       float constantWidth = pc->get( PC(ConstantWidth) );
 
       XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
-      {string s = "Constant width: " + ftoa(constantWidth) + "\n";
-      printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
     }
     // Add Varying Widths
