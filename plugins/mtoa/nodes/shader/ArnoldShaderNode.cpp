@@ -39,10 +39,13 @@ void CArnoldShaderNode::postConstructor()
    m_abstract = s_abstract;
 
    // should we do another Node for aiImage instead ?
+
+#ifdef ENABLE_COLOR_MANAGEMENT
    if (typeName() == "aiImage")
    {
       MColorManagementUtilities::connectDependencyNodeToColorManagement(thisMObject());
    }
+#endif
 }
 
 MStatus CArnoldShaderNode::compute(const MPlug& plug, MDataBlock& data)

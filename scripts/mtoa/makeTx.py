@@ -6,6 +6,7 @@ import subprocess
 import maya.cmds as cmds
 import shlex
 from arnold import *
+import pymel.versions as versions
 
 # FIXME As of Arnold 4.2.13.6 the texture API functions have no binding yet
 # so we'll temporarily provide bindings until this is resolved, see core #5293
@@ -95,21 +96,22 @@ def makeTx(filename, colorspace='auto', arguments=''):
         cmd_str += ' '
         cmd_str += arguments
         cmd = shlex.split(cmd_str, posix=False)
-        
 
-    if cmds.colorManagementPrefs(q=True, cmEnabled=True):
-        if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
-            if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
-                color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
+    maya_version = versions.shortName()
+    if int(maya_version) >= 2017:
+        if cmds.colorManagementPrefs(q=True, cmEnabled=True):
+            if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
+                if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
+                    color_config = cmds.colorManagementPrefs(q=True, configFilePath=True)
+                else:
+                    color_config = cmds.internalVar(userPrefDir=True)
+
+                render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
+                
+                if colorspace != render_colorspace:
+                    cmd += ['--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace]
             else:
-                color_config = cmds.internalVar(userPrefDir=True)
-
-            render_colorspace = cmds.colorManagementPrefs(q=True, renderingSpaceName=True)
-            
-            if colorspace != render_colorspace:
-                cmd += ['--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace]
-        else:
-            print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
+                print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
 
     for tile in expandFilename(filename):
         if os.path.splitext(tile)[1] == '.tx':

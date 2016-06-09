@@ -9,6 +9,7 @@ import threading
 import makeTx
 import platform
 from arnold import *
+import pymel.versions as versions
 
 def isImage(file):
     ext = os.path.splitext(file)[1]
@@ -279,7 +280,12 @@ class MtoATxManager(object):
             elif(txItem[1] == -1):
                 texturePrefix = '~~  '
 
-            textureLine = texturePrefix+txItem[0] +' ('+txItem[2]+')'
+            textureLine = texturePrefix+txItem[0] 
+
+            maya_version = versions.shortName()
+            if int(maya_version) >= 2017:
+                textureLine +=' ('+txItem[2]+')'
+                
             if textureLine not in self.lineIndex:
                 cmds.textScrollList(ctrlPath, edit=True, append=[textureLine]);
                 self.lineIndex[textureLine] = textureIndex
