@@ -1,7 +1,7 @@
 #include <ai.h>
 #include <algorithm>
 
-inline void AiColorGamma(AtColor *color, float gamma)
+inline void AiColorGamma(AtRGB *color, float gamma)
 {
    if (gamma == 1.0f)
       return;

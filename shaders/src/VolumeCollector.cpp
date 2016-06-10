@@ -317,8 +317,8 @@ shader_evaluate
 
     // the values storing the result of AiVolumeSampleRGB() need to be zeroed
     // or NaNs will occur in optimized builds (htoa#374)
-    AtColor scattering  = AI_RGB_BLACK;
-    AtColor attenuation = AI_RGB_BLACK;
+    AtRGB scattering  = AI_RGB_BLACK;
+    AtRGB attenuation = AI_RGB_BLACK;
 
     // scattering
     if (!(sg->Rt & AI_RAY_SHADOW) || (data->attenuation_from == INPUT_FROM_SCATTERING) || (data->attenuation_mode == ATTENUATION_MODE_ABSORPTION))
@@ -372,7 +372,7 @@ shader_evaluate
     // emission
     if (!(sg->Rt & AI_RAY_SHADOW) && (data->emission_from != INPUT_FROM_NONE))
     {
-        AtColor emission = AI_RGB_BLACK;
+        AtRGB emission = AI_RGB_BLACK;
 
         switch (data->emission_from)
         {

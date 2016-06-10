@@ -24,7 +24,7 @@ node_finish
 
 shader_evaluate
 {
-   AtColor diffuse = AI_RGB_BLACK;
+   AtRGB diffuse = AI_RGB_BLACK;
 
    AiLightsPrepare(sg);
 

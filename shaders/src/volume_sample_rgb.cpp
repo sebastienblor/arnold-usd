@@ -13,7 +13,7 @@ AI_SHADER_NODE_EXPORT_METHODS(VolumeSampleRgbMethods)
 
 namespace {
 
-inline void AiColorGamma(AtColor *color, float gamma)
+inline void AiColorGamma(AtRGB *color, float gamma)
 {
    if (gamma == 1.0f)
       return;
@@ -161,7 +161,7 @@ shader_evaluate
 
    // the values storing the result of AiVolumeSampleRGB() need to be zeroed
    // or NaNs will occur in optimized builds (htoa#374)
-   AtColor color = AI_RGB_BLACK;
+   AtRGB color = AI_RGB_BLACK;
 
    if (!data->channel.empty())
        AiVolumeSampleRGB(data->channel, data->interpolation, &color);
@@ -174,7 +174,7 @@ shader_evaluate
 
    if (data->hue_shift != 0.0f || data->saturation != 1.0f)
    {
-       AtColor hsl = convertFromRGB(color, COLOR_SPACE_HSL);
+       AtRGB hsl = convertFromRGB(color, COLOR_SPACE_HSL);
 
        hsl.r += data->hue_shift;
        hsl.r = hsl.r - floorf(hsl.r); // keep hue in [0, 1]

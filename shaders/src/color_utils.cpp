@@ -4,7 +4,7 @@
 #include <ai.h>
 #include <algorithm>
 
-AtColor convertToRGB(const AtColor& color, int from_space)
+AtRGB convertToRGB(const AtRGB& color, int from_space)
 {
     if (from_space == COLOR_SPACE_HSV || from_space == COLOR_SPACE_HSL)
     {
@@ -22,7 +22,7 @@ AtColor convertToRGB(const AtColor& color, int from_space)
       
         float component = chroma * (1.0f - fabsf(hue2 - 1.0f));
 
-        AtColor rgb;
+        AtRGB rgb;
         if      (hue6 < 1) rgb = AtRGB(chroma, component, 0.0f);
         else if (hue6 < 2) rgb = AtRGB(component, chroma, 0.0f);
         else if (hue6 < 3) rgb = AtRGB(0.0f, chroma, component);
@@ -87,7 +87,7 @@ AtColor convertToRGB(const AtColor& color, int from_space)
         }
         else
         {
-            AtColor xyz = xyYToXYZ(color);
+            AtRGB xyz = xyYToXYZ(color);
             xc = xyz.r;
             yc = xyz.g;
             zc = xyz.b;
@@ -125,7 +125,7 @@ AtColor convertToRGB(const AtColor& color, int from_space)
         float g = (gx * xc) + (gy * yc) + (gz * zc);
         float b = (bx * xc) + (by * yc) + (bz * zc);
 
-        AtColor result( r, g, b );
+        AtRGB result( r, g, b );
         return result;
     }
    
@@ -133,7 +133,7 @@ AtColor convertToRGB(const AtColor& color, int from_space)
     return color;
 }
 
-AtColor convertFromRGB(const AtColor& color, int to_space)
+AtRGB convertFromRGB(const AtRGB& color, int to_space)
 {
     if (to_space == COLOR_SPACE_HSL || to_space == COLOR_SPACE_HSV)
     {
@@ -162,7 +162,7 @@ AtColor convertFromRGB(const AtColor& color, int to_space)
                 saturation = 0.0f;
             else
                 saturation = chroma / (1.0f - fabsf(2.0f * lightness - 1.0f));
-            AtColor result( hue, saturation, lightness );
+            AtRGB result( hue, saturation, lightness );
             return result;
         }
         else
@@ -170,7 +170,7 @@ AtColor convertFromRGB(const AtColor& color, int to_space)
             // HSV
             float value = cmax;
             float saturation = chroma == 0.0f ? 0.0f : chroma / value;
-            AtColor result( hue, saturation, value );
+            AtRGB result( hue, saturation, value );
             return result;
         }
     }
@@ -179,7 +179,7 @@ AtColor convertFromRGB(const AtColor& color, int to_space)
         float X = (0.49f * color.r + 0.31f * color.g + 0.2f * color.b) / 0.17697f;
         float Y = (0.17697f * color.r + 0.81240f * color.g + 0.01063f * color.b) / 0.17697f;
         float Z = (0.0f * color.r + 0.01f * color.g + 0.99f * color.b) / 0.17697f;
-        AtColor result;
+        AtRGB result;
         if (to_space == COLOR_SPACE_XYZ)
             result = AtRGB(X, Y, Z);
         else // xyY

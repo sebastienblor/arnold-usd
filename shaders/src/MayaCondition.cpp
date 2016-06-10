@@ -63,11 +63,11 @@ node_finish
 
 shader_evaluate
 {
-   int op               = AiShaderEvalParamInt(p_operation);
-   float firstTerm      = AiShaderEvalParamFlt(p_firstTerm);
-   float secondTerm     = AiShaderEvalParamFlt(p_secondTerm);
-   AtColor colorIfTrue  = AiShaderEvalParamRGB(p_colorIfTrue);
-   AtColor colorIfFalse = AiShaderEvalParamRGB(p_colorIfFalse);
+   int op             = AiShaderEvalParamInt(p_operation);
+   float firstTerm    = AiShaderEvalParamFlt(p_firstTerm);
+   float secondTerm   = AiShaderEvalParamFlt(p_secondTerm);
+   AtRGB colorIfTrue  = AiShaderEvalParamRGB(p_colorIfTrue);
+   AtRGB colorIfFalse = AiShaderEvalParamRGB(p_colorIfFalse);
 
    switch (op)
    {

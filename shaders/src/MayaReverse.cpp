@@ -34,7 +34,7 @@ node_finish
 
 shader_evaluate
 {
-   AtColor input = AiShaderEvalParamRGB(p_input);
+   AtRGB input = AiShaderEvalParamRGB(p_input);
 
    sg->out.RGB() = AI_RGB_WHITE - input;
 }

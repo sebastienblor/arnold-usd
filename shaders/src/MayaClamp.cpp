@@ -41,9 +41,9 @@ node_finish
 
 shader_evaluate
 {
-   AtColor input = AiShaderEvalParamRGB(p_input);
-   AtColor min   = AiShaderEvalParamRGB(p_min);
-   AtColor max   = AiShaderEvalParamRGB(p_max);
+   AtRGB input = AiShaderEvalParamRGB(p_input);
+   AtRGB min   = AiShaderEvalParamRGB(p_min);
+   AtRGB max   = AiShaderEvalParamRGB(p_max);
 
    sg->out.RGB().r = (input.r < min.r) ? min.r : ((input.r > max.r) ? max.r : input.r);
    sg->out.RGB().g = (input.g < min.g) ? min.g : ((input.g > max.g) ? max.g : input.g);

@@ -247,7 +247,7 @@ shader_evaluate
       AtRGB curColor = AI_RGB_BLACK;
       AtRGB curOpacity = AI_RGB_BLACK;
 
-      AtColor orgOpacity = sg->out_opacity;
+      AtRGB orgOpacity = sg->out_opacity;
       
       for (unsigned int i = 0; i < numInputs; ++i)
       {

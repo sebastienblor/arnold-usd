@@ -143,7 +143,7 @@ shader_evaluate
 
       // Now apply color (use softEdges and contrast)
 
-      AtColor c0 = Mix(color2, color1, contrast);
+      AtRGB c0 = Mix(color2, color1, contrast);
       c0 = Mix(c0, color2, noise);
 
       if (softEdges)
