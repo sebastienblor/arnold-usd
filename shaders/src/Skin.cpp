@@ -147,7 +147,7 @@ shader_evaluate
 {
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      sg->out_opacity *= AiColorClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
+      sg->out_opacity *= AiRGBClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
       return;
    }
 
@@ -260,7 +260,7 @@ shader_evaluate
    }
 
    sg->out.RGB() = specular + sheen + sss;
-   sg->out_opacity = AiColorClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
+   sg->out_opacity = AiRGBClamp(AiShaderEvalParamFlt(p_opacity) * AiShaderEvalParamRGB(p_opacity_color), 0.0f, 1.0f);
 
    if (sg->Rt & AI_RAY_CAMERA)
    {      
