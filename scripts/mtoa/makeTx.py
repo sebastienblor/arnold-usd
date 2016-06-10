@@ -87,10 +87,9 @@ def makeTx(filename, colorspace='auto', arguments=''):
     # status[1] the amount of skipped tx files
     # status[2] the amount of errors
 
-
     status = [0,0,0]
     if arguments == '':
-        cmd = _maketx_cmd
+        cmd = list(_maketx_cmd)
     else:
         cmd_str = _maketx_binary
         cmd_str += ' '
