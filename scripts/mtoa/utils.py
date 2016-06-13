@@ -475,22 +475,7 @@ def createLocator(locatorType, asLight=False):
         pm.createNode(locatorType, name=shapeName, parent=lNode)       
     return (shapeName, lName)
 
-def centerPivot(node):
-    cmds.xform(node, centerPivots=True)
-    m = cmds.xform(node, query=True, matrix=True)
-    p = cmds.xform(node, query=True, objectSpace=True, scalePivot=True)
-    oldPos = [
-        (p[0]*m[0] + p[1]*m[4]+ p[2]*m[8]  + m[12]),
-        (p[0]*m[1] + p[1]*m[5]+ p[2]*m[9]  + m[13]),
-        (p[0]*m[2] + p[1]*m[6]+ p[2]*m[10] + m[14])
-    ]
-    cmds.xform(node, zeroTransformPivots=True)
-    # Translate node back to previous pivot (preserving child transform positions and geometry positions)
-    [newPos] = cmds.getAttr(node + ".translate")
-    cmds.move(oldPos[0]-newPos[0], oldPos[1]-newPos[1], oldPos[2]-newPos[2], node,
-        preserveChildPosition=True, preserveGeometryPosition=True, localSpace=True, relative=True)
-
-def createMeshLight(legacy=False):
+def createMeshLight(legacy=False, centerPivot=True):
     sls = cmds.ls(sl=True, et='transform')
     if len(sls) == 0:
         cmds.confirmDialog(title='Error', message='No transform is selected!', button='Ok')
@@ -519,42 +504,32 @@ def createMeshLight(legacy=False):
 
         (lightShape,lightTransform) = createLocator('aiMeshLight', asLight=True)
         cmds.connectAttr('%s.outMesh' % meshShape, '%s.inMesh' % lightShape)
-        centerPivot(meshTransform)
+
+        # Center pivot of mesh if requested
+        # This will make sure that the point light used for approximate
+        # vewport lighting is placed in the center of the mesh
+        if centerPivot:
+            cmds.xform(meshTransform, centerPivots=True)
+            m = cmds.xform(meshTransform, query=True, matrix=True)
+            p = cmds.xform(meshTransform, query=True, objectSpace=True, scalePivot=True)
+            oldPos = [
+                (p[0]*m[0] + p[1]*m[4]+ p[2]*m[8]  + m[12]),
+                (p[0]*m[1] + p[1]*m[5]+ p[2]*m[9]  + m[13]),
+                (p[0]*m[2] + p[1]*m[6]+ p[2]*m[10] + m[14])
+            ]
+            cmds.xform(meshTransform, zeroTransformPivots=True)
+            # Translate back to previous pivot (preserving child transform positions and geometry positions)
+            [newPos] = cmds.getAttr(meshTransform + ".translate")
+            cmds.move(oldPos[0]-newPos[0], oldPos[1]-newPos[1], oldPos[2]-newPos[2], meshTransform,
+                preserveChildPosition=True, preserveGeometryPosition=True, localSpace=True, relative=True)
+
+        # Copy transform
         cmds.matchTransform(lightTransform, meshTransform)
-        cmds.parent(meshTransform, lightTransform)
-        cmds.setAttr('%s.intermediateObject' % meshShape, 1)
+
+        # Hide the original mesh using the lodVisibility attribute
+        # Using lodVisibility keeps the mesh dirty propagation enabled
+        cmds.connectAttr('%s.showOriginalMesh' % lightShape, '%s.lodVisibility' % meshShape)
         cmds.select(lightTransform)
-
-def revertMeshLight(node):
-    reply = cmds.confirmDialog(title="Confirm", message="Revert to Mesh will delete the light node and all light settings will be lost.", \
-        button=["OK","Cancel"], defaultButton="Cancel", cancelButton="Cancel", dismissString="Cancel")
-    if reply != "OK":
-        return
-    meshShape = None
-    lightShape = None
-    nodeType = cmds.nodeType(node)
-    if nodeType == 'mesh':
-        meshShape = node
-        connected = cmds.listConnections('%s.outMesh' % meshShape, shapes=True, type='aiMeshLight')
-        if connected and len(connected) > 0:
-            lightShape = connected[0]
-    elif nodeType == 'aiMeshLight':
-        lightShape = node
-        connected = cmds.listConnections('%s.inMesh' % lightShape, shapes=True, type='mesh')
-        if connected and len(connected) > 0:
-            meshShape = connected[0]
-    else:
-        cmds.error('Given node is not a mesh light!')
-        return
-
-    if meshShape:
-        cmds.setAttr('%s.aiTranslator' % meshShape, 'poly_mesh', type='string')
-        cmds.setAttr('%s.intermediateObject' % meshShape, 0)
-    if lightShape:
-        parents = cmds.listRelatives(lightShape, parent=True, fullPath=True)
-        cmds.delete(lightShape)
-        if parents and len(parents)>0:
-            cmds.ungroup(parents[0])
 
 def getSourceImagesDir():
     sourceImagesRule = cmds.workspace(fileRuleEntry='sourceImages')

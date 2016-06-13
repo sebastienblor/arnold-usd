@@ -329,7 +329,6 @@ AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
    MPlug plug;
 
    plug = FindMayaPlug("visibility");
-
    if (!plug.isNull() && !plug.asBool())
       return 0;
 

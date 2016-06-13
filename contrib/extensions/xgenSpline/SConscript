@@ -29,6 +29,10 @@ else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))
    local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   if system.os() == 'darwin':
+       source_files.remove('plugin/XGenSplineTranslator_Export.cpp')
+       source_files.append(local_env.SharedObject('plugin/XGenSplineTranslator_Export.cpp', CCFLAGS = Split('-std=c++0x -stdlib=libc++')))
+       local_env.Append(LINKFLAGS = Split('-lc++'))
 
 EXT = local_env.SharedLibrary('xgenSplineTranslator', source_files, LIBPREFIX='')
 

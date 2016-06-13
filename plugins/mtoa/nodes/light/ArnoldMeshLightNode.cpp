@@ -27,6 +27,7 @@ CStaticAttrHelper CArnoldMeshLightNode::s_attributes(CArnoldMeshLightNode::addAt
 
 // Inputs
 MObject CArnoldMeshLightNode::s_inMesh;
+MObject CArnoldMeshLightNode::s_showOriginalMesh;
 MObject CArnoldMeshLightNode::s_colorR;
 MObject CArnoldMeshLightNode::s_colorG;
 MObject CArnoldMeshLightNode::s_colorB;
@@ -203,6 +204,8 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
 
 void CArnoldMeshLightNode::meshDirtyCallback(MObject& node, MPlug& plug, void *clientData)
 {
+   std::cout << 42 << std::endl;
+
    CArnoldMeshLightNode *lightNode = static_cast<CArnoldMeshLightNode*>(clientData);
    if (!lightNode)
       return;
@@ -297,6 +300,12 @@ MStatus CArnoldMeshLightNode::initialize()
    mAttr.setReadable(true);
    mAttr.setWritable(true);
    addAttribute(s_inMesh);
+
+   s_showOriginalMesh = nAttr.create("showOriginalMesh", "showOriginalMesh", MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   nAttr.setChannelBox(true);
+   addAttribute(s_showOriginalMesh);
 
    MAKE_COLOR(s_color, "color", "sc", 1, 1, 1);
    nAttr.setKeyable(true);

@@ -51,6 +51,7 @@ public:
 
    // Input attributes
    static  MObject s_inMesh;
+   static  MObject s_showOriginalMesh;
    static  MObject s_colorR;
    static  MObject s_colorG;
    static  MObject s_colorB;

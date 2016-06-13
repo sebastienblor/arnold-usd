@@ -5,16 +5,14 @@ import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
 import mtoa.utils as utils
 
-def revertToMeshReplace(plugName):
+def inMeshReplace(plugName):
     nodeAndAttrs = plugName.split(".")
     node = nodeAndAttrs[0]
-    connected = cmds.listConnections('%s.inMesh' % node, shapes=True, type='mesh')
-    enabled = (connected and len(connected) > 0)
-    cmds.button("aiMeshLightRevertButton", edit=True, enable=enabled, command="import mtoa.utils as utils; utils.revertMeshLight(\"%s\")" % node)
+    cmds.attrNavigationControlGrp("aiMeshLightInMeshCtrl", edit=True, attribute=("%s.inMesh" % node))
 
-def revertToMeshNew(plugName):
-    cmds.button("aiMeshLightRevertButton", label="Revert to Mesh")
-    revertToMeshReplace(plugName)
+def inMeshNew(plugName):
+    cmds.attrNavigationControlGrp("aiMeshLightInMeshCtrl", label="In Mesh")
+    inMeshReplace(plugName)
 
 class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
 
@@ -26,8 +24,8 @@ class AEaiMeshLightTemplate(lightTemplate.LightTemplate):
         self.beginScrollLayout()
 
         self.beginLayout("Mesh Attributes", collapse=False)
-        self.addControl("inMesh")
-        self.addCustom("message", revertToMeshNew, revertToMeshReplace)
+        self.addCustom("inMesh", inMeshNew, inMeshReplace)
+        self.addControl("showOriginalMesh")
         self.endLayout()
 
         self.beginLayout("Light Attributes", collapse=False)

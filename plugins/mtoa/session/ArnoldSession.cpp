@@ -1646,16 +1646,24 @@ bool CArnoldSession::IsVisible(MFnDagNode &node) const
    if (GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
       return true;
 
+   // Check standard visibility
    MPlug visPlug = node.findPlug("visibility", &status);
-   MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
-
-   if (status == MStatus::kFailure)
+   if (status == MStatus::kFailure || !visPlug.asBool())
+      return false;
+   MPlug lodVisPlug = node.findPlug("lodVisibility", &status);
+   if (status == MStatus::kFailure || !lodVisPlug.asBool())
       return false;
 
-   if (visPlug.asBool() && overVisPlug.asBool())
-      return true;
-   else
-      return false;
+   // Check override visibility
+   MPlug overPlug = node.findPlug("overrideEnabled", &status);
+   if (status == MStatus::kSuccess && overPlug.asBool())
+   {
+      MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
+      if (status == MStatus::kFailure || !overVisPlug.asBool())
+         return false;
+   }
+
+   return true;
 }
 
 bool CArnoldSession::IsVisiblePath(MDagPath dagPath) const
