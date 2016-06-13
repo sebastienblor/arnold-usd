@@ -52,6 +52,7 @@ CRenderOptions::CRenderOptions()
   m_expandProcedurals(false),
   m_force_translate_shading_engines(false),
   m_use_existing_tiled_textures(true),
+  m_autotx(true),
   m_multiCameraRender(false)
 {}
 
@@ -184,6 +185,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
       
       m_use_existing_tiled_textures = fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
+      m_autotx = fnArnoldRenderOptions.findPlug("autotx").asBool();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();

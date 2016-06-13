@@ -541,3 +541,12 @@ def getSourceImagesDir():
         return ret
     else:
         return [cmds.workspace(expandName='sourceimages')]
+
+def getActiveRenderLayerName():
+    renderLayers = cmds.listConnections('renderLayerManager.renderLayerId')
+    if (len(renderLayers) > 1):
+        layer = cmds.editRenderLayerGlobals(query=True, currentRenderLayer=True)
+        if (cmds.getAttr(layer+'.identification') == 0):
+            return 'masterLayer'
+        return layer
+    return ''

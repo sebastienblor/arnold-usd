@@ -252,7 +252,7 @@ env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
-
+env['ENABLE_COLOR_MANAGEMENT'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -268,6 +268,10 @@ if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
+
+if int(maya_version) >= 201700:
+    env["ENABLE_COLOR_MANAGEMENT"] = 1
+    env["MTOA_AFM"] = 1
 
 mercurial_id = ""
 
@@ -702,6 +706,18 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extensi
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
+COLOR_MANAGEMENT_FILES = ""
+if env['ENABLE_COLOR_MANAGEMENT'] == 1:
+    COLOR_MANAGEMENT_FILES = os.path.join(EXTERNAL_PATH, 'maketx', system.os(), '*')
+
+    for dylibElem in reversed(dylibs):
+        
+        if 'maketx' in dylibElem:
+            dylibs.remove(dylibElem)
+        
+
+    env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
+
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 OCIO_DYLIBPATH =""
@@ -715,11 +731,6 @@ if not env['MTOA_DISABLE_RV']:
         RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
 
     env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
-
-    
-
-
-
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
@@ -995,7 +1006,6 @@ PACKAGE_FILES = [
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
-[os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
@@ -1005,6 +1015,11 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+if env['ENABLE_COLOR_MANAGEMENT'] == 0:
+    PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
+else:
+    PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
+    
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
