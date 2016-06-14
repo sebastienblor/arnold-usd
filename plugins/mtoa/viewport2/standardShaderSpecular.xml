@@ -2,10 +2,10 @@
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
         <struct name="lightingData" struct_name="standardShaderLightingData" />
-        <float name="specularRoughness" />
+        <float name="roughness" />
     </properties>
     <values>
-      <float name="specularRoughness" />
+        
     </values>
     <outputs>
         <float3 name="outColor" />
@@ -22,7 +22,7 @@ float SQR(float a)
 
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float specularRoughness)
+        float roughness)
 {
     
     float LdotN = saturate(dot(lightingData.SL, lightingData.N));
@@ -47,7 +47,7 @@ float3 standardShaderSpecular(
     float MdotN2 = SQR(MdotN);
     float MdotN4 = SQR(MdotN2);
 
-    float rx = SQR(saturate(specularRoughness));
+    float rx = SQR(saturate(roughness));
 
     float rx2 = SQR(rx);
     float tanThetaL  = sqrt(1.0f - LdotN2) / LdotN;
@@ -80,7 +80,7 @@ float SQR(float a)
 
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float specularRoughness)
+        float roughness)
 {
     
     float LdotN = saturate(dot(lightingData.SL, lightingData.N));
@@ -105,7 +105,7 @@ float3 standardShaderSpecular(
     float MdotN2 = SQR(MdotN);
     float MdotN4 = SQR(MdotN2);
 
-    float rx = SQR(saturate(specularRoughness));
+    float rx = SQR(saturate(roughness));
 
     float rx2 = SQR(rx);
     float tanThetaL  = sqrt(1.0f - LdotN2) / LdotN;
@@ -138,7 +138,7 @@ float SQR(float a)
 
 float3 standardShaderSpecular(
         standardShaderLightingData lightingData,
-        float specularRoughness)
+        float roughness)
 {
     
     float LdotN = saturate(dot(lightingData.SL, lightingData.N));
@@ -163,7 +163,7 @@ float3 standardShaderSpecular(
     float MdotN2 = SQR(MdotN);
     float MdotN4 = SQR(MdotN2);
 
-    float rx = SQR(saturate(specularRoughness));
+    float rx = SQR(saturate(roughness));
 
     float rx2 = SQR(rx);
     float tanThetaL  = sqrt(1.0f - LdotN2) / LdotN;

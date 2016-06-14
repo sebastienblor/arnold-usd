@@ -2,8 +2,10 @@
     <description><![CDATA[Fragment for the arnold standard shader.]]></description>
     <properties>
         <struct name="lightingData" struct_name="standardShaderLightingData" />
+        <float name="Kd" />
     </properties>
-    <values>    
+    <values>
+        <float name="Kd" value="1.0" />        
     </values>
     <outputs>
         <float3 name="outColor" />
@@ -14,11 +16,12 @@
             <source>
                 <![CDATA[
 float3 standardShaderDiffuse(
-        standardShaderLightingData lightingData)
+        standardShaderLightingData lightingData,
+        float Kd)
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return lightingData.diffuse * KNDL;
+        return lightingData.diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
@@ -30,11 +33,12 @@ float3 standardShaderDiffuse(
             <source>
                 <![CDATA[
 float3 standardShaderDiffuse(
-        standardShaderLightingData lightingData)
+        standardShaderLightingData lightingData,
+        float Kd)
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return lightingData.diffuse * NDL;
+        return lightingData.diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }
@@ -46,11 +50,12 @@ float3 standardShaderDiffuse(
             <source>
                 <![CDATA[
 float3 standardShaderDiffuse(
-        standardShaderLightingData lightingData)
+        standardShaderLightingData lightingData,
+        float Kd)
 {
     float NDL = saturate(dot(lightingData.N, lightingData.L));
     if (NDL > 0.0f)
-        return lightingData.diffuse * NDL;
+        return lightingData.diffuse * Kd * NDL;
     else
         return float3(0.0f, 0.0f, 0.0f);
 }

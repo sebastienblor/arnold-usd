@@ -48,7 +48,6 @@ public:
    static MObject s_enable_internal_reflections;
    static MObject s_Krn;
    static MObject s_Ks;
-   static MObject s_specular_roughness;
    static MObject s_Ks_colorR;
    static MObject s_Ks_colorG;
    static MObject s_Ks_colorB;
