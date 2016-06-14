@@ -19,6 +19,7 @@ class FileTemplate(templates.AttributeTemplate):
         self.addControl('aiFilter', label='Filter Type')
         self.addControl('aiMipBias', label='Mip-map Bias')
         self.addControl('aiUseDefaultColor', label='Use Default Color')
+        self.addControl('aiAutoTx', label='Auto-generate TX Textures')
 
 templates.registerAETemplate(FileTemplate, 'file')
         

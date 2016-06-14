@@ -109,15 +109,13 @@ def EnsureDir(d):
         return False
 
 if silent:
-    homeDir = os.path.expanduser(userString)
-    installDir = os.path.join(homeDir, 'solidangle', 'mtoa', mayaVersion)
+    installDir = os.path.join('/opt', 'solidangle', 'mtoa', mayaVersion)
     if not EnsureDir(installDir):
         sys.exit(0)
 else:
     while True:
-        homeDir = os.path.expanduser(userString)
         InstallerHeader()
-        installDir = os.path.join(homeDir, 'solidangle', 'mtoa', mayaVersion)
+        installDir = os.path.join('/opt', 'solidangle', 'mtoa', mayaVersion)
         print('''
         Select the installation directory.
         [%s]

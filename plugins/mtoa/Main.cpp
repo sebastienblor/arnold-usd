@@ -331,7 +331,8 @@ namespace // <anonymous>
                                     CAiHairTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiImage",
                                     "",
-                                    CAiImageTranslator::creator);
+                                    CAiImageTranslator::creator,
+                                    CAiImageTranslator::NodeInitializer);
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",

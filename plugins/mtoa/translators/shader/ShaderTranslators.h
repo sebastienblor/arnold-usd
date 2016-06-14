@@ -150,6 +150,6 @@ public:
    static void* creator(){return new CAiImageTranslator();}
 
    virtual void Export(AtNode* shader);
-
+   static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
 };

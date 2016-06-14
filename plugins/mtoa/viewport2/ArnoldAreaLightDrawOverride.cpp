@@ -105,6 +105,8 @@ struct CArnoldAreaLightUserData : public MUserData{
       if (status && !plug.isNull())
       {
          primitiveType = plug.asString();
+         if (primitiveType.length() == 0)
+            primitiveType = "quad";
       }
       bool primitiveTypeChanged = (m_primitiveType != primitiveType);
 

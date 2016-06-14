@@ -3,8 +3,6 @@
 #define _MTOA_POLYTRIANGULATOR
 
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <maya/MFnMesh.h>
 #include <utils/PolyUtils.h>

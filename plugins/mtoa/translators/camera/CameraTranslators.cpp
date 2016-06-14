@@ -6,6 +6,11 @@ using namespace std;
 
 void CStandardCameraTranslator::Export(AtNode* camera)
 {
+   // we shoulnd't have to do this !
+   // but apparently when we leave "look through selected" the
+   // temporary camera is not told that it is destroyed (#2075)
+   if (!m_dagPath.isValid()) return;
+
    if (IsOrtho())
       ExportOrtho(camera);
    else
@@ -14,6 +19,11 @@ void CStandardCameraTranslator::Export(AtNode* camera)
 
 void CStandardCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
 {
+   // we shoulnd't have to do this !
+   // but apparently when we leave "look through selected" the
+   // temporary camera is not told that it is destroyed (#2075).
+   if (!m_dagPath.isValid()) return;
+
    if (IsOrtho())
       ExportMotionOrtho(camera, step);
    else

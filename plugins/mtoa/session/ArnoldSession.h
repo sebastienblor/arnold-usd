@@ -165,6 +165,9 @@ public:
    bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
    MString GetMayaObjectName(const AtNode *node) const;
+   
+   // from a Maya name, get corresponding name in Arnold scene
+   const char *GetArnoldObjectName(const MString &mayaName) const;
 /*
    bool IsActiveAOV(CAOV &aov) const
    {

@@ -4,8 +4,14 @@
 
 #include <vector>
 #include <algorithm>
+
+#ifdef _WIN32
 #include <unordered_set>
 #include <unordered_map>
+#else
+#include <tr1/unordered_set>
+#include <tr1/unordered_map>
+#endif
 
 #include <maya/MFnMesh.h>
 #include <maya/MFloatVector.h>
@@ -37,7 +43,12 @@ public:
 
         // pre-allocate buffers for the worst case
         size_t maxNumWires = fNumFaceIndices;
+#ifdef _WIN32
         typedef typename std::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+#else
+        typedef typename std::tr1::unordered_set<WirePair, typename WirePair::Hash, typename WirePair::EqualTo> WireSet;
+#endif
+
         WireSet wireSet(size_t(maxNumWires / 0.75f));
 
         // insert all wires to the set
@@ -193,7 +204,12 @@ public:
         std::vector<index_type> indicesRegion(fNumStreams * fNumFaceIndices);
 
         // the hash map to find unique combination of multi-indices
+#ifdef _WIN32
         typedef std::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
+#else
+        typedef std::tr1::unordered_map<IndexTuple,size_t,typename IndexTuple::Hash,typename IndexTuple::EqualTo> IndicesMap;
+#endif
+
         IndicesMap indicesMap(size_t(fNumFaceIndices / 0.75f));
 
         // fill the hash map with multi-indices
@@ -216,7 +232,7 @@ public:
             if (got == indicesMap.end())
             {
                 size_t val = vertexAttribIndex++;
-                indicesMap.emplace(tuple, val);
+                indicesMap.insert(std::make_pair(tuple, val));
                 mappedFaceIndices[i] = (index_type)val;
             }
             else
@@ -327,7 +343,7 @@ public:
     IndicesDropper(const float* attribArray, const index_type* indexArray, size_t numVerts)
     {
         // map the indexed array to direct array
-        std::vector<float> mappedAttribs(new float[numVerts * SIZE]);
+        std::vector<float> mappedAttribs(numVerts * SIZE);
         for (size_t i = 0; i < numVerts; i++) {
             for (size_t j = 0; j < SIZE; j++) {
                 mappedAttribs[i * SIZE + j] = attribArray[indexArray[i] * SIZE + j];

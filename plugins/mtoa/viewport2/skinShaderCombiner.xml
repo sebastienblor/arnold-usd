@@ -9,6 +9,7 @@
         <float3 name="deepScatterColor" />
         <float name="deepScatterWeight" />
         <float3 name="diffuseInput" />
+        <undefined name="GPUStage" semantic="GPUStage" />
     </properties>
     <values>
         <float name="sssWeight" value="1.0" />

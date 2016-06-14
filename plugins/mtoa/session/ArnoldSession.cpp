@@ -1604,6 +1604,34 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 
    return "";
 }
+const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
+{
+   AtNode* node = AiNodeLookUpByName(mayaName.asChar());
+
+   if (node == NULL)
+   {
+      // There is no object with this name in the scene.
+      // Let's search it amongst the list of processed translators
+      for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+      {
+         CNodeTranslator *translator = m_processedTranslatorList[i];
+         if (translator == NULL) continue;
+
+         // check if this translator corresponds to this AtNode
+         // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
+         if (translator->GetMayaNodeName() == mayaName)
+         {
+            // We found our translator
+            node = translator->GetArnoldRootNode();
+         }
+      }
+   }
+
+   if (node) return AiNodeGetName(node);   
+
+   return "";
+}
+
 
 bool CArnoldSession::IsVisible(MFnDagNode &node) const
 {
