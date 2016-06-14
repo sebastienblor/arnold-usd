@@ -234,57 +234,6 @@ def arnoldRenderToTexture():
     win.create()
     
 
-def selectCamera(cam):
-    core.ACTIVE_CAMERA=cam
-
-def populateSelectCamera():
-    # clear camera menu
-    pm.menu('ArnoldSelectCamera', edit=True, deleteAllItems=True)
-
-    coll = pm.radioMenuItemCollection(parent='ArnoldSelectCamera')
-
-    # populate camera menu    
-    cameras = cmds.ls(type='camera')
-    if cameras != None:
-        activeCamera = core.ACTIVE_CAMERA
-        if not activeCamera in cameras:
-            activeCamera = None
-        if activeCamera == None:
-            if 'perspShape' in cameras:
-                activeCamera = 'perspShape'
-            elif len(cameras):
-                activeCamera = cameras[0]
-            core.ACTIVE_CAMERA = activeCamera
-        for cam in cameras:
-            pm.menuItem('SelectCameraItem%s' % cam, label=cam, parent='ArnoldSelectCamera',
-                        radioButton=cam == activeCamera, cl=coll,
-                        c='from mtoa.ui.arnoldmenu import selectCamera; selectCamera("%s")' % cam)
-
-def startRender():
-    if core.ACTIVE_CAMERA != None:
-        cmds.arnoldRender(cam=core.ACTIVE_CAMERA)
-
-def arnoldMtoARenderView():
-    # core.ACTIVE_CAMERA is not set, anything we could do here ?
-    #if core.ACTIVE_CAMERA != None:
-    #    cmds.arnoldRenderView(cam=core.ACTIVE_CAMERA)
-    # so instead we're calling it without any argument
-
-    core.createOptions()
-    cmds.arnoldRenderView()
-
-def startIpr():
-    if core.ACTIVE_CAMERA != None:
-        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='start')
-
-def refreshRender():
-    if core.ACTIVE_CAMERA != None:
-        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='refresh')
-
-def stopRender():
-    if core.ACTIVE_CAMERA != None:
-        cmds.arnoldIpr(cam=core.ACTIVE_CAMERA, m='stop')
-
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not pm.about(b=1):
@@ -382,21 +331,6 @@ def createArnoldMenu():
 
         pm.menuItem('ArnoldDeveloperGuide', label='Developer Guide', parent='ArnoldHelpMenu',
                     c=lambda *args: cmds.launch(webPage='https://support.solidangle.com/display/ARP/Arnoldpedia'))
-
-        pm.menuItem('ArnoldExperimentalMenu', label='Experimental', parent='ArnoldMenu', subMenu=True, tearOff=True)
-        
-        pm.menuItem('ArnoldRender', label='Houdini MPlay', parent='ArnoldExperimentalMenu', subMenu=True, tearOff=True)
-        pm.menuItem('ArnoldSelectCamera', label='Select Camera', parent='ArnoldRender', subMenu=True, tearOff=False, 
-                    postMenuCommand=lambda *args: populateSelectCamera())
-        populateSelectCamera()
-        pm.menuItem('ArnoldStartRender', label='Render', parent='ArnoldRender',
-                    c=lambda *args: startRender())
-        pm.menuItem('ArnoldStartIPR', label='IPR', parent='ArnoldRender',
-                    c=lambda *args: startIpr())
-        pm.menuItem('ArnoldRefresh', label='Refresh', parent='ArnoldRender',
-                    c=lambda *args: refreshRender())
-        pm.menuItem('ArnoldStopRender', label='Stop Render', parent='ArnoldRender',
-                    c=lambda *args: stopRender())
                     
         pm.menuItem('ArnoldAbout', label='About', parent='ArnoldMenu',
                     c=lambda *args: arnoldAboutDialog())
