@@ -431,25 +431,24 @@ def aiCreateRenderNodeCommandCallback(postCommand, type):
         return "python(\"import mtoa.core as core ; core.createArnoldNode(\\\"" + type + "\\\")\")"
 
 def aiRenderSettingsBuiltCallback(currentRenderer):
-    if currentRenderer == "arnold":
-        pm.renderer('arnold', edit=True, addGlobalsTab=('Common',
-                                                        utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
-                                                        utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
-        pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
-                                                        utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
-                                                        utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
-        pm.renderer('arnold', edit=True, addGlobalsTab=('System', 
-                                                        utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
-                                                        utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
-        pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
-                                                        utils.pyToMelProc(createArnoldAOVTab, useName=True), 
-                                                        utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
-        pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
-                                                        utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
-                                                        utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
-        pm.renderer('arnold', edit=True, addGlobalsTab=('Override', 
-                                                        utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
-                                                        utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Common',
+                                                    utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
+                                                    utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
+                                                    utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
+                                                    utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('System', 
+                                                    utils.pyToMelProc(createArnoldRendererSystemTab, useName=True), 
+                                                    utils.pyToMelProc(updateArnoldRendererSystemTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
+                                                    utils.pyToMelProc(createArnoldAOVTab, useName=True), 
+                                                    utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
+                                                    utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
+                                                    utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Override', 
+                                                    utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
+                                                    utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
 
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
