@@ -30,7 +30,7 @@ def createArnoldShelf():
    removeArnoldShelf()
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
-   maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel Arnold`;')
+   maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel -version \"2017\" Arnold`;')
    cmds.shelfButton(label='Flush Texture Cache', command='import maya.cmds as cmds; cmds.arnoldFlushCache(textures=True)', sourceType='python', annotation='Flush Texture Cache', image='FlushTextureShelf.png', style='iconOnly')
    cmds.shelfButton(label='Flush Background Cache', command='import maya.cmds as cmds; cmds.arnoldFlushCache(skydome=True)', sourceType='python', annotation='Flush Background Cache', image='FlushBackgroundShelf.png', style='iconOnly')
    cmds.shelfButton(label='Flush Quad Caches', command='import maya.cmds as cmds; cmds.arnoldFlushCache(quads=True)', sourceType='python', annotation='Flush Quad Caches', image='FlushQuadLightShelf.png', style='iconOnly')

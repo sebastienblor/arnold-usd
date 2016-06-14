@@ -237,7 +237,7 @@ def arnoldRenderToTexture():
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
     if not pm.about(b=1):
-        pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
+        pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True, version="2017" )
 
         pm.menuItem('ArnoldMtoARenderView', label='Arnold RenderView', parent='ArnoldMenu',
                     c=lambda *args: arnoldMtoARenderView())
