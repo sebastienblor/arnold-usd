@@ -14,9 +14,11 @@ def updateRenderSettings(*args):
     
 def updateAutotileSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.autotile')
-    #if flag:
-        
     pm.attrControlGrp('ts_texture_autotile', edit=True, enable=flag)
+
+def updateAutoTxSettings(*args):
+    flag = pm.getAttr('defaultArnoldRenderOptions.autotx') == 0
+    pm.attrControlGrp('use_existing_tiled_textures', edit=True, enable=flag)
 
 
 def updateSamplingSettings(*args):
@@ -814,15 +816,17 @@ def createArnoldTextureSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
+   
+    pm.attrControlGrp('autotx', 
+                        cc=updateAutoTxSettings,
+                        label="Auto-convert Textures to TX ", 
+                        attribute='defaultArnoldRenderOptions.autotx')
+
     pm.attrControlGrp('use_existing_tiled_textures', 
                         label="Use Existing TX Textures", 
                         attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
     
-    pm.attrControlGrp('autotx', 
-                        label="Auto-convert Textures to TX ", 
-                        attribute='defaultArnoldRenderOptions.autotx')
-
-    
+    updateAutoTxSettings()
     cmds.separator()
     
     # don't create texture_automip for 2017 as autoTx is ON by default

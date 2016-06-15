@@ -184,8 +184,10 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
       m_forceTextureCacheFlushAfterRender = fnArnoldRenderOptions.findPlug("force_texture_cache_flush_after_render").asBool();
       
-      m_use_existing_tiled_textures = fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
       m_autotx = fnArnoldRenderOptions.findPlug("autotx").asBool();
+
+      // if auto-tx is ON, we force use TX to be ON
+      m_use_existing_tiled_textures = (m_autotx) ? true : fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
