@@ -1021,6 +1021,8 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
     
+if (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
