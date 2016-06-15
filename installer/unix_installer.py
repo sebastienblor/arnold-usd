@@ -230,8 +230,8 @@ if installMode == 1: # do the proper installation
         homeDir = os.path.expanduser(userString)
         templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
         if EnsureDir(templatesDir):
-            shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'mtRSTemplates', 'MatteOverride-Arnold.json'))
-            shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'mtRSTemplates', 'RenderLayerExample-Arnold.json'))
+            shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
+            shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
 
 if not silent:
     os.system('clear')
