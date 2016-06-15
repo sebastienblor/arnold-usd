@@ -591,6 +591,15 @@ namespace // <anonymous>
          shaders->RegisterTranslator("phong",
                                        "",
                                        CMayaPhongTranslator::creator);
+         shaders->RegisterTranslator("phongE",
+                                       "",
+                                       CMayaPhongETranslator::creator);
+         shaders->RegisterTranslator("anisotropic",
+                                       "",
+                                       CMayaAnisotropicTranslator::creator);
+         shaders->RegisterTranslator("rampShader",
+                                       "",
+                                      CMayaRampShaderTranslator::creator);
          shaders->RegisterTranslator("singleShadingSwitch",
                                        "",
                                        CreateSingleShadingSwitchTranslator);
