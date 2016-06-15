@@ -18,6 +18,7 @@ def updateAutotileSettings(*args):
         
     pm.attrControlGrp('ts_texture_autotile', edit=True, enable=flag)
 
+
 def updateSamplingSettings(*args):
     flag = (pm.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True) 
     pm.attrControlGrp('ss_max_value', edit=True, enable=flag)
@@ -813,10 +814,24 @@ def createArnoldTextureSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
-    pm.attrControlGrp('texture_automip',
-                        label="Auto-mipmap",
-                        attribute='defaultArnoldRenderOptions.textureAutomip')
-                        
+    pm.attrControlGrp('use_existing_tiled_textures', 
+                        label="Use Existing TX Textures", 
+                        attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
+    
+    pm.attrControlGrp('autotx', 
+                        label="Auto-convert Textures to TX ", 
+                        attribute='defaultArnoldRenderOptions.autotx')
+
+    
+    cmds.separator()
+    
+    # don't create texture_automip for 2017 as autoTx is ON by default
+    maya_version = versions.shortName()
+    if int(maya_version) < 2017:
+        pm.attrControlGrp('texture_automip',
+                            label="Auto-mipmap",
+                            attribute='defaultArnoldRenderOptions.textureAutomip')
+                            
     pm.attrControlGrp('texture_accept_unmipped',
                         label="Accept Unmipped",
                         attribute='defaultArnoldRenderOptions.textureAcceptUnmipped')
@@ -850,16 +865,6 @@ def createArnoldTextureSettings():
     pm.attrControlGrp('texture_accept_untiled',
                         label="Accept Untiled",
                         attribute='defaultArnoldRenderOptions.textureAcceptUntiled')
-
-    pm.attrControlGrp('autotx', 
-                        label="Auto-convert Textures to .tx ", 
-                        attribute='defaultArnoldRenderOptions.autotx')
-
-    pm.attrControlGrp('use_existing_tiled_textures', 
-                        label="Use Existing .tx Textures", 
-                        attribute='defaultArnoldRenderOptions.use_existing_tiled_textures')
-    
-    cmds.separator()
     
 
     pm.attrControlGrp('texture_max_memory_MB',
