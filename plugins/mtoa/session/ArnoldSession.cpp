@@ -6,6 +6,7 @@
 #include "translators/options/OptionsTranslator.h"
 #include "nodes/ShaderUtils.h"
 #include "translators/DagTranslator.h"
+#include "utils/MakeTx.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -35,6 +36,7 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
 #include <maya/MNodeMessage.h>
+#include <maya/MProgressWindow.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -728,7 +730,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    }
 
    m_isExportingMotion = false;
-   
+
    // add callbacks after all is done
    if (IsInteractiveRender())
    {
@@ -740,6 +742,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
 
+   ExportTxFiles();
    return status;
 }
 
@@ -1679,4 +1682,170 @@ const MStringArray &CArnoldSession::GetTextureSearchPaths() const
 const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
 {
    return m_sessionOptions.GetProceduralSearchPaths();
+}
+
+
+void CArnoldSession::ExportTxFiles()
+{
+
+   // Do not call makeTx if we're doing swatch rendering or material view
+   int sessionMode = GetSessionMode();
+   if (sessionMode == MTOA_SESSION_MATERIALVIEW || sessionMode == MTOA_SESSION_SWATCH ||
+      sessionMode == MTOA_SESSION_UNDEFINED) return;
+   
+   // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
+  // or that class eliminated completely 
+   CRenderOptions renderOptions; 
+   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+   renderOptions.GetFromMaya(); 
+
+   bool autoTx = renderOptions.autoTx();
+   bool useTx = renderOptions.useExistingTiledTextures();
+
+   if (useTx == false && autoTx == false) return;
+
+   const MStringArray &searchPaths = GetTextureSearchPaths();
+
+   bool progressBar = autoTx && (MGlobal::mayaState() == MGlobal::kInteractive);
+
+   std::vector<CNodeTranslator *> textureNodes;
+   textureNodes.reserve(100); // completely empirical value, to avoid first allocations
+
+
+   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   {
+      CNodeTranslator *translator = m_processedTranslatorList[i];
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldRootNode();
+      if (node == NULL) continue;
+
+      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image")) textureNodes.push_back(translator);
+   }
+
+   bool progressStarted = false;
+   for (size_t i = 0; i < textureNodes.size(); ++i)
+   {
+      CNodeTranslator *translator = textureNodes[i];
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldRootNode();
+      if (node == NULL) continue;
+      
+      MString filename = AiNodeGetStr(node, "filename");
+
+      bool fileAutoTx = autoTx && translator->FindMayaPlug("aiAutoTx").asBool();
+      MString searchPath = "";
+
+      if (fileAutoTx)
+      {
+
+         if (progressBar)
+         {
+            if (!progressStarted)
+            {
+               MProgressWindow::reserve();
+               MProgressWindow::setProgressRange(0, 100);
+               MProgressWindow::setTitle("Converting Images to TX");
+               MProgressWindow::setInterruptable(true);
+            }
+            if (MProgressWindow::isCancelled()) 
+            {
+               // FIXME show a confirm dialog to mention color management will be wrong
+               //MString cmd;
+               //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
+               //MGlobal::executePythonCommandStringResult(cmd);               
+               return;
+            }
+
+            // FIXME use basename instead
+            MString progressStatus = filename;
+            int basenameIndex = progressStatus.rindexW('/');
+            if (basenameIndex > 0)
+            {
+               progressStatus = progressStatus.substring(basenameIndex + 1, progressStatus.numChars() - 1);
+            }
+            progressStatus += " (";
+            progressStatus += (unsigned int)(i + 1);
+            progressStatus += "/";
+            progressStatus += (unsigned int)textureNodes.size();
+            progressStatus += ")";
+
+            while (progressStatus.length() < 50)
+            {
+               progressStatus += "    ";
+            }
+
+            MProgressWindow::setProgressStatus(progressStatus);
+
+            if (!progressStarted)
+            {
+               MProgressWindow::startProgress();
+               // strange, but I need to change the value once so that it is displayed
+               MProgressWindow::setProgress(1);
+               MProgressWindow::setProgress(0);
+            }
+            else
+            {
+               MProgressWindow::setProgress(i * 100 / textureNodes.size());
+            }
+            progressStarted = true;
+         }
+
+
+         // convert TX
+         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
+         int createdFiles = 0;
+         int skippedFiles = 0;
+         int errorFiles = 0;
+         
+         makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+
+         if (createdFiles + skippedFiles + errorFiles == 0)
+         {               
+            // no file has been found
+            // let's try with the search paths
+            for (unsigned int t = 0; t < searchPaths.length(); ++t)
+            {
+               searchPath = searchPaths[t];
+               MString searchFilename = searchPath + filename;
+               makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+
+               if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
+            }
+         }
+      }
+      if (useTx)
+      {
+         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+         MString searchFilename = searchPath + txFilename;
+
+         MStringArray expandedFilenames = expandFilename(searchFilename);
+
+         if(expandedFilenames.length() == 0 && !autoTx)
+         {
+            // No file was found for this filename
+            // and mipmap hasn't been generated above (auto-tx = false)
+            // we should check in the search paths
+         
+            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            {
+               searchFilename = searchPaths[i] + txFilename;
+               expandedFilenames = expandFilename(searchFilename);
+               
+               // we found the texture, stop searching
+               if (expandedFilenames.length() > 0) break;
+            }
+         }
+         // if expandedFilenames.length >= 1 then we're OK ?
+         if (expandedFilenames.length() > 0)
+         {
+            filename = txFilename;
+            FormatTexturePath(filename);
+            AiNodeSetStr(node, "filename", filename.asChar()); 
+         }
+      }      
+   }
+   if (progressBar && progressStarted) MProgressWindow::endProgress();
+   
 }
