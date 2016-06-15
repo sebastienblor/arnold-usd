@@ -242,6 +242,8 @@ private:
    bool IsVisible(MFnDagNode &node) const;
    bool IsVisiblePath(MDagPath dagPath) const;
 
+   void ExportTxFiles();
+
 private:
 
    CSessionOptions m_sessionOptions;

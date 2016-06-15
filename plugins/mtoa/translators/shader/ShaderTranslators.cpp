@@ -3,7 +3,6 @@
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
 #include "platform/Platform.h"
-#include "utils/MakeTx.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -30,7 +29,6 @@
 
 #include <string>
 #include <fstream>
-
 
 // Sky
 //
@@ -264,67 +262,8 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
       
-      // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
-      // or that class eliminated completely 
-      CRenderOptions renderOptions; 
-      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya(); 
 
-      // Do not call makeTx if we're doing swatch rendering or material view
-      int sessionMode = m_session->GetSessionMode();
-      if (sessionMode != MTOA_SESSION_MATERIALVIEW && sessionMode != MTOA_SESSION_SWATCH &&
-         sessionMode != MTOA_SESSION_UNDEFINED)
-      {
-         if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
-         {
-            MString colorSpace = FindMayaPlug("colorSpace").asString();
-            int createdFiles = 0;
-            int skippedFiles = 0;
-            int errorFiles = 0;
-            makeTx(resolvedFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
 
-            if (createdFiles + skippedFiles + errorFiles == 0)
-            {               
-               // no file has been found
-               // let's try with the search paths
-               const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-               for (unsigned int i = 0; i < searchPaths.length(); ++i)
-               {
-                  MString searchFilename = searchPaths[i] + resolvedFilename;
-                  makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-
-                  if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
-               }
-            }
-         }
-      }      
-      if(renderOptions.useExistingTiledTextures()) 
-      {
-         MString txFilename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
-         MStringArray expandedFilenames = expandFilename(txFilename);
-
-         if(expandedFilenames.length() == 0)
-         {
-            // No file was found for this filename
-            // we should check in the search paths
-            const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-         
-            for (unsigned int i = 0; i < searchPaths.length(); ++i)
-            {
-
-               MString searchFilename = searchPaths[i] + txFilename;
-               expandedFilenames = expandFilename(searchFilename);
-               
-               // we found the texture, stop searching
-               if (expandedFilenames.length() > 0) break;
-            }
-         }
-         // if expandedFilenames.length >= 1 then we're OK ?
-         if (expandedFilenames.length() > 0)
-         {
-            resolvedFilename = txFilename;
-         }
-      }
       m_session->FormatTexturePath(resolvedFilename);
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
@@ -1335,63 +1274,7 @@ void CAiImageTranslator::Export(AtNode* image)
       renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
-
-      // do not call makeTx if we're doing a swatch rendering or material view
-      int sessionMode = m_session->GetSessionMode();
-      if (sessionMode != MTOA_SESSION_MATERIALVIEW && sessionMode != MTOA_SESSION_SWATCH &&
-         sessionMode != MTOA_SESSION_UNDEFINED)
-      {
-         if (renderOptions.autoTx() && FindMayaPlug("autoTx").asBool())
-         {
-            MString colorSpace = FindMayaPlug("colorSpace").asString();
-            int createdFiles = 0;
-            int skippedFiles = 0;
-            int errorFiles = 0;
-            makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-            if (createdFiles + skippedFiles + errorFiles == 0)
-            {
-               // no file has been found
-               // let's try with the search paths
-               const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-               for (unsigned int i = 0; i < searchPaths.length(); ++i)
-               {
-                  MString searchFilename = searchPaths[i] + filename;
-                  makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-                  if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
-               }
-            }
-         }
-      }
-
-      // FIXME : we should append the .tx to the full filename without removing the original extension
-
-      if(renderOptions.useExistingTiledTextures()) 
-      {
-         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
-         MStringArray expandedFilenames = expandFilename(txFilename);
-
-         if(expandedFilenames.length() == 0)
-         {
-            // No file was found for this filename
-            // we should check in the search paths
-            const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-         
-            for (unsigned int i = 0; i < searchPaths.length(); ++i)
-            {
-               MString searchFilename = searchPaths[i] + "/" + txFilename;
-               expandedFilenames = expandFilename(searchFilename);
-
-               // we found the texture, stop searching
-               if (expandedFilenames.length() > 0) break;
-            }
-         }
-         // if expandedFilenames.length >= 1 then we're OK ?
-         if (expandedFilenames.length() > 0)
-         {
-            filename = txFilename;
-         }
-
-      }
+      
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
    }
