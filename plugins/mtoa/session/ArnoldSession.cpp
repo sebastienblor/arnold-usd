@@ -1734,7 +1734,8 @@ void CArnoldSession::ExportTxFiles()
       
       MString filename = AiNodeGetStr(node, "filename");
 
-      bool fileAutoTx = autoTx && translator->FindMayaPlug("aiAutoTx").asBool();
+      const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
+      bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
       MString searchPath = "";
 
       if (fileAutoTx)
@@ -1800,7 +1801,7 @@ void CArnoldSession::ExportTxFiles()
          int errorFiles = 0;
          
          makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-
+         
          if (createdFiles + skippedFiles + errorFiles == 0)
          {               
             // no file has been found
