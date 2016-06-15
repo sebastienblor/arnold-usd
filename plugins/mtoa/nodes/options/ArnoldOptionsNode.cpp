@@ -441,11 +441,15 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_autotile);
    
-   s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
+   int defaultAutoTx = 0;
+#if MAYA_API_VERSION >= 201700
+   defaultAutoTx = 1;
+#endif
+   s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, defaultAutoTx); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);
 
-   s_autotx = nAttr.create("autotx", "autotx", MFnNumericData::kBoolean, 0);
+   s_autotx = nAttr.create("autotx", "autotx", MFnNumericData::kBoolean, defaultAutoTx);
    nAttr.setKeyable(false);
    addAttribute(s_autotx);
 
