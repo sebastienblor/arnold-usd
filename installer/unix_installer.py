@@ -226,7 +226,7 @@ if installMode == 1: # do the proper installation
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
     shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
     
-    sys.argv[1] == '2017'
+    if sys.argv[1] == '2017':
         homeDir = os.path.expanduser(userString)
         templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
         if EnsureDir(templatesDir):
