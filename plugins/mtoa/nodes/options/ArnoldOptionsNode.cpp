@@ -427,7 +427,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("max_subdivisions");
 
    // textures
+#if MAYA_API_VERSION < 201700
    s_attributes.MakeInput("texture_automip");
+#endif
    s_attributes.MakeInput("texture_autotile");
    s_attributes.MakeInput("texture_max_memory_MB");
    s_attributes.MakeInput("texture_max_open_files");
