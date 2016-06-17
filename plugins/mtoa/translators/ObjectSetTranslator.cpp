@@ -297,6 +297,51 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
    }
 }
 
+static void RecursiveRequestUpdate(MDagPath path, CArnoldSession *session, CNodeTranslator *translator, std::vector<CNodeTranslator*>& translators)
+{   
+
+   std::vector<CNodeTranslator*>::iterator it;
+   CNodeTranslator* tr;
+   // this is a Dag Path, we need to search for all translators below it in the hierarchy
+   CNodeAttrHandle handle(path);
+   MString pathName = path.partialPathName();
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
+               translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), pathName.asChar());
+   if (session->GetActiveTranslators(handle, translators) > 0)
+   {
+      for (it=translators.begin(); it!=translators.end(); it++)
+      {
+         tr = static_cast< CDagTranslator* >(*it);
+         tr->RequestUpdate((void *)tr);
+      }
+   }
+   // Check also for shape
+   if (MStatus::kSuccess == path.extendToShape())
+   {
+      CNodeAttrHandle handle(path);
+      MString pathName = path.partialPathName();
+      AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
+                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), pathName.asChar());
+      if (session->GetActiveTranslators(handle, translators) > 0)
+      {
+         for (it=translators.begin(); it!=translators.end(); it++)
+         {
+            tr = static_cast< CDagTranslator* >(*it);
+            tr->RequestUpdate((void *)tr);
+         }
+      }
+   }
+
+   // Check for child in the hierarchy
+   for (uint child = 0; (child < path.childCount()); child++)
+   {
+      MObject childObject = path.child(child);
+      path.push(childObject);
+      RecursiveRequestUpdate(path, session, translator, translators);
+      path.pop(1);
+   }
+}
+
 /// Update a set means update all members
 void CObjectSetTranslator::RequestUpdate(void *clientData)
 {
@@ -322,9 +367,22 @@ void CObjectSetTranslator::RequestUpdate(void *clientData)
          AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate on %p passed translator %p(%s) in client data.",
                     GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
                     this, translator, translator->GetTranslatorName().asChar());
-         translator->RemoveUpdateCallbacks();
-         // Add translator to the list of translators to update
-         m_session->QueueForUpdate(translator);
+
+         if (m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+         {
+            if (!m_holdUpdates)
+            {
+               m_holdUpdates = true;
+               // Add translator to the list of translators to update
+               m_session->QueueForUpdate(translator);
+            }
+         } else
+         {
+            translator->RemoveUpdateCallbacks();
+            // Add translator to the list of translators to update
+            m_session->QueueForUpdate(translator);
+         }
+         
       }
       else
       {
@@ -332,39 +390,14 @@ void CObjectSetTranslator::RequestUpdate(void *clientData)
          AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: no translator in client data: %p.",
                      GetMayaNodeName().asChar(), GetTranslatorName().asChar(), clientData);
       }
+
+      // loop ove all elements in the list
       for (unsigned int i=0; i<l; i++)
       {
          if (MStatus::kSuccess == list.getDagPath(i, path))
          {
-            CNodeAttrHandle handle(path);
-            MString pathName = path.partialPathName();
-            AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
-                        translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), pathName.asChar());
-            if (m_session->GetActiveTranslators(handle, translators) > 0)
-            {
-               for (it=translators.begin(); it!=translators.end(); it++)
-               {
-                  tr = static_cast< CDagTranslator* >(*it);
-                  tr->RequestUpdate((void *)tr);
-               }
-            }
-            // Check also for shape
-            // FIXME: check for whole hierarchy?
-            if (MStatus::kSuccess == path.extendToShape())
-            {
-               CNodeAttrHandle handle(path);
-               MString pathName = path.partialPathName();
-               AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
-                           translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), pathName.asChar());
-               if (m_session->GetActiveTranslators(handle, translators) > 0)
-               {
-                  for (it=translators.begin(); it!=translators.end(); it++)
-                  {
-                     tr = static_cast< CDagTranslator* >(*it);
-                     tr->RequestUpdate((void *)tr);
-                  }
-               }
-            }
+            RecursiveRequestUpdate(path, m_session, translator, translators);
+
          }
          else if (MStatus::kSuccess == list.getDependNode(i, element))
          {
