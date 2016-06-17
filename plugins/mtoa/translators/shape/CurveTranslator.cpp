@@ -84,6 +84,15 @@ void CCurveTranslator::Export( AtNode *curve )
    Update(curve);
 }
 
+// overriding RequestUpdate so that updateMode is set the "RECREATE_NODE"
+// otherwise changing the curves widths (for example) is not updated correctly (#2399)
+// during IPR. If we get to solve this in arnold core, we can remove this function.
+void CCurveTranslator::RequestUpdate(void * clientData)
+{
+   m_updateMode = AI_RECREATE_NODE;
+   CGeometryTranslator::RequestUpdate(clientData);         
+}
+
 void CCurveTranslator::Update( AtNode *curve )
 {
    MPlug plug;
