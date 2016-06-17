@@ -140,6 +140,13 @@ public:
    virtual CRenderViewZoomManipulator *GetZoomManipulator() = 0;
    virtual CRenderViewRotateManipulator *GetRotateManipulator() = 0;
 
+   // Callbacks before / after each IPR step is computed, 
+   // and also when the progressive render is finished
+   // To be eventually overridden if desired   
+   virtual void PreProgressiveStep() {}
+   virtual void PostProgressiveStep() {}
+   virtual void ProgressiveRenderStarted() {}
+   virtual void ProgressiveRenderFinished() {}
 
 private:
 

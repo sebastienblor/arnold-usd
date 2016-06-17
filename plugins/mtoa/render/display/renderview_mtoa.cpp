@@ -35,6 +35,11 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
 void CRenderViewMtoA::UpdateColorManagement(){}
 MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step) {return MStatus::kSuccess;}
 
+void CRenderViewMtoA::PreProgressiveStep() {}
+void CRenderViewMtoA::PostProgressiveStep() {}
+void CRenderViewMtoA::ProgressiveRenderStarted() {}
+void CRenderViewMtoA::ProgressiveRenderFinished() {}
+
 #else
 
 // Arnold RenderView is defined
@@ -80,7 +85,12 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvColorMgtCb(0),
    m_rvResCb(0),
    m_rvIdleCb(0),
-   m_convertOptionsParam(true)
+   m_convertOptionsParam(true),
+   m_hasPreProgressiveStep(false),
+   m_hasPostProgressiveStep(false),
+   m_hasProgressiveRenderStarted(false),
+   m_hasProgressiveRenderFinished(false)
+
 {   
 }
 
@@ -272,6 +282,7 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
       int fileLogging = renderOptions->GetLogFileVerbosity();
       SetLogging(consoleLogging, fileLogging);
    }
+   UpdateRenderCallbacks();
 }
 /**
   * Preparing MtoA's interface code with the RenderView
@@ -288,18 +299,22 @@ void CRenderViewMtoA::UpdateSceneChanges()
       return;
    }
 
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
    // Universe isn't active, oh my....
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
       renderSession->SetRendering(false);
       CMayaScene::End();
+      CMayaScene::ExecuteScript(renderGlobals.postMel);
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+
    }
+
+
    // Re-export everything !
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-
    MDagPathArray cameras;
    GetRenderCamerasList(cameras);
    CMayaScene::ExecuteScript(renderGlobals.preMel);
@@ -324,6 +339,32 @@ void CRenderViewMtoA::UpdateSceneChanges()
    // Set resolution and camera as passed in.
    CMayaScene::GetRenderSession()->SetResolution(-1, -1);
    CMayaScene::GetRenderSession()->SetCamera(cameras[0]);
+
+   UpdateRenderCallbacks();
+}
+
+void CRenderViewMtoA::UpdateRenderCallbacks()
+{
+   MStatus status;
+   MFnDependencyNode optionsNode(CMayaScene::GetSceneArnoldRenderOptionsNode(), &status);
+   if (status)
+   {
+      m_progressiveRenderStarted = optionsNode.findPlug("IPRRefinementStarted").asString();
+      m_preProgressiveStep = optionsNode.findPlug("IPRStepStarted").asString();
+      m_postProgressiveStep = optionsNode.findPlug("IPRStepFinished").asString();
+      m_progressiveRenderFinished = optionsNode.findPlug("IPRRefinementFinished").asString();
+   }
+   else
+   {
+      m_progressiveRenderStarted = "";
+      m_preProgressiveStep = "";
+      m_postProgressiveStep = "";
+      m_progressiveRenderFinished = "";
+   }
+   m_hasPreProgressiveStep = (m_preProgressiveStep != "");
+   m_hasPostProgressiveStep = (m_postProgressiveStep != "");
+   m_hasProgressiveRenderStarted = (m_progressiveRenderStarted != "");
+   m_hasProgressiveRenderFinished = (m_progressiveRenderFinished != "");
 }
 
 static void GetSelectionVector(std::vector<AtNode *> &selectedNodes)
@@ -564,11 +605,18 @@ void CRenderViewMtoA::RenderViewClosed()
    {   
       renderSession->SetRendering(false);
       CMayaScene::End();
+
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+      CMayaScene::ExecuteScript(renderGlobals.postMel);
    }
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
 
    MProgressWindow::endProgress();
+
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -1282,6 +1330,30 @@ MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
                                                   &status);
 
    return status;
+}
+
+void CRenderViewMtoA::PreProgressiveStep()
+{
+   if (!m_hasPreProgressiveStep) return;
+   CMayaScene::ExecuteScript(m_preProgressiveStep, false, true);
+
+}
+void CRenderViewMtoA::PostProgressiveStep()
+{
+   if (!m_hasPostProgressiveStep) return;
+   CMayaScene::ExecuteScript(m_postProgressiveStep, false, true);
+
+}
+void CRenderViewMtoA::ProgressiveRenderStarted()
+{
+   if (!m_hasProgressiveRenderStarted) return;
+   CMayaScene::ExecuteScript(m_progressiveRenderStarted, false, true);
+}
+
+void CRenderViewMtoA::ProgressiveRenderFinished()
+{
+   if (!m_hasProgressiveRenderFinished) return;
+   CMayaScene::ExecuteScript(m_progressiveRenderFinished, false, true);
 }
 
 #endif

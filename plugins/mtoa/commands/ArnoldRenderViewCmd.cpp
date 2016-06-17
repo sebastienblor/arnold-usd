@@ -187,6 +187,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       // abort the rendering
       renderSession->InterruptRender();
 
+      CMayaScene::End();
+
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
 
