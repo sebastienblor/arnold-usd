@@ -204,8 +204,6 @@ void CArnoldMeshLightNode::attrChangedCallback(MNodeMessage::AttributeMessage ms
 
 void CArnoldMeshLightNode::meshDirtyCallback(MObject& node, MPlug& plug, void *clientData)
 {
-   std::cout << 42 << std::endl;
-
    CArnoldMeshLightNode *lightNode = static_cast<CArnoldMeshLightNode*>(clientData);
    if (!lightNode)
       return;
