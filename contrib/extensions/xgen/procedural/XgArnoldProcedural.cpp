@@ -233,7 +233,7 @@ int Procedural::Init(AtNode* node)
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
-#if MAYA_API_VERSION >= 201500
+#if MAYA_API_VERSION > 201500
    char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
    if(xgenConfigPath != NULL)
       xgapi::initConfig(string(xgenConfigPath));
