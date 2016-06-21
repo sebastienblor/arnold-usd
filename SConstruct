@@ -1000,6 +1000,7 @@ for ext in os.listdir(ext_base_dir):
 ## (file_spec, destination_path)                        Copies a group of files specified by a glob expression
 ##
 PACKAGE_FILES = [
+[os.path.join('tools', 'ShaderConversion', 'mrShadersToArnold.py'), 'docs'],
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('icons', '*.png'), 'icons'],
@@ -1020,6 +1021,8 @@ if env['ENABLE_COLOR_MANAGEMENT'] == 0:
 else:
     PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
     
+if (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])

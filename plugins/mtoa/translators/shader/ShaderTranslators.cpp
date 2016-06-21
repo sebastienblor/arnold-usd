@@ -3,7 +3,6 @@
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
 #include "platform/Platform.h"
-#include "utils/MakeTx.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -30,7 +29,6 @@
 
 #include <string>
 #include <fstream>
-
 
 // Sky
 //
@@ -264,67 +262,8 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
       
-      // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
-      // or that class eliminated completely 
-      CRenderOptions renderOptions; 
-      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya(); 
 
-      // Do not call makeTx if we're doing swatch rendering or material view
-      int sessionMode = m_session->GetSessionMode();
-      if (sessionMode != MTOA_SESSION_MATERIALVIEW && sessionMode != MTOA_SESSION_SWATCH &&
-         sessionMode != MTOA_SESSION_UNDEFINED)
-      {
-         if (renderOptions.autoTx() && FindMayaPlug("aiAutoTx").asBool())
-         {
-            MString colorSpace = FindMayaPlug("colorSpace").asString();
-            int createdFiles = 0;
-            int skippedFiles = 0;
-            int errorFiles = 0;
-            makeTx(resolvedFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
 
-            if (createdFiles + skippedFiles + errorFiles == 0)
-            {               
-               // no file has been found
-               // let's try with the search paths
-               const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-               for (unsigned int i = 0; i < searchPaths.length(); ++i)
-               {
-                  MString searchFilename = searchPaths[i] + resolvedFilename;
-                  makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-
-                  if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
-               }
-            }
-         }
-      }      
-      if(renderOptions.useExistingTiledTextures()) 
-      {
-         MString txFilename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
-         MStringArray expandedFilenames = expandFilename(txFilename);
-
-         if(expandedFilenames.length() == 0)
-         {
-            // No file was found for this filename
-            // we should check in the search paths
-            const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-         
-            for (unsigned int i = 0; i < searchPaths.length(); ++i)
-            {
-
-               MString searchFilename = searchPaths[i] + txFilename;
-               expandedFilenames = expandFilename(searchFilename);
-               
-               // we found the texture, stop searching
-               if (expandedFilenames.length() > 0) break;
-            }
-         }
-         // if expandedFilenames.length >= 1 then we're OK ?
-         if (expandedFilenames.length() > 0)
-         {
-            resolvedFilename = txFilename;
-         }
-      }
       m_session->FormatTexturePath(resolvedFilename);
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
@@ -1256,6 +1195,12 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
    
    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+   MPlug transparencyPlug = FindMayaPlug("transparency");
+   float colorR = transparencyPlug.child(0).asFloat();
+   float colorG = transparencyPlug.child(1).asFloat();
+   float colorB = transparencyPlug.child(2).asFloat();
+   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
    
    AiNodeSetFlt(shader, "emission", 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
@@ -1279,6 +1224,12 @@ void CMayaPhongTranslator::Export(AtNode* shader)
    
    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+   MPlug transparencyPlug = FindMayaPlug("transparency");
+   float colorR = transparencyPlug.child(0).asFloat();
+   float colorG = transparencyPlug.child(1).asFloat();
+   float colorB = transparencyPlug.child(2).asFloat();
+   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
    
    AiNodeSetFlt(shader, "emission", 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
@@ -1288,6 +1239,152 @@ AtNode* CMayaPhongTranslator::CreateArnoldNodes()
 {
    return ProcessAOVOutput(AddArnoldNode("standard"));
 }
+
+void CMayaPhongETranslator::Export(AtNode* shader)
+{
+    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+
+    AiNodeSetFlt(shader, "Ks", 1.f);
+    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "roughness");
+    ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+
+    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+    MPlug transparencyPlug = FindMayaPlug("transparency");
+    float colorR = transparencyPlug.child(0).asFloat();
+    float colorG = transparencyPlug.child(1).asFloat();
+    float colorB = transparencyPlug.child(2).asFloat();
+    AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+
+    AiNodeSetFlt(shader, "emission", 1.f);
+    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaPhongETranslator::CreateArnoldNodes()
+{
+    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
+void CMayaAnisotropicTranslator::Export(AtNode* shader)
+{
+    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+
+    AiNodeSetFlt(shader, "Ks", 1.f);
+    ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+
+    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+    MPlug transparencyPlug = FindMayaPlug("transparency");
+    float colorR = transparencyPlug.child(0).asFloat();
+    float colorG = transparencyPlug.child(1).asFloat();
+    float colorB = transparencyPlug.child(2).asFloat();
+    AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+
+    AiNodeSetFlt(shader, "emission", 1.f);
+    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+
+    // anisotropic parameters
+    MPlug anglePlug = FindMayaPlug("angle");
+    float angle = (anglePlug.asFloat()/360.0f);
+    AiNodeSetFlt(shader, "specular_rotation", 1.0f - angle);
+
+    MPlug spreadXPlug = FindMayaPlug("spreadX");
+    MPlug spreadYPlug = FindMayaPlug("spreadY");
+    MPlug roughnessPlug = FindMayaPlug("roughness");
+
+    float spreadX = spreadXPlug.asFloat();
+    float spreadY = spreadYPlug.asFloat();
+    float roughness = roughnessPlug.asFloat();
+
+    float spread = spreadY - spreadX;
+    //float maximum = spreadY > spreadX ? spreadY : spreadX;
+
+    if (spreadY > spreadX)
+    {
+        roughness = roughness - (spreadY * 0.01f) * roughness;
+        if (spreadX < 3.0f)
+        {
+            spread += (3.0f - spreadX) * spread;
+        }
+        if (spread > 99.9999f)
+            spread = 99.9999f;
+    }
+    else
+    {
+        roughness = roughness - (spreadX * 0.01f) * roughness;
+        if (spreadY < 3.0f)
+        {
+            spread += (3.0f - spreadY) * spread;
+        }
+        if (spread < -99.9999f)
+            spread = -99.9999f;
+    }
+
+    float anisotropy = 0.5f + spread * 0.005f;
+
+    if (roughness > 1.0f)
+        roughness = 1.0f;
+
+    AiNodeSetFlt(shader, "specular_roughness", roughness);
+    AiNodeSetFlt(shader, "specular_anisotropy", anisotropy);
+}
+
+AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
+{
+    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
+void CMayaRampShaderTranslator::Export(AtNode* shader)
+{
+    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+    ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularity");
+    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
+
+    MColor color;
+    float reflectivity = 0.0f;
+
+    MPlug plug = FindMayaPlug("color");
+    MRampAttribute ramp(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "Kd_color", color[0], color[1], color[2]);
+
+    plug = FindMayaPlug("specularColor");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "Ks_color", color[0], color[1], color[2]);
+
+    plug = FindMayaPlug("transparency");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "opacity", 1.0f - color[0], 1.0f - color[1], 1.0f - color[2]);
+
+    AiNodeSetFlt(shader, "emission", 1.f);
+
+    plug = FindMayaPlug("incandescence");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "emission_color", color[0], color[1], color[2]);
+
+    plug = FindMayaPlug("reflectivity");
+    ramp = MRampAttribute(plug);
+    ramp.getValueAtPosition(0, reflectivity);
+    AiNodeSetFlt(shader, "Kr", reflectivity);
+
+    plug = FindMayaPlug("environment");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "Kr_color", color[0], color[1], color[2]);
+}
+
+AtNode* CMayaRampShaderTranslator::CreateArnoldNodes()
+{
+    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
 
 void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -1335,63 +1432,7 @@ void CAiImageTranslator::Export(AtNode* image)
       renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
-
-      // do not call makeTx if we're doing a swatch rendering or material view
-      int sessionMode = m_session->GetSessionMode();
-      if (sessionMode != MTOA_SESSION_MATERIALVIEW && sessionMode != MTOA_SESSION_SWATCH &&
-         sessionMode != MTOA_SESSION_UNDEFINED)
-      {
-         if (renderOptions.autoTx() && FindMayaPlug("autoTx").asBool())
-         {
-            MString colorSpace = FindMayaPlug("colorSpace").asString();
-            int createdFiles = 0;
-            int skippedFiles = 0;
-            int errorFiles = 0;
-            makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-            if (createdFiles + skippedFiles + errorFiles == 0)
-            {
-               // no file has been found
-               // let's try with the search paths
-               const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-               for (unsigned int i = 0; i < searchPaths.length(); ++i)
-               {
-                  MString searchFilename = searchPaths[i] + filename;
-                  makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
-                  if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
-               }
-            }
-         }
-      }
-
-      // FIXME : we should append the .tx to the full filename without removing the original extension
-
-      if(renderOptions.useExistingTiledTextures()) 
-      {
-         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
-         MStringArray expandedFilenames = expandFilename(txFilename);
-
-         if(expandedFilenames.length() == 0)
-         {
-            // No file was found for this filename
-            // we should check in the search paths
-            const MStringArray &searchPaths = m_session->GetTextureSearchPaths();
-         
-            for (unsigned int i = 0; i < searchPaths.length(); ++i)
-            {
-               MString searchFilename = searchPaths[i] + "/" + txFilename;
-               expandedFilenames = expandFilename(searchFilename);
-
-               // we found the texture, stop searching
-               if (expandedFilenames.length() > 0) break;
-            }
-         }
-         // if expandedFilenames.length >= 1 then we're OK ?
-         if (expandedFilenames.length() > 0)
-         {
-            filename = txFilename;
-         }
-
-      }
+      
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
    }

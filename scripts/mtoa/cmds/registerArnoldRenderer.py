@@ -236,8 +236,8 @@ def _register():
     args['changeIprRegionProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
                                                     [('string', 'renderPanel')])
     pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
-    if int(maya_version) < 2017:
-        aiRenderSettingsBuiltCallback("arnold")
+
+    aiRenderSettingsBuiltCallback("arnold")
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldDriver')
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldFilter')

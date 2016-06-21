@@ -34,7 +34,7 @@ ArnoldStandardShaderOverride::~ArnoldStandardShaderOverride()
 
 MHWRender::DrawAPI ArnoldStandardShaderOverride::supportedDrawAPIs() const
 {
-   return MHWRender::kOpenGL | MHWRender::kDirectX11;
+   return MHWRender::kAllDevices;
 }
 
 MString ArnoldStandardShaderOverride::fragmentName() const

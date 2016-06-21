@@ -225,6 +225,13 @@ if installMode == 1: # do the proper installation
     else:
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
     shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
+    
+    if sys.argv[1] == '2017':
+        homeDir = os.path.expanduser(userString)
+        templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
+        if EnsureDir(templatesDir):
+            shutil.copy(os.path.join(installDir, 'RSTemplates', 'MatteOverride-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'MatteOverride-Arnold.json'))
+            shutil.copy(os.path.join(installDir, 'RSTemplates', 'RenderLayerExample-Arnold.json'), os.path.join(homeDir, 'maya', 'RSTemplates', 'RenderLayerExample-Arnold.json'))
 
 if not silent:
     os.system('clear')
