@@ -163,8 +163,34 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
             // append the mesh lights as they're not included in "defaultLightSet"
             if (!m_arnoldMeshLights.empty()) 
             {
-               lights.insert(lights.end(), m_arnoldMeshLights.begin(), m_arnoldMeshLights.end());
+               // Note that using the new system (#2385), mesh lights are now part of maya lights and no longer need to be 
+               // considered separately.
+               // So we shouldn't duplicate them here
+
+               // Since old method is still supported, we need to loop over mesh lights to see if they're already in the list,
+               // but this might be overkill on big scenes
+
+               // so we first count the amount of meshLights in current list.
+               int prevMeshLightCount = 0;
+               for (size_t i = 0; i < lights.size(); ++i)
+               {
+                  if (AiNodeIs(lights[i], "mesh_light")) prevMeshLightCount++;
+               }
+
+               // if this amount is the same as our "mesh lights" list, then the user
+               // is exclusively relying on the new method
+
+               // otherwise, we need to add the missing ones.
+               if (prevMeshLightCount < (int) m_arnoldMeshLights.size())
+               {
+                  lights.reserve(lights.size() + m_arnoldMeshLights.size() - prevMeshLightCount);
+                  for (size_t i = 0; i < m_arnoldMeshLights.size(); ++i)
+                  {
+                     if (std::find(lights.begin(), lights.end(), m_arnoldMeshLights[i]) == lights.end()) lights.push_back(m_arnoldMeshLights[i]);
+                  }
+               }
             }
+
             // if it's the first time defaultLightSet's lights list is filled,
             // keep the list in m_arnoldDefaultLights
 
@@ -383,7 +409,8 @@ bool CArnoldLightLinks::FillLights(const std::vector<std::string> &linkList, con
    //clear m_groupLights before filling it
    m_groupLights.clear();
 
-   bool defaultAllLights = (m_arnoldDefaultLights.size() == m_arnoldLights.size());
+   // we could test equality, but for safety we're testing >=
+   bool defaultAllLights = (m_arnoldDefaultLights.size() >= m_arnoldLights.size());
 
    // If no information was stored, we don't need to set anything
    if (linkList.empty() && ignoreList.empty() &&  defaultAllLights) return false;
