@@ -181,8 +181,16 @@ const std::vector<AtNode*>& CArnoldLightLinks::GetObjectsFromObjectSet(MFnDepend
                // is exclusively relying on the new method
 
                // otherwise, we need to add the missing ones.
-               if (prevMeshLightCount < (int) m_arnoldMeshLights.size())
+
+               if (prevMeshLightCount == 0)
                {
+                  // only using the old method
+                  // copy all at once to optimize
+                  lights.insert(lights.end(), m_arnoldMeshLights.begin(), m_arnoldMeshLights.end());
+
+               } else if (prevMeshLightCount < (int) m_arnoldMeshLights.size())
+               {
+                  // we're using both methods in this scene
                   lights.reserve(lights.size() + m_arnoldMeshLights.size() - prevMeshLightCount);
                   for (size_t i = 0; i < m_arnoldMeshLights.size(); ++i)
                   {
