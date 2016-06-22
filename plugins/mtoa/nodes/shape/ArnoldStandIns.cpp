@@ -123,6 +123,110 @@ void CArnoldStandInGeom::Draw(int DrawMode)
       (*it)->Draw(DrawMode);
 }
 
+size_t CArnoldStandInGeom::PointCount() const
+{
+    size_t totalPoints = 0;
+    for (geometryListIterType it = m_geometryList.begin();
+         it != m_geometryList.end(); ++it)
+    {
+        if (it->second->Visible())
+        {
+            totalPoints += it->second->PointCount();
+        }
+    }
+
+    for (instanceListIterType it = m_instanceList.begin();
+         it != m_instanceList.end(); ++it)
+    {
+        if ((*it)->GetGeometry().Visible())
+        {
+            totalPoints += (*it)->GetGeometry().PointCount();
+        }
+    }
+    return totalPoints;
+}
+
+size_t CArnoldStandInGeom::SharedVertexCount() const
+{
+    size_t totalPoints = 0;
+    for (geometryListIterType it = m_geometryList.begin();
+        it != m_geometryList.end(); ++it)
+    {
+        if (it->second->Visible())
+            totalPoints += it->second->SharedVertexCount();
+    }
+
+    for (instanceListIterType it = m_instanceList.begin();
+        it != m_instanceList.end(); ++it)
+        totalPoints += (*it)->GetGeometry().SharedVertexCount();
+    return totalPoints;
+}
+
+size_t CArnoldStandInGeom::WireIndexCount() const
+{
+    size_t total = 0;
+    for (geometryListIterType it = m_geometryList.begin();
+        it != m_geometryList.end(); ++it)
+    {
+        if (it->second->Visible())
+        {
+            total += it->second->WireIndexCount();
+        }
+    }
+
+    for (instanceListIterType it = m_instanceList.begin();
+        it != m_instanceList.end(); ++it)
+    {
+        if ((*it)->GetGeometry().Visible())
+        {
+            total += (*it)->GetGeometry().WireIndexCount();
+        }
+    }
+    return total;
+}
+
+size_t CArnoldStandInGeom::TriangleIndexCount(bool sharedVertices) const
+{
+    size_t total = 0;
+    for (geometryListIterType it = m_geometryList.begin();
+        it != m_geometryList.end(); ++it)
+    {
+        if (it->second->Visible())
+        {
+            total += it->second->TriangleIndexCount(sharedVertices);
+        }
+    }
+
+    for (instanceListIterType it = m_instanceList.begin();
+        it != m_instanceList.end(); ++it)
+    {
+        if ((*it)->GetGeometry().Visible())
+        {
+            total += (*it)->GetGeometry().TriangleIndexCount(sharedVertices);
+        }
+    }
+    return total;
+}
+
+size_t CArnoldStandInGeom::VisibleGeometryCount() const
+{
+    size_t total = 0;
+    for (geometryListIterType it = m_geometryList.begin();
+        it != m_geometryList.end(); ++it)
+    {
+        if (it->second->Visible())
+            total++;
+    }
+
+    for (instanceListIterType it = m_instanceList.begin();
+        it != m_instanceList.end(); ++it)
+    {
+        if ((*it)->GetGeometry().Visible())
+            total++;
+    }
+    return total;
+}
+
 CArnoldStandInShape::CArnoldStandInShape() : m_refreshAvoided(false)
 {
 }
@@ -643,6 +747,20 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
 
 }
 
+MSelectionMask CArnoldStandInShape::getShapeSelectionMask() const
+//
+// Description
+//     This method is overriden to support interactive object selection in Viewport 2.0
+//
+// Returns
+//
+//    The selection mask of the shape
+//
+{
+	MSelectionMask::SelectionType selType = MSelectionMask::kSelectMeshes;
+    return MSelectionMask( selType );
+}
+
 void* CArnoldStandInShape::creator()
 {
    return new CArnoldStandInShape();
@@ -711,18 +829,21 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
+   nAttr.setAffectsAppearance(true);
    addAttribute(s_scale);
 
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
+   nAttr.setAffectsAppearance(true);
    addAttribute(s_boundingBoxMin);
 
    s_boundingBoxMax = nAttr.create("MaxBoundingBox", "max", MFnNumericData::k3Float, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
+   nAttr.setAffectsAppearance(true);
    addAttribute(s_boundingBoxMax);
 
    s_drawOverride = eAttr.create("standInDrawOverride", "standin_draw_override");
@@ -813,6 +934,26 @@ MStatus CArnoldStandInShape::initialize()
    //The 'matte' attribute is defined in CShapeTranslator::MakeCommonAttributes
 
    return MStatus::kSuccess;
+}
+
+//
+// This function gets the draw mode from the shape
+//
+int CArnoldStandInShape::drawMode()
+{
+    MPlug plug(thisMObject(), s_mode);
+    plug.getValue(fGeometry.mode);
+    return fGeometry.mode;
+}
+
+//
+// This function returns true if loading the standin should be deferred.
+//
+bool CArnoldStandInShape::deferStandinLoad()
+{
+    MPlug plug(thisMObject(), s_deferStandinLoad);
+    plug.getValue(fGeometry.deferStandinLoad);
+    return fGeometry.deferStandinLoad;
 }
 
 //

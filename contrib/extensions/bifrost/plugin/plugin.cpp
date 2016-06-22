@@ -3,6 +3,7 @@
 #include "BifrostAeroMaterialTranslator.h"
 
 #include "extension/Extension.h"
+#include <maya/MTypes.h> 
 
 extern "C"
 {
@@ -12,8 +13,9 @@ extern "C"
     {
         MStatus status;
 
+#if MAYA_API_VERSION < 201650
         extension.Requires ( "BifrostMain" );
-
+#endif
         extension.LoadArnoldPlugin("bifrost_shaders");
         
         status = extension.RegisterTranslator ( "bifrostShape",

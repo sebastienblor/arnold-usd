@@ -18,6 +18,9 @@
 #include <ai_params.h>
 #include <ai_metadata.h>
 
+//#include <maya/MColorManagementUtilities.h>
+
+
 CAbMayaNode CArnoldShaderNode::s_abstract;
 
 MObjectArray CArnoldShaderNode::s_PlugsAffecting;
@@ -34,6 +37,15 @@ void CArnoldShaderNode::postConstructor()
    // Copy the abstract so that it can accessed on instances
    // (and saved before a new register overwrites it)
    m_abstract = s_abstract;
+
+   // should we do another Node for aiImage instead ?
+
+#ifdef ENABLE_COLOR_MANAGEMENT
+   if (typeName() == "aiImage")
+   {
+      MColorManagementUtilities::connectDependencyNodeToColorManagement(thisMObject());
+   }
+#endif
 }
 
 MStatus CArnoldShaderNode::compute(const MPlug& plug, MDataBlock& data)

@@ -78,7 +78,7 @@ struct CDisplayUpdateMessage
 };
 
 /// Initialize the display queue for a new render.
-void InitializeDisplayUpdateQueue(const MString camera="", const MString panel="");
+void InitializeDisplayUpdateQueue(const MString& camera, const MString& layer, const MString& panel);
 
 /// Process a message on the queue from Arnold.
 /// \param refresh the render view is slow to refresh, so pass false if possible.
@@ -91,3 +91,6 @@ void CopyBucketToBuffer(float * to_pixels,
 /// Clear the queue.
 void ClearDisplayUpdateQueue();
 void TransferTilesToRenderView();
+
+/// Get the last used command for setting the render view caption
+DLLEXPORT const MString& GetLastRenderViewCaptionCommand();

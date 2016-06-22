@@ -155,7 +155,8 @@ vars.AddVariables(
     PathVariable('NSIS_PATH', 'Where to find NSIS installed. Required for generating the Windows installers.',
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
-    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', '')
+    ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
+    BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False)
 )
 
 if system.os() == 'darwin':
@@ -173,7 +174,9 @@ if system.os() == 'windows':
     if MAYA_INCLUDE_PATH == '.':
         MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
     maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+
     maya_version_base = maya_version[0:4]
+
     msvc_version = ""
     if (int(maya_version_base) == 2013) or (int(maya_version_base) == 2014):
         msvc_version = '10.0'
@@ -248,7 +251,8 @@ env['ENABLE_XGEN'] = 0
 env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
-
+env['ENABLE_LOOKDEVKIT'] = 0
+env['ENABLE_COLOR_MANAGEMENT'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
@@ -258,12 +262,19 @@ if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
+    env['ENABLE_LOOKDEVKIT'] = 1
+
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
     if (system.os() == "windows") and (int(maya_version_base) == 2014):
         env['REQUIRE_DXSDK'] = 1
 
+if int(maya_version) >= 201700:
+    env["ENABLE_COLOR_MANAGEMENT"] = 1
+    env["MTOA_AFM"] = 1
+
 mercurial_id = ""
+
 try:
     p = subprocess.Popen(['hg', 'id'], stdout=subprocess.PIPE)
     mercurial_id, err = p.communicate()
@@ -292,9 +303,12 @@ print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 if system.os() == 'linux':
     try:
-        p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
-        compiler_version, err = p.communicate()
-        print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
+        if env['SHCC'] != '' and env['SHCC'] != '$CC':
+            print 'Compiler       : %s'  % (env['SHCC'])
+        else:
+            p = subprocess.Popen([env['COMPILER'] + env['COMPILER_VERSION'], '-dumpversion'], stdout=subprocess.PIPE)
+            compiler_version, err = p.communicate()
+            print 'Compiler       : %s' % (env['COMPILER'] + compiler_version[:-1])
     except:
         pass
 elif system.os() == 'windows':
@@ -334,10 +348,18 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-    compiler_version = env['COMPILER_VERSION']
-    if compiler_version != '':
-        env['CC']  = 'gcc' + compiler_version
-        env['CXX'] = 'g++' + compiler_version
+    if system.os() == 'linux' and env['SHCC'] != '' and env['SHCC'] != '$CC':
+        env['CC'] = env['SHCC']
+        env['CXX'] = env['SHCXX']
+        #env.Append(CXXFLAGS = Split('-std=c++11 -Wno-reorder'))
+        #env.Append(CCFLAGS = Split('-std=c++11 -Wno-reorder'))
+
+    else:
+        compiler_version = env['COMPILER_VERSION']
+        if compiler_version != '':
+            env['CC']  = 'gcc' + compiler_version
+            env['CXX'] = 'g++' + compiler_version
+
     # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
     if env['MODE'] == 'opt': 
@@ -347,6 +369,10 @@ if env['COMPILER'] == 'gcc':
     env.Append(CCFLAGS = Split('-fvisibility=hidden'))
     env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
     env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+
+    env.Append(CXXFLAGS = Split('-Wno-reorder'))
+    env.Append(CCFLAGS = Split('-Wno-reorder'))
+
 
     ## Hardcode '.' directory in RPATH in linux
     if system.os() == 'linux':
@@ -494,6 +520,11 @@ if env['ENABLE_VP2'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_VP2'))
 if env['ENABLE_BIFROST'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
+if env['ENABLE_LOOKDEVKIT'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
+
+if int(maya_version_base) < 2017:
+    env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
 
 ## platform related defines
 if system.os() == 'windows':
@@ -520,6 +551,10 @@ if not env['SHOW_CMDS']:
     env['SHCXXCOMSTR']  = color_bgreen + 'Compiling $SOURCE ...' + color_reset
     env['LINKCOMSTR']   = color_bred   + 'Linking $TARGET ...'   + color_reset
     env['SHLINKCOMSTR'] = color_bred   + 'Linking $TARGET ...'   + color_reset
+
+if env['MTOA_DISABLE_RV']:
+    print 'Disabling Arnold RenderView as MTOA_DISABLE_RV is defined'
+    env.Append(CPPDEFINES = Split('MTOA_DISABLE_RV')) 
 
 ################################
 ## BUILD TARGETS
@@ -671,21 +706,36 @@ dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_executable_extensi
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_executable_extension()))
 
+COLOR_MANAGEMENT_FILES = ""
+if env['ENABLE_COLOR_MANAGEMENT'] == 1:
+    COLOR_MANAGEMENT_FILES = os.path.join(EXTERNAL_PATH, 'maketx', system.os(), '*')
+
+    for dylibElem in reversed(dylibs):
+        
+        if 'maketx' in dylibElem:
+            dylibs.remove(dylibElem)
+        
+
+    env.Install(env['TARGET_BINARIES'], glob.glob(COLOR_MANAGEMENT_FILES))
+
 env.Install(env['TARGET_BINARIES'], dylibs)
 
-if system.os() == 'windows':
-    RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
-else:
-    RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
-    RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+OCIO_DYLIBPATH =""
 
-env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
+if not env['MTOA_DISABLE_RV']:
+    if system.os() == 'windows':
+        RENDERVIEW_DYLIB = 'ai_renderview'+ get_library_extension()
+        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+    else:
+        RENDERVIEW_DYLIB = 'libai_renderview'+ get_library_extension()
+        RENDERVIEW_DYLIBPATH = os.path.join(EXTERNAL_PATH, 'renderview', 'lib', maya_version_base, RENDERVIEW_DYLIB)
+
+    env.Install(env['TARGET_BINARIES'], glob.glob(RENDERVIEW_DYLIBPATH))
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa common scritps
-scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui'])
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel', '.ui', '.xml'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
               [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
 
@@ -784,6 +834,10 @@ maya_base_version = maya_version[:4]
 if maya_base_version == '2013':
     if int(maya_version[-2:]) >= 50:
         maya_base_version = '20135'
+if maya_base_version == '2016':
+    if int(maya_version[-2:]) >= 50:
+        maya_base_version = '20165'
+
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
@@ -852,9 +906,15 @@ ext_env.Append(LIBS = ['mtoa_api',])
 ext_base_dir = os.path.join('contrib', 'extensions')
 for ext in os.listdir(ext_base_dir):
     #Only build extensions if they are requested by user
-    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost')):
+    if not ((ext in COMMAND_LINE_TARGETS) or ('%spack' % ext in COMMAND_LINE_TARGETS) or ('%sdeploy' % ext in COMMAND_LINE_TARGETS) or
+            (env['ENABLE_XGEN'] == 1 and ext == 'xgen') or
+            (env['ENABLE_XGEN'] == 1 and (int(maya_version) >= 201700) and ext == 'xgenSpline') or
+            ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
+            (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
+            (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
+
     if os.path.isdir(ext_dir):        
         EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
@@ -940,14 +1000,15 @@ for ext in os.listdir(ext_base_dir):
 ## (file_spec, destination_path)                        Copies a group of files specified by a glob expression
 ##
 PACKAGE_FILES = [
+[os.path.join('tools', 'ShaderConversion', 'mrShadersToArnold.py'), 'docs'],
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('icons', '*.png'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
-[os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*.lic'), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('docs', 'api')],
@@ -955,6 +1016,13 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
 
+if env['ENABLE_COLOR_MANAGEMENT'] == 0:
+    PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
+else:
+    PACKAGE_FILES.append([COLOR_MANAGEMENT_FILES, 'bin'])
+    
+if (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join('installer', 'RSTemplates', '*.json'), 'RSTemplates'])
 
 if env['ENABLE_VP2'] == 1:
     PACKAGE_FILES.append([os.path.join('plugins', 'mtoa', 'viewport2', '*.xml'), 'vp2'])
@@ -965,11 +1033,27 @@ if env['ENABLE_XGEN'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgen_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgen', 'xgenTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgen', 'plugin', '*.py'), 'extensions'])
+  
+if (env['ENABLE_XGEN'] == 1) and (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_procedural%s' % get_library_extension()), 'procedurals'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSplineTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'xgenSpline', 'xgenSpline_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'xgenSpline', 'plugin', '*.py'), 'extensions'])
+    
+if (int(maya_version) >= 201700):
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShaderTranslator%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'hairPhysicalShader', 'hairPhysicalShader_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'hairPhysicalShader', 'plugin', '*.py'), 'extensions'])
 
 if env['ENABLE_BIFROST'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_procedural%s' % get_library_extension()), 'procedurals'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrostTranslator%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'bifrost', 'bifrost_shaders%s' % get_library_extension()), 'shaders'])
+    PACKAGE_FILES.append([os.path.join('contrib', 'extensions', 'bifrost', 'plugin', '*.py'), 'extensions'])
+
+if env['ENABLE_LOOKDEVKIT'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
@@ -1022,11 +1106,13 @@ elif system.os() == 'darwin':
        [MTOA[0], 'plug-ins'],
     ]
 
-PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+if not env['MTOA_DISABLE_RV']:
+    PACKAGE_FILES.append([RENDERVIEW_DYLIBPATH, 'bin'])
+    if OCIO_DYLIBPATH != "":
+        PACKAGE_FILES.append([OCIO_DYLIBPATH, 'bin'])
 
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
-
 installer_name = ''
 if system.os() == "windows":
     installer_name = 'MtoA-%s-%s%s.exe' % (MTOA_VERSION, maya_base_version, PACKAGE_SUFFIX)
@@ -1036,6 +1122,8 @@ else:
     installer_name = 'MtoA-%s-%s-%s%s.run' % (MTOA_VERSION, system.os(), maya_base_version, PACKAGE_SUFFIX)
 
 def create_installer(target, source, env):
+
+    
     import tempfile
     import shutil
     tempdir = tempfile.mkdtemp() # creating a temporary directory for the makeself.run to work
@@ -1057,6 +1145,8 @@ def create_installer(target, source, env):
         mtoaVersionString = mtoaVersionString.replace('.RC', ' RC')
         mayaVersionString = maya_base_version
         mayaVersionString = mayaVersionString.replace('20135', '2013.5')
+        mayaVersionString = mayaVersionString.replace('20165', '2016.5')
+
         os.environ['MTOA_VERSION_NAME'] = mtoaVersionString
         os.environ['MAYA_VERSION'] = mayaVersionString
         subprocess.call([os.path.join(NSIS_PATH, 'makensis.exe'), '/V3', os.path.join(tempdir, 'MtoA.nsi')])
@@ -1073,6 +1163,7 @@ def create_installer(target, source, env):
         installPath = '/Applications/solidangle/mtoa/' + maya_version
         mtoaMod.write('+ mtoa any %s\n' % installPath)
         mtoaMod.write('PATH +:= bin\n')
+        mtoaMod.write('MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates\n')
         mtoaMod.close()
         subprocess.call(['packagesbuild', os.path.join(tempdir, 'MtoA_Installer.pkgproj')])
         shutil.copyfile(os.path.join(tempdir, 'MtoA_Setup.pkg'), installer_name[:-4]+'.pkg')
@@ -1081,7 +1172,7 @@ def create_installer(target, source, env):
         shutil.copyfile(os.path.abspath('installer/unix_installer.py'), os.path.join(tempdir, 'unix_installer.py'))
         commandFilePath = os.path.join(tempdir, 'unix_installer.sh')
         commandFile = open(commandFilePath, 'w')
-        commandFile.write('python ./unix_installer.py %s %s' % (maya_base_version, platform.system().lower()))
+        commandFile.write('python ./unix_installer.py %s %s $*' % (maya_base_version, platform.system().lower()))
         commandFile.close()
         subprocess.call(['chmod', '+x', commandFilePath])
         installerPath = os.path.abspath('./%s' % (installer_name))

@@ -1,7 +1,45 @@
 
 #include "renderview_mtoa.h"
-#include "scene/MayaScene.h"
 
+
+#ifdef MTOA_DISABLE_RV
+
+// define the functions in case we disabled the RenderView
+// so that we don't have to uncomment all the places where CRenderViewMtoA is used
+
+CRenderViewMtoA::CRenderViewMtoA() {}
+CRenderViewMtoA::~CRenderViewMtoA() {}
+
+void CRenderViewMtoA::UpdateSceneChanges(){}
+
+unsigned int CRenderViewMtoA::GetSelectionCount() {return 0;}
+void CRenderViewMtoA::GetSelection(AtNode **selectedNodes) {}
+void CRenderViewMtoA::SetSelection(const AtNode **selectedNodes, unsigned int selectionCount, bool append){}
+void CRenderViewMtoA::ReceiveSelectionChanges(bool receive){}
+void CRenderViewMtoA::NodeParamChanged(AtNode *node, const char *paramName) {}
+void CRenderViewMtoA::RenderViewClosed() {}
+
+CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator() {return NULL;}
+CRenderViewZoomManipulator *CRenderViewMtoA::GetZoomManipulator() {return NULL;}
+CRenderViewRotateManipulator *CRenderViewMtoA::GetRotateManipulator() {return NULL;}
+   
+void CRenderViewMtoA::SelectionChangedCallback(void *) {}
+void CRenderViewMtoA::RenderLayerChangedCallback(void *) {}
+void CRenderViewMtoA::SceneSaveCallback(void *) {}
+void CRenderViewMtoA::SceneOpenCallback(void *) {}
+void CRenderViewMtoA::ColorMgtChangedCallback(void *) {}
+void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData) {}
+void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData) {}
+void CRenderViewMtoA::ResolutionChangedCallback(void *) {}
+void CRenderViewMtoA::OpenMtoARenderView(int width, int height) {}
+void CRenderViewMtoA::UpdateColorManagement(){}
+MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step) {return MStatus::kSuccess;}
+
+#else
+
+// Arnold RenderView is defined
+
+#include "scene/MayaScene.h"
 
 //#include <maya/MQtUtil.h>
 #include <maya/MBoundingBox.h>
@@ -17,9 +55,22 @@
 #include <maya/M3dView.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MNodeMessage.h>
-
+#include <maya/MProgressWindow.h>
 #include <maya/MSceneMessage.h>
+#include <maya/MTimerMessage.h>
 
+
+struct CARVSequenceData
+{
+   float first;
+   float last;
+   float current;
+   float step;
+   bool renderStarted;
+   std::string sceneUpdatesValue;
+   std::string saveImagesValue;
+};
+static CARVSequenceData *s_sequenceData = NULL;
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
    m_rvSceneSaveCb(0),
@@ -27,6 +78,8 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvLayerManagerChangeCb(0),
    m_rvLayerChangeCb(0),
    m_rvColorMgtCb(0),
+   m_rvResCb(0),
+   m_rvIdleCb(0),
    m_convertOptionsParam(true)
 {   
 }
@@ -62,6 +115,16 @@ CRenderViewMtoA::~CRenderViewMtoA()
    {
       MMessage::removeCallback(m_rvColorMgtCb);
       m_rvColorMgtCb = 0;
+   }
+   if (m_rvResCb)
+   {
+      MMessage::removeCallback(m_rvResCb);
+      m_rvResCb = 0;
+   }
+   if (m_rvIdleCb)
+   {
+      MMessage::removeCallback(m_rvIdleCb);
+      m_rvIdleCb = 0;
    }
 }
 // Return all renderable cameras
@@ -163,9 +226,28 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
                                               &status);
       }
 
-      if (m_convertOptionsParam) UpdateColorManagement(colorMgtObject);
+      if (m_convertOptionsParam) UpdateColorManagement();
    }
    m_convertOptionsParam = false;
+
+   MSelectionList resList;
+   resList.add(MString(":defaultResolution"));
+   
+   // get the maya node contraining the color management options         
+   if(resList.length() > 0)
+   {
+      MObject resObject;
+      resList.getDependNode(0,resObject);
+
+      if (m_rvResCb == 0)
+      {
+         m_rvResCb = MNodeMessage::addNodeDirtyCallback(resObject,
+                                              ResolutionCallback,
+                                              this,
+                                              &status);
+      }
+
+   }
 
    // Set image Dir
    MString workspace;
@@ -465,6 +547,18 @@ void CRenderViewMtoA::ReceiveSelectionChanges(bool receive)
 void CRenderViewMtoA::RenderViewClosed()
 {
    ReceiveSelectionChanges(false);
+   if (s_sequenceData != NULL)
+   {
+      SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+      SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+      if (m_rvIdleCb)
+      {
+         MMessage::removeCallback(m_rvIdleCb);
+         m_rvIdleCb = 0;
+      }
+      delete s_sequenceData;
+      s_sequenceData = NULL;
+   }
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
    if (renderSession)
    {   
@@ -473,6 +567,8 @@ void CRenderViewMtoA::RenderViewClosed()
    }
    MMessage::removeCallback(m_rvSceneSaveCb);
    m_rvSceneSaveCb = 0;
+
+   MProgressWindow::endProgress();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -774,21 +870,102 @@ void CRenderViewMtoARotate::MouseDelta(int deltaX, int deltaY)
    transformPath.translateBy(nextRt - previousRt, MSpace::kWorld);
    transformPath.setRotatePivotTranslation(previousRt, MSpace::kWorld);
    m_camera.setCenterOfInterestPoint(m_center, MSpace::kWorld);
-
-
 }
 
 
-void CRenderViewMtoA::UpdateColorManagement(MObject &node)
+void CRenderViewMtoA::UpdateColorManagement()
 {
+#if MAYA_API_VERSION >= 201700
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   int cmEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmEnabled", cmEnabled);
+
+   int cmOcioEnabled = 0;
+   MGlobal::executeCommand("colorManagementPrefs -q -cmConfigFileEnabled", cmOcioEnabled);
+
+   MString ocioFilepath;
+   MGlobal::executeCommand("colorManagementPrefs -q -configFilePath", ocioFilepath);
+
+   MString renderingSpace;
+   MGlobal::executeCommand("colorManagementPrefs -q -renderingSpaceName", renderingSpace);
+
+   MString viewTransform;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformName", viewTransform);
+
+   MStringArray viewTransforms;
+   MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   std::string allViewTransforms;
+   for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
+   {
+      allViewTransforms += viewTransforms[idx].asChar();
+      allViewTransforms += ";";
+   }
+
+   // The order of initialization is important to avoid useless changes.
+   SetOption("Color Management.Enabled",        "false");
+   SetOption("Color Management.OCIO File",   ocioFilepath.asChar()); 
+   SetOption("Color Management.OCIO",    cmOcioEnabled==1 ? "true" : "false"); 
+   SetOption("Color Management.Rendering Space", renderingSpace.asChar()); 
+   if (cmEnabled == 1)
+   {
+      SetOption("Color Management.View Transforms", allViewTransforms.c_str()); 
+      SetOption("Color Management.View Transform",  viewTransform.asChar()); 
+   } else
+   {
+      SetOption("Color Management.View Transforms", ""); 
+      SetOption("Color Management.View Transform",  ""); 
+   }
+   SetOption("Color Management.Gamma",          "1"); 
+   SetOption("Color Management.Exposure",       "0");
+   SetOption("Color Management.Enabled",        cmEnabled==1 ? "true" : "false");
+   
+#else
+
+   MSelectionList activeList;
+   activeList.add(MString(":defaultColorMgtGlobals"));
+   
+   // get the maya node contraining the color management options         
+   if(activeList.length() == 0) return;
+   
+   MObject node;
+   activeList.getDependNode(0,node);
    MFnDependencyNode depNode(node);
 
-// cfe -> ocio enabled
-// cfp -> ocio path
-// vtn  -> view transform name
-// wsn  -> 
-// otn
-// potn 
+
+   // Maya Color Management (aka SynColor) offers a command to retrieve 
+   // its complete status; the command is colorManagementPrefs.
+   // At the same time it also offers
+   // capabilities to listen on any Color Management events using the
+   // already existing MEventMessage (or scriptJob for mel code), 
+   // the tags are prefixed with 'ColorMgt'.
+   // By default the Maya Color Mgt is on; however, it could be disabled
+   // at any time.
+
+   // Note:
+   // For debugging purpose only, 'defaultColorMgtGlobals' attributes are:
+   // cme -> color management enabled
+   // cfe -> ocio mode enabled (false means that native mode is enabled)
+   // cfp -> ocio path, to be used only if cme and cfe are on
+   // vtn -> view transform name
+   // wsn -> working space name (also known as rendering color space)
+   // ote -> output transform enabled 
+   // otn -> output transform name 
+   // ... -> other attributes will not be used by the RenderView for now.
+
+   // Implementation: [Patrick Hodoul & Sebastien Ortega]
+   // The color transformation from the rendering color space to the 
+   // view transform must be managed by SynColor as it could imply
+   // a lot more processing. The code receiving the request should
+   // use SynColor to perform the color transformation.
 
    MStatus status;
    MPlug plug;
@@ -797,13 +974,13 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
 
    if (status == MS::kSuccess && plug.asBool())
    {
-      SetOption("LUT.OCIO", "1");
+      SetOption("Color Management.OCIO", "1");
       ocio = true;
-      SetOption("LUT.Gamma", "1"); 
-      SetOption("LUT.Exposure", "0");
+      SetOption("Color Management.Gamma", "1"); 
+      SetOption("Color Management.Exposure", "0");
 
    }
-   else  SetOption("LUT.OCIO", "0");
+   else  SetOption("Color Management.OCIO", "0");
 
    
    plug = depNode.findPlug("cfp", &status);
@@ -813,7 +990,7 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
       std::string ocioFile = plug.asString().asChar();
       if (!ocioFile.empty())
       {
-         SetOption("LUT.OCIO File", ocioFile.c_str());
+         SetOption("Color Management.OCIO File", ocioFile.c_str());
       }
 
       if (ocio)
@@ -822,7 +999,7 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
          if (status == MS::kSuccess)
          {
             const std::string viewTransform = plug.asString().asChar();
-            SetOption("LUT.View Transform", viewTransform.c_str());
+            SetOption("Color Management.View Transform", viewTransform.c_str());
          }
       } else
       {
@@ -832,42 +1009,279 @@ void CRenderViewMtoA::UpdateColorManagement(MObject &node)
             const std::string viewTransform = plug.asString().asChar();
             if (viewTransform == "1.8 gamma")
             {
-               SetOption("LUT.View Transform", "Linear"); 
-               SetOption("LUT.Gamma", "1.8"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Linear"); 
+               SetOption("Color Management.Gamma", "1.8"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "2.2 gamma")
             {
-               SetOption("LUT.View Transform", "Linear"); 
-               SetOption("LUT.Gamma", "2.2"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Linear"); 
+               SetOption("Color Management.Gamma", "2.2"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "sRGB gamma")
             {
-               SetOption("LUT.View Transform", "sRGB");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "sRGB");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "Rec 709 gamma")
             {
-               SetOption("LUT.View Transform", "Rec709");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Rec709");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "Raw")
             {
-               SetOption("LUT.View Transform", "Linear");
-               SetOption("LUT.Gamma", "1"); 
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Linear");
+               SetOption("Color Management.Gamma", "1"); 
+               SetOption("Color Management.Exposure", "0");
             } else if (viewTransform == "Log")
             {
-               SetOption("LUT.View Transform", "Log");
-               SetOption("LUT.Gamma", "1");
-               SetOption("LUT.Exposure", "0");
+               SetOption("Color Management.View Transform", "Log");
+               SetOption("Color Management.Gamma", "1");
+               SetOption("Color Management.Exposure", "0");
             }
          }
       }
    }
+#endif
 }
+
+void CRenderViewMtoA::ColorMgtChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+   renderViewMtoA->UpdateColorManagement();
+}
+
 void CRenderViewMtoA::ColorMgtCallback(MObject& node, MPlug& plug, void* clientData)
 {
    CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
-   rvMtoA->UpdateColorManagement(node);
+   MStatus status;
+   if(rvMtoA->m_rvIdleCb == 0)
+   {
+
+      rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                                                  CRenderViewMtoA::ColorMgtChangedCallback,
+                                                  clientData,
+                                                  &status);
+   }
+}
+void CRenderViewMtoA::ResolutionChangedCallback(void *data)
+{
+   if (data == NULL) return;
+   CRenderViewMtoA *renderViewMtoA = (CRenderViewMtoA *)data;
+   
+   if(renderViewMtoA->m_rvIdleCb)
+   {
+      MMessage::removeCallback(renderViewMtoA->m_rvIdleCb);
+      renderViewMtoA->m_rvIdleCb = 0;   
+   }
+
+   MSelectionList resList;
+   resList.add(MString(":defaultResolution"));
+   
+   if(resList.length() == 0) return;
+
+   MObject resObject;
+   resList.getDependNode(0,resObject);
+   MFnDependencyNode depNode(resObject);
+
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
+   CRenderOptions *renderOptions = (renderSession) ? renderSession->RenderOptions() : NULL;
+   
+   if (renderOptions == NULL) return;
+
+   MStatus status;
+   int width = 1;
+   int height = 1;
+   bool updateRender = false;
+   
+   MPlug plug = depNode.findPlug("width", &status);
+   if (status == MS::kSuccess)
+   {
+      width = plug.asInt();
+      if (width != (int)renderOptions->width()) updateRender = true;
+   }
+   plug = depNode.findPlug("height", &status);
+   if (status == MS::kSuccess)
+   {
+      height = plug.asInt();
+      if (height != (int)renderOptions->height()) updateRender = true;
+   }
+   plug = depNode.findPlug("deviceAspectRatio", &status);
+   if (status == MS::kSuccess)
+   {
+      float pixelAspectRatio = 1.0f / (((float)height / width) * plug.asFloat());
+      if (ABS(pixelAspectRatio - renderOptions->pixelAspectRatio()) > AI_EPSILON)
+      {
+         updateRender = true;
+      }
+   }
+
+   if(updateRender)      
+      renderViewMtoA->SetOption("Update Full Scene", "1");
+}
+void CRenderViewMtoA::ResolutionCallback(MObject& node, MPlug& plug, void* clientData)
+{
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)clientData;
+   MStatus status;
+
+   if(rvMtoA->m_rvIdleCb == 0)
+   {
+
+      rvMtoA->m_rvIdleCb = MEventMessage::addEventCallback("idle",
+                                                  CRenderViewMtoA::ResolutionChangedCallback,
+                                                  clientData,
+                                                  &status);
+   }
 
 }
+
+void CRenderViewMtoA::SequenceRenderCallback(float elapsedTime, float lastTime, void *data)
+{
+   if (s_sequenceData == NULL){return;}
+
+   CRenderViewMtoA *rvMtoA = (CRenderViewMtoA *)data;
+
+   if (MProgressWindow::isCancelled())
+   {
+      CMayaScene::GetRenderSession()->InterruptRender(true);
+      MProgressWindow::endProgress();
+      rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+      rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+      if (rvMtoA->m_rvIdleCb)
+      {
+         MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+         rvMtoA->m_rvIdleCb = 0;
+      }
+      return;
+   }
+
+   if(!s_sequenceData->renderStarted)
+   {
+      if (AiRendering()) {s_sequenceData->renderStarted = true; }
+      
+   } else
+   {
+      if(!AiRendering())
+      {
+         // this frame has finished !
+         s_sequenceData->current += s_sequenceData->step;
+         if (s_sequenceData->current > s_sequenceData->last)
+         {
+            MProgressWindow::endProgress();
+            rvMtoA->SetOption("Scene Updates", s_sequenceData->sceneUpdatesValue.c_str());
+            rvMtoA->SetOption("Save Final Images", s_sequenceData->saveImagesValue.c_str());
+            if (rvMtoA->m_rvIdleCb)
+            {
+               MMessage::removeCallback(rvMtoA->m_rvIdleCb);
+               rvMtoA->m_rvIdleCb = 0;
+            }
+            return;
+         }
+         s_sequenceData->renderStarted = false;
+         MProgressWindow::setProgress(s_sequenceData->current);
+
+         MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+         MGlobal::viewFrame(s_sequenceData->current);
+         MProgressWindow::setProgressStatus(progressStr);
+         MGlobal::displayInfo(progressStr);
+         rvMtoA->SetOption("Update Full Scene", "1");
+
+      } else
+      {
+         // still computing
+         // nothing to do ?
+      }
+   }
+
+}
+
+
+MStatus CRenderViewMtoA::RenderSequence(float first, float last, float step)
+{
+   if (m_rvIdleCb)
+   {
+      MMessage::removeCallback(m_rvIdleCb);
+      m_rvIdleCb = 0;
+   } 
+   // make sure no render is going on
+   CMayaScene::GetRenderSession()->InterruptRender(true);
+
+   if (s_sequenceData) 
+   {
+      delete s_sequenceData;
+      s_sequenceData = NULL;
+   }
+
+
+   /*
+   FIXME : we'd need to find the original value of scene updates / save final images
+   but they're not in "serialize" yet
+
+   std::string serialized = Serialize();
+
+   size_t npos = serialized.find("Scene Updates");
+   if (npos != std::string::npos)
+   {
+   }
+   npos = serialized.find("Save Final Images");
+   if (npos != std::string::npos)
+   {
+   }
+   */
+
+   SetOption("Scene Updates", "0");
+   SetOption("Save Final Images", "1");
+   
+   s_sequenceData = new CARVSequenceData;
+   s_sequenceData->first = first;
+   s_sequenceData->current = first;
+   s_sequenceData->last = last;
+   s_sequenceData->step = step;
+   s_sequenceData->renderStarted = false;
+   s_sequenceData->sceneUpdatesValue = "1";
+   s_sequenceData->saveImagesValue = "0";
+
+   if (!MProgressWindow::reserve())
+   {
+      MGlobal::displayError("Progress window already in use.");
+      return MS::kFailure;
+   }
+
+   MProgressWindow::setProgressRange(first, last);
+   MProgressWindow::setTitle(MString("Sequence Rendering"));
+   MProgressWindow::setInterruptable(true);
+   MProgressWindow::setProgress(first);
+
+   MString progressWindowState = MString("Sequence Rendering:") +
+          MString("\nFrames ") + MProgressWindow::progressMin() +
+          MString(" to ") + MProgressWindow::progressMax() + 
+          MString(" (step ") + step + MString(")");
+
+   MGlobal::displayInfo(progressWindowState);
+   MProgressWindow::startProgress();
+
+   MGlobal::viewFrame(first);
+   MString progressStr = MString("Rendering Frame ") + MProgressWindow::progress();
+   MProgressWindow::setProgressStatus(progressStr);
+   MGlobal::displayInfo(progressStr);
+
+   SetOption("Update Full Scene", "1");
+   
+   // connect to Idle
+   MStatus status;
+
+   m_rvIdleCb = MTimerMessage::addTimerCallback(0.1f,
+                                                  CRenderViewMtoA::SequenceRenderCallback,
+                                                  this,
+                                                  &status);
+
+   return status;
+}
+
+#endif

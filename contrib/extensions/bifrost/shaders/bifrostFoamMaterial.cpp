@@ -153,6 +153,7 @@ static void initializeDiffuseGradient(AtNode *node, ShaderData *data, AtShaderGl
    AiCritSecLeave(&data->lock);
 }
 
+/*
 static void initializeScatterGradient(AtNode *node, ShaderData *data, AtShaderGlobals *sg)
 {
    AiCritSecEnter(&data->lock);
@@ -172,7 +173,7 @@ static void initializeScatterGradient(AtNode *node, ShaderData *data, AtShaderGl
 
    }
    AiCritSecLeave(&data->lock);
-}
+}*/
 
 static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShaderGlobals *sg)
 {

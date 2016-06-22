@@ -192,67 +192,6 @@ bool StringHasOnlyNumbersAndMinus(const std::string& str)
    return false;
 }
 
-bool CheckForAlternativeUDIMandTILETokens(const std::string& original_filename, bool checkForTileToken = true)
-{
-   size_t slashPos = original_filename.rfind('/'); // we already get the right slashes from maya
-#ifdef _WIN32
-   if (slashPos == std::string::npos) // we don't get the right slashes from the aiImage node
-      slashPos = original_filename.rfind('\\');
-   else
-   {
-      size_t slashPos2 = original_filename.rfind('\\');
-      if (slashPos2 != std::string::npos)
-         slashPos = MAX(slashPos2, slashPos);
-   }
-#endif
-   if (slashPos != std::string::npos)
-   {
-      std::string directory = original_filename.substr(0, slashPos);
-      DIR* dp;
-      if ((dp = opendir(directory.c_str())) != 0)
-      {
-         std::string filename = original_filename.substr(slashPos + 1, original_filename.size());
-         bool isUdim = true;
-         size_t tp = filename.find("<udim>");
-         if (checkForTileToken && tp == std::string::npos)
-         {
-            isUdim = false;
-            tp = filename.find("<tile>");
-         }
-
-         std::string filenamePre = filename.substr(0, tp);
-         std::string filenamePost = filename.substr(tp + 6, filename.size());
-         dirent* de;
-         while((de = readdir(dp)) != 0)
-         {
-            std::string current_filename = de->d_name;
-            if (current_filename.find(filenamePre) != 0)
-               continue;
-            current_filename = current_filename.substr(filenamePre.size(), current_filename.size());
-            tp = current_filename.rfind(filenamePost);
-            if (tp == std::string::npos)
-               continue;
-            std::string token = current_filename.substr(0, tp);
-            // check for udim
-            if (isUdim && StringHasOnlyNumbersAndMinus(token))
-               return true;
-            else if (!isUdim)
-            {
-               if ((tp = current_filename.find("_u")) == std::string::npos)
-                  continue;
-               current_filename.replace(tp, 2, "");
-               if ((tp = current_filename.find("_v")) == std::string::npos)
-                  continue;
-               current_filename.replace(tp, 2, "");
-               if (StringHasOnlyNumbersAndMinus(current_filename))
-                  return true;
-            }
-         }
-      }
-   }
-   return false;
-}
-
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
@@ -323,44 +262,9 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
       
-      // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
-      // or that class eliminated completely 
-      CRenderOptions renderOptions; 
-      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya(); 
-      if(renderOptions.useExistingTiledTextures()) 
-      {
-         // check for <tile> and <udim> tags and replace them
-         // with _u1_v1 and 1001 
-         MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
-         std::string tx_filename_tokens_original = tx_filename.asChar();
-         std::string tx_filename_tokens = tx_filename_tokens_original;
-         size_t tokenPos = tx_filename_tokens.find("<udim>");
-         if (tokenPos != std::string::npos)
-            tx_filename_tokens.replace(tokenPos, 6, "1001");
-         else
-         {
-            tokenPos = tx_filename_tokens.find("<UDIM>");
-            if (tokenPos != std::string::npos)
-               tx_filename_tokens.replace(tokenPos, 6, "1001");
-            else
-            {
-               tokenPos = tx_filename_tokens.find("<tile>");
-               if (tokenPos != std::string::npos)
-                  tx_filename_tokens.replace(tokenPos, 6, "_u1_v1");
-            }
-         }
-         std::ifstream ifile(tx_filename_tokens.c_str()); 
-         if(ifile.is_open()) 
-            resolvedFilename = tx_filename;
-         else if(tokenPos != std::string::npos) // there is one found token
-         {
-            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original))
-               resolvedFilename = tx_filename;
-         }
-      }
+
+
       m_session->FormatTexturePath(resolvedFilename);
-      
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
 
@@ -385,10 +289,17 @@ void CFileTranslator::Export(AtNode* shader)
 
 void CFileTranslator::NodeInitializer(CAbTranslator context)
 {
+
    CExtensionAttrHelper helper(context.maya, "MayaFile");
    helper.MakeInput("mipBias");
    helper.MakeInput("filter");
    helper.MakeInput("useDefaultColor");
+
+   CAttrData data;
+   data.defaultValue.BOOL = true;
+   data.name = "aiAutoTx";
+   data.shortName = "autotx";
+   helper.MakeInputBoolean(data);
 }
 
 // Bump2d
@@ -417,9 +328,11 @@ void CBump2DTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "use_derivatives";
    helper.MakeInputBoolean(data);
    
+#ifdef MTOA_ENABLE_GAMMA
    data.name = "aiGammaCorrect";
    data.shortName = "gamma_correct";
    helper.MakeInputBoolean(data);
+#endif
 }
 
 AtNode*  CBump2DTranslator::CreateArnoldNodes()
@@ -448,8 +361,11 @@ void CBump2DTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "flip_g", AI_TYPE_BOOLEAN, "aiFlipG");
    ProcessParameter(shader, "swap_tangents", AI_TYPE_BOOLEAN, "aiSwapTangents");
    ProcessParameter(shader, "use_derivatives", AI_TYPE_BOOLEAN, "aiUseDerivatives");
+#ifdef MTOA_ENABLE_GAMMA
    ProcessParameter(shader, "gamma_correct", AI_TYPE_BOOLEAN, "aiGammaCorrect");
-
+#else
+   AiNodeSetFlt(shader, "gamma_correct", 1.f);
+#endif
    MPlugArray connections;
    plug = FindMayaPlug("normalCamera");
 
@@ -1279,6 +1195,12 @@ void CMayaBlinnTranslator::Export(AtNode* shader)
    
    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+   MPlug transparencyPlug = FindMayaPlug("transparency");
+   float colorR = transparencyPlug.child(0).asFloat();
+   float colorG = transparencyPlug.child(1).asFloat();
+   float colorB = transparencyPlug.child(2).asFloat();
+   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
    
    AiNodeSetFlt(shader, "emission", 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
@@ -1302,6 +1224,12 @@ void CMayaPhongTranslator::Export(AtNode* shader)
    
    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+   MPlug transparencyPlug = FindMayaPlug("transparency");
+   float colorR = transparencyPlug.child(0).asFloat();
+   float colorG = transparencyPlug.child(1).asFloat();
+   float colorB = transparencyPlug.child(2).asFloat();
+   AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
    
    AiNodeSetFlt(shader, "emission", 1.f);
    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
@@ -1311,6 +1239,152 @@ AtNode* CMayaPhongTranslator::CreateArnoldNodes()
 {
    return ProcessAOVOutput(AddArnoldNode("standard"));
 }
+
+void CMayaPhongETranslator::Export(AtNode* shader)
+{
+    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+
+    AiNodeSetFlt(shader, "Ks", 1.f);
+    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "roughness");
+    ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+
+    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+    MPlug transparencyPlug = FindMayaPlug("transparency");
+    float colorR = transparencyPlug.child(0).asFloat();
+    float colorG = transparencyPlug.child(1).asFloat();
+    float colorB = transparencyPlug.child(2).asFloat();
+    AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+
+    AiNodeSetFlt(shader, "emission", 1.f);
+    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaPhongETranslator::CreateArnoldNodes()
+{
+    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
+void CMayaAnisotropicTranslator::Export(AtNode* shader)
+{
+    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+
+    AiNodeSetFlt(shader, "Ks", 1.f);
+    ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+
+    ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+    ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+
+    MPlug transparencyPlug = FindMayaPlug("transparency");
+    float colorR = transparencyPlug.child(0).asFloat();
+    float colorG = transparencyPlug.child(1).asFloat();
+    float colorB = transparencyPlug.child(2).asFloat();
+    AiNodeSetRGB(shader, "opacity", 1.0f - colorR, 1.0f - colorG, 1.0f - colorB);
+
+    AiNodeSetFlt(shader, "emission", 1.f);
+    ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+
+    // anisotropic parameters
+    MPlug anglePlug = FindMayaPlug("angle");
+    float angle = (anglePlug.asFloat()/360.0f);
+    AiNodeSetFlt(shader, "specular_rotation", 1.0f - angle);
+
+    MPlug spreadXPlug = FindMayaPlug("spreadX");
+    MPlug spreadYPlug = FindMayaPlug("spreadY");
+    MPlug roughnessPlug = FindMayaPlug("roughness");
+
+    float spreadX = spreadXPlug.asFloat();
+    float spreadY = spreadYPlug.asFloat();
+    float roughness = roughnessPlug.asFloat();
+
+    float spread = spreadY - spreadX;
+    //float maximum = spreadY > spreadX ? spreadY : spreadX;
+
+    if (spreadY > spreadX)
+    {
+        roughness = roughness - (spreadY * 0.01f) * roughness;
+        if (spreadX < 3.0f)
+        {
+            spread += (3.0f - spreadX) * spread;
+        }
+        if (spread > 99.9999f)
+            spread = 99.9999f;
+    }
+    else
+    {
+        roughness = roughness - (spreadX * 0.01f) * roughness;
+        if (spreadY < 3.0f)
+        {
+            spread += (3.0f - spreadY) * spread;
+        }
+        if (spread < -99.9999f)
+            spread = -99.9999f;
+    }
+
+    float anisotropy = 0.5f + spread * 0.005f;
+
+    if (roughness > 1.0f)
+        roughness = 1.0f;
+
+    AiNodeSetFlt(shader, "specular_roughness", roughness);
+    AiNodeSetFlt(shader, "specular_anisotropy", anisotropy);
+}
+
+AtNode* CMayaAnisotropicTranslator::CreateArnoldNodes()
+{
+    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
+void CMayaRampShaderTranslator::Export(AtNode* shader)
+{
+    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+    ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularity");
+    ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
+
+    MColor color;
+    float reflectivity = 0.0f;
+
+    MPlug plug = FindMayaPlug("color");
+    MRampAttribute ramp(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "Kd_color", color[0], color[1], color[2]);
+
+    plug = FindMayaPlug("specularColor");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "Ks_color", color[0], color[1], color[2]);
+
+    plug = FindMayaPlug("transparency");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "opacity", 1.0f - color[0], 1.0f - color[1], 1.0f - color[2]);
+
+    AiNodeSetFlt(shader, "emission", 1.f);
+
+    plug = FindMayaPlug("incandescence");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "emission_color", color[0], color[1], color[2]);
+
+    plug = FindMayaPlug("reflectivity");
+    ramp = MRampAttribute(plug);
+    ramp.getValueAtPosition(0, reflectivity);
+    AiNodeSetFlt(shader, "Kr", reflectivity);
+
+    plug = FindMayaPlug("environment");
+    ramp = MRampAttribute(plug);
+    ramp.getColorAtPosition(0, color);
+    AiNodeSetRGB(shader, "Kr_color", color[0], color[1], color[2]);
+}
+
+AtNode* CMayaRampShaderTranslator::CreateArnoldNodes()
+{
+    return ProcessAOVOutput(AddArnoldNode("standard"));
+}
+
 
 void CAiHairTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -1358,26 +1432,64 @@ void CAiImageTranslator::Export(AtNode* image)
       renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
-      if(renderOptions.useExistingTiledTextures()) 
-      {         
-         MString tx_filename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
-         std::string tx_filename_tokens_original = tx_filename.asChar();
-         std::string tx_filename_tokens = tx_filename_tokens_original;
-         size_t tokenPos = tx_filename_tokens.find("<udim>");
-         if (tokenPos != std::string::npos)
-            tx_filename_tokens.replace(tokenPos, 6, "1001");
-         std::ifstream ifile(tx_filename_tokens.c_str()); 
-         if(ifile.is_open()) 
-            filename = tx_filename;
-         else if (tokenPos != std::string::npos)
-         {
-            if (CheckForAlternativeUDIMandTILETokens(tx_filename_tokens_original, false))
-               filename = tx_filename;
-         }
-      }
+      
       m_session->FormatTexturePath(filename);
       AiNodeSetStr(image, "filename", filename.asChar());
    }
+}
+
+void CAiImageTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "image");
+   CAttrData data;
+   data.defaultValue.BOOL = true;
+   data.name = "autoTx";
+   data.shortName = "autotx";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "colorManagementConfigFileEnabled";
+   data.shortName = "cmcf";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.STR = "";
+   data.name = "colorManagementConfigFilePath";
+   data.shortName = "cmcp";
+   helper.MakeInputString(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "colorManagementEnabled";
+   data.shortName = "cme";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.INT = 0;
+   data.name = "colorProfile";
+   data.shortName = "cp";
+   helper.MakeInputInt(data);
+
+   data.defaultValue.STR = "";
+   data.name = "colorSpace";
+   data.shortName = "cs";
+   helper.MakeInputString(data);
+
+   data.defaultValue.STR = "";
+   data.name = "workingSpace";
+   data.shortName = "ws";
+   helper.MakeInputString(data);
+
+/* 
+   // In case we need to have an attribute named imageName
+   // so that it's recognized to update color spaces
+   
+   data.defaultValue.STR = "";
+   data.name = "imageName";
+   data.shortName = "in";
+   helper.MakeInputString(data);
+*/
+   data.defaultValue.BOOL = false;
+   data.name = "ignoreColorSpaceFileRules";
+   data.shortName = "ifr";
+   helper.MakeInputBoolean(data);
 }
 
 CMayaShadingSwitchTranslator::CMayaShadingSwitchTranslator(const char* nodeType, int paramType) : m_nodeType(nodeType), m_paramType(paramType)

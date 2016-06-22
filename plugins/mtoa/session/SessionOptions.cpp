@@ -225,6 +225,7 @@ void CSessionOptions::FormatTexturePath(MString& texturePath) const
    ReplaceSlashes(texturePath);
    if (!m_absoluteTexturePaths)
    {
+      // if the filename starts with one of the texture search paths, remove the path from the filename
       for (unsigned int i = 0; i < m_textureSearchPaths.length(); ++i)
       {
          const MString& currentSearchPath = m_textureSearchPaths[i];

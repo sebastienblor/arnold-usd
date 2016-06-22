@@ -26,6 +26,7 @@ import math
 import re
 
 import pymel.core as pm
+import pymel.versions as versions
 
 import mtoa.utils as utils
 from mtoa.ui.ae.templates import createTranslatorMenu
@@ -164,7 +165,6 @@ def createArnoldTargetFilePreview():
 
     # Now we establish scriptJobs to invoke the procedure which updates the
     # target file preview when any of the above attributes change.
-
     for attr in attrArray:
         pm.scriptJob(attributeChange = (attr,updateArnoldTargetFilePreview),
                         parent='targetFilePreview')
@@ -216,7 +216,12 @@ def updateArnoldTargetFilePreview(*args):
 
     kwargs['createDirectory'] = False
     kwargs['leaveUnmatchedTokens'] = True
+
+    if not pm.objExists('defaultArnoldRenderOptions'):
+        return
+
     aovsEnabled = pm.getAttr('defaultArnoldRenderOptions.aovMode') and aovs.getAOVs(enabled=True, exclude=['beauty', 'RGBA', 'RGB'])
+
     if aovsEnabled:
         tokens['RenderPass'] = '<RenderPass>'
     kwargs['strictAOVs'] = not (aovsEnabled and not pm.getAttr('defaultArnoldDriver.mergeAOVs'))
@@ -2243,6 +2248,19 @@ def createArnoldRendererCommonGlobalsTab():
     createArnoldCommonResolution()
 
     pm.setParent(commonTabColumn)
+    
+    # Scene Assembly Section
+    #
+    maya_version = versions.shortName()
+    if int(maya_version) >= 2017:
+        pm.frameLayout('sceneAssemblyFrame',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSceneAssembly"),
+                        collapsable=True,
+                        collapse=True)
+
+        pm.mel.eval('createCommonSceneAssembly()')
+    
+        pm.setParent(commonTabColumn)
 
     # Render Options
     #

@@ -82,6 +82,11 @@ MSyntax CArnoldRenderViewCmd::newSyntax()
 
 MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 {
+
+#ifdef MTOA_DISABLE_RV
+   MGlobal::displayError("Arnold RenderView has been disabled in this build");
+   return MS::kFailure;
+#endif
    // IPR only works in interactive GUI mode
    //if (!MRenderView::doesRenderEditorExist())
    //   return MS::kFailure;
@@ -172,7 +177,7 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);
-      
+
    }
    else if (mode == "refresh")
    {

@@ -6,6 +6,7 @@
 #include "translators/options/OptionsTranslator.h"
 #include "nodes/ShaderUtils.h"
 #include "translators/DagTranslator.h"
+#include "utils/MakeTx.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -35,6 +36,7 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
 #include <maya/MNodeMessage.h>
+#include <maya/MProgressWindow.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -78,40 +80,6 @@ namespace // <anonymous>
             return true;
          else
             return false;
-   }
-
-   bool IsVisible(MFnDagNode &node)
-   {
-      MStatus status;
-
-      if (node.isIntermediateObject())
-         return false;
-
-      MPlug visPlug = node.findPlug("visibility", &status);
-      MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
-
-      if (status == MStatus::kFailure)
-         return false;
-
-      if (visPlug.asBool() && overVisPlug.asBool())
-         return true;
-      else
-         return false;
-   }
-
-   bool IsVisiblePath(MDagPath dagPath)
-   {
-
-      MStatus stat = MStatus::kSuccess;
-      while (stat == MStatus::kSuccess)
-      {
-         MFnDagNode node;
-         node.setObject(dagPath.node());
-         if (!IsVisible(node))
-            return false;
-         stat = dagPath.pop();
-      }
-      return true;
    }
 
    bool IsTemplatedPath(MDagPath dagPath)
@@ -201,7 +169,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
          // for this shader
-         QueueForUpdate(translator);
+         if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -320,7 +288,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
          // for this shader
-         QueueForUpdate(translator);
+         if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
          arnoldNode = translator->DoExport(0);
@@ -435,7 +403,7 @@ MStatus CArnoldSession::End()
    MStatus status = MStatus::kSuccess;
 
    m_requestUpdate = false;
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       ClearUpdateCallbacks();
    }
@@ -663,7 +631,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    // First "real" export
    MGlobal::viewFrame(m_sessionOptions.m_frame);
-   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW)
+   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || 
+      exportMode == MTOA_SESSION_IPR || exportMode == MTOA_SESSION_RENDERVIEW || exportMode == MTOA_SESSION_SEQUENCE)
    {
       // Either for a specific camera or export all cameras
       // Note : in "render selected" mode Maya exports all lights and cameras
@@ -725,11 +694,16 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    for (unsigned int step = 0; step < numSteps; ++step)
    {
       if ((step != 0) || (m_motion_frames[step] != m_sessionOptions.m_frame))
+      {
+         // it used to be done at if(step ==1)
+         // but we could possibly be changing the frame temporarily
+         // without setting exportingMode=true
+         // so it's better to do it here. This way we can block the NodeDirty signals as desired
+         m_isExportingMotion = true; 
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+      }
       AiMsgDebug("[mtoa.session]     Exporting step %d of %d at frame %f", step+1, numSteps, m_motion_frames[step]);
-      if (step == 1)
-         m_isExportingMotion = true;
-
+      
       // then, loop through the already processed dag translators and export for current step
       // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
       // Since all nodes *should* be exported at this point, the following calls to DoExport do not
@@ -744,29 +718,31 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          m_processedTranslatorList[i]->DoExport(step);
       }
    }
-   m_isExportingMotion = false;
 
    if (mb)
    {
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
-      // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSessions::End().
+      // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSession::End().
       if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
          MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
       }
    }
 
+   m_isExportingMotion = false;
 
    // add callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       ObjectToTranslatorMap::iterator it;
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
       }
+      m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
 
+   ExportTxFiles();
    return status;
 }
 
@@ -1005,7 +981,7 @@ void CArnoldSession::SetDagVisible(MDagPath &path)
          DagFiltered filtered = FilteredStatus(path);
          if (filtered != MTOA_EXPORT_ACCEPTED)
          {
-            if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+            if (IsInteractiveRender())
             {
                HiddenObjectCallbackPair hiddenObj;
                hiddenObj.first = CNodeAttrHandle(obj, "");
@@ -1082,7 +1058,7 @@ MStatus CArnoldSession::ExportDag(MSelectionList* selected)
             filtered = FilteredStatus(path);
             if (filtered != MTOA_EXPORT_ACCEPTED)
             {
-               if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+               if (IsInteractiveRender())
                {
                   HiddenObjectCallbackPair hiddenObj;
                   hiddenObj.first = CNodeAttrHandle(obj, "");
@@ -1225,11 +1201,13 @@ void CArnoldSession::ExportLightLinking(AtNode* shape, const MDagPath& path)
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
+   if (m_isExportingMotion && IsInteractiveRender()) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
+   if (m_isExportingMotion && IsInteractiveRender()) return;
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 
@@ -1260,10 +1238,13 @@ void CArnoldSession::DoUpdate()
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    std::vector<CNodeAttrHandle> newToUpdate;
+   
    bool aDag   = false;
    bool newDag = false;
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
+
+   bool arv = (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW);
 
    // In theory, no objectsToUpdate are supposed to be 
    // added to this list during the loop. But to make 
@@ -1275,32 +1256,50 @@ void CArnoldSession::DoUpdate()
       CNodeAttrHandle handle(m_objectsToUpdate[i].first);           // TODO : test isValid and isAlive ?
       CNodeTranslator * translator = m_objectsToUpdate[i].second;
 
-      if (translator != NULL && translator->m_updateMode != AI_RECREATE_NODE)
+      // Check if this translator needs to be re-created
+      if (translator != NULL && translator->m_updateMode == AI_RECREATE_TRANSLATOR)
       {
-         // A translator was provided, just add it to the list
-         if(translator->m_updateMode == AI_DELETE_NODE)
+         // delete the current translator, just like AI_DELETE_NODE does
+         translator->RemoveUpdateCallbacks();
+         translator->Delete();
+         m_processedTranslators.erase(handle); // shouldn't we delete the translator ?
+
+         // setting translator to NULL will consider that this is a new node,
+         // re-create the translator and export it appropriately
+         translator = NULL; 
+         m_objectsToUpdate[i].second = NULL; // safety
+      }
+
+      if (translator != NULL)
+      {
+         // Translator already exists
+         // check its update mode
+         if(translator->m_updateMode == AI_RECREATE_NODE)
+         {
+            // to be updated properly, the Arnold node must 
+            // be deleted and re-exported            
+            translator->Delete();
+            translator->m_atNodes.clear();
+            translator->DoCreateArnoldNodes();
+
+            translator->DoExport(0);
+            translatorsToUpdate.push_back(translator);
+         } else if(translator->m_updateMode == AI_DELETE_NODE)
          {
             translator->RemoveUpdateCallbacks();
             translator->Delete();
             m_processedTranslators.erase(handle);
-         }
+            // FIXME : when is this translator supposed to be deleted ??
+         }  
          else
-         {
+         {  
+            // AI_UPDATE_ONLY => simple update
             if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
             if (translator->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
-      }
-      else if(translator != NULL && translator->m_updateMode == AI_RECREATE_NODE)
-      {
-         translator->Delete();
-         translator->m_atNodes.clear();
-         translator->DoCreateArnoldNodes();
 
-         translator->DoExport(0);
-         translatorsToUpdate.push_back(translator);
-      }
-      else
+      } else
       {
          // No translator was provided, it's either a new node creation or
          // the undo of a delete node
@@ -1381,7 +1380,6 @@ void CArnoldSession::DoUpdate()
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request
 
-
    if (!reqMob)
    {
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
@@ -1413,7 +1411,7 @@ void CArnoldSession::DoUpdate()
    }
 
    // Refresh translator callbacks after all is done
-   if (GetSessionMode() == MTOA_SESSION_IPR || GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (IsInteractiveRender())
    {
       for (std::vector<CNodeAttrHandle>::iterator iter = newToUpdate.begin();
          iter != newToUpdate.end(); ++iter)
@@ -1433,8 +1431,21 @@ void CArnoldSession::DoUpdate()
          CNodeTranslator* translator = (*iter);
          if (translator != NULL)
          {
-            translator->RemoveUpdateCallbacks();
-            translator->AddUpdateCallbacks();
+            if (arv)
+            {
+               // For RenderView, we don't clear the update callbacks
+               // we just add them if they're missing
+               if (!translator->HasUpdateCallbacks())
+               {
+                  translator->AddUpdateCallbacks();
+               } 
+
+              translator->m_holdUpdates = false; // I'm allowed to receive updates once again
+            } else
+            {
+               translator->RemoveUpdateCallbacks();
+               translator->AddUpdateCallbacks();
+            }
          }
       }
    }
@@ -1452,7 +1463,6 @@ void CArnoldSession::DoUpdate()
       m_objectsToUpdate.clear();
       m_requestUpdate = false;
    }     
-
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
@@ -1597,4 +1607,246 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 
    return "";
 }
+const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
+{
+   AtNode* node = AiNodeLookUpByName(mayaName.asChar());
 
+   if (node == NULL)
+   {
+      // There is no object with this name in the scene.
+      // Let's search it amongst the list of processed translators
+      for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+      {
+         CNodeTranslator *translator = m_processedTranslatorList[i];
+         if (translator == NULL) continue;
+
+         // check if this translator corresponds to this AtNode
+         // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
+         if (translator->GetMayaNodeName() == mayaName)
+         {
+            // We found our translator
+            node = translator->GetArnoldRootNode();
+         }
+      }
+   }
+
+   if (node) return AiNodeGetName(node);   
+
+   return "";
+}
+
+
+bool CArnoldSession::IsVisible(MFnDagNode &node) const
+{
+   MStatus status;
+
+   if (node.isIntermediateObject())
+      return false;
+
+   // The material view objects in Maya has always visibility disabled
+   // to not show up by default in the scenes. So we need to override
+   // that here and always return true for objects in material view session
+   if (GetSessionMode() ==  MTOA_SESSION_MATERIALVIEW)
+      return true;
+
+   MPlug visPlug = node.findPlug("visibility", &status);
+   MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
+
+   if (status == MStatus::kFailure)
+      return false;
+
+   if (visPlug.asBool() && overVisPlug.asBool())
+      return true;
+   else
+      return false;
+}
+
+bool CArnoldSession::IsVisiblePath(MDagPath dagPath) const
+{
+   MStatus stat = MStatus::kSuccess;
+   while (stat == MStatus::kSuccess)
+   {
+      MFnDagNode node;
+      node.setObject(dagPath.node());
+      if (!IsVisible(node))
+         return false;
+      stat = dagPath.pop();
+   }
+   return true;
+}
+
+const MStringArray &CArnoldSession::GetTextureSearchPaths() const
+{
+   return m_sessionOptions.GetTextureSearchPaths();   
+}
+const MStringArray &CArnoldSession::GetProceduralSearchPaths() const
+{
+   return m_sessionOptions.GetProceduralSearchPaths();
+}
+
+
+void CArnoldSession::ExportTxFiles()
+{
+
+   // Do not call makeTx if we're doing swatch rendering or material view
+   int sessionMode = GetSessionMode();
+   if (sessionMode == MTOA_SESSION_MATERIALVIEW || sessionMode == MTOA_SESSION_SWATCH ||
+      sessionMode == MTOA_SESSION_UNDEFINED) return;
+   
+   // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
+  // or that class eliminated completely 
+   CRenderOptions renderOptions; 
+   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+   renderOptions.GetFromMaya(); 
+
+   bool autoTx = renderOptions.autoTx();
+   bool useTx = renderOptions.useExistingTiledTextures();
+
+   if (useTx == false && autoTx == false) return;
+
+   const MStringArray &searchPaths = GetTextureSearchPaths();
+
+   bool progressBar = autoTx && (MGlobal::mayaState() == MGlobal::kInteractive);
+
+   std::vector<CNodeTranslator *> textureNodes;
+   textureNodes.reserve(100); // completely empirical value, to avoid first allocations
+
+
+   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   {
+      CNodeTranslator *translator = m_processedTranslatorList[i];
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldRootNode();
+      if (node == NULL) continue;
+
+      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image")) textureNodes.push_back(translator);
+   }
+
+   bool progressStarted = false;
+   for (size_t i = 0; i < textureNodes.size(); ++i)
+   {
+      CNodeTranslator *translator = textureNodes[i];
+      if (translator == NULL) continue;
+
+      AtNode *node = translator->GetArnoldRootNode();
+      if (node == NULL) continue;
+      
+      MString filename = AiNodeGetStr(node, "filename");
+
+      const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
+      bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
+      MString searchPath = "";
+
+      if (fileAutoTx)
+      {
+
+         if (progressBar)
+         {
+            if (!progressStarted)
+            {
+               MProgressWindow::reserve();
+               MProgressWindow::setProgressRange(0, 100);
+               MProgressWindow::setTitle("Converting Images to TX");
+               MProgressWindow::setInterruptable(true);
+            }
+            if (MProgressWindow::isCancelled()) 
+            {
+               // FIXME show a confirm dialog to mention color management will be wrong
+               //MString cmd;
+               //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
+               //MGlobal::executePythonCommandStringResult(cmd);               
+               return;
+            }
+
+            // FIXME use basename instead
+            MString progressStatus = filename;
+            int basenameIndex = progressStatus.rindexW('/');
+            if (basenameIndex > 0)
+            {
+               progressStatus = progressStatus.substring(basenameIndex + 1, progressStatus.numChars() - 1);
+            }
+            progressStatus += " (";
+            progressStatus += (unsigned int)(i + 1);
+            progressStatus += "/";
+            progressStatus += (unsigned int)textureNodes.size();
+            progressStatus += ")";
+
+            while (progressStatus.length() < 50)
+            {
+               progressStatus += "    ";
+            }
+
+            MProgressWindow::setProgressStatus(progressStatus);
+
+            if (!progressStarted)
+            {
+               MProgressWindow::startProgress();
+               // strange, but I need to change the value once so that it is displayed
+               MProgressWindow::setProgress(1);
+               MProgressWindow::setProgress(0);
+            }
+            else
+            {
+               MProgressWindow::setProgress(i * 100 / textureNodes.size());
+            }
+            progressStarted = true;
+         }
+
+
+         // convert TX
+         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
+         int createdFiles = 0;
+         int skippedFiles = 0;
+         int errorFiles = 0;
+         
+         makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+         
+         if (createdFiles + skippedFiles + errorFiles == 0)
+         {               
+            // no file has been found
+            // let's try with the search paths
+            for (unsigned int t = 0; t < searchPaths.length(); ++t)
+            {
+               searchPath = searchPaths[t];
+               MString searchFilename = searchPath + filename;
+               makeTx(searchFilename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
+
+               if (createdFiles + skippedFiles + errorFiles > 0) break; // textures have been found with this search path. Let's stop looking for them
+            }
+         }
+      }
+      if (useTx)
+      {
+         MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+         MString searchFilename = searchPath + txFilename;
+
+         MStringArray expandedFilenames = expandFilename(searchFilename);
+
+         if(expandedFilenames.length() == 0 && !autoTx)
+         {
+            // No file was found for this filename
+            // and mipmap hasn't been generated above (auto-tx = false)
+            // we should check in the search paths
+         
+            for (unsigned int i = 0; i < searchPaths.length(); ++i)
+            {
+               searchFilename = searchPaths[i] + txFilename;
+               expandedFilenames = expandFilename(searchFilename);
+               
+               // we found the texture, stop searching
+               if (expandedFilenames.length() > 0) break;
+            }
+         }
+         // if expandedFilenames.length >= 1 then we're OK ?
+         if (expandedFilenames.length() > 0)
+         {
+            filename = txFilename;
+            FormatTexturePath(filename);
+            AiNodeSetStr(node, "filename", filename.asChar()); 
+         }
+      }      
+   }
+   if (progressBar && progressStarted) MProgressWindow::endProgress();
+   
+}

@@ -36,10 +36,10 @@ public:
    MPoint BBmin;
    MPoint BBmax;
    typedef std::map<AtNode*, CArnoldStandInGeometry*> geometryListType;
-   typedef std::map<AtNode*, CArnoldStandInGeometry*>::iterator geometryListIterType;
+   typedef geometryListType::const_iterator geometryListIterType;
    geometryListType m_geometryList;
    typedef std::vector<CArnoldStandInGInstance*> instanceListType;
-   typedef std::vector<CArnoldStandInGInstance*>::iterator instanceListIterType;
+   typedef instanceListType::const_iterator instanceListIterType;
    instanceListType m_instanceList;
    int dList;
    int updateView;
@@ -48,6 +48,11 @@ public:
 
    void Clear();
    void Draw(int DrawMode);
+   size_t PointCount() const;
+   size_t SharedVertexCount() const;
+   size_t VisibleGeometryCount() const;
+   size_t WireIndexCount() const;
+   size_t TriangleIndexCount(bool sharedVertices = false) const;
 };
 
 // Shape class - defines the non-UI part of a shape node
@@ -67,6 +72,8 @@ public:
 
    virtual bool isBounded() const;
    virtual MBoundingBox boundingBox() const;
+   
+   virtual MSelectionMask getShapeSelectionMask() const;
 
    MStatus GetPointPlugValue( MPlug plug, float3 & value );
    MStatus SetPointPlugValue( MPlug plug, float3   value );
@@ -77,6 +84,9 @@ public:
    static void* creator();
    static MStatus initialize();
    CArnoldStandInGeom* geometry();
+
+   int drawMode();
+   bool deferStandinLoad();
 
    static MTypeId id;
 

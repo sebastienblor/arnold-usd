@@ -2,14 +2,27 @@
 #include "viewport2/ArnoldStandardShaderOverride.h"
 #include "viewport2/ArnoldSkinShaderOverride.h"
 #include "viewport2/ArnoldGenericShaderOverride.h"
-#include "viewport2/ArnoldAreaLightDrawOverride.h"
-#include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
-#include "viewport2/ArnoldStandInDrawOverride.h"
-#include "viewport2/ArnoldPhotometricLightDrawOverride.h"
 #include "viewport2/ViewportUtils.h"
 #include "viewport2/ArnoldVolumeDrawOverride.h"
+#include "viewport2/ArnoldAreaLightDrawOverride.h"
+#include "viewport2/ArnoldPhotometricLightDrawOverride.h"
+#if MAYA_API_VERSION >= 201700
+#include "viewport2/ArnoldSkyDomeLightGeometryOverride.h"
+#include "viewport2/ArnoldLightBlockerGeometryOverride.h"
+#include "viewport2/ArnoldVolumeGeometryOverride.h"
+#include "viewport2/ArnoldStandInSubSceneOverride.h"
+#include <maya/MSelectionMask.h>
+#else
+#include "viewport2/ArnoldSkyDomeLightDrawOverride.h"
+#include "viewport2/ArnoldLightBlockerDrawOverride.h"
+#include "viewport2/ArnoldStandInDrawOverride.h"
+#endif
 #include <maya/MDrawRegistry.h>
 #endif
+
+// Must be included to export MapiVersion properly which
+// sets the API version to a valid version versus "unknown"
+#include <maya/MApiVersion.h>
 
 #include "utils/Version.h"
 #include "platform/Platform.h"
@@ -66,6 +79,7 @@
 #include "translators/shader/FluidTexture2DTranslator.h"
 #include "translators/ObjectSetTranslator.h"
 
+#include "render/MaterialView.h"
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
@@ -118,14 +132,38 @@ namespace // <anonymous>
       {"arnoldRenderView", CArnoldRenderViewCmd::creator, CArnoldRenderViewCmd::newSyntax}
    };
 
-   const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/areaLight";
+   // Note that we use drawdb/geometry/light to classify it as UI for light.
+   // This will allow it to be automatically filtered out by viewport display filters.
+   const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
+#if MAYA_API_VERSION >= 201700
+   const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight";
+#else
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
-   const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/skydome";
+#endif
+   const MString AI_SKYDOME_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/skydome";
+#if MAYA_API_VERSION >= 201700
+   const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION + ":drawdb/light/image";
+#else
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
+#endif
+   const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/arnold/skynode";
+#if MAYA_API_VERSION >= 201650
+   const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
+#else
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
+#endif
    const MString AI_VOLUME_CLASSIFICATION = "drawdb/geometry/arnold/volume";
-   const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/arnold/photometricLight";
+   const MString AI_PHOTOMETRIC_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/photometricLight";
+   const MString AI_LIGHT_FILTER_CLASSIFICATION = "drawdb/geometry/arnold/lightFilter";
+#if MAYA_API_VERSION >= 201700
+   const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION + ":drawdb/light/spotLight";
+   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION + ":drawdb/light/image/environment"; 
+#else
    const MString AI_PHOTOMETRIC_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_PHOTOMETRIC_LIGHT_CLASSIFICATION;
+   const MString AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_WITH_SWATCH + ":" + AI_SKYNODE_CLASSIFICATION;
+#endif
+
+   const MString AI_LIGHT_FILTER_WITH_SWATCH = LIGHT_FILTER_WITH_SWATCH + ":" + AI_LIGHT_FILTER_CLASSIFICATION;
 
    struct mayaNode {
       const char* name;
@@ -170,11 +208,11 @@ namespace // <anonymous>
       } , {
          "aiLightBlocker", CArnoldLightBlockerNode::id,
          CArnoldLightBlockerNode::creator, CArnoldLightBlockerNode::initialize,
-         MPxNode::kLocatorNode, &LIGHT_FILTER_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_LIGHT_FILTER_WITH_SWATCH
       } , {
          "aiSky", CArnoldSkyNode::id,
          CArnoldSkyNode::creator, CArnoldSkyNode::initialize,
-         MPxNode::kLocatorNode, &ENVIRONMENT_WITH_SWATCH
+         MPxNode::kLocatorNode, &AI_SKYNODE_WITH_ENVIRONMENT_WITH_SWATCH
       }
    };
 
@@ -209,23 +247,28 @@ namespace // <anonymous>
          "arnoldAreaLightNodeOverride",
          AI_AREA_LIGHT_CLASSIFICATION,
          CArnoldAreaLightDrawOverride::creator
-      } , {
+      } , 
+#if MAYA_API_VERSION < 201700
+      {
          "arnoldSkyDomeLightNodeOverride",
          AI_SKYDOME_LIGHT_CLASSIFICATION,
          CArnoldSkyDomeLightDrawOverride::creator
       } , {
-         "arnoldStandInNodeOverride",
-         AI_STANDIN_CLASSIFICATION,
-         CArnoldStandInDrawOverride::creator
-      } , {
-         "arnoldPhotometricLightNodeOverride",
-         AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
-         CArnoldPhotometricLightDrawOverride::creator
-      } , {
          "arnoldVolumeNodeOverride",
          AI_VOLUME_CLASSIFICATION,
          CArnoldVolumeDrawOverride::creator
-      }
+      } ,
+      {
+         "arnoldStandInNodeOverride",
+         AI_STANDIN_CLASSIFICATION,
+         CArnoldStandInDrawOverride::creator
+      } ,
+#endif
+      {
+         "arnoldPhotometricLightNodeOverride",
+         AI_PHOTOMETRIC_LIGHT_CLASSIFICATION,
+         CArnoldPhotometricLightDrawOverride::creator
+      }  
    };
 #endif
 
@@ -290,7 +333,8 @@ namespace // <anonymous>
                                     CAiHairTranslator::NodeInitializer);
       builtin->RegisterTranslator("aiImage",
                                     "",
-                                    CAiImageTranslator::creator);
+                                    CAiImageTranslator::creator,
+                                    CAiImageTranslator::NodeInitializer);
       // Lights
       builtin->RegisterTranslator("directionalLight",
                                     "",
@@ -547,6 +591,15 @@ namespace // <anonymous>
          shaders->RegisterTranslator("phong",
                                        "",
                                        CMayaPhongTranslator::creator);
+         shaders->RegisterTranslator("phongE",
+                                       "",
+                                       CMayaPhongETranslator::creator);
+         shaders->RegisterTranslator("anisotropic",
+                                       "",
+                                       CMayaAnisotropicTranslator::creator);
+         shaders->RegisterTranslator("rampShader",
+                                       "",
+                                      CMayaRampShaderTranslator::creator);
          shaders->RegisterTranslator("singleShadingSwitch",
                                        "",
                                        CreateSingleShadingSwitchTranslator);
@@ -721,8 +774,24 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
-   
-   
+
+#ifdef ENABLE_MATERIAL_VIEW
+   // Material view renderer
+   status = plugin.registerRenderer(CMaterialView::Name(), CMaterialView::Creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgDebug("Successfully registered Arnold material view renderer");
+   }
+   else
+   {
+      AiMsgError("Failed to register Arnold material view renderer");
+      MGlobal::displayError("Failed to register Arnold material view renderer");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+#endif // ENABLE_MATERIAL_VIEW
+
    // Swatch renderer
    status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
    CHECK_MSTATUS(status);
@@ -837,6 +906,44 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                override.creator);
       CHECK_MSTATUS(status);
    }
+ 
+#if MAYA_API_VERSION >= 201700
+   status = MHWRender::MDrawRegistry::registerSubSceneOverrideCreator(
+       AI_STANDIN_CLASSIFICATION,
+       "arnoldStandInNodeOverride",
+       CArnoldStandInSubSceneOverride::Creator);
+   CHECK_MSTATUS(status);
+   	
+   // Skydome light and sky shader share the same override as
+   // they are drawn the same way.
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_SKYDOME_LIGHT_CLASSIFICATION,
+      "arnoldSkyDomeLightNodeOverride",
+		CArnoldSkyDomeLightGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_SKYNODE_CLASSIFICATION,
+      "arnoldSkyNodeOverride",
+		CArnoldSkyDomeLightGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
+   // Register a custom selection mask
+   MSelectionMask::registerSelectionType("arnoldLightSelection", 0);
+   status = MGlobal::executeCommand("selectType -byName \"arnoldLightSelection\" 1");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_LIGHT_FILTER_CLASSIFICATION,
+      "arnoldLightBlockerNodeOverride",
+		CArnoldLightBlockerGeometryOverride::Creator);
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::registerGeometryOverrideCreator(
+      AI_VOLUME_CLASSIFICATION,
+      "arnoldVolumeNodeOverride",
+	  CArnoldVolumeGeometryOverride::Creator);
+   CHECK_MSTATUS(status); 
+#endif
 #endif
    
    connectionCallback = MDGMessage::addConnectionCallback(updateEnvironment);
@@ -920,7 +1027,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    
    for (size_t i = 0; i < sizeOfArray(drawOverrideList); ++i)
    {
-      const drawOverride& override = drawOverrideList[i];
+       const drawOverride& override = drawOverrideList[i];
       status = MHWRender::MDrawRegistry::deregisterDrawOverrideCreator(
                override.classification,
                override.registrant);
@@ -929,13 +1036,50 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
+#if MAYA_API_VERSION < 201700
       CArnoldPhotometricLightDrawOverride::clearGPUResources();
       CArnoldAreaLightDrawOverride::clearGPUResources();
       CArnoldStandInDrawOverride::clearGPUResources();
-      CArnoldVolumeDrawOverride::clearGPUResources();
-   }
 #endif
-   
+   }
+#if MAYA_API_VERSION >= 201700
+   status = MHWRender::MDrawRegistry::deregisterSubSceneOverrideCreator(
+       AI_STANDIN_CLASSIFICATION,
+       "arnoldStandInNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_LIGHT_FILTER_CLASSIFICATION,
+      "arnoldLightBlockerNodeOverride");
+   CHECK_MSTATUS(status);
+
+   status = MHWRender::MDrawRegistry::deregisterGeometryOverrideCreator(
+      AI_VOLUME_CLASSIFICATION,
+      "arnoldVolumeNodeOverride");
+   CHECK_MSTATUS(status);
+
+   // Register a custom selection mask
+   MSelectionMask::deregisterSelectionType("arnoldLightSelection");
+#endif
+#endif
+
+#ifdef ENABLE_MATERIAL_VIEW
+   // Material view renderer
+   status = plugin.deregisterRenderer(CMaterialView::Name());
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold material view renderer");
+      MGlobal::displayInfo("Successfully deregistered Arnold material view renderer");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold material view renderer");
+      MGlobal::displayError("Failed to deregister Arnold material view renderer");
+   }
+#endif // ENABLE_MATERIAL_VIEW
+
    // Swatch renderer
    status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH);
    CHECK_MSTATUS(status);

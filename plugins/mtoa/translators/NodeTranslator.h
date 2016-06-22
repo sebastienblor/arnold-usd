@@ -15,6 +15,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCallbackIdArray.h>
+#include <maya/MNodeMessage.h>
 
 #include <string>
 #include <vector>
@@ -26,6 +27,7 @@
 #define AI_UPDATE_ONLY 0
 #define AI_DELETE_NODE 1
 #define AI_RECREATE_NODE 2
+#define AI_RECREATE_TRANSLATOR 3
 
 MString GetAOVNodeType(int type);
 
@@ -39,6 +41,7 @@ class DLLEXPORT CNodeTranslator
    friend class CExtensionsManager;
    friend class CExtension;
    friend class CRenderSwatchGenerator;
+   friend class CMaterialView;
 
 private:
    AtNode* DoExport(unsigned int step);
@@ -101,8 +104,13 @@ public:
    // Used by the Update callbacks.
    virtual void RequestUpdate(void * clientData = NULL);
 
+   // Ask the translator if this parameter has to trigger a render update or not
+   // default is true
+   virtual bool RequireUpdate(const MPlug &param);
+
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
+   bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
 
 protected:
    CNodeTranslator()  :
@@ -115,6 +123,7 @@ protected:
       m_upstreamAOVs(),
       m_shaders(NULL),
       m_updateMode(AI_UPDATE_ONLY),
+      m_holdUpdates(false),
       m_handle(CNodeAttrHandle())      
    {}
 
@@ -201,6 +210,7 @@ protected:
    static void NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
    static void NodeDestroyedCallback(void* clientData);
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
+   static void IdleCallback(void *data);
 
 protected:
 
@@ -222,9 +232,9 @@ protected:
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
-   
-   unsigned int m_updateMode;
 
+   unsigned int m_updateMode;
+   bool m_holdUpdates; // for Arnold RenderView only
 private:
    
    CNodeAttrHandle m_handle;
