@@ -17,6 +17,9 @@
 #endif
 
 #include <vector>
+#include <maya/MPointArray.h>
+#include <maya/MFloatVectorArray.h>
+#include <maya/MUintArray.h>
 
 class CLinePrimitiveData{
 protected:
@@ -94,29 +97,47 @@ public:
 
 class CGQuadLightPrimitive{
 public:
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGDiskLightPrimitive{
 public:
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGCylinderPrimitive{
 public:
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3]);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGPhotometricLightPrimitive{
 public:
+   static void generateData(MPointArray &positions, MUintArray &indices);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
 class CGBoxPrimitive{
 public:
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3], double offset[3], bool atOrigin=true);
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3], double offset[3], bool atOrigin=true);
    static CGPUPrimitive* generate(CGPUPrimitive* prim);
 };
 
+class CGSpherePrimitive{
+public:
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double radius, unsigned int resolution=16);
+   static void generateData(MPointArray &positions, MUintArray &indices, double radius, unsigned int resolution=16);
+};
+
+class CGQuadPrimitive{
+public:
+   static void generateData(MFloatVectorArray &positions, MUintArray &indices, double scale[3]);
+   static void generateData(MPointArray &positions, MUintArray &indices, double scale[3]);
+};
 
 bool checkShaderError(unsigned int shader);
 bool checkProgramError(unsigned int shader);

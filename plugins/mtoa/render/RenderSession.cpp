@@ -452,7 +452,7 @@ unsigned int CRenderSession::InteractiveRenderThread(void* data)
    return 0;
 }
 
-void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
+int CRenderSession::DoInteractiveRender()
 {
    assert(AiUniverseIsActive());
 
@@ -465,6 +465,8 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
                                     this,
                                     AI_PRIORITY_LOW);
+
+   int status = AI_SUCCESS;
    // DEBUG_MEMORY;
    // Block until the render finishes
    s_comp = new MComputation();
@@ -472,7 +474,10 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
    while (MAtomic::compareAndSwap(&s_renderingFinished, 1, 1) != 1)
    {
       if (s_comp->isInterruptRequested())
+      {
          AiRenderInterrupt();
+         status = AI_INTERRUPT;
+      }
       CCritSec::CScopedLock sc(m_render_lock);
       if (m_renderCallback != 0)
          m_renderCallback();
@@ -491,11 +496,9 @@ void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
       m_render_thread = 0;
-   } 
+   }
 
-   CMayaScene::End();
-
-   CMayaScene::ExecuteScript(postRenderMel, false, true);   
+   return status;
 }
 
 
@@ -527,7 +530,7 @@ MString CRenderSession::GetAssName(const MString& customName,
    unsigned int nscn = sceneFileName.numChars();
    if (nscn > 3)
    {
-      MString ext = sceneFileName.substringW(nscn-3, nscn);
+      MString ext = sceneFileName.substringW(nscn-3, nscn-1);
       if (ext == ".ma" || ext == ".mb")
       {
          sceneFileName = sceneFileName.substringW(0, nscn-4);
@@ -643,8 +646,9 @@ void CRenderSession::StartRenderView()
       s_renderView = new CRenderViewMtoA;
    }
    s_renderView->OpenMtoARenderView(m_renderOptions.width(), m_renderOptions.height());
-   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
 
+   s_renderView->SetFrame((float)CMayaScene::GetArnoldSession()->GetExportFrame());
+   
 }
 
 void CRenderSession::UpdateRenderView()
@@ -756,7 +760,12 @@ void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
    AiNodeSetPtr(render_view, "swatch", image.floatPixels());
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
+#ifdef MTOA_ENABLE_GAMMA
    float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+#else
+   float gamma = 1.f;
+#endif
+
    AiNodeSetFlt(render_view, "gamma", gamma);
 
    AtNode* filter = AiNode("gaussian_filter");
@@ -801,4 +810,33 @@ void CRenderSession::SetRenderViewOption(const MString &option, const MString &v
    s_renderView->SetOption(option.asChar(), value.asChar());
 }
 
+bool CRenderSession::RenderSequence()
+{   
+   if (s_renderView == NULL || !CMayaScene::IsActive(MTOA_SESSION_RENDERVIEW)) return false;
+
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+   float startFrame;
+   float endFrame;
+   float frameStep;
+
+   if (renderGlobals.isAnimated())
+   {
+      startFrame = (float)renderGlobals.frameStart.as(MTime::uiUnit());
+      endFrame = (float)renderGlobals.frameEnd.as(MTime::uiUnit());
+      frameStep = (float)renderGlobals.frameBy;
+   }
+   else
+   {
+      startFrame = (float)MAnimControl::currentTime().as(MTime::uiUnit());
+      endFrame = startFrame;
+      frameStep = 1;
+   }
+
+   StartRenderView();
+   SetRendering(true);
+
+   s_renderView->RenderSequence(startFrame, endFrame, frameStep);
+   return true;
+}
 

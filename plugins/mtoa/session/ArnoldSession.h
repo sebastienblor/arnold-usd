@@ -165,6 +165,9 @@ public:
    bool HasObjectsToUpdate() const {return !m_objectsToUpdate.empty();}
    
    MString GetMayaObjectName(const AtNode *node) const;
+   
+   // from a Maya name, get corresponding name in Arnold scene
+   const char *GetArnoldObjectName(const MString &mayaName) const;
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -184,6 +187,9 @@ public:
       return static_cast<unsigned int>(m_aovs.size());
    }
 */
+   const MStringArray &GetTextureSearchPaths() const;
+   const MStringArray &GetProceduralSearchPaths() const;
+   
 private:
 
    CArnoldSession()
@@ -232,6 +238,11 @@ private:
 
    static void HiddenNodeCallback(MObject& node, MPlug& plug, void* clientData);
    void SetDagVisible(MDagPath &path);
+
+   bool IsVisible(MFnDagNode &node) const;
+   bool IsVisiblePath(MDagPath dagPath) const;
+
+   void ExportTxFiles();
 
 private:
 

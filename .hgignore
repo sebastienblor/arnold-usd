@@ -33,6 +33,12 @@ plugins/mtoa/utils/MercurialID.h
 compat_reports/*
 *.vcxproj
 *.filters
+external/qt-4.8.2-64-include/*
+external/qt-4.8.5-include/*
+external/qt-4.8.6-include/*
+external/qt-5.6.0-include/*
+external/qt-5.6.1-include/*
+external/QtLibs/*
 syntax: regexp
 \.launch$
 syntax: regexp

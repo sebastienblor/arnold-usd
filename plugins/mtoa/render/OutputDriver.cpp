@@ -43,7 +43,9 @@ static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
 static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
 static MString                                 s_camera_name;
+static MString                                 s_layer_name;
 static MString                                 s_panel_name;
+static MString                                 s_last_caption_cmd;
 
 static int s_AA_Samples;
 static int s_GI_diffuse_samples;
@@ -82,7 +84,11 @@ node_initialize
    AtNode* cameraNode = AiUniverseGetCamera();
    if (cameraNode != 0)
       cameraName = AiNodeGetName(cameraNode);
-   InitializeDisplayUpdateQueue(cameraName, "renderView");
+
+   MString layerName = "";
+   MGlobal::executePythonCommand("mtoa.utils.getActiveRenderLayerName()", layerName);
+
+   InitializeDisplayUpdateQueue(cameraName, layerName, "renderView");
 
    AiDriverInitialize(node, false, NULL);
 
@@ -455,14 +461,16 @@ void CopyBucketToBuffer(float * to_pixels,
    }
 }
 
-void InitializeDisplayUpdateQueue(const MString camera, const MString panel)
+void InitializeDisplayUpdateQueue(const MString& camera, const MString& layer, const MString& panel)
 {
    // Clears the display update queue, in case we had aborted a previous render.
    ClearDisplayUpdateQueue();
    s_start_time = time(NULL);
    s_finishedRendering = false;
    s_camera_name = camera;
+   s_layer_name = layer;
    s_panel_name = panel;
+   s_last_caption_cmd = "";
 }
 
 void RenderBegin(CDisplayUpdateMessage & msg)
@@ -586,74 +594,91 @@ static void ReadRenderViewOptionVars(int* optionVars)
       optionVars[RV_SHOW_RENDER_TARGET_NAME] = optionVarValue;
 }
 
-void RenderEnd()
+void GenerateRenderViewCaptionCmd(time_t elapsed, unsigned int mem_used, MString& cmd)
 {
-   // Calculate the time taken.
-   const time_t elapsed = time(NULL) - s_start_time;
-   // And ram used
-   const AtUInt64 mem_used = AiMsgUtilGetUsedMemory() / 1024 / 1024;
-   int renderViewOptionVars[RV_OPTION_VAR_COUNT];
-   ReadRenderViewOptionVars(renderViewOptionVars);
-
-   // Format a bit of info for the renderview.
+   cmd = "";
    if (s_panel_name != "")
    {
-      MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
+      int renderViewOptionVars[RV_OPTION_VAR_COUNT];
+      ReadRenderViewOptionVars(renderViewOptionVars);
+
+      cmd = ("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       
-      const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
       if (renderViewOptionVars[RV_SHOW_FRAME_NUMBER])
       {
-         rvInfo += "Frame: ";
-         rvInfo += int(frame);
-         rvInfo += "    ";
-      }      
-      
-      rvInfo += "Memory: ";
-      rvInfo += (unsigned int)mem_used;
-      rvInfo += "Mb";
-      rvInfo += "    ";
+         const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
+         cmd += "Frame: ";
+         cmd += int(frame);
+         cmd += "    ";
+      }
 
-      rvInfo += "Sampling: ";
-      rvInfo += "[";
-      rvInfo += s_AA_Samples;
-      rvInfo += "/";
-      rvInfo += s_GI_diffuse_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_glossy_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_refraction_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_sss_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_volume_samples;
-      rvInfo += "]";
-      rvInfo += "    ";
+      cmd += "Memory: ";
+      cmd += (unsigned int)mem_used;
+      cmd += "Mb";
+      cmd += "    ";
+
+      cmd += "Sampling: ";
+      cmd += "[";
+      cmd += s_AA_Samples;
+      cmd += "/";
+      cmd += s_GI_diffuse_samples;
+      cmd += "/";
+      cmd += s_GI_glossy_samples;
+      cmd += "/";
+      cmd += s_GI_refraction_samples;
+      cmd += "/";
+      cmd += s_GI_sss_samples;
+      cmd += "/";
+      cmd += s_GI_volume_samples;
+      cmd += "]";
+      cmd += "    ";
 
       if (renderViewOptionVars[RV_SHOW_RENDER_TIME])
       {
-         rvInfo += "Render Time: ";
-         rvInfo += int(elapsed / 60);
-         rvInfo += ":";
+         cmd += "Render Time: ";
+         cmd += int(elapsed / 60);
+         cmd += ":";
          const int secondsPart = int(elapsed % 60);
          if (secondsPart < 10)
-            rvInfo += "0";
-         rvInfo += secondsPart;
-         rvInfo += "    ";
+            cmd += "0";
+         cmd += secondsPart;
+         cmd += "    ";
       }
       
       if (renderViewOptionVars[RV_SHOW_CAMERA_NAME])
       {
          if (s_camera_name != "")
          {
-            rvInfo += "Camera: ";
-            rvInfo += s_camera_name;
+            cmd += "Camera: ";
+            cmd += s_camera_name;
+            cmd += "    ";
          }
       }
 
-      rvInfo += "\") " + s_panel_name;
-      MGlobal::executeCommandOnIdle(rvInfo, false);
+      if (renderViewOptionVars[RV_SHOW_LAYER_NAME])
+      {
+         if (s_layer_name != "")
+         {
+            cmd += "Layer: ";
+            cmd += s_layer_name;
+         }
+      }
+
+      cmd += "\") " + s_panel_name;
    }
 
+   // Cache the last generated caption command.
+   // Needed to override the caption that Maya sets after rendering.
+   s_last_caption_cmd = cmd;
+}
+
+const MString& GetLastRenderViewCaptionCommand()
+{
+   return s_last_caption_cmd;
+}
+
+void RenderEnd()
+{
    // clear callbacks
    s_driverLock.lock();
    if ((s_newRender == false) && (CRenderSession::GetCallback() != 0))
@@ -709,67 +734,14 @@ void EndImage()
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
    // And ram used
-   const AtUInt64 mem_used = AiMsgUtilGetUsedMemory() / 1024 / 1024;
+   const unsigned int mem_used = (unsigned int)AiMsgUtilGetUsedMemory() / 1024 / 1024;
 
    // Format a bit of info for the renderview.
-   if (s_panel_name != "")
+   MString captionCmd;
+   GenerateRenderViewCaptionCmd(elapsed, mem_used, captionCmd);
+   if (captionCmd != "")
    {
-      int renderViewOptionVars[RV_OPTION_VAR_COUNT];
-      ReadRenderViewOptionVars(renderViewOptionVars);
-      MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
-      
-      const double frame = MAnimControl::currentTime().as(MTime::uiUnit());
-      if (renderViewOptionVars[RV_SHOW_FRAME_NUMBER])
-      {
-         rvInfo += "Frame: ";
-         rvInfo += int(frame);
-         rvInfo += "    ";
-      }
-      
-      rvInfo += "Memory: ";
-      rvInfo += (unsigned int)mem_used;
-      rvInfo += "Mb";
-      rvInfo += "    ";
-
-      rvInfo += "Sampling: ";
-      rvInfo += "[";
-      rvInfo += s_AA_Samples;
-      rvInfo += "/";
-      rvInfo += s_GI_diffuse_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_glossy_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_refraction_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_sss_samples;
-      rvInfo += "/";
-      rvInfo += s_GI_volume_samples;
-      rvInfo += "]";
-      rvInfo += "    ";
-
-      if (renderViewOptionVars[RV_SHOW_RENDER_TIME])
-      {
-         rvInfo += "Render Time: ";
-         rvInfo += int(elapsed / 60);
-         rvInfo += ":";
-         const int secondsPart = int(elapsed % 60);
-         if (secondsPart < 10)
-            rvInfo += "0";
-         rvInfo += secondsPart;
-         rvInfo += "    ";
-      }
-      
-      if (renderViewOptionVars[RV_SHOW_CAMERA_NAME])
-      {
-         if (s_camera_name != "")
-         {
-            rvInfo += "Camera: ";
-            rvInfo += s_camera_name;
-         }
-      }
-
-      rvInfo += "\") " + s_panel_name;
-      MGlobal::executeCommandOnIdle(rvInfo, false);
+      MGlobal::executeCommand(captionCmd, false);
    }
 
    MGlobal::executeCommand("global string $gMainProgressBar; progressBar -edit -endProgress $gMainProgressBar;", false);

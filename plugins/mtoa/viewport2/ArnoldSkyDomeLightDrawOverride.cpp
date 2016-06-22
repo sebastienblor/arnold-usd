@@ -4,6 +4,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/M3dView.h>
+#include <maya/MUIDrawManager.h>
 
 #include <iostream>
 
@@ -412,4 +413,11 @@ void CArnoldSkyDomeLightDrawOverride::initializeGPUResources()
         s_scaleLocWireframe = glGetUniformLocation(s_programWireframe, "scale");
         s_shadeColorLocWireframe = glGetUniformLocation(s_programWireframe, "shadeColor");
     }
+}
+
+void CArnoldSkyDomeLightDrawOverride::addUIDrawables(const MDagPath& objPath,
+												MHWRender::MUIDrawManager& drawManager,
+												const MHWRender::MFrameContext& frameContext,
+												const MUserData* data)
+{
 }

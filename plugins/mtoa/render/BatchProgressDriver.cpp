@@ -4,88 +4,45 @@
 #include <string>
 #include <cstring> // for memset
 
-#ifdef WIN32
-#include <WinSock.h>
-#else
-#include <sys/socket.h>
-#include <netdb.h> 
-#include <unistd.h>
-#endif
-
 #ifdef _LINUX
 #include <climits>
 #endif
 
-#ifndef WIN32
-typedef int SOCKET;
-#endif
+#include <maya/MRenderUtil.h>
+#include <maya/MString.h>
 
 AI_DRIVER_NODE_EXPORT_METHODS(batch_progress_driver_mtd);
+
+enum{
+    FRAME_START = -1111, // magic number for starting frame 
+    FRAME_END   = 100
+};
+
+static std::string filename;
+static int lastpercent = -1;
+void sendProgress(int percent){
+    if(lastpercent != percent){
+        MRenderUtil::sendRenderProgressInfo(MString(filename.c_str()), percent);
+    }
+}
 
 node_parameters
 {
    AiParameterInt("port", 4700);
 }
 
-static SOCKET g_socketFd;
-
 node_initialize
 {
    AiDriverInitialize(node, false, NULL);
-   g_socketFd = -1;
-   
-   int status;
-#ifdef WIN32
-   WSADATA wsaData;
-   WORD version;
-   int error;
-   version = MAKEWORD(2, 0);
-   error = WSAStartup(version, &wsaData); // TODO : check for the error
-#endif
-   
-   SOCKET socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-   g_socketFd = socketFd;
-   
-   if (socketFd == -1)
-   {
-      return;
-   }
-   
-   hostent* hst;
-   hst = gethostbyname("127.0.0.1");
-   
-   sockaddr_in sin;
-   memset(&sin, 0, sizeof(sockaddr_in));
-   
-   sin.sin_family = AF_INET;
-   sin.sin_addr.s_addr = ((in_addr*)(hst->h_addr))->s_addr;
-   sin.sin_port = htons(AiNodeGetInt(node, "port"));
-   
-   status = connect(socketFd, (sockaddr*)&sin, sizeof(sin));
-   if (status == -1)
-   {
-      g_socketFd = -1;
-      return;
-   }
-}
-
-void SendSocket(SOCKET socketFd, const void* data, int dataSize)
-{
-   int rem = dataSize;
-   const char* d = (const char*)data;
-   while(rem)
-   {
-      int curr = send(socketFd, d, MIN(1024, rem), 0); // without this there might be some problems (especially on windows)
-      if (curr <= 0)
-         return;
-      rem = rem - curr;
-      d += curr;
-   }
 }
 
 node_update
 {
-   
+}
+
+node_finish
+{
+   AiDriverDestroy(node);
 }
 
 driver_supports_pixel_type
@@ -100,12 +57,20 @@ driver_extension
 
 static int g_totalPixels;
 static int g_calculatedPixels;
-static int g_lastReportedPercent;
-static int g_frameNumber = 0;
 
 driver_open
 {
    AtNode* options = AiUniverseGetOptions();
+   std::stringstream ss;
+   const float frame = AiNodeGetFlt(options, "frame");
+   ss << "frame " << frame;
+   if (AiNodeLookUpUserParameter(options, "render_layer") != 0)
+       ss << ", " << AiNodeGetStr(options, "render_layer");
+   // TODO : Set filename instead of frame number and render layer
+   filename = ss.str();
+   lastpercent = -1;
+   sendProgress(FRAME_START);
+
    const int regionMinX = AiNodeGetInt(options, "region_min_x");
    if (regionMinX == INT_MIN)
    {
@@ -124,23 +89,6 @@ driver_open
    }
    
    g_calculatedPixels = 0;
-   g_lastReportedPercent = -1;
-   if (g_socketFd != -1)
-   {
-      std::stringstream ss;
-      if (AiNodeLookUpUserParameter(options, "frame") != 0)
-      {
-         const float frame = AiNodeGetFlt(options, "frame");
-         if (AiNodeLookUpUserParameter(options, "render_layer") != 0)
-         {
-            ss << "print \"Started Render of Layer " << AiNodeGetStr(options, "render_layer")
-               << " of Frame " << frame << "\\n\";";
-         }
-         else ss << "print \"Started Render of Frame " << frame << "\\n\";";
-      }
-      else ss << "print \"Started Render of Frame " << ++g_frameNumber << "\\n\";";
-      SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
-   }
 }
 
 driver_needs_bucket
@@ -155,38 +103,17 @@ driver_process_bucket
 
 driver_prepare_bucket
 {
-   
+     
 }
 
 driver_write_bucket
-{   
-   if (g_socketFd != -1)
-   {
-      g_calculatedPixels += bucket_size_x * bucket_size_y;      
-      const int currentPercent = (int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)) / 5;
-      if (currentPercent != g_lastReportedPercent)
-      {
-         std::stringstream ss;
-         g_lastReportedPercent = currentPercent;
-         ss << "print \"Render progress : " << currentPercent * 5 << "%\\n\";";
-         SendSocket(g_socketFd, ss.str().c_str(), (int)ss.str().length() + 1);
-      }      
-   }
+{  
+    g_calculatedPixels += bucket_size_x * bucket_size_y;
+    sendProgress((int)(100.f * ((float)g_calculatedPixels / (float)g_totalPixels)));
 }
 
 driver_close
 {
-    if (g_socketFd != -1)
-   {
-#ifdef WIN32
-      closesocket(g_socketFd);
-#else
-      shutdown(g_socketFd, SHUT_WR);
-#endif
-   }
+   sendProgress(FRAME_END);
 }
 
-node_finish
-{
-   
-}

@@ -59,11 +59,11 @@ if MAYA_INCLUDE_PATH == '.':
 
 maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 maya_version_base = maya_version[0:4]
+
 mayaQtFolder = ""
 mayaQtTarGz = ""
 
 MTOA_EXTERNAL_PATH = local_env.subst(local_env['EXTERNAL_PATH'])
-
 
 if (int(maya_version_base) == 2014):
     if system.os() == 'darwin':
@@ -72,12 +72,16 @@ if (int(maya_version_base) == 2014):
     else:
         mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.2-64-include')
         mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.2-64-include.tar.gz')
-if (int(maya_version_base) == 2015):
+elif (int(maya_version_base) == 2015):
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.5-include')
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.5-include.tar.gz')
-elif (int(maya_version_base) >= 2016):
+elif (int(maya_version_base) == 2016):
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.6-include') 
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.6-include.tar.gz')
+elif (int(maya_version_base) == 2017):
+        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+
 
 if not os.path.isdir(mayaQtFolder):
     if os.path.exists(mayaQtTarGz):
@@ -88,29 +92,42 @@ if not os.path.isdir(mayaQtFolder):
     else:
         print "Error : Qt Files not Found"
 
-
 local_env['QT_ROOT_DIR'] = mayaQtFolder
 
 local_env.Append(CPPPATH = [mayaQtFolder])
 if system.os() == 'darwin':
     maya_qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
-    qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
-    if not os.path.isdir(qt_lib_dir):
-        os.makedirs(qt_lib_dir)
+    if (int(maya_version_base) <= 2016):
+        qt_lib_dir = os.path.join(MTOA_EXTERNAL_PATH, 'QtLibs', maya_version_base)
+        if not os.path.isdir(qt_lib_dir):
+            os.makedirs(qt_lib_dir)
 
-
-    copyfile(os.path.join(maya_qt_lib_dir, 'QtCore'), os.path.join(qt_lib_dir, 'libQtCore.dylib'))
-    copyfile(os.path.join(maya_qt_lib_dir, 'QtGui'), os.path.join(qt_lib_dir, 'libQtGui.dylib'))
-    copyfile(os.path.join(maya_qt_lib_dir, 'QtOpenGL'), os.path.join(qt_lib_dir, 'libQtOpenGL.dylib'))
+        copyfile(os.path.join(maya_qt_lib_dir, 'QtCore'), os.path.join(qt_lib_dir, 'libQtCore.dylib'))
+        copyfile(os.path.join(maya_qt_lib_dir, 'QtGui'), os.path.join(qt_lib_dir, 'libQtGui.dylib'))
+        copyfile(os.path.join(maya_qt_lib_dir, 'QtOpenGL'), os.path.join(qt_lib_dir, 'libQtOpenGL.dylib'))
+    else:
+        qt_lib_dir = maya_qt_lib_dir
 
 else:
     qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
 
+
 if system.os() == 'windows':
-    local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+    if (int(maya_version_base) <= 2016):
+        local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
+    else:
+        local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib'])
+elif system.os() == 'linux':
+    if (int(maya_version_base) <= 2016):
+        local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+    else:
+        local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL'])
 else:
-    local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+    if (int(maya_version_base) <= 2016):
+        local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
+    else:
+        local_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5'])
 
 if not local_env['MTOA_DISABLE_RV']:
     renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')

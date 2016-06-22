@@ -23,6 +23,12 @@
 #include <maya/MItDependencyGraph.h>
 #include <maya/MStringArray.h>
 
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
+#include <maya/MViewport2Renderer.h>
+#endif
+#endif
+
 MTypeId CSphereLocator::id(ARNOLD_NODEID_SPHERE_LOCATOR);
 
 MObject CSphereLocator::s_colorR;
@@ -54,6 +60,53 @@ bool CSphereLocator::isAbstractClass()
 {
    return true;
 }
+
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
+MStatus CSphereLocator::connectionMade( const MPlug& plug,
+											const MPlug& otherPlug,
+											bool asSrc )
+{
+   // Monitor node connected to color attribute on this node
+   if (plug.attribute() == s_color)
+   {
+      MObject 	object = otherPlug.node();
+	   m_dirtyCallbackId = MNodeMessage::addNodeDirtyCallback(
+							   object,
+							   nodeDirtyEventCallback,
+							   this); 
+      return MStatus::kSuccess;
+   }
+   return MPxNode::connectionMade(plug, otherPlug, asSrc);
+}
+
+MStatus CSphereLocator::connectionBroken( const MPlug& plug,
+											const MPlug& otherPlug,
+											bool asSrc )
+{
+   if (plug.attribute() == s_color)
+   {
+      MMessage::removeCallback( m_dirtyCallbackId );
+      m_dirtyCallbackId = 0;
+      return MStatus::kSuccess;
+   }
+   return MPxNode::connectionBroken(plug, otherPlug, asSrc);
+}
+
+// Callback to trigger dirty for VP2 draw
+void CSphereLocator::nodeDirtyEventCallback(MObject& node, 
+                                                     MPlug&	plug,
+	                                                  void*	clientData)
+{
+   if (clientData)
+   {
+      CSphereLocator* node = (CSphereLocator* )clientData; 
+      MObject object(node->thisMObject());
+      MHWRender::MRenderer::setGeometryDrawDirty(object);
+   }
+}
+#endif
+#endif
 
 AtVector SphereVertex(float phi, float theta)
 {
@@ -449,32 +502,23 @@ MBoundingBox CSphereLocator::boundingBox() const
 {
    float scaleX, scaleY, scaleZ, radius;
    MFnDagNode fn(thisMObject());
-   MDagPath dp;
-   fn.getPath(dp);
-   MFnDagNode fnt(dp.transform());
 
-   MPlug scaleXPlug  = fnt.findPlug("scaleX");
-   MPlug scaleYPlug  = fnt.findPlug("scaleY");
-   MPlug scaleZPlug  = fnt.findPlug("scaleZ");
    MPlug radiusPlug  = fn.findPlug("skyRadius");
-   scaleXPlug.getValue(scaleX);
-   scaleYPlug.getValue(scaleY);
-   scaleZPlug.getValue(scaleZ);
    radiusPlug.getValue(radius);
 
-   scaleX = radius*scaleX/2;
-   scaleY = radius*scaleY/2;
-   scaleZ = radius*scaleZ/2;
+   scaleX = radius;
+   scaleY = radius;
+   scaleZ = radius; 
 
    // expand the bounding box to fit all axes of the locator node
    MBoundingBox bbox;
 
-   bbox.expand(MPoint(-0.5f*scaleX, 0.0f, 0.0f));
-   bbox.expand(MPoint(0.5f*scaleX, 0.0f, 0.0f));
-   bbox.expand(MPoint(0.0f,-0.5f*scaleY, 0.0f));
-   bbox.expand(MPoint(0.0f, 0.5f*scaleY, 0.0f));
-   bbox.expand(MPoint(0.0f, 0.0f, -0.5f*scaleZ));
-   bbox.expand(MPoint(0.0f, 0.0f, 0.5f*scaleZ));
+   bbox.expand(MPoint(-1.0f*scaleX, 0.0f, 0.0f));
+   bbox.expand(MPoint(scaleX, 0.0f, 0.0f));
+   bbox.expand(MPoint(0.0f,-1.0f*scaleY, 0.0f));
+   bbox.expand(MPoint(0.0f, 1.0f*scaleY, 0.0f));
+   bbox.expand(MPoint(0.0f, 0.0f, -1.0f*scaleZ));
+   bbox.expand(MPoint(0.0f, 0.0f, 1.0f*scaleZ));
    return bbox;
 }
 
@@ -498,6 +542,14 @@ bool CSphereLocator::excludeAsLocator() const
    return false;
 }
 
+#ifdef ENABLE_VP2
+#if MAYA_API_VERSION >= 201700
+MSelectionMask CSphereLocator::getShapeSelectionMask() const
+{
+	return MSelectionMask("arnoldLightSelection");
+}
+#endif
+#endif
 
 MStatus CSphereLocator::initialize()
 {
