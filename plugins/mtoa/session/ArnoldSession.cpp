@@ -738,6 +738,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
+         m_processedTranslatorList[i]->m_updateMode = AI_UPDATE_ONLY;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
@@ -1446,6 +1447,8 @@ void CArnoldSession::DoUpdate()
                translator->RemoveUpdateCallbacks();
                translator->AddUpdateCallbacks();
             }
+            // restore the update mode to "update Only"
+            translator->m_updateMode = AI_UPDATE_ONLY;
          }
       }
    }
