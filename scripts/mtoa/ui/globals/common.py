@@ -113,12 +113,12 @@ def createArnoldTargetFilePreview():
               font="smallBoldLabelFont",
               label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPath"))
 
-    pm.text('exampleArnoldText1',
+    pm.text('exampleText1',
               align="left",
               font="smallBoldLabelFont",
               label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileName"))
 
-    pm.text('exampleArnoldText2',
+    pm.text('exampleText2',
               align="left",
               font="smallBoldLabelFont",
               label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kTo"))
@@ -244,15 +244,15 @@ def updateArnoldTargetFilePreview(*args):
         path = pm.format(pathLabel, s=fullPath)
         pm.text('exampleText0', edit=True, label=path)
 
-    pm.text('exampleArnoldText1', edit=True, label=pm.format(title1, s=first))
+    pm.text('exampleText1', edit=True, label=pm.format(title1, s=first))
     settings = pm.api.MCommonRenderSettingsData()
     pm.api.MRenderUtil.getCommonRenderSettings(settings)
     if settings.isAnimated():
         tokens['Frame'] = pm.getAttr('defaultRenderGlobals.endFrame')
         last = utils.getFileName('relative', tokens, **kwargs)
-        pm.text('exampleArnoldText2', edit=True, label=pm.format(title2, s=last))
+        pm.text('exampleText2', edit=True, label=pm.format(title2, s=last))
     else:
-        pm.text('exampleArnoldText2', edit=True, label="")
+        pm.text('exampleText2', edit=True, label="")
 
     #
     # Update the Image Size portion of the preview.
