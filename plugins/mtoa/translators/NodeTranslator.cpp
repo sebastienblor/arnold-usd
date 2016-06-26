@@ -970,7 +970,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
       {
          // if the update mode was previously set to a different value (like recreate_node)
          // we don't want to restore it to update_only !
-         translator->m_updateMode = max(translator->m_updateMode, AI_UPDATE_ONLY);
+         translator->m_updateMode = MAX(translator->m_updateMode, (unsigned int)AI_UPDATE_ONLY);
       }
       
       // only happens for Arnold RenderView
