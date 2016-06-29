@@ -10,7 +10,7 @@ import pymel.core as pm
 try:
     import mtoa.utils as utils
     from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, createArnoldRendererOverrideTab, updateArnoldRendererOverrideTab
+    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
     from mtoa.ui.globals.settings import createArnoldRendererDiagnosticsTab, updateArnoldRendererDiagnosticsTab, createArnoldRendererSystemTab, updateArnoldRendererSystemTab
     from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
 except:
@@ -446,9 +446,6 @@ def aiRenderSettingsBuiltCallback(currentRenderer):
     pm.renderer('arnold', edit=True, addGlobalsTab=('Diagnostics', 
                                                     utils.pyToMelProc(createArnoldRendererDiagnosticsTab, useName=True), 
                                                     utils.pyToMelProc(updateArnoldRendererDiagnosticsTab, useName=True)))
-    pm.renderer('arnold', edit=True, addGlobalsTab=('Override', 
-                                                    utils.pyToMelProc(createArnoldRendererOverrideTab, useName=True), 
-                                                    utils.pyToMelProc(updateArnoldRendererOverrideTab, useName=True)))
 
 def xgaiArchiveExport(selfid) :
     self = castSelf(selfid)
