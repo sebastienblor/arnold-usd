@@ -160,40 +160,34 @@ def arnoldLicenseDialog():
     if (cmds.window("ArnoldLicense", ex=True)):
         cmds.deleteUI("ArnoldLicense")
     w = cmds.window("ArnoldLicense", title="Arnold Node-locked License")
-    cmds.window("ArnoldLicense", edit=True, width=550, height=280)
+    cmds.window("ArnoldLicense", edit=True, width=430, height=280)
     cmds.columnLayout()
-    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,10), (2, 64), (3, 18), (4, 450)] )
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
 
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+    cmds.text(label="");cmds.text(label="");
 
     arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
 
-    cmds.text(label="")
-    cmds.image(image="licensing_mtoa.png")
     cmds.text(label="")
     cmds.text(align="left",label=arnoldAboutText)
 
     cmds.text(label="")
     cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
 
-    cmds.separator()
-    cmds.separator()
     cmds.separator()
     cmds.separator()
 
     cmds.setParent( '..' )
     cmds.separator()
 
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
     macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
     cmds.text(label="")
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
     cmds.separator()
 
-    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,132)] )
+    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
     cmds.text(label="")
     cmds.text(align="left",label="MAC Address")
     name = cmds.textField()
@@ -220,13 +214,13 @@ def arnoldLicenseDialog():
 
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
     macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
     cmds.text(label="")
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90), (3, 190),(4,7),(5,26),(6,7),(7,80),(8,132)] )
+    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,190),(4,7),(5,26),(6,7),(7,80),(8,12)] )
     cmds.text(label="")
     cmds.text(align="left",label="License file (.lic)")
     file = cmds.textField()
@@ -256,7 +250,7 @@ def arnoldLicenseDialog():
 
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,200),(2,160), (3, 80),(4,20),(5,80)] )
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,80),(2,160), (3, 80),(4,20),(5,80)] )
     cmds.text(label="")
     cmds.text(label="")
     cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))
