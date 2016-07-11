@@ -146,6 +146,9 @@ vars.AddVariables(
     PathVariable('TARGET_VP2_PATH',
                     'Path for VP2 shader files.',
                     os.path.join('$TARGET_MODULE_PATH', 'vp2'), PathVariable.PathIsDirCreate),
+    PathVariable('TARGET_PRESETS_PATH',
+                 'Path for presets.',
+                 os.path.join('$TARGET_MODULE_PATH', 'presets'), PathVariable.PathIsDirCreate),
     PathVariable('SHAVE_API', 
                  'Where to find Shave API', 
                  '.', PathVariable.PathIsDir),
@@ -245,6 +248,7 @@ TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])
 TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
 TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
 TARGET_VP2_PATH = env.subst(env['TARGET_VP2_PATH'])
+TARGET_PRESETS_PATH = env.subst(env['TARGET_PRESETS_PATH'])
 SHAVE_API = env.subst(env['SHAVE_API'])
 PACKAGE_SUFFIX = env.subst(env['PACKAGE_SUFFIX'])
 env['ENABLE_XGEN'] = 0
@@ -821,7 +825,8 @@ env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
 # install docs
 env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
-
+# install presets
+env.Install(TARGET_PRESETS_PATH, glob.glob(os.path.join('presets', '*')))
 # install renderer description
 env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
