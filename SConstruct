@@ -826,7 +826,9 @@ env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.png')))
 env.Install(TARGET_DOC_PATH, glob.glob(os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html', '*.*')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('docs', 'readme.txt')))
 # install presets
-env.Install(TARGET_PRESETS_PATH, glob.glob(os.path.join('presets', '*')))
+presetfiles = find_files_recursive(os.path.join('presets'), ['.mel'])
+env.InstallAs([os.path.join(TARGET_PRESETS_PATH, x) for x in presetfiles],
+              [os.path.join('presets', x) for x in presetfiles])
 # install renderer description
 env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
 env.Install(TARGET_MODULE_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
@@ -1020,6 +1022,12 @@ PACKAGE_FILES = [
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 [os.path.join('docs', 'readme.txt'), '.'],
 ]
+
+for p in presetfiles:
+    (d, f) = os.path.split(p)
+    PACKAGE_FILES += [
+        [os.path.join('presets', p), os.path.join('presets', d)]
+    ]
 
 if env['ENABLE_COLOR_MANAGEMENT'] == 0:
     PACKAGE_FILES.append([os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'])
