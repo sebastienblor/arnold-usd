@@ -79,8 +79,11 @@ elif (int(maya_version_base) == 2016):
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.6-include') 
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.6-include.tar.gz')
 elif (int(maya_version_base) == 2017):
-        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
-        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+elif (int(maya_version_base) == 2018):
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
 
 
 if not os.path.isdir(mayaQtFolder):
