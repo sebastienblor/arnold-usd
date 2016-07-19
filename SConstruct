@@ -160,7 +160,7 @@ vars.AddVariables(
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
     BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
-    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', True)
+    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False)
 )
 
 if system.os() == 'darwin':
