@@ -159,7 +159,8 @@ vars.AddVariables(
                  '.', PathVariable.PathIsDir),
     PathVariable('REFERENCE_API_LIB', 'Path to the reference mtoa_api lib', None),
     ('REFERENCE_API_VERSION', 'Version of the reference mtoa_api lib', ''),
-    BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False)
+    BoolVariable('MTOA_DISABLE_RV', 'Disable Arnold RenderView in MtoA', False),
+    BoolVariable('MAYA_MAINLINE_2018', 'Set correct MtoA version for Maya mainline 2018', False)
 )
 
 if system.os() == 'darwin':
@@ -260,7 +261,11 @@ env['ENABLE_COLOR_MANAGEMENT'] = 0
 
 # Get arnold and maya versions used for this build
 arnold_version    = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
-maya_version      = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+if not env['MAYA_MAINLINE_2018']:
+    maya_version = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
+else:
+    maya_version = '201800'
+
 maya_version_base = maya_version[0:4]
 if int(maya_version) >= 201450:
     env['ENABLE_XGEN'] = 1
