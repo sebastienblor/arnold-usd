@@ -2252,7 +2252,7 @@ def createArnoldRendererCommonGlobalsTab():
     # Scene Assembly Section
     #
     maya_version = versions.shortName()
-    if int(maya_version) >= 2017:
+    if int(float(maya_version)) >= 2017:
         pm.frameLayout('sceneAssemblyFrame',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSceneAssembly"),
                         collapsable=True,
