@@ -831,7 +831,7 @@ def createArnoldTextureSettings():
     
     # don't create texture_automip for 2017 as autoTx is ON by default
     maya_version = versions.shortName()
-    if int(maya_version) < 2017:
+    if int(float(maya_version)) < 2017:
         pm.attrControlGrp('texture_automip',
                             label="Auto-mipmap",
                             attribute='defaultArnoldRenderOptions.textureAutomip')
@@ -1329,7 +1329,7 @@ def createArnoldRendererGlobalsTab():
     #
     
     maya_version = versions.shortName()
-    if int(maya_version) < 2017:
+    if int(float(maya_version)) < 2017:
         pm.frameLayout('arnoldGammaSettings', label="Gamma Correction", cll=True, cl=1)
         createArnoldGammaSettings()
         pm.setParent('..')

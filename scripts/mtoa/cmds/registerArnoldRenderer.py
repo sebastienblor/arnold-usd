@@ -210,7 +210,7 @@ def _register():
     args['renderRegionProcedure'] = 'mayaRenderRegion'
 
     maya_version = versions.shortName()
-    if int(maya_version) >= 2017:
+    if int(float(maya_version)) >= 2017:
         args['renderSequenceProcedure'] = utils.pyToMelProc(arnoldRender.arnoldSequenceRender,
                                           [('int', 'width'), ('int', 'height'),
                                            ('string', 'camera'), ('string', 'saveToRenderView')])

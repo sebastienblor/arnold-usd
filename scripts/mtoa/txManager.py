@@ -283,7 +283,7 @@ class MtoATxManager(object):
             textureLine = texturePrefix+txItem[0] 
 
             maya_version = versions.shortName()
-            if int(maya_version) >= 2017:
+            if int(float(maya_version)) >= 2017:
                 textureLine +=' ('+txItem[2]+')'
                 
             if textureLine not in self.lineIndex:

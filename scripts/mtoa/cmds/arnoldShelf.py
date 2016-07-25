@@ -31,7 +31,7 @@ def createArnoldShelf():
    shelfTab = maya.mel.eval('global string $gShelfTopLevel;')
    maya.mel.eval('global string $arnoldShelf;')
    maya_version = versions.shortName()
-   if int(maya_version) < 2017:
+   if int(float(maya_version)) < 2017:
       maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel Arnold`;')   
    else:
       maya.mel.eval('$arnoldShelf = `shelfLayout -cellWidth 32 -cellHeight 32 -p $gShelfTopLevel -version \"2017\" Arnold`;')
