@@ -116,15 +116,16 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step, MObject& imgPlan
    double camScale = 1.f;
    double lensSqueeze = 1.f;
 
+   bool visible = false;
    if (validCamera)
    {
-      // If displayOnlyIfCurrent is true and this is not the current camera, do not export Image Plane
+      // If displayOnlyIfCurrent is true and this is not the current camera, set visibility to AI_RAY_UNDEFINED
       bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
       MFnCamera fnCamera(pathCamera);
-      if(displayOnlyIfCurrent && (GetSession()->GetExportCamera().partialPathName() != fnCamera.partialPathName()))
-      {
-         return;
-      }
+      
+      if(displayOnlyIfCurrent && (GetSession()->GetExportCamera().partialPathName() != fnCamera.partialPathName()))  visible = false;
+      else visible = true;
+
       camFocal = fnCamera.findPlug("focalLength").asDouble();
       camScale = fnCamera.findPlug("cameraScale").asDouble();
       lensSqueeze = fnCamera.findPlug("lensSqueezeRatio").asDouble();   
@@ -134,9 +135,9 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step, MObject& imgPlan
    int displayMode = fnRes.findPlug("displayMode", &status).asInt();
    if (displayMode > 1)
    {
-      //MString imagePlaneName = GetMayaPartialPathName();
-      MString imagePlaneName = GetMayaNodeName();
-      imagePlaneName += fnRes.name();
+
+      MString imagePlaneName = (validCamera) ? MFnDependencyNode(pathCamera.node()).name() : MString("");
+      imagePlaneName += GetMayaNodeName();
       //imagePlaneName += "_IP_";
       //imagePlaneName += ips;
       MString imageName;
@@ -272,7 +273,6 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step, MObject& imgPlan
 
       if (step == 0)
       {
-         // CREATE PLANE
          AtNode* imagePlane = GetArnoldNode("polymesh");
          AiNodeSetStr(imagePlane, "name", imagePlaneName.asChar());
 
@@ -327,6 +327,9 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step, MObject& imgPlan
             visibilityFlag |= AI_RAY_REFLECTED;
          if (fnRes.findPlug("visibleInRefractions").asBool())
             visibilityFlag |= AI_RAY_REFRACTED;
+
+         if (!visible) visibilityFlag = AI_RAY_UNDEFINED;
+         
          AiNodeSetByte(imagePlane, "visibility", visibilityFlag);
 
          // create a flat shader with the needed image

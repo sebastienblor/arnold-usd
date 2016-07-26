@@ -20,7 +20,6 @@ using namespace std;
 
 void CCameraTranslator::ExportImagePlanes(unsigned int step)
 {   
-   // If displayOnlyIfCurrent is true and this is not the current camera, do not export Image Plane
    MPlug      imagePlanePlug;
    MPlug      imagePlaneNodePlug;
    MStatus    status;
