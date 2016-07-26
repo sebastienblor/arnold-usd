@@ -350,8 +350,44 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step, MObject& imgPlan
             AiNodeLink(file, "color", imagePlaneShader);
             */
             
+            // check if filename has changed. If it has we tell ArnoldSession to update tx
+            MString prevFilename = AiNodeGetStr(imagePlaneShader, "filename");
+
+            bool requestUpdateTx = true;
+            int prevFilenameLength = prevFilename.length();
+
+            if (prevFilenameLength > 0)
+            {
+               // arnold filename param
+               if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+               {
+                  MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+                  int dotPos = imageName.rindexW(".");
+                  if (dotPos > 0)
+                  {
+                     MString basename = imageName.substring(0, dotPos - 1);
+                     requestUpdateTx = (prevBasename != basename);
+                  }
+               } else
+               {
+                  // if previous filename and new one are exactly identical, it's useless to update Tx
+                  requestUpdateTx = (prevFilename != imageName);
+               }
+
+            }
+
+            MString colorSpace = fnRes.findPlug("colorSpace").asString();
             
-            AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
+            if (colorSpace != m_colorSpace) requestUpdateTx = true;
+            m_colorSpace = colorSpace;
+
+            if (requestUpdateTx)
+            {
+               AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
+               m_session->RequestUpdateTx();
+            }
+
             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
             AiNodeSetPnt2(imagePlaneShader, "coverage", 1.f, 1.f);
             //AiNodeSetPnt2(imagePlaneShader, "translate", coverageOriginX, coverageOriginY);

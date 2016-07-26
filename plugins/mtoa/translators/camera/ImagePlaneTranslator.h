@@ -22,4 +22,5 @@ protected:
    void ExportImagePlane(unsigned int step, MObject& imgPlane); //used to be in camera translator
 
    MString m_camera;
+   MString m_colorSpace;
 };

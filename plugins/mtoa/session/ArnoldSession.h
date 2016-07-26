@@ -189,7 +189,8 @@ public:
 */
    const MStringArray &GetTextureSearchPaths() const;
    const MStringArray &GetProceduralSearchPaths() const;
-   
+
+   void RequestUpdateTx() {m_updateTx = true;}   
 private:
 
    CArnoldSession()
@@ -201,6 +202,8 @@ private:
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
+      ,  m_updateTx(false)
+
       //,  m_continuousUpdates(true)
 
    {
@@ -273,6 +276,7 @@ protected:
 
    COptionsTranslator*  m_optionsTranslator;
    bool                 m_is_active;
+   bool                 m_updateTx;
    //bool                 m_continuousUpdates;
    //AOVSet m_aovs;
 };  // class CArnoldSession
