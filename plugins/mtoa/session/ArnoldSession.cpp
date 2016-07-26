@@ -1723,7 +1723,7 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldRootNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image")) textureNodes.push_back(translator);
+      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
    }
 
    bool progressStarted = false;
@@ -1802,7 +1802,7 @@ void CArnoldSession::ExportTxFiles()
          int createdFiles = 0;
          int skippedFiles = 0;
          int errorFiles = 0;
-         
+
          makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
          
          if (createdFiles + skippedFiles + errorFiles == 0)

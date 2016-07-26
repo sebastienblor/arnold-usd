@@ -1,0 +1,25 @@
+#pragma once
+
+#include "translators/NodeTranslator.h"
+
+
+
+class DLLEXPORT CImagePlaneTranslator
+   :   public CNodeTranslator
+{
+public:
+   void Export(AtNode* imagePlane);
+   void ExportMotion(AtNode* imagePlane, unsigned int step);
+   static void NodeInitializer(CAbTranslator context);
+   static void* creator()
+   {
+      return new CImagePlaneTranslator();
+   }
+   AtNode* CreateArnoldNodes();
+   void SetCamera(MString cameraName);
+   
+protected:
+   void ExportImagePlane(unsigned int step, MObject& imgPlane); //used to be in camera translator
+
+   MString m_camera;
+};

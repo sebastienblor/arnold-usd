@@ -60,6 +60,7 @@
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
+#include "translators/camera/ImagePlaneTranslator.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/light/LightLinkerTranslator.h"
 #include "translators/light/LightBlockerTranslator.h"
@@ -453,7 +454,11 @@ namespace // <anonymous>
       builtin->RegisterTranslator("stereoRigCamera",
                                     "spherical",
                                     CSphericalCameraTranslator::creator,
-                                    CSphericalCameraTranslator::NodeInitializer);                                 
+                                    CSphericalCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("imagePlane",
+                                    "MayaImagePlane",
+                                    CImagePlaneTranslator::creator,
+                                    CImagePlaneTranslator::NodeInitializer);                          
        // Hair
       builtin->RegisterTranslator("pfxHair",
                                     "",

@@ -198,6 +198,15 @@ class MtoATxManager(object):
                 colorSpace = cmds.getAttr(node+'.colorSpace')
                 colorSpaces.append(colorSpace)
                 nodes.append(node)
+        
+        list = cmds.ls(type='imagePlane')
+        for node in list:
+            texture = cmds.getAttr(node+'.imageName')
+            if texture:
+                texturesList.append(texture)
+                colorSpace = cmds.getAttr(node+'.colorSpace')
+                colorSpaces.append(colorSpace)
+                nodes.append(node)
             
         totalFiles = 0
         missingFiles = 0

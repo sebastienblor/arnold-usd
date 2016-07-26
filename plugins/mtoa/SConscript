@@ -27,6 +27,7 @@ for subdir in subdirs:
 source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
+                    os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),
                     os.path.join('translators', 'light', 'LightTranslator.cpp'),
                     os.path.join('translators', 'options', 'OptionsTranslator.cpp'),
                     os.path.join('translators', 'shader', 'ShaderTranslator.cpp'),
