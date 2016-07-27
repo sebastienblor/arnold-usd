@@ -110,7 +110,9 @@ def makeTx(filename, colorspace='auto', arguments=''):
                 if colorspace != render_colorspace:
                     cmd += ['--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace]
             else:
-                print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
+                # FIXME what should we do in auto mode ?
+                if colorspace != 'auto':
+                    print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
 
     for tile in expandFilename(filename):
         if os.path.splitext(tile)[1] == '.tx':

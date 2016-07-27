@@ -59,7 +59,7 @@ class MakeTxThread (threading.Thread):
             
         for textureLine in self.txManager.selectedItems:
             texture = textureLine[0]
-
+            
             # we could use textureLine[2] for the colorSpace
             # but in case it hasn't been updated correctly
             # it's still better to ask maya again what is the color space
@@ -438,14 +438,14 @@ class MtoATxManager(object):
                 for root, dirs, files in os.walk(folder):
                     for texture in files:
                         if (isImage(texture)):
-                            item = [os.path.join(root, texture), 0, '', '']
+                            item = [os.path.join(root, texture), 0, '', '', [os.path.join(folder, texture)]]
                             self.selectedItems.append(item)
                             self.filesToCreate += 1
             else:
                 files = os.listdir(folder)
                 for texture in files:
                     if (isImage(texture)):
-                        item = [os.path.join(root, texture), 0, '', '']
+                        item = [os.path.join(folder, texture), 0, '', '', [os.path.join(folder, texture)]]
                         self.selectedItems.append(item)
                         self.filesToCreate += 1
                 
@@ -466,6 +466,7 @@ class MtoATxManager(object):
             cmds.textField(ctrlPath, edit=True, text=ret[0]);
             self.selectedFilesFromFolder()
     
+
     # Delete the processed .tx files selected
     def deleteTx(self, *args):
         ctrlPath = '|'.join([self.window, 'radioButton']);
