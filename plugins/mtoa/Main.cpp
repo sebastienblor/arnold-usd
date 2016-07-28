@@ -60,6 +60,7 @@
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
+#include "translators/camera/ImagePlaneTranslator.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/light/LightLinkerTranslator.h"
 #include "translators/light/LightBlockerTranslator.h"
@@ -147,7 +148,7 @@ namespace // <anonymous>
    const MString AI_SKYDOME_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_SKYDOME_LIGHT_CLASSIFICATION;
 #endif
    const MString AI_SKYNODE_CLASSIFICATION = "drawdb/geometry/arnold/skynode";
-#if MAYA_API_VERSION >= 201650
+#if MAYA_API_VERSION >= 201700
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/subscene/arnold/standin";
 #else
    const MString AI_STANDIN_CLASSIFICATION = "drawdb/geometry/arnold/standin";
@@ -453,7 +454,11 @@ namespace // <anonymous>
       builtin->RegisterTranslator("stereoRigCamera",
                                     "spherical",
                                     CSphericalCameraTranslator::creator,
-                                    CSphericalCameraTranslator::NodeInitializer);                                 
+                                    CSphericalCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("imagePlane",
+                                    "MayaImagePlane",
+                                    CImagePlaneTranslator::creator,
+                                    CImagePlaneTranslator::NodeInitializer);                          
        // Hair
       builtin->RegisterTranslator("pfxHair",
                                     "",

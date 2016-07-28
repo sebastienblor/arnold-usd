@@ -4,6 +4,8 @@
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
+#include "translators/camera/ImagePlaneTranslator.h"
+#include "translators/shader/ShaderTranslators.h"
 #include "nodes/ShaderUtils.h"
 #include "translators/DagTranslator.h"
 #include "utils/MakeTx.h"
@@ -738,11 +740,15 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
+         m_processedTranslatorList[i]->m_updateMode = AI_UPDATE_ONLY;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
 
+   // it would seem correct to only call ExportTxFiles if m_updateTx = true
+   // but it's not a good moment to take that risk...
    ExportTxFiles();
+
    return status;
 }
 
@@ -1387,7 +1393,6 @@ void CArnoldSession::DoUpdate()
       {
          CNodeTranslator* translator = (*iter);
          if (translator != NULL) translator->DoUpdate(0);
-         
       }
    }
    else
@@ -1409,6 +1414,14 @@ void CArnoldSession::DoUpdate()
 
       m_isExportingMotion = false;
    }
+   
+
+   if (m_updateTx) 
+   {
+      m_updateTx = false;
+      ExportTxFiles();
+   }
+   
 
    // Refresh translator callbacks after all is done
    if (IsInteractiveRender())
@@ -1446,6 +1459,8 @@ void CArnoldSession::DoUpdate()
                translator->RemoveUpdateCallbacks();
                translator->AddUpdateCallbacks();
             }
+            // restore the update mode to "update Only"
+            translator->m_updateMode = AI_UPDATE_ONLY;
          }
       }
    }
@@ -1720,7 +1735,8 @@ void CArnoldSession::ExportTxFiles()
       AtNode *node = translator->GetArnoldRootNode();
       if (node == NULL) continue;
 
-      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image")) textureNodes.push_back(translator);
+      if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
+      
    }
 
    bool progressStarted = false;
@@ -1799,7 +1815,7 @@ void CArnoldSession::ExportTxFiles()
          int createdFiles = 0;
          int skippedFiles = 0;
          int errorFiles = 0;
-         
+
          makeTx(filename, colorSpace, &createdFiles, &skippedFiles, &errorFiles);
          
          if (createdFiles + skippedFiles + errorFiles == 0)
@@ -1818,7 +1834,9 @@ void CArnoldSession::ExportTxFiles()
       }
       if (useTx)
       {
+
          MString txFilename(filename.substring(0, filename.rindexW(".")) + MString("tx"));
+
          MString searchFilename = searchPath + txFilename;
 
          MStringArray expandedFilenames = expandFilename(searchFilename);
@@ -1844,6 +1862,8 @@ void CArnoldSession::ExportTxFiles()
             filename = txFilename;
             FormatTexturePath(filename);
             AiNodeSetStr(node, "filename", filename.asChar()); 
+            
+         
          }
       }      
    }

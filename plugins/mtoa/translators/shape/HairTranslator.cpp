@@ -72,6 +72,7 @@ void CHairTranslator::Export( AtNode *curve )
 {
    Update(curve);
 }
+// FIXME should we set the update mode to RECREATE_NODE as CCurveTranslator ? (#2399)
 
 void CHairTranslator::Update( AtNode *curve )
 {

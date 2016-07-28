@@ -170,11 +170,8 @@ shader_evaluate
       AiRGBtoRGBA(outColor, sg->out.RGBA);
       MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 
-      float alpha = sg->out.RGBA.a;
-
       melt = 2.0f * AiShaderEvalParamFlt(p_normMelt);
 
-      float normDepth = AiShaderEvalParamFlt(p_normDepth);
       frequency = AiShaderEvalParamFlt(p_normFrequency);
       balance = AiShaderEvalParamFlt(p_normBalance);
       AtVector inNormal = sg->N;

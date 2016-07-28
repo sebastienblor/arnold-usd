@@ -181,7 +181,6 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
                           'createArnoldRendererCommonGlobalsTab',
                           'createArnoldRendererGlobalsTab',
                           'createArnoldRendererSystemTab',
-                          'createArnoldRendererOverrideTab',
                           'createArnoldRendererDiagnosticsTab']
 
         if createProc in createProcs:

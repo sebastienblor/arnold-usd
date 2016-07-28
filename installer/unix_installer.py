@@ -70,7 +70,7 @@ installDir = ''
 
 mayaVersionDir = ''
 
-if sys.argv[1] != '2016' and sys.argv[1] != '2017':
+if sys.argv[1] != '2016' and sys.argv[1] != '2017' and sys.argv[1] != '2018':
     mayaVersionDir = '%s-x64' % sys.argv[1]
 else:
     mayaVersionDir = sys.argv[1]
@@ -226,7 +226,7 @@ if installMode == 1: # do the proper installation
         renderDescFolder = os.path.join(mayaInstallDir, 'bin', 'rendererDesc')
     shutil.copy(os.path.join(installDir, 'arnoldRenderer.xml'), os.path.join(renderDescFolder, 'arnoldRenderer.xml'))
     
-    if sys.argv[1] == '2017':
+    if sys.argv[1] == '2017' or sys.argv[1] == '2018':
         homeDir = os.path.expanduser(userString)
         templatesDir = os.path.join(homeDir, 'maya', 'RSTemplates')
         if EnsureDir(templatesDir):

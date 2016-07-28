@@ -69,7 +69,7 @@ Portions related to OpenSubdiv Copyright (C) 2013 Pixar.  Licensed under the Apa
 \n\
 Portions related to gperftools Copyright (C) 2005 Google Inc.  All rights reserved.  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.  * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.  * Neither the name of Google Inc. nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
 \n\
-Portions related to OpenVDB Copyright (c) 2012-2013 DreamWorks Animation LLC.  All rights reserved. This software is distributed under the Mozilla Public License 2.0 (http://www.mozilla.org/MPL/2.0/).  Redistributions of source code must retain the above copyright and license notice and the following restrictions and disclaimer.  Neither the name of DreamWorks Animation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00. A text copy of this license and the source code for OpenVDB (and modifications made by Autodesk, if any) can be found at the Autodesk website www.autodesk.com/lgplsource.\n\
+Portions related to OpenVDB Copyright (c) 2012-2013 DreamWorks Animation LLC.  All rights reserved. This software is distributed under the Mozilla Public License 2.0 (http://www.mozilla.org/MPL/2.0/).  Redistributions of source code must retain the above copyright and license notice and the following restrictions and disclaimer.  Neither the name of DreamWorks Animation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS' AND CONTRIBUTORS' AGGREGATE LIABILITY FOR ALL CLAIMS REGARDLESS OF THEIR BASIS EXCEED US$250.00. A text copy of this license and the source code for OpenVDB (and modifications made by Solid Angle, if any) can be found at the Autodesk website www.autodesk.com/lgplsource.\n\
 \n\
 Portions related to Boost Permission is hereby granted, free of charge, to any person or organization obtaining a copy of the software and accompanying documentation covered by this license (the \"Software\") to use, reproduce, display, distribute, execute, and transmit the Software, and to prepare derivative works of the Software, and to permit third-parties to whom the Software is furnished to do so, all subject to the following:  The copyright notices in the Software and this entire statement, including the above license grant, this restriction and the following disclaimer, must be included in all copies of the Software, in whole or in part, and all derivative works of the Software, unless such copies or derivative works are solely in the form of machine-executable object code generated by a source language processor.  THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
 \n\
@@ -160,40 +160,34 @@ def arnoldLicenseDialog():
     if (cmds.window("ArnoldLicense", ex=True)):
         cmds.deleteUI("ArnoldLicense")
     w = cmds.window("ArnoldLicense", title="Arnold Node-locked License")
-    cmds.window("ArnoldLicense", edit=True, width=550, height=280)
+    cmds.window("ArnoldLicense", edit=True, width=430, height=280)
     cmds.columnLayout()
-    cmds.rowColumnLayout( numberOfColumns=4, columnWidth=[(1,10), (2, 64), (3, 18), (4, 450)] )
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
 
-    cmds.text(label="");cmds.text(label="");cmds.text(label="");cmds.text(label="")
+    cmds.text(label="");cmds.text(label="");
 
     arnoldAboutText =  u"A node-locked license allows you to render with Arnold on one computer only.\n"
 
-    cmds.text(label="")
-    cmds.image(image="licensing_mtoa.png")
     cmds.text(label="")
     cmds.text(align="left",label=arnoldAboutText)
 
     cmds.text(label="")
     cmds.text(label="")
-    cmds.text(label="")
-    cmds.text(label="")
 
-    cmds.separator()
-    cmds.separator()
     cmds.separator()
     cmds.separator()
 
     cmds.setParent( '..' )
     cmds.separator()
 
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
     macText =  u"To issue a node-locked license, we need the MAC address of your computer.\n"
     cmds.text(label="")
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
     cmds.separator()
 
-    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,132)] )
+    cmds.rowColumnLayout( numberOfColumns=6, columnWidth=[(1,10),(2,90), (3, 190),(4,40),(5,80),(6,12)] )
     cmds.text(label="")
     cmds.text(align="left",label="MAC Address")
     name = cmds.textField()
@@ -220,13 +214,13 @@ def arnoldLicenseDialog():
 
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 500)] )
+    cmds.rowColumnLayout( numberOfColumns=2, columnWidth=[(1,10), (2, 412)] )
     macText =  u"To install your node-locked license, locate the license file (.lic) and click Install.\n"
     cmds.text(label="")
     cmds.text(align="left",label=macText)
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90), (3, 190),(4,7),(5,26),(6,7),(7,80),(8,132)] )
+    cmds.rowColumnLayout( numberOfColumns=8, columnWidth=[(1,10),(2,90),(3,190),(4,7),(5,26),(6,7),(7,80),(8,12)] )
     cmds.text(label="")
     cmds.text(align="left",label="License file (.lic)")
     file = cmds.textField()
@@ -256,7 +250,7 @@ def arnoldLicenseDialog():
 
     cmds.setParent( '..' )
 
-    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,200),(2,160), (3, 80),(4,20),(5,80)] )
+    cmds.rowColumnLayout( numberOfColumns=5, columnWidth=[(1,80),(2,160), (3, 80),(4,20),(5,80)] )
     cmds.text(label="")
     cmds.text(label="")
     cmds.button( label='Close', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + w + '\", window=True)'))

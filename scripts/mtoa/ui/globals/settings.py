@@ -1149,52 +1149,6 @@ def createArnoldUserOptionsSettings():
     pm.setUITemplate(popTemplate=True)
 
     
-def createArnoldRendererOverrideTab():
-
-    # Make sure the aiOptions node exists
-    #core.createOptions()
-
-    parentForm = pm.setParent(query=True)
-    
-    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-    pm.scrollLayout('arnoldOverrideScrollLayout', horizontalScrollBarThickness=0)
-    pm.columnLayout('arnoldOverrideColumn', adjustableColumn=True)
-
-    
-
-    
-    # User Options
-    #
-    pm.frameLayout('arnoldUserOptionsSettings', label="User Options", cll=True,  cl=0)
-    createArnoldUserOptionsSettings()
-    pm.setParent('..')
-    
-    # Overrides
-    #
-    pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
-    createArnoldOverrideSettings()
-    pm.setParent('..')
-    
-    # Subdivision Surfaces
-    #
-    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=0)
-    createArnoldSubdivSettings()
-    pm.setParent('..')
-    
-
-    pm.formLayout(parentForm,
-                    edit=True,
-                    af=[('arnoldOverrideScrollLayout', "top", 0),
-                        ('arnoldOverrideScrollLayout', "bottom", 0),
-                        ('arnoldOverrideScrollLayout', "left", 0),
-                        ('arnoldOverrideScrollLayout', "right", 0)])
-
-    pm.setParent(parentForm)
-    
-def updateArnoldRendererOverrideTab(*args):
-    pass
-
-    
 def createArnoldRendererDiagnosticsTab():
 
     # Make sure the aiOptions node exists
@@ -1216,6 +1170,24 @@ def createArnoldRendererDiagnosticsTab():
     #
     pm.frameLayout('arnoldErrorHandlingSettings', label="Error Handling", cll=True, cl=0)
     createArnoldErrorHandlingSettings()
+    pm.setParent('..')
+    
+    # User Options
+    #
+    pm.frameLayout('arnoldUserOptionsSettings', label="User Options", cll=True,  cl=0)
+    createArnoldUserOptionsSettings()
+    pm.setParent('..')
+    
+    # Overrides
+    #
+    pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True,  cl=0)
+    createArnoldOverrideSettings()
+    pm.setParent('..')
+    
+    # Subdivision Surfaces
+    #
+    pm.frameLayout('arnoldSubdivSettings', label="Subdivision", cll= True, cl=0)
+    createArnoldSubdivSettings()
     pm.setParent('..')
 
     pm.formLayout(parentForm,

@@ -759,10 +759,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      // only happens for Arnold RenderView
-      // it means I'm still waiting to update this translator 
-      if (translator->m_holdUpdates) return;
-      
+            
       // must this specific parameter trigger a render update ?
       if (!translator->RequireUpdate(plug)) return;
   
@@ -779,14 +776,13 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
             AtNode *rootNode = translator->GetArnoldRootNode();
             if (rootNode != NULL)
             {
-               bool b = false;
-
                const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
                bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
                allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
          
                if (allowUpdates)
                {
+                  if (translator->m_holdUpdates) return;
                   // check if user data exists
                   if(s_idleCallback == 0)
                   {
@@ -796,9 +792,9 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
                   }
                   s_updatedProcedurals.push_back(translator);
                   translator->m_holdUpdates = true;
+                  return;
 
                }
-               return;
             }
          }
       }
@@ -963,14 +959,22 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          }
       }
 
-      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" ||
-         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/)
-         translator->m_updateMode = AI_RECREATE_NODE;
+      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache" ||
+         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/){
+         translator->m_updateMode = AI_RECREATE_NODE;}
       else if ((node.apiType() == MFn::kNurbsCurve) && (plugName == ".create"))
          translator->m_updateMode = AI_RECREATE_NODE;
       else
-         translator->m_updateMode = AI_UPDATE_ONLY;
+      {
+         // if the update mode was previously set to a different value (like recreate_node)
+         // we don't want to restore it to update_only !
+         translator->m_updateMode = MAX(translator->m_updateMode, (unsigned int)AI_UPDATE_ONLY);
+      }
       
+      // only happens for Arnold RenderView
+      // it means I'm still waiting to update this translator 
+      if (translator->m_holdUpdates) return;
+
       const char* arnoldType = translator->GetArnoldTypeName();
       if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
       {

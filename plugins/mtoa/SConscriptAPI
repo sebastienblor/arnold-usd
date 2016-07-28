@@ -27,6 +27,7 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('nodes', 'shader', 'ArnoldSkinShaderNode.cpp'),
                     os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
                     os.path.join('translators', 'camera', 'AutoCameraTranslator.cpp'),                    
+                    os.path.join('translators', 'camera', 'ImagePlaneTranslator.cpp'),                    
                     os.path.join('translators', 'driver', 'DriverTranslator.cpp'),
                     os.path.join('translators', 'filter', 'FilterTranslator.cpp'),
                     os.path.join('translators', 'light', 'LightTranslator.cpp'),
@@ -79,8 +80,11 @@ elif (int(maya_version_base) == 2016):
     mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-4.8.6-include') 
     mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-4.8.6-include.tar.gz')
 elif (int(maya_version_base) == 2017):
-        mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
-        mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
+elif (int(maya_version_base) == 2018):
+    mayaQtFolder = os.path.join(MTOA_EXTERNAL_PATH, 'qt-5.6.1-include') 
+    mayaQtTarGz = os.path.join(MAYA_INCLUDE_PATH, 'qt-5.6.1-include.tar.gz')
 
 
 if not os.path.isdir(mayaQtFolder):
@@ -95,6 +99,8 @@ if not os.path.isdir(mayaQtFolder):
 local_env['QT_ROOT_DIR'] = mayaQtFolder
 
 local_env.Append(CPPPATH = [mayaQtFolder])
+print 'Qt includes in ' + mayaQtFolder
+
 if system.os() == 'darwin':
     maya_qt_lib_dir = os.path.join(MAYA_ROOT, 'MacOS')
     if (int(maya_version_base) <= 2016):
@@ -111,7 +117,7 @@ if system.os() == 'darwin':
 else:
     qt_lib_dir = os.path.join(MAYA_ROOT, 'lib')
 local_env.Append(LIBPATH = [qt_lib_dir])
-
+print 'Qt libraries in ' + qt_lib_dir
 
 if system.os() == 'windows':
     if (int(maya_version_base) <= 2016):
