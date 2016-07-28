@@ -135,6 +135,8 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
+private:
+   MString m_colorSpace;
 };
 
 class CAiHairTranslator : public CShaderTranslator{
@@ -152,4 +154,6 @@ public:
    virtual void Export(AtNode* shader);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
+private:
+   MString m_colorSpace;
 };

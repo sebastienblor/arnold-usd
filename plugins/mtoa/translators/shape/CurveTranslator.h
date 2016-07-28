@@ -47,7 +47,7 @@ public:
    {
       return new CCurveTranslator();
    }
-
+   virtual void RequestUpdate(void * clientData = NULL);
 
 private:
    void ProcessCurveLines(unsigned int step,

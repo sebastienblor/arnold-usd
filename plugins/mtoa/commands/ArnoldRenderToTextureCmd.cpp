@@ -315,7 +315,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
       if (node == NULL)
       {
          const char *arnoldName = arnoldSession->GetArnoldObjectName(meshName.asChar());
-         if (arnoldName != "")
+         if ((arnoldName != NULL) && (arnoldName[0] != '\0'))
          {
             node = AiNodeLookUpByName(arnoldName);
          }

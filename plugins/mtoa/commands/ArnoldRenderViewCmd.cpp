@@ -159,7 +159,19 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       renderSession->SetCamera(cameras[0]);
 
       if (is_region)
-         renderSession->SetRegion(region[0], region[1], region[2], region[3]);
+      {
+         renderSession->SetRegion(region[0], region[2], region[1], region[3]);
+         CRenderSession* renderSession = CMayaScene::GetRenderSession();
+         MString regionStr;
+         regionStr += region[0];
+         regionStr += " ";
+         regionStr += region[1];
+         regionStr += " ";
+         regionStr += region[2];
+         regionStr += " ";
+         regionStr += region[3];
+         renderSession->SetRenderViewOption("Crop Region", regionStr.asChar());
+      }
 
       // Start off the render.
       // Unless we are in "open" mode
@@ -174,6 +186,8 @@ MStatus CArnoldRenderViewCmd::doIt(const MArgList& argList)
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // abort the rendering
       renderSession->InterruptRender();
+
+      CMayaScene::End();
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::ExecuteScript(renderGlobals.postMel);

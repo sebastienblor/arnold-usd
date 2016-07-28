@@ -261,11 +261,41 @@ void CFileTranslator::Export(AtNode* shader)
             resolvedFilename = FindMayaPlug("computedFileTextureNamePattern").asString();
          }
       }
-      
-
 
       m_session->FormatTexturePath(resolvedFilename);
+
+      MString prevFilename = AiNodeGetStr(shader, "filename");
+
+      bool requestUpdateTx = true;
+      int prevFilenameLength = prevFilename.length();
+
+      if (prevFilenameLength > 0)
+      {
+         // arnold filename param
+         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+         {
+            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+            int dotPos = resolvedFilename.rindexW(".");
+            if (dotPos > 0)
+            {
+               MString basename = resolvedFilename.substring(0, dotPos - 1);
+               requestUpdateTx = (prevBasename != basename);
+            }
+         } else
+         {
+            // if previous filename and new one are exactly identical, it's useless to update Tx
+            requestUpdateTx = (prevFilename != resolvedFilename);
+         }
+      }
+
+      MString colorSpace = FindMayaPlug("colorSpace").asString();
+      
+      if (colorSpace != m_colorSpace) requestUpdateTx = true;
+      m_colorSpace = colorSpace;
+
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
+      if (requestUpdateTx) m_session->RequestUpdateTx();
    }
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
@@ -285,6 +315,7 @@ void CFileTranslator::Export(AtNode* shader)
       AiNodeSetFlt(shader, "exposure", 0.0f);
    else
       ProcessParameter(shader, "exposure", AI_TYPE_FLOAT, plug);
+
 }
 
 void CFileTranslator::NodeInitializer(CAbTranslator context)
@@ -1434,7 +1465,41 @@ void CAiImageTranslator::Export(AtNode* image)
       filename = filename.expandEnvironmentVariablesAndTilde();
       
       m_session->FormatTexturePath(filename);
+
+      MString prevFilename = AiNodeGetStr(image, "filename");
+
+      bool requestUpdateTx = true;
+      int prevFilenameLength = prevFilename.length();
+
+      if (prevFilenameLength > 0)
+      {
+         // arnold filename param
+         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+         {
+            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+            int dotPos = filename.rindexW(".");
+            if (dotPos > 0)
+            {
+               MString basename = filename.substring(0, dotPos - 1);
+               requestUpdateTx = (prevBasename != basename);
+            }
+         } else
+         {
+            // if previous filename and new one are exactly identical, it's useless to update Tx
+            requestUpdateTx = (prevFilename != filename);
+         }
+      }
+
+      MString colorSpace = FindMayaPlug("colorSpace").asString();
+      
+      if (colorSpace != m_colorSpace) requestUpdateTx = true;
+      m_colorSpace = colorSpace;
+
       AiNodeSetStr(image, "filename", filename.asChar());
+
+      // let Arnold Session know that image files have changed and it's necessary to update them
+      if (requestUpdateTx) m_session->RequestUpdateTx();
    }
 }
 

@@ -20,9 +20,9 @@ class FileTemplate(templates.AttributeTemplate):
         self.addControl('aiMipBias', label='Mip-map Bias')
         self.addControl('aiUseDefaultColor', label='Use Default Color')
         self.addControl('aiAutoTx', label='Auto-generate TX Textures')
-
-templates.registerAETemplate(FileTemplate, 'file')
         
+templates.registerAETemplate(FileTemplate, 'file')
+
 class Bump2dTemplate(templates.AttributeTemplate):
     def setup(self):
         self.addControl('aiFlipR', label='Flip R Channel')
@@ -31,7 +31,7 @@ class Bump2dTemplate(templates.AttributeTemplate):
         self.addControl('aiUseDerivatives', label='Use Derivatives')
 
         maya_version = versions.shortName()
-        if int(maya_version) < 2017:
+        if int(float(maya_version)) < 2017:
             self.addControl('aiGammaCorrect', label='Gamma Correct')
 
 templates.registerAETemplate(Bump2dTemplate, 'bump2d')
@@ -43,3 +43,11 @@ class ProjectionTemplate(templates.AttributeTemplate):
         self.addControl("aiUserOptions", label="User Options")
 
 templates.registerAETemplate(ProjectionTemplate, 'projection')
+
+class ImagePlaneTemplate(templates.AttributeTemplate):
+    def setup(self):
+        self.beginLayout('Arnold', collapse=False)
+        self.addControl('aiAutoTx', label='Auto-generate TX Textures')
+        self.endLayout()
+
+templates.registerAETemplate(ImagePlaneTemplate, 'imagePlane')

@@ -97,7 +97,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
         cmd = shlex.split(cmd_str, posix=False)
 
     maya_version = versions.shortName()
-    if int(maya_version) >= 2017:
+    if int(float(maya_version)) >= 2017:
         if cmds.colorManagementPrefs(q=True, cmEnabled=True):
             if colorspace in cmds.colorManagementPrefs(q=True, inputSpaceNames=True):
                 if cmds.colorManagementPrefs(q=True, cmConfigFileEnabled=True):
@@ -110,7 +110,9 @@ def makeTx(filename, colorspace='auto', arguments=''):
                 if colorspace != render_colorspace:
                     cmd += ['--colorengine', 'syncolor', '--colorconfig', color_config, '--colorconvert', colorspace, render_colorspace]
             else:
-                print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
+                # FIXME what should we do in auto mode ?
+                if colorspace != 'auto':
+                    print '[maketx] Warning: Invalid input colorspace "%s" for "%s", disabling color conversion' % (colorspace, filename)
 
     for tile in expandFilename(filename):
         if os.path.splitext(tile)[1] == '.tx':
@@ -127,7 +129,12 @@ def makeTx(filename, colorspace='auto', arguments=''):
         res = subprocess.Popen(cmd + [tile], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, startupinfo=_no_window).communicate()[0]
 
         if re.search(_maketx_rx_noupdate, res):
-            print '[maketx] TX texture is up to date for "%s" (%s)' % (tile, colorspace)
+            # we don't want to get messages saying that texture is up-to-date, mainly
+            # with auto-tx since this happens at every render.
+            # If we really want it for txManager we can add an argument in this function
+            # and re-introduce the print
+
+            #print '[maketx] TX texture is up to date for "%s" (%s)' % (tile, colorspace)
             status[1] += 1
         else:
             mo = re.search(_maketx_rx_stats, res)
@@ -137,6 +144,7 @@ def makeTx(filename, colorspace='auto', arguments=''):
                 status[0] += 1
             else:
                 print '[maketx] Error: Could not generate TX for "%s" (%s)' % (tile, colorspace)
+                print res
                 status[2] += 1
        
     return status
