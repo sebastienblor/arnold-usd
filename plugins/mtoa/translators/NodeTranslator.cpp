@@ -776,8 +776,6 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
             AtNode *rootNode = translator->GetArnoldRootNode();
             if (rootNode != NULL)
             {
-               bool b = false;
-
                const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
                bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
                allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 

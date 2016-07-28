@@ -5458,7 +5458,8 @@ float MayaNoiseUtils::cellGetValue3d(
     float pFac = 0.5f * randomness, pOff = 0.5f, sFac;
     float fx, fy, fz, cx, cy, cz, sx, sy, sz;
     short ix, iy, iz, nx, ny, nz;
-    float c1Level, c2Level;
+    float c1Level = 0.f;
+    float c2Level = 0.f;
 
     cellSize *= 4.0f;
     if (cellSize < AI_EPSILON)

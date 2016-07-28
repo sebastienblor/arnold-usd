@@ -212,7 +212,7 @@ struct SharpenVoxelsKernel : HaloedVisitor
 
 		// prepare the halo cache
 		m_srcHaloCache.resize(layout.maxDepth() + 1);
-		for (size_t i = 0; i < layout.maxDepth() + 1; ++i)
+		for (int i = 0; i < layout.maxDepth() + 1; ++i)
 		{
 			m_srcHaloCache[i].first = -1;
 		}
@@ -233,7 +233,7 @@ struct SharpenVoxelsKernel : HaloedVisitor
 
 		// prepare the halo cache
 		m_srcHaloCache.resize(layout.maxDepth() + 1);
-		for (size_t i = 0; i < layout.maxDepth() + 1; ++i)
+		for (int i = 0; i < (int)layout.maxDepth() + 1; ++i)
 		{
 			m_srcHaloCache[i].first = -1;
 		}
