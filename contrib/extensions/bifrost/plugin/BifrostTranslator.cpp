@@ -218,9 +218,9 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    float inv_fps = 1.f / (float)fps;
 
    // can we go directly to maxDepth instead of looping ?
-   for (Bifrost::API::TreeIndex::Depth d = 0; d < layout.depthCount(); d++)
+   for (Bifrost::API::TreeIndex::Depth d = 0; d < (int)layout.depthCount(); d++)
    {
-      for (Bifrost::API::TreeIndex::Tile t = 0; t < layout.tileCount(d); t++)
+      for (Bifrost::API::TreeIndex::Tile t = 0; t < (int)layout.tileCount(d); t++)
       {
          Bifrost::API::TreeIndex tindex(t,d);
 
@@ -240,7 +240,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
          {
             // Convert position to world space
             const amino::Math::vec3f position = similarity.apply(voxelScale * positionTile[i]);
-            const amino::Math::vec3f velocity = (i < velocityTile.count()) ? velocityTile[i] : amino::Math::vec3f();
+            const amino::Math::vec3f velocity = (i < velocityTile.count()) ? velocityTile[i] : amino::Math::vec3f(0.f, 0.f, 0.f);
 
             AtPoint part_pos;
             part_pos.x = position[0];
@@ -304,9 +304,9 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    // Isn't there a way to get it ?
    // can we go directly to maxDepth instead of looping ?
    int pindex = 0;
-   for (Bifrost::API::TreeIndex::Depth d = 0; d < layout.depthCount(); d++)
+   for (Bifrost::API::TreeIndex::Depth d = 0; d < (int)layout.depthCount(); d++)
    {
-      for (Bifrost::API::TreeIndex::Tile t = 0; t < layout.tileCount(d); t++)
+      for (Bifrost::API::TreeIndex::Tile t = 0; t < (int)layout.tileCount(d); t++)
       {
          Bifrost::API::TreeIndex tindex(t,d);
 
@@ -316,7 +316,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
          for (size_t i = 0; i < elementCount; ++i, ++pindex)
          {
-            if (pindex >= points.size()) continue; // this shouldn't be happening but it does. frame mismatch ?
+            if (pindex >= (int)points.size()) continue; // this shouldn't be happening but it does. frame mismatch ?
             
          // Get Tile starting point for each of the extra-channels
             for (size_t ch = 0; ch < extraChannels.count(); ch++)

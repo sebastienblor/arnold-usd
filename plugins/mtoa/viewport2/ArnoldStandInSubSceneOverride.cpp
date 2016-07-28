@@ -615,6 +615,8 @@ void CArnoldStandInSubSceneOverride::updateRenderItem(MHWRender::MSubSceneContai
         case MHWRender::MGeometry::kPoints:
             totalIndexCount = totalCount;
             break;
+        default:
+            break;
         }
     }
 
@@ -722,6 +724,8 @@ size_t CArnoldStandInSubSceneOverride::getIndexing(
         indexCount = standIn.PointCount();
         for(unsigned int i = 0; i < indexCount; ++i)
             indices[i] = i+pointOffset;
+        break;
+    default:
         break;
     }
     return indexCount;
@@ -956,7 +960,7 @@ bool CArnoldStandInSubSceneOverride::getInstancedSelectionPath(
     for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
     {
         // Get the instance from the cache by index.
-		InstanceInfo instanceInfo = fInstanceInfoCache.find(instIdx)->second;
+		InstanceInfo instanceInfo = fInstanceInfoCache.find((int)instIdx)->second;
 
         if (((wantSelectedItem && instanceInfo.fSelected) ||
             (wantUnselectedItem && !(instanceInfo.fSelected || instanceInfo.fLead))) &&

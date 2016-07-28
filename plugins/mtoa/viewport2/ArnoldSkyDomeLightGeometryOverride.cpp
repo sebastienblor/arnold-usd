@@ -682,11 +682,8 @@ void CArnoldSkyDomeLightGeometryOverride::updateRenderItems(const MDagPath &path
          {
             texture->setHasAlpha(true);
          }
-         bool assignedTexture = false;
          MStatus status = shaderInst->setParameter("map", textureAssignment);
-         if (MStatus::kSuccess == status)
-            assignedTexture = true;
-
+         
          // Check for transparency
          //
          float hwTexAlpha  = useUnconnectedColor ? 0.3f : depNode.findPlug("hwtexalpha").asFloat();

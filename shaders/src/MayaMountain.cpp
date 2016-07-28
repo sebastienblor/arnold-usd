@@ -92,7 +92,6 @@ shader_evaluate
       AtRGB snowColor = AiShaderEvalParamRGB(p_snowColor);
       AtRGB rockColor = AiShaderEvalParamRGB(p_rockColor);
       float amplitude0 = AiShaderEvalParamFlt(p_amplitude);
-      float snowRough = AiShaderEvalParamFlt(p_snowRoughness);
       float rockFractal = AiShaderEvalParamFlt(p_rockRoughness);
       float border = AiShaderEvalParamFlt(p_boundary);
       float alt = AiShaderEvalParamFlt(p_snowAltitude);
