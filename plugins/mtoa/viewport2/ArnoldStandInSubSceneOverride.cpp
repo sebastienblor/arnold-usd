@@ -126,6 +126,7 @@ CArnoldStandInSubSceneOverride::CArnoldStandInSubSceneOverride(const MObject& ob
 , mGlobalOptionsCreatedID(0)
 , fNumInstances(0)
 , fLeadIndex(0)
+, fLastTimeInvisible(false)
 {
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
     if (!renderer)
@@ -218,13 +219,41 @@ bool CArnoldStandInSubSceneOverride::requiresUpdate(
     return true;
 }
 
-bool CArnoldStandInSubSceneOverride::anyChanges(const MHWRender::MSubSceneContainer& container)
+bool CArnoldStandInSubSceneOverride::anyChanges(MHWRender::MSubSceneContainer& container)
 {
     MStatus status;
     MFnDagNode node(mLocatorNode, &status);
     if (!status) return false;
     MDagPathArray instances;
     if (!node.getAllPaths(instances) || instances.length() == 0) return false;
+
+	bool invisibleInstance = false;
+	bool allInstancesInvisible = true;
+	for(unsigned int i=0; i<instances.length(); i++) {		
+		MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[i]);
+		if(displayStatus == MHWRender::kInvisible)
+		{
+			invisibleInstance = true;
+		}
+		else
+		{
+			allInstancesInvisible = false;
+		}
+	}
+	if(allInstancesInvisible)
+		container.clear();
+	if(invisibleInstance)
+	{
+		fLastTimeInvisible = true;
+
+		// If we have at least one visible instance, then we have work to do.
+		return !allInstancesInvisible;
+	}
+	else if(fLastTimeInvisible)
+	{
+		fLastTimeInvisible = false;
+		return true;
+	}
 
     // there was a change to one or more instances, update required.
     if (updateInstanceData(instances))
@@ -909,9 +938,18 @@ void CArnoldStandInSubSceneOverride::getInstanceTransforms(
     selectedInstanceMatrixArray.setLength(fNumInstances);
     unselectedInstanceMatrixArray.setLength(fNumInstances);
 
+    MStatus status;
+    MFnDagNode node(mLocatorNode, &status);
+    MDagPathArray instances;
+    node.getAllPaths(instances);
+
     // loop over the cache and fill the arrays.
     for (unsigned int instIdx=0; instIdx<fNumInstances; instIdx++)
     {
+        MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[instIdx]);
+        if(displayStatus == MHWRender::kInvisible)
+            continue;
+
         InstanceInfo instanceInfo = fInstanceInfoCache[instIdx];
         instanceMatrixArray[instIdx] = instanceInfo.fTransform;
         if (instanceInfo.fLead)
