@@ -86,7 +86,7 @@ private:
         MMatrixArray& unselectedInstanceMatrixArray,
         int& leadIndex);
 
-    bool anyChanges(const MHWRender::MSubSceneContainer& container);
+    bool anyChanges(MHWRender::MSubSceneContainer& container);
 
 	MHWRender::MShaderInstance* mSolidUIShader;
     MHWRender::MShaderInstance* mSelectedSolidUIShader;
@@ -114,6 +114,7 @@ private:
     };
     typedef std::map<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
+	bool fLastTimeInvisible;
 };
 
 #endif
