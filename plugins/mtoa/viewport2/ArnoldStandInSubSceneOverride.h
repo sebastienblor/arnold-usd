@@ -86,7 +86,7 @@ private:
         MMatrixArray& unselectedInstanceMatrixArray,
         int& leadIndex);
 
-    bool anyChanges(MHWRender::MSubSceneContainer& container);
+    bool anyChanges(const MHWRender::MSubSceneContainer& container);
 
 	MHWRender::MShaderInstance* mSolidUIShader;
     MHWRender::MShaderInstance* mSelectedSolidUIShader;

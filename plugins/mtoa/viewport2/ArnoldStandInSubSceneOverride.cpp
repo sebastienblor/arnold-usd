@@ -219,7 +219,7 @@ bool CArnoldStandInSubSceneOverride::requiresUpdate(
     return true;
 }
 
-bool CArnoldStandInSubSceneOverride::anyChanges(MHWRender::MSubSceneContainer& container)
+bool CArnoldStandInSubSceneOverride::anyChanges(const MHWRender::MSubSceneContainer& container)
 {
     MStatus status;
     MFnDagNode node(mLocatorNode, &status);
@@ -227,27 +227,21 @@ bool CArnoldStandInSubSceneOverride::anyChanges(MHWRender::MSubSceneContainer& c
     MDagPathArray instances;
     if (!node.getAllPaths(instances) || instances.length() == 0) return false;
 
+	// Check to see if there are any invisible instances.
+	// If there are then we need to recompute.
 	bool invisibleInstance = false;
-	bool allInstancesInvisible = true;
 	for(unsigned int i=0; i<instances.length(); i++) {		
 		MHWRender::DisplayStatus displayStatus = MHWRender::MGeometryUtilities::displayStatus(instances[i]);
 		if(displayStatus == MHWRender::kInvisible)
 		{
 			invisibleInstance = true;
-		}
-		else
-		{
-			allInstancesInvisible = false;
+			break;
 		}
 	}
-	if(allInstancesInvisible)
-		container.clear();
 	if(invisibleInstance)
 	{
 		fLastTimeInvisible = true;
-
-		// If we have at least one visible instance, then we have work to do.
-		return !allInstancesInvisible;
+		return true;
 	}
 	else if(fLastTimeInvisible)
 	{
