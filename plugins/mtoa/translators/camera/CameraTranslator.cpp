@@ -39,7 +39,8 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
          {
             CNodeTranslator *imgTranslator = m_session->ExportNode(connectedPlugs[0], NULL, NULL, true);
             CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
-            imgPlaneTranslator->SetCamera(GetMayaNodeName());
+            if (step == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
+            else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldRootNode(), step);            
          }
       }
    }
