@@ -99,7 +99,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
          return AddArnoldNode("volume");
 
       case CBIFROST_LIQUID:
-         AiMsgError("[BIFROST]: liquid not implemented yet : %s", m_object.c_str());
+         AiMsgError("[bifrost]: liquid not implemented yet : %s", m_object.c_str());
       // not implemented for now
       break;
 
@@ -138,7 +138,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
       
       if (!loaded || !objectRef.objectExists())
       {
-         AiMsgError("[BIFROST]: foam data %s  not found", m_object.c_str());
+         AiMsgError("[bifrost]: foam data %s  not found", m_object.c_str());
          return;
       }
    }
@@ -388,7 +388,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
       if (!loaded || !objectRef.objectExists())
       {
-         AiMsgError("[BIFROST]: Aero data %s  not found", m_object.c_str());
+         AiMsgError("[bifrost]: Aero data %s  not found", m_object.c_str());
          return;
       }
    }
@@ -418,7 +418,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
    // Check if the bounds is valid
    if (bboxMin[0] >= bboxMax[0] || bboxMin[1] >= bboxMax[1] || bboxMin[2] >= bboxMax[2])
    {
-      AiMsgError("[BIFROST]: bounds for %s  are not valid", m_object.c_str());
+      AiMsgError("[bifrost]: bounds for %s  are not valid", m_object.c_str());
       return;
    }
  
