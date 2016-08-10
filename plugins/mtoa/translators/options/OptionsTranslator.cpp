@@ -171,7 +171,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (m_session->IsBatch())
+   if (m_session->IsBatch() || m_session->GetSessionMode() == MTOA_SESSION_SEQUENCE)
    {
       pathType = defaultRenderGlobalsData.kFullPathImage;
    }
@@ -557,6 +557,11 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
    
    AiNodeSetBool(options, "texture_per_file_stats", true);
+
+// for maya 2017 and above, autoTX replaced automip, so we're forcing it to be false
+#if MAYA_API_VERSION >= 201700
+   AiNodeSetBool(options, "texture_automip", false);
+#endif
 
    MStatus status;
 

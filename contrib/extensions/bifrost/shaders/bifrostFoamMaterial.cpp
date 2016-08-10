@@ -153,6 +153,7 @@ static void initializeDiffuseGradient(AtNode *node, ShaderData *data, AtShaderGl
    AiCritSecLeave(&data->lock);
 }
 
+/*
 static void initializeScatterGradient(AtNode *node, ShaderData *data, AtShaderGlobals *sg)
 {
    AiCritSecEnter(&data->lock);
@@ -172,7 +173,7 @@ static void initializeScatterGradient(AtNode *node, ShaderData *data, AtShaderGl
 
    }
    AiCritSecLeave(&data->lock);
-}
+}*/
 
 static void initializeReflectionGradient(AtNode *node, ShaderData *data, AtShaderGlobals *sg)
 {
@@ -369,10 +370,7 @@ shader_evaluate
 
    float w_transp = 0.f;
    float w_refl = 0.f;
-   float w_refr = 0.f;
-   float w_scatt = 0.f;
-   float w_diff = 1.f;
-
+   
    bool has_reflection = data->has_reflection;
    
    // first compute w_refl, since we need it for opacity

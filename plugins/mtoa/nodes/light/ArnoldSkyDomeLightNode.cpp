@@ -208,6 +208,24 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    return MS::kSuccess;
 }
 
+void CArnoldSkyDomeLightNode::postConstructor()
+{
+#if MAYA_API_VERSION >= 201700
+   // Always make the node not receive or cast shadows
+   //
+   MFnDependencyNode node(thisMObject());
+   MPlug plug = node.findPlug("receiveShadows");
+   plug.setValue(false);
+   plug = node.findPlug("castsShadows");
+   plug.setValue(false);
+#endif
+
+   // Call parent postConstructor as it is not done automatically as the parent constructor
+   CSphereLocator::postConstructor();
+
+   setMPSafe(true);
+}
+
 MStatus CArnoldSkyDomeLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
    if ((plug != aLightData) && (plug.parent() != aLightData))
@@ -266,3 +284,20 @@ void CArnoldSkyDomeLightNode::draw(M3dView& view, const MDagPath& DGpath, M3dVie
    if ((view.objectDisplay() & M3dView::kDisplayLights) == 0) return;
    CSphereLocator::draw(view, DGpath, style, status);
 }
+
+#ifdef ENABLE_VP2
+/* override */
+MSelectionMask CArnoldSkyDomeLightNode::getShapeSelectionMask() const
+//
+// Description
+//     This method is overriden to support interactive object selection in Viewport 2.0
+//
+// Returns
+//
+//    The selection mask of the shape
+//
+{
+	//MSelectionMask::SelectionType selType = MSelectionMask::kSelectLights;
+    return MSelectionMask("arnoldLightSelection");
+}
+#endif

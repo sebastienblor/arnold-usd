@@ -13,6 +13,8 @@
 #include <fstream>
 #include <fcntl.h>
 
+#include <maya/MTypes.h>
+
 #include "../../../plugins/mtoa/utils/HashUtils.h"
 
 #include "XgExternalAPI.h"
@@ -231,7 +233,7 @@ int Procedural::Init(AtNode* node)
    m_options = AiUniverseGetOptions();
    m_camera = AiUniverseGetCamera();
    
-#if MAYA_API_VERSION >= 201500
+#if MAYA_API_VERSION > 201500
    char* xgenConfigPath = getenv("XGEN_CONFIG_PATH");
    if(xgenConfigPath != NULL)
       xgapi::initConfig(string(xgenConfigPath));
@@ -953,8 +955,6 @@ void Procedural::flushSplines( const char *geomName, PrimitiveCache* pc )
       float constantWidth = pc->get( PC(ConstantWidth) );
 
       XGRenderAPIDebug( "Constant width: " + ftoa(constantWidth));
-      {string s = "Constant width: " + ftoa(constantWidth) + "\n";
-      printf("%s", s.c_str() );}
       *curRadius = constantWidth * 0.5f;
     }
     // Add Varying Widths

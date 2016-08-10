@@ -10,7 +10,6 @@ extern "C"
         MStatus status;
 
         extension.Requires ( "xgenToolkit" );
-        extension.LoadArnoldPlugin("xgen_procedural");
         status = extension.RegisterTranslator ( "xgmDescription",
                                                 "",
                                                 CXgDescriptionTranslator::creator,

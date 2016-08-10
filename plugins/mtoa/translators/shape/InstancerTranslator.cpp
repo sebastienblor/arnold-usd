@@ -203,8 +203,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 
    }
 
-
-
+   // if deform blur is disabled, this function will only be called for step = 0
+   bool hasMotion = (RequiresMotionData() && m_motionDeform);
 
    bool exportID = false;
    MStringArray attrs;
@@ -288,9 +288,11 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 
       if (mayaMatrices.length() > 0)
       {
+         unsigned int nmtx = ((hasMotion) ? GetNumMotionSteps() : 1);
+         
          for (unsigned int j = 0; j < mayaMatrices.length(); j++)
          {
-            AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+            AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
             ConvertMatrix(matrix, mayaMatrices[j], m_session);
             AiArraySetMtx(outMatrix, step, matrix);
@@ -373,7 +375,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
             else  // found a new particle in this substep
             {
                newParticleCount++;
-
                AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                AtMatrix matrix;
                ConvertMatrix(matrix, mayaMatrices[j], m_session);
@@ -472,7 +473,9 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
    }
 
    /// NOW write out the final list
-   if (step == (GetNumMotionSteps()-1))
+   // if deform blur is disabled, this function will only be called for step = 0 (#2386)
+   // so we need to create the instancer now   
+   if (!hasMotion || step == (GetNumMotionSteps()-1))
    {
       // we check to see if there are any instances to export here instead of at the top(before first step)
       // because at each step we might be adding particles/instances,

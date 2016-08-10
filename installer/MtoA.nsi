@@ -1,6 +1,16 @@
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 
+!include "FileFunc.nsh"
+!insertmacro GetParameters
+!insertmacro GetOptions
+
+Function .onInit
+  ${GetParameters} $R0
+  ClearErrors
+  ${GetOptions} $R0 /FORCE_UNINSTALL= $3
+FunctionEnd
+
 Name "MtoA $%MTOA_VERSION_NAME% Maya $%MAYA_VERSION%"
 OutFile "MtoA.exe"
 
@@ -48,6 +58,11 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   ReadRegStr $R0 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\MtoA$%MAYA_VERSION%" "UninstallString"
   StrCmp $R0 "" NotInstalled Installed
   Installed:
+  IfSilent 0 +4
+    IntCmp $3 1 0 QuitPart QuitPart
+      ExecWait "$R0 /S"
+      Goto NotInstalled
+    
   MessageBox MB_TOPMOST|MB_OKCANCEL  \
     "MtoA for Maya $%MAYA_VERSION% is already installed. Remove installed version?" \
     IDOK Uninstall IDCANCEL QuitPart
@@ -59,6 +74,8 @@ Section "MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%
   NotInstalled:
   SetOutPath "$INSTDIR"
   File /r /x *.nsi /x mtoa.mod *.*
+  File /x *.nsi /x mtoa.mod *.*
+  
 
   ;Add a mtoa.mod file in the installer folder
   FileOpen $0 "$INSTDIR\mtoa.mod" w
@@ -103,47 +120,29 @@ Section "Configure MtoA for Maya $%MAYA_VERSION%" MtoA$%MAYA_VERSION%EnvVariable
   SetOutPath "$INSTDIR"
   
    ;Create .mod file
-    SetRegView 64
-    ReadRegStr $R0 HKCU "Software\MtoA$%MAYA_VERSION%" ""
-    
-    ${If} "$%MAYA_VERSION%" == "2012"
-    ;Create a backup of Maya.env
-    CreateDirectory "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup"
-    CopyFiles "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env" "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env"
-    FileOpen $0 "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" r
-    FileOpen $1 "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\Maya.env" w
-    readLine:
-    FileRead $0 $2
-    FileWrite $1 $2
-    StrCmp $2 "" end readLine
-    end:
-    FileClose $0
-    
-    ;Add new enviroment variables to Maya.env
-    FileWrite $1 "$\r$\nPATH = %PATH%;$R0\bin;$\r$\n"
-    FileClose $1
-    
-    ${EndIf}
     
     ;Add a mtoa.mod file in the Maya modules folder
-    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
-    ${If} "$%MAYA_VERSION%" == "2016"
-    CreateDirectory "$R1\maya\$%MAYA_VERSION%\modules"
-    FileOpen $0 "$R1\maya\$%MAYA_VERSION%\modules\mtoa.mod" w
-    ${Else}
-    CreateDirectory "$R1\maya\$%MAYA_VERSION%-x64\modules"
-    FileOpen $0 "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod" w
-    ${EndIf}
+    SetRegView 32
+    ReadRegStr $R1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" CommonW6432Dir
+    
+    CreateDirectory "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%"
+    FileOpen $0 "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod" w
+
     FileWrite $0 "+ mtoa any $INSTDIR$\r$\n"
-    ${If} "$%MAYA_VERSION%" != "2012"
     FileWrite $0 "PATH +:= bin$\r$\n"
     FileWrite $0 "MAYA_CUSTOM_TEMPLATE_PATH +:= scripts/mtoa/ui/templates$\r$\n"
-    ${EndIf}
     FileClose $0
     
+    SetRegView 64
     ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
     StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
     CopyFiles "$INSTDIR\arnoldRenderer.xml" "$R1$R2"
+    
+    ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+    ${If} "$%MAYA_VERSION%" >= "2017"
+    CreateDirectory "$R1\maya\RSTemplates"
+    CopyFiles "$INSTDIR\RSTemplates\*.json" "$R1\maya\RSTemplates"
+    ${EndIf}
 
 SectionEnd
 
@@ -170,18 +169,20 @@ Section "Uninstall"
   
   SetRegView 32
   DeleteRegKey /ifempty HKCU "Software\MtoA$%MAYA_VERSION%"
+  ReadRegStr $R1 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" CommonW6432Dir
+  
+  Delete "$R1\Autodesk Shared\Modules\Maya\$%MAYA_VERSION%\mtoa.mod"
   
   SetRegView 64
-  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
-  ${If} "$%MAYA_VERSION%" == "2016"
-  Delete "$R1\maya\$%MAYA_VERSION%\modules\mtoa.mod"
-  ${Else}
-  Delete "$R1\maya\$%MAYA_VERSION%-x64\modules\mtoa.mod"
-  ${EndIf}
-  
   ReadRegStr $R1 HKLM "SOFTWARE\Autodesk\Maya\$%MAYA_VERSION%\Setup\InstallPath" MAYA_INSTALL_LOCATION
   StrCpy $R2 "bin\rendererDesc\arnoldRenderer.xml"
   Delete "$R1$R2"
+  
+  ReadRegStr $R1 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" Personal
+  ${If} "$%MAYA_VERSION%" >= "2017"
+  Delete "$R1\maya\RSTemplates\MatteOverride-Arnold.json"
+  Delete "$R1\maya\RSTemplates\RenderLayerExample-Arnold.json"
+  ${EndIf}
   
   IfFileExists "$PROFILE\Documents\maya\$%MAYA_VERSION%-x64\MtoA_backup\Maya.env" deleteMayaEnv removeMenu
   deleteMayaEnv:

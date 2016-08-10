@@ -33,6 +33,7 @@
 #include <maya/MTimerMessage.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MFnTransform.h>
+#include <maya/MEventMessage.h>
 
 #include <string>
 #include <algorithm>
@@ -46,6 +47,10 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+
+static MCallbackId s_idleCallback = 0;
+static std::vector<CNodeTranslator *> s_updatedProcedurals;
+
 
 MString GetAOVNodeType(int type)
 {
@@ -721,7 +726,28 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
+void CNodeTranslator::IdleCallback(void *data)
+{
+   if(s_idleCallback)
+   {
+      MMessage::removeCallback(s_idleCallback);
+      s_idleCallback = 0;
+   }
 
+   std::vector<CNodeTranslator *> updateProcs = s_updatedProcedurals;
+   s_updatedProcedurals.clear();
+
+   for (size_t i = 0; i < updateProcs.size(); ++i)
+   {
+      CNodeTranslator *translator = updateProcs[i];
+      
+      if (translator == NULL) continue;
+      translator->m_updateMode = AI_RECREATE_NODE;
+      translator->m_holdUpdates = false;
+      translator->RequestUpdate((void*)translator);
+
+   }
+}
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
@@ -733,12 +759,47 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      if (translator->m_holdUpdates) // only happens for Arnold RenderView
+            
+      // must this specific parameter trigger a render update ?
+      if (!translator->RequireUpdate(plug)) return;
+  
+      // procedurals need to clear and re-export at next update (ticket #2314)
+      // only for renderView to avoid new bugs.... 
+      if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
-         // I'm still waiting to update this translator, 
-         // I can leave this place
-         return;
+         // I first wanted to do that in CProceduralTranslator
+         // but CStandinTranslator doesn't inherit from CProceduralTranslator,
+         // and nothing guarantees that people won't create procedural nodes in whatever 
+         //  translator. So instead I'm testing the Translator Arnold NodeType
+         if(strcmp(translator->GetArnoldNodeType().asChar(), "procedural") == 0) 
+         {
+            AtNode *rootNode = translator->GetArnoldRootNode();
+            if (rootNode != NULL)
+            {
+               const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
+               bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
+               allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
+         
+               if (allowUpdates)
+               {
+                  if (translator->m_holdUpdates) return;
+                  // check if user data exists
+                  if(s_idleCallback == 0)
+                  {
+                     MStatus status;
+                     s_idleCallback = MEventMessage::addEventCallback("idle",
+                        CNodeTranslator::IdleCallback, (void*)NULL, &status);
+                  }
+                  s_updatedProcedurals.push_back(translator);
+                  translator->m_holdUpdates = true;
+                  return;
+
+               }
+            }
+         }
       }
+
+
       if (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()) return;
 
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
@@ -756,7 +817,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          translator->RequestUpdate(clientData);
          return;
       }
-      
+
       if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
       {
          std::vector< CDagTranslator * > translatorsToUpdate;
@@ -898,14 +959,22 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
          }
       }
 
-      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" ||
-         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/)
-         translator->m_updateMode = AI_RECREATE_NODE;
+      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache" ||
+         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/){
+         translator->m_updateMode = AI_RECREATE_NODE;}
       else if ((node.apiType() == MFn::kNurbsCurve) && (plugName == ".create"))
          translator->m_updateMode = AI_RECREATE_NODE;
       else
-         translator->m_updateMode = AI_UPDATE_ONLY;
-         
+      {
+         // if the update mode was previously set to a different value (like recreate_node)
+         // we don't want to restore it to update_only !
+         translator->m_updateMode = MAX(translator->m_updateMode, (unsigned int)AI_UPDATE_ONLY);
+      }
+      
+      // only happens for Arnold RenderView
+      // it means I'm still waiting to update this translator 
+      if (translator->m_holdUpdates) return;
+
       const char* arnoldType = translator->GetArnoldTypeName();
       if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
       {
@@ -972,6 +1041,11 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
    }
 }
 
+// By default, all parameters must trigger a render update
+bool CNodeTranslator::RequireUpdate(const MPlug &param)
+{
+   return true;
+}
 /// add this node's AOVs into the passed AOVSet
 void CNodeTranslator::RequestUpdate(void *clientData)
 {
@@ -988,7 +1062,6 @@ void CNodeTranslator::RequestUpdate(void *clientData)
       if (session->IsInteractiveRender() && session->IsExportingMotion()) return;
       if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
       {
-         
          if (!m_holdUpdates)
          {
             m_holdUpdates = true;
@@ -1430,10 +1503,26 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
    {
       // process connections
       MPlug srcMayaPlug = connections[0];
-      AtNode* srcArnoldNode = ExportNode(srcMayaPlug);
+      CNodeTranslator* srcNodeTranslator = NULL;
+      AtNode* srcArnoldNode = ExportNode(srcMayaPlug, true, &srcNodeTranslator);
 
       if (srcArnoldNode == NULL)
          return NULL;
+
+      // For material view sessions we need to propagate any shader update upstream
+      // because it's only the root shader that gets sent for update, even if the
+      // update was caused by some upstream shader node
+      if (srcNodeTranslator && m_session->GetSessionMode() == MTOA_SESSION_MATERIALVIEW)
+      {
+         // Check if the given node is a shader
+         const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(arnoldNode);
+         const int type = AiNodeEntryGetType(nodeEntry);
+         if (type == AI_NODE_SHADER)
+         {
+            // Propagate the update upstream
+            srcNodeTranslator->DoUpdate(m_step);
+         }
+      }
 
       if (arnoldParamType == AI_TYPE_NODE)
       {

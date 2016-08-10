@@ -1,5 +1,6 @@
 #include "ArnoldRenderCmd.h"
 #include "scene/MayaScene.h"
+#include "render/OutputDriver.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
@@ -36,6 +37,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("ofn", "origFileName", MSyntax::kString);
    syntax.addFlag("seq", "frameSequence", MSyntax::kString);
+   syntax.addFlag("srv", "saveToRenderView", MSyntax::kString);
 
    return syntax;
 }
@@ -46,17 +48,32 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MArgDatabase args(syntax(), argList);
    MDagPath dagPath;
 
+   
+   const bool batch = args.isFlagSet("batch") ? true : false;
+   const bool sequence = args.isFlagSet("frameSequence") ? true : false;
+   const bool multiframe = batch || sequence;
+
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   const bool batch = args.isFlagSet("batch") ? true : false;
+   /* Ticket #2377 : 
+   Commenting this for now, as we don't know if we really want ARV to be used for sequence rendering
+   
+   if (sequence && !batch)
+   {
+      // Sequence interactive rendering
+      // RenderSession will try to render it with the Arnold RenderView.
+      // If it can't it will return false, and we'll keep using Maya's native one
+      if (CMayaScene::GetRenderSession()->RenderSequence()) return MS::kSuccess;
+   }
+   */
 
    // Rendered camera
    MString camera = "";
    if (!args.isFlagSet("camera"))
    {
-      // no camera set on interactive mode, abort
-      if (!batch) return MS::kFailure;
+      // no camera set on single frame mode, abort
+      if (!multiframe) return MS::kFailure;
    }
    else
    {
@@ -74,7 +91,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-   int port = args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
@@ -102,8 +118,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       useBinaryEncoding = fnArnoldRenderOptions.findPlug("binaryAss").asBool();
       forceTranslateShadingEngines = fnArnoldRenderOptions.findPlug("forceTranslateShadingEngines").asBool();
       progressiveRefinement = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+#ifdef MTOA_ENABLE_GAMMA
       displayGamma = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
    }
+#else
+   }
+   displayGamma = 1.f;
+#endif
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
@@ -210,16 +231,29 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       return status;
    }
 
+   // Get render view panel
+   MString renderViewPanelName = "";
+   if (!batch)
+   {
+      MStringArray allPanelNames;
+      MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
+      if (allPanelNames.length() > 0)
+         renderViewPanelName = allPanelNames[0];
+   }
+
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
 
    CMayaScene::End(); // In case we're already rendering (e.g. IPR).
 
-   // Check if in batch mode
-   if (batch)
+   // Check if in multiframe mode
+   if (multiframe)
    {
       // TODO: This really needs to go. We're translating the whole scene for a couple of
       // render options.
+
+      // If in batch rendering mode, check if a port was given to use for communication
+      int port = batch && args.isFlagSet("port") ? args.flagArgumentInt("port", 0) : -1;
 
       double startframe;
       double endframe;
@@ -230,8 +264,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          startframe = renderGlobals.frameStart.as(MTime::uiUnit());
          endframe = renderGlobals.frameEnd.as(MTime::uiUnit());
          byframestep = renderGlobals.frameBy;
-
-         MGlobal::viewFrame(startframe);
       }
       else
       {
@@ -242,22 +274,45 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          byframestep = 1;
       }
 
+      // Find cameras to render
       MDagPathArray cameras;
-      MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-      // get all renderable cameras
-      for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+      if (args.isFlagSet("camera"))
       {
-         if (!dagIterCameras.getPath(dagPath))
+         MSelectionList sel;
+         args.getFlagArgument("camera", 0, sel);
+         MDagPath dagPath;
+         if (sel.getDagPath(0, dagPath) != MStatus::kSuccess)
          {
-            AiMsgError("[mtoa] Could not get path for DAG iterator");
-            return status;
+            AiMsgError("[mtoa] Could not get path to camera");
+            return MStatus::kFailure;
          }
+         cameras.append(dagPath);
+      }
+      else
+      {
+         MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+         // get all renderable cameras
+         for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+         {
+            if (!dagIterCameras.getPath(dagPath))
+            {
+               AiMsgError("[mtoa] Could not get path for DAG iterator");
+               return MStatus::kFailure;
+            }
 
-         MFnDependencyNode camDag(dagIterCameras.item());
-         if (camDag.findPlug("renderable").asBool())
-         {
-            cameras.append(dagPath);
+            MFnDependencyNode camDag(dagIterCameras.item());
+            if (camDag.findPlug("renderable").asBool())
+            {
+               cameras.append(dagPath);
+            }
          }
+      }
+
+      // Check if any camera should be saved to render view
+      MString saveToRenderView = "";
+      if (renderViewPanelName.length() > 0 && args.isFlagSet("saveToRenderView"))
+      {
+         saveToRenderView = args.flagArgumentString("saveToRenderView", 0);
       }
 
       std::set<double> frameSet;
@@ -266,25 +321,28 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          MString seq;
          args.getFlagArgument("seq", 0, seq);
-         MStringArray seqArr;
-         if (seq.index(';') == -1)
-            seq.split(' ', seqArr);
-         else
-            seq.split(';', seqArr);
-         for (unsigned int i = 0; i < seqArr.length(); ++i)
+         if (seq.length() > 0)
          {
-            MString elem = seqArr[i];
-            const int id = elem.indexW(MString(".."));
-            if (id == -1) // just one frame
-               frameSet.insert(elem.asDouble());
-            else if (id > 0)
+            MStringArray seqArr;
+            if (seq.index(';') == -1)
+               seq.split(' ', seqArr);
+            else
+               seq.split(';', seqArr);
+            for (unsigned int i = 0; i < seqArr.length(); ++i)
             {
-               const int id2 = elem.index(':');
-               const double startFrame = elem.substring(0, id - 1).asDouble();
-               const double endFrame = elem.substring(id + 2, (id2 == -1) ? (elem.length() - 1) : (id2 - 1)).asDouble();
-               const double step = (id2 == -1) ? 1.0 : elem.substring(id2 + 1, elem.length() - 1).asDouble();
-               for (double frame = startFrame; frame <= endFrame; frame += step)
-                  frameSet.insert(frame);
+               MString elem = seqArr[i];
+               const int id = elem.indexW(MString(".."));
+               if (id == -1) // just one frame
+                  frameSet.insert(elem.asDouble());
+               else if (id > 0)
+               {
+                  const int id2 = elem.index(':');
+                  const double startFrame = elem.substring(0, id - 1).asDouble();
+                  const double endFrame = elem.substring(id + 2, (id2 == -1) ? (elem.length() - 1) : (id2 - 1)).asDouble();
+                  const double step = (id2 == -1) ? 1.0 : elem.substring(id2 + 1, elem.length() - 1).asDouble();
+                  for (double frame = startFrame; frame <= endFrame; frame += step)
+                     frameSet.insert(frame);
+               }
             }
          }
       }
@@ -303,14 +361,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
          // FIXME: do we really need to reset everything each time?
-         CMayaScene::Begin(MTOA_SESSION_BATCH);
+         CMayaScene::Begin(batch ? MTOA_SESSION_BATCH : MTOA_SESSION_SEQUENCE);
+
          CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
          CRenderSession* renderSession = CMayaScene::GetRenderSession();
          arnoldSession->SetExportFrame(framerender);
 
          CMayaScene::Export(selectedPtr);
-         // Reset resolution and output since it's a new export, new options node
-         renderSession->SetResolution(width, height);
+
+         if (renderViewPanelName.length() > 0)
+            renderSession->SetRenderViewPanelName(renderViewPanelName);
 
          if (port != -1)
          {         
@@ -318,14 +378,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                            "batch_progress_driver", "mtoa",
                            (AtNodeMethods*) batch_progress_driver_mtd, AI_VERSION);
          }
-         
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
+            const MDagPath& cameraDagPath = cameras[arrayIter];
+
             // It is ok to set the camera here, because if camera is no set at export time,
             // all the cameras are exported during the export.
-            arnoldSession->SetExportCamera(cameras[arrayIter]);
-            
+            arnoldSession->SetExportCamera(cameraDagPath);
+            renderSession->SetResolution(width, height);
+
             // append the batch progress driver at the end of the list if port flag has been added
             if (port != -1)
             {
@@ -346,21 +408,45 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                AiArraySetStr(newOutputs, oldCount, "Z FLOAT progress_driver_filter progress_driver");
                AiNodeSetArray(options, "outputs", newOutputs);
             }
-
-            if (renderSession->DoBatchRender() != AI_SUCCESS)
+            
+            if (batch)
             {
-               CMayaScene::End();
-               MGlobal::displayError("[mtoa] Failed batch render");
-               return MS::kFailure;
+               int batchStatus = renderSession->DoBatchRender();
+               if (batchStatus != AI_SUCCESS)
+               {
+                  CMayaScene::End();
+                  MGlobal::displayError("[mtoa] Failed batch render");
+                  if(port != -1 && batchStatus == AI_ABORT) {
+                      MRenderUtil::sendRenderProgressInfo("", -111); // magic number for abort/kill
+                  }
+                  return MS::kFailure;
+               }
+            }
+            else
+            {
+               int status = renderSession->DoInteractiveRender();
+               if (status != AI_SUCCESS)
+               {
+                  CMayaScene::End();
+                  if (status == AI_INTERRUPT)
+                     MGlobal::displayInfo("[mtoa] Sequence render aborted");
+                  else
+                     MGlobal::displayError("[mtoa] Failed sequence render");
+                  return MS::kFailure;
+               }
+               // Save the image to render view if requested
+               if (saveToRenderView == "all" || saveToRenderView == MFnDependencyNode(cameraDagPath.transform()).name()) {
+                  CMayaScene::ExecuteScript("renderWindowMenuCommand(\"keepImageInRenderView\", \"" + renderViewPanelName + "\")");
+               }
             }
          }
 
-         CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
          CMayaScene::End();
+         CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       }
    }
 
-   // or interactive mode
+   // or single frame interactive mode
    else
    {
       MSelectionList sel;
@@ -386,11 +472,23 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // Set the render session camera.
       renderSession->SetCamera(camera);
       // And render view panel
-      MStringArray allPanelNames;
-      MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
-      if (allPanelNames.length() > 0) renderSession->SetRenderViewPanelName(allPanelNames[0]);
-      // Start the render. CMayaScene::End will be called automatically
-      renderSession->DoInteractiveRender(renderGlobals.postRenderMel);
+      if (renderViewPanelName.length() > 0)
+         renderSession->SetRenderViewPanelName(renderViewPanelName);
+
+      // Start the render.
+      renderSession->DoInteractiveRender();
+
+      CMayaScene::End();
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel, false, true);
+
+      // Workaround for overriding the render view caption that Maya
+      // sets after rendering is finished. Set the last caption again 
+      // deferred to override Maya's caption.
+      const MString& captionCmd = GetLastRenderViewCaptionCommand();
+      if (captionCmd != "")
+      {
+         MGlobal::executeCommandOnIdle(captionCmd, false);
+      }
 
       // DEBUG_MEMORY;
    }

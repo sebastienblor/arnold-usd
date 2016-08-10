@@ -72,6 +72,11 @@ public:
    virtual CRenderViewZoomManipulator *GetZoomManipulator();
    virtual CRenderViewRotateManipulator *GetRotateManipulator();
    
+   virtual void PreProgressiveStep();
+   virtual void PostProgressiveStep();
+   virtual void ProgressiveRenderStarted();
+   virtual void ProgressiveRenderFinished();
+
    static void SelectionChangedCallback(void *);
    static void RenderLayerChangedCallback(void *);
    static void SceneSaveCallback(void *);
@@ -80,11 +85,16 @@ public:
    static void ColorMgtCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionCallback(MObject& node, MPlug& plug, void* clientData);
    static void ResolutionChangedCallback(void *);
-
+   static void SequenceRenderCallback(float, float, void *);
+   
    void OpenMtoARenderView(int width, int height);
+
+   MStatus RenderSequence(float first, float last, float step);
+
+
 private:
    void UpdateColorManagement();
-
+   void UpdateRenderCallbacks();
 
    MCallbackId m_rvSelectionCb;
    MCallbackId m_rvSceneSaveCb;
@@ -97,6 +107,15 @@ private:
 
    bool m_convertOptionsParam;
 
+   bool m_hasPreProgressiveStep;
+   bool m_hasPostProgressiveStep;
+   bool m_hasProgressiveRenderStarted;
+   bool m_hasProgressiveRenderFinished;
+   
+   MString m_preProgressiveStep;
+   MString m_postProgressiveStep;
+   MString m_progressiveRenderStarted;
+   MString m_progressiveRenderFinished;
 };
 
 #ifndef MTOA_DISABLE_RV
@@ -127,7 +146,7 @@ private:
    MVector  m_viewDirection;
    float    m_distFactor;
    int m_width;
-   
+
 };
 
 class CRenderViewMtoAZoom : public CRenderViewZoomManipulator
