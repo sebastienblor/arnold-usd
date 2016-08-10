@@ -21,18 +21,18 @@ using namespace std;
 void CImagePlaneTranslator::Export(AtNode *imagePlane)
 {
    CNodeTranslator::Export(imagePlane);
-   ExportImagePlane(0u, GetMayaObject());
+   ExportImagePlane(0u);
 }
 void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane, unsigned int step)
 {
    CNodeTranslator::ExportMotion(imagePlane, step);
-   ExportImagePlane(step, GetMayaObject());
+   ExportImagePlane(step);
 
 }
 void CImagePlaneTranslator::SetCamera(MString cameraName)
 {
    m_camera = cameraName;
-   ExportImagePlane(0u, GetMayaObject());
+   ExportImagePlane(0u);
 }
 static void GetCameraRotationMatrix(MDagPath camera, AtMatrix& matrix)
 {
@@ -87,8 +87,9 @@ static void GetCameraMatrix(MDagPath camera, CArnoldSession *session, AtMatrix& 
 }
 
 
-void CImagePlaneTranslator::ExportImagePlane(unsigned int step, MObject imgPlane)
+void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
 {
+   MObject imgPlane = GetMayaObject();
    // get the dependency node of the image plane
    MFnDependencyNode fnRes(imgPlane);
    MStatus status;

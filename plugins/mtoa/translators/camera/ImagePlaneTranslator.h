@@ -18,8 +18,13 @@ public:
    AtNode* CreateArnoldNodes();
    void SetCamera(MString cameraName);
    
+   virtual bool RequiresMotionData()
+   {
+      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+   }
+   void ExportImagePlane(unsigned int step);
 protected:
-   void ExportImagePlane(unsigned int step, MObject imgPlane); //used to be in camera translator
+
 
    MString m_camera;
    MString m_colorSpace;
