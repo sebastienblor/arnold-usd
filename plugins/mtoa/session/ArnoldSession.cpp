@@ -739,6 +739,11 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       ObjectToTranslatorMap::iterator it;
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
+         // for motion blur, check which nodes are static and which aren't (#2316)
+         if (mb && numSteps > 1)
+         {
+            m_processedTranslatorList[i]->CheckMotionArrays();
+         }
          m_processedTranslatorList[i]->AddUpdateCallbacks();
          m_processedTranslatorList[i]->m_updateMode = AI_UPDATE_ONLY;
       }
@@ -1399,7 +1404,8 @@ void CArnoldSession::DoUpdate()
    {
       m_isExportingMotion = true;
       // Scene is motion blured, get the data for the steps.
-      for (unsigned int step = 0; (step < GetNumMotionSteps()); ++step)
+      int numSteps = GetNumMotionSteps();
+      for (int step = 0; step < numSteps; ++step)
       {
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
@@ -1408,6 +1414,12 @@ void CArnoldSession::DoUpdate()
          {
             CNodeTranslator* translator = (*iter);
             if (translator != NULL) translator->DoUpdate(step);
+
+            if (numSteps > 1 && step == numSteps - 1)
+            {
+               // last motion blur step
+               translator->CheckMotionArrays();
+            }
          }
       }
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));

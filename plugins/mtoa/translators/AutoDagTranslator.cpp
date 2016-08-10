@@ -10,5 +10,5 @@ AtNode* CAutoDagTranslator::CreateArnoldNodes()
 
 bool CAutoDagTranslator::RequiresMotionData()
 {
-   return IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) &&  IsLocalMotionBlurEnabled();
+   return IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) &&  IsLocalMotionBlurEnabled() && (!m_isStatic);
 }

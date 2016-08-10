@@ -29,6 +29,8 @@ public:
    // FIXME: this method shouldn't be required.
    virtual bool RequiresMotionData()
    {
+      if (m_isStatic) return false;
+      
       MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");
       if (motionBlurOverridePlug.isNull())
          return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);

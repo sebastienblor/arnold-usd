@@ -225,7 +225,7 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
 
 bool CShaderTranslator::RequiresMotionData()
 {
-   return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
+   return IsMotionBlurEnabled(MTOA_MBLUR_SHADER) && (!m_isStatic);
 }
 
 void CShaderTranslator::ExportBump(AtNode* shader)

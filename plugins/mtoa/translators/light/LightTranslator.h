@@ -14,7 +14,7 @@ public:
    }
    virtual bool RequiresMotionData()
    {
-      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
+      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT) && (!m_isStatic);
    }
    static AtRGB ConvertKelvinToRGB(float kelvin);
 protected:

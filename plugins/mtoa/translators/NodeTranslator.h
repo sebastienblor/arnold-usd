@@ -124,6 +124,7 @@ protected:
       m_shaders(NULL),
       m_updateMode(AI_UPDATE_ONLY),
       m_holdUpdates(false),
+      m_isStatic(false),
       m_handle(CNodeAttrHandle())      
    {}
 
@@ -203,6 +204,7 @@ protected:
 
    // Add a callback to the list to manage.
    void ManageUpdateCallback(const MCallbackId id);
+   void CheckMotionArrays();
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
@@ -211,6 +213,7 @@ protected:
    static void NodeDestroyedCallback(void* clientData);
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
    static void IdleCallback(void *data);
+
 
 protected:
 
@@ -235,6 +238,7 @@ protected:
 
    unsigned int m_updateMode;
    bool m_holdUpdates; // for Arnold RenderView only
+   bool m_isStatic;
 private:
    
    CNodeAttrHandle m_handle;
