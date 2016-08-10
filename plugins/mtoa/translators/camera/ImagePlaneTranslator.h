@@ -20,7 +20,7 @@ public:
    
    virtual bool RequiresMotionData()
    {
-      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA) && !m_isStatic;
    }
    void ExportImagePlane(unsigned int step);
 protected:
