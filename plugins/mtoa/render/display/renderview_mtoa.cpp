@@ -1,7 +1,6 @@
 
 #include "renderview_mtoa.h"
-#include "QtGui/QDockWidget.h"
-#include "QtGui/QMainWindow.h"
+
 
 #ifdef MTOA_DISABLE_RV
 
@@ -65,12 +64,20 @@ void CRenderViewMtoA::ProgressiveRenderFinished() {}
 #include <maya/MSceneMessage.h>
 #include <maya/MTimerMessage.h>
 
+
 #ifdef _DARWIN
 static Qt::WindowFlags RvQtFlags = Qt::Tool;
 #else
 static Qt::WindowFlags RvQtFlags = Qt::Window|Qt::WindowSystemMenuHint|Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
 #endif
 
+#if MAYA_API_VERSION >= 201700
+#include "QtWidgets/QDockWidget.h"
+#include "QtWidgets/QMainWindow.h"
+#else
+#include "QtGui/QDockWidget.h"
+#include "QtGui/QMainWindow.h"
+#endif
 class ARVDockWidget : public QDockWidget
 {
 public:
