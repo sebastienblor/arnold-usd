@@ -212,14 +212,19 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    QWidget * mainWin = MQtUtil::mainWindow();
 
    OpenRenderView(width, height, mainWin);
-
-   if (s_arvDockWidget == NULL) s_arvDockWidget = new ARVDockWidget(*this, mainWin);
    QMainWindow *arv = GetRenderView();
-   s_arvDockWidget->setWidget(arv);
-   s_arvDockWidget->setWindowTitle(arv->windowTitle());
-   s_arvDockWidget->setWindowIcon(arv->windowIcon());
-   s_arvDockWidget->setFloating(true);
-   s_arvDockWidget->resize(arv->width(), arv->height());
+
+   if (s_arvDockWidget == NULL){ 
+      s_arvDockWidget = new ARVDockWidget(*this, mainWin); 
+      s_arvDockWidget->setWidget(arv);
+      s_arvDockWidget->resize(arv->width(), arv->height());
+      s_arvDockWidget->setWindowTitle(arv->windowTitle());
+      s_arvDockWidget->setWindowIcon(arv->windowIcon());
+   }
+   
+   
+   //s_arvDockWidget->setFloating(true);
+   //s_arvDockWidget->resize(arv->width(), arv->height());
    s_arvDockWidget->setWindowFlags(RvQtFlags);
    s_arvDockWidget->show();
 
@@ -649,7 +654,7 @@ void CRenderViewMtoA::RenderViewClosed()
    m_rvSceneSaveCb = 0;
 
    MProgressWindow::endProgress();
-
+   s_arvDockWidget->hide();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
