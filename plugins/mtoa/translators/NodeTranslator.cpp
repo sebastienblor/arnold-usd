@@ -687,19 +687,14 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
 
    // name of the attribute that emitted a signal
    MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-   
-   if (plugName == ".aiTranslator")
-   {
-      // The Arnold translator has changed :
-      // This means the current one won't be able to export as it should.
-      // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
-      // will be cleared and a new one will be generated
-      SetUpdateMode(AI_RECREATE_TRANSLATOR);
-      RequestUpdate(this);
-      return;
-   }
-      
-   RequestUpdate(this);
+
+   // The Arnold translator has changed :
+   // This means the current one won't be able to export as it should.
+   // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
+   // will be cleared and a new one will be generated
+   if (plugName == ".aiTranslator") SetUpdateMode(AI_RECREATE_TRANSLATOR);
+
+   RequestUpdate();
 }
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
@@ -801,7 +796,10 @@ void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, 
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), clientData);
       if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
          translator->m_updateMode = AI_DELETE_NODE;
-      translator->RequestUpdate(clientData);
+
+      // for nodes which don't have the updateMode set to AI_DELETE_NODE, what's the point of requesting an update ?
+      // is this just going to re-export one last time them before they're deleted ?
+      translator->RequestUpdate();  
    }
    else
    {
@@ -816,50 +814,47 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
    CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
-      translator->RequestUpdate();
+      //translator->RequestUpdate();
+      // replacing the line above by the 2 following ones as result is the same
+      CArnoldSession *session = CMayaScene::GetArnoldSession();
+      session->RequestUpdate();      
+      // note that LightLinker and ObjectSets are never called here
+      // since they don't add this callback   
+      
       translator->RemoveUpdateCallbacks();
       translator->Delete();  
    }
 }
 
 /// add this node's AOVs into the passed AOVSet
-// FIXME : clientData ? looks like this used to be a static function
-void CNodeTranslator::RequestUpdate(void *clientData)
+void CNodeTranslator::RequestUpdate()
 {
-   // Remove this node from the callback list.
-   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   CArnoldSession *session = CMayaScene::GetArnoldSession();
 
    // if hold updates is enabled (on RenderView only), don't ask for updates
    if (m_holdUpdates) return;
 
-   if (translator != NULL)
-   {
+   // we're changing the frame to evaluate motion blur, so we don't want more 
+   // updates now
+   if (m_session->IsInteractiveRender() && m_session->IsExportingMotion()) return;
+
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
+
    
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
-                 translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
- 
-      if (session->IsInteractiveRender() && session->IsExportingMotion()) return;
-      if (session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-      {
-         if (!m_holdUpdates)
-         {
-            m_holdUpdates = true;
-            // Add translator to the list of translators to update
-            m_session->QueueForUpdate(translator);
-         }
-      } else
-      {
-         translator->RemoveUpdateCallbacks();
-         // Add translator to the list of translators to update
-         m_session->QueueForUpdate(translator);
-      }
-   }
-   else
+   if (m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
    {
-      // Deletion doesn't pass a translator
-      AiMsgDebug("[mtoa.translator.ipr] RequestUpdate: no translator in client data: %p.", clientData);
+      if (!m_holdUpdates)
+      {
+         m_holdUpdates = true;
+         // Add translator to the list of translators to update
+         m_session->QueueForUpdate(this);
+      }
+   } else
+   {
+      RemoveUpdateCallbacks();
+      // Add translator to the list of translators to update
+      m_session->QueueForUpdate(this);
    }
 
    // Pass the update request to the export session

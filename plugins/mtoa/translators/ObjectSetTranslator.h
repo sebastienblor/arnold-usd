@@ -23,5 +23,5 @@ protected:
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
    static void SetMembersChangedCallback(MObject &node, void *clientData);
-   virtual void RequestUpdate(void *clientData);
+   virtual void RequestUpdate();
 };

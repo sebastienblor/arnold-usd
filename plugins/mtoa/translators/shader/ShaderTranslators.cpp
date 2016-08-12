@@ -1236,7 +1236,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
                continue;
 
             translator2->SetUpdateMode(AI_RECREATE_NODE);
-            translator2->RequestUpdate(static_cast<void*>(translator2));
+            translator2->RequestUpdate();
 
             // TODO: By now we have to check the connected nodes and if something that is not a mesh
             //  is connected, we do not reexport, as some crashes may happen.
@@ -1262,7 +1262,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (translator3 != NULL)
             {
                translator3->SetUpdateMode(AI_RECREATE_NODE);
-               translator3->RequestUpdate(static_cast<void*>(translator3));
+               translator3->RequestUpdate();
             }
          }
       }

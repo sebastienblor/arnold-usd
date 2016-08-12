@@ -24,7 +24,7 @@ protected:
    static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
-   virtual void RequestUpdate(void *clientData);
+   virtual void RequestUpdate();
 
 private:
    unsigned int GetMembers(MSelectionList &list, const MPlug &plug, bool doLights, bool doObjects);

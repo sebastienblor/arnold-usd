@@ -97,7 +97,7 @@ public:
    virtual void RemoveUpdateCallbacks();
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the Update callbacks.
-   virtual void RequestUpdate(void * clientData = NULL);
+   virtual void RequestUpdate();
 
    // this function was removed. The proper workflow now is to redefine
    // NodeChanged() and check the plug to eventually prevent the update (or set a different updateMode)
