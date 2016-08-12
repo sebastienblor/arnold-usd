@@ -300,7 +300,7 @@ void CArnoldProceduralTranslator::IdleCallback(void *data)
       if (translator == NULL) continue;
       translator->m_updateMode = AI_RECREATE_NODE;
       translator->m_holdUpdates = false;
-      translator->RequestUpdate((void*)translator);
+      translator->RequestUpdate();
    }
 }
 
