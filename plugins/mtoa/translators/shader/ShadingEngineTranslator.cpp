@@ -217,7 +217,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (translator3 != NULL)
             {
                translator3->SetUpdateMode(AI_RECREATE_NODE);
-               translator3->RequestUpdate(static_cast<void*>(translator3));
+               translator3->RequestUpdate();
             }
          }
       }
