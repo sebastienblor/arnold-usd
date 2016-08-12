@@ -1753,7 +1753,7 @@ void CArnoldSession::ExportTxFiles()
       const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
       bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
       MString searchPath = "";
-
+      bool invalidProgressWin = false;
       if (fileAutoTx)
       {
 
@@ -1765,14 +1765,25 @@ void CArnoldSession::ExportTxFiles()
                MProgressWindow::setProgressRange(0, 100);
                MProgressWindow::setTitle("Converting Images to TX");
                MProgressWindow::setInterruptable(true);
+
+               // if the progress bar was already cancelled before it started
+               // (it seems that it happens sometimes...), the we simply
+               // don't test for cancel anymore
+               if (MProgressWindow::isCancelled()) invalidProgressWin = true;
             }
-            if (MProgressWindow::isCancelled()) 
+            if ((!invalidProgressWin) && MProgressWindow::isCancelled()) 
             {
                // FIXME show a confirm dialog to mention color management will be wrong
                //MString cmd;
                //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
-               //MGlobal::executePythonCommandStringResult(cmd);               
-               return;
+               //MGlobal::executePythonCommandStringResult(cmd);
+
+               // if progress was cancelled we consider that auto-Tx is OFF
+               // but we still need to handle "use Tx"
+               MProgressWindow::endProgress();
+               fileAutoTx = false;
+
+               goto USE_TX;
             }
 
             // FIXME use basename instead
@@ -1832,6 +1843,7 @@ void CArnoldSession::ExportTxFiles()
             }
          }
       }
+USE_TX:
       if (useTx)
       {
 
