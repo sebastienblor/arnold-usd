@@ -29,11 +29,17 @@ protected:
 
    void ExportStandinsShaders(AtNode* procedural);
    virtual void ExportShaders();
+   virtual void NodeChanged(MObject& node, MPlug& plug);
 
    AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
    AtNode* ExportProcedural(AtNode* procedural, bool update);
    AtByte ComputeOverrideVisibility();
 
+   static void IdleCallback(void *data);
+
 protected:
    MFnDagNode m_DagNode;
+
+
+
 };

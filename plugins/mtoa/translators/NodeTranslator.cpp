@@ -48,8 +48,6 @@
 #define new DEBUG_NEW
 #endif
 
-static MCallbackId s_idleCallback = 0;
-static std::vector<CNodeTranslator *> s_updatedProcedurals;
 
 
 MString GetAOVNodeType(int type)
@@ -676,6 +674,33 @@ bool CNodeTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolved
    return true;
 }
 
+void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
+{  
+   // When the frame is changed for motion blur we can receive signals here,
+   // but we want to ignore them
+   // FIXME should we test this in RequestUpdate ?
+   if (m_session->IsExportingMotion() && m_session->IsInteractiveRender()) return;
+
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: translator %s, providing Arnold %s(%s): %p",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
+              GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
+
+   // name of the attribute that emitted a signal
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   
+   if (plugName == ".aiTranslator")
+   {
+      // The Arnold translator has changed :
+      // This means the current one won't be able to export as it should.
+      // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
+      // will be cleared and a new one will be generated
+      SetUpdateMode(AI_RECREATE_TRANSLATOR);
+      RequestUpdate(this);
+      return;
+   }
+      
+   RequestUpdate(this);
+}
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
 // add whatever callbacks you need to trigger a fresh.
@@ -726,28 +751,6 @@ void CNodeTranslator::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
-void CNodeTranslator::IdleCallback(void *data)
-{
-   if(s_idleCallback)
-   {
-      MMessage::removeCallback(s_idleCallback);
-      s_idleCallback = 0;
-   }
-
-   std::vector<CNodeTranslator *> updateProcs = s_updatedProcedurals;
-   s_updatedProcedurals.clear();
-
-   for (size_t i = 0; i < updateProcs.size(); ++i)
-   {
-      CNodeTranslator *translator = updateProcs[i];
-      
-      if (translator == NULL) continue;
-      translator->m_updateMode = AI_RECREATE_NODE;
-      translator->m_holdUpdates = false;
-      translator->RequestUpdate((void*)translator);
-
-   }
-}
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData)
@@ -759,230 +762,8 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-            
-      // must this specific parameter trigger a render update ?
-      if (!translator->RequireUpdate(plug)) return;
-  
-      // procedurals need to clear and re-export at next update (ticket #2314)
-      // only for renderView to avoid new bugs.... 
-      if (translator->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
-      {
-         // I first wanted to do that in CProceduralTranslator
-         // but CStandinTranslator doesn't inherit from CProceduralTranslator,
-         // and nothing guarantees that people won't create procedural nodes in whatever 
-         //  translator. So instead I'm testing the Translator Arnold NodeType
-         if(strcmp(translator->GetArnoldNodeType().asChar(), "procedural") == 0) 
-         {
-            AtNode *rootNode = translator->GetArnoldRootNode();
-            if (rootNode != NULL)
-            {
-               const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
-               bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
-               allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
-         
-               if (allowUpdates)
-               {
-                  if (translator->m_holdUpdates) return;
-                  // check if user data exists
-                  if(s_idleCallback == 0)
-                  {
-                     MStatus status;
-                     s_idleCallback = MEventMessage::addEventCallback("idle",
-                        CNodeTranslator::IdleCallback, (void*)NULL, &status);
-                  }
-                  s_updatedProcedurals.push_back(translator);
-                  translator->m_holdUpdates = true;
-                  return;
-
-               }
-            }
-         }
-      }
-
-
       if (translator->m_session->IsExportingMotion() && translator->m_session->IsInteractiveRender()) return;
-
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
-                 translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                 translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-      MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
-      
-      if (plugName == ".aiTranslator")
-      {
-         // The Arnold translator has changed :
-         // This means the current one won't be able to export as it should.
-         // By setting its update mode to AI_RECREATE_TRANSLATOR this translator 
-         // will be cleared and a new one will be generated
-         translator->m_updateMode = AI_RECREATE_TRANSLATOR;
-         translator->RequestUpdate(clientData);
-         return;
-      }
-
-      if(node.apiType() == MFn::kShadingEngine && plugName == ".displacementShader")
-      {
-         std::vector< CDagTranslator * > translatorsToUpdate;
-         bool reexport = true;
-         MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
-         const unsigned int numElements = dagSetMembersPlug.numElements();
-         for(unsigned int i = 0; i < numElements; i++)
-         {
-            MPlug a = dagSetMembersPlug[i];
-            MPlugArray connectedPlugs;
-            a.connectedTo(connectedPlugs,true,false);
-
-            const unsigned int connectedPlugsLength = connectedPlugs.length();
-            for(unsigned int j = 0; j < connectedPlugsLength; j++)
-            {
-               MPlug connection = connectedPlugs[j];
-               MObject parent = connection.node();
-               MFnDependencyNode parentDag(parent);
-               MString nameParent = parentDag.name();
-
-               MDagPath dagPath;
-               MStatus status = MDagPath::getAPathTo(parent, dagPath);
-               if (!status)
-                  continue;
-
-               CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
-
-               if (translator2 == 0)
-                  continue;
-
-               // TODO: By now we have to check the connected nodes and if something that is not a mesh
-               //  is connected, we do not reexport, as some crashes may happen.
-               if(translator2->GetMayaNodeTypeName() != "mesh")
-               {
-                  reexport = false;
-                  break;
-               }
-
-               translatorsToUpdate.push_back(translator2);
-            }
-
-            if(reexport == false)
-               break;
-         }
-
-         // We only reexport if all nodes connected to the displacement are mesh nodes
-         if (reexport)
-         {
-            for (std::vector<CDagTranslator*>::iterator iter = translatorsToUpdate.begin();
-               iter != translatorsToUpdate.end(); ++iter)
-            {
-               CDagTranslator* translator3 = (*iter);
-               if (translator3 != NULL)
-               {
-                  translator3->m_updateMode = AI_RECREATE_NODE;
-                  translator3->RequestUpdate(static_cast<void*>(translator3));
-               }
-            }
-         }
-      }
-
-      if(node.apiType() == MFn::kDisplacementShader)
-      {
-         MPlug disp = MFnDependencyNode(node).findPlug("displacement");
-         MPlugArray connectedPlugs;
-         disp.connectedTo(connectedPlugs,false,true);;
-
-         // For each shading engine connected to the displacement node
-         for(unsigned int j = 0; j < connectedPlugs.length(); j++)
-         {
-            MPlug connection = connectedPlugs[j];
-            MObject shadingEngine = connection.node();
-
-            std::vector< CDagTranslator * > translatorsToUpdate;
-            bool reexport = true;
-
-            MFnDependencyNode shadingEngineDNode(shadingEngine);
-            MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
-            const unsigned int numElements = dagSetMembersPlug.numElements();
-            // For each geometry connected to the shading engine
-            for(unsigned int i = 0; i < numElements; i++)
-            {
-               MPlug a = dagSetMembersPlug[i];
-               MPlugArray connectedPlugs;
-               a.connectedTo(connectedPlugs,true,false);;
-
-               // This should be only one connection; connectedPlugs.length() should be 0 or 1
-               const unsigned int connectedPlugsLength = connectedPlugs.length();
-               for(unsigned int j = 0; j < connectedPlugsLength; j++)
-               {
-                  MPlug connection = connectedPlugs[j];
-                  MObject parent = connection.node();
-                  MFnDependencyNode parentDag(parent);
-                  MString nameParent = parentDag.name();
-
-                  MDagPath dagPath;
-                  MStatus status = MDagPath::getAPathTo(parent, dagPath);
-                  if (!status)
-                     continue;
-
-                  CDagTranslator* translator2 = translator->m_session->ExportDagPath(dagPath, true);
-                  if (translator2 == 0)
-                     continue;
-
-                  translator2->m_updateMode = AI_RECREATE_NODE;
-                  translator2->RequestUpdate(static_cast<void*>(translator2));
-
-                  // TODO: By now we have to check the connected nodes and if something that is not a mesh
-                  //  is connected, we do not reexport, as some crashes may happen.
-                  if(translator2->GetMayaNodeTypeName() != "mesh")
-                  {
-                     reexport = false;
-                     break;
-                  }
-
-                  translatorsToUpdate.push_back(translator2);
-
-               }
-
-               if(reexport == false)
-                  break;
-            }
-
-            // We only reexport if all nodes connected to the displacement are mesh nodes
-            if (reexport)
-            {
-               for (std::vector<CDagTranslator*>::iterator iter = translatorsToUpdate.begin();
-                  iter != translatorsToUpdate.end(); ++iter)
-               {
-                  CDagTranslator* translator3 = (*iter);
-                  if (translator3 != NULL)
-                  {
-                     translator3->m_updateMode = AI_RECREATE_NODE;
-                     translator3->RequestUpdate(static_cast<void*>(translator3));
-                  }
-               }
-            }
-
-         }
-      }
-
-      if(node.apiType() == MFn::kMesh && (plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache" ||
-         (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/){
-         translator->m_updateMode = AI_RECREATE_NODE;}
-      else if ((node.apiType() == MFn::kNurbsCurve) && (plugName == ".create"))
-         translator->m_updateMode = AI_RECREATE_NODE;
-      else
-      {
-         // if the update mode was previously set to a different value (like recreate_node)
-         // we don't want to restore it to update_only !
-         translator->m_updateMode = MAX(translator->m_updateMode, (unsigned int)AI_UPDATE_ONLY);
-      }
-      
-      // only happens for Arnold RenderView
-      // it means I'm still waiting to update this translator 
-      if (translator->m_holdUpdates) return;
-
-      const char* arnoldType = translator->GetArnoldTypeName();
-      if(arnoldType && strcmp(arnoldType, "skydome_light") == 0)
-      {
-         CMayaScene::GetRenderSession()->InterruptRender();
-         AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
-      }
-         
-      translator->RequestUpdate(clientData);
+      translator->NodeChanged(node, plug);
    }
    else
    {
@@ -1041,20 +822,20 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
    }
 }
 
-// By default, all parameters must trigger a render update
-bool CNodeTranslator::RequireUpdate(const MPlug &param)
-{
-   return true;
-}
 /// add this node's AOVs into the passed AOVSet
+// FIXME : clientData ? looks like this used to be a static function
 void CNodeTranslator::RequestUpdate(void *clientData)
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    CArnoldSession *session = CMayaScene::GetArnoldSession();
 
+   // if hold updates is enabled (on RenderView only), don't ask for updates
+   if (m_holdUpdates) return;
+
    if (translator != NULL)
    {
+   
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());

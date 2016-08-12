@@ -248,3 +248,16 @@ MStatus CMeshTranslator::Tessellate(const MDagPath &path, bool doRef)
    return status;
 }
 
+void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)
+{  
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   
+   if(plugName == ".pnts" || plugName == ".inMesh" || plugName == ".dispResolution" || plugName == ".useMeshSculptCache" ||
+      (plugName.length() > 9 && plugName.substring(0,8) == ".aiSubdiv"))/*|| node.apiType() == MFn::kPluginShape*/
+   {
+      SetUpdateMode(AI_RECREATE_NODE);
+   }
+   CGeometryTranslator::NodeChanged(node, plug);
+
+}
+

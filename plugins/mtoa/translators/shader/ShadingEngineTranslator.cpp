@@ -1,4 +1,5 @@
 #include "ShadingEngineTranslator.h"
+#include "../DagTranslator.h"
 #include "scene/MayaScene.h"
 
 AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
@@ -155,5 +156,72 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    }
 
    AddAOVDefaults(shadingEngine, aovShaders); // modifies aovShaders list
+}
+
+void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   if(plugName == ".displacementShader")
+   {
+      MFnDependencyNode dnode(node);
+      std::vector< CNodeTranslator * > translatorsToUpdate;
+      bool reexport = true;
+      MPlug dagSetMembersPlug = dnode.findPlug("dagSetMembers");
+      const unsigned int numElements = dagSetMembersPlug.numElements();
+      for(unsigned int i = 0; i < numElements; i++)
+      {
+         MPlug a = dagSetMembersPlug[i];
+         MPlugArray connectedPlugs;
+         a.connectedTo(connectedPlugs,true,false);
+
+         const unsigned int connectedPlugsLength = connectedPlugs.length();
+         for(unsigned int j = 0; j < connectedPlugsLength; j++)
+         {
+            MPlug connection = connectedPlugs[j];
+            MObject parent = connection.node();
+            MFnDependencyNode parentDag(parent);
+            MString nameParent = parentDag.name();
+
+            MDagPath dagPath;
+            MStatus status = MDagPath::getAPathTo(parent, dagPath);
+            if (!status)
+               continue;
+
+            CNodeTranslator* translator2 = m_session->ExportDagPath(dagPath, true);
+
+            if (translator2 == 0)
+               continue;
+
+            // TODO: By now we have to check the connected nodes and if something that is not a mesh
+            //  is connected, we do not reexport, as some crashes may happen.
+            if(translator2->GetMayaNodeTypeName() != "mesh")
+            {
+               reexport = false;
+               break;
+            }
+
+            translatorsToUpdate.push_back(translator2);
+         }
+
+         if(reexport == false)
+            break;
+      }
+
+      // We only reexport if all nodes connected to the displacement are mesh nodes
+      if (reexport)
+      {
+         for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+            iter != translatorsToUpdate.end(); ++iter)
+         {
+            CNodeTranslator* translator3 = (*iter);
+            if (translator3 != NULL)
+            {
+               translator3->SetUpdateMode(AI_RECREATE_NODE);
+               translator3->RequestUpdate(static_cast<void*>(translator3));
+            }
+         }
+      }
+   }
+   CNodeTranslator::NodeChanged(node, plug);
 }
 

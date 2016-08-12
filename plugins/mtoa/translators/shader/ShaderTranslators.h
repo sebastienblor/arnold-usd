@@ -46,13 +46,26 @@ SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
-SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 SHADER_TRANSLATOR(CMayaBlinnTranslator);
 SHADER_TRANSLATOR(CMayaPhongTranslator);
 SHADER_TRANSLATOR(CMayaPhongETranslator);
 SHADER_TRANSLATOR(CMayaAnisotropicTranslator);
 SHADER_TRANSLATOR(CMayaRampShaderTranslator); 
 SHADER_TRANSLATOR(CPhysicalSkyTranslator);
+
+
+class CDisplacementTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CDisplacementTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   bool DependsOnOutputPlug() { return true; }
+
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
+};
 
 class CMayaShadingSwitchTranslator : public CShaderTranslator{
 private:

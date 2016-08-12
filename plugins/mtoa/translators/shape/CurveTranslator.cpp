@@ -84,13 +84,17 @@ void CCurveTranslator::Export( AtNode *curve )
    Update(curve);
 }
 
-// overriding RequestUpdate so that updateMode is set the "RECREATE_NODE"
-// otherwise changing the curves widths (for example) is not updated correctly (#2399)
-// during IPR. If we get to solve this in arnold core, we can remove this function.
-void CCurveTranslator::RequestUpdate(void * clientData)
+void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   m_updateMode = AI_RECREATE_NODE;
-   CGeometryTranslator::RequestUpdate(clientData);         
+   // we used to only set RECREATE_NODE for the .create attribute
+   //MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+   //if ((plugName == ".create")) SetUpdateMode(AI_RECREATE_NODE);
+
+   // but ticket #2399 showed that curves aren't updated properly in arnold core,
+   // for example when the curves width change.
+   // So now we're always forcing to recreate the node
+   SetUpdateMode(AI_RECREATE_NODE);
+   CGeometryTranslator::NodeChanged(node, plug);
 }
 
 void CCurveTranslator::Update( AtNode *curve )

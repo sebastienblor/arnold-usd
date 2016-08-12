@@ -26,6 +26,7 @@ protected:
    {
       delete m_shaders;
    }
-protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
    MPlugArray m_customAOVPlugs;
 };

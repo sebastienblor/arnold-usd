@@ -21,6 +21,7 @@ public:
       return new CMeshTranslator();
    }
    AtNode* CreateArnoldNodes();
+
 protected:
    CMeshTranslator()  :
       CGeometryTranslator()
@@ -31,6 +32,8 @@ protected:
    }
    // overridden from CDagTranslator to add a GetNumMeshGroups check
    virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   
 private:
    MObject m_dataMesh;
    MStatus Tessellate(const MDagPath &dagPath, bool doRef);

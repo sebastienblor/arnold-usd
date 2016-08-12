@@ -740,7 +740,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
-         m_processedTranslatorList[i]->m_updateMode = AI_UPDATE_ONLY;
+         m_processedTranslatorList[i]->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
@@ -1263,7 +1263,7 @@ void CArnoldSession::DoUpdate()
       CNodeTranslator * translator = m_objectsToUpdate[i].second;
 
       // Check if this translator needs to be re-created
-      if (translator != NULL && translator->m_updateMode == AI_RECREATE_TRANSLATOR)
+      if (translator != NULL && translator->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
          // delete the current translator, just like AI_DELETE_NODE does
          translator->RemoveUpdateCallbacks();
@@ -1280,7 +1280,7 @@ void CArnoldSession::DoUpdate()
       {
          // Translator already exists
          // check its update mode
-         if(translator->m_updateMode == AI_RECREATE_NODE)
+         if(translator->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
          {
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
@@ -1290,7 +1290,7 @@ void CArnoldSession::DoUpdate()
 
             translator->DoExport(0);
             translatorsToUpdate.push_back(translator);
-         } else if(translator->m_updateMode == AI_DELETE_NODE)
+         } else if(translator->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
             translator->RemoveUpdateCallbacks();
             translator->Delete();
@@ -1460,7 +1460,7 @@ void CArnoldSession::DoUpdate()
                translator->AddUpdateCallbacks();
             }
             // restore the update mode to "update Only"
-            translator->m_updateMode = AI_UPDATE_ONLY;
+            translator->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
          }
       }
    }

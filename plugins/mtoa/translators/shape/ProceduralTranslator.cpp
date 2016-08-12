@@ -14,9 +14,12 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MRenderUtil.h>
-
+#include <maya/MEventMessage.h>
 
 #include <maya/MString.h>
+
+static MCallbackId s_idleCallback = 0;
+static std::vector<CArnoldProceduralTranslator *> s_updatedProcedurals;
 
 void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -239,3 +242,65 @@ AtNode* CArnoldProceduralTranslator::ExportProcedural(AtNode* procedural, bool u
 
    return procedural;
 }
+
+// FIXME we should be able to remove this as arnold core is starting to support procedurals update
+// however several crashes are happening due to shaders creation / deletion
+
+// If we want to port that to standins we should either copy this in CStandinTranslator,
+// or better make CStandinTranslator inherit from Procedural as it should...
+
+void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // procedurals need to clear and re-export at next update (ticket #2314)
+   
+   AtNode *rootNode = GetArnoldRootNode();
+   if (rootNode != NULL)
+   {
+      const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
+      bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
+      allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
+
+      if (allowUpdates)
+      {
+         if (m_holdUpdates) return;
+         // check if user data exists
+         if(s_idleCallback == 0)
+         {
+            MStatus status;
+            s_idleCallback = MEventMessage::addEventCallback("idle",
+               CArnoldProceduralTranslator::IdleCallback, (void*)NULL, &status);
+         }
+         s_updatedProcedurals.push_back(this);
+         m_holdUpdates = true;
+         return;
+
+      }
+   }
+
+   // call parent function
+   CGeometryTranslator::NodeChanged(node, plug);
+}
+
+
+void CArnoldProceduralTranslator::IdleCallback(void *data)
+{
+   if(s_idleCallback)
+   {
+      MMessage::removeCallback(s_idleCallback);
+      s_idleCallback = 0;
+   }
+
+   std::vector<CArnoldProceduralTranslator *> updateProcs = s_updatedProcedurals;
+   s_updatedProcedurals.clear();
+
+   for (size_t i = 0; i < updateProcs.size(); ++i)
+   {
+      CArnoldProceduralTranslator *translator = updateProcs[i];
+      
+      if (translator == NULL) continue;
+      translator->m_updateMode = AI_RECREATE_NODE;
+      translator->m_holdUpdates = false;
+      translator->RequestUpdate((void*)translator);
+   }
+}
+

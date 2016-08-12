@@ -208,6 +208,12 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
 
 void CSkyDomeLightTranslator::Export(AtNode* light)
 {
+   if (m_flushCache)
+   {
+      AiUniverseCacheFlush(AI_CACHE_BACKGROUND);
+      m_flushCache = false;
+   }
+   
    CLightTranslator::Export(light);
 
    AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
@@ -232,7 +238,14 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("shadow_color");
 }
 
-
+void CSkyDomeLightTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   // at next Export we'll want to flush the background cache.
+   // This used to be done during the NodeDirty callback
+   // but we must NOT interrupt renders or call arnold flush functions during maya's callbacks. 
+   m_flushCache = true; 
+   CLightTranslator::NodeChanged(node, plug);
+}
 void CPhotometricLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);

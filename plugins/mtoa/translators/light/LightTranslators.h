@@ -105,10 +105,16 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      m_flushCache = false; // initialize to false
       return AddArnoldNode("skydome_light");
+
    }
 
    bool IsFinite() const { return false; }
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+private:
+   bool m_flushCache; 
 };
 
 class CPhotometricLightTranslator : public CLightTranslator

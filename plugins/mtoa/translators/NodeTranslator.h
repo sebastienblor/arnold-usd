@@ -24,11 +24,6 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
-#define AI_UPDATE_ONLY 0
-#define AI_DELETE_NODE 1
-#define AI_RECREATE_NODE 2
-#define AI_RECREATE_TRANSLATOR 3
-
 MString GetAOVNodeType(int type);
 
 // Abstract base class for all Maya-to-Arnold node translators
@@ -104,13 +99,22 @@ public:
    // Used by the Update callbacks.
    virtual void RequestUpdate(void * clientData = NULL);
 
-   // Ask the translator if this parameter has to trigger a render update or not
-   // default is true
-   virtual bool RequireUpdate(const MPlug &param);
+   // this function was removed. The proper workflow now is to redefine
+   // NodeChanged() and check the plug to eventually prevent the update (or set a different updateMode)
+   //virtual bool RequireUpdate(const MPlug &param);
 
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
    bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
+
+enum UpdateMode {
+   AI_UPDATE_ONLY=0,
+   AI_DELETE_NODE=1,
+   AI_RECREATE_NODE,
+   AI_RECREATE_TRANSLATOR
+};
+
+   void SetUpdateMode(UpdateMode m) {m_updateMode = MAX(m_updateMode, m);}
 
 protected:
    CNodeTranslator()  :
@@ -126,6 +130,9 @@ protected:
       m_holdUpdates(false),
       m_handle(CNodeAttrHandle())      
    {}
+
+   // function to override to customize how a translator behaves during IPR updates
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
 
    virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
    virtual MStatus ExportOverrideSets();
@@ -210,8 +217,7 @@ protected:
    static void NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
    static void NodeDestroyedCallback(void* clientData);
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
-   static void IdleCallback(void *data);
-
+   
 protected:
 
    CAbTranslator m_abstract;
@@ -233,7 +239,7 @@ protected:
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
-   unsigned int m_updateMode;
+   UpdateMode m_updateMode;
    bool m_holdUpdates; // for Arnold RenderView only
 private:
    
