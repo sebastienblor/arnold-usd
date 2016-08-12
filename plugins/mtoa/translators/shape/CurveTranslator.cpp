@@ -10,6 +10,8 @@
 #include <maya/MFnNurbsCurve.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFloatMatrix.h>
+#include <maya/MFloatVectorArray.h>
+
 #include <vector>
 
 void CCurveTranslator::NodeInitializer(CAbTranslator context)
@@ -94,7 +96,7 @@ void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
    // for example when the curves width change.
    // So now we're always forcing to recreate the node
    SetUpdateMode(AI_RECREATE_NODE);
-   CGeometryTranslator::NodeChanged(node, plug);
+   CShapeTranslator::NodeChanged(node, plug);
 }
 
 void CCurveTranslator::Update( AtNode *curve )

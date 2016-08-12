@@ -257,7 +257,7 @@ void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)
    {
       SetUpdateMode(AI_RECREATE_NODE);
    }
-   CGeometryTranslator::NodeChanged(node, plug);
+   CPolygonGeometryTranslator::NodeChanged(node, plug);
 
 }
 

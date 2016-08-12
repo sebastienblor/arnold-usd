@@ -76,7 +76,7 @@ namespace
    }
 }
 
-MObject CGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
+MObject CPolygonGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
    MObject shadingGroup = CShapeTranslator::GetNodeShadingGroup(dagNode, instanceNum);
@@ -87,7 +87,7 @@ MObject CGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
    return connections[0].node();
 }
 
-bool CGeometryTranslator::GetVertices(const MObject& geometry,
+bool CPolygonGeometryTranslator::GetVertices(const MObject& geometry,
                                       const float*& vertices)
 {
    MStatus status;
@@ -104,7 +104,7 @@ bool CGeometryTranslator::GetVertices(const MObject& geometry,
    return false;
 }
 
-bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
+bool CPolygonGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
                                               AtArray*& normals,
                                               MSpace::Space space,
                                               bool force)
@@ -147,7 +147,7 @@ bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
    return false;
 }
 
-bool CGeometryTranslator::GetNormals(const MObject& geometry,
+bool CPolygonGeometryTranslator::GetNormals(const MObject& geometry,
                                      const float*& normals)
 {
    MFnMesh fnMesh(geometry);
@@ -167,7 +167,7 @@ bool CGeometryTranslator::GetNormals(const MObject& geometry,
    return false;
 }
 
-bool CGeometryTranslator::GetTangents(const MObject &geometry,
+bool CPolygonGeometryTranslator::GetTangents(const MObject &geometry,
                                       AtArray*& tangents,
                                       AtArray*& bitangents,
                                       MSpace::Space space,
@@ -271,7 +271,7 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
    return true;
 }
 
-MDagPath CGeometryTranslator::GetMeshRefObj()
+MDagPath CPolygonGeometryTranslator::GetMeshRefObj()
 {
    MFnMesh fnMesh(m_dagPath);
 
@@ -317,7 +317,7 @@ MDagPath CGeometryTranslator::GetMeshRefObj()
    return m_dagPathRef;
 }
 
-bool CGeometryTranslator::GetRefObj(const float*& refVertices,
+bool CPolygonGeometryTranslator::GetRefObj(const float*& refVertices,
                                     AtArray*& refNormals,
                                     AtArray*& rnidxs,
                                     AtArray*& refTangents,
@@ -379,7 +379,7 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
       return false;
 }
 
-bool CGeometryTranslator::GetUVs(const MObject &geometry,
+bool CPolygonGeometryTranslator::GetUVs(const MObject &geometry,
                                  std::vector<AtArray*>& uvs,
                                  std::vector<MString>& uvNames)
 {
@@ -413,7 +413,7 @@ bool CGeometryTranslator::GetUVs(const MObject &geometry,
    return uvs.size() > 0;
 }
 
-bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
+bool CPolygonGeometryTranslator::GetVertexColors(const MObject &geometry,
                                           std::map<std::string, std::vector<float> > &vcolors)
 {
    MFnMesh fnMesh(geometry);
@@ -494,7 +494,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
    return exportColors;
 }
 
-bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
+bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
       AtArray*& nsides,
       AtArray*& vidxs,
       AtArray*& nidxs,
@@ -571,12 +571,12 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
 
 }
 
-void CGeometryTranslator::ExportShaders()
+void CPolygonGeometryTranslator::ExportShaders()
 {
    ExportMeshShaders(GetArnoldRootNode(), m_dagPath);
 }
 
-void CGeometryTranslator::GetDisplacement(MObject& obj, 
+void CPolygonGeometryTranslator::GetDisplacement(MObject& obj, 
                                           float& dispPadding, 
                                           bool& enableAutoBump)
 {
@@ -592,7 +592,7 @@ void CGeometryTranslator::GetDisplacement(MObject& obj,
    }
 }
 
-void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
+void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                                             const MDagPath &path)
 {
    MFnMesh fnMesh(path);
@@ -793,7 +793,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    }
 }
 
-void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
+void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
    MFnMesh fnMesh(m_geometry);
    MObject geometry(m_geometry);
@@ -1104,12 +1104,12 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 }
 
 // Specific implementation for each geometry type
-bool CGeometryTranslator::IsGeoDeforming()
+bool CPolygonGeometryTranslator::IsGeoDeforming()
 {
    return true;
 }
 
-void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
+void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Visibility options
    ProcessRenderFlags(polymesh);
@@ -1147,7 +1147,8 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    }
 }
 
-void CGeometryTranslator::ExportBBox(AtNode* polymesh)
+// Note that this function is only called by CMeshTranslator
+void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
 {
    ExportMatrix(polymesh, 0);
    // Visibility options
@@ -1173,7 +1174,7 @@ void CGeometryTranslator::ExportBBox(AtNode* polymesh)
    AiNodeSetFlt(polymesh, "step_size", FindMayaPlug("aiStepSize").asFloat());
 }
 
-AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
+AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
    
    // Check if this geometry is renderable
@@ -1196,7 +1197,7 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    return polymesh;
 }
 
-AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
+AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
@@ -1284,7 +1285,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    return instance;
 }
 
-void CGeometryTranslator::Update(AtNode *anode)
+void CPolygonGeometryTranslator::Update(AtNode *anode)
 {
    if (IsMasterInstance())
    {
@@ -1296,7 +1297,7 @@ void CGeometryTranslator::Update(AtNode *anode)
    }
 }
 
-void CGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CPolygonGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    if (IsMasterInstance())
    {
@@ -1312,60 +1313,12 @@ void CGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
    }
 }
 
-void CGeometryTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CPolygonGeometryTranslator::UpdateMotion(AtNode* anode, unsigned int step)
 {
    ExportMatrix(anode, step);
 }
 
-void CGeometryTranslator::AddUpdateCallbacks()
-{
-   MObject dagPathNode= m_dagPath.node();
-   AddShaderAssignmentCallbacks(dagPathNode);
-   CDagTranslator::AddUpdateCallbacks();
-}
-
-void CGeometryTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
-{
-   MStatus status;
-   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
-}
-
-void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
-{
-   // Shading assignments are done with the instObjGroups attr, so we only
-   // need to update when that is the attr that changes.
-   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
-   {
-      CGeometryTranslator * translator = static_cast< CGeometryTranslator* >(clientData);
-      CArnoldSession *session = CMayaScene::GetArnoldSession();
-
-      if (translator != NULL)
-      {
-         // FIXME : If a rendering is in progress, I can't create these new nodes
-         // so I need to interrupt the rendering, even if Continuous Updates are OFF
-         if (!AiRendering())
-         {
-            translator->ExportShaders();
-            // replaced RequestUpdate with not argument by a call to arnold session
-            // result is the same
-            session->RequestUpdate(); 
-         } else
-         {
-            CMayaScene::GetRenderSession()->InterruptRender(true);
-            // Export the new shaders.
-            translator->ExportShaders();
-   		
-            // replaced RequestUpdate with not argument by a call to arnold session
-            // result is the same
-            session->RequestUpdate();
-            
-         }
-      }
-   }
-}
-
-void CGeometryTranslator::NodeInitializer(CAbTranslator context)
+void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "polymesh");
 

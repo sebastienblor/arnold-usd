@@ -18,6 +18,8 @@ public:
    {
       return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
    }
+   virtual void AddUpdateCallbacks();
+   virtual void ExportShaders(){}
 
 protected:
    virtual void ProcessRenderFlags(AtNode* node);
@@ -30,6 +32,9 @@ protected:
    virtual AtNode* ExportRootShader(AtNode *rootShader);
    AtNode* CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders);
    MPlug GetNodeShadingGroup(MObject dagNode, int instanceNum);
+
+   static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
+   void AddShaderAssignmentCallbacks(MObject & dagNode);
 
 protected:
    bool m_motion;

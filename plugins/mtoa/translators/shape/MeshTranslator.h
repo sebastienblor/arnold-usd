@@ -2,12 +2,12 @@
 
 #include "GeometryTranslator.h"
 
-class CMeshTranslator : public CGeometryTranslator
+class CMeshTranslator : public CPolygonGeometryTranslator
 {
 public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
-      return CGeometryTranslator::Init(session, dagPath, outputAttr);
+      return CPolygonGeometryTranslator::Init(session, dagPath, outputAttr);
    }
 
    virtual void Export(AtNode* anode);
@@ -24,7 +24,7 @@ public:
 
 protected:
    CMeshTranslator()  :
-      CGeometryTranslator()
+      CPolygonGeometryTranslator()
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method

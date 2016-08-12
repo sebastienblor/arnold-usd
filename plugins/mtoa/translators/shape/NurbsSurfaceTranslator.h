@@ -6,7 +6,7 @@ class MFnMeshData;
 class MTesselationParams;
 class MFnNurbsSurface;
 
-class CNurbsSurfaceTranslator : public CGeometryTranslator
+class CNurbsSurfaceTranslator : public CPolygonGeometryTranslator
 {
 public:
    virtual void Export(AtNode* anode);
@@ -20,7 +20,7 @@ public:
    AtNode* CreateArnoldNodes();
 protected:
    CNurbsSurfaceTranslator()  :
-      CGeometryTranslator()
+      CPolygonGeometryTranslator()
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method

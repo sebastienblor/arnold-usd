@@ -132,7 +132,7 @@ void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
       if (!Tessellate(m_dagPath)) return;
    }
 
-   CGeometryTranslator::ExportMotion(anode, step);
+   CPolygonGeometryTranslator::ExportMotion(anode, step);
 }
 
 // TODO: implement this check for nurbs.

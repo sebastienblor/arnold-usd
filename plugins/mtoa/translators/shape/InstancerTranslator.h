@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MFnParticleSystem.h>
 #include <maya/MFnInstancer.h>
@@ -17,11 +17,11 @@
 #include <map>
 
 class CInstancerTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 protected:
    CInstancerTranslator() :
-      CGeometryTranslator()
+      CShapeTranslator()
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method

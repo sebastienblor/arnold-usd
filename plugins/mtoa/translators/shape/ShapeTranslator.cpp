@@ -1,4 +1,5 @@
 #include "ShapeTranslator.h"
+#include "scene/MayaScene.h"
 
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
@@ -139,3 +140,55 @@ MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
    }
    return MPlug();
 }
+
+void CShapeTranslator::AddUpdateCallbacks()
+{
+   MObject dagPathNode= m_dagPath.node();
+   AddShaderAssignmentCallbacks(dagPathNode);
+   CDagTranslator::AddUpdateCallbacks();
+}
+
+void CShapeTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
+{
+   MStatus status;
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
+}
+
+// During Shader Assignment callbacks
+// we don't want to re-export the full geometry, but instead just call ExportShaders
+// but problem, this must not be done here !
+void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
+{
+   // Shading assignments are done with the instObjGroups attr, so we only
+   // need to update when that is the attr that changes.
+   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
+   {
+      CShapeTranslator * translator = static_cast< CShapeTranslator* >(clientData);
+      CArnoldSession *session = CMayaScene::GetArnoldSession();
+
+      if (translator != NULL)
+      {
+         // FIXME : If a rendering is in progress, I can't create these new nodes
+         // so I need to interrupt the rendering, even if Continuous Updates are OFF
+         if (!AiRendering())
+         {
+            translator->ExportShaders();
+            // replaced RequestUpdate with not argument by a call to arnold session
+            // result is the same
+            session->RequestUpdate(); 
+         } else
+         {
+            CMayaScene::GetRenderSession()->InterruptRender(true);
+            // Export the new shaders.
+            translator->ExportShaders();
+         
+            // replaced RequestUpdate with not argument by a call to arnold session
+            // result is the same
+            session->RequestUpdate();
+            
+         }
+      }
+   }
+}
+

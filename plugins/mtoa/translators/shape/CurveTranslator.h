@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
@@ -26,11 +26,11 @@ struct CCurveLine
 };
 
 class CCurveTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
    CCurveTranslator() :
-      CGeometryTranslator()
+      CShapeTranslator()
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method

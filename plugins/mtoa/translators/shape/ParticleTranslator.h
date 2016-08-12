@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MFnParticleSystem.h>
 #include <maya/MNodeMessage.h>
@@ -14,11 +14,11 @@
 
 
 class CParticleTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
    CParticleTranslator() :
-      CGeometryTranslator(),
+      CShapeTranslator(),
       m_hasRGB(false),
       m_hasOpacity(false),
       m_hasRadiusPP(false),

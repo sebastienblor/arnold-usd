@@ -24,7 +24,7 @@
 #include <maya/MColorArray.h>
 #include <maya/MNodeMessage.h>
 
-class  CGeometryTranslator : public CShapeTranslator
+class  CPolygonGeometryTranslator : public CShapeTranslator
 {
 public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
@@ -39,8 +39,7 @@ public:
    virtual void ExportMotion(AtNode* anode, unsigned int step);
    virtual void UpdateMotion(AtNode* anode, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
-   virtual void AddUpdateCallbacks();
-
+   
 protected:
    bool GetVertices(const MObject& geometry,
          const float*& vertices);
@@ -91,8 +90,6 @@ protected:
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, unsigned int step);
 
-   static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
-   void AddShaderAssignmentCallbacks(MObject & dagNode);
    virtual bool IsGeoDeforming();
 
 protected:

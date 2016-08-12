@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
-class CArnoldStandInsTranslator : public CGeometryTranslator
+class CArnoldStandInsTranslator : public CShapeTranslator
 {
 public:
    static void* creator()
@@ -20,7 +20,7 @@ public:
 
 protected:
    CArnoldStandInsTranslator()  :
-      CGeometryTranslator()
+      CShapeTranslator()
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method
