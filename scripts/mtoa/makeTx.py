@@ -61,14 +61,15 @@ def expandFilename(filename):
 #    expand_glob = re.sub(_token_udim_rx, '[1-9][0-9][0-9][0-9]', filename)
 #    expand_glob = re.sub(_token_tile_rx, '_u[0-9]*_v[0-9]*', expand_glob)
 #    expand_glob = re.sub(_token_attr_rx, '*', expand_glob)
-
     
     # testing AiTextureGetFormat to make sure the file is a valid image causes an image load.
     # Either we discard it after calling this function, or we simply don't do the check.
     # let's try the first option for now....
     filteredList = filter(lambda p: AiTextureGetFormat(p), glob.glob(expand_glob))
     for filteredImg in filteredList:
-        AiTextureInvalidate(filteredImg)
+        if os.path.splitext(filteredImg)[1] != '.tx':
+            # don't invalidate .tx files
+            AiTextureInvalidate(filteredImg)
 
     return filteredList
 
