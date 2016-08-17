@@ -1740,6 +1740,7 @@ void CArnoldSession::ExportTxFiles()
    }
 
    bool progressStarted = false;
+   std::map<std::string, std::string> textureColorSpaces;
    for (size_t i = 0; i < textureNodes.size(); ++i)
    {
       CNodeTranslator *translator = textureNodes[i];
@@ -1749,6 +1750,7 @@ void CArnoldSession::ExportTxFiles()
       if (node == NULL) continue;
       
       MString filename = AiNodeGetStr(node, "filename");
+      std::string filenameStr = filename.asChar();
 
       const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
       bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
@@ -1756,6 +1758,22 @@ void CArnoldSession::ExportTxFiles()
       bool invalidProgressWin = false;
       if (fileAutoTx)
       {
+         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
+         std::string colorSpaceStr = colorSpace.asChar();
+
+         std::map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+         if (it == textureColorSpaces.end())
+         {
+            textureColorSpaces[filenameStr] = colorSpaceStr;
+         } else
+         {
+            // already dealt with this filename, skip the auto-tx
+            if (colorSpaceStr != it->second)
+            {
+               AiMsgDebug("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
+            }
+            goto USE_TX;
+         }
 
          if (progressBar)
          {
@@ -1822,7 +1840,6 @@ void CArnoldSession::ExportTxFiles()
 
 
          // convert TX
-         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
          int createdFiles = 0;
          int skippedFiles = 0;
          int errorFiles = 0;
