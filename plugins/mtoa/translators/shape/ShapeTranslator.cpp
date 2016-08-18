@@ -105,6 +105,7 @@ AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vect
 
    AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
    AiNodeLink(rootShader, "beauty", shadingEngine);
+   m_updateShaders = false;
    return shadingEngine;
 }
 
@@ -165,30 +166,8 @@ void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage m
    if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
    {
       CShapeTranslator * translator = static_cast< CShapeTranslator* >(clientData);
-      CArnoldSession *session = CMayaScene::GetArnoldSession();
-
-      if (translator != NULL)
-      {
-         // FIXME : If a rendering is in progress, I can't create these new nodes
-         // so I need to interrupt the rendering, even if Continuous Updates are OFF
-         if (!AiRendering())
-         {
-            translator->ExportShaders();
-            // replaced RequestUpdate with not argument by a call to arnold session
-            // result is the same
-            session->RequestUpdate(); 
-         } else
-         {
-            CMayaScene::GetRenderSession()->InterruptRender(true);
-            // Export the new shaders.
-            translator->ExportShaders();
-         
-            // replaced RequestUpdate with not argument by a call to arnold session
-            // result is the same
-            session->RequestUpdate();
-            
-         }
-      }
+      translator->m_updateShaders = true;
+      translator->RequestUpdate();
    }
 }
 

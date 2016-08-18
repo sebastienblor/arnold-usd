@@ -12,6 +12,7 @@ public:
       m_atNode       = CDagTranslator::Init(session, dagPath, outputAttr);
       m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
       m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+      m_updateShaders = false;
       return m_atNode;
    }
    virtual bool RequiresMotionData()
@@ -19,7 +20,7 @@ public:
       return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
    }
    virtual void AddUpdateCallbacks();
-   virtual void ExportShaders(){}
+   virtual void ExportShaders(){m_updateShaders = false;}
 
 protected:
    virtual void ProcessRenderFlags(AtNode* node);
@@ -39,6 +40,5 @@ protected:
 protected:
    bool m_motion;
    bool m_motionDeform;
-
-
+   bool m_updateShaders;
 };

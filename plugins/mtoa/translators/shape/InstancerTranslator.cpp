@@ -36,6 +36,7 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
 void CInstancerTranslator::Update(AtNode *anode)
 {
    ExportInstancer(anode, true);
+   // no need to update shaders here ? this used to be in CPolygonGeometry::ExportMeshShaders
 }
 
 void CInstancerTranslator::ExportMotion(AtNode* anode, unsigned int step)

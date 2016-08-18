@@ -178,6 +178,9 @@ void CArnoldProceduralTranslator::ExportStandinsShaders(AtNode* procedural)
                         AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
       }
    }
+
+   // my shaders are now up-to-date
+   m_updateShaders = false;
 }
 
 void CArnoldProceduralTranslator::ExportBoundingBox(AtNode* procedural)
@@ -278,7 +281,7 @@ void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
    }
 
    // call parent function
-   CGeometryTranslator::NodeChanged(node, plug);
+   CShapeTranslator::NodeChanged(node, plug);
 }
 
 
