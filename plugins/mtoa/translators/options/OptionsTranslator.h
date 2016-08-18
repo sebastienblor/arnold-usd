@@ -29,7 +29,6 @@ public:
    virtual void Export(AtNode* options);
    virtual void Update(AtNode *options);
    AtNode* CreateArnoldNodes();
-   virtual bool DependsOnExportCamera() {return true;}
 
    void SetCamera(AtNode *options);
    bool IsActiveAOV(CAOV &aov) const

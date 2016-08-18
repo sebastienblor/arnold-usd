@@ -546,16 +546,6 @@ AtNode* CNodeTranslator::GetArnoldRootNode()
    return m_atNode;
 }
 
-/// Set the root node of the exported shading network
-///
-/// Usually this function does not need to be called as the return result of CreateArnoldNodes()
-/// serves the same purpose. This is included to allow dynamic networks to be created where the root node
-/// is still unknown during CreateArnoldNodes()
-void CNodeTranslator::SetArnoldRootNode(AtNode* node)
-{
-   m_atNode = node;
-}
-
 /// convert from maya matrix to AtMatrix
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession)
 {

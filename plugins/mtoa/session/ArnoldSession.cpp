@@ -1214,7 +1214,7 @@ void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
    if (m_isExportingMotion && IsInteractiveRender()) return;
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_handle, translator));
 }
 
 /*
@@ -1448,7 +1448,7 @@ void CArnoldSession::DoUpdate()
             {
                // For RenderView, we don't clear the update callbacks
                // we just add them if they're missing
-               if (!translator->HasUpdateCallbacks())
+               if (translator->m_mayaCallbackIDs.length() == 0)
                {
                   translator->AddUpdateCallbacks();
                } 
@@ -1496,21 +1496,19 @@ void CArnoldSession::ClearUpdateCallbacks()
 
 /// If called prior to export, only the specified camera will be exported. If not set, all cameras
 /// will be exported, but some translators may not be able to fully export without an export camera specified.
-/// To address this potential issue, this method should be called after a multi-cam export, as it will cause all
-/// translators for which CNodeTranslator::DependsOnExportCamera() returns true to be updated.
+/// To address this potential issue, this method should be called after a multi-cam export, as it will cause
+/// the options translator to be updated
 ///
 void CArnoldSession::SetExportCamera(MDagPath camera)
 {
    AiMsgDebug("[mtoa.session] Setting export camera to \"%s\"", camera.partialPathName().asChar());
    m_sessionOptions.SetExportCamera(camera);
 
-   // queue up translators for update
-   ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {
-      if (it->second->DependsOnExportCamera())
-         QueueForUpdate(it->second);
-   }
+   // just queue the options translator now 
+   // instead of relying on the DependsOnExportCamera.
+   // In the future we should have a generic way to make translators dependent from others,
+   // so that whatever change in one translator propagates an update on the others
+   QueueForUpdate(m_optionsTranslator);
    DoUpdate();
 }
 

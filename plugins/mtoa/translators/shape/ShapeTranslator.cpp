@@ -156,9 +156,6 @@ void CShapeTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 }
 
-// During Shader Assignment callbacks
-// we don't want to re-export the full geometry, but instead just call ExportShaders
-// but problem, this must not be done here !
 void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
 {
    // Shading assignments are done with the instObjGroups attr, so we only

@@ -242,7 +242,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
 
          if (bump != NULL)
          {
-            SetArnoldRootNode(bump);
+            m_atNode = bump;
             while (true)
             {
                AtNode* connectedBump = AiNodeGetLink(bump, "shader");

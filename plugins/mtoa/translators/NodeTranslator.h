@@ -79,9 +79,7 @@ public:
 
    // overridable translator properties
    virtual bool IsMayaTypeDag() {return false;}
-   virtual bool IsMayaTypeRenderable() {return false;}
-   virtual bool IsMayaTypeLight() { return false; }
-   virtual bool DependsOnExportCamera() {return false;}
+
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
    virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
@@ -105,7 +103,7 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
-   bool HasUpdateCallbacks() const {return m_mayaCallbackIDs.length() > 0;}
+   
 
 enum UpdateMode {
    AI_UPDATE_ONLY=0,
@@ -149,7 +147,6 @@ protected:
       ExportOverrideSets();
       return DoCreateArnoldNodes();
    }
-   CNodeAttrHandle GetMayaHandle() const { return m_handle; }
 
    virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}
@@ -203,8 +200,6 @@ protected:
    AtNode* ExportNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = 0);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
-   // set the arnold node that this translator is exporting (should only be used after all export steps are complete)
-   virtual void SetArnoldRootNode(AtNode* node);
    virtual AtNode* AddArnoldNode(const char* type, const char* tag="");
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
 

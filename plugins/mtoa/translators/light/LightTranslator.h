@@ -18,7 +18,7 @@ public:
    }
    static AtRGB ConvertKelvinToRGB(float kelvin);
 protected:
-   virtual bool IsMayaTypeLight() { return true; }
+
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, unsigned int step);
    virtual void Delete();

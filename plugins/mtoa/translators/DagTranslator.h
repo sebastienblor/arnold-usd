@@ -28,7 +28,6 @@ public:
    virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
    virtual MString GetMayaPartialPathName() const { return m_dagPath.partialPathName(); }
    virtual bool IsMayaTypeDag() {return true;}
-   virtual bool IsMayaTypeRenderable() {return true;}
 
    virtual void AddUpdateCallbacks();
    // for initializer callbacks:
