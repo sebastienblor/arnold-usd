@@ -57,10 +57,6 @@ public:
    {
       return Init(session, CNodeAttrHandle(nodeObject, attrName));
    }
-   virtual AtNode* Init(CArnoldSession* session, const MPlug& plug)
-   {
-      return Init(session, CNodeAttrHandle(plug));
-   }
 
    virtual MObject GetMayaObject() const { return m_handle.object(); }
    virtual MString GetMayaNodeName() const { return MFnDependencyNode(m_handle.object()).name(); }
@@ -172,7 +168,6 @@ protected:
    virtual void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
    virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
    void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
-   void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int step);
    AtNode* ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
    void ExportUserAttribute(AtNode *anode);

@@ -793,9 +793,9 @@ void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, 
    }
    else
    {
-      // TODO: Shouldn't we avoid call translator->GetMayaNodeName().asChar() if translator is NULL?
+      MFnDependencyNode dnode(node);
       AiMsgWarning("[mtoa.translator.ipr] %-30s | Translator callback for node deleted, no translator in client data: %p.",
-                   translator->GetMayaNodeName().asChar(), clientData);
+                   dnode.name().asChar(), clientData);
    }
 }
 

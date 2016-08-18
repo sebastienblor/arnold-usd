@@ -18,7 +18,8 @@ class DLLEXPORT CShaderTranslator
    :  public CNodeTranslator
 {
 public:
-   AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="");
+   // why was this function declared here, as it's never defined ?
+   //AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="");
    static void* creator()
    {
       return new CShaderTranslator();

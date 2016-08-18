@@ -343,6 +343,8 @@ static void RecursiveRequestUpdate(MDagPath path, CArnoldSession *session, CNode
 }
 
 /// Update a set means update all members
+// Note that this function RequestUpdate is local to this class.
+// It will never be called from CNodeTranslator as we're overriding the callbacks here
 void CObjectSetTranslator::RequestUpdate()
 {
    // Update means all members should be updated

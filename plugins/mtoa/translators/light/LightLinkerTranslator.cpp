@@ -199,6 +199,8 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
 }
 
 /// Update a light linker means update all member objects (not lights)
+// Note that this function RequestUpdate is local to this class.
+// It will never be called from CNodeTranslator as we're overriding the callbacks here
 void CLightLinkerTranslator::RequestUpdate()
 {
    MStatus stat;
