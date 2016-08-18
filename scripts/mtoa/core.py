@@ -204,10 +204,10 @@ def createOptions():
     import mtoa.hooks as hooks
 
     # the shared option ensures that it is only created if it does not exist
-    options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-    filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
-    driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
-    displayDriverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDisplayDriver', skipSelect=True, shared=True)
+    options = pm.createNode('aiOptions', skipSelect=True, shared=True, name=':defaultArnoldRenderOptions')
+    filterNode = pm.createNode('aiAOVFilter', name=':defaultArnoldFilter', skipSelect=True, shared=True)
+    driverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDriver', skipSelect=True, shared=True)
+    displayDriverNode = pm.createNode('aiAOVDriver', name=':defaultArnoldDisplayDriver', skipSelect=True, shared=True)
 
     if (filterNode or driverNode) and not options:
         options = pm.PyNode('defaultArnoldRenderOptions')
