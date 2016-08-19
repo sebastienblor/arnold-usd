@@ -3,6 +3,7 @@
 #include "extension/PxUtils.h"
 #include "extension/PathUtils.h"
 #include "translators/NodeTranslator.h"
+#include "translators/DagTranslator.h"
 #include "utils/Version.h"
 
 #include <maya/MTypeId.h>

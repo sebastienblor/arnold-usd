@@ -10,9 +10,6 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
 
-   inline const ArnoldLightLinkMode& GetLightLinkMode() const {return m_session->GetLightLinkMode();}
-   inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_session->GetShadowLinkMode();}
-
 protected:
    CLightLinkerTranslator() :
       CNodeTranslator()

@@ -1,11 +1,18 @@
-
 #include "MeshTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include <maya/MFnMeshData.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MMeshSmoothOptions.h>
 #include <maya/MItMeshVertex.h>
 #include <maya/MDagPathArray.h>
+
+CMeshTranslator::CMeshTranslator()  :
+   CPolygonGeometryTranslator()
+{
+   // Just for debug info, translator creates whatever arnold nodes are required
+   // through the CreateArnoldNodes method
+   m_impl->m_abstract.arnold = "polymesh";
+}
 
 unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
 {
@@ -57,13 +64,13 @@ bool CMeshTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &mast
       if (instNum == 0)
       {
          // first visible instance is always the master (passed dagPath is assumed to be visible)
-         m_session->AddMasterInstanceHandle(handle, dagPath);
+         GetSession()->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
       else
       {
          // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = m_session->GetMasterInstanceDagPath(handle);
+         MDagPath currDag = GetSession()->GetMasterInstanceDagPath(handle);
          if (currDag.isValid())
          {
             // previously found the master
@@ -77,16 +84,16 @@ bool CMeshTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &mast
          {
             currDag = allInstances[master_index];
             // The following line was overridden to add the GetNumMeshGroups check
-            if (m_session->IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
+            if (GetSession()->IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
             {
                // found it
-               m_session->AddMasterInstanceHandle(handle, currDag);
+               GetSession()->AddMasterInstanceHandle(handle, currDag);
                masterDag.set(currDag);
                return false;
             }
          }
          // didn't find a master: dagPath is the master
-         m_session->AddMasterInstanceHandle(handle, dagPath);
+         GetSession()->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
    }

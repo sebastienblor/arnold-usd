@@ -1,5 +1,5 @@
 #include "StandinsTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
@@ -17,6 +17,13 @@
 
 
 #include <maya/MString.h>
+CArnoldStandInsTranslator::CArnoldStandInsTranslator()  :
+   CShapeTranslator()
+{
+   // Just for debug info, translator creates whatever arnold nodes are required
+   // through the CreateArnoldNodes method
+   m_impl->m_abstract.arnold = "procedural";
+}
 
 void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -52,7 +59,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 AtByte CArnoldStandInsTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_session->IsRenderablePath(m_dagPath))
+   if (false == GetSession()->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
@@ -449,7 +456,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
       }
       
-      m_session->FormatProceduralPath(resolvedName);
+      GetSession()->FormatProceduralPath(resolvedName);
       AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");

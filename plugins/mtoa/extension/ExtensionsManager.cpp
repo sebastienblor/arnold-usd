@@ -4,7 +4,7 @@
 #include "AbMayaNode.h"
 #include "AbTranslator.h"
 #include "utils/Version.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include "utils/Universe.h"
 
 #include "nodes/ArnoldNodeIDs.h"
@@ -795,7 +795,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       translator = (CNodeTranslator*)creatorFunction();
       // This customize the prototype instance of the translator
       // with the information found in the translator class proxy
-      translator->m_abstract = CAbTranslator(foundTrs->name, foundTrs->arnold, mayaNode.name, foundTrs->provider);
+      translator->m_impl->m_abstract = CAbTranslator(foundTrs->name, foundTrs->arnold, mayaNode.name, foundTrs->provider);
    }
    else
    {

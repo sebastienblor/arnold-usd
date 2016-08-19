@@ -1,8 +1,9 @@
 #include "AutoCameraTranslator.h"
+#include "../NodeTranslatorImpl.h"
 
 AtNode* CAutoCameraTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode(m_abstract.arnold.asChar());
+   return AddArnoldNode(m_impl->m_abstract.arnold.asChar());
 }
 
 void CAutoCameraTranslator::Export(AtNode* camera)

@@ -10,12 +10,7 @@ class CHairTranslator
    :   public CShapeTranslator
 {
 public:
-   CHairTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "curves";
-   }
+   CHairTranslator();
 
    virtual void Export(AtNode* curve);
    virtual void Update(AtNode* curve);

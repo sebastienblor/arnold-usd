@@ -1,6 +1,18 @@
 #include "ShadingEngineTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 #include "../DagTranslator.h"
 #include "scene/MayaScene.h"
+
+CShadingEngineTranslator::CShadingEngineTranslator() :
+   CNodeTranslator()
+{
+   m_impl->m_shaders = new std::set<AtNode*>;//AtNodeSet;
+}
+CShadingEngineTranslator::~CShadingEngineTranslator()
+{
+   delete m_impl->m_shaders;
+}
+
 
 AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 {
@@ -57,9 +69,9 @@ void CShadingEngineTranslator::ComputeAOVs()
          CAOV aov;
          MString value = arrayPlug[i].child(0).asString();
          aov.SetName(value);
-         if (m_session->IsActiveAOV(aov))
+         if (GetSession()->IsActiveAOV(aov))
          {
-            m_localAOVs.insert(aov);
+            m_impl->m_localAOVs.insert(aov);
             m_customAOVPlugs.append(connections[0]);
             AiMsgDebug("[mtoa.translator.aov] %-30s | \"%s\" is active on attr %s",
                        GetMayaNodeName().asChar(), value.asChar(), msgPlug.partialName(false, false, false, false, true, true).asChar());
@@ -127,7 +139,7 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 
          // if the node is not yet in the shading network for this shape, then branch it in.
          // m_shaders contains all the arnold nodes in a shape's shading network.
-         if (!m_shaders->count(writeNode))
+         if (!m_impl->m_shaders->count(writeNode))
          {
             aovShaders.push_back(writeNode);
          }
@@ -187,7 +199,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (!status)
                continue;
 
-            CNodeTranslator* translator2 = m_session->ExportDagPath(dagPath, true);
+            CNodeTranslator* translator2 = GetSession()->ExportDagPath(dagPath, true);
 
             if (translator2 == 0)
                continue;

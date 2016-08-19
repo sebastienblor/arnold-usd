@@ -46,16 +46,8 @@ public:
 
    static void AddProjectFoldersToSearchPaths(AtNode* options);
 protected:
-   COptionsTranslator()  :
-      CNodeTranslator(),
-      m_aovs(),
-      m_aovsEnabled(true),
-      m_aovsInUse(false)
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "options";
-   }
+   COptionsTranslator();
+   
    void ProcessAOVs();
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();

@@ -3,6 +3,8 @@
 #include "common/DynLibrary.h"
 #include "nodes/ArnoldNodeIDs.h"
 
+#include "translators/NodeTranslatorImpl.h"
+
 #define MNoVersionString
 #define MNoPluginEntry
 
@@ -762,10 +764,10 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    trs = (CNodeTranslator*)creatorFunction();
    if (NULL != trs)
    {
-      if (trsProxy.name == "") trsProxy.name = trs->m_abstract.name;
-      if (trsProxy.arnold == "") trsProxy.arnold = trs->m_abstract.arnold;
+      if (trsProxy.name == "") trsProxy.name = trs->m_impl->m_abstract.name;
+      if (trsProxy.arnold == "") trsProxy.arnold = trs->m_impl->m_abstract.arnold;
       // if (trsProxy.maya == "") trsProxy.maya = trs->m_abstract.maya;
-      if (trsProxy.provider == "") trsProxy.provider = trs->m_abstract.provider;
+      if (trsProxy.provider == "") trsProxy.provider = trs->m_impl->m_abstract.provider;
 
       delete trs;
    }

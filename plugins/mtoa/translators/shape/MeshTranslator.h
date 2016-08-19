@@ -23,13 +23,8 @@ public:
    AtNode* CreateArnoldNodes();
 
 protected:
-   CMeshTranslator()  :
-      CPolygonGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "polymesh";
-   }
+   CMeshTranslator();
+   
    // overridden from CDagTranslator to add a GetNumMeshGroups check
    virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
    virtual void NodeChanged(MObject& node, MPlug& plug);

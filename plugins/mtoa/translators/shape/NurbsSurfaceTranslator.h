@@ -19,13 +19,8 @@ public:
    }
    AtNode* CreateArnoldNodes();
 protected:
-   CNurbsSurfaceTranslator()  :
-      CPolygonGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "polymesh";
-   }
+   CNurbsSurfaceTranslator();
+   
 private:
    MStatus Tessellate(const MDagPath &dagPath);
    void GetTessellationOptions(MTesselationParams & params,

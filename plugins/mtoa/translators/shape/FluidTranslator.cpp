@@ -1,10 +1,11 @@
 #include "FluidTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include <maya/MFnFluid.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MColor.h>
 #include <maya/MPlugArray.h>
 
+bool CFluidTranslator::RequiresMotionData(){return IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);}
 void CFluidTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper("fluidShape");
@@ -358,7 +359,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       double motion_start = 0.;
       double motion_end = 1.;
       // multiply the scale by the shutter length (ignoring shutter offset here...)
-      m_session->GetMotionRange(motion_start, motion_end);
+      GetSession()->GetMotionRange(motion_start, motion_end);
       mv_scale *= (float)(motion_end - motion_start);
       
       AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);

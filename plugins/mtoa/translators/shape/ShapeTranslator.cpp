@@ -1,6 +1,6 @@
 #include "ShapeTranslator.h"
 #include "scene/MayaScene.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
@@ -10,6 +10,15 @@
 
 #include <common/UtilityFunctions.h>
 #include <utils/HashUtils.h>
+
+AtNode* CShapeTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
+{
+   m_impl->m_atNode       = CDagTranslator::Init(session, dagPath, outputAttr);
+   m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+   m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
+   m_updateShaders = false;
+   return m_impl->m_atNode;
+}
 
 void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
 {

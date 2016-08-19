@@ -9,6 +9,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MMatrix.h>
 #include <maya/MMatrixArray.h>
+#include <maya/MVectorArray.h>
 #include <maya/MIntArray.h>
 #include <maya/MTime.h>
 #include <maya/MBoundingBox.h>
@@ -20,13 +21,8 @@ class CInstancerTranslator
    :   public CShapeTranslator
 {
 protected:
-   CInstancerTranslator() :
-      CShapeTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "ginstance";
-   }
+   CInstancerTranslator();
+
 public:
    static void* creator()
    {

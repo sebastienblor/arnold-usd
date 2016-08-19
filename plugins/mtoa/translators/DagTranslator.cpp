@@ -5,7 +5,7 @@
 #include <maya/MNodeMessage.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MFnTransform.h>
-
+#include "NodeTranslatorImpl.h"
 void CDagTranslator::Export(AtNode* node)
 {
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
@@ -80,7 +80,7 @@ MStatus CDagTranslator::ExportOverrideSets()
 {
    MStatus status;
 
-   m_overrideSets.clear();
+   m_impl->m_overrideSets.clear();
    MDagPath path = m_dagPath;
    // Check for passed path
    MObjectArray overrideSetObjs;
@@ -103,7 +103,7 @@ MStatus CDagTranslator::ExportOverrideSets()
    for (unsigned int i=0; i<ns; i++)
    {
       fnSet.setObject(overrideSetObjs[i]);
-      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
+      m_impl->m_overrideSets.push_back(GetSession()->ExportNode(fnSet.findPlug("message")));
    }
 
    return status;
@@ -171,8 +171,8 @@ void CDagTranslator::Delete()
    // Arnold doesn't allow us to create nodes in between to calls to AiRender
    // for the moment. For IPR we still need to rely on setting the visibility for now.
    //AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
-   m_atNode = NULL;
-   m_atNodes.clear();
+   m_impl->m_atNode = NULL;
+   m_impl->m_atNodes.clear();
 }
 
 /// Return whether the current dag object is the master instance.
@@ -221,13 +221,13 @@ bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &maste
       if (instNum == 0)
       {
          // first visible instance is always the master (passed dagPath is assumed to be visible)
-         m_session->AddMasterInstanceHandle(handle, dagPath);
+         GetSession()->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
       else
       {
          // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = m_session->GetMasterInstanceDagPath(handle);
+         MDagPath currDag = GetSession()->GetMasterInstanceDagPath(handle);
          if (currDag.isValid())
          {
             // previously found the master
@@ -241,16 +241,16 @@ bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &maste
          for (; (master_index < dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (m_session->IsRenderablePath(currDag))
+            if (GetSession()->IsRenderablePath(currDag))
             {
                // found it
-               m_session->AddMasterInstanceHandle(handle, currDag);
+               GetSession()->AddMasterInstanceHandle(handle, currDag);
                masterDag.set(currDag);
                return false;
             }
          }
          // didn't find a master: dagPath is the master
-         m_session->AddMasterInstanceHandle(handle, dagPath);
+         GetSession()->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
    }
@@ -288,7 +288,7 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSe
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   GetMatrix(matrix, m_dagPath, m_session);
+   GetMatrix(matrix, m_dagPath, GetSession());
 }
 
 // this is a utility method which handles the common tasks associated with
@@ -322,7 +322,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
 AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_session->IsRenderablePath(path))
+   if (false == GetSession()->IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;

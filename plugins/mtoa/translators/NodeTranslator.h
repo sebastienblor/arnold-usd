@@ -3,7 +3,7 @@
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "attributes/AttrHelper.h"
-#include "session/ArnoldSession.h"
+
 #include "extension/AbTranslator.h"
 #include "render/AOV.h"
 
@@ -24,6 +24,11 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
+class CNodeTranslatorImpl;
+class CArnoldSession;
+
+struct CSessionOptions;
+
 MString GetAOVNodeType(int type);
 
 // Abstract base class for all Maya-to-Arnold node translators
@@ -37,37 +42,32 @@ class DLLEXPORT CNodeTranslator
    friend class CExtension;
    friend class CRenderSwatchGenerator;
    friend class CMaterialView;
-
-private:
-   AtNode* DoExport(unsigned int step);
-   AtNode* DoUpdate(unsigned int step);
-   AtNode* DoCreateArnoldNodes();
-   void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
-   bool ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
-   AtNode* ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
+   friend class CNodeTranslatorImpl;
 
 public:
-   MString GetTranslatorName() {return m_abstract.name;}
-   /// for translators that are associated with a specific arnold node
-   MString GetArnoldNodeType() {return m_abstract.arnold;};
-
-   virtual ~CNodeTranslator()
-   {}
+   
+   virtual ~CNodeTranslator();
+   
    virtual AtNode* Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
    {
       return Init(session, CNodeAttrHandle(nodeObject, attrName));
    }
+   
+   MObject GetMayaObject() const;
+   MString GetMayaNodeName() const;
+   MString GetMayaAttributeName() const;
 
-   virtual MObject GetMayaObject() const { return m_handle.object(); }
-   virtual MString GetMayaNodeName() const { return MFnDependencyNode(m_handle.object()).name(); }
-   virtual MString GetMayaAttributeName() const { return m_handle.attribute(); }
-   virtual MString GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
-   virtual MObject GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_handle.object()).attribute(attributeName); }
+
+   MString GetMayaNodeTypeName() const;
+   MObject GetMayaObjectAttribute(MString attributeName) const;
 
    virtual AtNode* GetArnoldRootNode();
    virtual AtNode* GetArnoldNode(const char* tag="");
    virtual const char* GetArnoldNodeName(const char* tag="");
    virtual const char* GetArnoldTypeName(const char* tag="");
+   MString GetTranslatorName();
+   /// for translators that are associated with a specific arnold node
+   MString GetArnoldNodeType();
 
    virtual MPlug FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
    virtual MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
@@ -81,7 +81,7 @@ public:
    virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
 
    virtual void TrackAOVs(AOVSet* aovs);
-   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
+   virtual void TrackShaders(std::set<AtNode*> *nodes);
 
    // Overide this if you have some special callbacks to install.
    virtual void AddUpdateCallbacks();
@@ -103,27 +103,15 @@ public:
 
 enum UpdateMode {
    AI_UPDATE_ONLY=0,
-   AI_DELETE_NODE=1,
-   AI_RECREATE_NODE,
-   AI_RECREATE_TRANSLATOR
+   AI_RECREATE_NODE = 1,
+   AI_RECREATE_TRANSLATOR,
+   AI_DELETE_NODE   
 };
 
-   void SetUpdateMode(UpdateMode m) {m_updateMode = MAX(m_updateMode, m);}
+   void SetUpdateMode(UpdateMode m);
 
 protected:
-   CNodeTranslator()  :
-      m_abstract(CAbTranslator()),
-      m_session(NULL),
-      m_atNode(NULL),
-      m_overrideSets(),
-      m_step(0),
-      m_localAOVs(),
-      m_upstreamAOVs(),
-      m_shaders(NULL),
-      m_updateMode(AI_UPDATE_ONLY),
-      m_holdUpdates(false),
-      m_handle(CNodeAttrHandle())      
-   {}
+   CNodeTranslator();
 
    // function to override to customize how a translator behaves during IPR updates
    virtual void NodeChanged(MObject& node, MPlug& plug); 
@@ -136,13 +124,7 @@ protected:
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    void WriteAOVUserAttributes(AtNode* atNode);
    
-   AtNode* Init(CArnoldSession* session, const CNodeAttrHandle& object)
-   {
-      m_session = session;
-      m_handle = object;
-      ExportOverrideSets();
-      return DoCreateArnoldNodes();
-   }
+   AtNode* Init(CArnoldSession* session, const CNodeAttrHandle& object);
 
    virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}
@@ -173,23 +155,16 @@ protected:
    void ExportUserAttribute(AtNode *anode);
 
    // session info
-   inline double GetExportFrame() const {return m_session->GetExportFrame();}
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_session->IsMotionBlurEnabled(type); }
-   bool IsLocalMotionBlurEnabled() const
-   {
-      bool local_motion_attr(true);
-      MPlug plug = FindMayaPlug("motionBlur");
-      if (!plug.isNull())
-         local_motion_attr = plug.asBool();
-      return local_motion_attr;
-   }
-   inline unsigned int GetMotionStep() const {return m_step;}
-   inline unsigned int GetNumMotionSteps() const {return m_session->GetNumMotionSteps();}
-   inline CArnoldSession* GetSession() const {return m_session;}
-   inline const CSessionOptions& GetSessionOptions() const  { return m_session->GetSessionOptions(); }
-   inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
-   inline const MObject& GetArnoldRenderOptions() const   { return m_session->GetArnoldRenderOptions(); }
-   inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
+   double GetExportFrame() const;
+   bool IsMotionBlurEnabled(int type = 0xFFFF/*MTOA_MBLUR_ANY*/) const; // FIXME find a way to restore MTOA_MBLUR_ANY
+   bool IsLocalMotionBlurEnabled() const;
+   unsigned int GetMotionStep() const;
+   unsigned int GetNumMotionSteps() const;
+   CArnoldSession* GetSession() const;
+   const CSessionOptions& GetSessionOptions() const;
+   int /*ArnoldSessionMode*/ GetSessionMode() const; // FIXME find a way to restore ArnoldSessionMode
+   const MObject& GetArnoldRenderOptions() const;
+   double GetMotionByFrame() const;
 
    // session action
    AtNode* ExportNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = 0);
@@ -209,29 +184,9 @@ protected:
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
    
 protected:
-
-   CAbTranslator m_abstract;
-
-   CArnoldSession* m_session;
-
-   AtNode* m_atNode;
-   std::map<std::string, AtNode*> m_atNodes;
-
-   std::vector<CNodeTranslator*> m_overrideSets;
-
-   unsigned int m_step;
-
-   AOVSet m_localAOVs;
-   AOVSet m_upstreamAOVs;
-   AtNodeSet* m_shaders;
-
-   // This stores callback IDs for the callbacks this
-   // translator creates.
-   MCallbackIdArray m_mayaCallbackIDs;
-
-   UpdateMode m_updateMode;
-   bool m_holdUpdates; // for Arnold RenderView only
-private:
    
-   CNodeAttrHandle m_handle;
+   // would be better to make it private, but for now we're just trying to move there 
+   // what is not necessary for the API
+   CNodeTranslatorImpl * m_impl;
+
 };

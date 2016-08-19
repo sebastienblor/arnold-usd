@@ -1,4 +1,4 @@
-
+#include "translators/NodeTranslatorImpl.h"
 #include "NParticleTranslator.h"
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
@@ -15,6 +15,14 @@
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
+
+CNParticleTranslator::CNParticleTranslator() :
+  CParticleTranslator()
+{
+  // Just for debug info, translator creates whatever arnold nodes are required
+  // through the CreateArnoldNodes method
+  m_impl->m_abstract.arnold = "points";
+}
 
 
 void CNParticleTranslator::NodeInitializer(CAbTranslator context)

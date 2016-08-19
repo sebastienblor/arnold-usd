@@ -1,4 +1,5 @@
 #include "ProceduralTranslator.h"
+#include "../NodeTranslatorImpl.h"
 
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
@@ -20,6 +21,14 @@
 
 static MCallbackId s_idleCallback = 0;
 static std::vector<CArnoldProceduralTranslator *> s_updatedProcedurals;
+
+CArnoldProceduralTranslator::CArnoldProceduralTranslator()  :
+   CShapeTranslator()
+{
+   // Just for debug info, translator creates whatever arnold nodes are required
+   // through the CreateArnoldNodes method
+   m_impl->m_abstract.arnold = "procedural";
+}
 
 void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -64,7 +73,7 @@ AtNode* CArnoldProceduralTranslator::CreateArnoldNodes()
 AtByte CArnoldProceduralTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_session->IsRenderablePath(m_dagPath))
+   if (false == GetSession()->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
@@ -227,7 +236,7 @@ AtNode* CArnoldProceduralTranslator::ExportProcedural(AtNode* procedural, bool u
        resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
    }
       
-   m_session->FormatProceduralPath(resolvedName);
+   GetSession()->FormatProceduralPath(resolvedName);
    AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
    MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");
@@ -265,7 +274,7 @@ void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
 
       if (allowUpdates)
       {
-         if (m_holdUpdates) return;
+         if (m_impl->m_holdUpdates) return;
          // check if user data exists
          if(s_idleCallback == 0)
          {
@@ -274,7 +283,7 @@ void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
                CArnoldProceduralTranslator::IdleCallback, (void*)NULL, &status);
          }
          s_updatedProcedurals.push_back(this);
-         m_holdUpdates = true;
+         m_impl->m_holdUpdates = true;
          return;
 
       }
@@ -301,8 +310,8 @@ void CArnoldProceduralTranslator::IdleCallback(void *data)
       CArnoldProceduralTranslator *translator = updateProcs[i];
       
       if (translator == NULL) continue;
-      translator->m_updateMode = AI_RECREATE_NODE;
-      translator->m_holdUpdates = false;
+      translator->SetUpdateMode(AI_RECREATE_NODE);
+      translator->m_impl->m_holdUpdates = false;
       translator->RequestUpdate();
    }
 }

@@ -1,6 +1,6 @@
 #include "CameraTranslator.h"
 #include "ImagePlaneTranslator.h"
-
+#include "../NodeTranslatorImpl.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
 
@@ -37,7 +37,7 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
 
          if (status && (connectedPlugs.length() > 0))
          {
-            CNodeTranslator *imgTranslator = m_session->ExportNode(connectedPlugs[0], NULL, NULL, true);
+            CNodeTranslator *imgTranslator = GetSession()->ExportNode(connectedPlugs[0], NULL, NULL, true);
             CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
             if (step == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
             else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldRootNode(), step);            
@@ -45,6 +45,27 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
       }
    }
 }
+AtNode* CCameraTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
+{
+   m_impl->m_atNode = CDagTranslator::Init(session, dagPath, outputAttr);
+   m_fnCamera.setObject(dagPath);
+   return m_impl->m_atNode;
+}
+bool CCameraTranslator::RequiresMotionData()
+{
+   MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");
+   if (motionBlurOverridePlug.isNull())
+      return GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+   else
+   {
+      const short motionBlurOverride = motionBlurOverridePlug.asShort();
+      if (motionBlurOverride == 0)
+         return GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      else
+         return (motionBlurOverride == 1) ? true : false;
+   }      
+}
+
 
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
@@ -52,9 +73,9 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    if (FindMayaPlug("aiEnableDOF").asBool())
    {
       float distance = FindMayaPlug("aiFocusDistance").asFloat();
-      m_session->ScaleDistance(distance);      
+      GetSession()->ScaleDistance(distance);      
       float apertureSize = FindMayaPlug("aiApertureSize").asFloat();
-      m_session->ScaleDistance(apertureSize);
+      GetSession()->ScaleDistance(apertureSize);
       AiNodeSetFlt(camera, "focus_distance",          distance);
       AiNodeSetFlt(camera, "aperture_size",           apertureSize);
       AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
@@ -337,14 +358,14 @@ void CCameraTranslator::GetMatrix(AtMatrix& matrix)
    MMatrix mayaMatrix = m_dagPath.inclusiveMatrix(&status);
    if (status)
    {
-      if (m_session)
+      if (GetSession())
       {
          MTransformationMatrix trMat = mayaMatrix;
-         trMat.addTranslation((-1.0) * m_session->GetOrigin(), MSpace::kWorld);
+         trMat.addTranslation((-1.0) * GetSession()->GetOrigin(), MSpace::kWorld);
          MMatrix copyMayaMatrix = trMat.asMatrix();
-         copyMayaMatrix[3][0] = m_session->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
-         copyMayaMatrix[3][1] = m_session->ScaleDistance(copyMayaMatrix[3][1]);
-         copyMayaMatrix[3][2] = m_session->ScaleDistance(copyMayaMatrix[3][2]);
+         copyMayaMatrix[3][0] = GetSession()->ScaleDistance(copyMayaMatrix[3][0]); // is this a copy or a reference?
+         copyMayaMatrix[3][1] = GetSession()->ScaleDistance(copyMayaMatrix[3][1]);
+         copyMayaMatrix[3][2] = GetSession()->ScaleDistance(copyMayaMatrix[3][2]);
 
          for (int J = 0; (J < 4); ++J)
          {

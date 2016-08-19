@@ -8,6 +8,7 @@
 #include "translators/shader/ShaderTranslators.h"
 #include "nodes/ShaderUtils.h"
 #include "translators/DagTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 #include "utils/MakeTx.h"
 
 #include <ai_msg.h>
@@ -174,7 +175,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
-         arnoldNode = translator->DoExport(0);
+         arnoldNode = translator->m_impl->DoExport(0);
    }
 
    if (NULL != stat) *stat = status;
@@ -293,14 +294,14 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
-         arnoldNode = translator->DoExport(0);
+         arnoldNode = translator->m_impl->DoExport(0);
    }
    if (arnoldNode != NULL)
    {
       if (nodes != NULL)
       {
          std::map<std::string, AtNode*>::iterator nodeIt;
-         for (nodeIt = translator->m_atNodes.begin(); nodeIt != translator->m_atNodes.end(); ++nodeIt)
+         for (nodeIt = translator->m_impl->m_atNodes.begin(); nodeIt != translator->m_impl->m_atNodes.end(); ++nodeIt)
          {
             nodes->insert(nodeIt->second);
          }
@@ -717,7 +718,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // finally, loop through the already processed translators and export for current step
       for (unsigned int i=0; i < size; ++i)
       {
-         m_processedTranslatorList[i]->DoExport(step);
+         m_processedTranslatorList[i]->m_impl->DoExport(step);
       }
    }
 
@@ -740,7 +741,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
       {
          m_processedTranslatorList[i]->AddUpdateCallbacks();
-         m_processedTranslatorList[i]->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         m_processedTranslatorList[i]->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
@@ -1214,7 +1215,7 @@ void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
    if (m_isExportingMotion && IsInteractiveRender()) return;
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_handle, translator));
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->m_impl->m_handle, translator));
 }
 
 /*
@@ -1263,7 +1264,7 @@ void CArnoldSession::DoUpdate()
       CNodeTranslator * translator = m_objectsToUpdate[i].second;
 
       // Check if this translator needs to be re-created
-      if (translator != NULL && translator->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
+      if (translator != NULL && translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
          // delete the current translator, just like AI_DELETE_NODE does
          translator->RemoveUpdateCallbacks();
@@ -1280,17 +1281,17 @@ void CArnoldSession::DoUpdate()
       {
          // Translator already exists
          // check its update mode
-         if(translator->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
+         if(translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
          {
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
             translator->Delete();
-            translator->m_atNodes.clear();
-            translator->DoCreateArnoldNodes();
+            translator->m_impl->m_atNodes.clear();
+            translator->m_impl->DoCreateArnoldNodes();
 
-            translator->DoExport(0);
+            translator->m_impl->DoExport(0);
             translatorsToUpdate.push_back(translator);
-         } else if(translator->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
+         } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
             translator->RemoveUpdateCallbacks();
             translator->Delete();
@@ -1361,7 +1362,7 @@ void CArnoldSession::DoUpdate()
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
             if (translators[i]->IsMayaTypeDag()) aDag = true;
-            translators[i]->DoExport(0);
+            translators[i]->m_impl->DoExport(0);
             translatorsToUpdate.push_back(translators[i]);
          }
       }
@@ -1392,7 +1393,7 @@ void CArnoldSession::DoUpdate()
          iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->DoUpdate(0);
+         if (translator != NULL) translator->m_impl->DoUpdate(0);
       }
    }
    else
@@ -1407,7 +1408,7 @@ void CArnoldSession::DoUpdate()
              iter != translatorsToUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if (translator != NULL) translator->DoUpdate(step);
+            if (translator != NULL) translator->m_impl->DoUpdate(step);
          }
       }
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
@@ -1448,19 +1449,19 @@ void CArnoldSession::DoUpdate()
             {
                // For RenderView, we don't clear the update callbacks
                // we just add them if they're missing
-               if (translator->m_mayaCallbackIDs.length() == 0)
+               if (translator->m_impl->m_mayaCallbackIDs.length() == 0)
                {
                   translator->AddUpdateCallbacks();
                } 
 
-              translator->m_holdUpdates = false; // I'm allowed to receive updates once again
+              translator->m_impl->m_holdUpdates = false; // I'm allowed to receive updates once again
             } else
             {
                translator->RemoveUpdateCallbacks();
                translator->AddUpdateCallbacks();
             }
             // restore the update mode to "update Only"
-            translator->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+            translator->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
          }
       }
    }

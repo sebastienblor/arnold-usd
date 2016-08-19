@@ -18,13 +18,8 @@ public:
    virtual void UpdateMotion(AtNode* anode, unsigned int step);
 
 protected:
-   CArnoldProceduralTranslator()  :
-      CShapeTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "procedural";
-   }
+   CArnoldProceduralTranslator();
+   
    void ExportBoundingBox(AtNode* procedural);
 
    void ExportStandinsShaders(AtNode* procedural);

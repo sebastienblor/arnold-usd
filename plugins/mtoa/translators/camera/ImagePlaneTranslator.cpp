@@ -2,6 +2,8 @@
 #include "CameraTranslator.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
+#include "session/ArnoldSession.h"
+#include "translators/NodeTranslatorImpl.h"
 
 #include <ai_cameras.h>
 #include <ai_constants.h>
@@ -11,6 +13,8 @@
 #include <maya/MPlugArray.h>
 #include <maya/MVector.h>
 #include <maya/MVectorArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MString.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MImage.h>
@@ -86,6 +90,10 @@ static void GetCameraMatrix(MDagPath camera, CArnoldSession *session, AtMatrix& 
    }
 }
 
+bool CImagePlaneTranslator::RequiresMotionData()
+{
+   return GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+}
 
 void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
 {
@@ -386,7 +394,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             if (requestUpdateTx)
             {
                AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
-               m_session->RequestUpdateTx();
+               GetSession()->RequestUpdateTx();
             }
 
             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
@@ -496,12 +504,12 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             // get cam's matrix
             AtMatrix translateMatrix;
 
-            GetCameraMatrix(pathCamera, m_session, translateMatrix);
+            GetCameraMatrix(pathCamera, GetSession(), translateMatrix);
             AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, translateMatrix);
          }
 
          // image plane should move with the camera to render it with no motion blur
-         if (m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
+         if (GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
          {
             if (step == 0)
             {

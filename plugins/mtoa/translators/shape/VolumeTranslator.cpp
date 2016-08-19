@@ -1,5 +1,5 @@
 #include "VolumeTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
@@ -24,6 +24,13 @@ enum VolumeType{
    VT_OPEN_VDB
 };
 
+CArnoldVolumeTranslator::CArnoldVolumeTranslator()  :
+   CShapeTranslator()
+{
+   // Just for debug info, translator creates whatever arnold nodes are required
+   // through the CreateArnoldNodes method
+   m_impl->m_abstract.arnold = "volume";
+}
 void CArnoldVolumeTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "volume");

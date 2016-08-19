@@ -348,10 +348,10 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
       // Hardcoded values for now.
       //float s = 100000.f * fUnitConvFactor;
       //info.setBoundingBox( -s,-s,-s, s, s, s );
-
-      if(CMayaScene::GetArnoldSession())
+      CArnoldSession *session = CMayaScene::GetArnoldSession();
+      if(session)
       {
-         MDagPath camera = m_session->GetExportCamera();
+         MDagPath camera = session->GetExportCamera();
 
          if (camera.isValid())
          {

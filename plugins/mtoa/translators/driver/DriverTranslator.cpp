@@ -1,8 +1,8 @@
 #include "DriverTranslator.h"
 #include "utils/Universe.h"
-
+#include "session/ArnoldSession.h"
 #include <assert.h>
-
+#include "translators/NodeTranslatorImpl.h"
 AtNode* CDriverTranslator::CreateArnoldNodes()
 {
    assert(AiUniverseIsActive());
@@ -16,7 +16,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
       // ("GUI Only", 0);
       // ("Batch Only", 1);
       // ("GUI and Batch", 2);
-      if ((mode == 0 && m_session->IsBatch()) || (mode == 1 && !m_session->IsBatch()))
+      if ((mode == 0 && GetSession()->IsBatch()) || (mode == 1 && !GetSession()->IsBatch()))
          return NULL;
    }
 
@@ -66,7 +66,7 @@ void CDriverTranslator::Export(AtNode *shader)
 #endif
 
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
-         AiNodeSetBool(shader, "progressive", m_session->IsProgressive());
+         AiNodeSetBool(shader, "progressive", GetSession()->IsProgressive());
    }
 }
 

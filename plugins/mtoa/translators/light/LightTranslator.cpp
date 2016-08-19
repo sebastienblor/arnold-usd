@@ -20,9 +20,15 @@
 #include <maya/MVector.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnNumericAttribute.h>
+#include "translators/NodeTranslatorImpl.h"
 
 #include <vector>
 #include <string>
+
+bool CLightTranslator::RequiresMotionData()
+{
+   return GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
+}
 
 void CLightTranslator::Export(AtNode* light)
 {
@@ -30,7 +36,7 @@ void CLightTranslator::Export(AtNode* light)
    AtMatrix matrix;
 
    // Early out, light isn't visible so no point exporting anything else.
-   if (false == m_session->IsRenderablePath(m_dagPath))
+   if (false == GetSession()->IsRenderablePath(m_dagPath))
    {
       AiNodeSetDisabled(GetArnoldRootNode(), true);
       //AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
@@ -59,7 +65,7 @@ void CLightTranslator::Export(AtNode* light)
       m_session->ScaleArea(intensity);
       AiNodeSetFlt(light, "intensity", intensity);*/
       float exposure = AiNodeGetFlt(light, "exposure");
-      m_session->ScaleLightExposure(exposure);
+      GetSession()->ScaleLightExposure(exposure);
       AiNodeSetFlt(light, "exposure", exposure);
    }
 

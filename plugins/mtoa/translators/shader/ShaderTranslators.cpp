@@ -1,4 +1,5 @@
 #include "ShaderTranslators.h"
+#include "translators/NodeTranslatorImpl.h"
 #include "scene/MayaScene.h"
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
@@ -262,7 +263,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
 
-      m_session->FormatTexturePath(resolvedFilename);
+      GetSession()->FormatTexturePath(resolvedFilename);
 
       MString prevFilename = AiNodeGetStr(shader, "filename");
 
@@ -295,7 +296,7 @@ void CFileTranslator::Export(AtNode* shader)
       m_colorSpace = colorSpace;
 
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
-      if (requestUpdateTx) m_session->RequestUpdateTx();
+      if (requestUpdateTx) GetSession()->RequestUpdateTx();
    }
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
@@ -1231,7 +1232,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (!status)
                continue;
 
-            CNodeTranslator* translator2 = m_session->ExportDagPath(dagPath, true);
+            CNodeTranslator* translator2 = GetSession()->ExportDagPath(dagPath, true);
             if (translator2 == 0)
                continue;
 
@@ -1540,7 +1541,7 @@ void CAiImageTranslator::Export(AtNode* image)
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
       
-      m_session->FormatTexturePath(filename);
+      GetSession()->FormatTexturePath(filename);
 
       MString prevFilename = AiNodeGetStr(image, "filename");
 
@@ -1575,7 +1576,7 @@ void CAiImageTranslator::Export(AtNode* image)
       AiNodeSetStr(image, "filename", filename.asChar());
 
       // let Arnold Session know that image files have changed and it's necessary to update them
-      if (requestUpdateTx) m_session->RequestUpdateTx();
+      if (requestUpdateTx) GetSession()->RequestUpdateTx();
    }
 }
 

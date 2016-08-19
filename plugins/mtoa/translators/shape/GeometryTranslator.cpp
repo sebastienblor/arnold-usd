@@ -1,5 +1,5 @@
-
 #include "GeometryTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 
 #include <maya/MNodeMessage.h>
 #include <maya/MBoundingBox.h>
@@ -908,7 +908,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned in
                const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
-               float motionRange = (float)m_session->GetMotionByFrame() * motionVectorScale;
+               float motionRange = (float)GetSession()->GetMotionByFrame() * motionVectorScale;
                if (motionVectorUnit == 1)
                {
                   MTime oneSec(1.0, MTime::kSeconds);
@@ -971,7 +971,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned in
          if (exportRefVerts)
          {
             AtMatrix worldMatrix;
-            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix(), m_session);
+            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix(), GetSession());
             AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)
@@ -1182,7 +1182,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    
    // Check if this geometry is renderable
    // if it is not, set it as Disabled
-   AiNodeSetDisabled(polymesh, !m_session->IsRenderablePath(m_dagPath));
+   AiNodeSetDisabled(polymesh, !(GetSession()->IsRenderablePath(m_dagPath)));
    
    ExportMatrix(polymesh, 0);   
    ExportMeshParameters(polymesh);

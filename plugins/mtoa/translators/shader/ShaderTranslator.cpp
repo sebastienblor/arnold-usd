@@ -1,7 +1,8 @@
 #include "ShaderTranslator.h"
 #include "extension/ExtensionsManager.h"
 #include "nodes/MayaNodeIDs.h"
-
+#include "session/ArnoldSession.h"
+#include "translators/NodeTranslatorImpl.h"
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnCompoundAttribute.h>
 
@@ -62,9 +63,9 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
             }
             CAOV aov;
             aov.SetName(aovName);
-            if (!m_session->IsActiveAOV(aov))
+            if (!GetSession()->IsActiveAOV(aov))
                continue;
-            m_localAOVs.insert(aov);
+            m_impl->m_localAOVs.insert(aov);
             m_aovShadingGroups[aovName.asChar()].append(sgPlug);
          }
       }
@@ -113,7 +114,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode(m_abstract.arnold.asChar()));
+   return ProcessAOVOutput(AddArnoldNode(m_impl->m_abstract.arnold.asChar()));
 }
 
 /// Associate each AOV writing node with its shadingGroup.
@@ -242,7 +243,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
 
          if (bump != NULL)
          {
-            m_atNode = bump;
+            m_impl->m_atNode = bump;
             while (true)
             {
                AtNode* connectedBump = AiNodeGetLink(bump, "shader");

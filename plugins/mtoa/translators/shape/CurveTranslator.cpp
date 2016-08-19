@@ -1,5 +1,5 @@
 #include "CurveTranslator.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include "scene/MayaScene.h"
 
 #include <maya/MRenderLineArray.h>
@@ -13,6 +13,16 @@
 #include <maya/MFloatVectorArray.h>
 
 #include <vector>
+
+CCurveTranslator::CCurveTranslator() :
+   CShapeTranslator()
+{
+   // Just for debug info, translator creates whatever arnold nodes are required
+   // through the CreateArnoldNodes method
+   m_impl->m_abstract.arnold = "curves";
+   exportReferenceObject = false;
+}
+
 
 void CCurveTranslator::NodeInitializer(CAbTranslator context)
 {

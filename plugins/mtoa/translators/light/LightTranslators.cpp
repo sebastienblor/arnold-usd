@@ -1,5 +1,5 @@
 #include "LightTranslators.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
@@ -40,7 +40,7 @@ void CPointLightTranslator::Export(AtNode* light)
    MFnPointLight fnLight(m_dagPath);
 
    float radius = FindMayaPlug("aiRadius").asFloat(); 
-   m_session->ScaleDistance(radius); 
+   GetSession()->ScaleDistance(radius); 
    AiNodeSetFlt(light, "radius", radius); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
@@ -75,7 +75,7 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
    float radius = FindMayaPlug("aiRadius").asFloat(); 
-   m_session->ScaleDistance(radius); 
+   GetSession()->ScaleDistance(radius); 
    AiNodeSetFlt(light, "radius", radius); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
@@ -494,10 +494,10 @@ void CMeshLightTranslator::Export(AtNode* light)
 
 void CMeshLightTranslator::Delete()
 {
-   for (std::map<std::string, AtNode*>::iterator it = m_atNodes.begin(); it != m_atNodes.end(); ++it)
+   for (std::map<std::string, AtNode*>::iterator it = m_impl->m_atNodes.begin(); it != m_impl->m_atNodes.end(); ++it)
       AiNodeDestroy(it->second);
-   m_atNode = NULL;
-   m_atNodes.clear();
+   m_impl->m_atNode = NULL;
+   m_impl->m_atNodes.clear();
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)

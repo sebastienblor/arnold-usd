@@ -29,14 +29,7 @@ class CCurveTranslator
    :   public CShapeTranslator
 {
 public:
-   CCurveTranslator() :
-      CShapeTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "curves";
-      exportReferenceObject = false;
-   }
+   CCurveTranslator();
 
    virtual void Export(AtNode* curve);
    virtual void Update(AtNode* curve);

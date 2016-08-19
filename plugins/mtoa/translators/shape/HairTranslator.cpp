@@ -1,6 +1,5 @@
-
-
 #include "HairTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 #include "scene/MayaScene.h"
 
 #include <maya/MRenderLineArray.h>
@@ -11,6 +10,13 @@
 #include <maya/MFnPfxGeometry.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
+
+CHairTranslator::CHairTranslator()
+{
+   // Just for debug info, translator creates whatever arnold nodes are required
+   // through the CreateArnoldNodes method
+   m_impl->m_abstract.arnold = "curves";
+}
 
 void CHairTranslator::NodeInitializer(CAbTranslator context)
 {
