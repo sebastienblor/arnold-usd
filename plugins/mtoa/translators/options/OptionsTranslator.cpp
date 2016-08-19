@@ -815,36 +815,3 @@ void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
    AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
    AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
 }
-
-/// Main entry point to export values to an arnold parameter from a maya plug, recursively following
-/// connections in the dependency graph.
-/// Calls ProcessParameterInputs for parameters that allow linking or ProcessConstantParameter
-/// We need to override this function for the options node, because linking and unlinking
-/// is not allowed, and calling AiNodeUnlink adds some unwanted messages to the log
-AtNode* COptionsTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
-                                          int arnoldParamType, const MPlug& plug)
-{
-   if (arnoldNode == NULL)
-   {
-      AiMsgError("[mtoa.translator]  %s: Cannot process parameter %s on null node.",
-            GetTranslatorName().asChar(), arnoldParamName);
-      return NULL;
-   }
-   if (plug.isNull())
-   {
-      AiMsgError("[mtoa.translator]  %s: Invalid Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
-            GetTranslatorName().asChar(), arnoldParamName,
-            AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
-      return NULL;
-   }
-
-   // It doesn't make sense to call this method when step is greater than 0
-   if (GetMotionStep() > 0)
-   {
-      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0",
-            GetTranslatorName().asChar(), AiNodeGetName(arnoldNode), arnoldParamName);
-      return NULL;
-   }
-
-   return ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
-}

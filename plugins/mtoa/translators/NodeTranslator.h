@@ -140,11 +140,12 @@ protected:
    virtual void Delete() {}
 
    // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType);
+   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType);
    // For a specific Maya attribute on the translator Maya node
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MString& mayaAttrName);
+   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MString& mayaAttrName);
    // For a specific Maya plug
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+
    AtArray* InitArrayParameter(unsigned int arnoldParamType, unsigned int size);
    void SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array);
    virtual void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
