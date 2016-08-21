@@ -665,7 +665,7 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
       if (translator)
       {
          translator->Init(arnoldSession, node);
-         arnoldNode = translator->DoExport(0);
+         arnoldNode = translator->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
       }
@@ -706,7 +706,7 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       if (translator)
       {
          translator->Init(arnoldSession, dagPath);
-         arnoldNode = translator->DoExport(0);
+         arnoldNode = translator->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
       }
@@ -739,9 +739,9 @@ AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode)
    {
       translator->Delete();
       translator->DoCreateArnoldNodes();
-      return translator->DoExport(0);
+      return translator->DoExport();
    }
-   return translator->DoUpdate(0);
+   return translator->DoUpdate();
 }
 
 void CMaterialView::SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data)

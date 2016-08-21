@@ -117,6 +117,7 @@ public:
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
    inline std::vector<double> GetMotionFrames() const { return m_motion_frames; }
+   inline unsigned int GetMotionStep() const {return m_motionStep;}
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
    inline void GetMotionRange(double &motion_start, double &motion_end) const {m_sessionOptions.GetMotionRange(motion_start, motion_end); }
 
@@ -199,6 +200,7 @@ private:
       ,  m_numLights(0)
       ,  m_lightLinks(MLightLinks())
       ,  m_isExportingMotion(false)
+      ,  m_motionStep(0)
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
@@ -258,6 +260,7 @@ private:
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;
+   int m_motionStep;
 
    bool m_requestUpdate;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;

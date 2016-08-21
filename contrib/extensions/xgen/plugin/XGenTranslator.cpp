@@ -443,7 +443,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
          // Export shaders
          rootShader = ExportShaders( shape );
 
-         ExportMatrix(shape, 0);
+         ExportMatrix(shape);
       }
       // For other patches we reuse the shaders and create new procedural
       else
@@ -702,7 +702,7 @@ void CXgDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(shape, step);
+   ExportMatrix(shape);
 }
 
 void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)

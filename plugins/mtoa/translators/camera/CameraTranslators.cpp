@@ -17,13 +17,14 @@ void CStandardCameraTranslator::Export(AtNode* camera)
       ExportPersp(camera);
 }
 
-void CStandardCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CStandardCameraTranslator::ExportMotion(AtNode* camera)
 {
    // we shoulnd't have to do this !
    // but apparently when we leave "look through selected" the
    // temporary camera is not told that it is destroyed (#2075).
    if (!m_dagPath.isValid()) return;
 
+   int step = GetMotionStep();
    if (IsOrtho())
       ExportMotionOrtho(camera, step);
    else
@@ -79,7 +80,7 @@ void CStandardCameraTranslator::ExportOrtho(AtNode* camera)
 {
    ExportCameraData(camera);
    ExportFilmbackOrtho(camera);
-   ExportImagePlanes(0);
+   ExportImagePlanes();
 }
 
 void CStandardCameraTranslator::ExportPersp(AtNode* camera)
@@ -88,7 +89,7 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
 
    ExportCameraData(camera);
    ExportDOF(camera);
-   ExportImagePlanes(0);
+   ExportImagePlanes();
 
    // UV Remap export
    MObject uvRemapNode;
@@ -162,8 +163,8 @@ void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
 
 void CStandardCameraTranslator::ExportMotionOrtho(AtNode* camera, unsigned int step)
 {
-   ExportCameraMBData(camera, step);
-   ExportImagePlanes(step);
+   ExportCameraMBData(camera);
+   ExportImagePlanes();
 }
 
 void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera, unsigned int step)
@@ -171,8 +172,8 @@ void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera, unsigned int s
    // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
    // which we don't want to do at each step
    float fov = ExportFilmbackPersp(camera);
-   ExportCameraMBData(camera, step);
-   ExportImagePlanes(step);
+   ExportCameraMBData(camera);
+   ExportImagePlanes();
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
    AiArraySetFlt(fovs, step, fov);
@@ -292,7 +293,7 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
 
    ExportCameraData(camera);
    ExportDOF(camera);
-   ExportImagePlanes(0);
+   ExportImagePlanes();
 
    MPlug plug = FindMayaPlug("aiAutocrop");
    AiNodeSetBool(camera, "autocrop", plug.asBool());
@@ -312,12 +313,14 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CFishEyeCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CFishEyeCameraTranslator::ExportMotion(AtNode* camera)
 {
    float fov = ExportFilmback(camera);
 
-   ExportCameraMBData(camera, step);
-   ExportImagePlanes(step);
+   int step = GetMotionStep();
+
+   ExportCameraMBData(camera);
+   ExportImagePlanes();
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
    AiArraySetFlt(fovs, step, fov);
@@ -357,7 +360,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
 
    ExportCameraData(camera);
    ExportDOF(camera);
-   ExportImagePlanes(0);
+   ExportImagePlanes();
 
    MPlug plug = FindMayaPlug("aiProjective");
    AiNodeSetBool(camera, "projective", plug.asBool());
@@ -378,13 +381,14 @@ void CCylCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CCylCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CCylCameraTranslator::ExportMotion(AtNode* camera)
 {
    float fovs[2];
    ExportFilmback(camera, fovs);
 
-   ExportCameraMBData(camera, step);
-   ExportImagePlanes(step);
+   int step = GetMotionStep();
+   ExportCameraMBData(camera);
+   ExportImagePlanes();
 
    AtArray* h_fovs = AiNodeGetArray(camera, "horizontal_fov");
    AiArraySetFlt(h_fovs, step, fovs[0]);
@@ -421,15 +425,16 @@ void CSphericalCameraTranslator::Export(AtNode* camera)
 
    ExportCameraData(camera);
    ExportDOF(camera);
-   ExportImagePlanes(0);
+   ExportImagePlanes();
 }
 
-void CSphericalCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CSphericalCameraTranslator::ExportMotion(AtNode* camera)
 {
+   int step = GetMotionStep();
    ExportFilmback(camera);
 
-   ExportCameraMBData(camera, step);
-   ExportImagePlanes(step);
+   ExportCameraMBData(camera);
+   ExportImagePlanes();
 }
 
 void CSphericalCameraTranslator::NodeInitializer(CAbTranslator context)

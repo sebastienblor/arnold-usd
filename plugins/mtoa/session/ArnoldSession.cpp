@@ -108,6 +108,7 @@ namespace // <anonymous>
 // Considered to be already filtered and checked
 CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus* stat)
 {
+   m_motionStep = 0;
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
@@ -175,7 +176,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
          if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
-         arnoldNode = translator->m_impl->DoExport(0);
+         arnoldNode = translator->m_impl->DoExport();
    }
 
    if (NULL != stat) *stat = status;
@@ -188,6 +189,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
 CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
                                    bool initOnly, MStatus *stat)
 {
+   m_motionStep = 0;
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
@@ -294,7 +296,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          if (IsInteractiveRender()) QueueForUpdate(translator);
       }
       if (!initOnly)
-         arnoldNode = translator->m_impl->DoExport(0);
+         arnoldNode = translator->m_impl->DoExport();
    }
    if (arnoldNode != NULL)
    {
@@ -624,6 +626,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    // Set up export options
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
+   m_motionStep = 0;
 
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
@@ -715,13 +718,17 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
       // get the size first, because on step 0, m_processedTranslatorList will grow as we export
       unsigned int size = m_processedTranslatorList.size();
+      
+      // for safety we're not doing the loop on m_motionSteps directly in case it is modified somewhere else
+      m_motionStep = step; 
+
       // finally, loop through the already processed translators and export for current step
       for (unsigned int i=0; i < size; ++i)
-      {
-         m_processedTranslatorList[i]->m_impl->DoExport(step);
+      {         
+         m_processedTranslatorList[i]->m_impl->DoExport();
       }
    }
-
+   m_motionStep = 0;
    if (mb)
    {
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
@@ -1252,6 +1259,7 @@ void CArnoldSession::DoUpdate()
    bool moBlur = IsMotionBlurEnabled();
 
    bool arv = (CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW);
+   m_motionStep = 0;
 
    // In theory, no objectsToUpdate are supposed to be 
    // added to this list during the loop. But to make 
@@ -1289,7 +1297,7 @@ void CArnoldSession::DoUpdate()
             translator->m_impl->m_atNodes.clear();
             translator->m_impl->DoCreateArnoldNodes();
 
-            translator->m_impl->DoExport(0);
+            translator->m_impl->DoExport();
             translatorsToUpdate.push_back(translator);
          } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
@@ -1362,7 +1370,7 @@ void CArnoldSession::DoUpdate()
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
             if (translators[i]->IsMayaTypeDag()) aDag = true;
-            translators[i]->m_impl->DoExport(0);
+            translators[i]->m_impl->DoExport();
             translatorsToUpdate.push_back(translators[i]);
          }
       }
@@ -1393,7 +1401,7 @@ void CArnoldSession::DoUpdate()
          iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->m_impl->DoUpdate(0);
+         if (translator != NULL) translator->m_impl->DoUpdate();
       }
    }
    else
@@ -1404,13 +1412,15 @@ void CArnoldSession::DoUpdate()
       {
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+         m_motionStep = step;
          for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
              iter != translatorsToUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if (translator != NULL) translator->m_impl->DoUpdate(step);
+            if (translator != NULL) translator->m_impl->DoUpdate();
          }
       }
+      m_motionStep = 0;
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
 
       m_isExportingMotion = false;

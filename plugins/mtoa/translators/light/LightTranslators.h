@@ -157,7 +157,7 @@ public:
 
    virtual void Delete();
    
-   virtual void ExportMotion(AtNode* light, unsigned int step);
+   virtual void ExportMotion(AtNode* light);
 protected:
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
    virtual MObject GetMeshObject() const;

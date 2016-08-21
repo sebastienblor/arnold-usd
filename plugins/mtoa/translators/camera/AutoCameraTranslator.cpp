@@ -68,13 +68,13 @@ void CAutoCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CAutoCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+void CAutoCameraTranslator::ExportMotion(AtNode* camera)
 {
-   ExportCameraMBData(camera, step);
+   ExportCameraMBData(camera);
    if (m_fovAnimated)
    {      
       AtArray* fovs = AiNodeGetArray(camera, "fov");
-      AiArraySetFlt(fovs, step, GetFOV(camera));
+      AiArraySetFlt(fovs, GetMotionStep(), GetFOV(camera));
    }
 }
 

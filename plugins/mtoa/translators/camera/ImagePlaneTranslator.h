@@ -9,7 +9,7 @@ class DLLEXPORT CImagePlaneTranslator
 {
 public:
    void Export(AtNode* imagePlane);
-   void ExportMotion(AtNode* imagePlane, unsigned int step);
+   void ExportMotion(AtNode* imagePlane);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {

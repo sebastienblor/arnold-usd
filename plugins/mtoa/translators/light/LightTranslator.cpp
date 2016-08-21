@@ -102,13 +102,13 @@ void CLightTranslator::Export(AtNode* light)
    }
 }
 
-void CLightTranslator::ExportMotion(AtNode* light, unsigned int step)
+void CLightTranslator::ExportMotion(AtNode* light)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
 
    AtArray* matrices = AiNodeGetArray(light, "matrix");
-   AiArraySetMtx(matrices, step, matrix);
+   AiArraySetMtx(matrices, GetMotionStep(), matrix);
 }
 
 void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)

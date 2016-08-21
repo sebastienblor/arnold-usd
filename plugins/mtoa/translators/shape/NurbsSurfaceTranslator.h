@@ -10,7 +10,7 @@ class CNurbsSurfaceTranslator : public CPolygonGeometryTranslator
 {
 public:
    virtual void Export(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode, unsigned int step);
+   virtual void ExportMotion(AtNode* anode);
    virtual bool IsGeoDeforming();
 
    static void* creator()

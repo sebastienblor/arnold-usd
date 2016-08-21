@@ -139,7 +139,7 @@ void CCurveTranslator::Update( AtNode *curve )
    if (stat != MStatus::kSuccess) return;
 
    // Set curve matrix for step 0
-   ExportMatrix(curve, 0);
+   ExportMatrix(curve);
 
    // The num points array (int array the size of numLines, no motionsteps)
    AtArray* curveNumPoints             = AiArrayAllocate(1, 1, AI_TYPE_INT);
@@ -229,13 +229,13 @@ void CCurveTranslator::Update( AtNode *curve )
 
 }
 
-void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
+void CCurveTranslator::ExportMotion(AtNode *curve)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(curve, step);
+   ExportMatrix(curve);
 
    // Same for object deformation, early out if it's not set.
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
@@ -244,6 +244,7 @@ void CCurveTranslator::ExportMotion(AtNode *curve, unsigned int step)
    // Get curve lines
    MObject objectCurveShape(m_dagPath.node());
    exportReferenceObject = false;
+   int step = GetMotionStep();
    MStatus stat = GetCurveLines(objectCurveShape, step);
 
    if (stat == MStatus::kSuccess)

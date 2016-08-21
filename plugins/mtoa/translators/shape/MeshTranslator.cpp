@@ -143,28 +143,28 @@ void CMeshTranslator::Export(AtNode* anode)
    }
 }
 
-void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CMeshTranslator::ExportMotion(AtNode* anode)
 {
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
    }
    else if (strcmp(nodeType, "polymesh") == 0)
    {
       if (m_motion)
-         ExportMatrix(anode, step);
+         ExportMatrix(anode);
       if (m_motionDeform)
       {
          // Early return if we can't tessalate.
          if (!Tessellate(m_dagPath, false))
             return;
-         ExportMeshGeoData(anode, step);
+         ExportMeshGeoData(anode, GetMotionStep());
       }
    }
    else if (strcmp(nodeType, "box") == 0)
    {
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
    }
 }
 

@@ -46,25 +46,26 @@ void CInstancerTranslator::Update(AtNode *anode)
    // no need to update shaders here ? this used to be in CPolygonGeometry::ExportMeshShaders
 }
 
-void CInstancerTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CInstancerTranslator::ExportMotion(AtNode* anode)
 {
+   int step = GetMotionStep();
    if (IsMasterInstance())
    {
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
       if (m_motionDeform)
       {
-         ExportInstances(anode, step);
+         ExportInstances(anode);
       }
    }
    else
    {
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
    }
 }
 
-void CInstancerTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CInstancerTranslator::UpdateMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
@@ -116,17 +117,17 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
 
 void CInstancerTranslator::ExportInstancer(AtNode* instancer, bool update)
 {
-   ExportMatrix(instancer,0);
+   ExportMatrix(instancer);
    if(!update)
    {
-      ExportInstances(instancer, 0);
+      ExportInstances(instancer);
    }
 
 }
 
-void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
+void CInstancerTranslator::ExportInstances(AtNode* instancer)
 {
-
+   unsigned int step = GetMotionStep();
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());

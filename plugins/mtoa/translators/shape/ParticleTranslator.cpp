@@ -138,7 +138,7 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputFloat(data);
 }
 
-void CParticleTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CParticleTranslator::UpdateMotion(AtNode* anode)
 {
    // ProcessRenderFlags(anode);
    // FIXME: Crashes
@@ -1548,7 +1548,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
    AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -1627,8 +1627,9 @@ void CParticleTranslator::Update(AtNode *anode)
    // if (m_updateShaders) ExportShaders
 }
 
-void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CParticleTranslator::ExportMotion(AtNode* anode)
 {
+   int step = GetMotionStep();
    if (IsMasterInstance())
    {
       //ExportMatrix(anode, step);
@@ -1641,7 +1642,7 @@ void CParticleTranslator::ExportMotion(AtNode* anode, unsigned int step)
       }
    }
    else
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
 }
 
 void CParticleTranslator::Export(AtNode* anode)

@@ -65,8 +65,7 @@ protected:
                         bool& raw);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
-
+   
 protected:
    AOVSet m_aovs;
    std::vector<CAOVOutputArray> m_aovData;

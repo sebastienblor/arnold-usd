@@ -27,6 +27,9 @@ AtNode*  CObjectSetTranslator::CreateArnoldNodes()
 
 void CObjectSetTranslator::Export(AtNode *set)
 {
+   // We don't call CNodeTranslator::Export
+   // because we don't want to export anything
+
    AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s).",
                GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
 

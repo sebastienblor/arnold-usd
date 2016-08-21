@@ -100,7 +100,7 @@ void CHairTranslator::Update( AtNode *curve )
    MFnDependencyNode fnDepNodeHair(hairSystemObject);
    
    // Set curve matrix for step 0   
-   ExportMatrix(curve, 0);
+   ExportMatrix(curve);
 
    MPlug plug;  
    
@@ -410,13 +410,15 @@ void CHairTranslator::Update( AtNode *curve )
    mainLines.deleteArray();
 }
 
-void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
+void CHairTranslator::ExportMotion(AtNode *curve)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
+   int step = GetMotionStep();
+
    // Set transform matrix
-   ExportMatrix(curve, step);
+   ExportMatrix(curve);
 
    // Same for object deformation, early out if it's not set.
    if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;

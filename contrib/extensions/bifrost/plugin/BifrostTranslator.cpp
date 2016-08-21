@@ -364,7 +364,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
    }
 
 
-   ExportMatrix(node, 0);   
+   ExportMatrix(node);   
    
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
        CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
@@ -427,7 +427,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
    AiNodeSetByte(shape, "visibility", 243);
 
-   ExportMatrix(shape, 0);   
+   ExportMatrix(shape);   
    
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
        CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
@@ -473,7 +473,7 @@ void CBfDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(shape, step);
+   ExportMatrix(shape);
 }
 
 void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)

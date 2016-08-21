@@ -36,8 +36,8 @@ public:
       return CShapeTranslator::Init(session, dagPath, outputAttr);
    }
    virtual void Update(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
+   virtual void ExportMotion(AtNode* anode);
+   virtual void UpdateMotion(AtNode* anode);
    static void NodeInitializer(CAbTranslator context);
    
 protected:

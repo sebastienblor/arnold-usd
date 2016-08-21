@@ -1153,7 +1153,7 @@ void CPolygonGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 // Note that this function is only called by CMeshTranslator
 void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
 {
-   ExportMatrix(polymesh, 0);
+   ExportMatrix(polymesh);
    // Visibility options
    ProcessRenderFlags(polymesh);
 
@@ -1184,7 +1184,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    // if it is not, set it as Disabled
    AiNodeSetDisabled(polymesh, !(GetSession()->IsRenderablePath(m_dagPath)));
    
-   ExportMatrix(polymesh, 0);   
+   ExportMatrix(polymesh);   
    ExportMeshParameters(polymesh);
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
        CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
@@ -1206,7 +1206,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
 
    int instanceNum = m_dagPath.instanceNumber();
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -1301,11 +1301,12 @@ void CPolygonGeometryTranslator::Update(AtNode *anode)
    }
 }
 
-void CPolygonGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CPolygonGeometryTranslator::ExportMotion(AtNode* anode)
 {
+   int step = GetMotionStep();
    if (IsMasterInstance())
    {
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
       if (m_motionDeform)
       {
          ExportMeshGeoData(anode, step);
@@ -1313,13 +1314,13 @@ void CPolygonGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
    }
    else
    {
-      ExportMatrix(anode, step);
+      ExportMatrix(anode);
    }
 }
 
-void CPolygonGeometryTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CPolygonGeometryTranslator::UpdateMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)

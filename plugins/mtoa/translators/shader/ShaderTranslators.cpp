@@ -1152,13 +1152,13 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    }
 }
 
-void CAnimCurveTranslator::ExportMotion(AtNode* shader, unsigned int step)
+void CAnimCurveTranslator::ExportMotion(AtNode* shader)
 {
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
    AtArray* values = AiNodeGetArray(shader, "values");
-   AiArraySetFlt(values, step, value);
+   AiArraySetFlt(values, GetMotionStep(), value);
 }
 
 

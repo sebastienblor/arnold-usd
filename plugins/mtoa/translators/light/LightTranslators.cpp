@@ -549,11 +549,12 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputBoolean(data);
 }
 
-void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
+void CMeshLightTranslator::ExportMotion(AtNode* light)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
-
+   int step = GetMotionStep();
+   
    AtArray* matrices = AiNodeGetArray(light, "matrix");
    AiArraySetMtx(matrices, step, matrix);
    

@@ -38,7 +38,8 @@ public:
 protected:
    CDagTranslator() : CNodeTranslator(){}
    virtual void Export(AtNode* atNode);
-   virtual void ExportMotion(AtNode* atNode, unsigned int step);
+   virtual void ExportMotion(AtNode* atNode);
+   
    virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
    virtual MStatus ExportOverrideSets();
 
@@ -49,7 +50,7 @@ protected:
    void GetRotationMatrix(AtMatrix& matrix);
    static void GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSession* session = 0);
    virtual void GetMatrix(AtMatrix& matrix);
-   void ExportMatrix(AtNode* node, unsigned int step);
+   void ExportMatrix(AtNode* node);
    // for computing a path different from m_dagPath
    AtByte ComputeVisibility(const MDagPath& path);
    AtByte ComputeVisibility();   

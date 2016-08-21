@@ -10,7 +10,7 @@ public:
    bool RequiresMotionData();
 protected:
    virtual void Export(AtNode* fluid);
-   virtual void ExportMotion(AtNode* fluid, unsigned int step);
+   virtual void ExportMotion(AtNode* fluid);
    void ExportFloatGradient(MPlug plug, AtNode* node, const char* paramName);
    void ExportRGBGradient(MPlug plug, AtNode* node, const char* paramName);
 };

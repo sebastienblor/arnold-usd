@@ -95,9 +95,9 @@ void CArnoldProceduralTranslator::Export(AtNode* anode)
    }
 }
 
-void CArnoldProceduralTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 void CArnoldProceduralTranslator::Update(AtNode* anode)
@@ -113,9 +113,9 @@ void CArnoldProceduralTranslator::Update(AtNode* anode)
    }
 }
 
-void CArnoldProceduralTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CArnoldProceduralTranslator::UpdateMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 // Deprecated : Arnold support procedural instance, but it's not safe.
@@ -126,7 +126,7 @@ AtNode* CArnoldProceduralTranslator::ExportInstance(AtNode *instance, const MDag
 
    AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -215,7 +215,7 @@ AtNode* CArnoldProceduralTranslator::ExportProcedural(AtNode* procedural, bool u
 
    AiNodeSetStr(procedural, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(procedural, 0);
+   ExportMatrix(procedural);
    ProcessRenderFlags(procedural);
    ExportStandinsShaders(procedural);
    ExportLightLinking(procedural);

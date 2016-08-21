@@ -43,8 +43,8 @@ public :
       m_tr(translator){}
    ~CNodeTranslatorImpl() {}
 
-   AtNode* DoExport(unsigned int step);
-   AtNode* DoUpdate(unsigned int step);
+   AtNode* DoExport();
+   AtNode* DoUpdate();
    AtNode* DoCreateArnoldNodes();
    AtNode* ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug,
                                                 const char* arnoldParamName,
@@ -77,8 +77,7 @@ public :
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
-
-
+   
 
 private:
    CNodeTranslator &m_tr;

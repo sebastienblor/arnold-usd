@@ -65,9 +65,9 @@ void CArnoldVolumeTranslator::Export(AtNode* anode)
    }
 }
 
-void CArnoldVolumeTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CArnoldVolumeTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 void CArnoldVolumeTranslator::Update(AtNode* anode)
@@ -85,20 +85,19 @@ void CArnoldVolumeTranslator::Update(AtNode* anode)
    }
 }
 
-void CArnoldVolumeTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CArnoldVolumeTranslator::UpdateMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 
-//
 AtNode* CArnoldVolumeTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
    AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -171,7 +170,7 @@ AtNode* CArnoldVolumeTranslator::ExportVolume(AtNode* volume, bool update)
 
    AiNodeSetStr(volume, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(volume, 0);
+   ExportMatrix(volume);
    ProcessRenderFlags(volume);
    
    ExportVolumeShaders(volume);

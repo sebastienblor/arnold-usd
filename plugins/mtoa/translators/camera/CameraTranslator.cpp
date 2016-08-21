@@ -18,7 +18,7 @@
 
 using namespace std;
 
-void CCameraTranslator::ExportImagePlanes(unsigned int step)
+void CCameraTranslator::ExportImagePlanes()
 {   
    MPlug      imagePlanePlug;
    MPlug      imagePlaneNodePlug;
@@ -39,8 +39,10 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
          {
             CNodeTranslator *imgTranslator = GetSession()->ExportNode(connectedPlugs[0], NULL, NULL, true);
             CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
-            if (step == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
-            else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldRootNode(), step);            
+
+            // FIXME if we remove step from this function, will imgPlane get the right one ?
+            if (GetMotionStep() == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
+            else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldRootNode());            
          }
       }
    }
@@ -136,13 +138,13 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    }
 }
 
-void CCameraTranslator::ExportCameraMBData(AtNode *camera, unsigned int step)
+void CCameraTranslator::ExportCameraMBData(AtNode *camera)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
 
    AtArray* matrices = AiNodeGetArray(camera, "matrix");
-   AiArraySetMtx(matrices, step, matrix);
+   AiArraySetMtx(matrices, GetMotionStep(), matrix);
 }
 
 double CCameraTranslator::GetDeviceAspect()

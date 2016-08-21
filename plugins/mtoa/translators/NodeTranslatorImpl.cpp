@@ -48,11 +48,11 @@
 #endif
 
 // internal use only
-AtNode* CNodeTranslatorImpl::DoExport(unsigned int step)
+AtNode* CNodeTranslatorImpl::DoExport()
 {
    AtNode* node = m_tr.GetArnoldNode("");
    MString outputAttr = m_tr.GetMayaAttributeName();
-   m_step = step;
+   int step = m_tr.GetMotionStep();
 
    if (node == NULL)
    {
@@ -60,11 +60,6 @@ AtNode* CNodeTranslatorImpl::DoExport(unsigned int step)
                    m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
       return NULL;
    }
-   
-   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exporting Arnold %s(%s): %p",
-              m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar(),
-              AiNodeGetName(node), AiNodeEntryGetName(AiNodeGetNodeEntry(node)),
-              node);
 
    if (step == 0)
    {
@@ -74,6 +69,7 @@ AtNode* CNodeTranslatorImpl::DoExport(unsigned int step)
       else
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                     m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
+      
       m_tr.ComputeAOVs();
       m_tr.Export(node);
       m_tr.ExportUserAttribute(node);
@@ -88,18 +84,18 @@ AtNode* CNodeTranslatorImpl::DoExport(unsigned int step)
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting Motion (%s)",
                     m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
 
-      m_tr.ExportMotion(node, step);
+      m_tr.ExportMotion(node);
    }
 
    return m_tr.GetArnoldRootNode();
 }
 
 // internal use only
-AtNode* CNodeTranslatorImpl::DoUpdate(unsigned int step)
+AtNode* CNodeTranslatorImpl::DoUpdate()
 {
    assert(AiUniverseIsActive());
    AtNode* node = m_tr.GetArnoldNode("");
-   m_step = step;
+   int step = m_tr.GetMotionStep();
 
    if (node == NULL)
    {
@@ -120,9 +116,9 @@ AtNode* CNodeTranslatorImpl::DoUpdate(unsigned int step)
    }
    else if (m_tr.RequiresMotionData())
    {
-      m_tr.UpdateMotion(node, step);
+      m_tr.UpdateMotion(node);
    }
-
+   
    return m_tr.GetArnoldRootNode();
 }
 
@@ -169,7 +165,7 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
          if (type == AI_NODE_SHADER)
          {
             // Propagate the update upstream
-            srcNodeTranslator->m_impl->DoUpdate(m_step);
+            srcNodeTranslator->m_impl->DoUpdate();
          }
       }
 

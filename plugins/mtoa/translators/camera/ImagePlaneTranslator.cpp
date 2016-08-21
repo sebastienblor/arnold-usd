@@ -27,9 +27,10 @@ void CImagePlaneTranslator::Export(AtNode *imagePlane)
    CNodeTranslator::Export(imagePlane);
    ExportImagePlane(0u);
 }
-void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane, unsigned int step)
+void CImagePlaneTranslator::ExportMotion(AtNode *imagePlane)
 {
-   CNodeTranslator::ExportMotion(imagePlane, step);
+   int step = GetMotionStep();
+   CNodeTranslator::ExportMotion(imagePlane);
    ExportImagePlane(step);
 
 }

@@ -447,7 +447,6 @@ void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)
    }
 }
 
-
 void CNodeTranslator::Export(AtNode* node)
 {
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
@@ -1789,7 +1788,7 @@ bool CNodeTranslator::IsLocalMotionBlurEnabled() const
       local_motion_attr = plug.asBool();
    return local_motion_attr;
 }
-unsigned int CNodeTranslator::GetMotionStep() const {return m_impl->m_step;}
+unsigned int CNodeTranslator::GetMotionStep() const {return GetSession()->GetMotionStep();}
 unsigned int CNodeTranslator::GetNumMotionSteps() const {return GetSession()->GetNumMotionSteps();}
 CArnoldSession* CNodeTranslator::GetSession() const {return m_impl->m_session;}
 const CSessionOptions& CNodeTranslator::GetSessionOptions() const  { return m_impl->m_session->GetSessionOptions(); }

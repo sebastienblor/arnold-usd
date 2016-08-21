@@ -191,9 +191,9 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    }
 }
 
-void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CArnoldStandInsTranslator::ExportMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 void CArnoldStandInsTranslator::Update(AtNode* anode)
@@ -210,9 +210,9 @@ void CArnoldStandInsTranslator::Update(AtNode* anode)
    }
 }
 
-void CArnoldStandInsTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+void CArnoldStandInsTranslator::UpdateMotion(AtNode* anode)
 {
-   ExportMatrix(anode, step);
+   ExportMatrix(anode);
 }
 
 // Deprecated : Arnold support procedural instance, but it's not safe.
@@ -223,7 +223,7 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
 
    AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(instance, 0);
+   ExportMatrix(instance);
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
@@ -335,7 +335,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 
    AiNodeSetStr(procedural, "name", m_dagPath.partialPathName().asChar());
 
-   ExportMatrix(procedural, 0);
+   ExportMatrix(procedural);
    ProcessRenderFlags(procedural);
    if (m_DagNode.findPlug("overrideShaders").asBool())
    {

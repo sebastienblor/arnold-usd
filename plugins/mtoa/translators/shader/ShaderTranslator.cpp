@@ -152,7 +152,9 @@ void CShaderTranslator::AssociateAOVsWithShadingGroups()
 
 void CShaderTranslator::Export(AtNode *shader)
 {
+
    // the node passed in is the root node. we want the node tagged with ""
+   // FIXME : is there really a difference ? ExportMotion doesn't seem to care about it
    shader = GetArnoldNode("");
 
    CNodeTranslator::Export(shader);
@@ -163,7 +165,8 @@ void CShaderTranslator::Export(AtNode *shader)
    //AssociateAOVsWithShadingGroups();
 }
 
-void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
+   // For motion blur we just search for the parameter placementMatrix
+void CShaderTranslator::ExportMotion(AtNode *shader)
 {
    MStatus status;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
@@ -181,6 +184,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
    }
    AiParamIteratorDestroy(nodeParam);
 }
+
 
 bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
 {

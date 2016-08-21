@@ -129,7 +129,7 @@ void CNurbsSurfaceTranslator::Export(AtNode* anode)
    }
 }
 
-void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode)
 {
    // Re-tessalate the nurbs surface, but only if it's needed.
    if (m_motion && m_motionDeform && IsMasterInstance())
@@ -139,7 +139,7 @@ void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
       if (!Tessellate(m_dagPath)) return;
    }
 
-   CPolygonGeometryTranslator::ExportMotion(anode, step);
+   CPolygonGeometryTranslator::ExportMotion(anode);
 }
 
 // TODO: implement this check for nurbs.

@@ -17,7 +17,7 @@ void CDagTranslator::Export(AtNode* node)
       if (strcmp(paramName, "name") != 0)
       {
          if (strcmp(paramName, "matrix") == 0)
-            ExportMatrix(node, 0);
+            ExportMatrix(node);
          else
             ProcessParameter(node, paramName, AiParamGetType(paramEntry));
       }
@@ -25,10 +25,11 @@ void CDagTranslator::Export(AtNode* node)
    AiParamIteratorDestroy(nodeParam);
 }
 
-void CDagTranslator::ExportMotion(AtNode* node, unsigned int step)
+// For Motion Blur only re-export the transform matrix
+void CDagTranslator::ExportMotion(AtNode* node)
 {
    if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(node), "matrix"))
-      ExportMatrix(node, step);
+      ExportMatrix(node);   
 }
 
 /// get override sets containing the passed Maya dag path
@@ -295,12 +296,14 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix)
 // exporting matrix information. it properly handles exporting a matrix array
 // if motion blur is enabled and required by the node. it should be called
 // at each motion step
-void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
+void CDagTranslator::ExportMatrix(AtNode* node)
 {
+   int step = GetMotionStep();
    AtMatrix matrix;
    GetMatrix(matrix);
    if (step == 0)
    {
+      // why not only RequiresMotionData() ??
       if (IsMotionBlurEnabled(MTOA_MBLUR_OBJECT) && RequiresMotionData())
       {
          AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
