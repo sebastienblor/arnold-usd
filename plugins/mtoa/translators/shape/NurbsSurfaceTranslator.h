@@ -9,7 +9,6 @@ class MFnNurbsSurface;
 class CNurbsSurfaceTranslator : public CPolygonGeometryTranslator
 {
 public:
-   virtual void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode);
    virtual bool IsGeoDeforming();
 
@@ -20,9 +19,10 @@ public:
    AtNode* CreateArnoldNodes();
 protected:
    CNurbsSurfaceTranslator();
-   
+   virtual bool Tessellate(const MDagPath &dagPath);
+
 private:
-   MStatus Tessellate(const MDagPath &dagPath);
+   
    void GetTessellationOptions(MTesselationParams & params,
                         MFnNurbsSurface & surface);
 

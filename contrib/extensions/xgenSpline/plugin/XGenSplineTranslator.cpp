@@ -40,19 +40,14 @@ AtNode* CXgSplineDescriptionTranslator::CreateArnoldNodes()
 }
 
 void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
-{
-    Update(procedural);
-}
-
-void CXgSplineDescriptionTranslator::Update(AtNode* procedural)
-{
+{  
     static const std::string sDSO = std::string(getenv("MTOA_PATH")) + std::string("/procedurals/xgenSpline_procedural.so");
     MStatus status;
 
     MFnDagNode fnDagNode(m_dagPath);
 
     // Set matrix for step 0
-    ExportMatrix(procedural, 0);
+    ExportMatrix(procedural);
 
     // Export render flags
     ProcessRenderFlags(procedural);
@@ -128,18 +123,18 @@ void CXgSplineDescriptionTranslator::Update(AtNode* procedural)
     }
 }
 
-void CXgSplineDescriptionTranslator::ExportMotion(AtNode* procedural, unsigned int step)
+void CXgSplineDescriptionTranslator::ExportMotion(AtNode* procedural)
 {
     // Check if motionblur is enabled and early out if it's not.
     if (!IsMotionBlurEnabled()) return;
 
     // Set transform matrix
-    ExportMatrix(procedural, step);
+    ExportMatrix(procedural);
 
     // Same for object deformation, early out if it's not set.
     if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
-    ExportSplineData(procedural, step);
+    ExportSplineData(procedural, GetMotionStep());
 }
 
 extern void CXgSplineDescriptionTranslator_ExportSplineData(MDagPath& dagPath, AtNode* procedural, unsigned int step);

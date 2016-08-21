@@ -123,48 +123,20 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
    }
 }
 
-void CMeshTranslator::Export(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else if (strcmp(nodeType, "polymesh") == 0)
-   {
-      // Early return if we can't tessalate.
-      if (!Tessellate(m_dagPath, true))
-         return;
-      ExportMesh(anode, false);
-   }
-   else if (strcmp(nodeType, "box") == 0)
-   {
-      ExportBBox(anode);  
-   }
-}
-
 void CMeshTranslator::ExportMotion(AtNode* anode)
 {
+   ExportMatrix(anode);
+
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
+   if (strcmp(nodeType, "polymesh") == 0)
    {
-      ExportMatrix(anode);
-   }
-   else if (strcmp(nodeType, "polymesh") == 0)
-   {
-      if (m_motion)
-         ExportMatrix(anode);
       if (m_motionDeform)
       {
          // Early return if we can't tessalate.
-         if (!Tessellate(m_dagPath, false))
+         if (!Tessellate(m_dagPath))
             return;
-         ExportMeshGeoData(anode, GetMotionStep());
+         ExportMeshGeoData(anode);
       }
-   }
-   else if (strcmp(nodeType, "box") == 0)
-   {
-      ExportMatrix(anode);
    }
 }
 
@@ -199,8 +171,10 @@ bool CMeshTranslator::IsGeoDeforming()
    }
 }
 
-MStatus CMeshTranslator::Tessellate(const MDagPath &path, bool doRef)
+bool CMeshTranslator::Tessellate(const MDagPath &path)
 {
+   bool doRef = (GetMotionStep() == 0);
+
    MStatus status = MStatus::kSuccess;
    MFnMesh fnMesh(path);
    m_isRefSmooth = false;
@@ -252,7 +226,7 @@ MStatus CMeshTranslator::Tessellate(const MDagPath &path, bool doRef)
       }
    }
 
-   return status;
+   return (status == MS::kSuccess);
 }
 
 void CMeshTranslator::NodeChanged(MObject& node, MPlug& plug)

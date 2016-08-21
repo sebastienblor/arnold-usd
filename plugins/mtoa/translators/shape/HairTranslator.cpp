@@ -74,14 +74,10 @@ AtNode* CHairTranslator::CreateArnoldNodes()
    return AddArnoldNode("curves");
 }
 
+// FIXME should we set the update mode to RECREATE_NODE as CCurveTranslator ? (#2399)
 void CHairTranslator::Export( AtNode *curve )
 {
-   Update(curve);
-}
-// FIXME should we set the update mode to RECREATE_NODE as CCurveTranslator ? (#2399)
 
-void CHairTranslator::Update( AtNode *curve )
-{
    m_hairInfo = MObject(m_dagPath.node());
 
    MFnDagNode fnDagNodeHairShape(m_hairInfo);

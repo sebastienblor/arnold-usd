@@ -174,6 +174,8 @@ void CDagTranslator::Delete()
    //AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
    m_impl->m_atNode = NULL;
    m_impl->m_atNodes.clear();
+
+   CNodeTranslator::Delete(); 
 }
 
 /// Return whether the current dag object is the master instance.

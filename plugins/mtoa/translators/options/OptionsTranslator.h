@@ -27,7 +27,6 @@ class DLLEXPORT COptionsTranslator : public CNodeTranslator
 public:
    static void* creator(){return new COptionsTranslator();}
    virtual void Export(AtNode* options);
-   virtual void Update(AtNode *options);
    AtNode* CreateArnoldNodes();
 
    void SetCamera(AtNode *options);

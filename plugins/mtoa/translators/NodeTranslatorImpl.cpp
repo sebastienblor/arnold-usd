@@ -54,6 +54,10 @@ AtNode* CNodeTranslatorImpl::DoExport()
    MString outputAttr = m_tr.GetMayaAttributeName();
    int step = m_tr.GetMotionStep();
 
+   // FIXME : for now we're setting isExported to false when we ask for a full re-export
+   // but as refactoring continues we'll stop doing it. 
+   // And we'll restore it to false only when Delete() is called
+   m_isExported = false; 
    if (node == NULL)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Export requested but no Arnold node was created by this translator (%s)",
@@ -61,6 +65,8 @@ AtNode* CNodeTranslatorImpl::DoExport()
       return NULL;
    }
 
+   // FIXME couldn't we just call the same functions for whatever step, 
+   // and do an early out on the other methods when GetMotionStep() > 0 ?
    if (step == 0)
    {
       if (outputAttr != "")
@@ -87,6 +93,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
       m_tr.ExportMotion(node);
    }
 
+   m_isExported = true;
    return m_tr.GetArnoldRootNode();
 }
 
@@ -111,14 +118,15 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
    if (step == 0)
    {
-      m_tr.Update(node);
+      m_tr.Export(node);
       m_tr.ExportUserAttribute(node);
    }
    else if (m_tr.RequiresMotionData())
    {
-      m_tr.UpdateMotion(node);
+      m_tr.ExportMotion(node);
    }
-   
+   m_isExported = true;
+
    return m_tr.GetArnoldRootNode();
 }
 

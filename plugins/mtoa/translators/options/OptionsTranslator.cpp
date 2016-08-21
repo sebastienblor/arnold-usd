@@ -557,16 +557,9 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
 void COptionsTranslator::Export(AtNode *options)
 {
    assert(AiUniverseIsActive());
+   ExportAOVs();
 
-   MStringArray outputStrings;
-
-   // in renderView sessions, we'll call exportAOVs in Update().
-   // This should probably be done in all other modes
-   // but it might introduce issues
-   if (GetSessionMode() != MTOA_SESSION_RENDERVIEW) ExportAOVs();
-   
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
-   
    AiNodeSetBool(options, "texture_per_file_stats", true);
 
 // for maya 2017 and above, autoTX replaced automip, so we're forcing it to be false
@@ -574,40 +567,6 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetBool(options, "texture_automip", false);
 #endif
 
-   MStatus status;
-
-   Update(options);
-
-   // frame number
-   AiNodeDeclare(options, "frame", "constant FLOAT");
-   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
-   // render layer name
-   MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
-   if (status)
-   {
-      MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
-      if (status)
-      {
-         AiNodeDeclare(options, "render_layer", "constant STRING");
-         AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
-      }
-   }
-   AiNodeDeclare(options, "fps", "constant FLOAT");
-   static const float fpsTable[] = { 0.f, 1.f / 3600.f, 1.f / 60.f, 1.f,
-                                   1000.f, 15.f, 24.f, 25.f, 30.f, 48.f,
-                                   50.f, 60.f, 2.f, 3.f, 4.f, 5.f, 6.f,
-                                   8.f, 10.f, 12.f, 16.f, 20.f, 40.f, 75.f,
-                                   80.f, 100.f, 120.f, 125.f, 150.f, 200.f,
-                                   240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
-                                   600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
-                                   6000.f, 0.f };
-   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);   
-}
-
-void COptionsTranslator::Update(AtNode *options)
-{
-   // we should probably be able to change this in regular IPR too
-   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW) ExportAOVs();
    // set the camera
    SetCamera(options);
 
@@ -773,6 +732,44 @@ void COptionsTranslator::Update(AtNode *options)
    }
 
    ExportAtmosphere(options);   
+
+   // frame number. We're now updating it at every Update (#2319)
+   AiNodeDeclare(options, "frame", "constant FLOAT");
+   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
+
+
+   if (!IsExported())
+   {
+      // render layer name
+      // We're only dealing with render layer at first export 
+      // because when render layer is changed, everything should be re-exported.
+      // ARV does so, but we should maybe port it to Maya RV
+      MStatus status;
+
+      MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
+      if (status)
+      {
+         MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
+         if (status)
+         {
+            AiNodeDeclare(options, "render_layer", "constant STRING");
+            AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
+         }
+      }
+      AiNodeDeclare(options, "fps", "constant FLOAT");
+   }
+
+   // now updating fps at every update, whoe knows
+   static const float fpsTable[] = { 0.f, 1.f / 3600.f, 1.f / 60.f, 1.f,
+                                   1000.f, 15.f, 24.f, 25.f, 30.f, 48.f,
+                                   50.f, 60.f, 2.f, 3.f, 4.f, 5.f, 6.f,
+                                   8.f, 10.f, 12.f, 16.f, 20.f, 40.f, 75.f,
+                                   80.f, 100.f, 120.f, 125.f, 150.f, 200.f,
+                                   240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
+                                   600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
+                                   6000.f, 0.f };
+   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);   
+
 }
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)

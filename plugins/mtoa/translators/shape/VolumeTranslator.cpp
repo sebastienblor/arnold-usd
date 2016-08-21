@@ -61,31 +61,11 @@ void CArnoldVolumeTranslator::Export(AtNode* anode)
    }
    else
    {
-      ExportVolume(anode, false);
+      ExportVolume(anode, IsExported());
    }
 }
 
 void CArnoldVolumeTranslator::ExportMotion(AtNode* anode)
-{
-   ExportMatrix(anode);
-}
-
-void CArnoldVolumeTranslator::Update(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else
-   {
-      ExportVolume(anode, true);
-      if (m_updateShaders) ExportShaders();
-      
-   }
-}
-
-void CArnoldVolumeTranslator::UpdateMotion(AtNode* anode)
 {
    ExportMatrix(anode);
 }

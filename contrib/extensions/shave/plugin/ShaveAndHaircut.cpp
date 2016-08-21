@@ -27,14 +27,6 @@ AtNode*  CShaveTranslator::CreateArnoldNodes()
    return AddArnoldNode("curves");
 }
 
-void CShaveTranslator::Export(AtNode* curve)
-{
-   // Only translate the shave node if its marked as a active
-   if (!FindMayaPlug("active").asBool())
-      return;
-
-   Update(curve);
-}
 
 AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
 {
@@ -100,8 +92,13 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    return shader;
 }
 
-void CShaveTranslator::Update(AtNode* curve)
+void CShaveTranslator::Export(AtNode* curve)
 {
+   // Only translate the shave node if its marked as a active
+   if (!FindMayaPlug("active").asBool())
+      return;
+
+
    // Export shaveAndHaircut info into a variable
    if (UpdateHairInfo() != MS::kSuccess)
       return;
@@ -111,7 +108,7 @@ void CShaveTranslator::Update(AtNode* curve)
    AtNode* shader       = NULL;
 
    // Export the transform matrix
-   ExportMatrix(curve, 0);
+   ExportMatrix(curve);
 
    // Get the visibiliy and render flags set.
    ProcessRenderFlags(curve);
@@ -299,13 +296,13 @@ void CShaveTranslator::Update(AtNode* curve)
    m_hairInfo.clear();
 }
 
-void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
+void CShaveTranslator::ExportMotion(AtNode* curve)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(curve, step);
+   ExportMatrix(curve);
 
    if (IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
    {
@@ -313,7 +310,7 @@ void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
       //
       if (UpdateHairInfo() != MS::kSuccess) return;
 
-      ProcessHairLines(step,
+      ProcessHairLines(GetMotionStep(),
                        AiNodeGetArray(curve, "points"),
                        AiNodeGetArray(curve, "num_points"),
                        AiNodeGetArray(curve, "radius"));

@@ -91,11 +91,6 @@ AtNode* CCurveTranslator::CreateArnoldNodes()
    return AddArnoldNode("curves");
 }
 
-void CCurveTranslator::Export( AtNode *curve )
-{
-   Update(curve);
-}
-
 void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    // we used to only set RECREATE_NODE for the .create attribute
@@ -109,7 +104,7 @@ void CCurveTranslator::NodeChanged(MObject& node, MPlug& plug)
    CShapeTranslator::NodeChanged(node, plug);
 }
 
-void CCurveTranslator::Update( AtNode *curve )
+void CCurveTranslator::Export( AtNode *curve )
 {
    MPlug plug;
    MFnDependencyNode fnNode(GetMayaObject());

@@ -99,7 +99,9 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
-      
+   
+   bool IsExported() const;
+   
 enum UpdateMode {
    AI_UPDATE_ONLY=0,
    AI_RECREATE_NODE = 1,
@@ -127,16 +129,13 @@ protected:
 
    virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode* atNode) {}; // by default don't do anything related to MotionBlur
-   virtual void Update(AtNode* atNode){Export(atNode);}
-   // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
-   virtual void UpdateMotion(AtNode* atNode){ExportMotion(atNode);}
    
    virtual bool RequiresMotionData() {return false;}
    /// Create nodes using AddArnoldNode(), and return the node which forms the root of the exported network
    virtual AtNode* CreateArnoldNodes() = 0;
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
-   virtual void Delete() {}
+   virtual void Delete();
 
    // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
    AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType);

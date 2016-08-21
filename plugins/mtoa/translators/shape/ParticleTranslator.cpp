@@ -138,13 +138,6 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputFloat(data);
 }
 
-void CParticleTranslator::UpdateMotion(AtNode* anode)
-{
-   // ProcessRenderFlags(anode);
-   // FIXME: Crashes
-   // ExportMatrix(anode, step);
-}
-
 void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
@@ -1616,37 +1609,21 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
    return particle;
 }
 
-
-void CParticleTranslator::Update(AtNode *anode)
-{
-   ProcessRenderFlags(anode);
-   //ExportMatrix(anode, 0);
-
-   // here we'not updating the shaders to minimize the changes with previous versions during #2518
-   // but we could do override ExportShaders and do here :
-   // if (m_updateShaders) ExportShaders
-}
-
-void CParticleTranslator::ExportMotion(AtNode* anode)
-{
-   int step = GetMotionStep();
-   if (IsMasterInstance())
-   {
-      //ExportMatrix(anode, step);
-      if (m_motionDeform)
-         ExportParticleNode(anode, step);
-      else if (step == (GetNumMotionSteps() - 1))
-      {
-         WriteOutParticle(anode);
-         ProcessRenderFlags(anode);
-      }
-   }
-   else
-      ExportMatrix(anode);
-}
-
 void CParticleTranslator::Export(AtNode* anode)
 {
+   if (IsExported())
+   {
+      // During Updates we only re-exported the render flags
+      // make sure it's really what we want !
+      ProcessRenderFlags(anode);
+      //ExportMatrix(anode, 0);
+
+      // here we'not updating the shaders to minimize the changes with previous versions during #2518
+      // but we could do override ExportShaders and do here :
+      // if (m_updateShaders) ExportShaders
+      return;
+   }
+
    // check if the particle system is linked to an instancer
    m_fnParticleSystem.setObject(m_dagPath.node());
    if (m_fnParticleSystem.isValid() == false)
@@ -1654,7 +1631,6 @@ void CParticleTranslator::Export(AtNode* anode)
       AiMsgError("[mtoa]: Particle system %s not exported. It has 0 particles", m_fnParticleSystem.partialPathName().asChar());
       return;
    }
-
 
    if (IsMasterInstance())
    {
@@ -1674,5 +1650,32 @@ void CParticleTranslator::Export(AtNode* anode)
    else
       ExportInstance(anode, GetMasterInstance());
 
-
 }
+
+void CParticleTranslator::ExportMotion(AtNode* anode)
+{
+   if (IsExported())
+   {
+      // ProcessRenderFlags(anode);
+      // FIXME: Crashes
+      // ExportMatrix(anode, step);
+      return;
+   }
+
+
+   int step = GetMotionStep();
+   if (IsMasterInstance())
+   {
+      //ExportMatrix(anode, step);
+      if (m_motionDeform)
+         ExportParticleNode(anode, step);
+      else if (step == (GetNumMotionSteps() - 1))
+      {
+         WriteOutParticle(anode);
+         ProcessRenderFlags(anode);
+      }
+   }
+   else
+      ExportMatrix(anode);
+}
+

@@ -75,7 +75,7 @@ void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params
    params.setSubdivisionFlag(MTesselationParams::kUseTriangleEdgeSwapping, edgeSwap);
 }
 
-MStatus CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
+bool CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
 {
    MStatus status;
    MFnNurbsSurface surface(dagPath, &status);
@@ -104,7 +104,7 @@ MStatus CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
    // This is a member variable. We have to keep hold of it or Maya will release it.
    m_geometry = mesh_mobj;
 
-   return status;
+   return (status == MS::kSuccess);
 }
 
 AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
@@ -115,22 +115,10 @@ AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
       return AddArnoldNode("ginstance");
 }
 
-void CNurbsSurfaceTranslator::Export(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName (AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, GetMasterInstance());
-   else if (strcmp(nodeType, "polymesh") == 0)
-   {
-      // Early return if we can't tessalate.
-      if (!Tessellate(m_dagPath))
-         return;
-      ExportMesh(anode, false);
-   }
-}
-
 void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode)
 {
+   ExportMatrix(anode);
+
    // Re-tessalate the nurbs surface, but only if it's needed.
    if (m_motion && m_motionDeform && IsMasterInstance())
    {
@@ -139,7 +127,7 @@ void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode)
       if (!Tessellate(m_dagPath)) return;
    }
 
-   CPolygonGeometryTranslator::ExportMotion(anode);
+   if (IsMasterInstance() && m_motionDeform) ExportMeshGeoData(anode);
 }
 
 // TODO: implement this check for nurbs.

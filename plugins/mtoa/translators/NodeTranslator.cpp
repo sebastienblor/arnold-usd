@@ -460,6 +460,16 @@ void CNodeTranslator::Export(AtNode* node)
    AiParamIteratorDestroy(nodeParam);
 }
 
+// so by default we're not deleting the current node ?
+bool CNodeTranslator::IsExported() const
+{
+   return m_impl->m_isExported;
+}
+// so by default we're not deleting the current node ?
+void CNodeTranslator::Delete()
+{
+   m_impl->m_isExported = false;
+}
 
 AtNode* CNodeTranslator::GetArnoldRootNode()
 {

@@ -38,12 +38,6 @@ AtNode* CXgDescriptionTranslator::CreateArnoldNodes()
    return AddArnoldNode("procedural");
 }
 
-void CXgDescriptionTranslator::Export(AtNode* instance)
-{
-   //AiMsgInfo("[CXgDescriptionTranslator] Exporting %s", GetMayaNodeName().asChar());
-   Update(instance);
-}
-
 struct DescInfo
 {
    std::string strScene;
@@ -114,8 +108,9 @@ struct DescInfo
    }
 };
 
-void CXgDescriptionTranslator::Update(AtNode* procedural)
+void CXgDescriptionTranslator::Export(AtNode* procedural)
 {
+
    //AiMsgInfo("[CXgDescriptionTranslator] Update()");
 
    // Build the path to the procedural dso
@@ -696,7 +691,7 @@ void CXgDescriptionTranslator::Update(AtNode* procedural)
    }
 }
 
-void CXgDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
+void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;

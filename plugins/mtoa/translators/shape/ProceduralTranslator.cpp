@@ -91,29 +91,11 @@ void CArnoldProceduralTranslator::Export(AtNode* anode)
    }
    else
    {
-      ExportProcedural(anode, false);
+      ExportProcedural(anode, IsExported());
    }
 }
 
 void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
-{
-   ExportMatrix(anode);
-}
-
-void CArnoldProceduralTranslator::Update(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else
-   {
-      ExportProcedural(anode, true);
-   }
-}
-
-void CArnoldProceduralTranslator::UpdateMotion(AtNode* anode)
 {
    ExportMatrix(anode);
 }

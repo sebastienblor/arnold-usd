@@ -35,12 +35,12 @@ public:
       m_geometry = dagPath.node();
       return CShapeTranslator::Init(session, dagPath, outputAttr);
    }
-   virtual void Update(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode);
-   virtual void UpdateMotion(AtNode* anode);
+   virtual void Export(AtNode* anode);
    static void NodeInitializer(CAbTranslator context);
    
 protected:
+   virtual bool Tessellate(const MDagPath &dagPath) {return false;}
+
    bool GetVertices(const MObject& geometry,
          const float*& vertices);
    bool GetPerVertexNormals(const MObject &geometry,
@@ -83,7 +83,7 @@ protected:
    virtual void ExportShaders();
 
    void ExportBBox(AtNode* polymesh);
-   void ExportMeshGeoData(AtNode* polymesh, unsigned int step);
+   void ExportMeshGeoData(AtNode* polymesh);
    void ExportMeshParameters(AtNode* polymesh);
    AtNode* ExportMesh(AtNode* polymesh, bool update);
    void ExportMeshMotion(AtNode* polymesh, unsigned int step);

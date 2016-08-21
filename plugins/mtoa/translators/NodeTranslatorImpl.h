@@ -40,6 +40,7 @@ public :
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
+      m_isExported(false),
       m_tr(translator){}
    ~CNodeTranslatorImpl() {}
 
@@ -77,7 +78,9 @@ public :
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
-   
+   bool m_isExported;
+
+
 
 private:
    CNodeTranslator &m_tr;

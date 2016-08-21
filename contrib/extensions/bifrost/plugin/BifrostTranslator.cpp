@@ -111,10 +111,7 @@ AtNode* CBfDescriptionTranslator::CreateArnoldNodes()
    return AddArnoldNode("procedural");
 }
 
-void CBfDescriptionTranslator::Export(AtNode* instance)
-{
-   Update(instance);
-}
+
 
 void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 {
@@ -450,8 +447,8 @@ void CBfDescriptionTranslator::UpdateLiquid(AtNode *shape)
 }
 
 
-void CBfDescriptionTranslator::Update(AtNode* node)
-{
+void CBfDescriptionTranslator::Export(AtNode* node)
+{   
    switch (m_render_type)
    {
       default:
@@ -467,7 +464,7 @@ void CBfDescriptionTranslator::Update(AtNode* node)
    }
 }
 
-void CBfDescriptionTranslator::ExportMotion(AtNode* shape, unsigned int step)
+void CBfDescriptionTranslator::ExportMotion(AtNode* shape)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;

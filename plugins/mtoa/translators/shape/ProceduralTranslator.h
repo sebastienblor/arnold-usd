@@ -14,8 +14,6 @@ public:
    static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
    void ExportMotion(AtNode* anode);
-   virtual void Update(AtNode* anode);
-   virtual void UpdateMotion(AtNode* anode);
 
 protected:
    CArnoldProceduralTranslator();

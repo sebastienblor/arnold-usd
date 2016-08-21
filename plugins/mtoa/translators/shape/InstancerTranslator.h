@@ -32,12 +32,10 @@ public:
 
 
    static void NodeInitializer(CAbTranslator context);
-   virtual void Update(AtNode* anode);
+   
    void Export(AtNode* anode);
    void ExportMotion(AtNode* anode);
-   virtual void UpdateMotion(AtNode* anode);
-
-
+   
 protected:
    AtByte ComputeMasterVisibility(const MDagPath& masterDagPath) const;
    void ExportInstancer(AtNode* instancer, bool update);

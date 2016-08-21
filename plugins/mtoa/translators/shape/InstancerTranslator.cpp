@@ -40,32 +40,24 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
       return  AddArnoldNode("ginstance");
 }
 
-void CInstancerTranslator::Update(AtNode *anode)
+
+void CInstancerTranslator::Export(AtNode* anode)
 {
-   ExportInstancer(anode, true);
-   // no need to update shaders here ? this used to be in CPolygonGeometry::ExportMeshShaders
+   ExportInstancer(anode, IsExported());
 }
 
 void CInstancerTranslator::ExportMotion(AtNode* anode)
 {
-   int step = GetMotionStep();
-   if (IsMasterInstance())
+   ExportMatrix(anode);
+
+   if (!IsExported())
    {
-      ExportMatrix(anode);
-      if (m_motionDeform)
+      // only at first export
+      if (IsMasterInstance() && m_motionDeform)
       {
          ExportInstances(anode);
       }
    }
-   else
-   {
-      ExportMatrix(anode);
-   }
-}
-
-void CInstancerTranslator::UpdateMotion(AtNode* anode)
-{
-   ExportMatrix(anode);
 }
 
 AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
@@ -567,7 +559,3 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
 
 }
 
-void CInstancerTranslator::Export(AtNode* anode)
-{
-   ExportInstancer(anode, false);
-}

@@ -796,8 +796,10 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    m_updateShaders = false;
 }
 
-void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
+void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
 {
+   unsigned int step = GetMotionStep();
+
    MFnMesh fnMesh(m_geometry);
    MObject geometry(m_geometry);
    
@@ -1194,7 +1196,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    m_motionDeform = m_motionDeform && IsGeoDeforming();
    if (!update)
    {
-      ExportMeshGeoData(polymesh, 0);
+      ExportMeshGeoData(polymesh);
    }
 
    return polymesh;
@@ -1288,40 +1290,43 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    return instance;
 }
 
-void CPolygonGeometryTranslator::Update(AtNode *anode)
+void CPolygonGeometryTranslator::Export(AtNode *anode)
 {
-   if (IsMasterInstance())
+   if (!IsExported())
    {
-      ExportMesh(anode, true);
-      if (m_updateShaders) ExportShaders();
-   }
-   else
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-}
-
-void CPolygonGeometryTranslator::ExportMotion(AtNode* anode)
-{
-   int step = GetMotionStep();
-   if (IsMasterInstance())
-   {
-      ExportMatrix(anode);
-      if (m_motionDeform)
+      const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
+      if (strcmp(nodeType, "ginstance") == 0)
       {
-         ExportMeshGeoData(anode, step);
+         ExportInstance(anode, GetMasterInstance());
+      }
+      else if (strcmp(nodeType, "polymesh") == 0)
+      {
+         // Early return if we can't tessalate.
+         if (!Tessellate(m_dagPath))
+            return;
+         ExportMesh(anode, false);
+      }
+      else if (strcmp(nodeType, "box") == 0)
+      {
+         ExportBBox(anode);  
+      }
+   } else
+   {
+      // This is what we used to do, we should check if it's the good thing
+      if (IsMasterInstance())
+      {
+         ExportMesh(anode, true);
+
+         // FIXME make sure this is necessary, as ExportMesh might already be exporting the shaders
+         if (m_updateShaders) ExportShaders();
+      }
+      else
+      {
+         ExportInstance(anode, GetMasterInstance());
       }
    }
-   else
-   {
-      ExportMatrix(anode);
-   }
 }
 
-void CPolygonGeometryTranslator::UpdateMotion(AtNode* anode)
-{
-   ExportMatrix(anode);
-}
 
 void CPolygonGeometryTranslator::NodeInitializer(CAbTranslator context)
 {

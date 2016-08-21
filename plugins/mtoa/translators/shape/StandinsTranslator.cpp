@@ -187,30 +187,11 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    }
    else
    {
-      ExportProcedural(anode, false);
+      ExportProcedural(anode, IsExported());
    }
 }
 
 void CArnoldStandInsTranslator::ExportMotion(AtNode* anode)
-{
-   ExportMatrix(anode);
-}
-
-void CArnoldStandInsTranslator::Update(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
-   if (strcmp(nodeType, "ginstance") == 0)
-   {
-      ExportInstance(anode, GetMasterInstance());
-   }
-   else
-   {
-      ExportProcedural(anode, true);
-      if (m_updateShaders) ExportShaders();
-   }
-}
-
-void CArnoldStandInsTranslator::UpdateMotion(AtNode* anode)
 {
    ExportMatrix(anode);
 }

@@ -10,8 +10,6 @@ public:
       return CPolygonGeometryTranslator::Init(session, dagPath, outputAttr);
    }
 
-   virtual void Export(AtNode* anode);
-   
    virtual void ExportMotion(AtNode* anode);
 
    virtual bool IsGeoDeforming();
@@ -28,9 +26,10 @@ protected:
    // overridden from CDagTranslator to add a GetNumMeshGroups check
    virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
    virtual void NodeChanged(MObject& node, MPlug& plug);
-   
+   virtual bool Tessellate(const MDagPath &dagPath);
+
 private:
    MObject m_dataMesh;
-   MStatus Tessellate(const MDagPath &dagPath, bool doRef);
+   
    unsigned int GetNumMeshGroups(const MDagPath& dagPath);
 };

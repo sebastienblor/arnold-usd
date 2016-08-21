@@ -13,7 +13,7 @@ public:
    CHairTranslator();
 
    virtual void Export(AtNode* curve);
-   virtual void Update(AtNode* curve);
+   
    virtual void ExportMotion(AtNode* curve);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
