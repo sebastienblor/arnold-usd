@@ -93,9 +93,7 @@ public:
    virtual bool DisableCaching() {return false;}
    virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
 
-   virtual void TrackAOVs(AOVSet* aovs);
-   virtual void TrackShaders(std::set<AtNode*> *nodes);
-
+   
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the Update callbacks.
    virtual void RequestUpdate();
@@ -153,9 +151,6 @@ protected:
   
    
    virtual void ComputeAOVs();
-   void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
-   void WriteAOVUserAttributes(AtNode* atNode);
-      
    
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);

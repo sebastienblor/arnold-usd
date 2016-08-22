@@ -109,7 +109,7 @@ AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vect
    // insert shading group shader to evaluate extra AOV inputs
    AtNode* shadingEngine = AiNode("MayaShadingEngine");
 
-   AddAOVDefaults(shadingEngine, aovShaders);
+   m_impl->AddAOVDefaults(shadingEngine, aovShaders);
 
    AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
    AiNodeLink(rootShader, "beauty", shadingEngine);

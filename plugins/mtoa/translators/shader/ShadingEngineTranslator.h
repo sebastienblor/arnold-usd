@@ -11,9 +11,7 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
-   // shading engines are the root of tracking, so they ignore these calls and start their own
-   virtual void TrackAOVs(AOVSet* aovs) {};
-   virtual void TrackShaders(std::set<AtNode*>/*AtNodeSet*/ * nodes) {};
+
    void ComputeAOVs();
 
 protected:

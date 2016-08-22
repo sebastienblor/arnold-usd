@@ -6,6 +6,7 @@
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/ImagePlaneTranslator.h"
 #include "translators/shader/ShaderTranslators.h"
+#include "translators/shader/ShadingEngineTranslator.h"
 #include "nodes/ShaderUtils.h"
 #include "translators/DagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
@@ -278,7 +279,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       if (initOnly)
          AiMsgDebug("[mtoa.session]     %-30s | Initializing node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
-      translator->TrackShaders(nodes);
+      translator->m_impl->SetShadersList(nodes);
       translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
       if (it != m_processedTranslators.end())
       {
@@ -309,7 +310,13 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          }
       }
       if (aovs != NULL)
-         translator->TrackAOVs(aovs);
+      {
+         // FIXME : definitively not the right solution to start using dynamic casts...
+         // but I hope we'll find a way to solve this
+         // So, only ShadingEngine doesn't TrackAOVs as it's the root of the shading tree
+         CShadingEngineTranslator *shTr = dynamic_cast<CShadingEngineTranslator*>(translator);
+         if (shTr == NULL) translator->m_impl->TrackAOVs(aovs);
+      }
    }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
