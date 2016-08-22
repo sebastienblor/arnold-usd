@@ -72,6 +72,8 @@ public :
    }
    void Init(CArnoldSession* session, const CNodeAttrHandle& object);
 
+   MStatus ExportOverrideSets();
+   MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
 
 

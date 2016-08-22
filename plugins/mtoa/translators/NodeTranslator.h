@@ -118,6 +118,9 @@ public:
 protected:
    CNodeTranslator();
 
+   // Function to be defined if variables need to be initialized based on maya node
+   // (called just before CreateArnoldNodes)
+   virtual void Init() {}
 
    // entry point to create the Arnold node(s)
    virtual AtNode* CreateArnoldNodes() = 0;
@@ -145,13 +148,10 @@ protected:
    // so that it's removed later
    void RegisterUpdateCallback(const MCallbackId id);
 
-   virtual void Init() {}
 
    // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
-   virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
-   virtual MStatus ExportOverrideSets();
-   virtual MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
-
+  
+   
    virtual void ComputeAOVs();
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    void WriteAOVUserAttributes(AtNode* atNode);

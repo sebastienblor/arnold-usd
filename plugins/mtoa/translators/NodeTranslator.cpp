@@ -182,85 +182,7 @@ MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStat
    return plug;
 }
 
-/// find override sets containing the passed Maya node
-/// and add them to the passed MObjectArray
-MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideSets)
-{
-   MStatus status;
 
-   MFnDependencyNode fnNode(object);
-   MPlug message = fnNode.findPlug("message", true, &status);
-   MPlugArray connections;
-   MFnSet fnSet;
-   // MString plugName = message.name();
-   if (message.connectedTo(connections, false, true, &status))
-   {
-      unsigned int nc = connections.length();
-      for (unsigned int i=0; i<nc; i++)
-      {
-         MObject set = connections[i].node();
-         MFnDependencyNode setDNode(set);
-         if (setDNode.typeName() == MString("objectSet"))
-         {
-            if (!fnSet.setObject(set))
-               continue;
-            // MString setName = fnSet.name();
-            // Also add sets with override turned off to allow chaining
-            // on these as well
-            MPlug p = fnSet.findPlug("aiOverride", true, &status);
-            if ((MStatus::kSuccess == status) && !p.isNull())
-            {
-               overrideSets.append(set);
-            }
-         }
-      }
-   }
-
-   return status;
-}
-
-/// gather the active override sets containing this node
-MStatus CNodeTranslator::ExportOverrideSets()
-{
-   MStatus status;
-
-   MString nodeName = GetMayaNodeName();
-   m_impl->m_overrideSets.clear();
-   MObjectArray overrideSetObjs;
-   status = GetOverrideSets(m_impl->m_handle.object(), overrideSetObjs);
-   // Exporting a set creates no Arnold object but allows IPR to track it
-   MFnSet fnSet;
-   unsigned int ns = overrideSetObjs.length();
-   for (unsigned int i=0; i<ns; i++)
-   {
-      fnSet.setObject(overrideSetObjs[i]);
-      m_impl->m_overrideSets.push_back(GetSession()->ExportNode(fnSet.findPlug("message")));
-   }
-   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
-              GetMayaNodeName().asChar(), GetTranslatorName().asChar(), ns);
-   return status;
-}
-
-/// Get the override plug for the passed maya plug
-/// if there is one, otherwise, returns the passed maya plug.
-MPlug CNodeTranslator::GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus) const
-{
-   MStatus status(MStatus::kSuccess);
-   MPlug resultPlug(plug);
-
-   // MPlug::partialName signature is
-   // (bool includeNodeName=false, bool includeNonMandatoryIndices=false,
-   // bool includeInstancedIndices=false, bool useAlias=false, bool useFullAttributePath=false,
-   // bool useLongNames=false, MStatus *ReturnStatus=NULL)
-   MString attrName = plug.partialName(false, true, true, false, true, true, &status);
-   MPlug overridePlug = m_impl->FindMayaOverridePlug(attrName, &status);
-   CHECK_MSTATUS(status)
-   if ((MStatus::kSuccess == status) && !overridePlug.isNull())
-      resultPlug = overridePlug;
-
-   if (ReturnStatus != NULL) *ReturnStatus = status;
-   return resultPlug;
-}
 
 /// gather up the active AOVs for the current node and add them to m_AOVs
 void CNodeTranslator::ComputeAOVs()
@@ -1026,7 +948,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
          continue;
 
       if (translator)
-         pAttr = translator->GetOverridePlug(pAttr);
+         pAttr = translator->m_impl->GetOverridePlug(pAttr);
 
       if (oAttr.hasFn(MFn::kNumericAttribute))
       {

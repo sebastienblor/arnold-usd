@@ -32,9 +32,6 @@ protected:
    virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode* atNode);
    
-   virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
-   virtual MStatus ExportOverrideSets();
-
    virtual bool IsMasterInstance();
    virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
    virtual MDagPath& GetMasterInstance();
