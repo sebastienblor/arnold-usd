@@ -136,7 +136,7 @@ namespace // <anonymous>
    // Note that we use drawdb/geometry/light to classify it as UI for light.
    // This will allow it to be automatically filtered out by viewport display filters.
    const MString AI_AREA_LIGHT_CLASSIFICATION = "drawdb/geometry/light/arnold/areaLight";
-#if MAYA_API_VERSION >= 201800
+#if MAYA_API_VERSION >= 201700
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION + ":drawdb/light/areaLight";
 #else
    const MString AI_AREA_LIGHT_WITH_SWATCH = LIGHT_WITH_SWATCH + ":" + AI_AREA_LIGHT_CLASSIFICATION;
