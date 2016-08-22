@@ -962,6 +962,9 @@ void CRenderViewMtoA::UpdateColorManagement()
       allViewTransforms += ";";
    }
 
+   // Set the Color Management configuration before doing anything.
+   SetOption("Color Management.Config Files",  userPrefsDir.asChar()); 
+
    // The order of initialization is important to avoid useless changes.
    SetOption("Color Management.Enabled",        "false");
    SetOption("Color Management.OCIO File",   ocioFilepath.asChar()); 
@@ -971,7 +974,6 @@ void CRenderViewMtoA::UpdateColorManagement()
    {
       SetOption("Color Management.View Transforms", allViewTransforms.c_str()); 
       SetOption("Color Management.View Transform",  viewTransform.asChar()); 
-      SetOption("Color Management.Config Files",  userPrefsDir.asChar()); 
    } else
    {
       SetOption("Color Management.View Transforms", ""); 
