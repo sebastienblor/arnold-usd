@@ -27,14 +27,16 @@
 class  CPolygonGeometryTranslator : public CShapeTranslator
 {
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
+   virtual void Init()
    {
+      CShapeTranslator::Init();
+
       m_displaced = false;
       m_isRefSmooth = false;
       m_useMotionVectors = false;
-      m_geometry = dagPath.node();
-      return CShapeTranslator::Init(session, dagPath, outputAttr);
+      m_geometry = m_dagPath.node();
    }
+   
    virtual void Export(AtNode* anode);
    static void NodeInitializer(CAbTranslator context);
    

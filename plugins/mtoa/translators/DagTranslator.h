@@ -10,20 +10,12 @@ class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
 
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
+   virtual void Init()
    {
-      m_dagPath = dagPath;
-      // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      AtNode * tmpRet = CNodeTranslator::Init(session, CNodeAttrHandle(dagPath, outputAttr));      
-      return tmpRet;
+      //CNodeTranslator::Init(); // does nothing, but this could change
+      MDagPath::getAPathTo(GetMayaObject(), m_dagPath);
    }
 
-   virtual AtNode* Init(CArnoldSession* session, MObject& object, MString outputAttr="")
-   {
-      MDagPath dagPath;
-      MDagPath::getAPathTo(object, dagPath);
-      return Init(session, dagPath, outputAttr);
-   }
 
    virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
    virtual MString GetMayaPartialPathName() const { return m_dagPath.partialPathName(); }

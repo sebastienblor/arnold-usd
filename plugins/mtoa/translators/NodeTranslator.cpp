@@ -1138,15 +1138,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
-AtNode *CNodeTranslator::Init(CArnoldSession* session, const CNodeAttrHandle& object)
-{
-   m_impl->m_session = session;
-   m_impl->m_handle = object;
-   ExportOverrideSets();
-   return m_impl->DoCreateArnoldNodes();
-}
-
-   
+  
 
 
 /// Using the translator's m_handle Maya Object and corresponding attrbuteName (default behavior)

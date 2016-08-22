@@ -7,12 +7,6 @@ class DLLEXPORT CLightTranslator
 {
 public:
 
-   // do we really need to re-define this function ?
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
-   {
-      CDagTranslator::Init(session, dagPath, outputAttr);
-      return GetArnoldRootNode();
-   }
    virtual bool RequiresMotionData();
    static AtRGB ConvertKelvinToRGB(float kelvin);
 protected:

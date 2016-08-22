@@ -19,7 +19,7 @@ class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="");
+   virtual void Init();
    
    // FIXME: this method shouldn't be required.
    virtual bool RequiresMotionData();

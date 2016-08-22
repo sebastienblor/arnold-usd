@@ -11,13 +11,12 @@
 #include <common/UtilityFunctions.h>
 #include <utils/HashUtils.h>
 
-AtNode* CShapeTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
+void CShapeTranslator::Init()
 {
-   m_impl->m_atNode       = CDagTranslator::Init(session, dagPath, outputAttr);
+   CDagTranslator::Init();
    m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
    m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
    m_updateShaders = false;
-   return m_impl->m_atNode;
 }
 
 void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)

@@ -46,7 +46,7 @@ public :
 
    AtNode* DoExport();
    AtNode* DoUpdate();
-   AtNode* DoCreateArnoldNodes();
+   void DoCreateArnoldNodes();
    AtNode* ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug,
                                                 const char* arnoldParamName,
                                                 int arnoldParamType);
@@ -62,6 +62,17 @@ public :
 
    // Remove callbacks installed. 
    void RemoveUpdateCallbacks();
+   void Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
+   {
+      Init(session, CNodeAttrHandle(nodeObject, attrName));
+   }
+   void Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
+   {
+      Init(session, CNodeAttrHandle(dagPath, outputAttr));
+   }
+   void Init(CArnoldSession* session, const CNodeAttrHandle& object);
+
+
 
 
    CNodeAttrHandle m_handle;

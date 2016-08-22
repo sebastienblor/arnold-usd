@@ -664,7 +664,7 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
       CNodeTranslator* translator = CExtensionsManager::GetTranslator(node);
       if (translator)
       {
-         translator->Init(arnoldSession, node);
+         translator->m_impl->Init(arnoldSession, node);
          arnoldNode = translator->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
@@ -705,7 +705,7 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
       if (translator)
       {
-         translator->Init(arnoldSession, dagPath);
+         translator->m_impl->Init(arnoldSession, dagPath);
          arnoldNode = translator->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);

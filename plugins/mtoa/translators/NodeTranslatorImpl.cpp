@@ -130,7 +130,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
    return m_tr.GetArnoldRootNode();
 }
 
-AtNode* CNodeTranslatorImpl::DoCreateArnoldNodes()
+void CNodeTranslatorImpl::DoCreateArnoldNodes()
 {
    m_atNode = m_tr.CreateArnoldNodes();
    if (m_atNode == NULL)
@@ -138,7 +138,6 @@ AtNode* CNodeTranslatorImpl::DoCreateArnoldNodes()
             m_tr.GetMayaNodeName().asChar(), m_tr.GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
    if (m_atNodes.count("") == 0)
       m_atNodes[""] = m_atNode;
-   return m_tr.GetArnoldRootNode();
 }
 
 
@@ -292,3 +291,15 @@ void CNodeTranslatorImpl::RemoveUpdateCallbacks()
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
+void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& object)
+{
+   m_session = session;
+   m_handle = object;
+   m_tr.ExportOverrideSets();
+   
+   // first eventually initialize the translator
+   m_tr.Init();
+
+   // then create the arnoldNodes
+   DoCreateArnoldNodes();
+}

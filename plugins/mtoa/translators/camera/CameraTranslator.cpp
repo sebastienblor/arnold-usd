@@ -47,12 +47,12 @@ void CCameraTranslator::ExportImagePlanes()
       }
    }
 }
-AtNode* CCameraTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
+void CCameraTranslator::Init()
 {
-   m_impl->m_atNode = CDagTranslator::Init(session, dagPath, outputAttr);
-   m_fnCamera.setObject(dagPath);
-   return m_impl->m_atNode;
+   CDagTranslator::Init();
+   m_fnCamera.setObject(m_dagPath);
 }
+
 bool CCameraTranslator::RequiresMotionData()
 {
    MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");

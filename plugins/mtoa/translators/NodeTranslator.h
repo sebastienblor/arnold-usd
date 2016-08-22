@@ -86,10 +86,6 @@ public:
    // -------------------- Check if the functions below are really necessary for extensions
    // ---------------------If they are just used internally maybe we could use a different solution ?
 
-   virtual AtNode* Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
-   {
-      return Init(session, CNodeAttrHandle(nodeObject, attrName));
-   }
    // overridable translator properties
    virtual bool IsMayaTypeDag() {return false;}
 
@@ -149,6 +145,7 @@ protected:
    // so that it's removed later
    void RegisterUpdateCallback(const MCallbackId id);
 
+   virtual void Init() {}
 
    // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
    virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
@@ -158,9 +155,6 @@ protected:
    virtual void ComputeAOVs();
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    void WriteAOVUserAttributes(AtNode* atNode);
-   
-   // Node Initialization, that will end up creating the Arnold node(s). Could be done differently...
-   AtNode* Init(CArnoldSession* session, const CNodeAttrHandle& object);
       
    
    /// Return false if the passed outputAttribute is invalid

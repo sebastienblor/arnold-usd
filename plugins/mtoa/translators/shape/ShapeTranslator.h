@@ -7,7 +7,7 @@
 class DLLEXPORT CShapeTranslator : public CDagTranslator
 {
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="");
+   virtual void Init();
    
    virtual bool RequiresMotionData()
    {

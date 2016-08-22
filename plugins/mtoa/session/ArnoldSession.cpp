@@ -160,7 +160,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       if (initOnly)
          AiMsgDebug("[mtoa.session]     %-30s | Initializing DAG node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
-      translator->Init(this, dagPath);
+      translator->m_impl->Init(this, dagPath);
       if (it != m_processedTranslators.end())
       {
          it->second = translator;
@@ -279,7 +279,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
          AiMsgDebug("[mtoa.session]     %-30s | Initializing node of type %s", name.asChar(), type.asChar());
       status = MStatus::kSuccess;
       translator->TrackShaders(nodes);
-      translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
+      translator->m_impl->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
       if (it != m_processedTranslators.end())
       {
          it->second = translator;

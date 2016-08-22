@@ -1,10 +1,6 @@
 #include "LightBlockerTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
-AtNode* CLightBlockerTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
-{
-   CDagTranslator::Init(session, dagPath, outputAttr);
-   return m_impl->m_atNode;
-}
+
    
 bool CLightBlockerTranslator::RequiresMotionData()
 {

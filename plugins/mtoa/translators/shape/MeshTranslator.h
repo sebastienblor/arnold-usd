@@ -5,10 +5,6 @@
 class CMeshTranslator : public CPolygonGeometryTranslator
 {
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
-   {
-      return CPolygonGeometryTranslator::Init(session, dagPath, outputAttr);
-   }
 
    virtual void ExportMotion(AtNode* anode);
 
