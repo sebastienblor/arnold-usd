@@ -162,7 +162,7 @@ void CShapeTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
 {
    MStatus status;
    MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 }
 
 void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)

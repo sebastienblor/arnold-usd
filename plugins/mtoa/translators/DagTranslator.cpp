@@ -118,7 +118,7 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    // MString name = m_dagPath.fullPathName();
    if (DependsOnOutputPlug())
    {
-      MString outputAttr = GetMayaAttributeName();
+      MString outputAttr = GetMayaOutputAttributeName();
 
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
@@ -148,7 +148,7 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
                                                              NodeDirtyCallback,
                                                              this,
                                                              &status);
-         if (MS::kSuccess == status) ManageUpdateCallback(id);
+         if (MS::kSuccess == status) RegisterUpdateCallback(id);
       }
    }
 }

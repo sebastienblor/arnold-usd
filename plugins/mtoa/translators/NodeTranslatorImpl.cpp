@@ -51,7 +51,7 @@
 AtNode* CNodeTranslatorImpl::DoExport()
 {
    AtNode* node = m_tr.GetArnoldNode("");
-   MString outputAttr = m_tr.GetMayaAttributeName();
+   MString outputAttr = m_tr.GetMayaOutputAttributeName();
    int step = m_tr.GetMotionStep();
 
    // FIXME : for now we're setting isExported to false when we ask for a full re-export
@@ -239,3 +239,56 @@ bool CNodeTranslatorImpl::ProcessParameterComponentInputs(AtNode* arnoldNode, co
    }
    return compConnected == numComponents;
 }
+
+// FIXME: store translators list instead of MObject list for m_overrideSets
+// ExportNode and ExportDagPath should return a pointer to translator, much easier
+// than a pointer to Arnold Node
+/// Get a plug for that attribute name on the maya override sets, if any
+MPlug CNodeTranslatorImpl::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
+{
+   MPlug plug;
+   MStatus status(MStatus::kSuccess);   
+   // Check if a set override this plug's value
+   std::vector<CNodeTranslator*>::iterator it;
+   std::vector<CNodeTranslator*> translators;
+   unsigned int novr = m_overrideSets.size();
+   for (unsigned int i=0; i<novr; i++)
+   {
+      CNodeTranslator* translator = m_overrideSets[i];
+      
+      if (translator == 0)
+          continue;
+      // MString setName = translator->GetMayaObjectName();
+      // Search only on active translators
+      if (translator->m_impl->FindMayaObjectPlug("aiOverride", &status).asBool())
+      {
+         plug = translator->m_impl->FindMayaObjectPlug(attrName, &status);
+      }
+      if (plug.isNull())
+      {
+         // But chain on all
+         // It's a depth first search on sets of sets
+         plug = translator->m_impl->FindMayaOverridePlug(attrName, &status);
+      }
+
+      // More than one (non nested) set contains object, stop on first one
+      if (!plug.isNull()) break;
+   }
+
+   if (ReturnStatus != NULL) *ReturnStatus = status;
+   return plug;
+}
+
+/// Get a plug for that attribute name on the maya translated object
+MPlug CNodeTranslatorImpl::FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus) const
+{
+   MFnDependencyNode fnNode(m_handle.object());
+   return fnNode.findPlug(attrName, ReturnStatus);
+}
+
+void CNodeTranslatorImpl::RemoveUpdateCallbacks()
+{
+   const MStatus status = MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
+   if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
+}
+

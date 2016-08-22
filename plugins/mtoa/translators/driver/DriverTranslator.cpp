@@ -20,7 +20,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
          return NULL;
    }
 
-   const char* driverType = GetArnoldNodeType().asChar();
+   const char* driverType = m_impl->m_abstract.arnold.asChar();
    const AtNodeEntry* entry = AiNodeEntryLookUp(driverType);
    if (entry != NULL)
    {
@@ -95,10 +95,6 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
 
 // No callbacks currently
 void CDriverTranslator::AddUpdateCallbacks()
-{
-}
-
-void CDriverTranslator::RemoveUpdateCallbacks()
 {
 }
 

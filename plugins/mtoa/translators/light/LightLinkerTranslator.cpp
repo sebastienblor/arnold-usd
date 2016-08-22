@@ -33,21 +33,21 @@ void CLightLinkerTranslator::AddUpdateCallbacks()
                                            NodeDirtyCallback,
                                            this,
                                            &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
                                                    this,
                                                    &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // Set members change
    id = MNodeMessage::addAttributeChangedCallback(object,
                                                   AttributeChangedCallback,
                                                   this,
                                                   &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 }
 
 void CLightLinkerTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)

@@ -1275,7 +1275,7 @@ void CArnoldSession::DoUpdate()
       if (translator != NULL && translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
          // delete the current translator, just like AI_DELETE_NODE does
-         translator->RemoveUpdateCallbacks();
+         translator->m_impl->RemoveUpdateCallbacks();
          translator->Delete();
          m_processedTranslators.erase(handle); // shouldn't we delete the translator ?
 
@@ -1301,7 +1301,7 @@ void CArnoldSession::DoUpdate()
             translatorsToUpdate.push_back(translator);
          } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
-            translator->RemoveUpdateCallbacks();
+            translator->m_impl->RemoveUpdateCallbacks();
             translator->Delete();
             m_processedTranslators.erase(handle);
             // FIXME : when is this translator supposed to be deleted ??
@@ -1467,7 +1467,7 @@ void CArnoldSession::DoUpdate()
               translator->m_impl->m_holdUpdates = false; // I'm allowed to receive updates once again
             } else
             {
-               translator->RemoveUpdateCallbacks();
+               translator->m_impl->RemoveUpdateCallbacks();
                translator->AddUpdateCallbacks();
             }
             // restore the update mode to "update Only"
@@ -1499,7 +1499,7 @@ void CArnoldSession::ClearUpdateCallbacks()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      if (it->second != NULL) it->second->RemoveUpdateCallbacks();
+      if (it->second != NULL) it->second->m_impl->RemoveUpdateCallbacks();
    }
 }
 

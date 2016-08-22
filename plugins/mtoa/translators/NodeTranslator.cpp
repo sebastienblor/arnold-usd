@@ -156,51 +156,8 @@ AtNode* CNodeTranslator::ExportDagPath(MDagPath &dagPath)
    return NULL;
 }
 
-/// Get a plug for that attribute name on the maya translated object
-MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus) const
-{
-   MFnDependencyNode fnNode(m_impl->m_handle.object());
-   return fnNode.findPlug(attrName, ReturnStatus);
-}
 
-// FIXME: store translators list instead of MObject list for m_overrideSets
-// ExportNode and ExportDagPath should return a pointer to translator, much easier
-// than a pointer to Arnold Node
-/// Get a plug for that attribute name on the maya override sets, if any
-MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
-{
-   MPlug plug;
-   MStatus status(MStatus::kSuccess);   
-   // Check if a set override this plug's value
-   std::vector<CNodeTranslator*>::iterator it;
-   std::vector<CNodeTranslator*> translators;
-   unsigned int novr = m_impl->m_overrideSets.size();
-   for (unsigned int i=0; i<novr; i++)
-   {
-      CNodeTranslator* translator = m_impl->m_overrideSets[i];
-      
-      if (translator == 0)
-          continue;
-      // MString setName = translator->GetMayaObjectName();
-      // Search only on active translators
-      if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
-      {
-         plug = translator->FindMayaObjectPlug(attrName, &status);
-      }
-      if (plug.isNull())
-      {
-         // But chain on all
-         // It's a depth first search on sets of sets
-         plug = translator->FindMayaOverridePlug(attrName, &status);
-      }
 
-      // More than one (non nested) set contains object, stop on first one
-      if (!plug.isNull()) break;
-   }
-
-   if (ReturnStatus != NULL) *ReturnStatus = status;
-   return plug;
-}
 
 /// Get actual plug to be used for that attribute name, either the one on the translated maya object,
 /// or the one on the override set to be used, if any.
@@ -208,12 +165,12 @@ MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStat
 {
    MStatus status(MStatus::kSuccess);
 
-   MPlug plug = FindMayaObjectPlug(attrName, &status);
+   MPlug plug = m_impl->FindMayaObjectPlug(attrName, &status);
    if ((MStatus::kSuccess == status) && !plug.isNull())
    {
       MStatus overstat;
       MString attrLongName = plug.partialName(false, true, true, false, true, true, &overstat);
-      MPlug overridePlug = FindMayaOverridePlug(attrLongName, &overstat);
+      MPlug overridePlug = m_impl->FindMayaOverridePlug(attrLongName, &overstat);
       if ((MStatus::kSuccess == overstat) && !overridePlug.isNull())
       {
          plug = overridePlug;
@@ -296,7 +253,7 @@ MPlug CNodeTranslator::GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus)
    // bool includeInstancedIndices=false, bool useAlias=false, bool useFullAttributePath=false,
    // bool useLongNames=false, MStatus *ReturnStatus=NULL)
    MString attrName = plug.partialName(false, true, true, false, true, true, &status);
-   MPlug overridePlug = FindMayaOverridePlug(attrName, &status);
+   MPlug overridePlug = m_impl->FindMayaOverridePlug(attrName, &status);
    CHECK_MSTATUS(status)
    if ((MStatus::kSuccess == status) && !overridePlug.isNull())
       resultPlug = overridePlug;
@@ -552,7 +509,7 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    char nodeName[MAX_NAME_SIZE];
    if (DependsOnOutputPlug())
    {
-      MString outputAttr = GetMayaAttributeName();
+      MString outputAttr = GetMayaOutputAttributeName();
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
    }
@@ -572,7 +529,9 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 
 const char* CNodeTranslator::GetArnoldNodeName(const char* tag)
 {
-   return AiNodeGetName(GetArnoldNode(tag));
+   AtNode *node = GetArnoldNode(tag);
+   if (node == NULL) return "";
+   return AiNodeGetName(node);
 }
 
 const char* CNodeTranslator::GetArnoldTypeName(const char* tag)
@@ -632,38 +591,32 @@ void CNodeTranslator::AddUpdateCallbacks()
                                            NodeDirtyCallback,
                                            this,
                                            &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
                                                    this,
                                                    &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // Just so people don't get confused with debug output.
    id = MNodeMessage::addNameChangedCallback(object,
                                              NameChangedCallback,
                                              this,
                                              &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    id = MNodeMessage::addNodeDestroyedCallback(object,
                                                NodeDestroyedCallback,
                                                this,
                                                &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 }
 
-void CNodeTranslator::ManageUpdateCallback(const MCallbackId id)
+void CNodeTranslator::RegisterUpdateCallback(const MCallbackId id)
 {
    m_impl->m_mayaCallbackIDs.append(id);
-}
-
-void CNodeTranslator::RemoveUpdateCallbacks()
-{
-   const MStatus status = MNodeMessage::removeCallbacks(m_impl->m_mayaCallbackIDs);
-   if (status == MS::kSuccess) m_impl->m_mayaCallbackIDs.clear();
 }
 
 
@@ -741,7 +694,7 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
       // note that LightLinker and ObjectSets are never called here
       // since they don't add this callback   
       
-      translator->RemoveUpdateCallbacks();
+      translator->m_impl->RemoveUpdateCallbacks();
       translator->Delete();  
    }
 }
@@ -772,7 +725,7 @@ void CNodeTranslator::RequestUpdate()
       }
    } else
    {
-      RemoveUpdateCallbacks();
+      m_impl->RemoveUpdateCallbacks();
       // Add translator to the list of translators to update
       GetSession()->QueueForUpdate(this);
    }
@@ -1783,10 +1736,9 @@ void CNodeTranslator::NodeInitializer(CAbTranslator context)
 
 MObject CNodeTranslator::GetMayaObject() const { return m_impl->m_handle.object(); }
 MString CNodeTranslator::GetMayaNodeName() const { return MFnDependencyNode(m_impl->m_handle.object()).name(); }
-MString CNodeTranslator::GetMayaAttributeName() const { return m_impl->m_handle.attribute(); }
+MString CNodeTranslator::GetMayaOutputAttributeName() const { return m_impl->m_handle.attribute(); }
 
 MString CNodeTranslator::GetMayaNodeTypeName() const { return MFnDependencyNode(m_impl->m_handle.object()).typeName(); }
-MObject CNodeTranslator::GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_impl->m_handle.object()).attribute(attributeName); }
 
 double CNodeTranslator::GetExportFrame() const {return GetSession()->GetExportFrame();}
 bool CNodeTranslator::IsMotionBlurEnabled(int type) const { return GetSession()->IsMotionBlurEnabled(type); }
@@ -1808,7 +1760,6 @@ double CNodeTranslator::GetMotionByFrame() const {return m_impl->m_session->GetM
 void CNodeTranslator::TrackShaders(AtNodeSet* nodes) {m_impl->m_shaders = nodes;};
 
 MString CNodeTranslator::GetTranslatorName() {return m_impl->m_abstract.name;}
-/// for translators that are associated with a specific arnold node
-MString CNodeTranslator::GetArnoldNodeType() {return m_impl->m_abstract.arnold;};
+
 
 

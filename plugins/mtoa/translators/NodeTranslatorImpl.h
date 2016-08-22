@@ -57,6 +57,13 @@ public :
 
 
 
+   MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
+   MPlug FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
+
+   // Remove callbacks installed. 
+   void RemoveUpdateCallbacks();
+
+
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
    bool m_holdUpdates; // for Arnold RenderView only

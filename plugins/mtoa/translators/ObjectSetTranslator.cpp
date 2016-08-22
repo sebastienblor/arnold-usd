@@ -49,28 +49,28 @@ void CObjectSetTranslator::AddUpdateCallbacks()
                                            NodeDirtyCallback,
                                            this,
                                            &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
                                                    this,
                                                    &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // Set members change (with precise info of what was added or removed)
    id = MNodeMessage::addAttributeChangedCallback(object,
                                                   AttributeChangedCallback,
                                                   this,
                                                   &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
    // Set members have changed
    id = MObjectSetMessage::addSetMembersModifiedCallback(object,
                                                          SetMembersChangedCallback,
                                                          this,
                                                          &status);
-   if (MS::kSuccess == status) ManageUpdateCallback(id);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
 }
 
@@ -89,7 +89,7 @@ void CObjectSetTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *c
          AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: ignoring plug %s.",
                      nodeName.asChar(), plugName.asChar());
       }
-      else if ((plug.partialName()=="ai_override") || translator->FindMayaObjectPlug("aiOverride").asBool())
+      else if ((plug.partialName()=="ai_override") || translator->FindMayaPlug("aiOverride").asBool())
       {
          // Only update if THIS set is active (not containing sets)
          AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
@@ -203,7 +203,7 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
          AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Attribute added or removed on %s.",
                     translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
          // Only need to update if THIS set is active
-         if (translator->FindMayaObjectPlug("aiOverride").asBool())
+         if (translator->FindMayaPlug("aiOverride").asBool())
          {
             translator->RequestUpdate();
          }

@@ -663,7 +663,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          MFnDependencyNode fnDGNode(m_dagPath.node());
          MPlug plug(m_dagPath.node(), fnDGNode.attribute("instObjGroups"));
          plug = plug.elementByLogicalIndex(instanceNum);
-         MObject obGr = GetMayaObjectAttribute("objectGroups");
+         MObject obGr = MFnDependencyNode(GetMayaObject()).attribute("objectGroups");
          plug = plug.child(obGr);
          
          bool exported = false;
@@ -778,10 +778,10 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    {
       // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
       // it only influences the computation of the displacement bounds
-      AiNodeSetFlt(polymesh, "disp_height",  FindMayaObjectPlug("aiDispHeight").asFloat());
-      AiNodeSetFlt(polymesh, "disp_padding", MAX(maximumDisplacementPadding, FindMayaObjectPlug("aiDispPadding").asFloat()));
-      AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaObjectPlug("aiDispZeroValue").asFloat());
-      AiNodeSetBool(polymesh, "disp_autobump", FindMayaObjectPlug("aiDispAutobump").asBool() || enableAutoBump);
+      AiNodeSetFlt(polymesh, "disp_height",  FindMayaPlug("aiDispHeight").asFloat());
+      AiNodeSetFlt(polymesh, "disp_padding", MAX(maximumDisplacementPadding, FindMayaPlug("aiDispPadding").asFloat()));
+      AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaPlug("aiDispZeroValue").asFloat());
+      AiNodeSetBool(polymesh, "disp_autobump", FindMayaPlug("aiDispAutobump").asBool() || enableAutoBump);
    }
 
    // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
@@ -1267,7 +1267,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
             MFnDependencyNode fnDGNode(m_geometry);
             MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
             plug = plug.elementByLogicalIndex(instanceNum);
-            MObject obGr = GetMayaObjectAttribute("objectGroups");
+            MObject obGr = MFnDependencyNode(GetMayaObject()).attribute("objectGroups");
             plug = plug.child(obGr);
             plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
             if(connections.length() > 0)

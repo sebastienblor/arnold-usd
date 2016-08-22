@@ -421,7 +421,7 @@ void CBump3DTranslator::Export(AtNode* shader)
 //
 AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
    AtNode* shader = NULL;
    if (outputAttr == "facingRatio" || outputAttr == "flippedNormal")
    {
@@ -454,7 +454,7 @@ void CSamplerInfoTranslator::Export(AtNode* shader)
 //
 AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "output1D")
    {
@@ -484,7 +484,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
 //
 AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (
          outputAttr == "outColor" ||
@@ -549,7 +549,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
 
 void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "outColor" || outputAttr == "rgbPP")
    {
@@ -621,7 +621,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "outValue")
    {
@@ -640,15 +640,15 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
-   MString outputAttr = GetMayaAttributeName();
-
+   MString outputAttr = GetMayaOutputAttributeName();
+   MFnDependencyNode fnNode(GetMayaObject());
    if (outputAttr == "outValue")
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = GetMayaObjectAttribute("value_Position");
-      MObject oval = GetMayaObjectAttribute("value_FloatValue");
-      MObject ointerp = GetMayaObjectAttribute("value_Interp");
+      MObject opos = fnNode.attribute("value_Position");
+      MObject oval = fnNode.attribute("value_FloatValue");
+      MObject ointerp = fnNode.attribute("value_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader or set metadata
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
@@ -681,9 +681,9 @@ void CRemapValueTranslator::Export(AtNode* shader)
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = GetMayaObjectAttribute("color_Position");
-      MObject oval = GetMayaObjectAttribute("color_Color");
-      MObject ointerp = GetMayaObjectAttribute("color_Interp");
+      MObject opos = fnNode.attribute("color_Position");
+      MObject oval = fnNode.attribute("color_Color");
+      MObject ointerp = fnNode.attribute("color_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
@@ -744,11 +744,13 @@ void CRemapColorTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
    ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
+   MFnDependencyNode fnNode(GetMayaObject());
+
    for (int ci=0; ci<3; ++ci)
    {
-      MObject opos = GetMayaObjectAttribute(posNames[ci*2]);
-      MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
-      MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
+      MObject opos = fnNode.attribute(posNames[ci*2]);
+      MObject oval = fnNode.attribute(valNames[ci*2]);
+      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
       
       attr = FindMayaPlug(plugNames[ci]);
       unsigned int numElements = attr.numElements();
@@ -801,11 +803,12 @@ void CRemapHsvTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
    ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
+   MFnDependencyNode fnNode(GetMayaObject());
    for (int ci=0; ci<3; ++ci)
    {
-      MObject opos = GetMayaObjectAttribute(posNames[ci*2]);
-      MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
-      MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
+      MObject opos = fnNode.attribute(posNames[ci*2]);
+      MObject oval = fnNode.attribute(valNames[ci*2]);
+      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
 
       attr = FindMayaPlug(plugNames[ci]);
       unsigned int numElements = attr.numElements();
@@ -907,8 +910,10 @@ void CRampTranslator::Export(AtNode* shader)
 
    MPlug plug, elem, pos, col;
 
-   MObject opos = GetMayaObjectAttribute("position");
-   MObject ocol = GetMayaObjectAttribute("color");
+   MFnDependencyNode fnNode(GetMayaObject());
+
+   MObject opos = fnNode.attribute("position");
+   MObject ocol = fnNode.attribute("color");
    plug = FindMayaPlug("colorEntryList");
    unsigned int numElements = plug.numElements();
 

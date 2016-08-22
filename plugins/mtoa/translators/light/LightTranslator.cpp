@@ -70,7 +70,7 @@ void CLightTranslator::Export(AtNode* light)
    }
 
    AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
-   AiNodeSetFlt(light,  "shadow_density",  FindMayaObjectPlug("aiShadowDensity").asFloat());
+   AiNodeSetFlt(light,  "shadow_density",  FindMayaPlug("aiShadowDensity").asFloat());
    
    AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
    AiNodeSetBool(light, "normalize",       norm);
