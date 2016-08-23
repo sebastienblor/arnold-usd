@@ -341,7 +341,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (!masterNode)
             {
                // FIXME: check if the object will not be exported a second time later !
-               ExportDagPath(dagPathMaster);
+               GetSession()->ExportDagPath(dagPathMaster);
             }
          }
          m_objectNames.append(dagPathMaster.partialPathName().asChar());

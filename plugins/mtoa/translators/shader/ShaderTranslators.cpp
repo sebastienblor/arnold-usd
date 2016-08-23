@@ -92,7 +92,7 @@ void CLambertTranslator::Export(AtNode* shader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         AtNode* inNode = ExportNode(connections[0]);
+         AtNode* inNode = ExportConnectedNode(connections[0]);
          // Need to reverse it
          if (inNode != NULL)
          {
@@ -1598,10 +1598,10 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
       if (conns.length() == 0)
          continue;
       MPlug inputShaderPlug = conns[0];
-      AtNode* shader = ExportNode(inputShaderPlug);
+      AtNode* shader = ExportConnectedNode(inputShaderPlug);
       if (shader == 0)
          continue;
-      AtNode* shape = ExportNode(inputShapePlug);
+      AtNode* shape = ExportConnectedNode(inputShapePlug);
       if (shape == 0)
          continue;
       inputs.push_back(shader);

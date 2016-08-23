@@ -775,7 +775,7 @@ AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
          AiNodeDeclare( instance, "xgen_shader", "constant ARRAY NODE" );

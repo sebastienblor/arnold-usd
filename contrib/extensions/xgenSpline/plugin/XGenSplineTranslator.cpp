@@ -57,7 +57,7 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
     MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
     if (!shadingGroupPlug.isNull())
     {
-        AtNode* shader = ExportNode(shadingGroupPlug);
+        AtNode* shader = ExportConnectedNode(shadingGroupPlug);
         if (shader)
         {
             AiNodeSetPtr(procedural, "shader", shader);

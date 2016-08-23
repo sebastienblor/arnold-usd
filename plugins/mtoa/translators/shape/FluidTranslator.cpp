@@ -170,7 +170,7 @@ void CFluidTranslator::ExportRGBGradient(MPlug plug, AtNode* node, const char* p
       colorPlug.connectedTo(conns, true, false, &status);
       if (status && conns.length())
       {
-         AtNode* connectedColor = ExportNode(conns[0]);
+         AtNode* connectedColor = ExportConnectedNode(conns[0]);
          MString attributeName = values_name + MString("[");
          attributeName += i;
          attributeName += "]";
@@ -269,7 +269,7 @@ void CFluidTranslator::Export(AtNode* fluid)
          plug.connectedTo(volumeNoisePlug, true, false);
          if (volumeNoisePlug.length() > 0)
          {
-            AtNode* volumeNoise = ExportNode(volumeNoisePlug[0]);
+            AtNode* volumeNoise = ExportConnectedNode(volumeNoisePlug[0]);
             AiNodeSetPtr(fluid_shader, "volume_texture", volumeNoise);
          }
       }

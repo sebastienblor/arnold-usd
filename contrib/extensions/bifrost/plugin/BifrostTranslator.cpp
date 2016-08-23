@@ -485,7 +485,7 @@ void CBfDescriptionTranslator::ExportBifrostShader()
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       { 
          // Push the shader in the vector to be assigned later to mtoa_shading_groups

@@ -131,31 +131,10 @@ CNodeTranslator::~CNodeTranslator()
    delete m_impl;
 }
 
-AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool track, CNodeTranslator** outTranslator)
+AtNode* CNodeTranslator::ExportConnectedNode(const MPlug& outputPlug)
 {
-   CNodeTranslator* translator = NULL;
-   if (track)
-      translator = GetSession()->ExportNode(outputPlug, m_impl->m_shaders, &m_impl->m_upstreamAOVs);
-   else
-      translator = GetSession()->ExportNode(outputPlug);
-   if (translator != NULL)
-   {
-      if (outTranslator != NULL)
-         *outTranslator = translator;
-      return translator->GetArnoldRootNode();
-   }
-   return NULL;
+   return m_impl->ExportConnectedNode(outputPlug);
 }
-
-AtNode* CNodeTranslator::ExportDagPath(MDagPath &dagPath)
-{
-   CDagTranslator* translator = NULL;
-   translator = GetSession()->ExportDagPath(dagPath);
-   if (translator != NULL)
-      return translator->GetArnoldRootNode();
-   return NULL;
-}
-
 
 
 
@@ -926,7 +905,7 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
          if (pArr.length() > 0)
          {
             MPlug connectedPlug = pArr[0];
-            AtNode* connectedNode = translator->ExportNode(connectedPlug);
+            AtNode* connectedNode = translator->ExportConnectedNode(connectedPlug);
             if (connectedNode != 0)
             {
                AiNodeDeclareConstant(anode, aname, AI_TYPE_NODE);
@@ -1114,7 +1093,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
          array = AiArrayAllocate(size, 1, arnoldParamType);
          for (unsigned int i=0; i < size; ++i)
          {
-            AtNode* linkedNode = ExportNode(inputs[i]);
+            AtNode* linkedNode = ExportConnectedNode(inputs[i]);
             AiArraySetPtr(array, i, linkedNode);
          }
          AiNodeSetArray(arnoldNode, arnoldParamName, array);

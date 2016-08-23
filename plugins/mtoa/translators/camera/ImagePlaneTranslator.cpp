@@ -409,7 +409,8 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             else
             {
                MPlug outputPlug = conn[0];
-               ExportNode(outputPlug);
+               // FIXME : don't we need to link this Node to our colorGain attribute ??
+               ExportConnectedNode(outputPlug);
             }
 
             colorPlug  = fnRes.findPlug("colorOffset");
@@ -419,7 +420,8 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             else
             {
                MPlug outputPlug = conn[0];
-               ExportNode(outputPlug);
+               // FIXME : don't we need to link this Node to our colorGain attribute ??
+               ExportConnectedNode(outputPlug);
             }
 
             float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
@@ -434,7 +436,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             if (conn.length())
             {
                MPlug outputPlug = conn[0];
-               AiNodeLink(ExportNode(outputPlug), "color", imagePlaneShader);
+               AiNodeLink(ExportConnectedNode(outputPlug), "color", imagePlaneShader);
             }
          }
 

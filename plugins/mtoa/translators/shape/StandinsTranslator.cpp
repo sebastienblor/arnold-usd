@@ -244,7 +244,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *shader = ExportNode(shadingGroupPlug);
+      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
          AiNodeSetPtr(procedural, "shader", shader);

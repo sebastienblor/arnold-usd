@@ -75,7 +75,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
       else
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                     m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
-      
+
       m_tr.ComputeAOVs();
       m_tr.Export(node);
       m_tr.ExportUserAttribute(node);
@@ -142,7 +142,7 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
 
 
 
-/// Calls ExportNode and AiNodeLink if there are incoming connections to 'plug'
+/// Calls ExportConnectedNode and AiNodeLink if there are incoming connections to 'plug'
 /// returns the connected arnold AtNode or NULL
 AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug,
                                                 const char* arnoldParamName,
@@ -156,7 +156,7 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
       // process connections
       MPlug srcMayaPlug = connections[0];
       CNodeTranslator* srcNodeTranslator = NULL;
-      AtNode* srcArnoldNode = m_tr.ExportNode(srcMayaPlug, true, &srcNodeTranslator);
+      AtNode* srcArnoldNode = ExportConnectedNode(srcMayaPlug, true, &srcNodeTranslator);
 
       if (srcArnoldNode == NULL)
          return NULL;
@@ -501,7 +501,7 @@ void CNodeTranslatorImpl::AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNo
 
             // process connections
             // use false to avoid processing aovs for this node
-            AtNode* linkedNode = m_tr.ExportNode(connections[0], false);
+            AtNode* linkedNode = ExportConnectedNode(connections[0], false);
             if (linkedNode != NULL)
             {
                const char* aovName = aov.GetName().asChar();
@@ -932,12 +932,30 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          AtNode* linkedNode = NULL;
          if (connections.length() > 0)
          {
-            linkedNode = m_tr.ExportNode(connections[0]);
+            linkedNode = ExportConnectedNode(connections[0]);
          }
          AiArraySetPtr(array, i, linkedNode);
       }
       break;
    } // switch
+}
+
+AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool track, CNodeTranslator** outTranslator)
+{
+   CNodeTranslator* translator = NULL;
+   if (track)
+      translator = m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);
+   else
+      translator = m_session->ExportNode(outputPlug);
+   if (translator != NULL)
+   {
+      if (outTranslator != NULL)
+         *outTranslator = translator;
+
+      // could we make up a system to track the connections between translators ?
+      return translator->GetArnoldRootNode();
+   }
+   return NULL;
 }
 
 

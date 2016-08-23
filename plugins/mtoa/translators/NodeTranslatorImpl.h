@@ -36,7 +36,6 @@ public :
       m_session(NULL),
       m_atNode(NULL),
       m_overrideSets(),
-      m_step(0),
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
@@ -89,6 +88,7 @@ public :
    void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
    void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
 
+   AtNode* ExportConnectedNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = NULL);
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
@@ -102,8 +102,6 @@ public :
 
    std::vector<CNodeTranslator*> m_overrideSets;
 
-   unsigned int m_step;
-
    AOVSet m_localAOVs;
    AOVSet m_upstreamAOVs;
    AtNodeSet* m_shaders;
@@ -112,8 +110,6 @@ public :
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
    bool m_isExported;
-
-
 
 private:
    CNodeTranslator &m_tr;

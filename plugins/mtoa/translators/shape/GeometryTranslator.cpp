@@ -613,7 +613,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    if (!shadingGroupPlug.isNull())
    {
       // SURFACE MATERIAL EXPORT
-      AtNode *shader = ExportNode(shadingGroupPlug);
+      AtNode *shader = ExportConnectedNode(shadingGroupPlug);
       if (shader != NULL)
       {
          // Push the shader in the vector to be assigned later to mtoa_shading_groups
@@ -640,7 +640,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          MObject dispNode = connections[0].node();
          GetDisplacement(dispNode, maximumDisplacementPadding, enableAutoBump);
          
-         AtNode* dispImage(ExportNode(connections[0]));
+            AtNode* dispImage(ExportConnectedNode(connections[0]));
          AiNodeSetPtr(polymesh, "disp_map", dispImage);         
       }
    }
@@ -679,7 +679,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                if (shadingGroups[J] == connections[j].node())
                {
                   // connections[j] is the MPlug to shadingGroups[J]
-                  AtNode *shader = ExportNode(connections[j]);
+                  AtNode *shader = ExportConnectedNode(connections[j]);
                   if (shader != NULL)
                   {
                     meshShaders.push_back(shader);
@@ -711,7 +711,7 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
             m_displaced = true;
             MObject dispNode = connections[0].node();
             GetDisplacement(dispNode, maximumDisplacementPadding, enableAutoBump);
-            AtNode* dispImage(ExportNode(connections[0]));
+            AtNode* dispImage(ExportConnectedNode(connections[0]));
             meshDisps.push_back(dispImage);
          }
          else
@@ -1276,7 +1276,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
             }
          }
 
-         AtNode* shader = ExportNode(shadingGroupPlug);
+         AtNode* shader = ExportConnectedNode(shadingGroupPlug);
          AiNodeSetPtr(instance, "shader", shader);
          // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
          AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");

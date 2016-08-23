@@ -105,8 +105,8 @@ void CStandardCameraTranslator::ExportPersp(AtNode* camera)
       uvRemapNode = MObject::kNullObj;
    }
    if (!uvRemapNode.isNull())
-   {
-      AiNodeLink(ExportNode(conns[0]), "uv_remap", camera);
+   {      
+      AiNodeLink(ExportConnectedNode(conns[0]), "uv_remap", camera);
    }
    else
    {

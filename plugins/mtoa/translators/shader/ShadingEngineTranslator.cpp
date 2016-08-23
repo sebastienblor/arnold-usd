@@ -110,7 +110,8 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    {
       // export the root shading network, this fills m_shaders
       CNodeTranslator* shaderNodeTranslator = 0;
-      rootShader = ExportNode(connections[0], true, &shaderNodeTranslator);
+      // here we call the private implementation function as we need the output translator
+      rootShader = m_impl->ExportConnectedNode(connections[0], true, &shaderNodeTranslator);
       if (rootShader)
       {
          AiNodeLink(rootShader, "beauty", shadingEngine);
@@ -131,7 +132,9 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       for (unsigned int i = 0; i < m_customAOVPlugs.length(); i++)
       {
          // by passing false we avoid tracking shaders and aovs.
-         AtNode* writeNode = ExportNode(m_customAOVPlugs[i], false);
+         // we need to call the private implementation function to prevent shaders tracking
+         AtNode* writeNode = m_impl->ExportConnectedNode(m_customAOVPlugs[i], false);
+         
          // since we know this maya node is connected to aiCustomAOVs it will have a write node
          // inserted after it by CShaderTranslator::ProcessAOVOutput (assuming the node is translated by
          // CShaderTranslator)
@@ -163,7 +166,7 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       // export the root shading network, this fills m_shaders
       MFnDependencyNode shaderNode(connections[0].node());
       MStatus status;
-      rootShader = ExportNode(connections[0]);
+      rootShader = ExportConnectedNode(connections[0]);
       AiNodeLink(rootShader, "volume", shadingEngine);
    }
 

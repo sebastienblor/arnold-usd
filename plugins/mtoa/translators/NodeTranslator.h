@@ -146,7 +146,6 @@ protected:
    // so that it's removed later
    void RegisterUpdateCallback(const MCallbackId id);
 
-
    // Convert the given Arnold attribute from the Maya object. By default, no maya attribute name is provided and it is searched by default
    AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, MString mayaAttrName  = "");
    // Convert the given Arnold attribute from the Maya Plug
@@ -154,6 +153,11 @@ protected:
 
    // Convert the given array attribute. By default, no param Type is provided so it's determined automatically. A child array MObject can be provided optionally
    void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int arnoldParamType = AI_TYPE_UNDEFINED, MObject *childArray = NULL);
+
+   // Export (and eventually create) the arnold node connected to a given attribute.
+   // Note that this is what causes the creation of a full shading tree, from the root shaders to the leafs
+   AtNode* ExportConnectedNode(const MPlug& outputPlug);
+
 
    // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
   
@@ -183,14 +187,8 @@ protected:
    int /*ArnoldSessionMode*/ GetSessionMode() const; // FIXME find a way to restore ArnoldSessionMode
    const MObject& GetArnoldRenderOptions() const;
    double GetMotionByFrame() const;
-
-   // session action
-   AtNode* ExportNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = 0);
-   AtNode* ExportDagPath(MDagPath &dagPath);
-
    
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
-
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);

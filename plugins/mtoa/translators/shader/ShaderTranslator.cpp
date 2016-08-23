@@ -138,7 +138,7 @@ void CShaderTranslator::AssociateAOVsWithShadingGroups()
          CHECK_MSTATUS(stat);
          if (!sgPlug.isNull())
          {
-            AtNode* shadingEngine = ExportNode(sgPlug);
+            AtNode* shadingEngine = ExportConnectedNode(sgPlug);
             if (shadingEngine != NULL)
             {
                AiArraySetPtr(sgs, i, shadingEngine);
@@ -243,7 +243,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         AtNode* bump = ExportNode(connections[0]);
+         AtNode* bump = ExportConnectedNode(connections[0]);
 
          if (bump != NULL)
          {

@@ -37,6 +37,7 @@ void CCameraTranslator::ExportImagePlanes()
 
          if (status && (connectedPlugs.length() > 0))
          {
+            // Shouldn't we rather call NodeTranslator::ExportNode ?
             CNodeTranslator *imgTranslator = GetSession()->ExportNode(connectedPlugs[0], NULL, NULL, true);
             CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
 
@@ -132,7 +133,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       plug.connectedTo(filtermapPlug, true, false);
       if (filtermapPlug.length() > 0)
       {
-         AtNode* filtermap = ExportNode(filtermapPlug[0]);
+         AtNode* filtermap = ExportConnectedNode(filtermapPlug[0]);
          AiNodeSetPtr(camera, "filtermap", filtermap);
       }
    }

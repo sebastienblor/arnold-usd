@@ -145,7 +145,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroupPlug.isNull())
    {
-      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      AtNode *rootShader = ExportConnectedNode(shadingGroupPlug);
       if (rootShader != NULL)
       {
          AiNodeSetPtr(particle, "shader", rootShader);
@@ -1573,7 +1573,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    if (iogConnectionsMaster[0].node() != iogConnections[0].node())
    {
       //FIXME : Is it ok to assume that the shader is the first Dag member ?
-      AtNode *shader = ExportNode(iogConnections[0]);
+      AtNode *shader = ExportConnectedNode(iogConnections[0]);
       AiNodeSetPtr(instance, "shader", shader);
    }
 

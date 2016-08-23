@@ -1,4 +1,5 @@
 #include "OptionsTranslator.h"
+#include "translators/DagTranslator.h"
 #include "render/RenderSession.h"
 #include "render/RenderOptions.h"
 #include "utils/MayaUtils.h"
@@ -418,7 +419,7 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
       return NULL;
 
    // this generates a unique node every export
-   AtNode* driver = ExportNode(conn[0]);
+   AtNode* driver = ExportConnectedNode(conn[0]);
    if (driver == NULL)
       return NULL;
 
@@ -445,7 +446,7 @@ AtNode* COptionsTranslator::ExportFilter(const MPlug& filterPlug)
    if (!conn.length())//filterType == "<Use Globals>" || filterType == "")
       return NULL;
 
-   AtNode* filter = ExportNode(conn[0]);
+   AtNode* filter = ExportConnectedNode(conn[0]);
    if (filter == NULL)
       return NULL;
 
@@ -498,7 +499,8 @@ void COptionsTranslator::SetCamera(AtNode *options)
 
    cameraNode.extendToShape();
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = ExportDagPath(cameraNode);
+   CDagTranslator *cameraTranslator = GetSession()->ExportDagPath(cameraNode);
+   AtNode* camera = (cameraTranslator) ? cameraTranslator->GetArnoldRootNode() : NULL;
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
@@ -661,7 +663,7 @@ void COptionsTranslator::Export(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "background", ExportNode(conns[0]));
+      AiNodeSetPtr(options, "background", ExportConnectedNode(conns[0]));
    }
    else
    {
@@ -779,7 +781,7 @@ void COptionsTranslator::ExportAtmosphere(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+      AiNodeSetPtr(options, "atmosphere", ExportConnectedNode(conns[0]));
    }
    else
    {
