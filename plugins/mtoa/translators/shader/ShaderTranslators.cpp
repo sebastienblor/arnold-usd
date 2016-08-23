@@ -129,29 +129,22 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    // All physical sky attributes are not linkable in Arnold
    MStatus status;
    
-   MPlug plug = FindMayaPlug("turbidity", &status);
-   ProcessConstantParameter(shader, "turbidity", AI_TYPE_FLOAT, plug);
+   // We used to call ProcessConstantParameter, but now we can simply tag these attributes as Non-Linkable in the metadata instead
+
+   ProcessParameter(shader, "turbidity", AI_TYPE_FLOAT, "turbidity");
    
-   plug = FindMayaPlug("ground_albedo", &status);
+   MPlug plug = FindMayaPlug("ground_albedo", &status);
    AiNodeSetRGB(shader, "ground_albedo", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("use_degrees", &status);
-   ProcessConstantParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, plug);
-   
-   plug = FindMayaPlug("elevation", &status);
-   ProcessConstantParameter(shader, "elevation", AI_TYPE_FLOAT, plug);
-   
-   plug = FindMayaPlug("azimuth", &status);
-   ProcessConstantParameter(shader, "azimuth", AI_TYPE_FLOAT, plug);
+   ProcessParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, "use_degrees");
+   ProcessParameter(shader, "elevation", AI_TYPE_FLOAT, "elevation");
+   ProcessParameter(shader, "azimuth", AI_TYPE_FLOAT, "azimuth");
    
    plug = FindMayaPlug("sun_direction", &status);
    AiNodeSetVec(shader, "sun_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("enable_sun", &status);
-   ProcessConstantParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, plug);
-   
-   plug = FindMayaPlug("intensity", &status);
-   ProcessConstantParameter(shader, "intensity", AI_TYPE_FLOAT, plug);
+   ProcessParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, "enable_sun");
+   ProcessParameter(shader, "intensity", AI_TYPE_FLOAT, "intensity");
    
    plug = FindMayaPlug("sky_tint", &status);
    AiNodeSetRGB(shader, "sky_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
@@ -159,8 +152,7 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    plug = FindMayaPlug("sun_tint", &status);
    AiNodeSetRGB(shader, "sun_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("sun_size", &status);
-   ProcessConstantParameter(shader, "sun_size", AI_TYPE_FLOAT, plug);
+   ProcessParameter(shader, "sun_size", AI_TYPE_FLOAT, "sun_size");
    
    plug = FindMayaPlug("X", &status);
    AiNodeSetVec(shader, "X", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
@@ -646,9 +638,6 @@ void CRemapValueTranslator::Export(AtNode* shader)
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = fnNode.attribute("value_Position");
-      MObject oval = fnNode.attribute("value_FloatValue");
-      MObject ointerp = fnNode.attribute("value_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader or set metadata
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
@@ -658,32 +647,20 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
       
       attr = FindMayaPlug("value");
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, "positions", pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, "values", val, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, interpolations, "interpolations", interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, "positions", positions);
-      SetArrayParameter(shader, "values", values);
-      SetArrayParameter(shader, "interpolations", interpolations);
+
+      MObject opos = fnNode.attribute("value_Position");
+      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute("value_FloatValue");
+      ProcessArrayParameter(shader, "values", attr, AI_TYPE_FLOAT, &oval);
+
+      MObject ointerp = fnNode.attribute("value_Interp");
+      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
    }
    else if (outputAttr == "outColor")
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = fnNode.attribute("color_Position");
-      MObject oval = fnNode.attribute("color_Color");
-      MObject ointerp = fnNode.attribute("color_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
@@ -694,24 +671,15 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
       attr = FindMayaPlug("color");
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_RGB, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, "positions", pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, "values", val, AI_TYPE_RGB, i);
-         ProcessArrayParameterElement(shader, interpolations, "interpolations", interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, "positions", positions);
-      SetArrayParameter(shader, "values", values);
-      SetArrayParameter(shader, "interpolations", interpolations);
+
+      MObject opos = fnNode.attribute("color_Position");
+      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute("color_Color");
+      ProcessArrayParameter(shader, "values", attr, AI_TYPE_RGB, &oval);
+
+      MObject ointerp = fnNode.attribute("color_Interp");
+      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
    }
 }
 
@@ -748,29 +716,15 @@ void CRemapColorTranslator::Export(AtNode* shader)
 
    for (int ci=0; ci<3; ++ci)
    {
-      MObject opos = fnNode.attribute(posNames[ci*2]);
-      MObject oval = fnNode.attribute(valNames[ci*2]);
-      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
-      
       attr = FindMayaPlug(plugNames[ci]);
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, posNames[ci*2 + 1], pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, valNames[ci*2 + 1], val, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, interpolations, interpNames[ci*2 + 1], interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, posNames[ci*2 + 1], positions);
-      SetArrayParameter(shader, valNames[ci*2 + 1], values);
-      SetArrayParameter(shader, interpNames[ci*2 + 1], interpolations);
+
+      MObject opos = fnNode.attribute(posNames[ci*2]);
+      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute(valNames[ci*2]);
+      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
+      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
+      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
    }
 }
 
@@ -806,29 +760,16 @@ void CRemapHsvTranslator::Export(AtNode* shader)
    MFnDependencyNode fnNode(GetMayaObject());
    for (int ci=0; ci<3; ++ci)
    {
-      MObject opos = fnNode.attribute(posNames[ci*2]);
-      MObject oval = fnNode.attribute(valNames[ci*2]);
-      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
-
       attr = FindMayaPlug(plugNames[ci]);
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, posNames[ci*2 + 1], pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, valNames[ci*2 + 1], val, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, interpolations, interpNames[ci*2 + 1], interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, posNames[ci*2 + 1], positions);
-      SetArrayParameter(shader, valNames[ci*2 + 1], values);
-      SetArrayParameter(shader, interpNames[ci*2 + 1], interpolations);
+
+      MObject opos = fnNode.attribute(posNames[ci*2]);
+      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute(valNames[ci*2]);
+      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
+
+      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
+      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
    }
 }
 
@@ -912,27 +853,13 @@ void CRampTranslator::Export(AtNode* shader)
 
    MFnDependencyNode fnNode(GetMayaObject());
 
-   MObject opos = fnNode.attribute("position");
-   MObject ocol = fnNode.attribute("color");
    plug = FindMayaPlug("colorEntryList");
-   unsigned int numElements = plug.numElements();
 
-   // Loop on color entries (position, color)
+   MObject opos = fnNode.attribute("position");
+   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
 
-   AtArray* position = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-   AtArray* color = InitArrayParameter(AI_TYPE_RGB, numElements);
-   
-   for (unsigned int i=0; i<numElements; ++i)
-   {
-      elem = plug.elementByPhysicalIndex(i);
-      pos = elem.child(opos);
-      col = elem.child(ocol);
-      
-      ProcessArrayParameterElement(shader, position, "position", pos, AI_TYPE_FLOAT, i);
-      ProcessArrayParameterElement(shader, color, "color", col, AI_TYPE_RGB, i);
-   }
-   SetArrayParameter(shader, "position", position);
-   SetArrayParameter(shader, "color", color);
+   MObject ocol = fnNode.attribute("color");
+   ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);   
 }
 
 // Place2DTexture

@@ -953,72 +953,57 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
   
 
 
-/// Using the translator's m_handle Maya Object and corresponding attrbuteName (default behavior)
+/// Using the translator's m_handle Maya Object and specific attrName
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
-                                          int arnoldParamType)
+                                          int arnoldParamType, MString mayaAttrName)
 {
-   MStatus status;
+   MStatus status = MStatus::kFailure;
+   MPlug plug;
 
-   // attr name name remap
-   const AtNodeEntry* arnoldNodeEntry = AiNodeGetNodeEntry(arnoldNode);
-   CBaseAttrHelper helper(arnoldNodeEntry);
-   MFnDependencyNode fnNode(GetMayaObject());
-   if (!helper.IsHidden(arnoldParamName))
+   if (mayaAttrName.length() > 0)
    {
+      // specific maya attribute name
+
+      // Get plug on the Maya object or override set if there is one
+      plug = FindMayaPlug(mayaAttrName, &status);
+   } else
+   {
+      // no maya attribute name, search it by default
+
+      // attr name name remap
+      const AtNodeEntry* arnoldNodeEntry = AiNodeGetNodeEntry(arnoldNode);
+      CBaseAttrHelper helper(arnoldNodeEntry);
+      MFnDependencyNode fnNode(GetMayaObject());
+      if (helper.IsHidden(arnoldParamName))
+      {
+         AiMsgDebug("[mtoa.translator]  %s: Parameter %s is hidden on Arnold node %s(%s).",
+            GetTranslatorName().asChar(), arnoldParamName,
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
+         return NULL;
+      }
+
       // check paramName
-      MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
-      MPlug plug = FindMayaPlug(mayaAttribName, &status);
+      mayaAttrName = helper.GetMayaAttrName(arnoldParamName);
+      MPlug plug = FindMayaPlug(mayaAttrName, &status);
       if ((MStatus::kSuccess != status) || plug.isNull())
       {
          // check aiParamName
          helper.SetPrefix("ai_");
-         MString mayaExtAttribName = helper.GetMayaAttrName(arnoldParamName);
-         plug = FindMayaPlug(mayaExtAttribName, &status);
-         if ((MStatus::kSuccess != status) || plug.isNull())
-         {
-            AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s or %s to match parameter %s on Arnold node %s(%s).",
-                  GetTranslatorName().asChar(),
-                  GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-                  mayaAttribName.asChar(), mayaExtAttribName.asChar(), arnoldParamName,
-                  AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
-            return NULL;
-         }
-         mayaAttribName = mayaExtAttribName;
+         MString mayaAttrAiName = helper.GetMayaAttrName(arnoldParamName);
+         plug = FindMayaPlug(mayaAttrAiName, &status);
       }
-      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
-   }
-   else
-   {
-      AiMsgDebug("[mtoa.translator]  %s: Parameter %s is hidden on Arnold node %s(%s).",
-            GetTranslatorName().asChar(), arnoldParamName,
-            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
    }
 
-   return NULL;
-}
-
-/// Using the translator's m_handle Maya Object and specific attrName
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
-                                          int arnoldParamType, const MString& mayaAttrName)
-{
-   MStatus status;
-
-   // Get plug on the Maya object or override set if there is one
-   MPlug plug = FindMayaPlug(mayaAttrName, &status);
-   if ((MStatus::kSuccess == status) && !plug.isNull())
-   {
-      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
-   }
-   else
+   if ((MStatus::kSuccess != status) || plug.isNull())
    {
       AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
             GetTranslatorName().asChar(),
             GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
             mayaAttrName.asChar(), arnoldParamName,
             AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+      return NULL;
    }
-
-   return NULL;
+   return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
 /// Main entry point to export values to an arnold parameter from a maya plug, recursively following
@@ -1082,275 +1067,21 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
          return connected;
    }
 
-   return ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
+   return m_impl->ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-/// Export value for a plug with no direct connections (may have child or element connections).
-/// For arrays, calls ProcessArrayParameter.
-/// For simple numeric types, calls AiNodeSet*.
-/// For compound types, first calls ProcessParameterComponentInputs. If ProcessParameterComponentInputs returns
-/// false (not all components linked) then AiNodeSet* is called for all components.
-AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName,
-                                                  int arnoldParamType, const MPlug& plug)
-{
-   MStatus status;
 
-   if (plug.isArray())
-   {
-      if (arnoldParamType != AI_TYPE_ARRAY)
-      {
-         MGlobal::displayError("[mtoa] Maya attribute is of type array, but Arnold parameter is not");
-         return NULL;
-      }
-      ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
-      return NULL;
-   }
-   if (plug.isCompound())
-   {
-      // Process the childs for compound plugs with at least one connected child
-      if (m_impl->ProcessParameterComponentInputs(arnoldNode, plug, arnoldParamName, arnoldParamType))
-      {
-         return NULL;
-      }
-   }
-
-   switch(arnoldParamType)
-   {
-   case AI_TYPE_RGB:
-      {
-         unsigned int numChildren = plug.numChildren();
-         if (numChildren== 3)
-         {
-            AiNodeSetRGB(arnoldNode, arnoldParamName,
-                         plug.child(0).asFloat(),
-                         plug.child(1).asFloat(),
-                         plug.child(2).asFloat());
-         }
-         else
-         {
-            AiMsgError("[mtoa] Improper RGB attribute %s",
-                       plug.partialName(true, false, false, false, false, true).asChar());
-         }
-      }
-      break;
-   case AI_TYPE_RGBA:
-      {
-         unsigned int numChildren = plug.numChildren();
-
-         if (numChildren== 4)
-         {
-            // this type of plug is not created by MtoA, custom nodes may implement RGBA this way
-            AiNodeSetRGBA(arnoldNode, arnoldParamName,
-                          plug.child(0).asFloat(),
-                          plug.child(1).asFloat(),
-                          plug.child(2).asFloat(),
-                          plug.child(3).asFloat());
-         }
-         else if (numChildren== 3)
-         {
-            MStatus stat;
-            MString alphaName = plug.partialName(false, false, false, false, false, true) + "A";
-            MPlug alphaPlug = MFnDependencyNode(plug.node()).findPlug(alphaName, false, &stat);
-            if (stat == MS::kSuccess)
-            {
-               AiNodeSetRGBA(arnoldNode, arnoldParamName,
-                             plug.child(0).asFloat(),
-                             plug.child(1).asFloat(),
-                             plug.child(2).asFloat(),
-                             alphaPlug.asFloat());
-            }
-            else
-            {
-               AiMsgWarning("[mtoa] RGBA attribute %s has no alpha component: exporting as RGBA",
-                            plug.partialName(true, false, false, false, false, true).asChar());
-               AiNodeSetRGBA(arnoldNode, arnoldParamName,
-                            plug.child(0).asFloat(),
-                            plug.child(1).asFloat(),
-                            plug.child(2).asFloat(),
-                            1.0f);
-            }
-         }
-         else
-         {
-            AiMsgError("[mtoa] Improper RGBA attribute %s",
-                       plug.partialName(true, false, false, false, false, true).asChar());
-         }
-      }
-      break;
-   case AI_TYPE_FLOAT:
-      {
-         float val = plug.asFloat();
-         // check for scaling
-         const AtNodeEntry* nentry = AiNodeGetNodeEntry(arnoldNode);
-         AtMetaDataIterator* miter = AiNodeEntryGetMetaDataIterator(nentry, arnoldParamName);
-         while(!AiMetaDataIteratorFinished(miter))
-         {
-            const AtMetaDataEntry* mentry = AiMetaDataIteratorGetNext(miter);
-            if ((strcmp(mentry->name, "scale") == 0) && (mentry->type == AI_TYPE_INT))
-            {
-               if (mentry->value.INT == 1) // scale distance
-                  GetSession()->ScaleDistance(val);
-            }
-            continue;
-         }
-         AiMetaDataIteratorDestroy(miter);
-
-         AiNodeSetFlt(arnoldNode, arnoldParamName, val);
-      }
-      break;
-   case AI_TYPE_POINT2:
-      {
-         float x, y;
-         MObject numObj = plug.asMObject();
-         MFnNumericData numData(numObj);
-         numData.getData2Float(x, y);
-         AiNodeSetPnt2(arnoldNode, arnoldParamName, x, y);
-      }
-      break;
-   case AI_TYPE_MATRIX:
-      {
-         // special case for shaders with matrix values that represent transformations
-         // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
-         if (RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
-         {
-            // create an interpolation node for matrices
-            AtNode* animNode = AddArnoldNode("anim_matrix", arnoldParamName);
-            AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
-
-            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
-
-            // Set the parameter for the interpolation node
-            AiNodeSetArray(animNode, "values", matrices);
-            // link to our node
-            AiNodeLink(animNode, arnoldParamName, arnoldNode);
-         }
-         else
-         {
-            AtMatrix am;
-            MObject matObj = plug.asMObject();
-            MFnMatrixData matData(matObj);
-            MMatrix mm = matData.matrix();
-            ConvertMatrix(am, mm, GetSession());
-            AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
-         }
-      }
-      break;
-   case AI_TYPE_BOOLEAN:
-      {
-         AiNodeSetBool(arnoldNode, arnoldParamName, plug.asBool());
-      }
-      break;
-   case AI_TYPE_ENUM:
-      {
-         AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
-      }
-      break;
-   case AI_TYPE_INT:
-      {
-         AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
-      }
-      break;
-   case AI_TYPE_STRING:
-      {
-         AiNodeSetStr(arnoldNode, arnoldParamName, plug.asString().asChar());
-      }
-      break;
-   case AI_TYPE_VECTOR:
-      {
-         AiNodeSetVec(arnoldNode, arnoldParamName,
-                      plug.child(0).asFloat(),
-                      plug.child(1).asFloat(),
-                      plug.child(2).asFloat());
-      }
-      break;
-   case AI_TYPE_POINT:
-      {
-         AiNodeSetPnt(arnoldNode, arnoldParamName,
-                      plug.child(0).asFloat(),
-                      plug.child(1).asFloat(),
-                      plug.child(2).asFloat());
-      }
-      break;
-   case AI_TYPE_NODE:
-      // handled above by ProcessParameterInputs
-      break;
-   case AI_TYPE_ARRAY:
-      {
-         if (!plug.isArray())
-         {
-            MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
-            return NULL;
-         }
-         ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
-      }
-      break;
-   case AI_TYPE_BYTE:
-      AiNodeSetByte(arnoldNode, arnoldParamName, (unsigned char)plug.asChar());
-      break;
-   }
-   return NULL;
-}
-
-AtArray* CNodeTranslator::InitArrayParameter(unsigned int arnoldParamType, unsigned int size)
-{
-   return AiArrayAllocate(size, 1, arnoldParamType);
-}
-
-void CNodeTranslator::SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array)
-{
-   // TODO: for IPR: call AiArrayDestroy on pre-existing arrays?
-   AiNodeSetArray(arnoldNode, arnoldParamName, array);
-}
-
-void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos)
-{
-   // connections:
-   // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
-   // there is no way of assigning the value of a message attribute other than via a connection.
-   // Therefore, we handle node/message connections in ProcessConstantArrayElement
-   if (arnoldParamType != AI_TYPE_NODE)
-   {
-      MString elemName = MString(arnoldParamName) + "[" + pos + "]";
-      AtNode* connected = m_impl->ProcessParameterInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
-      // FIXME: should we always evaluate components even if something was connected at the parent level?
-      if (connected == NULL)
-      {
-         // component connections
-         switch(arnoldParamType)
-         {
-         case AI_TYPE_RGB:
-         case AI_TYPE_RGBA:
-         case AI_TYPE_POINT2:
-         case AI_TYPE_VECTOR:
-         case AI_TYPE_POINT:
-            {
-               if(m_impl->ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
-               {
-                  // constant value
-                  ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
-               }
-            }
-            break;
-         default:
-            // constant value
-            ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
-         }
-      }
-   }
-   else
-   {
-      // constant value
-      ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
-   }
-}
 
 /// Allocate an AtArray, ProcessConstantArrayElement to fill it with values from the array plug, and call AiNodeSetArray.
 /// Also calls ProcessParameterInputs.
-void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug)
+void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int arnoldParamType, MObject *childArray)
 {
-   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
-   const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
-   unsigned int arnoldParamType = defaultValue->ARRAY->type;
+   if (arnoldParamType == AI_TYPE_UNDEFINED)
+   {
+      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
+      const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
+      arnoldParamType = defaultValue->ARRAY->type;
+   }
    // index matters tells us whether to condense a sparse array or try to export everything
 //         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();
 //         MIntArray indices;
@@ -1380,13 +1111,13 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
       unsigned int size = inputs.length();
       if (size > 0)
       {
-         array = InitArrayParameter(arnoldParamType, size);
+         array = AiArrayAllocate(size, 1, arnoldParamType);
          for (unsigned int i=0; i < size; ++i)
          {
             AtNode* linkedNode = ExportNode(inputs[i]);
             AiArraySetPtr(array, i, linkedNode);
          }
-         SetArrayParameter(arnoldNode, arnoldParamName, array);
+         AiNodeSetArray(arnoldNode, arnoldParamName, array);
       }
       else
          // TODO: Change this to: AiNodeSetArray(arnoldNode, arnoldParamName, NULL);
@@ -1398,128 +1129,20 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
       unsigned int size = plug.numElements();
       if (size > 0)
       {
-         AtArray* array = InitArrayParameter(arnoldParamType, size);
          MPlug elemPlug;
+         AtArray* array = AiArrayAllocate(size, 1, arnoldParamType);
          for (unsigned int i = 0; i < size; ++i)
          {
-           // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-           //plug.selectAncestorLogicalIndex(i, plug.attribute());
-           elemPlug = plug[i];
-
-           ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+            elemPlug = plug[i];       
+            if (childArray)
+            {
+               elemPlug = elemPlug.child(*childArray); 
+            }
+            m_impl->ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
          }
-         SetArrayParameter(arnoldNode, arnoldParamName, array);
+         AiNodeSetArray(arnoldNode, arnoldParamName, array);
       }
    }
-}
-
-void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
-{
-   switch(type)
-   {
-   case AI_TYPE_RGB:
-      {
-         // FIXME: exporting all zeros!!!
-         AtRGB color;
-         color.r = elem.child(0).asFloat();
-         color.g = elem.child(1).asFloat();
-         color.b = elem.child(2).asFloat();
-         AiArraySetRGB(array, i, color);
-      }
-      break;
-   case AI_TYPE_RGBA:
-      {
-         AtRGBA color;
-         color.r = elem.child(0).asFloat();
-         color.g = elem.child(1).asFloat();
-         color.b = elem.child(2).asFloat();
-         // Is the source parameter RGB or RGBA?
-         if (elem.numChildren() == 4)
-         {
-            color.a = elem.child(3).asFloat();
-            AiArraySetRGBA(array, i, color);
-         }
-         else
-         {
-            color.a = 1.0f;
-            // FIXME: handle alphas!
-            AiArraySetRGBA(array, i, color);
-         }
-      }
-      break;
-   case AI_TYPE_FLOAT:
-      {
-         AiArraySetFlt(array, i, elem.asFloat());
-      }
-      break;
-   case AI_TYPE_POINT2:
-      {
-         float x, y;
-         MObject numObj = elem.asMObject();
-         MFnNumericData numData(numObj);
-         numData.getData2Float(x, y);
-         AtPoint2 vec2;
-         AiV2Create(vec2, x, y);
-         AiArraySetPnt2(array, i, vec2);
-      }
-      break;
-   case AI_TYPE_MATRIX:
-      {
-         AtMatrix am;
-         MObject matObj = elem.asMObject();
-         MFnMatrixData matData(matObj);
-         MMatrix mm = matData.matrix();
-         ConvertMatrix(am, mm, GetSession());
-         AiArraySetMtx(array, i, am);
-      }
-      break;
-   case AI_TYPE_BOOLEAN:
-      {
-         AiArraySetBool(array, i, elem.asBool());
-      }
-      break;
-   case AI_TYPE_ENUM:
-      {
-         AiArraySetInt(array, i, elem.asInt());
-      }
-      break;
-   case AI_TYPE_INT:
-      {
-         AiArraySetInt(array, i, elem.asInt());
-      }
-      break;
-   case AI_TYPE_STRING:
-      {
-         AiArraySetStr(array, i, elem.asString().asChar());
-      }
-      break;
-   case AI_TYPE_VECTOR:
-      {
-         AtVector vec3;
-         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
-         AiArraySetVec(array, i, vec3);
-      }
-      break;
-   case AI_TYPE_POINT:
-      {
-         AtVector vec3;
-         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
-         AiArraySetPnt(array, i, vec3);
-      }
-      break;
-   case AI_TYPE_NODE:
-      {
-         MPlugArray connections;
-         elem.connectedTo(connections, true, false);
-         AtNode* linkedNode = NULL;
-         if (connections.length() > 0)
-         {
-            linkedNode = ExportNode(connections[0]);
-         }
-         AiArraySetPtr(array, i, linkedNode);
-      }
-      break;
-   } // switch
 }
 
 void CNodeTranslator::SetUpdateMode(UpdateMode m) {m_impl->m_updateMode = MAX(m_impl->m_updateMode, m);}

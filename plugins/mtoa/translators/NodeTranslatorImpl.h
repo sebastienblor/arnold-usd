@@ -85,6 +85,10 @@ public :
    void WriteAOVUserAttributes(AtNode* atNode);
    virtual void SetShadersList(AtNodeSet *nodes);
    
+   AtNode* ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+   void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
+   void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
+
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;

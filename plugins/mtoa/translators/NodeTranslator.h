@@ -147,6 +147,14 @@ protected:
    void RegisterUpdateCallback(const MCallbackId id);
 
 
+   // Convert the given Arnold attribute from the Maya object. By default, no maya attribute name is provided and it is searched by default
+   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, MString mayaAttrName  = "");
+   // Convert the given Arnold attribute from the Maya Plug
+   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+
+   // Convert the given array attribute. By default, no param Type is provided so it's determined automatically. A child array MObject can be provided optionally
+   void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int arnoldParamType = AI_TYPE_UNDEFINED, MObject *childArray = NULL);
+
    // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
   
    
@@ -160,20 +168,8 @@ protected:
    // (apparently this is, or was, introducing crashes)
    virtual void Delete();
 
-   // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType);
-   // For a specific Maya attribute on the translator Maya node
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MString& mayaAttrName);
-   // For a specific Maya plug
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
-
-   AtArray* InitArrayParameter(unsigned int arnoldParamType, unsigned int size);
-   void SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array);
-   virtual void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
-   virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
-   void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
-   AtNode* ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
-
+   
+   
    void ExportUserAttribute(AtNode *anode);
 
    // session info

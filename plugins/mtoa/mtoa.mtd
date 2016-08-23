@@ -1535,31 +1535,37 @@
     [attr turbidity]
         softmin             FLOAT   1
         softmax             FLOAT   10
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr elevation]
         softmin             FLOAT   0.0
         softmax             FLOAT   90.0
-        linkable            BOOL    True
+        linkable            BOOL    False
+    [attr use_degrees]
+        linkable            BOOL    False
     [attr azimuth]
         softmin             FLOAT   0.0
         softmax             FLOAT   360.0
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
-        linkable            BOOL    True
+        linkable            BOOL    False
+    [attr sun_direction]
+        linkable            BOOL    False
+    [attr enable_sun]
+        linkable            BOOL    False
     [attr sun_size]
         softmin             FLOAT   0.1
         softmax             FLOAT   5.0
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr sun_tint]
-        linkable            BOOL    True
+        linkable            BOOL    False
         maya.channelbox     BOOL    True
     [attr sky_tint]
-        linkable            BOOL    True
+        linkable            BOOL    False
         maya.channelbox     BOOL    True
     [attr ground_albedo]
-        linkable            BOOL    True
+        linkable            BOOL    False
         maya.channelbox     BOOL    True
         
 [node density]
