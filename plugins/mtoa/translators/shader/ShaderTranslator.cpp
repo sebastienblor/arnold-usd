@@ -117,39 +117,6 @@ AtNode* CShaderTranslator::CreateArnoldNodes()
    return ProcessAOVOutput(AddArnoldNode(m_impl->m_abstract.arnold.asChar()));
 }
 
-/// Associate each AOV writing node with its shadingGroup.
-/// This requires that the shadingGroup itself be exported so that we can refer to it
-/// by its AtNode pointer.  As a result, entire shading networks may be triggered to
-/// export along with this one, before the network's shape is encountered in the DAG walk.
-/// That is why this function must be called at the very end of the Export() routine.
-void CShaderTranslator::AssociateAOVsWithShadingGroups()
-{
-   std::map<std::string, MPlugArray>::const_iterator it;
-
-   for (it=m_aovShadingGroups.begin(); it!=m_aovShadingGroups.end(); it++)
-   {
-      AtArray *sgs = AiArrayAllocate(it->second.length(), 1, AI_TYPE_NODE);
-      for (unsigned int i=0; i < it->second.length(); i++)
-      {
-         // shadingEngines are exported on their dagMembers plug
-         MFnDependencyNode fnNode(it->second[i].node());
-         MStatus stat;
-         MPlug sgPlug = fnNode.findPlug("dagSetMembers", stat);
-         CHECK_MSTATUS(stat);
-         if (!sgPlug.isNull())
-         {
-            AtNode* shadingEngine = ExportConnectedNode(sgPlug);
-            if (shadingEngine != NULL)
-            {
-               AiArraySetPtr(sgs, i, shadingEngine);
-            }
-         }
-      }
-      AtNode* writeNode = GetArnoldNode(it->first.c_str());
-      AiNodeSetArray(writeNode, "sets", sgs);
-   }
-}
-
 void CShaderTranslator::Export(AtNode *shader)
 {
 
@@ -160,9 +127,6 @@ void CShaderTranslator::Export(AtNode *shader)
    CNodeTranslator::Export(shader);
 
    ExportBump(shader);
-   // This routine is not currently used. It could eventually be used in order for
-   // MayaShadingEngine.sets to be a node array instead of a string array
-   //AssociateAOVsWithShadingGroups();
 }
 
    // For motion blur we just search for the parameter placementMatrix

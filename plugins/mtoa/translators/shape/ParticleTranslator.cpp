@@ -1618,9 +1618,7 @@ void CParticleTranslator::Export(AtNode* anode)
       ProcessRenderFlags(anode);
       //ExportMatrix(anode, 0);
 
-      // here we'not updating the shaders to minimize the changes with previous versions during #2518
-      // but we could do override ExportShaders and do here :
-      // if (m_updateShaders) ExportShaders
+      // shouldn't we re-export the shaders ?
       return;
    }
 

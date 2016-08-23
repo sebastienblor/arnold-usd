@@ -265,8 +265,6 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
                         AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
       }
    }
-   // my shaders are up-to-date
-   m_updateShaders = false;
 }
 
 void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)

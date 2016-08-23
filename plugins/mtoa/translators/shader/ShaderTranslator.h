@@ -32,7 +32,6 @@ public:
 
 protected:
    AtNode* ProcessAOVOutput(AtNode* shader);
-   void AssociateAOVsWithShadingGroups();
    virtual void ExportBump(AtNode* shader);
 
 protected:

@@ -14,7 +14,7 @@ public:
       return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
    }
    virtual void AddUpdateCallbacks();
-   virtual void ExportShaders(){m_updateShaders = false;}
+   virtual void ExportShaders(){}
 
 protected:
    virtual void ProcessRenderFlags(AtNode* node);
@@ -34,5 +34,4 @@ protected:
 protected:
    bool m_motion;
    bool m_motionDeform;
-   bool m_updateShaders;
 };

@@ -16,7 +16,6 @@ void CShapeTranslator::Init()
    CDagTranslator::Init();
    m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
    m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
-   m_updateShaders = false;
 }
 
 void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
@@ -113,7 +112,6 @@ AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vect
 
    AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
    AiNodeLink(rootShader, "beauty", shadingEngine);
-   m_updateShaders = false;
    return shadingEngine;
 }
 
@@ -171,7 +169,6 @@ void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage m
    if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
    {
       CShapeTranslator * translator = static_cast< CShapeTranslator* >(clientData);
-      translator->m_updateShaders = true;
       translator->RequestUpdate();
    }
 }

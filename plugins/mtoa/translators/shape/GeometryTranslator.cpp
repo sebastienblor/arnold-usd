@@ -791,9 +791,6 @@ void CPolygonGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       AiNodeSetArray(polymesh, "mtoa_shading_groups",
          AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
    }
-
-   // my shaders are now up-to-date
-   m_updateShaders = false;
 }
 
 void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
@@ -1316,9 +1313,6 @@ void CPolygonGeometryTranslator::Export(AtNode *anode)
       if (IsMasterInstance())
       {
          ExportMesh(anode, true);
-
-         // FIXME make sure this is necessary, as ExportMesh might already be exporting the shaders
-         if (m_updateShaders) ExportShaders();
       }
       else
       {

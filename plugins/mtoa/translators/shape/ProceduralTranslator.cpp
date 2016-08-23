@@ -170,8 +170,6 @@ void CArnoldProceduralTranslator::ExportStandinsShaders(AtNode* procedural)
       }
    }
 
-   // my shaders are now up-to-date
-   m_updateShaders = false;
 }
 
 void CArnoldProceduralTranslator::ExportBoundingBox(AtNode* procedural)

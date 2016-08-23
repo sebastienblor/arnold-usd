@@ -125,9 +125,6 @@ void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)
                         AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
       }
    }
-
-   // my shaders are up-to-date
-   m_updateShaders = false;
 }
 
 void CArnoldVolumeTranslator::ExportBoundingBox(AtNode* volume)
