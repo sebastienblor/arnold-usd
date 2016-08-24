@@ -109,7 +109,7 @@ namespace // <anonymous>
 // Considered to be already filtered and checked
 CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus* stat)
 {
-   m_motionStep = 0;
+   //m_motionStep = 0;
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
@@ -190,7 +190,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
 CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
                                    bool initOnly, MStatus *stat)
 {
-   m_motionStep = 0;
+   //m_motionStep = 0;
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
