@@ -37,7 +37,7 @@ void CLightLinkerTranslator::AddUpdateCallbacks()
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
-                                                   NodeDeletedCallback,
+                                                   NodeAboutToBeDeletedCallback,
                                                    this,
                                                    &status);
    if (MS::kSuccess == status) RegisterUpdateCallback(id);

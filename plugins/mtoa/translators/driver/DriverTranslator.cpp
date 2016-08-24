@@ -93,7 +93,7 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
-// No callbacks currently
+// No callbacks currently, can this maya node be deleted ?
 void CDriverTranslator::AddUpdateCallbacks()
 {
 }
