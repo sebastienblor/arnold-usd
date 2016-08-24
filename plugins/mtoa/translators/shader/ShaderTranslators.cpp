@@ -223,6 +223,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
    }
+   MString prevFilename = AiNodeGetStr(shader, "filename");
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
@@ -257,39 +258,58 @@ void CFileTranslator::Export(AtNode* shader)
 
       GetSession()->FormatTexturePath(resolvedFilename);
 
-      MString prevFilename = AiNodeGetStr(shader, "filename");
+      MString colorSpace = FindMayaPlug("colorSpace").asString();
+      
+      // if the color space has changed, we'll need to re-generate TX anyway
+      bool requestUpdateTx = (colorSpace != m_colorSpace);
+      m_colorSpace = colorSpace; // setting current value for next time
 
-      bool requestUpdateTx = true;
-      int prevFilenameLength = prevFilename.length();
-
-      if (prevFilenameLength > 0)
+      if (!requestUpdateTx)
       {
-         // arnold filename param
-         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-         {
-            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+         // Color Space is the same, so let's check if the filename was modified
+         int prevFilenameLength = prevFilename.length();
 
-            int dotPos = resolvedFilename.rindexW(".");
-            if (dotPos > 0)
-            {
-               MString basename = resolvedFilename.substring(0, dotPos - 1);
-               requestUpdateTx = (prevBasename != basename);
-            }
-         } else
+         if (prevFilenameLength > 0)
          {
-            // if previous filename and new one are exactly identical, it's useless to update Tx
-            requestUpdateTx = (prevFilename != resolvedFilename);
+            // compare against previous filename to see if we need to re-generate the TX
+            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+            {
+               // Previous Filename was .tx, either because of "use existing tx", 
+               // or because it's explicitely targeting the .tx
+//seb
+               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+               int dotPos = resolvedFilename.rindexW(".");
+               if (dotPos > 0)
+               {
+                  MString basename = resolvedFilename.substring(0, dotPos - 1);
+                  
+                  // Let's compare the basenames (without extension)
+                  if (prevBasename != basename)
+                  {
+                     // the basename was modified, this needs an update of TX
+                     requestUpdateTx = true;
+                  } else
+                  {
+                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
+                     // so let's keep the previous one (where Use Tx was applied)
+                     resolvedFilename = prevFilename;
+                  }
+               }
+            } else
+            {
+               // if previous filename and new one are exactly identical, it's useless to update Tx
+               requestUpdateTx = (prevFilename != resolvedFilename);
+            }
+         } else if (resolvedFilename.length() > 0)
+         {
+            requestUpdateTx = true;
          }
       }
 
-      MString colorSpace = FindMayaPlug("colorSpace").asString();
-      
-      if (colorSpace != m_colorSpace) requestUpdateTx = true;
-      m_colorSpace = colorSpace;
-
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
       if (requestUpdateTx) GetSession()->RequestUpdateTx();
-   }
+   } 
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
    AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
@@ -1464,6 +1484,9 @@ AtNode* CAiImageTranslator::CreateArnoldNodes()
 
 void CAiImageTranslator::Export(AtNode* image)
 {
+   // keep the previous filename
+   MString prevFilename = AiNodeGetStr(image, "filename");
+
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)
    {
@@ -1475,35 +1498,55 @@ void CAiImageTranslator::Export(AtNode* image)
       
       GetSession()->FormatTexturePath(filename);
 
-      MString prevFilename = AiNodeGetStr(image, "filename");
+      MString colorSpace = FindMayaPlug("colorSpace").asString();
 
-      bool requestUpdateTx = true;
-      int prevFilenameLength = prevFilename.length();
+      // if the color space has changed, we need to regenerate the TX
+      bool requestUpdateTx = (colorSpace != m_colorSpace);
+      
+      // storing color space for next export
+      m_colorSpace = colorSpace;
 
-      if (prevFilenameLength > 0)
+      if (!requestUpdateTx)
       {
-         // arnold filename param
-         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-         {
-            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+         // Color Space is the same, so let's check if the filename was modified
+         int prevFilenameLength = prevFilename.length();
 
-            int dotPos = filename.rindexW(".");
-            if (dotPos > 0)
-            {
-               MString basename = filename.substring(0, dotPos - 1);
-               requestUpdateTx = (prevBasename != basename);
-            }
-         } else
+         if (prevFilenameLength > 0)
          {
-            // if previous filename and new one are exactly identical, it's useless to update Tx
-            requestUpdateTx = (prevFilename != filename);
+            // seb 
+            // compare against previous filename to see if we need to re-generate the TX
+            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+            {
+               // Previous Filename was .tx, either because of "use existing tx", 
+               // or because it's explicitely targeting the .tx
+               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+               int dotPos = filename.rindexW(".");
+               if (dotPos > 0)
+               {
+                  MString basename = filename.substring(0, dotPos - 1);
+                  // Let's compare the basenames (without extension)
+                  if (prevBasename != basename)
+                  {
+                     // the basename was modified, this needs an update of TX
+                     requestUpdateTx = true;
+                  } else
+                  {
+                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
+                     // so let's keep the previous one (where Use Tx was applied)
+                     filename = prevFilename;
+                  }
+               }
+            } else
+            {
+               // if previous filename and new one are exactly identical, it's useless to update Tx
+               requestUpdateTx = (prevFilename != filename);
+            }
+         } else if (filename.length() > 0)
+         {
+            requestUpdateTx = true;
          }
       }
-
-      MString colorSpace = FindMayaPlug("colorSpace").asString();
-      
-      if (colorSpace != m_colorSpace) requestUpdateTx = true;
-      m_colorSpace = colorSpace;
 
       AiNodeSetStr(image, "filename", filename.asChar());
 

@@ -951,12 +951,19 @@ void CRenderViewMtoA::UpdateColorManagement()
 
    MStringArray viewTransforms;
    MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   MString userPrefsDir;
+   MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
+   userPrefsDir += "/synColorConfig.xml";
+
    std::string allViewTransforms;
    for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
    {
       allViewTransforms += viewTransforms[idx].asChar();
       allViewTransforms += ";";
    }
+
+   // Set the Color Management configuration before doing anything.
+   SetOption("Color Management.Config Files",  userPrefsDir.asChar()); 
 
    // The order of initialization is important to avoid useless changes.
    SetOption("Color Management.Enabled",        "false");

@@ -1767,6 +1767,7 @@ void CArnoldSession::ExportTxFiles()
    }
 
    bool progressStarted = false;
+   std::map<std::string, std::string> textureColorSpaces;
    for (size_t i = 0; i < textureNodes.size(); ++i)
    {
       CNodeTranslator *translator = textureNodes[i];
@@ -1776,13 +1777,30 @@ void CArnoldSession::ExportTxFiles()
       if (node == NULL) continue;
       
       MString filename = AiNodeGetStr(node, "filename");
+      std::string filenameStr = filename.asChar();
 
       const char *autoTxParam = AiNodeIs(node, "image") ? "autoTx" : "aiAutoTx";
       bool fileAutoTx = autoTx && translator->FindMayaPlug(autoTxParam).asBool();
       MString searchPath = "";
-
+      bool invalidProgressWin = false;
       if (fileAutoTx)
       {
+         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
+         std::string colorSpaceStr = colorSpace.asChar();
+
+         std::map<std::string, std::string>::iterator it = textureColorSpaces.find(filenameStr);
+         if (it == textureColorSpaces.end())
+         {
+            textureColorSpaces[filenameStr] = colorSpaceStr;
+         } else
+         {
+            // already dealt with this filename, skip the auto-tx
+            if (colorSpaceStr != it->second)
+            {
+               AiMsgDebug("[mtoa.autotx]  %s is referenced multiple times with different color spaces", filename.asChar());
+            }
+            goto USE_TX;
+         }
 
          if (progressBar)
          {
@@ -1792,14 +1810,25 @@ void CArnoldSession::ExportTxFiles()
                MProgressWindow::setProgressRange(0, 100);
                MProgressWindow::setTitle("Converting Images to TX");
                MProgressWindow::setInterruptable(true);
+
+               // if the progress bar was already cancelled before it started
+               // (it seems that it happens sometimes...), the we simply
+               // don't test for cancel anymore
+               if (MProgressWindow::isCancelled()) invalidProgressWin = true;
             }
-            if (MProgressWindow::isCancelled()) 
+            if ((!invalidProgressWin) && MProgressWindow::isCancelled()) 
             {
                // FIXME show a confirm dialog to mention color management will be wrong
                //MString cmd;
                //cmd.format("import maya.cmds as cmds; cmds.confirmDialog(title='Warning', message='Color Management will be invalid if TX files aren't generated', button='Ok')");
-               //MGlobal::executePythonCommandStringResult(cmd);               
-               return;
+               //MGlobal::executePythonCommandStringResult(cmd);
+
+               // if progress was cancelled we consider that auto-Tx is OFF
+               // but we still need to handle "use Tx"
+               MProgressWindow::endProgress();
+               fileAutoTx = false;
+
+               goto USE_TX;
             }
 
             // FIXME use basename instead
@@ -1838,7 +1867,6 @@ void CArnoldSession::ExportTxFiles()
 
 
          // convert TX
-         MString colorSpace = translator->FindMayaPlug("colorSpace").asString();
          int createdFiles = 0;
          int skippedFiles = 0;
          int errorFiles = 0;
@@ -1859,6 +1887,7 @@ void CArnoldSession::ExportTxFiles()
             }
          }
       }
+USE_TX:
       if (useTx)
       {
 

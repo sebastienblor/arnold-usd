@@ -960,7 +960,6 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
-  
 
 
 /// Using the translator's m_handle Maya Object and specific attrName

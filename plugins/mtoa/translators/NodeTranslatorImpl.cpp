@@ -200,6 +200,21 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
    {
       // process connections
       MPlug srcMayaPlug = connections[0];
+      MPlug directSrcMayaPlug = srcMayaPlug;
+
+#if MAYA_API_VERSION >= 201700
+      while(srcMayaPlug.isDestination())
+      {
+         // Entering this loop will happen if the source plug (readable)
+         // is also writable (i.e. it's value is not computed by the
+         // node, but it's given as an input to it) => no need to translate
+         // that node, just need to forward evaluation to its source if any)
+         srcMayaPlug = srcMayaPlug.source();
+         if(srcMayaPlug == directSrcMayaPlug)
+            break;
+      }
+#endif
+      
       CNodeTranslator* srcNodeTranslator = NULL;
       AtNode* srcArnoldNode = ExportConnectedNode(srcMayaPlug, true, &srcNodeTranslator);
 
