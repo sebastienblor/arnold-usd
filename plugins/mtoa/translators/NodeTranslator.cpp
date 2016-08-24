@@ -128,6 +128,10 @@ CNodeTranslator::CNodeTranslator()
 }
 CNodeTranslator::~CNodeTranslator()
 {
+   // don't forget to remove the callbacks
+   m_impl->RemoveUpdateCallbacks();
+   // so, we're not calling Delete() here. This is being done manually during updates;
+   // This will prevent lots of calls to RemoveReference/RemoveBackReference when we destroy everything
    delete m_impl;
 }
 
@@ -193,8 +197,6 @@ void CNodeTranslator::ComputeAOVs()
    }
 }
 
-
-
 void CNodeTranslator::Export(AtNode* node)
 {
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
@@ -213,10 +215,35 @@ bool CNodeTranslator::IsExported() const
 {
    return m_impl->m_isExported;
 }
-// so by default we're not deleting the current node ?
+
 void CNodeTranslator::Delete()
 {
+   // Destroy all Arnold nodes for this translator
+#ifdef NODE_TRANSLATOR_REFERENCES
+   // First get rid of all the connections to other translators
+   for (std::vector<CNodeTranslator*>::iterator it = m_impl->m_references.begin(); it != m_impl->m_references.end(); ++it)
+   {
+      (*it)->m_impl->RemoveBackReference(this);
+   }
+   m_impl->m_references.clear();
+
+   for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+   {
+      (*it)->m_impl->RemoveReference(this);
+   }
+   m_impl->m_backReferences.clear();
+#endif
+
+   //   AiNodeDestroy(m_atNode);  AtNode should already be deleted in the loop below
+   for (std::map<std::string, AtNode*>::iterator it = m_impl->m_atNodes.begin(); it != m_impl->m_atNodes.end(); ++it)
+      AiNodeDestroy(it->second);
+
+   m_impl->m_atNode = NULL;
+   m_impl->m_atNodes.clear();
    m_impl->m_isExported = false;
+
+   // is there anything else to be deleted ?
+   // overrideSets are created at Init (not Export) so I guess we shouldn't be deleting them here
 }
 
 AtNode* CNodeTranslator::GetArnoldRootNode()
@@ -386,7 +413,7 @@ void CNodeTranslator::AddUpdateCallbacks()
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(object,
-                                                   NodeDeletedCallback,
+                                                   NodeAboutToBeDeletedCallback,
                                                    this,
                                                    &status);
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
@@ -398,10 +425,12 @@ void CNodeTranslator::AddUpdateCallbacks()
                                              &status);
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
 
+   /* We shouldn't need this callback anymore as we already queue the node for deletion in NodeAboutToBeDeleted
+   
    id = MNodeMessage::addNodeDestroyedCallback(object,
                                                NodeDestroyedCallback,
                                                this,
-                                               &status);
+                                               &status);*/
    if (MS::kSuccess == status) RegisterUpdateCallback(id);
 }
 
@@ -451,18 +480,18 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
 // disconnect them, turn them off, etc.
-void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData)
+void CNodeTranslator::NodeAboutToBeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData)
 {
    CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Node deleted, deleting processed translator instance, client data: %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), clientData);
-      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
-         translator->SetUpdateMode(CNodeTranslator::AI_DELETE_NODE);
 
-      // for nodes which don't have the updateMode set to AI_DELETE_NODE, what's the point of requesting an update ?
-      // is this just going to re-export one last time them before they're deleted ?
+      // we're now always requesting an update when a node is deleted
+//      if(node.apiType() == MFn::kMesh || node.apiType() == MFn::kLight)
+      translator->SetUpdateMode(CNodeTranslator::AI_DELETE_NODE);
+
       translator->RequestUpdate();  
    }
    else
@@ -472,6 +501,8 @@ void CNodeTranslator::NodeDeletedCallback(MObject& node, MDGModifier& modifier, 
                    dnode.name().asChar(), clientData);
    }
 }
+
+/* We shouldn't need this callback as we already receive NodeAboutToBeDeleted and queue the node for deletion
 
 void CNodeTranslator::NodeDestroyedCallback(void* clientData)
 {
@@ -489,7 +520,7 @@ void CNodeTranslator::NodeDestroyedCallback(void* clientData)
       translator->Delete();  
    }
 }
-
+*/
 /// add this node's AOVs into the passed AOVSet
 void CNodeTranslator::RequestUpdate()
 {
@@ -1124,7 +1155,20 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
    }
 }
 
-void CNodeTranslator::SetUpdateMode(UpdateMode m) {m_impl->m_updateMode = MAX(m_impl->m_updateMode, m);}
+void CNodeTranslator::SetUpdateMode(UpdateMode m) 
+{
+   m_impl->m_updateMode = MAX(m_impl->m_updateMode, m);
+   if (m == AI_DELETE_NODE)
+   {
+      // We'll delete this node at next Render Update
+      // We should advert our back references to re-export 
+      for (std::set<CNodeTranslator*>::iterator it = m_impl->m_backReferences.begin(); it != m_impl->m_backReferences.end(); ++it)
+      {
+         (*it)->RequestUpdate();
+      }
+      // we don't delete the back references here. We'll do it at next Render Update in Delete()
+   }
+}
 /// for automatically creating parameters
 void CNodeTranslator::NodeInitializer(CAbTranslator context)
 {

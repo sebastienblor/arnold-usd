@@ -147,14 +147,6 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInputFloat(data);
 }
 
-void CLightTranslator::Delete()
-{
-   AiNodeDestroy(GetArnoldRootNode());
-   // Arnold doesn't allow us to create nodes in between to calls to AiRender
-   // for the moment. For IPR we still need to rely on setting the intensity to 0.0.
-   //AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
-}
-
 double BBSpectrum(double wavelength, double bbTemp)
 {
     double wlm = wavelength * 1e-9;   /* Wavelength in meters */

@@ -155,8 +155,6 @@ public:
       return AddArnoldNode("mesh_light");
    }
 
-   virtual void Delete();
-   
    virtual void ExportMotion(AtNode* light);
 protected:
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);

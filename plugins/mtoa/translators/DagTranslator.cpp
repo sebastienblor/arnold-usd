@@ -84,22 +84,6 @@ void CDagTranslator::AddUpdateCallbacks()
    CNodeTranslator::AddUpdateCallbacks();
 }
 
-void CDagTranslator::Delete()
-{
-
-   AiRenderInterrupt();
-   
-   AiNodeDestroy(GetArnoldRootNode());
-
-   // Arnold doesn't allow us to create nodes in between to calls to AiRender
-   // for the moment. For IPR we still need to rely on setting the visibility for now.
-   //AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
-   m_impl->m_atNode = NULL;
-   m_impl->m_atNodes.clear();
-
-   CNodeTranslator::Delete(); 
-}
-
 /// Return whether the current dag object is the master instance.
 ///
 /// The master is the first instance that is completely visible (including parent transforms)

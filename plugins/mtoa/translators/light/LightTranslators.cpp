@@ -492,13 +492,6 @@ void CMeshLightTranslator::Export(AtNode* light)
    }
 }
 
-void CMeshLightTranslator::Delete()
-{
-   for (std::map<std::string, AtNode*>::iterator it = m_impl->m_atNodes.begin(); it != m_impl->m_atNodes.end(); ++it)
-      AiNodeDestroy(it->second);
-   m_impl->m_atNode = NULL;
-   m_impl->m_atNodes.clear();
-}
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
 {

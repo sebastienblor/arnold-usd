@@ -43,8 +43,7 @@ protected:
    // for computing a path different from m_dagPath
    AtByte ComputeVisibility(const MDagPath& path);
    AtByte ComputeVisibility();   
-
-   virtual void Delete();
+   
    void AddHierarchyCallbacks(const MDagPath & path);
    void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
 

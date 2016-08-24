@@ -168,8 +168,6 @@ protected:
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
 
    // Delete the Arnold node(s) for this translator.
-   // FIXME : check exactly what needs to be done, shouldn't we always delete the AtNodes list ?
-   // (apparently this is, or was, introducing crashes)
    virtual void Delete();
 
    
@@ -193,8 +191,8 @@ protected:
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
    static void NameChangedCallback(MObject& node, const MString& str, void* clientData);
-   static void NodeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
-   static void NodeDestroyedCallback(void* clientData);
+   static void NodeAboutToBeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
+   //static void NodeDestroyedCallback(void* clientData);
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
    
 protected:

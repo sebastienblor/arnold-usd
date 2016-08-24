@@ -13,7 +13,6 @@ protected:
 
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light);
-   virtual void Delete();
    virtual bool IsFinite() const { return true; } // to decide if scaling is required or not
    static void MakeCommonAttributes(CBaseAttrHelper& helper);   
 };

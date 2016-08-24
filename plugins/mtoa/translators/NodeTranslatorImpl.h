@@ -22,6 +22,8 @@
 #include <map>
 #include <algorithm>
 
+#define NODE_TRANSLATOR_REFERENCES 1
+
 class CNodeTranslator;
 
 
@@ -110,6 +112,76 @@ public :
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
    bool m_isExported;
+
+#ifdef NODE_TRANSLATOR_REFERENCES
+   
+   void AddReference(CNodeTranslator *tr)
+   {
+      if(std::find(m_references.begin(), m_references.end(), tr) != m_references.end())
+      {
+         // translator already in our reference list
+         // nothing to do
+         return;
+      }
+
+      m_references.push_back(tr);
+
+      // now add the back reference
+      tr->m_impl->AddBackReference(&m_tr);
+   }
+   void AddBackReference(CNodeTranslator *tr)
+   {
+      // add this translator to our list of back references.
+      // As this is a set, it might already be present
+      m_backReferences.insert(tr);
+   }
+   void RemoveReference(CNodeTranslator *tr)
+   {
+      std::vector<CNodeTranslator*>::iterator it = std::find(m_references.begin(), m_references.end(), tr);
+      if (it == m_references.end()) return; // how can this be called ?
+
+      // fast erase, swap this vector element and the last one, then pop_back
+      std::swap(*it, m_references.back());
+      m_references.pop_back();
+
+      // should we call tr->RemoveBackReference here ?
+   }
+   void RemoveBackReference(CNodeTranslator *tr)
+   {
+      m_backReferences.erase(tr);
+   }
+   void RemoveAllReferences()
+   {
+      if (m_references.empty()) return;
+      std::vector<CNodeTranslator*>::iterator it = m_references.begin();
+      std::vector<CNodeTranslator*>::iterator itEnd = m_references.end();
+      for( ; it != itEnd; ++it)
+      {
+         (*it)->m_impl->RemoveBackReference(&m_tr);
+      }
+      m_references.clear();
+   }
+   void RemoveAllBackReferences()
+   {
+      if (m_backReferences.empty()) return;
+      std::set<CNodeTranslator*>::iterator it = m_backReferences.begin();
+      std::set<CNodeTranslator*>::iterator itEnd = m_backReferences.end();
+      for( ; it != itEnd; ++it)
+      {
+         (*it)->m_impl->RemoveReference(&m_tr);
+      }
+      m_backReferences.clear();
+   }
+
+   // we could use std::set for both, but in practice a node is usually connected to only a few other nodes.
+   // On the other hand a single node could be referenced by thousands of other ones, 
+   // for example a single shader assigned to the whole scene
+   std::vector<CNodeTranslator *> m_references;
+   std::set<CNodeTranslator *> m_backReferences;
+private:
+
+
+#endif
 
 private:
    CNodeTranslator &m_tr;

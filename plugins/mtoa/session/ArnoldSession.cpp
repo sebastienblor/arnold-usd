@@ -1282,9 +1282,14 @@ void CArnoldSession::DoUpdate()
       if (translator != NULL && translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
          // delete the current translator, just like AI_DELETE_NODE does
-         translator->m_impl->RemoveUpdateCallbacks();
+         
          translator->Delete();
-         m_processedTranslators.erase(handle); // shouldn't we delete the translator ?
+         m_processedTranslators.erase(handle); 
+         
+         // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
+         delete translator;
+         // callbacks are now removed in the destructor
+         //translator->m_impl->RemoveUpdateCallbacks();
 
          // setting translator to NULL will consider that this is a new node,
          // re-create the translator and export it appropriately
@@ -1301,17 +1306,21 @@ void CArnoldSession::DoUpdate()
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
             translator->Delete();
-            translator->m_impl->m_atNodes.clear();
             translator->m_impl->DoCreateArnoldNodes();
 
-            translator->m_impl->DoExport();
+            // no longer re-exporting here. This will be done in the translatorsToUpdateList
+            // since DoUpdate will call DoExport (isExported=false)
+            //translator->m_impl->DoExport();
             translatorsToUpdate.push_back(translator);
          } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
-            translator->m_impl->RemoveUpdateCallbacks();
             translator->Delete();
             m_processedTranslators.erase(handle);
-            // FIXME : when is this translator supposed to be deleted ??
+
+            // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
+            delete translator;
+            // removing callbacks now handled in the destructor
+            //translator->m_impl->RemoveUpdateCallbacks();
          }  
          else
          {  
@@ -1377,7 +1386,9 @@ void CArnoldSession::DoUpdate()
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
             if (translators[i]->IsMayaTypeDag()) aDag = true;
-            translators[i]->m_impl->DoExport();
+
+            // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
+            //translators[i]->m_impl->DoExport();
             translatorsToUpdate.push_back(translators[i]);
          }
       }

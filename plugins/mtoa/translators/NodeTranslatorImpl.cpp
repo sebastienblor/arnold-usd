@@ -100,6 +100,9 @@ AtNode* CNodeTranslatorImpl::DoExport()
 // internal use only
 AtNode* CNodeTranslatorImpl::DoUpdate()
 {
+   // if this translator has never been exported, we should rather call DoExport()
+   if (!m_isExported) return DoExport();
+
    assert(AiUniverseIsActive());
    AtNode* node = m_tr.GetArnoldNode("");
    int step = m_tr.GetMotionStep();
@@ -118,15 +121,57 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 
    if (step == 0)
    {
+#ifdef NODE_TRANSLATOR_REFERENCES 
+      // before exporting, clear all the references
+      // Note that this shouldn't happen here
+      std::vector<CNodeTranslator *> previousRefs = m_references;
+      m_references.clear();
+#endif
+
       m_tr.Export(node);
       m_tr.ExportUserAttribute(node);
+
+#ifdef NODE_TRANSLATOR_REFERENCES 
+      // now for all previous references, check if one of them has disappeared
+      if (!previousRefs.empty())
+      {
+         // main goal is to make it fast on the most common cases,
+         // which is when the list of references doesn't change during updates
+         unsigned int minSize = MIN(previousRefs.size(), m_references.size());
+         for (unsigned int i = 0; i < minSize; ++i)
+         {
+            // as it happens quite often, we first check if the reference is in the same index as before
+            if (previousRefs[i] == m_references[i]) continue;
+            
+            // otherwise need to find the previous element in the reference list, can be much longer
+            if (std::find(m_references.begin(), m_references.end(), previousRefs[i]) == m_references.end())
+            {
+               // previous reference has disappeared
+               // make sure this translator still exists !
+               previousRefs[i]->m_impl->RemoveBackReference(&m_tr);
+            }
+         }
+         // in case previousRefs was larger than current references
+         for (unsigned int i = minSize; i < previousRefs.size(); ++i)
+         {
+            if (std::find(m_references.begin(), m_references.end(), previousRefs[i]) == m_references.end())
+            {
+               // previous reference has disappeared
+               // make sure this translator still exists !
+               previousRefs[i]->m_impl->RemoveBackReference(&m_tr);
+            }
+         }
+      }
+#endif
+
+
    }
    else if (m_tr.RequiresMotionData())
    {
       m_tr.ExportMotion(node);
    }
-   m_isExported = true;
 
+   m_isExported = true;
    return m_tr.GetArnoldRootNode();
 }
 
@@ -952,7 +997,9 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       if (outTranslator != NULL)
          *outTranslator = translator;
 
-      // could we make up a system to track the connections between translators ?
+#ifdef NODE_TRANSLATOR_REFERENCES 
+      AddReference(translator);
+#endif
       return translator->GetArnoldRootNode();
    }
    return NULL;
