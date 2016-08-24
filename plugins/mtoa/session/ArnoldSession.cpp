@@ -1533,6 +1533,7 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
    AiMsgDebug("[mtoa.session] Setting export camera to \"%s\"", camera.partialPathName().asChar());
    m_sessionOptions.SetExportCamera(camera);
 
+   if (m_optionsTranslator == NULL) return;
    // just queue the options translator now 
    // instead of relying on the DependsOnExportCamera.
    // In the future we should have a generic way to make translators dependent from others,
