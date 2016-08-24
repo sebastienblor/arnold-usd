@@ -993,7 +993,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
 
       // check paramName
       mayaAttrName = helper.GetMayaAttrName(arnoldParamName);
-      MPlug plug = FindMayaPlug(mayaAttrName, &status);
+      plug = FindMayaPlug(mayaAttrName, &status);
       if ((MStatus::kSuccess != status) || plug.isNull())
       {
          // check aiParamName
