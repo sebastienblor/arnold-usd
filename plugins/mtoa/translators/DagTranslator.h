@@ -10,12 +10,7 @@ class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
 
 public:
-   virtual void Init()
-   {
-      //CNodeTranslator::Init(); // does nothing, but this could change
-      MDagPath::getAPathTo(GetMayaObject(), m_dagPath);
-   }
-
+   virtual void Init();
 
    virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
    virtual MString GetMayaPartialPathName() const { return m_dagPath.partialPathName(); }

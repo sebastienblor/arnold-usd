@@ -6,6 +6,24 @@
 #include <maya/MDagPathArray.h>
 #include <maya/MFnTransform.h>
 #include "NodeTranslatorImpl.h"
+
+void CDagTranslator::Init()
+{
+   //CNodeTranslator::Init(); // does nothing, but this could change
+   // FIXME: maybe this could be overkill with tons of DAG instances.
+   // we'll be able to solve this soon if we start having implementations inheriting from the base one
+   MDagPathArray dagArray;
+   MDagPath::getAllPathsTo(GetMayaObject(), dagArray);
+   for (unsigned int i = 0; i < dagArray.length(); ++i)
+   {
+      if (dagArray[i].instanceNumber() == m_impl->m_handle.instanceNum())
+      {
+         // this is the right instance
+         m_dagPath = dagArray[i];
+         break;
+      }
+   }
+}
 void CDagTranslator::Export(AtNode* node)
 {
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(node));
