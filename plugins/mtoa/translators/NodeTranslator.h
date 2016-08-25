@@ -89,8 +89,6 @@ public:
    // overridable translator properties
    virtual bool IsMayaTypeDag() {return false;}
 
-   /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
-   virtual bool DisableCaching() {return false;}
    virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
 
    

@@ -165,7 +165,7 @@ MStatus CArnoldRenderToTextureCmd::doIt(const MArgList& argList)
             }
             else
             {
-               CNodeTranslator *translator = arnoldSession->ExportNode(outColorPlug, NULL, 0, false, &outColorStatus);
+               CNodeTranslator *translator = arnoldSession->ExportNode(outColorPlug, NULL, 0, false, -1, &outColorStatus);
                if (translator != 0)
                {
                   shaderNode = translator->GetArnoldRootNode();

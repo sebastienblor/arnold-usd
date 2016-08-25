@@ -138,24 +138,23 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
    CNodeAttrHandle handle(dagPath);
 
    ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
-   if (!translator->DisableCaching())
-   {
-      // Check if node has already been processed
-      // FIXME: since it's a multimap there can be more than one translator associated ?
-      // ObjectToTranslatorMap::iterator it, itlo, itup;
-      // itlo = m_processedTranslators.lower_bound(handle);
-      // itup = m_processedTranslators.upper_bound(handle);
-      it = m_processedTranslators.find(handle);
-      if (it != m_processedTranslators.end())
-      {
-         AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
 
-         delete translator;
-         status = MStatus::kSuccess;
-         arnoldNode = it->second->GetArnoldRootNode();
-         translator = (CDagTranslator*)it->second;
-      }
+   // Check if node has already been processed
+   // FIXME: since it's a multimap there can be more than one translator associated ?
+   // ObjectToTranslatorMap::iterator it, itlo, itup;
+   // itlo = m_processedTranslators.lower_bound(handle);
+   // itup = m_processedTranslators.upper_bound(handle);
+   it = m_processedTranslators.find(handle);
+   if (it != m_processedTranslators.end())
+   {
+      AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of DAG node of type %s", name.asChar(), type.asChar());
+
+      delete translator;
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldRootNode();
+      translator = (CDagTranslator*)it->second;
    }
+
    if (arnoldNode == NULL)
    {
       if (initOnly)
@@ -188,9 +187,10 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
 // Export a plug (dependency node output attribute)
 //
 CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
-                                   bool initOnly, MStatus *stat)
+                                   bool initOnly, int instanceNumber, MStatus *stat)
 {
-   //m_motionStep = 0;
+   //instanceNumber is currently used only for bump. We provide a specific instance number
+
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
@@ -252,28 +252,27 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       name.asChar(), plugName.asChar(), type.asChar());
    CNodeAttrHandle handle;
    if (translator->DependsOnOutputPlug())
-      handle.set(resultPlug);
+      handle.set(resultPlug, instanceNumber);
    else
-      handle.set(mayaNode);
+      handle.set(mayaNode, "", instanceNumber);
    ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
-   if (!translator->DisableCaching())
+   
+   // Check if node has already been processed
+   // FIXME: since it's a multimap there can be more than one translator associated ?
+   // ObjectToTranslatorMap::iterator it, itlo, itup;
+   // itlo = m_processedTranslators.lower_bound(handle);
+   // itup = m_processedTranslators.upper_bound(handle);
+   it = m_processedTranslators.find(handle);
+   if (it != m_processedTranslators.end())
    {
-      // Check if node has already been processed
-      // FIXME: since it's a multimap there can be more than one translator associated ?
-      // ObjectToTranslatorMap::iterator it, itlo, itup;
-      // itlo = m_processedTranslators.lower_bound(handle);
-      // itup = m_processedTranslators.upper_bound(handle);
-      it = m_processedTranslators.find(handle);
-      if (it != m_processedTranslators.end())
-      {
-         AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of node of type %s", name.asChar(), type.asChar());
+      AiMsgDebug("[mtoa.session]     %-30s | Reusing previous export of node of type %s", name.asChar(), type.asChar());
 
-         delete translator;
-         status = MStatus::kSuccess;
-         arnoldNode = it->second->GetArnoldRootNode();
-         translator = it->second;
-      }
+      delete translator;
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldRootNode();
+      translator = it->second;
    }
+   
    if (arnoldNode == NULL)
    {
       if (initOnly)

@@ -41,6 +41,7 @@ public :
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
+      m_sourceTranslator(NULL),
       m_isExported(false),
       m_tr(translator){}
    ~CNodeTranslatorImpl() {}
@@ -108,6 +109,11 @@ public :
    AOVSet m_upstreamAOVs;
    AtNodeSet* m_shaders;
 
+   // this is used when the DG order is different between Maya and Arnold.
+   // For now this only happens with bump mapping. In that case, from the outside the sourceTranslator
+   // will have to be referenced instead of this one.
+   CNodeTranslator *m_sourceTranslator;
+
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
@@ -115,7 +121,7 @@ public :
 
 #ifdef NODE_TRANSLATOR_REFERENCES
    
-   void AddReference(CNodeTranslator *tr)
+   void AddReference(CNodeTranslator *tr, bool addReciprocal = true)
    {
       if(std::find(m_references.begin(), m_references.end(), tr) != m_references.end())
       {
@@ -127,13 +133,16 @@ public :
       m_references.push_back(tr);
 
       // now add the back reference
-      tr->m_impl->AddBackReference(&m_tr);
+      if (addReciprocal)
+         tr->m_impl->AddBackReference(&m_tr, false);
    }
-   void AddBackReference(CNodeTranslator *tr)
+   void AddBackReference(CNodeTranslator *tr, bool addReciprocal = false)
    {
       // add this translator to our list of back references.
       // As this is a set, it might already be present
       m_backReferences.insert(tr);
+      if (addReciprocal)
+         tr->m_impl->AddReference(&m_tr, false);
    }
    void RemoveReference(CNodeTranslator *tr)
    {
@@ -144,11 +153,14 @@ public :
       std::swap(*it, m_references.back());
       m_references.pop_back();
 
+      if (m_sourceTranslator == tr) m_sourceTranslator = NULL;
       // should we call tr->RemoveBackReference here ?
    }
    void RemoveBackReference(CNodeTranslator *tr)
    {
       m_backReferences.erase(tr);
+      // for now we shouldn't need this test, as the reference is the other way around
+      if (tr == m_sourceTranslator) m_sourceTranslator = NULL;
    }
    void RemoveAllReferences()
    {

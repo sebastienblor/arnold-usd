@@ -119,9 +119,6 @@ AtNode* CShaderTranslator::CreateArnoldNodes()
 
 void CShaderTranslator::Export(AtNode *shader)
 {
-
-   // the node passed in is the root node. we want the node tagged with ""
-   // FIXME : is there really a difference ? ExportMotion doesn't seem to care about it
    shader = GetArnoldNode("");
 
    CNodeTranslator::Export(shader);
@@ -197,6 +194,50 @@ bool CShaderTranslator::RequiresMotionData()
    return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
 }
 
+void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   CNodeTranslator::NodeChanged(node, plug);
+
+   if (m_impl->m_sourceTranslator == NULL) return;
+
+   // if my connection to "normalCamera" changes, for example if I disconnect a bump node,
+   // I not only need to re-export myself, but I also need to advert the node which is connected to the bump
+   // (for example the ShadingEngine). Otherwise it will keep its connection to the bump
+   
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   if (plugName == ".normalCamera")
+   {
+      // simply delete the sourceTranslator, it will be re-generated at next export
+      // this way if it's disconnected we delete it from the scene
+      // This might be a bit heavy but it will only happen when user tweaks the bump node
+      m_impl->m_sourceTranslator->SetUpdateMode(AI_DELETE_NODE);
+      m_impl->m_sourceTranslator->RequestUpdate();
+   }
+}
+
+   // Maya:
+   //  ----------       -----------
+   //  | Bump2d | --->  | Shader1 |
+   //  ---------- \     -----------
+   //              \    -----------
+   //               \-> | Shader2 |
+   //                   -----------
+   //             __
+   //             ||
+   //            _||_
+   //            \  /
+   //             \/
+   //
+   // Arnold:
+   //  -----------     ---------
+   //  | Shader1 | --> | Bump1 |
+   //  -----------     ---------
+   //  -----------     ---------
+   //  | Shader2 | --> | Bump2 |
+   //  -----------     ---------
+   //
+
 void CShaderTranslator::ExportBump(AtNode* shader)
 {
    MStatus status;
@@ -207,11 +248,22 @@ void CShaderTranslator::ExportBump(AtNode* shader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         AtNode* bump = ExportConnectedNode(connections[0]);
+         // ugly way to get a unique instance number integer from this translator's pointer.
+         // we should have a better system, like a map that increases an index whenever a new entry is added, or something....
+         size_t instNum64 = (size_t)this;
+         int instanceNumber = (int)(instNum64/8);
 
-         if (bump != NULL)
+         CNodeTranslator *bumpTranslator = GetSession()->ExportNode(connections[0], m_impl->m_shaders, &m_impl->m_upstreamAOVs, false, instanceNumber);
+         
+         if (bumpTranslator != NULL)
          {
-            m_impl->m_atNode = bump;
+            m_impl->m_sourceTranslator = bumpTranslator;
+
+#ifdef NODE_TRANSLATOR_REFERENCES 
+            m_impl->AddBackReference(bumpTranslator, true); // "true" in order to add the reverse connection too 
+#endif
+            AtNode* bump = bumpTranslator->GetArnoldRootNode();
+      
             while (true)
             {
                AtNode* connectedBump = AiNodeGetLink(bump, "shader");

@@ -29,8 +29,9 @@ public:
    virtual void ExportMotion(AtNode *shader);
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    virtual bool RequiresMotionData();
-
+   
 protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug); 
    AtNode* ProcessAOVOutput(AtNode* shader);
    virtual void ExportBump(AtNode* shader);
 

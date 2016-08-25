@@ -127,6 +127,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       std::vector<CNodeTranslator *> previousRefs = m_references;
       m_references.clear();
 #endif
+      m_sourceTranslator = NULL; // this will be set during Export
 
       m_tr.Export(node);
       m_tr.ExportUserAttribute(node);
@@ -176,8 +177,9 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
 }
 
 void CNodeTranslatorImpl::DoCreateArnoldNodes()
-{
+{   
    m_atNode = m_tr.CreateArnoldNodes();
+   
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
             m_tr.GetMayaNodeName().asChar(), m_tr.GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
@@ -1000,9 +1002,11 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
    } // switch
 }
 
+// Export (and eventually create) the AtNode based on the connection to this outputPlug
 AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool track, CNodeTranslator** outTranslator)
 {
    CNodeTranslator* translator = NULL;
+   
    if (track)
       translator = m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);
    else
@@ -1012,9 +1016,16 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       if (outTranslator != NULL)
          *outTranslator = translator;
 
+      // this is used when the DG order is different between Maya and Arnold.
+      // For now this only happens with bump mapping. In that case, from the outside the sourceTranslator
+      // will have to be referenced instead of this one.
+      if (translator->m_impl->m_sourceTranslator) 
+         translator = translator->m_impl->m_sourceTranslator;
+
 #ifdef NODE_TRANSLATOR_REFERENCES 
       AddReference(translator);
 #endif
+
       return translator->GetArnoldRootNode();
    }
    return NULL;

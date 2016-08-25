@@ -78,7 +78,7 @@ public:
    // Called by translators
    CDagTranslator* ExportDagPath(MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
    CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
-                      bool initOnly=false, MStatus* stat=NULL);
+                      bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
    unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
