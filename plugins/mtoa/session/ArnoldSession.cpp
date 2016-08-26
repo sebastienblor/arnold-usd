@@ -168,7 +168,6 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       else
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
-         m_processedTranslatorList.push_back(translator);
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
@@ -287,8 +286,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       else
       {
          m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
-         m_processedTranslatorList.push_back(translator);
-
+         
          // This node handle might have already been added to the list of objects to update
          // but since no translator was found in m_processedTranslators, it might have been discarded
          // if we don't QueueForUpdate now, addUpdateCallbacks could not be called and we'd loose all callbacks
@@ -430,10 +428,11 @@ MStatus CArnoldSession::End()
    }
 
    // Delete stored translators
-   for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
    {
-      //AiMsgDebug("[mtoa] Deleting translator for %s in %p", MFnDependencyNode(it->first.object()).name().asChar(), it->second);
-      delete m_processedTranslatorList[i];
+      delete it->second;
    }
 
    for(unsigned int i = 0; i < m_hiddenObjectsCallbacks.size(); ++i)
@@ -442,11 +441,9 @@ MStatus CArnoldSession::End()
    }
    m_hiddenObjectsCallbacks.clear();
 
-   // Any translators are in the processed translators map, so already deleted
    m_processedTranslators.clear();
    m_objectsToUpdate.clear();
    m_optionsTranslator = NULL;
-   m_processedTranslatorList.clear();
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
@@ -727,16 +724,25 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // traverse the DG even if the translators call ExportNode or ExportDag. This makes it safe
       // to re-export all objects from a flattened list
 
-      // get the size first, because on step 0, m_processedTranslatorList will grow as we export
-      unsigned int size = m_processedTranslatorList.size();
+      // The list of processedTranslators can grow while we call doExport a few lines below.
+      // So we can't call doExport while iterating over them.
+      // Thus we first store the list of translators to process.
+      std::vector<CNodeTranslator*> translatorsToExport;
+      translatorsToExport.reserve(m_processedTranslators.size());
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      for (; it != itEnd; ++it)
+      {
+         if (it->second) translatorsToExport.push_back(it->second);
+      }
       
       // for safety we're not doing the loop on m_motionSteps directly in case it is modified somewhere else
       m_motionStep = step; 
 
       // finally, loop through the already processed translators and export for current step
-      for (unsigned int i=0; i < size; ++i)
+      for (size_t i=0; i < translatorsToExport.size(); ++i)
       {         
-         m_processedTranslatorList[i]->m_impl->DoExport();
+         translatorsToExport[i]->m_impl->DoExport();
       }
    }
    m_motionStep = 0;
@@ -755,11 +761,13 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // add callbacks after all is done
    if (IsInteractiveRender())
    {
-      ObjectToTranslatorMap::iterator it;
-      for (unsigned int i=0; i < m_processedTranslatorList.size(); ++i)
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+      for ( ; it != itEnd; ++it)
       {
-         m_processedTranslatorList[i]->AddUpdateCallbacks();
-         m_processedTranslatorList[i]->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
+         if (it->second == NULL) continue;
+         it->second->AddUpdateCallbacks();
+         it->second->m_impl->m_updateMode = CNodeTranslator::AI_UPDATE_ONLY;
       }
       m_objectsToUpdate.clear(); // I finished exporting, I don't have any other object to Update now
    }
@@ -1638,9 +1646,11 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 
    // There is no object with this name in the scene.
    // Let's search it amongst the list of processed translators
-   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   ObjectToTranslatorMap::const_iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::const_iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
    {
-      CNodeTranslator *translator = m_processedTranslatorList[i];
+      CNodeTranslator *translator = it->second;
       if (translator == NULL) continue;
 
       // check if this translator corresponds to this AtNode
@@ -1662,9 +1672,12 @@ const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
    {
       // There is no object with this name in the scene.
       // Let's search it amongst the list of processed translators
-      for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+
+      ObjectToTranslatorMap::const_iterator it = m_processedTranslators.begin();
+      ObjectToTranslatorMap::const_iterator itEnd = m_processedTranslators.end();
+      for ( ; it != itEnd; ++it)
       {
-         CNodeTranslator *translator = m_processedTranslatorList[i];
+         CNodeTranslator *translator = it->second;
          if (translator == NULL) continue;
 
          // check if this translator corresponds to this AtNode
@@ -1759,9 +1772,11 @@ void CArnoldSession::ExportTxFiles()
    textureNodes.reserve(100); // completely empirical value, to avoid first allocations
 
 
-   for (size_t i = 0; i < m_processedTranslatorList.size(); ++i)
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.begin();
+   ObjectToTranslatorMap::iterator itEnd = m_processedTranslators.end();
+   for ( ; it != itEnd; ++it)
    {
-      CNodeTranslator *translator = m_processedTranslatorList[i];
+      CNodeTranslator *translator = it->second;
       if (translator == NULL) continue;
 
       AtNode *node = translator->GetArnoldNode();
