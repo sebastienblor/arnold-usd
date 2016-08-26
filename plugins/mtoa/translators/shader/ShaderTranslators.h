@@ -21,8 +21,6 @@
       virtual void Export(AtNode* shader);\
       AtNode* CreateArnoldNodes();\
       bool DependsOnOutputPlug() { return true; } \
-   protected:\
-      bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
    };
 
 class CSkyShaderTranslator
@@ -64,7 +62,6 @@ public:
 
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
-   bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
 };
 
 class CMayaShadingSwitchTranslator : public CShaderTranslator{

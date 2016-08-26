@@ -27,14 +27,17 @@ public:
    virtual AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* atNode);
    virtual void ExportMotion(AtNode *shader);
-   virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    virtual bool RequiresMotionData();
    
 protected:
    virtual void NodeChanged(MObject& node, MPlug& plug); 
    AtNode* ProcessAOVOutput(AtNode* shader);
-   virtual void ExportBump(AtNode* shader);
+   void ExportBump(AtNode* shader);
 
 protected:
    std::map<std::string, MPlugArray> m_aovShadingGroups;
+private:
+
+   // internal use only. Do Not override it
+   virtual void CreateImplementation();
 };

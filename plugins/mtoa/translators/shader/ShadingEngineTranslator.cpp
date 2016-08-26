@@ -1,24 +1,29 @@
 #include "ShadingEngineTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
+#include "ShadingEngineTranslatorImpl.h"
 #include "../DagTranslator.h"
 #include "scene/MayaScene.h"
 
-CShadingEngineTranslator::CShadingEngineTranslator() :
-   CNodeTranslator()
-{
-   m_impl->m_shaders = new std::set<AtNode*>;//AtNodeSet;
-}
 CShadingEngineTranslator::~CShadingEngineTranslator()
 {
-   delete m_impl->m_shaders;
+   if (m_impl)
+      delete m_impl->m_shaders;
 }
 
+void CShadingEngineTranslator::Init()
+{
+   m_impl->m_shaders = new std::set<AtNode*>;//AtNodeSet;
+   CNodeTranslator::Init();
+}
 
 AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 {
    return AddArnoldNode("MayaShadingEngine");
 }
 
+void CShadingEngineTranslator::CreateImplementation()
+{
+   m_impl = new CShadingEngineTranslatorImpl(*this);
+}
 
 void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -51,33 +56,6 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_volume_shader";
    
    helper.MakeInputRGB(data);
-}
-
-/// Compute the shading engine's AOVs. these are connected to aiCustomAOVs compound array.
-/// note that the final list of AOVs as tracked on "mtoa_aovs" user parameter does not include AOV global defaults
-void CShadingEngineTranslator::ComputeAOVs()
-{
-   MPlugArray connections;
-   // loop through and export custom AOV networks
-   MPlug arrayPlug = FindMayaPlug("aiCustomAOVs");
-   for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
-   {
-      MPlug msgPlug = arrayPlug[i].child(1);
-      msgPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         CAOV aov;
-         MString value = arrayPlug[i].child(0).asString();
-         aov.SetName(value);
-         if (GetSession()->IsActiveAOV(aov))
-         {
-            m_impl->m_localAOVs.insert(aov);
-            m_customAOVPlugs.append(connections[0]);
-            AiMsgDebug("[mtoa.translator.aov] %-30s | \"%s\" is active on attr %s",
-                       GetMayaNodeName().asChar(), value.asChar(), msgPlug.partialName(false, false, false, false, true, true).asChar());
-         }
-      }
-   }
 }
 
 /// Find and export the surfaceShader and custom AOVs for the passed shadingGroup, and add the global AOV defaults.
@@ -129,11 +107,12 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       }
 
       // loop through and export custom AOV networks
-      for (unsigned int i = 0; i < m_customAOVPlugs.length(); i++)
+      CShadingEngineTranslatorImpl *trImpl = static_cast<CShadingEngineTranslatorImpl*>(m_impl);
+      for (unsigned int i = 0; i < trImpl->m_customAOVPlugs.length(); i++)
       {
          // by passing false we avoid tracking shaders and aovs.
          // we need to call the private implementation function to prevent shaders tracking
-         AtNode* writeNode = m_impl->ExportConnectedNode(m_customAOVPlugs[i], false);
+         AtNode* writeNode = m_impl->ExportConnectedNode(trImpl->m_customAOVPlugs[i], false);
          
          // since we know this maya node is connected to aiCustomAOVs it will have a write node
          // inserted after it by CShaderTranslator::ProcessAOVOutput (assuming the node is translated by

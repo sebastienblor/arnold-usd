@@ -37,13 +37,14 @@ void CCameraTranslator::ExportImagePlanes()
 
          if (status && (connectedPlugs.length() > 0))
          {
-            // Shouldn't we rather call NodeTranslator::ExportNode ?
             CNodeTranslator *imgTranslator = GetSession()->ExportNode(connectedPlugs[0], NULL, NULL, true);
             CImagePlaneTranslator *imgPlaneTranslator =  dynamic_cast<CImagePlaneTranslator*>(imgTranslator);
 
-            // FIXME if we remove step from this function, will imgPlane get the right one ?
-            if (GetMotionStep() == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
-            else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
+            if (imgPlaneTranslator)
+            {
+               if (GetMotionStep() == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
+               else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
+            }
          }
       }
    }

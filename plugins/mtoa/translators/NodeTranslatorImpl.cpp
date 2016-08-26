@@ -76,9 +76,9 @@ AtNode* CNodeTranslatorImpl::DoExport()
          AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                     m_tr.GetMayaNodeName().asChar(), m_tr.GetTranslatorName().asChar());
 
-      m_tr.ComputeAOVs();
+      ComputeAOVs();
       m_tr.Export(node);
-      m_tr.ExportUserAttribute(node);
+      ExportUserAttribute(node);
       WriteAOVUserAttributes(node);
    }
    else if (m_tr.RequiresMotionData())
@@ -130,7 +130,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
       m_sourceTranslator = NULL; // this will be set during Export
 
       m_tr.Export(node);
-      m_tr.ExportUserAttribute(node);
+      ExportUserAttribute(node);
 
 #ifdef NODE_TRANSLATOR_REFERENCES 
       // now for all previous references, check if one of them has disappeared
@@ -452,6 +452,39 @@ static MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets)
 }
 
 
+bool CNodeTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
+{
+   resolvedOutputPlug=outputPlug;
+   return true;
+}
+/// gather up the active AOVs for the current node and add them to m_AOVs
+void CNodeTranslatorImpl::ComputeAOVs()
+{
+   // FIXME: add early bail out if AOVs are not enabled
+
+   MStringArray aovAttrs;
+
+   MString typeName = m_tr.GetMayaNodeTypeName();
+   CExtensionsManager::GetNodeAOVs(typeName, aovAttrs);
+   // FIXME: use more efficient insertion method
+   MStatus stat;
+   MPlug plug;
+   for (unsigned int i=1; i < aovAttrs.length(); i+=3)
+   {
+      plug = m_tr.FindMayaPlug(aovAttrs[i], &stat);
+      if (stat == MS::kSuccess)
+      {
+         CAOV aov;
+         MString value = plug.asString();
+         aov.SetName(value);
+         if (m_session->IsActiveAOV(aov))
+         {
+            m_localAOVs.insert(aov);
+         }
+      }
+   }
+}
+
 
 
 /// gather the active override sets containing this node
@@ -462,7 +495,7 @@ MStatus CNodeTranslatorImpl::ExportOverrideSets()
 
    MObjectArray overrideSetObjs;
 
-   if (m_tr.IsMayaTypeDag())
+   if (IsMayaTypeDag())
    {
       MDagPath path;
       MDagPath::getAPathTo(m_tr.GetMayaObject(), path);
@@ -1033,6 +1066,17 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       return translator->GetArnoldNode();
    }
    return NULL;
+}
+
+void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
+{
+   // TODO: allow overrides here too ?
+   CNodeTranslator::ExportUserAttributes(anode, m_tr.GetMayaObject(), &m_tr);
+   
+   // Exporting the UnexposedOptions parameter
+   MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
+   if (!plug.isNull())
+      AiNodeSetAttributes(anode, plug.asString().asChar());
 }
 
 

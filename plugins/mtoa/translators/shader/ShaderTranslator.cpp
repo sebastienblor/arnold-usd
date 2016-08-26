@@ -1,10 +1,15 @@
 #include "ShaderTranslator.h"
+#include "ShaderTranslatorImpl.h"
 #include "extension/ExtensionsManager.h"
 #include "nodes/MayaNodeIDs.h"
 #include "session/ArnoldSession.h"
-#include "translators/NodeTranslatorImpl.h"
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnCompoundAttribute.h>
+
+void CShaderTranslator::CreateImplementation()
+{
+   m_impl = new CShaderTranslatorImpl(*this);
+}
 
 // Auto shader translator
 //
@@ -36,7 +41,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    {
       // TODO: determine if the following two checks make performance faster or slower:
       MPlug resolvedPlug;
-      if (!ResolveOutputPlug(sourcePlugs[i], resolvedPlug)) continue;
+      if (!m_impl->ResolveOutputPlug(sourcePlugs[i], resolvedPlug)) continue;
       // if (sourcePlugs[i].isDestination()) continue;
 
       sourcePlugs[i].connectedTo(destPlugs, false, true);
@@ -143,49 +148,6 @@ void CShaderTranslator::ExportMotion(AtNode *shader)
    AiParamIteratorDestroy(nodeParam);
 }
 
-
-bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
-{
-   MStatus status;
-   MFnAttribute fnAttr(outputPlug.attribute());
-   MString attrName = outputPlug.partialName(false, false, false, false, false, true);
-   if (fnAttr.type() == MFn::kMessageAttribute)
-   {
-      // for basic shaders with a single output, which this translator represents, message attributes are equivalent
-      // to outColor/outValue
-      MFnDependencyNode fnNode(outputPlug.node());
-      resolvedOutputPlug = fnNode.findPlug("outColor", &status);
-      if (status != MS::kSuccess)
-      {
-         resolvedOutputPlug = fnNode.findPlug("outValue", &status);
-         if (status != MS::kSuccess)
-         {
-            AiMsgError("[mtoa] Cannot resolve message attribute \"%s\" to a valid shader output (e.g. outColor/outValue)",
-                       outputPlug.partialName(true, false, false, false, false, true).asChar());
-            return false;
-         }
-      }
-   }
-   // proper outputs are readable and not writable, but we should only check for those nodes created by mtoa
-   // since maya nodes do not strictly adhere to this (surfaceShader.outColor is writable, for example)
-   else if ((!fnAttr.isReadable() || fnAttr.isWritable()) &&
-         CExtensionsManager::IsRegisteredMayaNode(MFnDependencyNode(outputPlug.node()).typeName()))
-   {
-      return false;
-   }
-   /*
-   // FIXME: can't use this because of built-in maya shaders which may use output3D, and other craziness
-   else if (attrName != "outColor" && attrName != "outValue")
-   {
-      AiMsgError("[mtoa] Cannot export \"%s\" because it is not a valid output attribute",
-                 outputPlug.partialName(true, false, false, false, false, true).asChar());
-      return false;
-   }*/
-   else
-      resolvedOutputPlug=outputPlug;
-   return true;
-}
-
 bool CShaderTranslator::RequiresMotionData()
 {
    return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
@@ -273,4 +235,53 @@ void CShaderTranslator::ExportBump(AtNode* shader)
          }
       }
    }
+}
+
+bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
+{
+   // If this is a multi-output shader, just copy the MPlug
+   if (m_tr.DependsOnOutputPlug()) 
+   {
+      resolvedOutputPlug=outputPlug;
+      return true;
+   }
+
+   MStatus status;
+   MFnAttribute fnAttr(outputPlug.attribute());
+   MString attrName = outputPlug.partialName(false, false, false, false, false, true);
+   if (fnAttr.type() == MFn::kMessageAttribute)
+   {
+      // for basic shaders with a single output, which this translator represents, message attributes are equivalent
+      // to outColor/outValue
+      MFnDependencyNode fnNode(outputPlug.node());
+      resolvedOutputPlug = fnNode.findPlug("outColor", &status);
+      if (status != MS::kSuccess)
+      {
+         resolvedOutputPlug = fnNode.findPlug("outValue", &status);
+         if (status != MS::kSuccess)
+         {
+            AiMsgError("[mtoa] Cannot resolve message attribute \"%s\" to a valid shader output (e.g. outColor/outValue)",
+                       outputPlug.partialName(true, false, false, false, false, true).asChar());
+            return false;
+         }
+      }
+   }
+   // proper outputs are readable and not writable, but we should only check for those nodes created by mtoa
+   // since maya nodes do not strictly adhere to this (surfaceShader.outColor is writable, for example)
+   else if ((!fnAttr.isReadable() || fnAttr.isWritable()) &&
+         CExtensionsManager::IsRegisteredMayaNode(MFnDependencyNode(outputPlug.node()).typeName()))
+   {
+      return false;
+   }
+   /*
+   // FIXME: can't use this because of built-in maya shaders which may use output3D, and other craziness
+   else if (attrName != "outColor" && attrName != "outValue")
+   {
+      AiMsgError("[mtoa] Cannot export \"%s\" because it is not a valid output attribute",
+                 outputPlug.partialName(true, false, false, false, false, true).asChar());
+      return false;
+   }*/
+   else
+      resolvedOutputPlug=outputPlug;
+   return true;
 }

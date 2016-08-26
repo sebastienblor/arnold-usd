@@ -12,12 +12,19 @@ public:
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
 
-   void ComputeAOVs();
 
 protected:
-   CShadingEngineTranslator();
+
+   CShadingEngineTranslator() :
+      CNodeTranslator()
+   {}
    virtual ~CShadingEngineTranslator();
    virtual void NodeChanged(MObject& node, MPlug& plug);
-   
-   MPlugArray m_customAOVPlugs;
+   virtual void Init();
+
+   virtual void TrackAOVs(AOVSet* aovs) {}
+private:
+   // internal use only : do not override it
+   virtual void CreateImplementation();
+
 };

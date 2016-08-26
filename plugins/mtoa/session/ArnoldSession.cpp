@@ -126,7 +126,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
       AiMsgTab(-1);
       return NULL;
    }
-   else if (!translator->IsMayaTypeDag())
+   else if (!translator->m_impl->IsMayaTypeDag())
    {
       if (stat != NULL) *stat = MStatus::kInvalidParameter;
       AiMsgDebug("[mtoa] translator for %s of type %s is not a DAG translator", name.asChar(), type.asChar());
@@ -230,7 +230,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    // resolving the plug gives translators a chance to replace ".message" with ".outColor",
    // for example, or to reject it outright.
    // once the attribute is properly resolved it can be used as a key in our multimap cache
-   if (translator->ResolveOutputPlug(resultPlug, resolvedPlug))
+   if (translator->m_impl->ResolveOutputPlug(resultPlug, resolvedPlug))
    {
       resultPlug = resolvedPlug;
    }
@@ -313,11 +313,8 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
       }
       if (aovs != NULL)
       {
-         // FIXME : definitively not the right solution to start using dynamic casts...
-         // but I hope we'll find a way to solve this
-         // So, only ShadingEngine doesn't TrackAOVs as it's the root of the shading tree
-         CShadingEngineTranslator *shTr = dynamic_cast<CShadingEngineTranslator*>(translator);
-         if (shTr == NULL) translator->m_impl->TrackAOVs(aovs);
+         // only ShadingEngine doesn't TrackAOVs as it's the root of the shading tree
+         translator->m_impl->TrackAOVs(aovs);
       }
    }
    if (NULL != stat) *stat = status;
@@ -1338,7 +1335,7 @@ void CArnoldSession::DoUpdate()
          {  
             // AI_UPDATE_ONLY => simple update
             if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
-            if (translator->IsMayaTypeDag()) aDag = true;
+            if (translator->m_impl->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translator);
          }
 
@@ -1397,7 +1394,7 @@ void CArnoldSession::DoUpdate()
          for (unsigned int i=0; i < translators.size(); ++i)
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
-            if (translators[i]->IsMayaTypeDag()) aDag = true;
+            if (translators[i]->m_impl->IsMayaTypeDag()) aDag = true;
 
             // we no longer need to call DoExport here as DoUpdate will call it (isExported=false)
             //translators[i]->m_impl->DoExport();

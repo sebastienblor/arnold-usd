@@ -1,4 +1,5 @@
 #include "DagTranslator.h"
+#include "DagTranslatorImpl.h"
 
 #include <maya/MPlugArray.h>
 #include <maya/MFnSet.h>
@@ -23,6 +24,10 @@ void CDagTranslator::Init()
          break;
       }
    }
+}
+void CDagTranslator::CreateImplementation()
+{
+   m_impl = new CDagTranslatorImpl(*this);
 }
 void CDagTranslator::Export(AtNode* node)
 {

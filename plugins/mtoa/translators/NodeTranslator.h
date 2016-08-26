@@ -45,9 +45,9 @@ class DLLEXPORT CNodeTranslator
    friend class CNodeTranslatorImpl;
 
 public:
-   
+
    virtual ~CNodeTranslator();
-   
+
    //------------------ Getters. Check if all of them are necessary
 
    // Get the MObject associated to this translator
@@ -81,26 +81,14 @@ public:
    // Get the name of this translator
    MString GetTranslatorName();
 
-   // -------------------- Check if the functions below are really necessary for extensions
-   // ---------------------If they are just used internally maybe we could use a different solution ?
-
-   // overridable translator properties
-   virtual bool IsMayaTypeDag() {return false;}
-
-   virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
-
+   // If the translator needs to performs different operations depending on the type of output plug,
+   // it will need to override this methid and return true
+   virtual bool DependsOnOutputPlug() {return false;} 
    
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the Update callbacks.
-   virtual void RequestUpdate();
+   void RequestUpdate();
 
-   //------------------ Static functions, should we add more and more static functions 
-   //------------------ or should they all stay in ArnoldSession
-   static void NodeInitializer(CAbTranslator context);
-   static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
-
-
-   // --------------------SetUpdateMode : It would be better to make it protected, but for now it's not possible
    enum UpdateMode {
       AI_UPDATE_ONLY=0,
       AI_RECREATE_NODE = 1,
@@ -109,6 +97,11 @@ public:
    };
    void SetUpdateMode(UpdateMode m);
 
+   // Export the MObject user attributes to the given Arnold node. This is useful 
+   static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
+
+   static void NodeInitializer(CAbTranslator context);
+   
 protected:
    CNodeTranslator();
 
@@ -158,18 +151,8 @@ protected:
    virtual void Delete();
 
    // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
+   
      
-   virtual void ComputeAOVs();
-   
-   /// Return false if the passed outputAttribute is invalid
-   virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
-
-
-
-   
-   
-   void ExportUserAttribute(AtNode *anode);
-
 
    // session info
    double GetExportFrame() const;
@@ -187,13 +170,15 @@ protected:
 
 
 
-   // Some simple callbacks used by many translators.
+   // Some simple callbacks used by several translators.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
    static void NameChangedCallback(MObject& node, const MString& str, void* clientData);
    static void NodeAboutToBeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
-   //static void NodeDestroyedCallback(void* clientData);
+
+
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
    
+
 protected:
    
    // internal use only

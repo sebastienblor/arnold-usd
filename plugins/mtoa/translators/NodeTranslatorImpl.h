@@ -47,6 +47,16 @@ public :
       m_tr(translator){}
    ~CNodeTranslatorImpl() {}
 
+   virtual bool IsMayaTypeDag() const {return false;}
+   virtual void ComputeAOVs();
+   
+   /// Return false if the passed outputAttribute is invalid
+   virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
+   
+   virtual void TrackAOVs(AOVSet* aovs);
+   
+   
+
    AtNode* DoExport();
    AtNode* DoUpdate();
    void DoCreateArnoldNodes();
@@ -57,6 +67,7 @@ public :
    bool ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &parentPlug,
                                                       const char* arnoldParamName,
                                                       int arnoldParamType);
+
 
 
 
@@ -80,7 +91,6 @@ public :
    // But the Shape translators that also create their own shader (when it doesn't exist in Maya)
    // call ExportRootShader, which call CreateShadingGroupShader, which call AddAOVDefaults
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
-   void TrackAOVs(AOVSet* aovs);
    
    MStatus ExportOverrideSets();
    MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
@@ -119,6 +129,8 @@ public :
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
    bool m_isExported;
+
+   void ExportUserAttribute(AtNode *anode);
 
 #ifdef NODE_TRANSLATOR_REFERENCES
    
@@ -191,11 +203,11 @@ public :
    // for example a single shader assigned to the whole scene
    std::vector<CNodeTranslator *> m_references;
    std::set<CNodeTranslator *> m_backReferences;
-private:
+protected:
 
 
 #endif
 
-private:
+protected:
    CNodeTranslator &m_tr;
 };

@@ -143,6 +143,7 @@ void CNodeTranslator::CreateImplementation()
 {
    m_impl = new CNodeTranslatorImpl(*this);
 }
+
 AtNode* CNodeTranslator::ExportConnectedNode(const MPlug& outputPlug)
 {
    return m_impl->ExportConnectedNode(outputPlug);
@@ -175,35 +176,6 @@ MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStat
 
 
 
-/// gather up the active AOVs for the current node and add them to m_AOVs
-void CNodeTranslator::ComputeAOVs()
-{
-   // FIXME: add early bail out if AOVs are not enabled
-
-   MStringArray aovAttrs;
-
-   MString typeName = GetMayaNodeTypeName();
-   CExtensionsManager::GetNodeAOVs(typeName, aovAttrs);
-   // FIXME: use more efficient insertion method
-   MStatus stat;
-   MPlug plug;
-   for (unsigned int i=1; i < aovAttrs.length(); i+=3)
-   {
-      plug = FindMayaPlug(aovAttrs[i], &stat);
-      if (stat == MS::kSuccess)
-      {
-         CAOV aov;
-         MString value = plug.asString();
-         aov.SetName(value);
-         if (GetSession()->IsActiveAOV(aov))
-         {
-            m_impl->m_localAOVs.insert(aov);
-            AiMsgDebug("[mtoa.translator.aov] %-30s | \"%s\" is active on attr %s",
-                       GetMayaNodeName().asChar(), value.asChar(), aovAttrs[i].asChar());
-         }
-      }
-   }
-}
 
 void CNodeTranslator::Export(AtNode* node)
 {
@@ -380,12 +352,6 @@ const char* CNodeTranslator::GetArnoldTypeName(const char* tag)
    {
       return AiNodeEntryGetName(AiNodeGetNodeEntry(node));
    }
-}
-
-bool CNodeTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
-{
-   resolvedOutputPlug=outputPlug;
-   return true;
 }
 
 void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
@@ -966,18 +932,6 @@ void CNodeTranslator::ExportUserAttributes(AtNode* anode, MObject object, CNodeT
       //         GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
    }
 }
-
-void CNodeTranslator::ExportUserAttribute(AtNode *anode)
-{
-   // TODO: allow overrides here too ?
-   ExportUserAttributes(anode, GetMayaObject(), this);
-   
-   // Exporting the UnexposedOptions parameter
-   MPlug plug = FindMayaPlug("aiUserOptions");
-   if (!plug.isNull())
-      AiNodeSetAttributes(anode, plug.asString().asChar());
-}
-
 
 /// Using the translator's m_handle Maya Object and specific attrName
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
