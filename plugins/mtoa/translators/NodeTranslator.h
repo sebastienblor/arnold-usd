@@ -70,7 +70,7 @@ public:
    MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
 
 
-   //---- The 4 functions below are mainly used for debug lobs. Do we want to keep them in the public API ?
+   //---- The 4 functions below are mainly used for debug logs. Do we want to keep them in the public API ?
    
    // Get the name of the Maya object. 
    MString GetMayaNodeName() const;
@@ -154,21 +154,22 @@ protected:
    // Note that this is what causes the creation of a full shading tree, from the root shaders to the leafs
    AtNode* ExportConnectedNode(const MPlug& outputPlug);
 
+   // Delete the Arnold node(s) for this translator.
+   virtual void Delete();
 
    // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
-  
-   
+     
    virtual void ComputeAOVs();
    
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
 
-   // Delete the Arnold node(s) for this translator.
-   virtual void Delete();
+
 
    
    
    void ExportUserAttribute(AtNode *anode);
+
 
    // session info
    double GetExportFrame() const;
@@ -184,6 +185,8 @@ protected:
    
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
 
+
+
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
    static void NameChangedCallback(MObject& node, const MString& str, void* clientData);
@@ -193,8 +196,10 @@ protected:
    
 protected:
    
-   // would be better to make it private, but for now we're just trying to move there 
-   // what is not necessary for the API
+   // internal use only
    CNodeTranslatorImpl * m_impl;
+private:
+   // internal use only, don't override it
+   virtual void CreateImplementation();
 
 };

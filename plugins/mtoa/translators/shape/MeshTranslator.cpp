@@ -6,14 +6,6 @@
 #include <maya/MItMeshVertex.h>
 #include <maya/MDagPathArray.h>
 
-CMeshTranslator::CMeshTranslator()  :
-   CPolygonGeometryTranslator()
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "polymesh";
-}
-
 unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
 {
    // FIXME: what happens when the master instance has no shading groups, but another instance does?

@@ -17,7 +17,29 @@ class CParticleTranslator
    :   public CShapeTranslator
 {
 public:
-   CParticleTranslator();
+   CParticleTranslator() :
+      CShapeTranslator(),
+      m_hasRGB(false),
+      m_hasOpacity(false),
+      m_hasRadiusPP(false),
+      m_isOpaque(false),
+      m_doMultiPoint(false),
+      m_multiCount(1),
+      m_multiRadius(0),
+      m_isSpritePP(false),
+      m_isSprite(false),
+      m_particleSize(1),
+      m_radius(.5),
+      m_pointSize(1),
+      m_lineWidth(1),
+      m_spriteScaleX(1),
+      m_spriteScaleY(1),
+      m_doExtraAttributes(false),
+      m_inheritCacheTxfm(false),
+      m_exportId(false),
+      m_minPixelWidth(0.0f)
+   {}
+
    
    static void* creator()
    {

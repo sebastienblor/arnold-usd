@@ -14,16 +14,6 @@
 
 #include <vector>
 
-CCurveTranslator::CCurveTranslator() :
-   CShapeTranslator()
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "curves";
-   exportReferenceObject = false;
-}
-
-
 void CCurveTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "curves");

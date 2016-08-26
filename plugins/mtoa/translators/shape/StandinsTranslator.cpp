@@ -17,13 +17,6 @@
 
 
 #include <maya/MString.h>
-CArnoldStandInsTranslator::CArnoldStandInsTranslator()  :
-   CShapeTranslator()
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "procedural";
-}
 
 void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
 {

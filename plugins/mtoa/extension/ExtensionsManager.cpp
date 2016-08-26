@@ -793,9 +793,12 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
    {
       TCreatorFunction creatorFunction = foundTrs->creator;
       translator = (CNodeTranslator*)creatorFunction();
+      translator->CreateImplementation();
+
       // This customize the prototype instance of the translator
       // with the information found in the translator class proxy
       translator->m_impl->m_abstract = CAbTranslator(foundTrs->name, foundTrs->arnold, mayaNode.name, foundTrs->provider);
+
    }
    else
    {

@@ -17,7 +17,9 @@ public:
    AtNode* CreateArnoldNodes();
 
 protected:
-   CMeshTranslator();
+   CMeshTranslator() :
+      CPolygonGeometryTranslator()
+   {}
    
    // overridden from CDagTranslator to add a GetNumMeshGroups check
    virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);

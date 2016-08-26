@@ -21,7 +21,9 @@ class CInstancerTranslator
    :   public CShapeTranslator
 {
 protected:
-   CInstancerTranslator();
+   CInstancerTranslator() :
+      CShapeTranslator()
+   {}
 
 public:
    static void* creator()

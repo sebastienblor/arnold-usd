@@ -22,14 +22,6 @@
 static MCallbackId s_idleCallback = 0;
 static std::vector<CArnoldProceduralTranslator *> s_updatedProcedurals;
 
-CArnoldProceduralTranslator::CArnoldProceduralTranslator()  :
-   CShapeTranslator()
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "procedural";
-}
-
 void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "procedural");

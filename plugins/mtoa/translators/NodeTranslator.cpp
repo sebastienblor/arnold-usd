@@ -124,17 +124,25 @@ bool HasIncomingConnection(const MPlug &plug)
 //------------ CNodeTranslator ------------//
 CNodeTranslator::CNodeTranslator()
 {
-   m_impl = new CNodeTranslatorImpl(*this);
+   // we can't call CreateImplementation here as it's a virtual function and we're in the constructor...
+   m_impl = NULL;
 }
 CNodeTranslator::~CNodeTranslator()
 {
-   // don't forget to remove the callbacks
-   m_impl->RemoveUpdateCallbacks();
-   // so, we're not calling Delete() here. This is being done manually during updates;
-   // This will prevent lots of calls to RemoveReference/RemoveBackReference when we destroy everything
-   delete m_impl;
+   if (m_impl)
+   {
+      // don't forget to remove the callbacks
+      m_impl->RemoveUpdateCallbacks();
+      // so, we're not calling Delete() here. This is being done manually during updates;
+      // This will prevent lots of calls to RemoveReference/RemoveBackReference when we destroy everything
+      delete m_impl;
+   }
 }
 
+void CNodeTranslator::CreateImplementation()
+{
+   m_impl = new CNodeTranslatorImpl(*this);
+}
 AtNode* CNodeTranslator::ExportConnectedNode(const MPlug& outputPlug)
 {
    return m_impl->ExportConnectedNode(outputPlug);

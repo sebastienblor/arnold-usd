@@ -25,16 +25,6 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
    AtNode* options = AiUniverseGetOptions();
    return options;
 }
-COptionsTranslator::COptionsTranslator()  :
-   CNodeTranslator(),
-   m_aovs(),
-   m_aovsEnabled(true),
-   m_aovsInUse(false)
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "options";
-}
 
 /// For each active AOV add a CAOV class to m_aovs
 void COptionsTranslator::ProcessAOVs()

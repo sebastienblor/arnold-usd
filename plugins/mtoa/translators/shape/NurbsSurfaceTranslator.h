@@ -18,7 +18,10 @@ public:
    }
    AtNode* CreateArnoldNodes();
 protected:
-   CNurbsSurfaceTranslator();
+   CNurbsSurfaceTranslator() :
+      CPolygonGeometryTranslator()
+   {}
+   
    virtual bool Tessellate(const MDagPath &dagPath);
 
 private:

@@ -45,7 +45,12 @@ public:
 
    static void AddProjectFoldersToSearchPaths(AtNode* options);
 protected:
-   COptionsTranslator();
+   COptionsTranslator()  :
+      CNodeTranslator(),
+      m_aovs(),
+      m_aovsEnabled(true),
+      m_aovsInUse(false)
+   {}
    
    void ProcessAOVs();
    void SetImageFilenames(MStringArray &outputs);

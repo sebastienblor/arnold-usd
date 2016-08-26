@@ -1,13 +1,6 @@
 #include "translators/NodeTranslatorImpl.h"
 #include "NurbsSurfaceTranslator.h"
 
-CNurbsSurfaceTranslator::CNurbsSurfaceTranslator()  :
-   CPolygonGeometryTranslator()
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "polymesh";
-}
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
                                               MFnNurbsSurface & surface)
 {

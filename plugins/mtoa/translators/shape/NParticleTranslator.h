@@ -17,7 +17,9 @@ class CNParticleTranslator
    :   public CParticleTranslator
 {
 public:
-   CNParticleTranslator(); 
+   CNParticleTranslator() :
+      CParticleTranslator()
+   {}
    
    static void* creator()
    {

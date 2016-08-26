@@ -29,7 +29,10 @@ class CCurveTranslator
    :   public CShapeTranslator
 {
 public:
-   CCurveTranslator();
+   CCurveTranslator() :
+      CShapeTranslator(),
+      exportReferenceObject(false)
+   {}
 
    virtual void Export(AtNode* curve);
    virtual void ExportMotion(AtNode* curve);

@@ -764,6 +764,7 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    trs = (CNodeTranslator*)creatorFunction();
    if (NULL != trs)
    {
+      trs->CreateImplementation();
       if (trsProxy.name == "") trsProxy.name = trs->m_impl->m_abstract.name;
       if (trsProxy.arnold == "") trsProxy.arnold = trs->m_impl->m_abstract.arnold;
       // if (trsProxy.maya == "") trsProxy.maya = trs->m_abstract.maya;

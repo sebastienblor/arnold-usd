@@ -10,7 +10,9 @@ class CHairTranslator
    :   public CShapeTranslator
 {
 public:
-   CHairTranslator();
+   CHairTranslator() : 
+      CShapeTranslator() 
+   {}
 
    virtual void Export(AtNode* curve);
    

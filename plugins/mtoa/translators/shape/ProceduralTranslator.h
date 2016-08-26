@@ -16,7 +16,9 @@ public:
    void ExportMotion(AtNode* anode);
 
 protected:
-   CArnoldProceduralTranslator();
+   CArnoldProceduralTranslator() :
+      CShapeTranslator()
+   {}
    
    void ExportBoundingBox(AtNode* procedural);
 

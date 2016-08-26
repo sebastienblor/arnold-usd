@@ -18,13 +18,6 @@ void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
 
 }
 
-CInstancerTranslator::CInstancerTranslator() :
-   CShapeTranslator()
-{
-   // Just for debug info, translator creates whatever arnold nodes are required
-   // through the CreateArnoldNodes method
-   m_impl->m_abstract.arnold = "ginstance";
-}
 void CInstancerTranslator::NodeInitializer(CAbTranslator context)
 {
 }

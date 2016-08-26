@@ -362,6 +362,12 @@ void CNodeTranslatorImpl::Init(CArnoldSession* session, const CNodeAttrHandle& o
 
    // then create the arnoldNodes
    DoCreateArnoldNodes();
+
+   // If the "arnold" name of this translator hasn't been set yet 
+   // we set it with the type of the created arnold node
+   if (m_abstract.arnold.length() == 0 && m_atNode)
+      m_abstract.arnold = AiNodeEntryGetName(AiNodeGetNodeEntry(m_atNode));
+   
 }
 
 

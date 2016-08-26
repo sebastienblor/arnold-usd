@@ -16,7 +16,10 @@ public:
    void ExportMotion(AtNode* anode);
    
 protected:
-   CArnoldVolumeTranslator();
+   CArnoldVolumeTranslator() :
+      CShapeTranslator()
+   {}
+   
    void ExportBoundingBox(AtNode* procedural);
 
    void ExportVolumeShaders(AtNode* procedural);
