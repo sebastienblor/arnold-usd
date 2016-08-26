@@ -234,21 +234,22 @@ void CNodeTranslator::Delete()
    m_impl->m_backReferences.clear();
 #endif
 
-   //   AiNodeDestroy(m_atNode);  AtNode should already be deleted in the loop below
-   for (std::map<std::string, AtNode*>::iterator it = m_impl->m_atNodes.begin(); it != m_impl->m_atNodes.end(); ++it)
-      AiNodeDestroy(it->second);
-
+   AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
-   m_impl->m_atNodes.clear();
+
+   if (m_impl->m_additionalAtNodes)
+   {
+      for (std::map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
+         AiNodeDestroy(it->second);
+      
+      delete m_impl->m_additionalAtNodes;
+      m_impl->m_additionalAtNodes = NULL;
+   }
+
    m_impl->m_isExported = false;
 
    // is there anything else to be deleted ?
    // overrideSets are created at Init (not Export) so I guess we shouldn't be deleting them here
-}
-
-AtNode* CNodeTranslator::GetArnoldRootNode()
-{
-   return m_impl->m_atNode;
 }
 
 /// convert from maya matrix to AtMatrix
@@ -285,9 +286,11 @@ void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix,
 /// Retrieve a node previously created using AddArnoldNode()
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
-   if (m_impl->m_atNodes.count(tag))
+   if (tag == NULL || strlen(tag) == 0) return m_impl->m_atNode;
+
+   if (m_impl->m_additionalAtNodes != NULL && m_impl->m_additionalAtNodes->count(tag))
    {
-      return m_impl->m_atNodes[tag];
+      return (*(m_impl->m_additionalAtNodes))[tag];
    }
    else
    {
@@ -305,13 +308,19 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    {
       AtNode* node = AiNode(type);
       SetArnoldNodeName(node, tag);
-      if (m_impl->m_atNodes.count(tag))
+
+      if (tag != NULL && strlen(tag))
       {
-         AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
-         return node;
+         if (m_impl->m_additionalAtNodes == NULL) 
+            m_impl->m_additionalAtNodes = new std::map<std::string, AtNode*>();
+         if (m_impl->m_additionalAtNodes->count(tag))
+         {
+            AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
+            return node;
+         }
+         else
+            (*(m_impl->m_additionalAtNodes))[tag] = node;
       }
-      else
-         m_impl->m_atNodes[tag] = node;
       return node;
    }
    else
@@ -331,7 +340,7 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
    }
-   if (strlen(tag))
+   if (tag != NULL && strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
    // If name is alredy used, create a new one
@@ -465,7 +474,7 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
-      translator->SetArnoldNodeName(translator->GetArnoldRootNode());
+      translator->SetArnoldNodeName(translator->GetArnoldNode());
       AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());

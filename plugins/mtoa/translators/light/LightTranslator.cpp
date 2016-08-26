@@ -38,11 +38,11 @@ void CLightTranslator::Export(AtNode* light)
    // Early out, light isn't visible so no point exporting anything else.
    if (false == GetSession()->IsRenderablePath(m_dagPath))
    {
-      AiNodeSetDisabled(GetArnoldRootNode(), true);
-      //AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
+      AiNodeSetDisabled(GetArnoldNode(), true);
+      //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);
       return;
    }
-   AiNodeSetDisabled(GetArnoldRootNode(), false);
+   AiNodeSetDisabled(GetArnoldNode(), false);
 
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.

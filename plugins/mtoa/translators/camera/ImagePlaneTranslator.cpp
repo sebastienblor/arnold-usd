@@ -346,7 +346,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
          MPlug colorPlug;
          MPlugArray conn;
 
-         AtNode* imagePlaneShader = GetArnoldRootNode();
+         AtNode* imagePlaneShader = GetArnoldNode();
          //AtNode* imagePlaneShader = AiNode("flat");
          char nodeName[MAX_NAME_SIZE];
          AiNodeSetStr(imagePlaneShader, "name", NodeUniqueName(imagePlaneShader, nodeName));

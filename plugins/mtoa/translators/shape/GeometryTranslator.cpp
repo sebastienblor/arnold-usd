@@ -573,7 +573,7 @@ bool CPolygonGeometryTranslator::GetComponentIDs(const MObject &geometry,
 
 void CPolygonGeometryTranslator::ExportShaders()
 {
-   ExportMeshShaders(GetArnoldRootNode(), m_dagPath);
+   ExportMeshShaders(GetArnoldNode(), m_dagPath);
 }
 
 void CPolygonGeometryTranslator::GetDisplacement(MObject& obj, 

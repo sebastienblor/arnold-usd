@@ -63,7 +63,7 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
    }
-   if (strlen(tag))
+   if (tag != NULL && strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
    AiNodeSetStr(arnoldNode, "name", name.asChar());

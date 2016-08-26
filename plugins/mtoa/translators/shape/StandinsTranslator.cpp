@@ -232,7 +232,7 @@ void CArnoldStandInsTranslator::ExportShaders()
 {
    AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
    /// TODO: Test shaders with standins.
-   ExportStandinsShaders(GetArnoldRootNode());
+   ExportStandinsShaders(GetArnoldNode());
 }
 
 void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)

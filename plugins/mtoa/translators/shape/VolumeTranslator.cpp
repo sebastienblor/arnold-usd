@@ -92,7 +92,7 @@ void CArnoldVolumeTranslator::ExportShaders()
 {
    AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
    /// TODO: Test shaders with Volume.
-   ExportVolumeShaders(GetArnoldRootNode());
+   ExportVolumeShaders(GetArnoldNode());
 }
 
 void CArnoldVolumeTranslator::ExportVolumeShaders(AtNode* volume)

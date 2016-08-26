@@ -119,10 +119,7 @@ AtNode* CShaderTranslator::CreateArnoldNodes()
 
 void CShaderTranslator::Export(AtNode *shader)
 {
-   shader = GetArnoldNode("");
-
    CNodeTranslator::Export(shader);
-
    ExportBump(shader);
 }
 
@@ -262,7 +259,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
 #ifdef NODE_TRANSLATOR_REFERENCES 
             m_impl->AddBackReference(bumpTranslator, true); // "true" in order to add the reverse connection too 
 #endif
-            AtNode* bump = bumpTranslator->GetArnoldRootNode();
+            AtNode* bump = bumpTranslator->GetArnoldNode();
       
             while (true)
             {

@@ -59,11 +59,9 @@ public:
    // Get the type of the Maya node. Mainly used for debug logs : do we want to keep it in the API?
    MString GetMayaNodeTypeName() const;
 
-   // Get the main Arnold node for this translator
-   AtNode* GetArnoldRootNode();
-
+   // Return the corresponding Arnold Node.
    // In case multiple Arnold nodes are registered with this translator, returns the one for a given tag
-   AtNode* GetArnoldNode(const char* tag="");
+   AtNode* GetArnoldNode(const char* tag=NULL);
 
    // Returns true if this translator has already been exported
    bool IsExported() const;
@@ -122,7 +120,7 @@ protected:
    virtual AtNode* CreateArnoldNodes() = 0;
 
    // If multiple Arnold nodes are created by this translator, they should be registered with this function
-   AtNode* AddArnoldNode(const char* type, const char* tag="");
+   AtNode* AddArnoldNode(const char* type, const char* tag=NULL);
 
    // entry point to convert the Maya node to Arnold
    virtual void Export(AtNode* atNode);
@@ -184,7 +182,7 @@ protected:
    const MObject& GetArnoldRenderOptions() const;
    double GetMotionByFrame() const;
    
-   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
+   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);

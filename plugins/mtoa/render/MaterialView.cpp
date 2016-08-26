@@ -260,7 +260,7 @@ MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId,
       // Make sure the renderer is stopped
       InterruptRender(true);
 
-      AtNode* arnoldNode = translator->GetArnoldRootNode();
+      AtNode* arnoldNode = translator->GetArnoldNode();
       AiNodeSetMatrix(arnoldNode, "matrix", matrix);
    }
    else
@@ -344,7 +344,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    if (it == m_translatorLookup.end())
       return MStatus::kFailure;
    CNodeTranslator* geometryTranslator = it->second;
-   AtNode* geometryNode = geometryTranslator->GetArnoldRootNode();
+   AtNode* geometryNode = geometryTranslator->GetArnoldNode();
 
    AtNode* shaderNode = NULL;
 
@@ -353,7 +353,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    {
       // Shader found among our translatated shaders
       CNodeTranslator* shaderTranslator = it->second;
-      shaderNode = shaderTranslator->GetArnoldRootNode();
+      shaderNode = shaderTranslator->GetArnoldNode();
    }
    else
    {
@@ -509,7 +509,7 @@ void CMaterialView::InitOptions()
    TranslatorLookup::iterator it = m_translatorLookup.find(m_job.cameraId);
    if (it != m_translatorLookup.end())
    {
-      AtNode* camera = it->second->GetArnoldRootNode();
+      AtNode* camera = it->second->GetArnoldNode();
       AiNodeSetPtr(options, "camera", camera);
    }
    else

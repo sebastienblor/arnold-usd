@@ -136,7 +136,7 @@ void CArnoldProceduralTranslator::ExportShaders()
 {
    AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
    /// TODO: Test shaders with standins.
-   ExportStandinsShaders(GetArnoldRootNode());
+   ExportStandinsShaders(GetArnoldNode());
 }
 
 void CArnoldProceduralTranslator::ExportStandinsShaders(AtNode* procedural)
@@ -245,7 +245,7 @@ void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
    // procedurals need to clear and re-export at next update (ticket #2314)
    
-   AtNode *rootNode = GetArnoldRootNode();
+   AtNode *rootNode = GetArnoldNode();
    if (rootNode != NULL)
    {
       const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");

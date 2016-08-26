@@ -37,6 +37,7 @@ public :
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
+      m_additionalAtNodes(NULL),
       m_overrideSets(),
       m_localAOVs(),
       m_upstreamAOVs(),
@@ -101,7 +102,7 @@ public :
    CArnoldSession* m_session;
 
    AtNode* m_atNode;
-   std::map<std::string, AtNode*> m_atNodes;
+   std::map<std::string, AtNode*> *m_additionalAtNodes;
 
    std::vector<CNodeTranslator*> m_overrideSets;
 

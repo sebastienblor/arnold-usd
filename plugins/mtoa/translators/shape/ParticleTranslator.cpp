@@ -685,7 +685,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, unsigned int step)
       m_out_radiusArrays.push_back(newRadiusArray);
    }
 
-   particle = GetArnoldRootNode();
+   particle = GetArnoldNode();
 
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
@@ -823,7 +823,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, unsigned int st
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
    //uint totalSteps = GetNumMotionSteps(); // not needed
 
-   particle = GetArnoldRootNode();
+   particle = GetArnoldNode();
 
 
    // add in a new vector entry for this step to all the  maps/vectors

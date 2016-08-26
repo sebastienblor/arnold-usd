@@ -500,7 +500,7 @@ void COptionsTranslator::SetCamera(AtNode *options)
    cameraNode.extendToShape();
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
    CDagTranslator *cameraTranslator = GetSession()->ExportDagPath(cameraNode);
-   AtNode* camera = (cameraTranslator) ? cameraTranslator->GetArnoldRootNode() : NULL;
+   AtNode* camera = (cameraTranslator) ? cameraTranslator->GetArnoldNode() : NULL;
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());

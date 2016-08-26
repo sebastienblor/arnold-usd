@@ -43,7 +43,7 @@ void CCameraTranslator::ExportImagePlanes()
 
             // FIXME if we remove step from this function, will imgPlane get the right one ?
             if (GetMotionStep() == 0) imgPlaneTranslator->SetCamera(GetMayaNodeName());
-            else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldRootNode());            
+            else  imgPlaneTranslator->ExportMotion(imgPlaneTranslator->GetArnoldNode());            
          }
       }
    }

@@ -480,7 +480,7 @@ void CBfDescriptionTranslator::NodeInitializer(CAbTranslator context)
 
 void CBfDescriptionTranslator::ExportBifrostShader()
 {
-   AtNode *node = GetArnoldRootNode();
+   AtNode *node = GetArnoldNode();
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())

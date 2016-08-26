@@ -151,7 +151,7 @@ CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, 
 
       delete translator;
       status = MStatus::kSuccess;
-      arnoldNode = it->second->GetArnoldRootNode();
+      arnoldNode = it->second->GetArnoldNode();
       translator = (CDagTranslator*)it->second;
    }
 
@@ -269,7 +269,7 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
 
       delete translator;
       status = MStatus::kSuccess;
-      arnoldNode = it->second->GetArnoldRootNode();
+      arnoldNode = it->second->GetArnoldNode();
       translator = it->second;
    }
    
@@ -302,10 +302,15 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    {
       if (nodes != NULL)
       {
-         std::map<std::string, AtNode*>::iterator nodeIt;
-         for (nodeIt = translator->m_impl->m_atNodes.begin(); nodeIt != translator->m_impl->m_atNodes.end(); ++nodeIt)
+         nodes->insert(translator->m_impl->m_atNode);
+
+         if (translator->m_impl->m_additionalAtNodes)
          {
-            nodes->insert(nodeIt->second);
+            std::map<std::string, AtNode*>::iterator nodeIt;
+            for (nodeIt = translator->m_impl->m_additionalAtNodes->begin(); nodeIt != translator->m_impl->m_additionalAtNodes->end(); ++nodeIt)
+            {
+               nodes->insert(nodeIt->second);
+            }         
          }
       }
       if (aovs != NULL)
@@ -601,7 +606,7 @@ AtNode* CArnoldSession::ExportOptions()
    MPlug optPlug = fnNode.findPlug("message");
    m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, true);
 
-   return m_optionsTranslator->GetArnoldRootNode();
+   return m_optionsTranslator->GetArnoldNode();
 }
 
 /// Primary entry point for exporting a Maya scene to Arnold
@@ -1640,7 +1645,7 @@ MString CArnoldSession::GetMayaObjectName(const AtNode *node) const
 
       // check if this translator corresponds to this AtNode
       // FIXME : should we check for all of the possible AtNodes corresponding to this translator ?
-      if (translator->GetArnoldRootNode() == node)
+      if (translator->GetArnoldNode() == node)
       {
          // We found our translator
          return translator->GetMayaNodeName().asChar();
@@ -1667,7 +1672,7 @@ const char *CArnoldSession::GetArnoldObjectName(const MString &mayaName) const
          if (translator->GetMayaNodeName() == mayaName)
          {
             // We found our translator
-            node = translator->GetArnoldRootNode();
+            node = translator->GetArnoldNode();
          }
       }
    }
@@ -1759,7 +1764,7 @@ void CArnoldSession::ExportTxFiles()
       CNodeTranslator *translator = m_processedTranslatorList[i];
       if (translator == NULL) continue;
 
-      AtNode *node = translator->GetArnoldRootNode();
+      AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
 
       if (AiNodeIs(node, "MayaFile") || AiNodeIs(node, "image") || AiNodeIs(node, "MayaImagePlane")) textureNodes.push_back(translator);
@@ -1773,7 +1778,7 @@ void CArnoldSession::ExportTxFiles()
       CNodeTranslator *translator = textureNodes[i];
       if (translator == NULL) continue;
 
-      AtNode *node = translator->GetArnoldRootNode();
+      AtNode *node = translator->GetArnoldNode();
       if (node == NULL) continue;
       
       MString filename = AiNodeGetStr(node, "filename");

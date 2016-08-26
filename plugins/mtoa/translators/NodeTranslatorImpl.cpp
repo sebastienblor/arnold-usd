@@ -94,7 +94,7 @@ AtNode* CNodeTranslatorImpl::DoExport()
    }
 
    m_isExported = true;
-   return m_tr.GetArnoldRootNode();
+   return m_tr.GetArnoldNode();
 }
 
 // internal use only
@@ -173,7 +173,7 @@ AtNode* CNodeTranslatorImpl::DoUpdate()
    }
 
    m_isExported = true;
-   return m_tr.GetArnoldRootNode();
+   return m_tr.GetArnoldNode();
 }
 
 void CNodeTranslatorImpl::DoCreateArnoldNodes()
@@ -183,8 +183,6 @@ void CNodeTranslatorImpl::DoCreateArnoldNodes()
    if (m_atNode == NULL)
       AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
             m_tr.GetMayaNodeName().asChar(), m_tr.GetMayaNodeTypeName().asChar(), m_tr.GetTranslatorName().asChar());
-   if (m_atNodes.count("") == 0)
-      m_atNodes[""] = m_atNode;
 }
 
 
@@ -1026,7 +1024,7 @@ AtNode* CNodeTranslatorImpl::ExportConnectedNode(const MPlug& outputPlug, bool t
       AddReference(translator);
 #endif
 
-      return translator->GetArnoldRootNode();
+      return translator->GetArnoldNode();
    }
    return NULL;
 }
