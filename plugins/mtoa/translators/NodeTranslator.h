@@ -3,7 +3,7 @@
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "attributes/AttrHelper.h"
-
+#include "session/SessionOptions.h"
 #include "extension/AbTranslator.h"
 #include "render/AOV.h"
 
@@ -147,37 +147,30 @@ protected:
    // Note that this is what causes the creation of a full shading tree, from the root shaders to the leafs
    AtNode* ExportConnectedNode(const MPlug& outputPlug);
 
+   // Returns the value of the "motionBlur" flag on this Maya object
+   bool IsLocalMotionBlurEnabled() const;
+   
    // Delete the Arnold node(s) for this translator.
    virtual void Delete();
 
-   // -------------- What's below isn't done yet : Still to be checked which ones are needed in the public API   
-   
-     
-
-   // session info
-   double GetExportFrame() const;
-   bool IsMotionBlurEnabled(int type = 0xFFFF/*MTOA_MBLUR_ANY*/) const; // FIXME find a way to restore MTOA_MBLUR_ANY
-   bool IsLocalMotionBlurEnabled() const;
-   unsigned int GetMotionStep() const;
-   unsigned int GetNumMotionSteps() const;
-   CArnoldSession* GetSession() const;
-   const CSessionOptions& GetSessionOptions() const;
-   int /*ArnoldSessionMode*/ GetSessionMode() const; // FIXME find a way to restore ArnoldSessionMode
-   const MObject& GetArnoldRenderOptions() const;
-   double GetMotionByFrame() const;
-   
-   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
-
-
+// -------- Static functions
 
    // Some simple callbacks used by several translators.
+   // They might be useful in case AddUpdateCallbacks is re-defined without calling the parent function
    static void NodeDirtyCallback(MObject& node, MPlug& plug, void* clientData);
    static void NameChangedCallback(MObject& node, const MString& str, void* clientData);
    static void NodeAboutToBeDeletedCallback(MObject& node, MDGModifier& modifier, void* clientData);
 
-
-   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession = 0);
-   
+   // Convert a matrix from Maya to Arnold data
+   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+   static double GetExportFrame();
+   static unsigned int GetMotionStep();
+   static unsigned int GetNumMotionSteps();
+   static bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY);
+   static const CSessionOptions& GetSessionOptions();
+   static ArnoldSessionMode GetSessionMode();
+   static const MObject& GetArnoldRenderOptions();
+   static double GetMotionByFrame();
 
 protected:
    

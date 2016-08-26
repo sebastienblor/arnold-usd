@@ -16,7 +16,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
       // ("GUI Only", 0);
       // ("Batch Only", 1);
       // ("GUI and Batch", 2);
-      if ((mode == 0 && GetSession()->IsBatch()) || (mode == 1 && !GetSession()->IsBatch()))
+      if ((mode == 0 && m_impl->m_session->IsBatch()) || (mode == 1 && !m_impl->m_session->IsBatch()))
          return NULL;
    }
 
@@ -66,7 +66,7 @@ void CDriverTranslator::Export(AtNode *shader)
 #endif
 
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
-         AiNodeSetBool(shader, "progressive", GetSession()->IsProgressive());
+         AiNodeSetBool(shader, "progressive", m_impl->m_session->IsProgressive());
    }
 }
 

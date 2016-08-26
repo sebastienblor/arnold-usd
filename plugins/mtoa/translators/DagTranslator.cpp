@@ -56,14 +56,16 @@ void CDagTranslator::ExportMotion(AtNode* node)
 }
 
 /// set the name of the arnold node
-void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
-   MString name = m_dagPath.partialPathName();
+   CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+
+   MString name = dagTr->GetMayaDagPath().partialPathName();
    // TODO: add a global option to control how names are exported
    // MString name = m_dagPath.fullPathName();
-   if (DependsOnOutputPlug())
+   if (m_tr.DependsOnOutputPlug())
    {
-      MString outputAttr = GetMayaOutputAttributeName();
+      MString outputAttr = m_handle.attribute();
 
       if (outputAttr.numChars())
          name = name + AI_ATT_SEP + outputAttr;
@@ -153,13 +155,13 @@ bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &maste
       if (instNum == 0)
       {
          // first visible instance is always the master (passed dagPath is assumed to be visible)
-         GetSession()->AddMasterInstanceHandle(handle, dagPath);
+         m_impl->m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
       else
       {
          // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = GetSession()->GetMasterInstanceDagPath(handle);
+         MDagPath currDag = m_impl->m_session->GetMasterInstanceDagPath(handle);
          if (currDag.isValid())
          {
             // previously found the master
@@ -173,16 +175,16 @@ bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &maste
          for (; (master_index < dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (GetSession()->IsRenderablePath(currDag))
+            if (m_impl->m_session->IsRenderablePath(currDag))
             {
                // found it
-               GetSession()->AddMasterInstanceHandle(handle, currDag);
+               m_impl->m_session->AddMasterInstanceHandle(handle, currDag);
                masterDag.set(currDag);
                return false;
             }
          }
          // didn't find a master: dagPath is the master
-         GetSession()->AddMasterInstanceHandle(handle, dagPath);
+         m_impl->m_session->AddMasterInstanceHandle(handle, dagPath);
          return true;
       }
    }
@@ -207,7 +209,7 @@ void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
    }
 }
 
-void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSession* session)
+void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
 {
    MStatus stat;
    MMatrix tm = path.inclusiveMatrix(&stat);
@@ -215,12 +217,12 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSe
    {
       AiMsgError("Failed to get transformation matrix for %s",  path.partialPathName().asChar());
    }
-   ConvertMatrix(matrix, tm, session);
+   ConvertMatrix(matrix, tm);
 }
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   GetMatrix(matrix, m_dagPath, GetSession());
+   GetMatrix(matrix, m_dagPath);
 }
 
 // this is a utility method which handles the common tasks associated with
@@ -256,7 +258,7 @@ void CDagTranslator::ExportMatrix(AtNode* node)
 AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == GetSession()->IsRenderablePath(path))
+   if (false == m_impl->m_session->IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;

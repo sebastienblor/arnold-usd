@@ -256,7 +256,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
 
-      GetSession()->FormatTexturePath(resolvedFilename);
+      m_impl->m_session->FormatTexturePath(resolvedFilename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
       
@@ -308,7 +308,7 @@ void CFileTranslator::Export(AtNode* shader)
       }
 
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
-      if (requestUpdateTx) GetSession()->RequestUpdateTx();
+      if (requestUpdateTx) m_impl->m_session->RequestUpdateTx();
    } 
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
@@ -1184,7 +1184,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (!status)
                continue;
 
-            CNodeTranslator* translator2 = GetSession()->ExportDagPath(dagPath, true);
+            CNodeTranslator* translator2 = m_impl->m_session->ExportDagPath(dagPath, true);
             if (translator2 == 0)
                continue;
 
@@ -1496,7 +1496,7 @@ void CAiImageTranslator::Export(AtNode* image)
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
       
-      GetSession()->FormatTexturePath(filename);
+      m_impl->m_session->FormatTexturePath(filename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
 
@@ -1551,7 +1551,7 @@ void CAiImageTranslator::Export(AtNode* image)
       AiNodeSetStr(image, "filename", filename.asChar());
 
       // let Arnold Session know that image files have changed and it's necessary to update them
-      if (requestUpdateTx) GetSession()->RequestUpdateTx();
+      if (requestUpdateTx) m_impl->m_session->RequestUpdateTx();
    }
 }
 

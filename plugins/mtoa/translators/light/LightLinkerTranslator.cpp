@@ -16,7 +16,7 @@ void CLightLinkerTranslator::Export(AtNode *set)
    AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s), exporting and updating light links lookup.",
                GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
    // flag light link as requesting update
-   GetSession()->FlagLightLinksDirty(true);
+   m_impl->m_session->FlagLightLinksDirty(true);
 }
 
 /// Sets have extra specific callback addAttributeChangedCallback
@@ -123,7 +123,7 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                      CNodeAttrHandle handle(path);
                      AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
                          translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                     if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+                     if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
                      {
                         for (it=translators.begin(); it!=translators.end(); it++)
                         {
@@ -138,7 +138,7 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                      CNodeAttrHandle handle(path);
                      AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
                          translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                     if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+                     if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
                      {
                         for (it=translators.begin(); it!=translators.end(); it++)
                         {
@@ -156,7 +156,7 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                   MString nodeName = MFnDependencyNode(handle.object()).name();
                   AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
                       translator->GetMayaNodeName().asChar(), nodeName.asChar());
-                  if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+                  if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
                   {
                      for (it=translators.begin(); it!=translators.end(); it++)
                      {
@@ -212,13 +212,13 @@ void CLightLinkerTranslator::RequestUpdate()
    MFnDependencyNode fnDep(GetMayaObject());
 
    MSelectionList list;
-   if ((GetSession()->GetLightLinkMode() != MTOA_LIGHTLINK_NONE) || (GetSession()->GetShadowLinkMode() == MTOA_SHADOWLINK_LIGHT))
+   if ((m_impl->m_session->GetLightLinkMode() != MTOA_LIGHTLINK_NONE) || (m_impl->m_session->GetShadowLinkMode() == MTOA_SHADOWLINK_LIGHT))
    {
       MPlug link = fnDep.findPlug("link", true, &stat);
       CHECK_MSTATUS(stat);
       if (!link.isNull()) GetMembers(list, link, false, true);
    }
-   if (GetSession()->GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
+   if (m_impl->m_session->GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
    {
       MPlug link = fnDep.findPlug("shadowLink", true, &stat);
       CHECK_MSTATUS(stat);
@@ -249,7 +249,7 @@ void CLightLinkerTranslator::RequestUpdate()
             MString pathName = path.partialPathName();
             AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
                         GetMayaNodeName().asChar(), GetTranslatorName().asChar(), pathName.asChar());
-            if (GetSession()->GetActiveTranslators(handle, translators) > 0)
+            if (m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
             {
                for (it=translators.begin(); it!=translators.end(); it++)
                {
@@ -268,7 +268,7 @@ void CLightLinkerTranslator::RequestUpdate()
             AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.%s",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
                    nodeName.asChar(), handle.attribute().asChar());
-            if (GetSession()->GetActiveTranslators(handle, translators) > 0)
+            if (m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
             {
                for (it=translators.begin(); it!=translators.end(); it++)
                {

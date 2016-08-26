@@ -27,7 +27,7 @@
 
 bool CLightTranslator::RequiresMotionData()
 {
-   return GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
+   return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
 }
 
 void CLightTranslator::Export(AtNode* light)
@@ -36,7 +36,7 @@ void CLightTranslator::Export(AtNode* light)
    AtMatrix matrix;
 
    // Early out, light isn't visible so no point exporting anything else.
-   if (false == GetSession()->IsRenderablePath(m_dagPath))
+   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
    {
       AiNodeSetDisabled(GetArnoldNode(), true);
       //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);
@@ -65,7 +65,7 @@ void CLightTranslator::Export(AtNode* light)
       m_session->ScaleArea(intensity);
       AiNodeSetFlt(light, "intensity", intensity);*/
       float exposure = AiNodeGetFlt(light, "exposure");
-      GetSession()->ScaleLightExposure(exposure);
+      m_impl->m_session->ScaleLightExposure(exposure);
       AiNodeSetFlt(light, "exposure", exposure);
    }
 

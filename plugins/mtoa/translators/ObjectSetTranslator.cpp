@@ -153,7 +153,7 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                   CNodeAttrHandle handle(path);
                   AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
                       translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                  if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+                  if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
                   {
                      for (it=translators.begin(); it!=translators.end(); it++)
                      {
@@ -168,7 +168,7 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                   CNodeAttrHandle handle(path);
                   AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
                       translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                  if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+                  if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
                   {
                      for (it=translators.begin(); it!=translators.end(); it++)
                      {
@@ -186,7 +186,7 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.%s",
                    translator->GetMayaNodeName().asChar(), MFnDependencyNode(handle.object()).name().asChar(), handle.attribute().asChar());
 
-               if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+               if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
                {
                   for (it=translators.begin(); it!=translators.end(); it++)
                   {
@@ -278,7 +278,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
             CNodeTranslator* tr;
             std::vector<CNodeTranslator*> translators;
             std::vector<CNodeTranslator*>::iterator it;
-            if (translator->GetSession()->GetActiveTranslators(handle, translators) > 0)
+            if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
             {
                for (it=translators.begin(); it!=translators.end(); it++)
                {
@@ -378,7 +378,7 @@ void CObjectSetTranslator::RequestUpdate()
       {
          if (MStatus::kSuccess == list.getDagPath(i, path))
          {
-            RecursiveRequestUpdate(path, GetSession(), this, translators);
+            RecursiveRequestUpdate(path, m_impl->m_session, this, translators);
 
          }
          else if (MStatus::kSuccess == list.getDependNode(i, element))
@@ -388,7 +388,7 @@ void CObjectSetTranslator::RequestUpdate()
             AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.%s",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
                    nodeName.asChar(), handle.attribute().asChar());
-            if (GetSession()->GetActiveTranslators(handle, translators) > 0)
+            if (m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
             {
                for (it=translators.begin(); it!=translators.end(); it++)
                {

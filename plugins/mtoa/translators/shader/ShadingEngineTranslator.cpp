@@ -181,7 +181,7 @@ void CShadingEngineTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (!status)
                continue;
 
-            CNodeTranslator* translator2 = GetSession()->ExportDagPath(dagPath, true);
+            CNodeTranslator* translator2 = m_impl->m_session->ExportDagPath(dagPath, true);
 
             if (translator2 == 0)
                continue;

@@ -907,7 +907,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
-               float motionRange = (float)GetSession()->GetMotionByFrame() * motionVectorScale;
+               float motionRange = (float)m_impl->m_session->GetMotionByFrame() * motionVectorScale;
                if (motionVectorUnit == 1)
                {
                   MTime oneSec(1.0, MTime::kSeconds);
@@ -970,7 +970,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
          if (exportRefVerts)
          {
             AtMatrix worldMatrix;
-            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix(), GetSession());
+            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
             AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
             const AtVector* vRefVertices = (const AtVector*)refVertices;
             for (unsigned int i = 0; i < numVerts; ++i)
@@ -1181,7 +1181,7 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    
    // Check if this geometry is renderable
    // if it is not, set it as Disabled
-   AiNodeSetDisabled(polymesh, !(GetSession()->IsRenderablePath(m_dagPath)));
+   AiNodeSetDisabled(polymesh, !(m_impl->m_session->IsRenderablePath(m_dagPath)));
    
    ExportMatrix(polymesh);   
    ExportMeshParameters(polymesh);

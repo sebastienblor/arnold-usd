@@ -233,15 +233,17 @@ void CNodeTranslator::Delete()
 }
 
 /// convert from maya matrix to AtMatrix
-void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix, const CArnoldSession* arnoldSession)
+void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
-   if (arnoldSession)
+   const CArnoldSession* session = CMayaScene::GetArnoldSession();
+
+   if (session)
    {
       MTransformationMatrix trMat = mayaMatrix;
-      trMat.addTranslation((-1.0) * arnoldSession->GetOrigin(), MSpace::kWorld);
+      trMat.addTranslation((-1.0) * session->GetOrigin(), MSpace::kWorld);
       MMatrix copyMayaMatrix = trMat.asMatrix();
 
-      arnoldSession->ScaleMatrix(copyMayaMatrix);
+      session->ScaleMatrix(copyMayaMatrix);
       for (int J = 0; (J < 4); ++J)
       {
          for (int I = 0; (I < 4); ++I)
@@ -287,7 +289,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    if (nodeEntry != NULL)
    {
       AtNode* node = AiNode(type);
-      SetArnoldNodeName(node, tag);
+      m_impl->SetArnoldNodeName(node, tag);
 
       if (tag != NULL && strlen(tag))
       {
@@ -307,30 +309,6 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    {
       AiMsgError("[mtoa.translator]   %s: Arnold node type %s does not exist.", GetTranslatorName().asChar(), type);
       return NULL;
-   }
-}
-
-void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
-{
-   MString name = GetMayaNodeName();
-   char nodeName[MAX_NAME_SIZE];
-   if (DependsOnOutputPlug())
-   {
-      MString outputAttr = GetMayaOutputAttributeName();
-      if (outputAttr.numChars())
-         name = name + AI_ATT_SEP + outputAttr;
-   }
-   if (tag != NULL && strlen(tag))
-      name = name + AI_TAG_SEP + tag;
-
-   // If name is alredy used, create a new one
-   if(AiNodeLookUpByName(name.asChar()))
-   {
-      AiNodeSetStr(arnoldNode, "name", NodeUniqueName(arnoldNode, nodeName));
-   }
-   else
-   {
-      AiNodeSetStr(arnoldNode, "name", name.asChar());
    }
 }
 
@@ -359,7 +337,7 @@ void CNodeTranslator::NodeChanged(MObject& node, MPlug& plug)
    // When the frame is changed for motion blur we can receive signals here,
    // but we want to ignore them
    // FIXME should we test this in RequestUpdate ?
-   if (GetSession()->IsExportingMotion() && GetSession()->IsInteractiveRender()) return;
+   if (m_impl->m_session->IsExportingMotion() && m_impl->m_session->IsInteractiveRender()) return;
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeChanged: translator %s, providing Arnold %s(%s): %p",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
@@ -433,7 +411,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject& node, MPlug& plug, void* client
    CNodeTranslator* translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      if (translator->GetSession()->IsExportingMotion() && translator->GetSession()->IsInteractiveRender()) return;
+      if (translator->m_impl->m_session->IsExportingMotion() && translator->m_impl->m_session->IsInteractiveRender()) return;
       translator->NodeChanged(node, plug);
    }
    else
@@ -448,7 +426,7 @@ void CNodeTranslator::NameChangedCallback(MObject& node, const MString& str, voi
    CNodeTranslator* translator = static_cast<CNodeTranslator*>(clientData);
    if (translator != NULL)
    {
-      translator->SetArnoldNodeName(translator->GetArnoldNode());
+      translator->m_impl->SetArnoldNodeName(translator->GetArnoldNode());
       AiMsgDebug("[mtoa.translator.ipr]  %-30s | %s: NameChangedCallback: providing Arnold %s(%s): %p",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
@@ -513,30 +491,30 @@ void CNodeTranslator::RequestUpdate()
 
    // we're changing the frame to evaluate motion blur, so we don't want more 
    // updates now
-   if (GetSession()->IsInteractiveRender() && GetSession()->IsExportingMotion()) return;
+   if (m_impl->m_session->IsInteractiveRender() && m_impl->m_session->IsExportingMotion()) return;
 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate: Arnold node %s(%s): %p.",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
               GetArnoldNodeName(), GetArnoldTypeName(), GetArnoldNode());
 
    
-   if (GetSession()->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
+   if (m_impl->m_session->GetSessionMode() == MTOA_SESSION_RENDERVIEW)
    {
       if (!m_impl->m_holdUpdates)
       {
          m_impl->m_holdUpdates = true;
          // Add translator to the list of translators to update
-         GetSession()->QueueForUpdate(this);
+         m_impl->m_session->QueueForUpdate(this);
       }
    } else
    {
       m_impl->RemoveUpdateCallbacks();
       // Add translator to the list of translators to update
-      GetSession()->QueueForUpdate(this);
+      m_impl->m_session->QueueForUpdate(this);
    }
 
    // Pass the update request to the export session
-   GetSession()->RequestUpdate();
+   m_impl->m_session->RequestUpdate();
 }
 
 enum EAttributeDeclarationType{
@@ -1169,8 +1147,15 @@ MString CNodeTranslator::GetMayaOutputAttributeName() const { return m_impl->m_h
 
 MString CNodeTranslator::GetMayaNodeTypeName() const { return MFnDependencyNode(m_impl->m_handle.object()).typeName(); }
 
-double CNodeTranslator::GetExportFrame() const {return GetSession()->GetExportFrame();}
-bool CNodeTranslator::IsMotionBlurEnabled(int type) const { return GetSession()->IsMotionBlurEnabled(type); }
+double CNodeTranslator::GetExportFrame()
+{
+   return CMayaScene::GetArnoldSession()->GetExportFrame();
+}
+bool CNodeTranslator::IsMotionBlurEnabled(int type)
+{
+   return CMayaScene::GetArnoldSession()->IsMotionBlurEnabled(type); 
+}
+
 bool CNodeTranslator::IsLocalMotionBlurEnabled() const
 {
    bool local_motion_attr(true);
@@ -1179,13 +1164,32 @@ bool CNodeTranslator::IsLocalMotionBlurEnabled() const
       local_motion_attr = plug.asBool();
    return local_motion_attr;
 }
-unsigned int CNodeTranslator::GetMotionStep() const {return GetSession()->GetMotionStep();}
-unsigned int CNodeTranslator::GetNumMotionSteps() const {return GetSession()->GetNumMotionSteps();}
-CArnoldSession* CNodeTranslator::GetSession() const {return m_impl->m_session;}
-const CSessionOptions& CNodeTranslator::GetSessionOptions() const  { return m_impl->m_session->GetSessionOptions(); }
-/*ArnoldSessionMode*/int CNodeTranslator::GetSessionMode() const {return m_impl->m_session->GetSessionMode();}
-const MObject& CNodeTranslator::GetArnoldRenderOptions() const   { return m_impl->m_session->GetArnoldRenderOptions(); }
-double CNodeTranslator::GetMotionByFrame() const {return m_impl->m_session->GetMotionByFrame(); }
+unsigned int CNodeTranslator::GetMotionStep()
+{   
+   return CMayaScene::GetArnoldSession()->GetMotionStep();
+}
+
+unsigned int CNodeTranslator::GetNumMotionSteps()
+{
+   return CMayaScene::GetArnoldSession()->GetNumMotionSteps();
+}
+const CSessionOptions& CNodeTranslator::GetSessionOptions()
+{
+   return CMayaScene::GetArnoldSession()->GetSessionOptions(); 
+}
+ArnoldSessionMode CNodeTranslator::GetSessionMode()
+{
+   return CMayaScene::GetArnoldSession()->GetSessionMode();
+}
+const MObject& CNodeTranslator::GetArnoldRenderOptions()
+{
+   return CMayaScene::GetArnoldSession()->GetArnoldRenderOptions(); 
+}
+
+double CNodeTranslator::GetMotionByFrame()
+{
+   return CMayaScene::GetArnoldSession()->GetMotionByFrame(); 
+}
 
 MString CNodeTranslator::GetTranslatorName() {return m_impl->m_abstract.name;}
 

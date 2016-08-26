@@ -827,7 +827,7 @@ AtNode* CNodeTranslatorImpl::ProcessConstantParameter(AtNode* arnoldNode, const 
             MObject matObj = plug.asMObject();
             MFnMatrixData matData(matObj);
             MMatrix mm = matData.matrix();
-            m_tr.ConvertMatrix(am, mm, m_session);
+            CNodeTranslator::ConvertMatrix(am, mm);
             AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
          }
       }
@@ -986,7 +986,7 @@ void CNodeTranslatorImpl::ProcessConstantArrayElement(int type, AtArray* array, 
          MObject matObj = elem.asMObject();
          MFnMatrixData matData(matObj);
          MMatrix mm = matData.matrix();
-         m_tr.ConvertMatrix(am, mm, m_session);
+         CNodeTranslator::ConvertMatrix(am, mm);
          AiArraySetMtx(array, i, am);
       }
       break;
@@ -1078,6 +1078,31 @@ void CNodeTranslatorImpl::ExportUserAttribute(AtNode *anode)
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
+void CNodeTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+{
+   MString name = m_tr.GetMayaNodeName();
+   char nodeName[MAX_NAME_SIZE];
+   if (m_tr.DependsOnOutputPlug())
+   {
+      MString outputAttr = m_handle.attribute();
+      if (outputAttr.numChars())
+         name = name + AI_ATT_SEP + outputAttr;
+   }
+   if (tag != NULL && strlen(tag))
+      name = name + AI_TAG_SEP + tag;
+
+   // If name is alredy used, create a new one
+   if(AiNodeLookUpByName(name.asChar()))
+   {
+      AiNodeSetStr(arnoldNode, "name", NodeUniqueName(arnoldNode, nodeName));
+   }
+   else
+   {
+      AiNodeSetStr(arnoldNode, "name", name.asChar());
+   }
+}
+
+
 
 
 

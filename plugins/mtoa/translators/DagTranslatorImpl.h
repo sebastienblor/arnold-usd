@@ -10,4 +10,5 @@ public :
    ~CDagTranslatorImpl() {}
 
    virtual bool IsMayaTypeDag() const {return true;}
+   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
 };

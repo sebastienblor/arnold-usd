@@ -288,7 +288,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
          {
             AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
-            ConvertMatrix(matrix, mayaMatrices[j], GetSession());
+            ConvertMatrix(matrix, mayaMatrices[j]);
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -334,7 +334,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (!masterNode)
             {
                // FIXME: check if the object will not be exported a second time later !
-               GetSession()->ExportDagPath(dagPathMaster);
+               m_impl->m_session->ExportDagPath(dagPathMaster);
             }
          }
          m_objectNames.append(dagPathMaster.partialPathName().asChar());
@@ -356,7 +356,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j], GetSession());
+               ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
 
                if (velocities.length() > 0)
@@ -371,7 +371,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                newParticleCount++;
                AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j], GetSession());
+               ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (unsigned int i = 0; i<step; i++)

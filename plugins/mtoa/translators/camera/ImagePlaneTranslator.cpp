@@ -93,7 +93,7 @@ static void GetCameraMatrix(MDagPath camera, CArnoldSession *session, AtMatrix& 
 
 bool CImagePlaneTranslator::RequiresMotionData()
 {
-   return GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+   return m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
 }
 
 void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
@@ -133,7 +133,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
       bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
       MFnCamera fnCamera(pathCamera);
       
-      if(displayOnlyIfCurrent && (GetSession()->GetExportCamera().partialPathName() != fnCamera.partialPathName()))  visible = false;
+      if(displayOnlyIfCurrent && (m_impl->m_session->GetExportCamera().partialPathName() != fnCamera.partialPathName()))  visible = false;
       else visible = true;
 
       camFocal = fnCamera.findPlug("focalLength").asDouble();
@@ -395,7 +395,7 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             if (requestUpdateTx)
             {
                AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
-               GetSession()->RequestUpdateTx();
+               m_impl->m_session->RequestUpdateTx();
             }
 
             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
@@ -507,12 +507,12 @@ void CImagePlaneTranslator::ExportImagePlane(unsigned int step)
             // get cam's matrix
             AtMatrix translateMatrix;
 
-            GetCameraMatrix(pathCamera, GetSession(), translateMatrix);
+            GetCameraMatrix(pathCamera, m_impl->m_session, translateMatrix);
             AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, translateMatrix);
          }
 
          // image plane should move with the camera to render it with no motion blur
-         if (GetSession()->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
+         if (m_impl->m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA))
          {
             if (step == 0)
             {

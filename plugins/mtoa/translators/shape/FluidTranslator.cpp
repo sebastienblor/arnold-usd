@@ -359,7 +359,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       double motion_start = 0.;
       double motion_end = 1.;
       // multiply the scale by the shutter length (ignoring shutter offset here...)
-      GetSession()->GetMotionRange(motion_start, motion_end);
+      m_impl->m_session->GetMotionRange(motion_start, motion_end);
       mv_scale *= (float)(motion_end - motion_start);
       
       AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);

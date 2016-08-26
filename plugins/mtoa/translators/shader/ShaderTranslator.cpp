@@ -68,7 +68,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
             }
             CAOV aov;
             aov.SetName(aovName);
-            if (!GetSession()->IsActiveAOV(aov))
+            if (!m_impl->m_session->IsActiveAOV(aov))
                continue;
             m_impl->m_localAOVs.insert(aov);
             m_aovShadingGroups[aovName.asChar()].append(sgPlug);
@@ -212,7 +212,7 @@ void CShaderTranslator::ExportBump(AtNode* shader)
          size_t instNum64 = (size_t)this;
          int instanceNumber = (int)(instNum64/8);
 
-         CNodeTranslator *bumpTranslator = GetSession()->ExportNode(connections[0], m_impl->m_shaders, &m_impl->m_upstreamAOVs, false, instanceNumber);
+         CNodeTranslator *bumpTranslator = m_impl->m_session->ExportNode(connections[0], m_impl->m_shaders, &m_impl->m_upstreamAOVs, false, instanceNumber);
          
          if (bumpTranslator != NULL)
          {

@@ -54,7 +54,8 @@ public :
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    
    virtual void TrackAOVs(AOVSet* aovs);
-   
+   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag=NULL);
+
    
 
    AtNode* DoExport();

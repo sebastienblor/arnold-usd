@@ -40,7 +40,7 @@ void CPointLightTranslator::Export(AtNode* light)
    MFnPointLight fnLight(m_dagPath);
 
    float radius = FindMayaPlug("aiRadius").asFloat(); 
-   GetSession()->ScaleDistance(radius); 
+   m_impl->m_session->ScaleDistance(radius); 
    AiNodeSetFlt(light, "radius", radius); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
@@ -75,7 +75,7 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
    float radius = FindMayaPlug("aiRadius").asFloat(); 
-   GetSession()->ScaleDistance(radius); 
+   m_impl->m_session->ScaleDistance(radius); 
    AiNodeSetFlt(light, "radius", radius); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());

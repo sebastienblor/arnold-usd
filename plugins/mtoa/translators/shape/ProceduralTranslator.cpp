@@ -65,7 +65,7 @@ AtNode* CArnoldProceduralTranslator::CreateArnoldNodes()
 AtByte CArnoldProceduralTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == GetSession()->IsRenderablePath(m_dagPath))
+   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
@@ -208,7 +208,7 @@ AtNode* CArnoldProceduralTranslator::ExportProcedural(AtNode* procedural, bool u
        resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
    }
       
-   GetSession()->FormatProceduralPath(resolvedName);
+   m_impl->m_session->FormatProceduralPath(resolvedName);
    AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
    MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");

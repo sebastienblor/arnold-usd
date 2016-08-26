@@ -31,7 +31,7 @@ protected:
    virtual MDagPath& GetMasterInstance();
 
    void GetRotationMatrix(AtMatrix& matrix);
-   static void GetMatrix(AtMatrix& matrix, const MDagPath& path, CArnoldSession* session = 0);
+   static void GetMatrix(AtMatrix& matrix, const MDagPath& path);
    virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node);
    // for computing a path different from m_dagPath
