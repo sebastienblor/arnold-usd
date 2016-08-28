@@ -1,6 +1,6 @@
 #include "DagTranslator.h"
 #include "DagTranslatorImpl.h"
-
+#include "scene/MayaScene.h"
 #include <maya/MPlugArray.h>
 #include <maya/MFnSet.h>
 #include <maya/MNodeMessage.h>
@@ -354,4 +354,9 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
    data.channelBox = false;
    data.keyable = false;
    helper.MakeInputBoolean(data);
+}
+
+CDagTranslator *CDagTranslator::ExportDagPath(const MDagPath &dagPath)
+{
+   return CMayaScene::GetArnoldSession()->ExportDagPath(dagPath);
 }

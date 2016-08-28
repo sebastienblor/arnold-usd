@@ -49,6 +49,9 @@ public:
    // use in conjunction with CDagTranslator::ComputeVisibility() or CShapeTranslator::ProcessRenderFlags().
    static void MakeArnoldVisibilityFlags(CBaseAttrHelper& helper);
 
+   // Static function to force the export of a specific MDagPath and get the generated translator.
+   // Only needed in very rare situations
+   static CDagTranslator *ExportDagPath(const MDagPath &dagPath);
 protected:
 
    // This is a utility method which handles the common tasks associated with
@@ -70,8 +73,6 @@ protected:
    // This method can be overridden if necessary
    virtual void GetMatrix(AtMatrix& matrix);
    
-   
-protected:
    // Maya Dag path of this maya object
    MDagPath m_dagPath;
 

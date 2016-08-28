@@ -1,6 +1,5 @@
 #include "extension/Extension.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
@@ -15,9 +14,6 @@
 #include "BifrostTranslator.h"
 #include "../common/bifrostObjectUserData.h"
 #include "../common/bifrostHelpers.h"
-
-
-#include "session/SessionOptions.h"
 
 #include <bifrostapi/bifrost_component.h>
 #include <bifrostapi/bifrost_pointchannel.h>
@@ -363,8 +359,7 @@ void CBfDescriptionTranslator::UpdateFoam(AtNode *node)
 
    ExportMatrix(node);   
    
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
       ExportBifrostShader();
    ExportLightLinking(node);
 
@@ -426,8 +421,7 @@ void CBfDescriptionTranslator::UpdateAero(AtNode *shape)
 
    ExportMatrix(shape);   
    
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
       ExportBifrostShader();
       // we need to hack this because a volume shader doesn't work with a 

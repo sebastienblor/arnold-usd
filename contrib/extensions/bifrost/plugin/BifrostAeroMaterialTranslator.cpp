@@ -1,13 +1,11 @@
 #include "extension/Extension.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFileObject.h>
 #include <maya/MTime.h>
 #include <maya/MGlobal.h>
 
 #include "BifrostAeroMaterialTranslator.h"
-#include "session/SessionOptions.h"
 
 
 

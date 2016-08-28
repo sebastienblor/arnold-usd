@@ -1,5 +1,4 @@
 #include "InstancerTranslator.h"
-#include "scene/MayaScene.h"
 #include <maya/MFnDagNode.h>
 #include <scene/MayaScene.h>
 #include "utils/time.h"
@@ -307,7 +306,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
                m_instantVeloArray.append(velocities[j]);
             }
          }
-
       }
 
       if (m_customAttrs.length() != 0 || exportID)
@@ -333,7 +331,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (!masterNode)
             {
                // FIXME: check if the object will not be exported a second time later !
-               CMayaScene::GetArnoldSession()->ExportDagPath(dagPathMaster);
+               ExportDagPath(dagPathMaster);
             }
          }
          m_objectNames.append(dagPathMaster.partialPathName().asChar());

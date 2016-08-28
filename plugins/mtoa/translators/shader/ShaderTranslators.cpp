@@ -1,5 +1,4 @@
 #include "ShaderTranslators.h"
-#include "scene/MayaScene.h"
 #include "platform/Platform.h"
 
 #include <ai_msg.h>
@@ -39,8 +38,6 @@ AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
 
 void CSkyShaderTranslator::Export(AtNode* shader)
 {
-
-
    MFnDependencyNode trNode(m_dagPath.transform());
 
    MTransformationMatrix tmatrix(m_dagPath.inclusiveMatrix());
@@ -1147,6 +1144,8 @@ void CDisplacementTranslator::Export(AtNode* shader)
 }
 void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
+   CShaderTranslator::NodeChanged(node, plug);
+
    MPlug disp = MFnDependencyNode(node).findPlug("displacement");
    MPlugArray connectedPlugs;
    disp.connectedTo(connectedPlugs,false,true);
@@ -1173,24 +1172,28 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 
          if (connectedPlugs.length() > 0)
          {
-
-            // FIXME couldn't we call ExportConnectedNode here ?
             MPlug connection = connectedPlugs[0];
             MObject parent = connection.node();
             MFnDependencyNode parentDag(parent);
-            MString nameParent = parentDag.name();
-
+            
             MDagPath dagPath;
             MStatus status = MDagPath::getAPathTo(parent, dagPath);
             if (!status)
                continue;
 
-            CNodeTranslator* translator2 = CMayaScene::GetArnoldSession()->ExportDagPath(dagPath, true);
-            if (translator2 == 0)
+            // we don't want to export additional geometries, just get the already-exported 
+            // geometries associated to this dagPath
+            CNodeTranslator *translator2 = GetTranslator(dagPath); 
+            if (translator2 == NULL)
                continue;
 
             translator2->SetUpdateMode(AI_RECREATE_NODE);
             translator2->RequestUpdate();
+
+            /*
+              Ok, there was surely a good reason to request updates twice here, but this was done a long time 
+              ago. So given that this original commit didn't contain any detail about "why twice", then we have 
+              to comment it and see exactly what issues it introduces....
 
             // TODO: By now we have to check the connected nodes and if something that is not a mesh
             //  is connected, we do not reexport, as some crashes may happen.
@@ -1200,10 +1203,9 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
                break;
             }
             translatorsToUpdate.push_back(translator2);
+
          }
 
-         if(reexport == false)
-            break;
       }
 
       // We only reexport if all nodes connected to the displacement are mesh nodes
@@ -1219,9 +1221,10 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
                translator3->RequestUpdate();
             }
          }
+      }*/
+         }
       }
    }
-   CShaderTranslator::NodeChanged(node, plug);
 }
 void DisplacementTranslatorNodeInitializer(CAbTranslator context)
 {

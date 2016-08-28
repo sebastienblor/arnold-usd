@@ -102,12 +102,11 @@ namespace // <anonymous>
    }
 }
 
-
 // Public Methods
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus* stat)
+CDagTranslator* CArnoldSession::ExportDagPath(const MDagPath &dagPath, bool initOnly, MStatus* stat)
 {
    //m_motionStep = 0;
    MStatus status = MStatus::kSuccess;
