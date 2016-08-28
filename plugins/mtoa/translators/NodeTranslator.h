@@ -25,7 +25,6 @@ class CNodeTranslatorImpl;
 class CArnoldSession;
 struct CSessionOptions;
 
-
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator
@@ -82,7 +81,7 @@ public:
    
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the Update callbacks.
-   void RequestUpdate();
+   virtual void RequestUpdate();
 
    enum UpdateMode {
       AI_UPDATE_ONLY=0,
@@ -92,8 +91,16 @@ public:
    };
    void SetUpdateMode(UpdateMode m);
 
-   // Export the MObject user attributes to the given Arnold node. This is useful 
+   // Export the MObject user attributes to the given Arnold node. This is useful when the target AtNode
+   // is different than GetArnoldNode()
    static void ExportUserAttributes(AtNode* anode, MObject object, CNodeTranslator* translator = 0);
+
+   // Static functions to get the MtoA Translator associated to a maya node
+   static CNodeTranslator *GetTranslator(const MDagPath &dagPath);
+   static CNodeTranslator *GetTranslator(const MObject &object);
+
+   static void RequestLightLinksUpdate();
+   static void RequestTxUpdate();
 
    static void NodeInitializer(CAbTranslator context);
    
@@ -166,7 +173,7 @@ protected:
    static ArnoldSessionMode GetSessionMode();
    static const MObject& GetArnoldRenderOptions();
    static double GetMotionByFrame();
-   static const std::vector<double> &GetMotionFrames();
+   static const double *GetMotionFrames(unsigned int &count);
 
 protected:
    

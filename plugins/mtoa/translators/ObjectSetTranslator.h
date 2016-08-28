@@ -10,6 +10,7 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
    static void NodeInitializer(CAbTranslator context);
+   virtual void RequestUpdate();
 
 protected:
    CObjectSetTranslator() :
@@ -17,11 +18,11 @@ protected:
    {}
    virtual ~CObjectSetTranslator()
    {}
+   virtual void NodeChanged(MObject& node, MPlug& plug);
    virtual void AddUpdateCallbacks();
-   static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
    static void SetMembersChangedCallback(MObject &node, void *clientData);
-   virtual void RequestUpdate();
+   
 };

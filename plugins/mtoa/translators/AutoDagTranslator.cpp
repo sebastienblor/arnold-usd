@@ -1,6 +1,6 @@
 #include "AutoDagTranslator.h"
 #include "translators/NodeTranslatorImpl.h"
-#include "session/ArnoldSession.h"
+
 // Auto DAG translator
 //
 

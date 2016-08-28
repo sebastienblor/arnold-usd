@@ -190,6 +190,7 @@ void CFileTranslator::Export(AtNode* shader)
    MPlugArray connections;
 
    MPlug plug = FindMayaPlug("uvCoord");
+   const CSessionOptions &options = GetSessionOptions();
 
    plug.connectedTo(connections, true, false);
 
@@ -256,7 +257,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
 
-      m_impl->m_session->FormatTexturePath(resolvedFilename);
+      options.FormatTexturePath(resolvedFilename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
       
@@ -308,7 +309,7 @@ void CFileTranslator::Export(AtNode* shader)
       }
 
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
-      if (requestUpdateTx) m_impl->m_session->RequestUpdateTx();
+      if (requestUpdateTx) RequestTxUpdate();
    } 
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
@@ -1163,18 +1164,18 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
       MFnDependencyNode shadingEngineDNode(shadingEngine);
       MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
       const unsigned int numElements = dagSetMembersPlug.numElements();
+
       // For each geometry connected to the shading engine
       for(unsigned int i = 0; i < numElements; i++)
       {
          MPlug a = dagSetMembersPlug[i];
          MPlugArray connectedPlugs;
-         a.connectedTo(connectedPlugs,true,false);;
+         a.connectedTo(connectedPlugs,true,false);
 
-         // This should be only one connection; connectedPlugs.length() should be 0 or 1
-         const unsigned int connectedPlugsLength = connectedPlugs.length();
-         for(unsigned int j = 0; j < connectedPlugsLength; j++)
+         if (connectedPlugs.length() > 0)
          {
-            MPlug connection = connectedPlugs[j];
+            // FIXME couldn't we call ExportConnectedNode here ?
+            MPlug connection = connectedPlugs[0];
             MObject parent = connection.node();
             MFnDependencyNode parentDag(parent);
             MString nameParent = parentDag.name();
@@ -1484,6 +1485,8 @@ AtNode* CAiImageTranslator::CreateArnoldNodes()
 
 void CAiImageTranslator::Export(AtNode* image)
 {
+   const CSessionOptions &options = GetSessionOptions();
+
    // keep the previous filename
    MString prevFilename = AiNodeGetStr(image, "filename");
 
@@ -1496,7 +1499,7 @@ void CAiImageTranslator::Export(AtNode* image)
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
       
-      m_impl->m_session->FormatTexturePath(filename);
+      options.FormatTexturePath(filename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
 
@@ -1551,7 +1554,7 @@ void CAiImageTranslator::Export(AtNode* image)
       AiNodeSetStr(image, "filename", filename.asChar());
 
       // let Arnold Session know that image files have changed and it's necessary to update them
-      if (requestUpdateTx) m_impl->m_session->RequestUpdateTx();
+      if (requestUpdateTx) RequestTxUpdate();
    }
 }
 

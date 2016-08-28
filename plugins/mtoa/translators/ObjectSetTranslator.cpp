@@ -1,9 +1,10 @@
 #include "ObjectSetTranslator.h"
-#include "NodeTranslatorImpl.h"
+
 #include <maya/MFnSet.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MObjectSetMessage.h>
 #include <maya/MItDependencyGraph.h>
+#include <maya/MSelectionList.h>
 
 void CObjectSetTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -74,35 +75,22 @@ void CObjectSetTranslator::AddUpdateCallbacks()
 
 }
 
-void CObjectSetTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
+void CObjectSetTranslator::NodeChanged(MObject& node, MPlug& plug)
 {
-   MString nodeName = MFnDependencyNode(node).name();
    MString plugName = plug.name();
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: plug that fired: %s, client data: %p.",
-               nodeName.asChar(), plugName.asChar(), clientData);
+   if ((plug.partialName()=="dsm") || (plug.partialName()=="dnsm"))
+   {
+      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: ignoring plug %s.",
+                  GetMayaNodeName().asChar(), plugName.asChar());
+   }
+   else if ((plug.partialName()=="ai_override") || FindMayaPlug("aiOverride").asBool())
+   {
+      // Only update if THIS set is active (not containing sets)
+      AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s",
+                       GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      RequestUpdate();
+   }
 
-   CObjectSetTranslator * translator = static_cast< CObjectSetTranslator* >(clientData);
-   if (translator != NULL)
-   {
-      if ((plug.partialName()=="dsm") || (plug.partialName()=="dnsm"))
-      {
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: ignoring plug %s.",
-                     nodeName.asChar(), plugName.asChar());
-      }
-      else if ((plug.partialName()=="ai_override") || translator->FindMayaPlug("aiOverride").asBool())
-      {
-         // Only update if THIS set is active (not containing sets)
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
-                          translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
-                          translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
-         translator->RequestUpdate();
-      }
-   }
-   else
-   {
-      AiMsgWarning("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: no translator in client data: %p.",
-                     nodeName.asChar(), clientData);
-   }
 }
 
 void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
@@ -127,7 +115,6 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                && translator->FindMayaPlug("aiOverride").asBool())
          {
             MString pname = plug.partialName();
-            CNodeTranslator* tr;
             std::vector<CNodeTranslator*> translators;
             std::vector<CNodeTranslator*>::iterator it;
             if (pname == "dsm")
@@ -150,50 +137,21 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                }
                if (path.isValid())
                {
-                  CNodeAttrHandle handle(path);
-                  AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
-                      translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                  if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
-                  {
-                     for (it=translators.begin(); it!=translators.end(); it++)
-                     {
-                        tr = static_cast< CNodeTranslator* >(*it);
-                        tr->RequestUpdate();
-                     }
-                  }
+                  CNodeTranslator *elemTr = GetTranslator(path); 
+                  if (elemTr)  elemTr->RequestUpdate();
                }
                // Check also for shapes
                if (MStatus::kSuccess == path.extendToShape())
                {
-                  CNodeAttrHandle handle(path);
-                  AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
-                      translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                  if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
-                  {
-                     for (it=translators.begin(); it!=translators.end(); it++)
-                     {
-                        tr = static_cast< CNodeTranslator* >(*it);
-                        tr->RequestUpdate();
-                     }
-                  }
+                  CNodeTranslator *elemTr = GetTranslator(path); 
+                  if (elemTr)  elemTr->RequestUpdate();
                }
             }
             else if (pname == "dnsm")
             {
                // dependency node
-               CNodeAttrHandle handle(otherPlug.node());
-
-               AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.%s",
-                   translator->GetMayaNodeName().asChar(), MFnDependencyNode(handle.object()).name().asChar(), handle.attribute().asChar());
-
-               if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
-               {
-                  for (it=translators.begin(); it!=translators.end(); it++)
-                  {
-                     tr = static_cast< CNodeTranslator* >(*it);
-                     tr->RequestUpdate();
-                  }
-               }
+               CNodeTranslator *elemTr = GetTranslator(otherPlug.node()); 
+               if (elemTr)  elemTr->RequestUpdate();
             }
          }
       }
@@ -271,21 +229,8 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
          }
          else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
          {
-            CNodeAttrHandle handle(linker);
-            // If we changed lights the whole list of objects in the light linker need an update
-            AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: set of lights for the light linker %s has changed, requesting full update on linker.",
-                        nodeName.asChar(), linkerName.asChar());
-            CNodeTranslator* tr;
-            std::vector<CNodeTranslator*> translators;
-            std::vector<CNodeTranslator*>::iterator it;
-            if (translator->m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
-            {
-               for (it=translators.begin(); it!=translators.end(); it++)
-               {
-                  tr = static_cast< CNodeTranslator* >(*it);
-                  tr->RequestUpdate();
-               }
-            }
+            CNodeTranslator *elemTr = GetTranslator(linker); 
+            if (elemTr)  elemTr->RequestUpdate();
          }
          else
          {
@@ -301,39 +246,19 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
    }
 }
 
-static void RecursiveRequestUpdate(MDagPath path, CArnoldSession *session, CNodeTranslator *translator, std::vector<CNodeTranslator*>& translators)
+static void RecursiveRequestUpdate(MDagPath path)
 {   
 
    std::vector<CNodeTranslator*>::iterator it;
-   CNodeTranslator* tr;
-   // this is a Dag Path, we need to search for all translators below it in the hierarchy
-   CNodeAttrHandle handle(path);
-   MString pathName = path.partialPathName();
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
-               translator->GetMayaNodeName().asChar(), "objectSet", pathName.asChar());
-   if (session->GetActiveTranslators(handle, translators) > 0)
-   {
-      for (it=translators.begin(); it!=translators.end(); it++)
-      {
-         tr = static_cast< CDagTranslator* >(*it);
-         tr->RequestUpdate();
-      }
-   }
+   
+   CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
+   if (elemTr)  elemTr->RequestUpdate();
+
    // Check also for shape
    if (MStatus::kSuccess == path.extendToShape())
    {
-      CNodeAttrHandle handle(path);
-      MString pathName = path.partialPathName();
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
-                  translator->GetMayaNodeName().asChar(), "objectSet", pathName.asChar());
-      if (session->GetActiveTranslators(handle, translators) > 0)
-      {
-         for (it=translators.begin(); it!=translators.end(); it++)
-         {
-            tr = static_cast< CDagTranslator* >(*it);
-            tr->RequestUpdate();
-         }
-      }
+      CNodeTranslator *elemTr = CNodeTranslator::GetTranslator(path); 
+      if (elemTr)  elemTr->RequestUpdate();
    }
 
    // Check for child in the hierarchy
@@ -341,7 +266,7 @@ static void RecursiveRequestUpdate(MDagPath path, CArnoldSession *session, CNode
    {
       MObject childObject = path.child(child);
       path.push(childObject);
-      RecursiveRequestUpdate(path, session, translator, translators);
+      RecursiveRequestUpdate(path);
       path.pop(1);
    }
 }
@@ -360,8 +285,6 @@ void CObjectSetTranslator::RequestUpdate()
    MObject element;
    MDagPath path;
 
-   CNodeTranslator* tr;
-   std::vector<CNodeTranslator*> translators;
    std::vector<CNodeTranslator*>::iterator it;
    unsigned int l = list.length();
    if (l > 0)
@@ -378,24 +301,13 @@ void CObjectSetTranslator::RequestUpdate()
       {
          if (MStatus::kSuccess == list.getDagPath(i, path))
          {
-            RecursiveRequestUpdate(path, m_impl->m_session, this, translators);
+            RecursiveRequestUpdate(path);
 
          }
          else if (MStatus::kSuccess == list.getDependNode(i, element))
          {
-            CNodeAttrHandle handle(element);
-            MString nodeName = MFnDependencyNode(handle.object()).name().asChar();
-            AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.%s",
-                   GetMayaNodeName().asChar(), GetTranslatorName().asChar(),
-                   nodeName.asChar(), handle.attribute().asChar());
-            if (m_impl->m_session->GetActiveTranslators(handle, translators) > 0)
-            {
-               for (it=translators.begin(); it!=translators.end(); it++)
-               {
-                  tr = static_cast< CNodeTranslator* >(*it);
-                  tr->RequestUpdate();
-               }
-            }
+            CNodeTranslator *elemTr = GetTranslator(element); 
+            if (elemTr)  elemTr->RequestUpdate();
          }
          else
          {

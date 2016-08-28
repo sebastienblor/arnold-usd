@@ -1193,9 +1193,45 @@ double CNodeTranslator::GetMotionByFrame()
 
 MString CNodeTranslator::GetTranslatorName() {return m_impl->m_abstract.name;}
 
-const std::vector<double> &GetMotionFrames()
+const double *CNodeTranslator::GetMotionFrames(unsigned int &count)
 {
-   return CMayaScene::GetArnoldSession()->GetMotionFrames();
+   const std::vector<double> &motionFrames = CMayaScene::GetArnoldSession()->GetMotionFrames();
+   count = motionFrames.size();
+   
+   return (count == 0) ? NULL : &motionFrames[0];
+}
+
+CNodeTranslator *CNodeTranslator::GetTranslator(const MDagPath &dagPath)
+{
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+   std::vector<CNodeTranslator*> translators;
+   CNodeAttrHandle handle(dagPath);
+   session->GetActiveTranslators(handle, translators);
+
+   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
+   // as apparently we're not supposed to have multiple results here
+   return (translators.empty()) ? NULL : translators[0];
+}
+
+CNodeTranslator *CNodeTranslator::GetTranslator(const MObject &object)
+{
+   CArnoldSession *session = CMayaScene::GetArnoldSession();
+   std::vector<CNodeTranslator*> translators;
+   CNodeAttrHandle handle(object);
+   session->GetActiveTranslators(handle, translators);
+
+   // just returning the first element in this vector (which corresponds to multimap::lower_bound)
+   // as apparently we're not supposed to have multiple results here
+   return (translators.empty()) ? NULL : translators[0];  
 }
 
 
+void CNodeTranslator::RequestLightLinksUpdate()
+{
+   CMayaScene::GetArnoldSession()->FlagLightLinksDirty(true);
+
+}
+void CNodeTranslator::RequestTxUpdate()
+{
+   CMayaScene::GetArnoldSession()->RequestUpdateTx();
+}

@@ -78,13 +78,15 @@ public:
       if (m_nodeHandle.object() == other.m_nodeHandle.object())
       {
          // only check instance if provided
-         if (m_instanceNum >= 0 && other.m_instanceNum >= 0)
+         // Warning : in the 3 following tests this used to be  '&&' instead of '||' 
+         // Make sure this doesn't introduce regressions
+         if (m_instanceNum >= 0 || other.m_instanceNum >= 0)
          {
             // test if same dag node
             if (m_instanceNum == other.m_instanceNum)
             {
                // only check attributes if provided
-               if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
+               if (m_attrName.length() > 0 || other.m_attrName.length() > 0)
                {
                   // strcmp returns 0 if equal, or > 0 if str1 is greater than str2 (i.e. str2 is less than str1)
                   return strcmp(m_attrName.asChar(), other.m_attrName.asChar()) > 0;
@@ -93,7 +95,7 @@ public:
             return (m_instanceNum < other.m_instanceNum);
          }
          // only check attributes if other provided
-         if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
+         if (m_attrName.length() > 0 || other.m_attrName.length() > 0)
          {
             // strcmp returns 0 if equal, or > 0 if str1 is greater than str2 (i.e. str2 is less than str1)
             return strcmp(m_attrName.asChar(), other.m_attrName.asChar()) > 0;
@@ -109,13 +111,17 @@ public:
       if (m_nodeHandle.object() == other.m_nodeHandle.object())
       {
          // only check instance if provided
-         if (m_instanceNum >= 0 && other.m_instanceNum >= 0)
+         // only check instance if provided
+         // Warning : in the 3 following tests this used to be  '&&' instead of '||' 
+         // Make sure this doesn't introduce regressions
+         
+         if (m_instanceNum >= 0 || other.m_instanceNum >= 0)
          {
             // test if same dag node
             if (m_instanceNum == other.m_instanceNum)
             {
                // only check attributes if provided
-               if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
+               if (m_attrName.length() > 0 || other.m_attrName.length() > 0)
                {
                   return (m_attrName == other.m_attrName);
                }
@@ -124,7 +130,7 @@ public:
             return false;
          }
          // only check attributes if provided
-         if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
+         if (m_attrName.length() > 0 || other.m_attrName.length() > 0)
          {
             return (m_attrName == other.m_attrName);
          }
