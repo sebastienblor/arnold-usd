@@ -6,7 +6,7 @@
 #include <maya/MItMeshVertex.h>
 #include <maya/MDagPathArray.h>
 
-unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
+static unsigned int GetNumMeshGroups(const MDagPath& dagPath)
 {
    // FIXME: what happens when the master instance has no shading groups, but another instance does?
    // Will we skip exporting the master and thereby break the others?
@@ -33,64 +33,9 @@ unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
    }
 }
 
-// Return whether the dag object in dagPath is the master instance. The master
-// is the first instance that is completely visible (including parent transforms)
-// for which full geometry should be exported
-//
-// always returns true if dagPath is not instanced.
-// if dagPath is instanced, this searches the preceding instances
-// for the first that is visible. if none are found, dagPath is considered the master.
-//
-// note: dagPath is assumed to be visible.
-//
-// @param[out] masterDag    the master MDagPath result, only filled if result is false
-// @return                  whether or not dagPath is a master
-//
-bool CMeshTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag)
+bool CMeshTranslator::IsRenderable() const
 {
-   if (dagPath.isInstanced())
-   {
-      MObjectHandle handle = MObjectHandle(dagPath.node());
-      unsigned int instNum = dagPath.instanceNumber();
-      // first instance
-      if (instNum == 0)
-      {
-         // first visible instance is always the master (passed dagPath is assumed to be visible)
-         m_impl->m_session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
-      }
-      else
-      {
-         // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = m_impl->m_session->GetMasterInstanceDagPath(handle);
-         if (currDag.isValid())
-         {
-            // previously found the master
-            masterDag.set(currDag);
-            return false;
-         }
-         // find the master by searching preceding instances
-         MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
-         for (unsigned int master_index = 0; master_index < instNum; master_index++)
-         {
-            currDag = allInstances[master_index];
-            // The following line was overridden to add the GetNumMeshGroups check
-            if (m_impl->m_session->IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
-            {
-               // found it
-               m_impl->m_session->AddMasterInstanceHandle(handle, currDag);
-               masterDag.set(currDag);
-               return false;
-            }
-         }
-         // didn't find a master: dagPath is the master
-         m_impl->m_session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
-      }
-   }
-   // not instanced: dagPath is the master
-   return true;
+   return CPolygonGeometryTranslator::IsRenderable() && GetNumMeshGroups(m_dagPath) > 0;
 }
 
 AtNode* CMeshTranslator::CreateArnoldNodes()

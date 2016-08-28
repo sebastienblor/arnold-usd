@@ -116,7 +116,7 @@ public:
    
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
-   inline std::vector<double> GetMotionFrames() const { return m_motion_frames; }
+   inline const std::vector<double> &GetMotionFrames() const { return m_motion_frames; }
    inline unsigned int GetMotionStep() const {return m_motionStep;}
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
    inline void GetMotionRange(double &motion_start, double &motion_end) const {m_sessionOptions.GetMotionRange(motion_start, motion_end); }

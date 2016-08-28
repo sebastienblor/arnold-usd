@@ -4,49 +4,78 @@
 
 // Abstract base class for Dag node translators
 //
-typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
 
 class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
 
 public:
+
+//------- Virtual methods inherited from CNodeTranslator
+
+   // initialize the translator
    virtual void Init();
 
-   virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
-   virtual MString GetMayaPartialPathName() const { return m_dagPath.partialPathName(); }
-
+   // Customize the callbacks invoked during IPR updates for DAG nodes
    virtual void AddUpdateCallbacks();
-   // for initializer callbacks:
-   static void MakeMayaVisibilityFlags(CBaseAttrHelper& helper);
-   // for initializer callbacks:
-   static void MakeArnoldVisibilityFlags(CBaseAttrHelper& helper);
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
-   virtual void Export(AtNode* atNode);
-   virtual void ExportMotion(AtNode* atNode);
-   
-   virtual bool IsMasterInstance();
-   virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
-   virtual MDagPath& GetMasterInstance();
 
-   void GetRotationMatrix(AtMatrix& matrix);
-   static void GetMatrix(AtMatrix& matrix, const MDagPath& path);
-   virtual void GetMatrix(AtMatrix& matrix);
-   void ExportMatrix(AtNode* node);
-   // for computing a path different from m_dagPath
-   AtByte ComputeVisibility(const MDagPath& path);
-   AtByte ComputeVisibility();   
+   // Export (convert from Maya to Arnold) this nodes
+   virtual void Export(AtNode* atNode);
+
+   // Export for motion steps
+   virtual void ExportMotion(AtNode* atNode);
+
+//-----------------------------------------
+
+public:
+
+   const MDagPath &GetMayaDagPath() const { return m_dagPath; }
+
+   // Return true if this DAG node is meant to be rendered (or false it's hidden, etc...).
+   // This method can be overridden if necessary
+   virtual bool IsRenderable() const;
+
+   // Create Maya visibility attributes with standardized render flag names
+   // These are the attributes that compute the "visibility" parameter. there are other
+   // attributes like self_shadow and opaque that are computed separately
+
+   // This is for custom DAG nodes where none of the standard maya visibility attributes
+   // are available. typically CDagTranslator::AddArnoldVisibilityAttrs() is the appropriate function.
+   static void MakeMayaVisibilityFlags(CBaseAttrHelper& helper);
    
-   void AddHierarchyCallbacks(const MDagPath & path);
-   void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
+   // Arnold's visibiltity mask adds several relationships not available by default in Maya.
+   // use in conjunction with CDagTranslator::ComputeVisibility() or CShapeTranslator::ProcessRenderFlags().
+   static void MakeArnoldVisibilityFlags(CBaseAttrHelper& helper);
 
 protected:
-   MDagPath m_dagPath;
-private:
-   MDagPath m_masterDag;
-   bool m_isMasterDag;
 
+   // This is a utility method which handles the common tasks associated with
+   // exporting matrix information. It properly handles exporting a matrix array
+   // if motion blur is enabled and required by the node. it should be called
+   // at each motion step
+   void ExportMatrix(AtNode* node);
+
+   /// Return whether the current dag object is the master instance.
+   /// The master is the first instance that is completely visible (including parent transforms)
+   /// for which full geometry should be exported.
+   bool IsMasterInstance();
+   MDagPath& GetMasterInstance();
+
+   // Use standardized render flag names to return an arnold visibility mask
+   AtByte ComputeVisibility();
+
+   // Compute the Arnold Matrix for current node. 
+   // This method can be overridden if necessary
+   virtual void GetMatrix(AtMatrix& matrix);
+   
+   
+protected:
+   // Maya Dag path of this maya object
+   MDagPath m_dagPath;
+
+private:
    // internal use only, don't override it
    virtual void CreateImplementation();
 };

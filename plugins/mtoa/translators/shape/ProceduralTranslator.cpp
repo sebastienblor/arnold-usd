@@ -65,7 +65,7 @@ AtNode* CArnoldProceduralTranslator::CreateArnoldNodes()
 AtByte CArnoldProceduralTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
+   if (!IsRenderable())
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;

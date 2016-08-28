@@ -21,15 +21,10 @@
 #include <vector>
 #include <map>
 
-#define AI_ATT_SEP "."
-#define AI_TAG_SEP "@"
-
 class CNodeTranslatorImpl;
 class CArnoldSession;
-
 struct CSessionOptions;
 
-MString GetAOVNodeType(int type);
 
 // Abstract base class for all Maya-to-Arnold node translators
 //
@@ -171,6 +166,7 @@ protected:
    static ArnoldSessionMode GetSessionMode();
    static const MObject& GetArnoldRenderOptions();
    static double GetMotionByFrame();
+   static const std::vector<double> &GetMotionFrames();
 
 protected:
    

@@ -76,14 +76,15 @@ void CDagTranslatorImpl::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
 
-void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
+
+
+void CDagTranslator::AddUpdateCallbacks()
 {
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add DAG parents update callbacks for translator %p",
-      path.partialPathName().asChar(), GetTranslatorName().asChar(), this);
+   // Add hierarchy callbacks
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
-   MDagPath dag_path(path);
+   MDagPath dag_path(m_dagPath);
    dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddUpdateCallbacks.
    for(; dag_path.length() > 0; dag_path.pop())
    {
@@ -98,16 +99,59 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
          if (MS::kSuccess == status) RegisterUpdateCallback(id);
       }
    }
-}
 
-
-void CDagTranslator::AddUpdateCallbacks()
-{
-   AddHierarchyCallbacks(m_dagPath);
 
    // Call the base class to get the others.
    CNodeTranslator::AddUpdateCallbacks();
 }
+
+/// Like IsMasterInstance, but does not cache result
+static bool DoIsMasterInstance(CDagTranslator *translator, CArnoldSession *session, const MDagPath& dagPath, MDagPath &masterDag)
+{
+   if (dagPath.isInstanced())
+   {
+      MObjectHandle handle = MObjectHandle(dagPath.node());
+      unsigned int instNum = dagPath.instanceNumber();
+      // first instance
+      if (instNum == 0)
+      {
+         // first visible instance is always the master (passed dagPath is assumed to be visible)
+         session->AddMasterInstanceHandle(handle, dagPath);
+         return true;
+      }
+      else
+      {
+         // if handle is not in the map, a new entry will be made with a default value
+         MDagPath currDag = session->GetMasterInstanceDagPath(handle);
+         if (currDag.isValid())
+         {
+            // previously found the master
+            masterDag.set(currDag);
+            return false;
+         }
+         // find the master by searching preceding instances
+         MDagPathArray allInstances;
+         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
+         for (unsigned int master_index = 0; master_index < instNum; master_index++)
+         {
+            currDag = allInstances[master_index];
+            if (translator->IsRenderable())
+            {
+               // found it
+               session->AddMasterInstanceHandle(handle, currDag);
+               masterDag.set(currDag);
+               return false;
+            }
+         }
+         // didn't find a master: dagPath is the master
+         session->AddMasterInstanceHandle(handle, dagPath);
+         return true;
+      }
+   }
+   // not instanced: dagPath is the master
+   return true;
+}
+
 
 /// Return whether the current dag object is the master instance.
 ///
@@ -125,11 +169,13 @@ void CDagTranslator::AddUpdateCallbacks()
 ///
 /// @return                  whether or not dagPath is a master
 ///
+
 bool CDagTranslator::IsMasterInstance()
 {
-   if (!m_masterDag.isValid())
-      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
-   return m_isMasterDag;
+   CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
+   if (!dagImpl->m_masterDag.isValid())
+      dagImpl->m_isMasterDag = DoIsMasterInstance(this, m_impl->m_session, m_dagPath, dagImpl->m_masterDag);
+   return dagImpl->m_isMasterDag;
 }
 
 /// Return the master instance for the current dag object.
@@ -139,90 +185,21 @@ bool CDagTranslator::IsMasterInstance()
 ///
 MDagPath& CDagTranslator::GetMasterInstance()
 {
-   if (!m_masterDag.isValid())
-      m_isMasterDag = DoIsMasterInstance(m_dagPath, m_masterDag);
-   return m_masterDag;
-}
-
-/// Like IsMasterInstance, but does not cache result
-bool CDagTranslator::DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag)
-{
-   if (dagPath.isInstanced())
-   {
-      MObjectHandle handle = MObjectHandle(dagPath.node());
-      unsigned int instNum = dagPath.instanceNumber();
-      // first instance
-      if (instNum == 0)
-      {
-         // first visible instance is always the master (passed dagPath is assumed to be visible)
-         m_impl->m_session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
-      }
-      else
-      {
-         // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = m_impl->m_session->GetMasterInstanceDagPath(handle);
-         if (currDag.isValid())
-         {
-            // previously found the master
-            masterDag.set(currDag);
-            return false;
-         }
-         // find the master by searching preceding instances
-         MDagPathArray allInstances;
-         MDagPath::getAllPathsTo(dagPath.node(), allInstances);
-         unsigned int master_index = 0;
-         for (; (master_index < dagPath.instanceNumber()); master_index++)
-         {
-            currDag = allInstances[master_index];
-            if (m_impl->m_session->IsRenderablePath(currDag))
-            {
-               // found it
-               m_impl->m_session->AddMasterInstanceHandle(handle, currDag);
-               masterDag.set(currDag);
-               return false;
-            }
-         }
-         // didn't find a master: dagPath is the master
-         m_impl->m_session->AddMasterInstanceHandle(handle, dagPath);
-         return true;
-      }
-   }
-   // not instanced: dagPath is the master
-   return true;
-}
-
-void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
-{
-   MObject transform = m_dagPath.transform();
-   MFnTransform mTransform;
-   mTransform.setObject(transform);
-   MTransformationMatrix mTransformMatrix = mTransform.transformation();
-
-   MMatrix tm = mTransformMatrix.asRotateMatrix();
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) tm[I][J];
-      }
-   }
-}
-
-void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
-{
-   MStatus stat;
-   MMatrix tm = path.inclusiveMatrix(&stat);
-   if (MStatus::kSuccess != stat)
-   {
-      AiMsgError("Failed to get transformation matrix for %s",  path.partialPathName().asChar());
-   }
-   ConvertMatrix(matrix, tm);
+   CDagTranslatorImpl *dagImpl = static_cast<CDagTranslatorImpl*>(m_impl);
+   if (!dagImpl->m_masterDag.isValid())
+      dagImpl->m_isMasterDag = DoIsMasterInstance(this, m_impl->m_session, m_dagPath, dagImpl->m_masterDag);
+   return dagImpl->m_masterDag;
 }
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   GetMatrix(matrix, m_dagPath);
+   MStatus stat;
+   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
+   if (MStatus::kSuccess != stat)
+   {
+      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
+   }
+   ConvertMatrix(matrix, tm);
 }
 
 // this is a utility method which handles the common tasks associated with
@@ -255,10 +232,15 @@ void CDagTranslator::ExportMatrix(AtNode* node)
    }
 }
 
-AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
+bool CDagTranslator::IsRenderable() const
+{
+   return m_impl->m_session->IsRenderablePath(m_dagPath);
+}
+
+AtByte CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == m_impl->m_session->IsRenderablePath(path))
+   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtByte visibility = AI_RAY_ALL;
@@ -307,12 +289,6 @@ AtByte CDagTranslator::ComputeVisibility(const MDagPath& path)
    }
 
    return visibility;
-}
-
-// use standardized render flag names to compute an arnold visibility mask
-AtByte CDagTranslator::ComputeVisibility()
-{
-   return ComputeVisibility(m_dagPath);
 }
 
 // Create Maya visibility attributes with standardized render flag names

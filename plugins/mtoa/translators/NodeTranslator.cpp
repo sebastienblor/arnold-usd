@@ -1193,5 +1193,9 @@ double CNodeTranslator::GetMotionByFrame()
 
 MString CNodeTranslator::GetTranslatorName() {return m_impl->m_abstract.name;}
 
+const std::vector<double> &GetMotionFrames()
+{
+   return CMayaScene::GetArnoldSession()->GetMotionFrames();
+}
 
 

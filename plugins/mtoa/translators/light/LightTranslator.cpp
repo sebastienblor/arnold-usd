@@ -36,7 +36,7 @@ void CLightTranslator::Export(AtNode* light)
    AtMatrix matrix;
 
    // Early out, light isn't visible so no point exporting anything else.
-   if (false == m_impl->m_session->IsRenderablePath(m_dagPath))
+   if (!IsRenderable())
    {
       AiNodeSetDisabled(GetArnoldNode(), true);
       //AiNodeSetFlt(GetArnoldNode(), "intensity",  0.0f);

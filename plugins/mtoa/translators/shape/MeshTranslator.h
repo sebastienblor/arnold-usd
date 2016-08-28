@@ -16,18 +16,17 @@ public:
    }
    AtNode* CreateArnoldNodes();
 
+   virtual bool IsRenderable() const;
+
 protected:
    CMeshTranslator() :
       CPolygonGeometryTranslator()
    {}
    
-   // overridden from CDagTranslator to add a GetNumMeshGroups check
-   virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
    virtual void NodeChanged(MObject& node, MPlug& plug);
    virtual bool Tessellate(const MDagPath &dagPath);
 
 private:
    MObject m_dataMesh;
    
-   unsigned int GetNumMeshGroups(const MDagPath& dagPath);
 };
