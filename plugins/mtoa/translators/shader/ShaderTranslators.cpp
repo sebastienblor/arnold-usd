@@ -1,8 +1,5 @@
 #include "ShaderTranslators.h"
-#include "translators/NodeTranslatorImpl.h"
 #include "scene/MayaScene.h"
-#include "render/RenderOptions.h"
-#include "render/RenderSession.h"
 #include "platform/Platform.h"
 
 #include <ai_msg.h>
@@ -20,6 +17,8 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnCamera.h>
 #include <maya/MFnAttribute.h>
+#include <maya/MMatrix.h>
+
 
 #include <maya/MColor.h>
 #include <maya/MTransformationMatrix.h>
@@ -1174,6 +1173,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
 
          if (connectedPlugs.length() > 0)
          {
+
             // FIXME couldn't we call ExportConnectedNode here ?
             MPlug connection = connectedPlugs[0];
             MObject parent = connection.node();
@@ -1185,7 +1185,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
             if (!status)
                continue;
 
-            CNodeTranslator* translator2 = m_impl->m_session->ExportDagPath(dagPath, true);
+            CNodeTranslator* translator2 = CMayaScene::GetArnoldSession()->ExportDagPath(dagPath, true);
             if (translator2 == 0)
                continue;
 
@@ -1493,9 +1493,6 @@ void CAiImageTranslator::Export(AtNode* image)
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)
    {
-      CRenderOptions renderOptions; 
-      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
       

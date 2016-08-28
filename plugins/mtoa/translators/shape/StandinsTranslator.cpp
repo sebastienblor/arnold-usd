@@ -1,9 +1,6 @@
 #include "StandinsTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -208,8 +205,7 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    m_DagNode.setObject(masterInstance);
    
    if (m_DagNode.findPlug("overrideShaders").asBool() &&
-      ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
-       || CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines()))
+      RequiresShaderExport())
    {
       ExportStandinsShaders(instance);
    }
@@ -265,7 +261,7 @@ void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
    int drawOverride = m_DagNode.findPlug("standin_draw_override").asShort(); 
    if (drawOverride == 0) 
    { 
-      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode(); 
+      MObject ArnoldRenderOptionsNode = GetSessionOptions().GetArnoldRenderOptions(); 
       if (!ArnoldRenderOptionsNode.isNull()) 
          drawOverride = MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("standin_draw_override").asShort(); 
    } 
@@ -428,7 +424,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
       }
       
-      m_impl->m_session->FormatProceduralPath(resolvedName);
+      GetSessionOptions().FormatProceduralPath(resolvedName);
       AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
       MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");

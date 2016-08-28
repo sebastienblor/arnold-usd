@@ -1,5 +1,4 @@
 #include "GeometryTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
 
 #include <maya/MNodeMessage.h>
 #include <maya/MBoundingBox.h>
@@ -9,7 +8,6 @@
 #include <algorithm>
 
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 namespace
 {
@@ -907,7 +905,7 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                const AtRGBA* motionVectorColors = (AtRGBA*)&motionVectors[0];
                AtArray* verticesArray = AiArrayAllocate(numVerts, 2, AI_TYPE_POINT);
                const float* vert = vertices;
-               float motionRange = (float)m_impl->m_session->GetMotionByFrame() * motionVectorScale;
+               float motionRange = float(GetMotionByFrame()) * motionVectorScale;
                if (motionVectorUnit == 1)
                {
                   MTime oneSec(1.0, MTime::kSeconds);
@@ -1164,8 +1162,7 @@ void CPolygonGeometryTranslator::ExportBBox(AtNode* polymesh)
       AiNodeSetByte(polymesh, "sidedness", 0);
    }
 
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
 
@@ -1181,12 +1178,11 @@ AtNode* CPolygonGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    
    // Check if this geometry is renderable
    // if it is not, set it as Disabled
-   AiNodeSetDisabled(polymesh, !(m_impl->m_session->IsRenderablePath(m_dagPath)));
+   AiNodeSetDisabled(polymesh, !IsRenderable());
    
    ExportMatrix(polymesh);   
    ExportMeshParameters(polymesh);
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
       ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
@@ -1213,8 +1209,7 @@ AtNode* CPolygonGeometryTranslator::ExportInstance(AtNode *instance, const MDagP
    AtByte visibility = ComputeVisibility();
    AiNodeSetByte(instance, "visibility", visibility);
 
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
       //
       // SHADERS

@@ -31,7 +31,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
                    GetMayaNodeName().asChar());
       return shader;
    }
-
+   std::map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray destPlugs;
    MPlugArray sourcePlugs;
@@ -71,13 +71,13 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
             if (!m_impl->m_session->IsActiveAOV(aov))
                continue;
             m_impl->m_localAOVs.insert(aov);
-            m_aovShadingGroups[aovName.asChar()].append(sgPlug);
+            aovShadingGroups[aovName.asChar()].append(sgPlug);
          }
       }
    }
    // at this stage, we only care about the aov names, which are the key in the map
    std::map<std::string, MPlugArray>::const_iterator it;
-   for (it=m_aovShadingGroups.begin(); it!=m_aovShadingGroups.end(); it++)
+   for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
    {
       const char* aovName = it->first.c_str();
       AiMsgDebug("[mtoa.translator.aov] %-30s | adding AOV write node for \"%s\"",

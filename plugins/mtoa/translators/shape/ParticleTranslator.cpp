@@ -1,8 +1,5 @@
 #include "ParticleTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDoubleArray.h>
@@ -13,6 +10,8 @@
 #include <maya/MFnMesh.h>
 #include <maya/MVectorArray.h>
 #include <maya/MStringArray.h>
+#include <maya/MMatrix.h>
+#include <maya/MSelectionList.h>
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -1558,8 +1557,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, unsigned int s
 {
    if (step == 0)
    {
-      if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-          CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+      if (RequiresShaderExport())
          ExportParticleShaders(particle);
       ExportPreambleData(particle);
       GatherFirstStep(particle);

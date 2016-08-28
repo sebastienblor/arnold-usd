@@ -12,4 +12,6 @@ public :
 
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
 
+   std::map<std::string, MPlugArray> m_aovShadingGroups;
+
 };

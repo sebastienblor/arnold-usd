@@ -1,5 +1,4 @@
 #include "CameraTranslators.h"
-
 #include <maya/MPlugArray.h>
 
 using namespace std;
@@ -163,7 +162,7 @@ void CStandardCameraTranslator::ExportFilmbackOrtho(AtNode* camera)
 
 void CStandardCameraTranslator::ExportMotionOrtho(AtNode* camera, unsigned int step)
 {
-   ExportCameraMBData(camera);
+   ExportCameraData(camera);
    ExportImagePlanes();
 }
 
@@ -172,7 +171,7 @@ void CStandardCameraTranslator::ExportMotionPersp(AtNode* camera, unsigned int s
    // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
    // which we don't want to do at each step
    float fov = ExportFilmbackPersp(camera);
-   ExportCameraMBData(camera);
+   ExportCameraData(camera);
    ExportImagePlanes();
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
@@ -319,7 +318,7 @@ void CFishEyeCameraTranslator::ExportMotion(AtNode* camera)
 
    int step = GetMotionStep();
 
-   ExportCameraMBData(camera);
+   ExportCameraData(camera);
    ExportImagePlanes();
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
@@ -387,7 +386,7 @@ void CCylCameraTranslator::ExportMotion(AtNode* camera)
    ExportFilmback(camera, fovs);
 
    int step = GetMotionStep();
-   ExportCameraMBData(camera);
+   ExportCameraData(camera);
    ExportImagePlanes();
 
    AtArray* h_fovs = AiNodeGetArray(camera, "horizontal_fov");
@@ -430,10 +429,8 @@ void CSphericalCameraTranslator::Export(AtNode* camera)
 
 void CSphericalCameraTranslator::ExportMotion(AtNode* camera)
 {
-   int step = GetMotionStep();
    ExportFilmback(camera);
-
-   ExportCameraMBData(camera);
+   ExportCameraData(camera);
    ExportImagePlanes();
 }
 

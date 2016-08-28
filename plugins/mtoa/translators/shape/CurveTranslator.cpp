@@ -1,6 +1,4 @@
 #include "CurveTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -131,8 +129,7 @@ void CCurveTranslator::Export( AtNode *curve )
 
 
    // Check if we using a custom curve shader.
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
       AtNode* shader = NULL;
       MPlugArray curveShaderPlugs;
@@ -142,7 +139,7 @@ void CCurveTranslator::Export( AtNode *curve )
          plug.connectedTo(curveShaderPlugs, true, false);
          if (curveShaderPlugs.length() > 0)
          {
-            shader = ExportRootShader(curveShaderPlugs[0]);
+            shader = ExportConnectedNode(curveShaderPlugs[0]);
          }
       }
       
@@ -157,11 +154,9 @@ void CCurveTranslator::Export( AtNode *curve )
          AiNodeSetStr(shader, "uparam", "uparamcoord");
          AiNodeSetStr(shader, "vparam", "vparamcoord");
 
-         shader = ExportRootShader(shader);
+         SetRootShader(shader);
       }
       
-      // Assign shader
-      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate

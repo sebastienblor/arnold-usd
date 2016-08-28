@@ -1,4 +1,3 @@
-#include "translators/NodeTranslatorImpl.h"
 #include "NurbsSurfaceTranslator.h"
 
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,

@@ -1,10 +1,6 @@
 #include "ProceduralTranslator.h"
-#include "../NodeTranslatorImpl.h"
-
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -62,6 +58,9 @@ AtNode* CArnoldProceduralTranslator::CreateArnoldNodes()
    }
 }
 
+/* Commented this out as nobody calls this function. 
+   Was this removed by mistake ?? Should this be called by ProcessRenderFlags ??
+
 AtByte CArnoldProceduralTranslator::ComputeOverrideVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
@@ -73,17 +72,58 @@ AtByte CArnoldProceduralTranslator::ComputeOverrideVisibility()
 
    return visibility;
 }
+*/
 
-void CArnoldProceduralTranslator::Export(AtNode* anode)
+// Moved both ExportProcedural and ExportInstance here, for API simplicity
+void CArnoldProceduralTranslator::Export(AtNode* node)
 {
-   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
+   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(node));
    if (strcmp(nodeType, "ginstance") == 0)
    {
-      ExportInstance(anode, GetMasterInstance());
+      // Export the instance. 
+      ExportInstance(node);
    }
    else
    {
-      ExportProcedural(anode, IsExported());
+      // Export the procedural
+      MFnDagNode dagNode(m_dagPath.node());
+      AiNodeSetStr(node, "name", m_dagPath.partialPathName().asChar());
+      ExportMatrix(node);
+      ProcessRenderFlags(node);
+      ExportShaders();
+      ExportLightLinking(node);
+      MString dso = dagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
+      MString resolvedName = dso.asChar();
+
+      unsigned int nchars = resolvedName.numChars();
+      if (nchars > 3 && resolvedName.substringW(nchars-3, nchars) == ".so")
+      {
+          resolvedName = resolvedName.substringW(0, nchars-4)+LIBEXT;
+      }
+      else if (nchars > 4 && resolvedName.substringW(nchars-4, nchars) == ".dll")
+      {
+          resolvedName = resolvedName.substringW(0, nchars-5)+LIBEXT;
+      }
+      else if (nchars > 6 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
+      {
+          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
+      }
+         
+      GetSessionOptions().FormatProceduralPath(resolvedName);
+      AiNodeSetStr(node, "dso", resolvedName.asChar());
+
+      MPlug deferStandinLoad = dagNode.findPlug("deferStandinLoad");
+      if (!deferStandinLoad.asBool())
+          AiNodeSetBool(node, "load_at_init", true);
+      else
+          ExportBoundingBox(node);
+
+      MPlug data = dagNode.findPlug("data");
+      int sizeData = strlen(data.asString().asChar());
+      if (sizeData != 0)
+      {
+          AiNodeSetStr(node, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
+      }
    }
 }
 
@@ -92,12 +132,10 @@ void CArnoldProceduralTranslator::ExportMotion(AtNode* anode)
    ExportMatrix(anode);
 }
 
-// Deprecated : Arnold support procedural instance, but it's not safe.
-//
-AtNode* CArnoldProceduralTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
+void CArnoldProceduralTranslator::ExportInstance(AtNode *instance)
 {
+   MDagPath masterInstance = GetMasterInstance();
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
-
    AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
 
    ExportMatrix(instance);
@@ -108,31 +146,22 @@ AtNode* CArnoldProceduralTranslator::ExportInstance(AtNode *instance, const MDag
    AtByte visibility = AiNodeGetByte(masterNode, "visibility");
    AiNodeSetByte(instance, "visibility", visibility);
 
-   m_DagNode.setObject(masterInstance);
+   MFnDagNode dagNode(masterInstance);
    
-   if (m_DagNode.findPlug("overrideShaders").asBool() &&
-      ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER)
-       || CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines()))
+   if (dagNode.findPlug("overrideShaders").asBool() &&
+      RequiresShaderExport())
    {
-      ExportStandinsShaders(instance);
+      ExportShaders();
    }
-   if (m_DagNode.findPlug("overrideLightLinking").asBool())
+   if (dagNode.findPlug("overrideLightLinking").asBool())
    {
       ExportLightLinking(instance);
-   }
+   }      
 
-   return instance;
 }
-
 void CArnoldProceduralTranslator::ExportShaders()
 {
-   AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
-   /// TODO: Test shaders with standins.
-   ExportStandinsShaders(GetArnoldNode());
-}
-
-void CArnoldProceduralTranslator::ExportStandinsShaders(AtNode* procedural)
-{
+   AtNode *procedural = GetArnoldNode();
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
    std::vector<AtNode*> meshShaders;
@@ -164,9 +193,11 @@ void CArnoldProceduralTranslator::ExportStandinsShaders(AtNode* procedural)
 
 }
 
-void CArnoldProceduralTranslator::ExportBoundingBox(AtNode* procedural)
+void CArnoldProceduralTranslator::ExportBoundingBox(AtNode *procedural)
 {
-   MBoundingBox boundingBox = m_DagNode.boundingBox();
+   MFnDagNode dagNode(m_dagPath.node());
+
+   MBoundingBox boundingBox = dagNode.boundingBox();
    MPoint bbMin = boundingBox.min();
    MPoint bbMax = boundingBox.max();
 
@@ -180,111 +211,4 @@ void CArnoldProceduralTranslator::ExportBoundingBox(AtNode* procedural)
    AiNodeSetPnt(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
 }
 
-
-AtNode* CArnoldProceduralTranslator::ExportProcedural(AtNode* procedural, bool update)
-{
-   m_DagNode.setObject(m_dagPath.node());
-
-   AiNodeSetStr(procedural, "name", m_dagPath.partialPathName().asChar());
-
-   ExportMatrix(procedural);
-   ProcessRenderFlags(procedural);
-   ExportStandinsShaders(procedural);
-   ExportLightLinking(procedural);
-   MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
-   MString resolvedName = dso.asChar();
-
-   unsigned int nchars = resolvedName.numChars();
-   if (nchars > 3 && resolvedName.substringW(nchars-3, nchars) == ".so")
-   {
-       resolvedName = resolvedName.substringW(0, nchars-4)+LIBEXT;
-   }
-   else if (nchars > 4 && resolvedName.substringW(nchars-4, nchars) == ".dll")
-   {
-       resolvedName = resolvedName.substringW(0, nchars-5)+LIBEXT;
-   }
-   else if (nchars > 6 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
-   {
-       resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
-   }
-      
-   m_impl->m_session->FormatProceduralPath(resolvedName);
-   AiNodeSetStr(procedural, "dso", resolvedName.asChar());
-
-   MPlug deferStandinLoad = m_DagNode.findPlug("deferStandinLoad");
-   if (!deferStandinLoad.asBool())
-       AiNodeSetBool(procedural, "load_at_init", true);
-   else
-       ExportBoundingBox(procedural);
-
-   MPlug data = m_DagNode.findPlug("data");
-   int sizeData = strlen(data.asString().asChar());
-   if (sizeData != 0)
-   {
-       AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
-   }
-
-   return procedural;
-}
-
-// FIXME we should be able to remove this as arnold core is starting to support procedurals update
-// however several crashes are happening due to shaders creation / deletion
-
-// If we want to port that to standins we should either copy this in CStandinTranslator,
-// or better make CStandinTranslator inherit from Procedural as it should...
-
-void CArnoldProceduralTranslator::NodeChanged(MObject& node, MPlug& plug)
-{
-   // procedurals need to clear and re-export at next update (ticket #2314)
-   
-   AtNode *rootNode = GetArnoldNode();
-   if (rootNode != NULL)
-   {
-      const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(rootNode), "allow_updates");
-      bool allowUpdates = (pe != NULL && AiNodeGetBool(rootNode, "allow_updates") == true);
-      allowUpdates |= (AiNodeLookUpUserParameter(rootNode, "allow_updates") ? AiNodeGetBool(rootNode, "allow_updates") : false); 
-
-      if (allowUpdates)
-      {
-         if (m_impl->m_holdUpdates) return;
-         // check if user data exists
-         if(s_idleCallback == 0)
-         {
-            MStatus status;
-            s_idleCallback = MEventMessage::addEventCallback("idle",
-               CArnoldProceduralTranslator::IdleCallback, (void*)NULL, &status);
-         }
-         s_updatedProcedurals.push_back(this);
-         m_impl->m_holdUpdates = true;
-         return;
-
-      }
-   }
-
-   // call parent function
-   CShapeTranslator::NodeChanged(node, plug);
-}
-
-
-void CArnoldProceduralTranslator::IdleCallback(void *data)
-{
-   if(s_idleCallback)
-   {
-      MMessage::removeCallback(s_idleCallback);
-      s_idleCallback = 0;
-   }
-
-   std::vector<CArnoldProceduralTranslator *> updateProcs = s_updatedProcedurals;
-   s_updatedProcedurals.clear();
-
-   for (size_t i = 0; i < updateProcs.size(); ++i)
-   {
-      CArnoldProceduralTranslator *translator = updateProcs[i];
-      
-      if (translator == NULL) continue;
-      translator->SetUpdateMode(AI_RECREATE_NODE);
-      translator->m_impl->m_holdUpdates = false;
-      translator->RequestUpdate();
-   }
-}
 

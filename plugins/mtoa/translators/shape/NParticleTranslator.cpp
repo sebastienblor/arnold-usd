@@ -1,6 +1,4 @@
-#include "translators/NodeTranslatorImpl.h"
 #include "NParticleTranslator.h"
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 
 #include <maya/MFnDependencyNode.h>

@@ -1,13 +1,12 @@
 #include "OptionsTranslator.h"
 #include "translators/DagTranslator.h"
-#include "render/RenderSession.h"
-#include "render/RenderOptions.h"
+
+
 #include "utils/MayaUtils.h"
-#include "session/ArnoldSession.h"
 
 #include <ai_universe.h>
 #include <ai_msg.h>
-#include "../NodeTranslatorImpl.h"
+
 #include <maya/MTime.h>
 #include <maya/MAnimControl.h>
 #include <maya/MPlugArray.h>
@@ -31,7 +30,7 @@ void COptionsTranslator::ProcessAOVs()
 {
    AOVMode aovMode = AOVMode(FindMayaPlug("aovMode").asInt());
    m_aovsEnabled = aovMode == AOV_MODE_ENABLED ||
-         (m_impl->m_session->IsBatch() && aovMode == AOV_MODE_BATCH_ONLY);
+         (GetSessionOptions().IsBatch() && aovMode == AOV_MODE_BATCH_ONLY);
 
    bool foundBeauty = false;
    MPlugArray conns;
@@ -143,8 +142,8 @@ void COptionsTranslator::ExportAOVs()
 /// Set the filenames for all output drivers
 void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 {
-
-   MDagPath camera = m_impl->m_session->GetExportCamera();
+   const CSessionOptions &options = GetSessionOptions();
+   MDagPath camera = options.GetExportCamera();
    if (!camera.isValid())
    {
       return;
@@ -173,7 +172,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (m_impl->m_session->IsBatch() || GetSessionMode() == MTOA_SESSION_SEQUENCE)
+   if (options.IsBatch() || options.GetSessionMode() == MTOA_SESSION_SEQUENCE)
    {
       pathType = defaultRenderGlobalsData.kFullPathImage;
    }
@@ -183,7 +182,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    }
 
    // we're only doing stereo rendering for Batch sessions (ass export / batch render)
-   bool stereo = (m_impl->m_session->IsBatch() && camera.node().hasFn(MFn::kStereoCameraMaster));
+   bool stereo = (options.IsBatch() && camera.node().hasFn(MFn::kStereoCameraMaster));
 
    int numEyes = 1;
    // loop through aovs
@@ -483,13 +482,12 @@ bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
 
 void COptionsTranslator::SetCamera(AtNode *options)
 {
-   MDagPath cameraNode = m_impl->m_session->GetExportCamera();
+   MDagPath cameraNode = GetSessionOptions().GetExportCamera();
    if (!cameraNode.isValid())
       return;
 
    cameraNode.extendToShape();
-   // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   CDagTranslator *cameraTranslator = m_impl->m_session->ExportDagPath(cameraNode);
+   CNodeTranslator *cameraTranslator = GetTranslator(cameraNode);
    AtNode* camera = (cameraTranslator) ? cameraTranslator->GetArnoldNode() : NULL;
    if (camera == NULL)
    {

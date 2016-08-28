@@ -1,8 +1,7 @@
 #include "InstancerTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
 #include "scene/MayaScene.h"
 #include <maya/MFnDagNode.h>
-
+#include <scene/MayaScene.h>
 #include "utils/time.h"
 
 
@@ -334,7 +333,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
             if (!masterNode)
             {
                // FIXME: check if the object will not be exported a second time later !
-               m_impl->m_session->ExportDagPath(dagPathMaster);
+               CMayaScene::GetArnoldSession()->ExportDagPath(dagPathMaster);
             }
          }
          m_objectNames.append(dagPathMaster.partialPathName().asChar());

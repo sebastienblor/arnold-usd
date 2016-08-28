@@ -1,7 +1,5 @@
 #pragma once
-
 #include "CameraTranslator.h"
-#include "ImagePlaneTranslator.h"
 
 class CStandardCameraTranslator : public CCameraTranslator
 {

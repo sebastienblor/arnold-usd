@@ -1,6 +1,6 @@
 #include "ShapeTranslator.h"
-#include "scene/MayaScene.h"
 #include "translators/NodeTranslatorImpl.h"
+#include "scene/MayaScene.h"
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
@@ -17,6 +17,12 @@ void CShapeTranslator::Init()
    m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
    m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
 }
+bool CShapeTranslator::RequiresMotionData()
+{
+   return ((m_motion || m_motionDeform) && IsLocalMotionBlurEnabled());
+}
+
+
 
 void CShapeTranslator::ExportTraceSets(AtNode* node, const MPlug& traceSetsPlug)
 {
@@ -102,8 +108,11 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    MakeArnoldVisibilityFlags(helper);
 }
 
-AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders)
+
+// called for root shaders that have already been created
+void CShapeTranslator::SetRootShader(AtNode *rootShader)
 {
+   std::vector<AtNode*> aovShaders;
    // insert shading group shader to evaluate extra AOV inputs
    AtNode* shadingEngine = AiNode("MayaShadingEngine");
 
@@ -111,21 +120,11 @@ AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vect
 
    AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
    AiNodeLink(rootShader, "beauty", shadingEngine);
-   return shadingEngine;
+
+   AtNode *shape = GetArnoldNode();
+   if (shadingEngine != NULL && shape != NULL) AiNodeSetPtr(shape, "shader", shadingEngine);
 }
 
-// called for shaders connected directly to shapes
-AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug, CNodeTranslator** outTranslator)
-{
-   return ExportRootShader(m_impl->ExportConnectedNode(plug, true, outTranslator));
-}
-
-// called for root shaders that have already been created
-AtNode* CShapeTranslator::ExportRootShader(AtNode *rootShader)
-{
-   std::vector<AtNode*> aovShaders;
-   return CreateShadingGroupShader(rootShader, aovShaders);
-}
 
 MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
@@ -147,21 +146,8 @@ MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
    return MPlug();
 }
 
-void CShapeTranslator::AddUpdateCallbacks()
-{
-   MObject dagPathNode= m_dagPath.node();
-   AddShaderAssignmentCallbacks(dagPathNode);
-   CDagTranslator::AddUpdateCallbacks();
-}
 
-void CShapeTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
-{
-   MStatus status;
-   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
-   if (MS::kSuccess == status) RegisterUpdateCallback(id);
-}
-
-void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
+static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
 {
    // Shading assignments are done with the instObjGroups attr, so we only
    // need to update when that is the attr that changes.
@@ -172,3 +158,20 @@ void CShapeTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage m
    }
 }
 
+void CShapeTranslator::AddUpdateCallbacks()
+{
+   CDagTranslator::AddUpdateCallbacks();
+
+   MObject dagPathNode = m_dagPath.node();
+   MStatus status;
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagPathNode, ShaderAssignmentCallback, this, &status);
+   if (MS::kSuccess == status) RegisterUpdateCallback(id);
+}
+
+bool CShapeTranslator::RequiresShaderExport()
+{
+   CRenderOptions *renderOptions = CMayaScene::GetRenderSession()->RenderOptions();
+   if (renderOptions == NULL) return false;
+   return (renderOptions->outputAssMask() & AI_NODE_SHADER) ||
+       renderOptions->forceTranslateShadingEngines();
+}

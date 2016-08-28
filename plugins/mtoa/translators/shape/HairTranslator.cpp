@@ -1,6 +1,4 @@
 #include "HairTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MRenderLineArray.h>
 #include <maya/MRenderLine.h>
@@ -126,8 +124,7 @@ void CHairTranslator::Export( AtNode *curve )
    if (!plug.isNull() && !plug.asBool())
       visibility &= ~AI_RAY_GLOSSY;   
    
-   if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) ||
-       CMayaScene::GetRenderSession()->RenderOptions()->forceTranslateShadingEngines())
+   if (RequiresShaderExport())
    {
       // The shader nodes
       // TODO: Kill these and export it properly.
@@ -142,18 +139,23 @@ void CHairTranslator::Export( AtNode *curve )
          {
             plug.connectedTo(curveShaderPlug, true, false);
             if (curveShaderPlug.length() > 0)
-            {
-               CNodeTranslator* shaderTranslator; // the shading engine's translator is not called
-               // because there is no maya node for it
-               shader = ExportRootShader(curveShaderPlug[0], &shaderTranslator);
-               if ((shader != 0) && (shaderTranslator != 0))
+            {               
+               shader = ExportConnectedNode(curveShaderPlug[0]);
+               if (shader)
                {
-                  plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
-                  if (status && !plug.isNull())
-                     ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
-                  plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
-                  if (status && !plug.isNull())
-                     ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
+                  CNodeTranslator* shaderTranslator = GetTranslator(curveShaderPlug[0].node()); // the shading engine's translator is not called
+                  // because there is no maya node for it
+
+                  // FIXME: check if this works properly and if there's another way of doing this
+                  if (shaderTranslator)
+                  {
+                     plug = shaderTranslator->FindMayaPlug("aiEnableMatte", &status);
+                     if (status && !plug.isNull())
+                        ProcessParameter(shader, "enable_matte", AI_TYPE_BOOLEAN, plug);
+                     plug = shaderTranslator->FindMayaPlug("aiMatteColor", &status);
+                     if (status && !plug.isNull())
+                        ProcessParameter(shader, "matte_color", AI_TYPE_RGBA, plug);
+                  }
                }
             }
          }
@@ -219,10 +221,9 @@ void CHairTranslator::Export( AtNode *curve )
          }
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse");
          AiNodeSetFlt(shader, "indirectDiffuse", plug.asFloat());
-         shader = ExportRootShader(shader);
+         SetRootShader(shader);
       }
-      // Assign shader
-      if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+      
    }
    
    AiNodeSetByte(curve, "visibility", visibility);  

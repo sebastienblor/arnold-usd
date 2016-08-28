@@ -55,6 +55,7 @@ void CCameraTranslator::Init()
    m_fnCamera.setObject(m_dagPath);
 }
 
+// Do we need this function ? a previous comment said it shouldn't be required
 bool CCameraTranslator::RequiresMotionData()
 {
    MPlug motionBlurOverridePlug = FindMayaPlug("motionBlurOverride");
@@ -100,6 +101,16 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
 
 void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
+   if (GetMotionStep() > 0)
+   {
+      // for motion steps, only set the matrix at current step
+      AtMatrix matrix;
+      GetMatrix(matrix);
+
+      AtArray* matrices = AiNodeGetArray(camera, "matrix");
+      AiArraySetMtx(matrices, GetMotionStep(), matrix);
+      return;
+   }
    AtMatrix matrix;
 
    AiNodeSetFlt(camera, "exposure", FindMayaPlug("aiExposure").asFloat());
@@ -138,15 +149,6 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
          AiNodeSetPtr(camera, "filtermap", filtermap);
       }
    }
-}
-
-void CCameraTranslator::ExportCameraMBData(AtNode *camera)
-{
-   AtMatrix matrix;
-   GetMatrix(matrix);
-
-   AtArray* matrices = AiNodeGetArray(camera, "matrix");
-   AiArraySetMtx(matrices, GetMotionStep(), matrix);
 }
 
 double CCameraTranslator::GetDeviceAspect()

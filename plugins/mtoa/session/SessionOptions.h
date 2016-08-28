@@ -174,6 +174,8 @@ struct CSessionOptions
       proceduralPath = proceduralPath.asUTF8();
    }
 
+   bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
+   bool IsInteractiveRender() const {return (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_IPR); }
 
 private:
 

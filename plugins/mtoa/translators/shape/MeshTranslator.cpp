@@ -1,5 +1,4 @@
 #include "MeshTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
 #include <maya/MFnMeshData.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MMeshSmoothOptions.h>

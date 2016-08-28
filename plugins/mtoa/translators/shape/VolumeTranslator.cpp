@@ -1,9 +1,6 @@
 #include "VolumeTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
-#include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
 #include "utils/time.h"
-#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -14,8 +11,6 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlugArray.h>
 #include <maya/MRenderUtil.h>
-
-
 #include <maya/MString.h>
 #include <maya/MStringArray.h>
 

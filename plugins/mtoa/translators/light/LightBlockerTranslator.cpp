@@ -1,5 +1,4 @@
 #include "LightBlockerTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
 
    
 bool CLightBlockerTranslator::RequiresMotionData()

@@ -1,11 +1,11 @@
 #include "LightTranslators.h"
-#include "translators/NodeTranslatorImpl.h"
 #include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
 #include <maya/MFnSpotLight.h>
 #include <maya/MFnMesh.h>
 #include <maya/MItMeshPolygon.h>
+#include <maya/MMatrix.h>
 
 // DirectionalLight
 //
@@ -39,9 +39,8 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   float radius = FindMayaPlug("aiRadius").asFloat(); 
-   m_impl->m_session->ScaleDistance(radius); 
-   AiNodeSetFlt(light, "radius", radius); 
+   double radius = FindMayaPlug("aiRadius").asDouble() *  GetSessionOptions().GetScaleFactor(); 
+   AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
@@ -74,9 +73,8 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   float radius = FindMayaPlug("aiRadius").asFloat(); 
-   m_impl->m_session->ScaleDistance(radius); 
-   AiNodeSetFlt(light, "radius", radius); 
+   double radius = FindMayaPlug("aiRadius").asDouble() * GetSessionOptions().GetScaleFactor(); 
+   AiNodeSetFlt(light, "radius", static_cast<float>(radius)); 
 
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());

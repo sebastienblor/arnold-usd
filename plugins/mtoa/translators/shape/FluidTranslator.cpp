@@ -1,5 +1,4 @@
 #include "FluidTranslator.h"
-#include "translators/NodeTranslatorImpl.h"
 #include <maya/MFnFluid.h>
 #include <maya/MRampAttribute.h>
 #include <maya/MColor.h>
@@ -359,7 +358,7 @@ void CFluidTranslator::Export(AtNode* fluid)
       double motion_start = 0.;
       double motion_end = 1.;
       // multiply the scale by the shutter length (ignoring shutter offset here...)
-      m_impl->m_session->GetMotionRange(motion_start, motion_end);
+      GetSessionOptions().GetMotionRange(motion_start, motion_end);
       mv_scale *= (float)(motion_end - motion_start);
       
       AiNodeSetFlt(fluid_shader, "motion_vector_scale", mv_scale);
@@ -368,7 +367,6 @@ void CFluidTranslator::Export(AtNode* fluid)
       AiNodeSetBool(fluid_shader, "enable_deformation_blur", false);
    }
    
-
    // support for gradient mode  
    // Exporting fluid data to a shader attached to the shape
    // at the moment this is the best way to store data
