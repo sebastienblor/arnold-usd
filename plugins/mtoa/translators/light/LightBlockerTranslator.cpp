@@ -1,6 +1,7 @@
 #include "LightBlockerTranslator.h"
+#include <ai_nodes.h>
+#include <ai_ray.h>
 
-   
 bool CLightBlockerTranslator::RequiresMotionData()
 {
    return false;

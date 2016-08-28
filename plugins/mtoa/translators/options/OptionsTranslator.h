@@ -1,6 +1,7 @@
 #pragma once
 
 #include "translators/NodeTranslator.h"
+#include "render/AOV.h"
 
 struct CAOVOutput
 {

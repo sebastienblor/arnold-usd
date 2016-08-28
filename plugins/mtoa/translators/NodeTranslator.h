@@ -1,13 +1,14 @@
 #pragma once
 
-#include "common/MObjectCompare.h"
+
 #include "platform/Platform.h"
 #include "attributes/AttrHelper.h"
 #include "session/SessionOptions.h"
 #include "extension/AbTranslator.h"
-#include "render/AOV.h"
 
 #include <ai_nodes.h>
+#include <ai_ray.h>
+#include <ai_universe.h>
 
 #include <maya/MDagPath.h>
 #include <maya/MFnDagNode.h>
@@ -29,8 +30,6 @@ struct CSessionOptions;
 //
 class DLLEXPORT CNodeTranslator
 {
-   // protect this class from its subclasses: make methods that should not be
-   // called by subclasses private
    friend class CArnoldSession;
    friend class CExtensionsManager;
    friend class CExtension;

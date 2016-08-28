@@ -22,7 +22,6 @@ protected:
    virtual void NodeChanged(MObject& node, MPlug& plug);
    virtual void Init();
 
-   virtual void TrackAOVs(AOVSet* aovs) {}
 private:
    // internal use only : do not override it
    virtual void CreateImplementation();

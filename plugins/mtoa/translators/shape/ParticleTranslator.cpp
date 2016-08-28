@@ -15,6 +15,7 @@
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
+#include <ai_noise.h>
 
 
 #ifdef _DEBUG

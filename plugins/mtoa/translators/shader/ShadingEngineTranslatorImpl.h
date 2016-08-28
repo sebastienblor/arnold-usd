@@ -32,5 +32,7 @@ public :
          }
       }
    }
+   virtual void TrackAOVs(AOVSet* aovs) {}
+   
    MPlugArray m_customAOVPlugs;
 };
