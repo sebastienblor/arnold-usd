@@ -26,19 +26,20 @@ shader_evaluate
 {
    AtRGB diffuse = AI_RGB_BLACK;
 
+   AtLightSample light_sample;
    AiLightsPrepare(sg);
 
-   while (AiLightsGetSample(sg))
+   while (AiLightsGetSample(sg, light_sample))
    {
-      const float NDL = AiV3Dot(sg->Nf, sg->Ld);
+      const float NDL = AiV3Dot(sg->Nf, sg->light_filter->Ld);
 
       if (NDL > 0.0f)
       {
-         if (AiLightGetAffectDiffuse(sg->Lp))
+         float d = AiLightGetDiffuse(light_sample.Lp);
+         if (d > AI_EPSILON)
          {
-         	const float d = AiLightGetDiffuse(sg->Lp);
-         	if (d > AI_EPSILON)
-            	diffuse += sg->Li * NDL * sg->we * d;
+            AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
+        	   diffuse += Li_over_pdf * NDL * d;
          }
       }
    }

@@ -146,15 +146,18 @@ shader_evaluate
    {
       const float indirectDiffuse = AiShaderEvalParamFlt(p_indirect_diffuse);
       
+      AtLightSample light_sample;
       AiLightsPrepare(sg);
-      while (AiLightsGetSample(sg))
+      while (AiLightsGetSample(sg, light_sample))
       {
-         if (AiLightGetAffectDiffuse(sg->Lp))
+         float light_diffuse = AiLightGetDiffuse(light_sample.Lp);
+         if (light_diffuse > 0)
          {
-            const float TdotL = AiV3Dot(T, sg->Ld);
+            const float TdotL = AiV3Dot(T, sg->light_filter->Ld);
             float d = 1.f - TdotL * TdotL;
             d = d > 0.f ? sqrtf(d) : 0.f;
-            diffuse += sg->Li * sg->we * d;
+            AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
+            diffuse += Li_over_pdf * d;
          }
       }
       if (indirectDiffuse > 0.f) diffuse += AiIndirectDiffuse(V, sg, AI_RGB_WHITE) * indirectDiffuse;
@@ -187,18 +190,23 @@ shader_evaluate
    if (!AiColorIsSmall(specularColor) && !(sg->Rt & AI_RAY_DIFFUSE)) // specular contribution
    {
       const float specularPower = AiShaderEvalParamFlt(p_specular_power);
+      AtLightSample light_sample;
       AiLightsPrepare(sg);      
-      while (AiLightsGetSample(sg))
+      while (AiLightsGetSample(sg, light_sample))
       {
-         if (AiLightGetAffectSpecular(sg->Lp))
+         float light_specular = AiLightGetSpecular(light_sample.Lp);
+         if (light_specular > 0)
          {
-            const AtVector H = AiV3Normalize(sg->Ld + V);
+            const AtVector H = AiV3Normalize(sg->light_filter->Ld + V);
             const float HdotT = AiV3Dot(H, T);
             float s = 1 - HdotT * HdotT;
             s = powf(s, specularPower);
             if (s > 0)
-               specular += sg->Li * s * sg->we;
-         }            
+            {
+               AtRGB Li_over_pdf = light_sample.Li / light_sample.pdf;
+               specular += Li_over_pdf * s;
+            }
+         }
       }
       specular *= specularColor;
    }

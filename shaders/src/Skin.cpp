@@ -191,19 +191,11 @@ shader_evaluate
             specularExponent = AiMax(specularExponent, minRoughness);
          if (specularExponent < lastSpecRoughness)
             AiStateSetMsgFlt(MSTR::previous_roughness, specularExponent);
-         void* brdfData = AiMicrofacetMISCreateData(sg, AI_MICROFACET_BECKMANN, &sg->dPdu, 0.0f, specularExponent, specularExponent);
-         AiLightsPrepare(sg);
-         while (AiLightsGetSample(sg))
-         {
-            if (AiLightGetAffectSpecular(sg->Lp))
-            {
-               const float affectSpecular = AiLightGetSpecular(sg->Lp);
-               if (affectSpecular > AI_EPSILON)
-                  sheen += AiEvaluateLightSample(sg, brdfData, NULL, NULL, NULL) * affectSpecular;
-            }
-         }
+         AtBSDF* bsdfData = AiMicrofacetBSDF(sg, AI_MICROFACET_BECKMANN, sg->Nf, &sg->dPdu, 0.0f, specularExponent, specularExponent);
 
-         sheen += AiBRDFIntegrate(sg, brdfData, NULL, NULL, NULL, AI_RAY_GLOSSY, AI_RGB_WHITE);
+         AtRGB direct, indirect;
+         AiBSDFIntegrate(sg, &direct, &indirect, bsdfData, AI_RGB_WHITE);
+         sheen += direct + indirect;
          sheen *= sheenWeight;
       }
 
@@ -218,18 +210,11 @@ shader_evaluate
          if (sg->Rr_gloss > 0)
             specularExponent = AiMax(specularExponent, minRoughness);
          AiStateSetMsgFlt(MSTR::previous_roughness, specularExponent);
-         void* brdfData = AiMicrofacetMISCreateData(sg, AI_MICROFACET_BECKMANN, &sg->dPdu, 0.0f, specularExponent, specularExponent);
-         AiLightsPrepare(sg);
-         while (AiLightsGetSample(sg))
-         {
-            if (AiLightGetAffectSpecular(sg->Lp))
-            {
-               const float affectSpecular = AiLightGetSpecular(sg->Lp);
-               if (affectSpecular > AI_EPSILON)
-                  specular += AiEvaluateLightSample(sg, brdfData, NULL, NULL, NULL) * affectSpecular;
-            }
-         }
-         specular += AiBRDFIntegrate(sg, brdfData, NULL, NULL, NULL, AI_RAY_GLOSSY, AI_RGB_WHITE);
+         AtBSDF* bsdfData = AiMicrofacetBSDF(sg, AI_MICROFACET_BECKMANN, sg->Nf, &sg->dPdu, 0.0f, specularExponent, specularExponent);
+            
+         AtRGB direct, indirect;
+         AiBSDFIntegrate(sg, &direct, &indirect, bsdfData, AI_RGB_WHITE);
+         sheen += direct + indirect;
          specular *= specularWeight;
       }
    }
