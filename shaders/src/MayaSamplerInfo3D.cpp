@@ -76,20 +76,20 @@ shader_evaluate
       sg->out.VEC() = sg->Po;
       break;
    case POINT_CAMERA:
-      AiM4PointByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->P);
+      sg->out.VEC() = AiM4PointByMatrixMult(*worldToCam, sg->P);
       break;
    case NORMAL_CAMERA:
-      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->N);
+      sg->out.VEC() = AiM4VectorByMatrixMult(*worldToCam, sg->N);
       break;
    case RAY_DIRECTION:
-      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->Rd);
+      sg->out.VEC() = AiM4VectorByMatrixMult(*worldToCam, sg->Rd);
       break;
    case TANGENT_U_CAMERA:
-      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->dPdu);
+      sg->out.VEC() = AiM4VectorByMatrixMult(*worldToCam, sg->dPdu);
       sg->out.VEC() = AiV3Normalize(sg->out.VEC());
       break;
    case TANGENT_V_CAMERA:
-      AiM4VectorByMatrixMult(&sg->out.VEC(), *worldToCam, &sg->dPdv);
+      sg->out.VEC() = AiM4VectorByMatrixMult(*worldToCam, sg->dPdv);
       sg->out.VEC() = AiV3Normalize(sg->out.VEC());
       break;
    }

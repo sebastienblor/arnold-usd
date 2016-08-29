@@ -86,7 +86,7 @@ shader_evaluate
    switch (vectorSpace)
    {
    case VS_WORLD:
-      AiM4VectorByMatrixMult(&transformedVectorDisplacement, sg->Minv, &vectorDisp);
+      transformedVectorDisplacement = AiM4VectorByMatrixMult(sg->Minv, vectorDisp);
       break;
    case VS_OBJECT:
       transformedVectorDisplacement = vectorDisp;

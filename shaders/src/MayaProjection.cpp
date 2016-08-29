@@ -276,11 +276,11 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
       {
          if (camera != 0)
          {
-            AiM4PointByMatrixMult(&p, *camera, &p);
+            p = AiM4PointByMatrixMult(*camera, p);
          }
          else
          {
-            AiM4PointByMatrixMult(&p, sg->Minv, &p);
+            p = AiM4PointByMatrixMult(sg->Minv, p);
          }
       }
       break;
@@ -290,11 +290,11 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
       {
          if (camera != 0)
          {
-            AiM4PointByMatrixMult(&p, *camera, &p);
+            p = AiM4PointByMatrixMult(*camera, p);
          }
          else
          {
-            AiM4PointByMatrixMult(&p, sg->Minv, &p);
+            p = AiM4PointByMatrixMult(sg->Minv, p);
          }
       }
       break;
@@ -304,7 +304,7 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
       {
          if (camera != 0)
          {
-            AiM4PointByMatrixMult(&p, *camera, &(sg->P));
+            p = AiM4PointByMatrixMult(*camera, sg->P);
          }
          else
          {
@@ -319,7 +319,7 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
 
    if (placement)
    {
-      AiM4PointByMatrixMult(&p, *placement, &p);
+      p = AiM4PointByMatrixMult(*placement, p);
    }
 
    return AtVector(p);
@@ -459,14 +459,13 @@ shader_evaluate
 
    AtVector2 st(AI_P2_ZERO), stx(AI_P2_ZERO), sty(AI_P2_ZERO);
    bool mapped = false;
-   AtVector P;
 
    const bool useReferenceObject = AiShaderEvalParamBool(p_use_reference_object);
 
    AtVector tmpPts;
    bool usePref = useReferenceObject ? SetRefererencePoints(sg, tmpPts) : false;
 
-   P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
+   AtVector P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
 
    switch (pt)
    {
@@ -538,9 +537,9 @@ shader_evaluate
             AiWorldToCameraMatrix(data->camera, sg->time, camm);  
             pcamm = &camm;
             P = ComputePoint(sg, TP_SAMPLE, true, mappingCoordinate, pcamm);
-            AiM4VectorByMatrixMult(&N, camm, &N);
+            N = AiM4VectorByMatrixMult(camm, N);
          }
-         AiM4VectorByMatrixMult(&N, *mappingCoordinate, &N);
+         N = AiM4VectorByMatrixMult(*mappingCoordinate, N);
          st = TriPlanarMapping(P, N);
          // Is there a way to get N for P+dPdx and P+dPdy?
          // Lets hope curvature is not too high

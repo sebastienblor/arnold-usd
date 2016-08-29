@@ -205,7 +205,7 @@ shader_evaluate
       if (data->gammaCorrect != 1.f)
          AiColorGamma(&normalMap, data->gammaCorrect);
       AtVector normalMapV(normalMap.r, normalMap.g, normalMap.b);
-      AiM4VectorByMatrixMult(&sg->N, sg->M, &normalMapV);
+      sg->N = AiM4VectorByMatrixMult(sg->M, normalMapV);
       sg->Nf = sg->N;
       sg->Nf = AiFaceViewer(sg);
    }

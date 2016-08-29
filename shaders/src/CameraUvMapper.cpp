@@ -207,8 +207,8 @@ PolymeshUvMapper::PolymeshUvMapper(AtNode* node, AtNode* camera_node)
          for (int j = 0; j < 3; ++j)
          {
             // convert local vertices to world
-            AiM4PointByMatrixMult(&worldPos[j], localToWorld, &localPos[j]);
-            AiM4VectorByMatrixMult(&worldNormal[j], localToWorld, &localNormal[j]);
+            worldPos[j]    = AiM4PointByMatrixMult (localToWorld, localPos[j]);
+            worldNormal[j] = AiM4VectorByMatrixMult(localToWorld, localNormal[j]);
             mVertices.push_back(BakeVertex(worldPos[j], worldNormal[j], uv[j]));
          }
 

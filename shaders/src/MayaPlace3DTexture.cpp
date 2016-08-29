@@ -112,8 +112,7 @@ protected:
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
    
    AiParameterVec("translate", 0.0f, 0.0f, 0.0f);
    AiParameterVec("rotate", 0.0f, 0.0f, 0.0f);
@@ -172,91 +171,76 @@ shader_evaluate
    }
    
    AtMatrix &M = *pM;
-   AtMatrix T, R, Rx, Ry, Rz, Ro, Rp, Rpi, Rt, S, Sp, Spi, Sh, St, tmp;
 
-   AiM4Translation(T, &translate);
+   AtMatrix T = AiM4Translation(translate);
+   AtMatrix S = AiM4Translation(scale);
 
-   AiM4Scaling(S, &scale);
-
-   AiM4Identity(Sh);
+   AtMatrix Sh = AiM4Identity();
    Sh[1][0] = shear.x;
    Sh[2][0] = shear.y;
    Sh[2][1] = shear.z;
 
-   AiM4Translation(St, &scalePivotTranslate);
+   AtMatrix St = AiM4Translation(scalePivotTranslate);
 
-   AiM4Translation(Sp, &scalePivot);
+   AtMatrix Sp = AiM4Translation(scalePivot);
 
-   AiM4Identity(Spi);
+   AtMatrix Spi = AiM4Identity();
    Spi[3][0] = -scalePivot.x;
    Spi[3][1] = -scalePivot.y;
    Spi[3][2] = -scalePivot.z;
 
-   AiM4Translation(Rt, &rotatePivotTranslate);
+   AtMatrix Rt = AiM4Translation(rotatePivotTranslate);
 
-   AiM4Translation(Rp, &rotatePivot);
+   AtMatrix Rp = AiM4Translation(rotatePivot);
 
-   AiM4Identity(Rpi);
+   AtMatrix Rpi = AiM4Identity();
    Rpi[3][0] = -rotatePivot.x;
    Rpi[3][1] = -rotatePivot.y;
    Rpi[3][2] = -rotatePivot.z;
 
-   AiM4Identity(R);
-   AiM4Identity(Ro);
+   AtMatrix R = AiM4Identity();
+   AtMatrix Ro = AiM4Identity();
 
-   AiM4RotationX(Rx, static_cast<float>(rotate.x * AI_RTOD));
-   AiM4RotationY(Ry, static_cast<float>(-rotate.y * AI_RTOD));
-   AiM4RotationZ(Rz, static_cast<float>(rotate.z * AI_RTOD));
+   AtMatrix Rx = AiM4RotationX(rotate.x * AI_RTOD);
+   AtMatrix Ry = AiM4RotationY(-rotate.y * AI_RTOD);
+   AtMatrix Rz = AiM4RotationZ(rotate.z * AI_RTOD);
    switch (rotateOrder)
    {
    case RO_XYZ:
-      AiM4Mult(tmp, Rx, Ry);
-      AiM4Mult(R, tmp, Rz);
+      R = AiM4Mult(AiM4Mult(Rx, Ry), Rz);
       break;
    case RO_YZX:
-      AiM4Mult(tmp, Ry, Rz);
-      AiM4Mult(R, tmp, Rx);
+      R = AiM4Mult(AiM4Mult(Ry, Rz), Rx);
       break;
    case RO_ZXY:
-      AiM4Mult(tmp, Rz, Rx);
-      AiM4Mult(R, tmp, Ry);
+      R = AiM4Mult(AiM4Mult(Rz, Rx), Ry);
       break;
    case RO_XZY:
-      AiM4Mult(tmp, Rx, Rz);
-      AiM4Mult(R, tmp, Ry);
+      R = AiM4Mult(AiM4Mult(Rx, Rz), Ry);
       break;
    case RO_YXZ:
-      AiM4Mult(tmp, Ry, Rx);
-      AiM4Mult(R, tmp, Rz);
+      R = AiM4Mult(AiM4Mult(Ry, Rx), Rz);
       break;
    case RO_ZYX:
    default:
-      AiM4Mult(tmp, Rz, Ry);
-      AiM4Mult(R, tmp, Rx);
+      R = AiM4Mult(AiM4Mult(Rz, Ry), Rx);
       break;
    }
 
-   AiM4RotationX(Rx, static_cast<float>(rotateAxis.x * AI_RTOD));
-   AiM4RotationY(Ry, static_cast<float>(-rotateAxis.y * AI_RTOD));
-   AiM4RotationZ(Rz, static_cast<float>(rotateAxis.z * AI_RTOD));
-   AiM4Mult(tmp, Rx, Ry);
-   AiM4Mult(Ro, tmp, Rz);
+   Rx = AiM4RotationX(rotateAxis.x * AI_RTOD);
+   Ry = AiM4RotationY(-rotateAxis.y * AI_RTOD);
+   Rz = AiM4RotationZ(rotateAxis.z * AI_RTOD);
+   Ro = AiM4Mult(AiM4Mult(Rx, Ry), Rz);
 
-   AiM4Mult(tmp, Spi, S);
-   AiM4Mult(M, tmp, Sh);
-   AiM4Mult(tmp, M, Sp);
-   AiM4Mult(M, tmp, St);
-   AiM4Mult(tmp, M, Rpi);
-   AiM4Mult(M, tmp, Ro);
-   AiM4Mult(tmp, M, R);
-   AiM4Mult(M, tmp, Rp);
-   AiM4Mult(tmp, M, Rt);
-   AiM4Mult(M, tmp, T);
+   M = AiM4Mult(AiM4Mult(Spi, S), Sh);
+   M = AiM4Mult(AiM4Mult(M, Sp), St);
+   M = AiM4Mult(AiM4Mult(M, Rpi), Ro);
+   M = AiM4Mult(AiM4Mult(M, R), Rp);
+   M = AiM4Mult(AiM4Mult(M, Rt), T);
 
    if (inheritsTransform)
    {
-      AiM4Mult(tmp, M, *parentMatrix);
-      AiM4Copy(M, tmp);
+      M = AiM4Mult(M, *parentMatrix);
    }
 
    sg->out.pMTX() = pM;

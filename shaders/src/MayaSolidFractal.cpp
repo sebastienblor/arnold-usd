@@ -59,8 +59,7 @@ static float Noise4D(const AtVector &p, float time, bool inflection)
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterFlt("threshold", 0.0f);
    AiParameterFlt("amplitude", 1.0f);
@@ -109,14 +108,13 @@ shader_evaluate
    bool wrap = AiShaderEvalParamBool(p_wrap);
    bool local = AiShaderEvalParamBool(p_local);
 
-   AtVector P;
    float time = 0.0f;
    float timeRatio = 0.0f;
 
    AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&

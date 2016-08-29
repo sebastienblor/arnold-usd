@@ -22,8 +22,7 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterRGB("snowColor", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("surfaceColor", 0.5f, 0.0f, 0.0f);
@@ -57,12 +56,10 @@ shader_evaluate
    bool local = AiShaderEvalParamBool(p_local);
    bool wrap = AiShaderEvalParamBool(p_wrap);
 
-   AtVector P;
-
    AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
@@ -73,20 +70,20 @@ shader_evaluate
       float threshold = AiShaderEvalParamFlt(p_threshold);
       float depthDecay = AiShaderEvalParamFlt(p_depthDecay);
       float thickness = AiShaderEvalParamFlt(p_thickness);
-      AtVector U, N;
+      AtVector N;
 
-      U = AtVector(0.0f, 1.0f, 0.0f);
+      AtVector U = AtVector(0.0f, 1.0f, 0.0f);
 
       if (local)
       {
-         AiM4VectorByMatrixMult(&N, sg->Minv, &(sg->N));
+         N = AiM4VectorByMatrixMult(sg->Minv, sg->N);
       }
       else
       {
          N = sg->N;
       }
 
-      AiM4VectorByMatrixMult(&N, *placementMatrix, &N);
+      N = AiM4VectorByMatrixMult(*placementMatrix, N);
       N = AiV3Normalize(N);
 
       float NdU = AiV3Dot(N, U);

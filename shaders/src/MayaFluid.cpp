@@ -361,9 +361,7 @@ shader_evaluate
       lPt = lPt - sg->time * velocity * data->velocityScale * data->fpsDivider;
    }
    
-
-   AtVector scaledDir;
-   AiM4VectorByMatrixMult(&scaledDir, sg->Minv, &sg->Rd);
+   AtVector scaledDir = AiM4VectorByMatrixMult(sg->Minv, sg->Rd);
 
    float dropoff = CalculateDropoff(fluidData, lPt, data->dropoffShape, CLAMP(AiShaderEvalParamFlt(p_edge_dropoff), 0.0f, 1.0f), data->filterType)
                    * AiV3Length(scaledDir);

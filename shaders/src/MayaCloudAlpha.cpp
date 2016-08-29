@@ -26,8 +26,7 @@ namespace
 
 node_parameters
 {
-   AtMatrix id;
-   AiM4Identity(id);
+   AtMatrix id = AiM4Identity();
 
    AiParameterFlt("amplitude", 1.0f);
    AiParameterVec2("depth", 0.0f, 8.0f);
@@ -75,12 +74,11 @@ shader_evaluate
    float alphaOffset = AiShaderEvalParamFlt(p_alphaOffset);
 
    float result;
-   AtVector P;
 
    AtVector tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
+   AtVector P = AiM4PointByMatrixMult(*placementMatrix, (local ? sg->Po : sg->P));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
