@@ -33,6 +33,7 @@ class DLLEXPORT CNodeTranslator
    friend class CArnoldSession;
    friend class CExtensionsManager;
    friend class CExtension;
+   friend class CExtensionImpl;
    friend class CRenderSwatchGenerator;
    friend class CMaterialView;
    friend class CNodeTranslatorImpl;

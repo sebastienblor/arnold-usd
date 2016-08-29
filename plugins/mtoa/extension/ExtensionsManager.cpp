@@ -1,5 +1,7 @@
 
 #include "ExtensionsManager.h"
+#include "ExtensionImpl.h"
+
 #include "common/DynLibrary.h"
 #include "AbMayaNode.h"
 #include "AbTranslator.h"
@@ -85,7 +87,7 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
       resolved = pluginExtension->LoadArnoldPlugin(file, path, &status);
       if (MStatus::kSuccess == status)
       {
-         status = pluginExtension->setFile(resolved);
+         status = pluginExtension->m_impl->setFile(resolved);
          // Do not register new nodes with Maya immediatly to allow modification
          // status = RegisterExtension(pluginExtension);
       } else {
@@ -109,7 +111,7 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
    MStatus status = MStatus::kNotFound;
 
    MStringArray plugins;
-   plugins = CExtension::FindLibraries(path, &status);
+   plugins = CExtensionImpl::FindLibraries(path, &status);
    for (unsigned int i=0; i<plugins.length(); ++i)
    {
       MString resolved = plugins[i];
@@ -147,7 +149,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
    {
       searchFile += libext;
    }
-   MString resolved = CExtension::FindFileInPath(searchFile, path, &status);
+   MString resolved = CExtensionImpl::FindFileInPath(searchFile, path, &status);
    CExtension* extension = NULL;
 
    if (MStatus::kSuccess == status)
@@ -168,7 +170,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             status = MStatus::kFailure;
             break;
          }
-         extension->m_library = pluginLib;
+         extension->m_impl->m_library = pluginLib;
          void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
          if (initializer == NULL)
          {
@@ -180,9 +182,9 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          }
          const char* (*apiVersionFunction)() = (const char* (*)())LibrarySymbol(pluginLib, "getAPIVersion");
          if (apiVersionFunction != NULL)
-            extension->m_apiVersion = apiVersionFunction();
+            extension->m_impl->m_apiVersion = apiVersionFunction();
          else
-            extension->m_apiVersion = MString("unknown");
+            extension->m_impl->m_apiVersion = MString("unknown");
          const ExtensionInitFunction &initFunc = (ExtensionInitFunction)(initializer);
          // ExtensionInitFunction * initFunc = (ExtensionInitFunction*)(&initializer);
          // Do the init
@@ -233,7 +235,7 @@ MStatus CExtensionsManager::LoadExtensions(const MString &path)
    MStatus status = MStatus::kNotFound;
 
    MStringArray extensions;
-   extensions = CExtension::FindLibraries(path, &status);
+   extensions = CExtensionImpl::FindLibraries(path, &status);
    for (unsigned int i=0; i<extensions.length(); ++i)
    {
       MString resolved = extensions[i];
@@ -289,12 +291,12 @@ MStatus CExtensionsManager::DoUnloadExtension(CExtension* extension)
    if (MStatus::kSuccess == status)
    {
       // Unload all Arnold Plugins loaded from extension
-      status = extension->UnloadArnoldPlugins();
+      status = extension->m_impl->UnloadArnoldPlugins();
       // Unload the extension library
-      void* pluginLib = extension->m_library;
+      void* pluginLib = extension->m_impl->m_library;
       if (pluginLib != NULL)
       {
-         void* deinitializer = LibrarySymbol(extension->m_library, "deinitializeExtension");
+         void* deinitializer = LibrarySymbol(extension->m_impl->m_library, "deinitializeExtension");
          if (deinitializer != NULL)
          {
             const ExtensionDeinitFunction &deinitFunc = (ExtensionDeinitFunction)(deinitializer);
@@ -351,7 +353,7 @@ MStatus CExtensionsManager::UnloadExtensions()
       if (MStatus::kSuccess != extStatus) status = extStatus;
    }
 
-   CExtension::s_autoNodeId = ARNOLD_NODEID_AUTOGEN;
+   CExtensionImpl::s_autoNodeId = ARNOLD_NODEID_AUTOGEN;
 
    return status;
 }
@@ -381,7 +383,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       {
          AiMsgWarning("[mtoa] Extension %s(%s) requires Maya plugin %s, registering will be deferred until plugin is loaded.",
                extName.asChar(), extFile.asChar(), pluginName.asChar());
-         extension->m_deferred = true;
+         extension->m_impl->m_deferred = true;
          return MStatus::kNotFound;
       }
    }
@@ -399,8 +401,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    const CPxMayaNode* mayaNode;
    const CPxMayaNode* existingMayaNode;
    MayaNodesSet::iterator rnodeIt;
-   for (rnodeIt = extension->m_registeredMayaNodes.begin();
-         rnodeIt != extension->m_registeredMayaNodes.end();
+   for (rnodeIt = extension->m_impl->m_registeredMayaNodes.begin();
+         rnodeIt != extension->m_impl->m_registeredMayaNodes.end();
          rnodeIt++)
    {
       mayaNode = &(*rnodeIt);
@@ -450,8 +452,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    AiMsgDebug("[mtoa] [%s] Registering new translators provided by %s.",
          extName.asChar(), extFile.asChar());
    MayaNodeToTranslatorsMap::iterator tnodeIt;
-   for (tnodeIt = extension->m_registeredTranslators.begin();
-         tnodeIt != extension->m_registeredTranslators.end();
+   for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
+         tnodeIt != extension->m_impl->m_registeredTranslators.end();
          tnodeIt++)
    {
       mayaNode = &tnodeIt->first;
@@ -564,8 +566,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    {
       AiMsgInfo("[mtoa] Registered extension %s provided by %s.", extName.asChar(), extFile.asChar());
 
-      extension->m_registered = true;
-      extension->m_deferred = false;
+      extension->m_impl->m_registered = true;
+      extension->m_impl->m_deferred = false;
       // Load associated scripts
       MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + extension->GetExtensionFile() + "')";
       CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
@@ -620,7 +622,7 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    {
       if (extension->IsDeferred())
       {
-         extension->m_deferred = false;
+         extension->m_impl->m_deferred = false;
          return MStatus::kSuccess;
       }
       else
@@ -661,8 +663,8 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    AiMsgDebug("[mtoa.ext]  Deregistering translators provided by %s(%s).",
          extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
    MayaNodeToTranslatorsMap::iterator tnodeIt;
-   for (tnodeIt = extension->m_registeredTranslators.begin();
-         tnodeIt != extension->m_registeredTranslators.end();
+   for (tnodeIt = extension->m_impl->m_registeredTranslators.begin();
+         tnodeIt != extension->m_impl->m_registeredTranslators.end();
          tnodeIt++)
    {
       // mayaNode = &tnodeIt->first;
@@ -685,7 +687,7 @@ MStatus CExtensionsManager::DeregisterExtension(CExtension* extension)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("[mtoa] Deregistered extension %s(%s).", extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
-      extension->m_registered = false;
+      extension->m_impl->m_registered = false;
    }
 
    return status;
@@ -845,7 +847,7 @@ void CExtensionsManager::GetAOVs(MStringArray& result)
          extIt++)
    {
       std::map<std::string, int>::iterator it;
-      for (it = extIt->m_aovTypes.begin(); it != extIt->m_aovTypes.end(); ++it)
+      for (it = extIt->m_impl->aovTypes.begin(); it != extIt->m_impl->aovTypes.end(); ++it)
       {
          result.append(it->first.c_str());
       }
@@ -860,7 +862,7 @@ void CExtensionsManager::GetNodeAOVs(const MString &mayaType, MStringArray& resu
          extIt != s_extensions.end();
          extIt++)
    {
-      std::vector<CAOVData> dataList = extIt->m_aovAttrs[mayaType.asChar()];
+      std::vector<CAOVData> dataList = extIt->m_impl->aovAttrs[mayaType.asChar()];
       std::vector<CAOVData>::iterator it;
       for (it = dataList.begin(); it != dataList.end(); ++it)
       {
@@ -879,7 +881,7 @@ void CExtensionsManager::GetNodeTypesWithAOVs(MStringArray& result)
          extIt++)
    {
       std::map<std::string, std::vector<CAOVData> >::iterator it;
-      for (it = extIt->m_aovAttrs.begin(); it!=extIt->m_aovAttrs.end(); ++it)
+      for (it = extIt->m_impl->aovAttrs.begin(); it!=extIt->m_impl->aovAttrs.end(); ++it)
       {
          result.append(it->first.c_str());
       }
@@ -973,8 +975,8 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          extIt++)
    {
       if (extIt->IsDeferred()
-            && extIt->m_requiredMayaPlugins.find(plugin_str)
-            != extIt->m_requiredMayaPlugins.end())
+            && extIt->m_impl->m_requiredMayaPlugins.find(plugin_str)
+            != extIt->m_impl->m_requiredMayaPlugins.end())
       {
          RegisterExtension(&(*extIt));
       }

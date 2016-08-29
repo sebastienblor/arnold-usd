@@ -1,10 +1,10 @@
 #include "Extension.h"
-
+#include "PxUtils.h"
 #include "common/DynLibrary.h"
 #include "nodes/ArnoldNodeIDs.h"
 
 #include "translators/NodeTranslatorImpl.h"
-
+#include "ExtensionImpl.h"
 #define MNoVersionString
 #define MNoPluginEntry
 
@@ -27,22 +27,32 @@
 
 // --------- CExtension -------------//
 
-unsigned int CExtension::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
-LoadedArnoldPluginsSet CExtension::s_allLoadedArnoldPlugins;
+unsigned int CExtensionImpl::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
+LoadedArnoldPluginsSet CExtensionImpl::s_allLoadedArnoldPlugins;
 
 CExtension::CExtension(const MString &file)
 {
-   this->setFile(file);
-   m_registered = false;
-   m_deferred = false;
-   m_library = NULL;
+   m_impl = new CExtensionImpl;
+   this->m_impl->setFile(file);
+   m_impl->m_registered = false;
+   m_impl->m_deferred = false;
+   m_impl->m_library = NULL;
 }
+
+unsigned int CExtension::RegisteredNodesCount() const {return m_impl->m_registeredMayaNodes.size();}
+unsigned int CExtension::TranslatedNodesCount() const {return m_impl->m_registeredTranslators.size();}
+MString CExtension::GetExtensionName() const {return m_impl->m_extensionName;}
+MString CExtension::GetExtensionFile() const {return m_impl->m_extensionFile;}
+MString CExtension::GetApiVersion() const {return m_impl->m_apiVersion;}
+bool CExtension::IsRegistered() const {return m_impl->m_registered;}
+bool CExtension::IsDeferred() const {return m_impl->m_deferred;}
+
 
 /// Specify that this extenions needs a particular Maya Plugin
 void CExtension::Requires(const MString &plugin)
 {
    std::string plugin_str(plugin.asChar());
-   m_requiredMayaPlugins.insert(plugin_str);
+   m_impl->m_requiredMayaPlugins.insert(plugin_str);
 }
 
 /// Returns the list of required Maya plugins
@@ -50,8 +60,8 @@ MStringArray CExtension::Required()
 {
    MStringArray result;
    RequiredMayaPluginsSet::iterator pluginIt;
-   for (pluginIt = m_requiredMayaPlugins.begin();
-       pluginIt != m_requiredMayaPlugins.end();
+   for (pluginIt = m_impl->m_requiredMayaPlugins.begin();
+       pluginIt != m_impl->m_requiredMayaPlugins.end();
        pluginIt++)
    {
       result.append(pluginIt->c_str());
@@ -65,8 +75,8 @@ unsigned int CExtension::TranslatorCount() const
 {
    unsigned int sum = 0;
    MayaNodeToTranslatorsMap::const_iterator it;
-   for (it = m_registeredTranslators.begin();
-        it != m_registeredTranslators.end();
+   for (it = m_impl->m_registeredTranslators.begin();
+        it != m_impl->m_registeredTranslators.end();
         it++)
    {
       sum += it->second.size();
@@ -98,11 +108,11 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
       searchFile += libext;
    }
    MString resolved;
-   resolved = FindFileInPath(searchFile, path, &status);
+   resolved = m_impl->FindFileInPath(searchFile, path, &status);
    if (MStatus::kSuccess == status && resolved.numChars() > 0)
    {
-      AiMsgDebug("[mtoa] [%s] Found Arnold plugin file %s as %s.", m_extensionName.asChar(), file.asChar(), resolved.asChar());
-      status = NewArnoldPlugin(resolved);
+      AiMsgDebug("[mtoa] [%s] Found Arnold plugin file %s as %s.", m_impl->m_extensionName.asChar(), file.asChar(), resolved.asChar());
+      status = m_impl->NewArnoldPlugin(resolved);
       if (MStatus::kSuccess == status)
       {
          // TODO: add error handling when solid angle adds a status result
@@ -114,9 +124,9 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    else
    {
       if (path.numChars())
-         AiMsgError("[mtoa] [%s] Could not find %s in search path %s", m_extensionName.asChar(), file.asChar(), path.asChar());
+         AiMsgError("[mtoa] [%s] Could not find %s in search path %s", m_impl->m_extensionName.asChar(), file.asChar(), path.asChar());
       else
-         AiMsgError("[mtoa] [%s] Could not find %s", m_extensionName.asChar(), file.asChar());
+         AiMsgError("[mtoa] [%s] Could not find %s", m_impl->m_extensionName.asChar(), file.asChar());
    }
 
    if (NULL != returnStatus) *returnStatus = status;
@@ -131,8 +141,8 @@ MStringArray CExtension::GetOwnLoadedArnoldPlugins()
 {
    MStringArray result;
    LoadedArnoldPluginsSet::iterator pluginIt;
-   for (pluginIt = m_ownLoadedArnoldPlugins.begin();
-       pluginIt != m_ownLoadedArnoldPlugins.end();
+   for (pluginIt = m_impl->m_ownLoadedArnoldPlugins.begin();
+       pluginIt != m_impl->m_ownLoadedArnoldPlugins.end();
        pluginIt++)
    {
       result.append(pluginIt->c_str());
@@ -156,14 +166,14 @@ MStatus CExtension::RegisterNode(const MString &mayaTypeName,
 {
    CPxMayaNode mayaNode(mayaTypeName,
                          mayaTypeId,
-                         m_extensionName,
-                         m_extensionFile,
+                         m_impl->m_extensionName,
+                         m_impl->m_extensionFile,
                          creatorFunction,
                          initFunction,
                          type,
                          classification);
 
-   return NewMayaNode(mayaNode);
+   return m_impl->NewMayaNode(mayaNode);
 }
 
 /// Manually register a translator for the given Maya node type.
@@ -183,21 +193,21 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
 {
    CPxMayaNode mayaNode(mayaTypeName,
                         0,
-                        m_extensionName,
-                        m_extensionFile);
+                        m_impl->m_extensionName,
+                        m_impl->m_extensionFile);
 
    MString transName;
    if (translatorName.numChars() != 0)
       transName = translatorName;
    else
-      transName = m_extensionName;
+      transName = m_impl->m_extensionName;
    CPxTranslator translator(transName,
-                            m_extensionName,
-                            m_extensionFile,
+                            m_impl->m_extensionName,
+                            m_impl->m_extensionFile,
                             creatorFunction,
                             nodeInitFunction);
 
-   return NewTranslator(translator, mayaNode);
+   return m_impl->NewTranslator(translator, mayaNode);
 }
 
 
@@ -205,8 +215,8 @@ MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovN
 {
    CPxMayaNode mayaNode(mayaTypeName);
    MayaNodeToTranslatorsMap::iterator nodeIt;
-   nodeIt = m_registeredTranslators.find(mayaNode);
-   if (nodeIt != m_registeredTranslators.end())
+   nodeIt = m_impl->m_registeredTranslators.find(mayaNode);
+   if (nodeIt != m_impl->m_registeredTranslators.end())
    {
       mayaNode = nodeIt->first;
       mayaNode.RegisterAOV(aovName, dataType, aovAttr);
@@ -217,7 +227,7 @@ MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovN
 
 // ------------- protected --------------- //
 
-MStatus CExtension::setFile(const MString &file)
+MStatus CExtensionImpl::setFile(const MString &file)
 {
    MFileObject extensionFile;
    extensionFile.overrideResolvedFullName(file);
@@ -241,7 +251,7 @@ MStatus CExtension::setFile(const MString &file)
 }
 
 /// Unload all Arnold plugins this extensions has loaded
-MStatus CExtension::UnloadArnoldPlugins()
+MStatus CExtensionImpl::UnloadArnoldPlugins()
 {
    AiMsgDebug("[mtoa] [%s] Unloading all Arnold plugins", m_extensionName.asChar());
 
@@ -271,7 +281,6 @@ MStatus CExtension::UnloadArnoldPlugins()
       MStatus pstatus = DeleteArnoldPlugin(it->c_str());
       if (MStatus::kSuccess != pstatus) status = pstatus;
    }
-
    return status;
 }
 
@@ -282,7 +291,7 @@ MStatus CExtension::UnloadArnoldPlugins()
 /// @param resolved  the resolved filename of an Arnold plugin
 /// @return          MStatus::kSuccess or MStatus::kFailure
 ///
-MStatus CExtension::UnloadArnoldPlugin(const MString &resolved)
+MStatus CExtensionImpl::UnloadArnoldPlugin(const MString &resolved)
 {
    MStatus status = DoUnloadArnoldPlugin(resolved);
    if (MStatus::kSuccess == status)
@@ -293,7 +302,7 @@ MStatus CExtension::UnloadArnoldPlugin(const MString &resolved)
    return status;
 }
 
-MStatus CExtension::DoUnloadArnoldPlugin(const MString &resolved)
+MStatus CExtensionImpl::DoUnloadArnoldPlugin(const MString &resolved)
 {
    AiMsgDebug("[mtoa] [%s] Unloading Arnold plugin %s", m_extensionName.asChar(), resolved.asChar());
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
@@ -327,10 +336,10 @@ MStatus CExtension::DoUnloadArnoldPlugin(const MString &resolved)
 ///
 /// @param file      the resolved filename of an Arnold plugin
 ///
-MStatus CExtension::NewArnoldPlugin(const MString &file)
+MStatus CExtensionImpl::NewArnoldPlugin(const MString &file)
 {
    std::string file_str(file.asChar());
-   // std::string extensionPath(m_extensionFile.asChar())
+   // std::string extensionPath(m_impl->m_extensionFile.asChar())
 
    LoadedArnoldPluginsSet::iterator pluginIt;
    pluginIt = s_allLoadedArnoldPlugins.find(file_str);
@@ -343,7 +352,7 @@ MStatus CExtension::NewArnoldPlugin(const MString &file)
    else
    {
       AiMsgDebug("[mtoa] [%s] Loads Arnold plugin: %s", m_extensionName.asChar(), file.asChar());
-      s_allLoadedArnoldPlugins.insert(file_str);
+      CExtensionImpl::s_allLoadedArnoldPlugins.insert(file_str);
       m_ownLoadedArnoldPlugins.insert(file_str);
       return MStatus::kSuccess;
    }
@@ -356,10 +365,10 @@ MStatus CExtension::NewArnoldPlugin(const MString &file)
 ///
 /// @param file  the resolved filename of an Arnold plugin
 ///
-MStatus CExtension::DeleteArnoldPlugin(const MString &file)
+MStatus CExtensionImpl::DeleteArnoldPlugin(const MString &file)
 {
    std::string file_str(file.asChar());
-   // std::string extensionPath(m_extensionFile.asChar())
+   // std::string extensionPath(m_impl->m_extensionFile.asChar())
 
    LoadedArnoldPluginsSet::iterator pluginIt;
    pluginIt = s_allLoadedArnoldPlugins.find(file_str);
@@ -387,7 +396,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    MStatus status(MStatus::kSuccess);
 
    MString pluginName = (plugin.numChars()==0) ? "built-in nodes" : MString("plugin ") + plugin;
-   AiMsgDebug("[mtoa] [%s] Generating new Maya nodes and translators for Arnold %s.", m_extensionName.asChar(), pluginName.asChar());
+   AiMsgDebug("[mtoa] [%s] Generating new Maya nodes and translators for Arnold %s.", m_impl->m_extensionName.asChar(), pluginName.asChar());
 
    unsigned int prevNewNodes = RegisteredNodesCount();
    unsigned int prevTrsNodes = TranslatedNodesCount();
@@ -412,20 +421,20 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          bool hide;
          if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
          {
-            AiMsgDebug("[mtoa] [%s] [node %s] Marked as hidden.", m_extensionName.asChar(), nodeName.asChar());
+            AiMsgDebug("[mtoa] [%s] [node %s] Marked as hidden.", m_impl->m_extensionName.asChar(), nodeName.asChar());
             continue;
          }
 
          CPxArnoldNode arnoldNode(nentry);
          CPxMayaNode mayaNode("", // name gets filled by metadata
                               0,  // id gets filled by metadata
-                              m_extensionName,
-                              m_extensionFile);
+                              m_impl->m_extensionName,
+                              m_impl->m_extensionFile);
          mayaNode.ReadMetaData(nentry);
 
          CPxTranslator translator("",
-                                  m_extensionName,
-                                  m_extensionFile);
+                                  m_impl->m_extensionName,
+                                  m_impl->m_extensionFile);
          translator.ReadMetaData(nentry, MFnPlugin::isNodeRegistered(mayaNode.name));
 
          // Each arnold node may be processed in several ways:
@@ -439,9 +448,9 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          //     required:
          //       - "maya.name" that matches an existing Maya node
          //
-         // AiMsgDebug("[mtoa] [%s] Arnold node %s is provided by %s and will be processed for node registration", m_extensionName.asChar(), nodeName, nodeFile);
+         // AiMsgDebug("[mtoa] [%s] Arnold node %s is provided by %s and will be processed for node registration", m_impl->m_extensionName.asChar(), nodeName, nodeFile);
          MStatus nodeStatus;
-         nodeStatus = RegisterNode(mayaNode, arnoldNode);
+         nodeStatus = m_impl->RegisterNode(mayaNode, arnoldNode);
          // Only report hard failures, ignore kNotImplemented
          if (MStatus::kSuccess != nodeStatus
                && MStatus::kNotImplemented != nodeStatus)
@@ -449,7 +458,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
             status = nodeStatus;
          }
          MStatus translatorStatus;
-         translatorStatus = RegisterTranslator(translator, mayaNode, arnoldNode);
+         translatorStatus = m_impl->RegisterTranslator(translator, mayaNode, arnoldNode);
          // Only report hard failures, ignore kNotImplemented
          if (MStatus::kSuccess != translatorStatus
                && MStatus::kNotImplemented != translatorStatus)
@@ -457,10 +466,10 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
             status = nodeStatus;
          }
          // Warning for Arnold nodes that are from plugins and not translated
-         if (m_extensionName != BUILTIN && MStatus::kNotImplemented == translatorStatus)
+         if (m_impl->m_extensionName != BUILTIN && MStatus::kNotImplemented == translatorStatus)
          {
             AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
-               m_extensionName.asChar(), arnoldNode.name.asChar());
+               m_impl->m_extensionName.asChar(), arnoldNode.name.asChar());
          }
       }
    }
@@ -472,9 +481,9 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    unsigned int trsCount = TranslatorCount() - prevTrsCount;
 
    AiMsgInfo("[mtoa] [%s] Generated %i new Maya nodes for Arnold %s.",
-         m_extensionName.asChar(), newNodes, pluginName.asChar());
+         m_impl->m_extensionName.asChar(), newNodes, pluginName.asChar());
    AiMsgInfo("[mtoa] [%s] Generated %i translators for %i Maya nodes (%i new and %i existing) for Arnold %s.",
-         m_extensionName.asChar(), trsCount, trsNodes, newNodes, trsNodes - newNodes, pluginName.asChar());
+         m_impl->m_extensionName.asChar(), trsCount, trsNodes, newNodes, trsNodes - newNodes, pluginName.asChar());
 
    return status;
 }
@@ -493,9 +502,9 @@ MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
    // Arnold api doc says AiNodeEntryGetFilename returns <buit-in> for
    // built-in nodes, but it seems to return an empty string.
    if (plugin.numChars() == 0)
-      AiMsgDebug("[mtoa] [%s] Registering translators for built-in nodes.", m_extensionName.asChar());
+      AiMsgDebug("[mtoa] [%s] Registering translators for built-in nodes.", m_impl->m_extensionName.asChar());
    else
-      AiMsgDebug("[mtoa] [%s] Registering translators for nodes provided by Arnold plugin %s.", m_extensionName.asChar(), plugin.asChar());
+      AiMsgDebug("[mtoa] [%s] Registering translators for nodes provided by Arnold plugin %s.", m_impl->m_extensionName.asChar(), plugin.asChar());
 
    // FIXME: use map instead
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
@@ -510,10 +519,10 @@ MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
          bool ignore;
          if (AiMetaDataGetBool(nentry, NULL, "maya.ignore", &ignore) && ignore)
          {
-            AiMsgDebug("[mtoa] [%s] [node %s] Marked as ignored.", m_extensionName.asChar(), nodeName);
+            AiMsgDebug("[mtoa] [%s] [node %s] Marked as ignored.", m_impl->m_extensionName.asChar(), nodeName);
             continue;
          }
-         // AiMsgDebug("[mtoa] [%s] Arnold node %s is provided by %s and will be processed for translator registration", m_extensionName.asChar(), nodeName, nodeFile);
+         // AiMsgDebug("[mtoa] [%s] Arnold node %s is provided by %s and will be processed for translator registration", m_impl->m_extensionName.asChar(), nodeName, nodeFile);
          MStatus nodeStatus;
          nodeStatus = RegisterTranslator(nentry);
          // Only report hard failures, ignore kNotImplemented
@@ -530,7 +539,7 @@ MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
    unsigned int newNodes = RegisteredNodesCount();
    unsigned int trsNodes = TranslatedNodesCount();
    AiMsgInfo("[mtoa] [%s] Registered a total of %i translators for %i Maya nodes (%i new and %i existing).",
-         m_extensionName.asChar(), TranslatorCount(), trsNodes, newNodes, trsNodes - newNodes);
+         m_impl->m_extensionName.asChar(), TranslatorCount(), trsNodes, newNodes, trsNodes - newNodes);
 
    return status;
 }
@@ -551,7 +560,7 @@ MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
 /// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
 ///
 
-MStatus CExtension::RegisterNode(CPxMayaNode &mayaNode,
+MStatus CExtensionImpl::RegisterNode(CPxMayaNode &mayaNode,
                                  const CPxArnoldNode &arnoldNode)
 {
    // We're either creating a new node and mapping it (associating it with an exiting node),
@@ -592,7 +601,7 @@ MStatus CExtension::RegisterNode(CPxMayaNode &mayaNode,
 ///
 /// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
 ///
-MStatus CExtension::RegisterTranslator(const CPxTranslator &translator,
+MStatus CExtensionImpl::RegisterTranslator(const CPxTranslator &translator,
                                        CPxMayaNode &mayaNode,
                                        const CPxArnoldNode &arnoldNode)
 {
@@ -615,7 +624,7 @@ MStatus CExtension::RegisterTranslator(const CPxTranslator &translator,
 }
 
 /// Register a new Maya node and map it to an Arnold node.
-MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
+MStatus CExtensionImpl::NewMappedMayaNode(CPxMayaNode mayaNode,
                                       const CPxArnoldNode &arnoldNode)
 {
    MStatus status;
@@ -670,7 +679,7 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
 ///
 /// Typically helper nodes that don't need to be directly translated.
 ///
-MStatus CExtension::NewMayaNode(const CPxMayaNode &mayaNode)
+MStatus CExtensionImpl::NewMayaNode(const CPxMayaNode &mayaNode)
 {
    // Need all necessary creation information
    if ((mayaNode.name == "") || (mayaNode.id.id() == 0) || (NULL == mayaNode.creator))
@@ -705,7 +714,7 @@ MStatus CExtension::NewMayaNode(const CPxMayaNode &mayaNode)
 }
 
 /// Associate an existing Maya node to an Arnold node.
-MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
+MStatus CExtensionImpl::MapMayaNode(const CPxMayaNode &mayaNode,
                                 const CPxArnoldNode &arnoldNode)
 {
    MStatus status;
@@ -727,7 +736,7 @@ MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
             mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
          (*it).second = mayaNode;
          // TODO: clean translators if we did a override?
-         // AiMsgWarning("[mtoa] [%s] [node %s] Failed to associate existing Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
+         // AiMsgWarning("[mtoa] [%s] [node %s] Failed to associate existing Maya node %s.", m_impl->m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
 
          return MStatus::kSuccess;
       }
@@ -747,7 +756,7 @@ MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
 }
 
 /// Store a new translator proxy in list.
-MStatus CExtension::NewTranslator(const CPxTranslator &translator,
+MStatus CExtensionImpl::NewTranslator(const CPxTranslator &translator,
                                   const CPxMayaNode &mayaNode)
 {
    if (NULL == translator.creator || mayaNode.IsNull())
@@ -832,7 +841,7 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
 }
 
 /// Find a registered Maya node by the Maya node type name.
-const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNode)
+const CPxMayaNode* CExtensionImpl::FindRegisteredMayaNode(const CPxMayaNode &mayaNode)
 {
    MayaNodesSet::iterator nodeIt;
    nodeIt = m_registeredMayaNodes.find(mayaNode);
@@ -847,7 +856,7 @@ const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNod
 }
 
 /// Find a std::set of all registered translators for a Maya node.
-const TranslatorsSet* CExtension::FindRegisteredTranslators(const CPxMayaNode &mayaNode)
+const TranslatorsSet* CExtensionImpl::FindRegisteredTranslators(const CPxMayaNode &mayaNode)
 {
    MayaNodeToTranslatorsMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
@@ -862,7 +871,7 @@ const TranslatorsSet* CExtension::FindRegisteredTranslators(const CPxMayaNode &m
 }
 
 /// Find file in the given search path(s)
-MString CExtension::FindFileInPath(const MString &file,
+MString CExtensionImpl::FindFileInPath(const MString &file,
                                    const MString &path,
                                    MStatus *returnStatus)
 {
@@ -894,7 +903,7 @@ MString CExtension::FindFileInPath(const MString &file,
 /// Find all libraries (dll, so) in the given search path.
 ///
 /// @param path all paths to search for libraries, ; or : separated
-MStringArray CExtension::FindLibraries(const MString &path,
+MStringArray CExtensionImpl::FindLibraries(const MString &path,
                                        MStatus *returnStatus)
 {
    MStatus status = MStatus::kNotFound;
@@ -948,7 +957,7 @@ bool CExtension::IsArnoldPluginLoaded(const MString &file)
    MFileObject fo;
    fo.setRawFullName(file);
    MString rawName = fo.rawName();
-   for (LoadedArnoldPluginsSet::iterator it = s_allLoadedArnoldPlugins.begin() ; it != s_allLoadedArnoldPlugins.end(); ++it)
+   for (LoadedArnoldPluginsSet::iterator it = CExtensionImpl::s_allLoadedArnoldPlugins.begin() ; it != CExtensionImpl::s_allLoadedArnoldPlugins.end(); ++it)
    {
       MFileObject fo2;
       fo2.setRawFullName((*it).c_str());
@@ -963,8 +972,8 @@ MStringArray CExtension::GetAllLoadedArnoldPlugins()
 {
    MStringArray result;
    LoadedArnoldPluginsSet::iterator pluginIt;
-   for (pluginIt = s_allLoadedArnoldPlugins.begin();
-       pluginIt != s_allLoadedArnoldPlugins.end();
+   for (pluginIt = CExtensionImpl::s_allLoadedArnoldPlugins.begin();
+       pluginIt != CExtensionImpl::s_allLoadedArnoldPlugins.end();
        pluginIt++)
    {
       result.append(pluginIt->c_str());

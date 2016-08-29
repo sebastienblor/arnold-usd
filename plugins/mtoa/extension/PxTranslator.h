@@ -1,5 +1,6 @@
 #pragma once
 
+#include <extension/Extension.h>
 #include <cstring>
 #include <maya/MString.h>
 
@@ -7,15 +8,14 @@
 
 class CAbTranslator;
 
-typedef void *   (*TCreatorFunction)();
-// typedef void     (*TNodeInitFunction)(MObject&);
-typedef void     (*TNodeInitFunction)(CAbTranslator);
+
 
 // A translator proxy
 class CPxTranslator
 {
    friend class CAbTranslator;
    friend class CExtension;
+   friend class CExtensionImpl;
    friend class CExtensionsManager;
 
 public:

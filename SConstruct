@@ -779,14 +779,14 @@ apiheaders = [
                 #os.path.join('common', 'MObjectCompare.h'),
                 os.path.join('common', 'UtilityFunctions.h'),
                 os.path.join('extension', 'Extension.h'),
-                os.path.join('extension', 'ExtensionsManager.h'),
-                os.path.join('extension', 'AbMayaNode.h'),
+                #os.path.join('extension', 'ExtensionsManager.h'),
+                #os.path.join('extension', 'AbMayaNode.h'),
                 os.path.join('extension', 'AbTranslator.h'),
-                os.path.join('extension', 'PxUtils.h'),
-                os.path.join('extension', 'PxMayaNode.h'),
-                os.path.join('extension', 'PxArnoldNode.h'),
-                os.path.join('extension', 'PxTranslator.h'),
-                os.path.join('extension', 'PathUtils.h'),
+                #os.path.join('extension', 'PxUtils.h'),
+                #os.path.join('extension', 'PxMayaNode.h'),
+                #os.path.join('extension', 'PxArnoldNode.h'),
+                #os.path.join('extension', 'PxTranslator.h'),
+                #os.path.join('extension', 'PathUtils.h'),
                 os.path.join('platform', 'Platform.h'),
                 os.path.join('platform', 'darwin', 'Event.h'),
                 os.path.join('platform', 'linux', 'Event.h'),
@@ -913,8 +913,16 @@ env['BUILDERS']['PackageDeploy']  = Builder(action = Action(deploy,  "Deploying 
 ## EXTENSIONS
 ################################
 
+print 'extensions'
+
 ext_env = maya_env.Clone()
-ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+
+ext_env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
+
+# Instead of including our whole MtoA folder, we should just include what's provided in the public API
+#ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+ext_env.Append(CPPPATH = [TARGET_INCLUDE_PATH])
+
 ext_env.Append(LIBPATH = ['.', ARNOLD_API_LIB, ARNOLD_BINARIES])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
@@ -933,7 +941,8 @@ for ext in os.listdir(ext_base_dir):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
-    if os.path.isdir(ext_dir):        
+    if os.path.isdir(ext_dir):
+
         EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                              variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                              duplicate   = 0,
