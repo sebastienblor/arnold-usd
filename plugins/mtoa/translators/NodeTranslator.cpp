@@ -276,7 +276,8 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
    }
    else
    {
-      AiMsgError("[mtoa.translator]  %s: Translation has not created an Arnold node with tag \"%s\".", GetTranslatorName().asChar(), tag);
+      // Removing the debug log because we might call GetArnoldNode to be informed of whether an entry already exists
+      //AiMsgError("[mtoa.translator]  %s: Translation has not created an Arnold node with tag \"%s\".", GetTranslatorName().asChar(), tag);
       return NULL;
    }
 }

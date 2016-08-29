@@ -163,9 +163,12 @@ void CHairTranslator::Export( AtNode *curve )
       // Default to the Hair shader if nothing else has been set.
       if (shader == NULL)
       {
-         shader = AiNode("MayaHair");
-         MString hairShaderName = fnDepNodeHair.name();
+         // First check if the internal root shader was already created in a previous export
+         shader = GetArnoldNode("rootShader");
+         if (shader == NULL)
+            shader = AddArnoldNode("MayaHair", "rootShader");
 
+         MString hairShaderName = fnDepNodeHair.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
          ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));

@@ -127,7 +127,6 @@ void CCurveTranslator::Export( AtNode *curve )
    // The num points array (int array the size of numLines, no motionsteps)
    AtArray* curveNumPoints             = AiArrayAllocate(1, 1, AI_TYPE_INT);
 
-
    // Check if we using a custom curve shader.
    if (RequiresShaderExport())
    {
@@ -145,7 +144,11 @@ void CCurveTranslator::Export( AtNode *curve )
       
       if (shader == NULL)
       {
-         shader = AiNode("hair");
+         // check if the internal root shader was already created in a previous export
+         shader = GetArnoldNode("rootShader");
+         if (shader == NULL)
+            shader = AddArnoldNode("hair", "rootShader");
+            
          MString hairShaderName = fnDepNodeCurve.name();
          hairShaderName += "_hairShader";
          AiNodeSetStr(shader, "name", hairShaderName.asChar());
@@ -153,10 +156,8 @@ void CCurveTranslator::Export( AtNode *curve )
          // Add shader uparam and vparam names
          AiNodeSetStr(shader, "uparam", "uparamcoord");
          AiNodeSetStr(shader, "vparam", "vparamcoord");
-
-         SetRootShader(shader);
       }
-      
+      SetRootShader(shader);      
    }   
 
    // Iterate over all lines to get sizes for AiArrayAllocate

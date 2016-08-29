@@ -112,12 +112,15 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 // called for root shaders that have already been created
 void CShapeTranslator::SetRootShader(AtNode *rootShader)
 {
-   std::vector<AtNode*> aovShaders;
-   // insert shading group shader to evaluate extra AOV inputs
-   AtNode* shadingEngine = AiNode("MayaShadingEngine");
-
-   m_impl->AddAOVDefaults(shadingEngine, aovShaders);
-
+   // First check if the internal SG node has already been created
+   AtNode *shadingEngine = GetArnoldNode("shadingEngine");
+   if (shadingEngine == NULL)
+   {
+      // register this AtNode in our Translator, so that it is properly cleared later
+      shadingEngine = AddArnoldNode("MayaShadingEngine", "shadingEngine");
+      std::vector<AtNode*> aovShaders;
+      m_impl->AddAOVDefaults(shadingEngine, aovShaders);
+   }
    AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
    AiNodeLink(rootShader, "beauty", shadingEngine);
 

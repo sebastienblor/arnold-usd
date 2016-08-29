@@ -476,22 +476,29 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer)
       {
          return;
       }
-
+      int globalIndex = 0;
       for (std::map<int,int>::iterator it = m_particleIDMap.begin();
            it !=  m_particleIDMap.end(); ++it)
       {
          int partID = it->first;
          int j = it->second;
 
-         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
+         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
          {
-            AtNode *instance;
-            instance = AiNode("ginstance");
-            char nodeName[MAX_NAME_SIZE];
-            AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+            MString instanceName = "inst";
+            instanceName += globalIndex;
 
+            // check if the instance for this index was already found
+            AtNode *instance = GetArnoldNode(instanceName.asChar());
+            if (instance == NULL)
+            {
+               // Create and register this ginstance node, so that it is properly cleared later
+               instance = AddArnoldNode("ginstance", instanceName.asChar());
+               char nodeName[MAX_NAME_SIZE];
+               AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+            }
             int idx = m_particlePathsMap[partID][k];
-
+                        
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
             AiNodeSetBool(instance, "inherit_xform", true);
