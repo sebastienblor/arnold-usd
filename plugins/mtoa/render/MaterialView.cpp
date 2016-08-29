@@ -7,6 +7,7 @@
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
 #include "translators/DagTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/AttrHelper.h"
@@ -255,7 +256,7 @@ MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId,
    if (translator)
    {
       AtMatrix matrix;
-      translator->ConvertMatrix(matrix, mayaMatrix, CMayaScene::GetArnoldSession());
+      translator->ConvertMatrix(matrix, mayaMatrix);
 
       // Make sure the renderer is stopped
       InterruptRender(true);
@@ -665,7 +666,7 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
       if (translator)
       {
          translator->m_impl->Init(arnoldSession, node);
-         arnoldNode = translator->DoExport();
+         arnoldNode = translator->m_impl->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
       }
@@ -706,7 +707,7 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       if (translator)
       {
          translator->m_impl->Init(arnoldSession, dagPath);
-         arnoldNode = translator->DoExport();
+         arnoldNode = translator->m_impl->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
       }
@@ -738,10 +739,10 @@ AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode)
    if (updateMode == MV_UPDATE_RECREATE)
    {
       translator->Delete();
-      translator->DoCreateArnoldNodes();
-      return translator->DoExport();
+      translator->m_impl->DoCreateArnoldNodes();
+      return translator->m_impl->DoExport();
    }
-   return translator->DoUpdate();
+   return translator->m_impl->DoUpdate();
 }
 
 void CMaterialView::SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data)

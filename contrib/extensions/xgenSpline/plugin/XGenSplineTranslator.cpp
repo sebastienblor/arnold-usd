@@ -83,10 +83,11 @@ void CXgSplineDescriptionTranslator::Export(AtNode* procedural)
     if (IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
     {
         // Motion blur is enabled. Output the motion frames.
-        const std::vector<double> motionFrames = GetSession()->GetMotionFrames();
-
-        AtArray* sampleTimes = AiArrayAllocate(motionFrames.size(), 1, AI_TYPE_FLOAT);
-        for (size_t i = 0; i < motionFrames.size(); i++)
+        unsigned int motionFramesCount;
+        const double *motionFrames = GetMotionFrames(motionFramesCount);
+        
+        AtArray* sampleTimes = AiArrayAllocate(motionFramesCount, 1, AI_TYPE_FLOAT);
+        for (unsigned int i = 0; i < motionFramesCount; i++)
             AiArraySetFlt(sampleTimes, i, float(motionFrames[i]));
         AiNodeSetArray(procedural, "sampleTimes", sampleTimes);
     }
