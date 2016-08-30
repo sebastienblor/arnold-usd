@@ -347,6 +347,8 @@ MPlug CNodeTranslatorImpl::FindMayaObjectPlug(const MString &attrName, MStatus* 
 
 void CNodeTranslatorImpl::RemoveUpdateCallbacks()
 {
+   if (m_mayaCallbackIDs.length() == 0) return;
+   
    const MStatus status = MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }

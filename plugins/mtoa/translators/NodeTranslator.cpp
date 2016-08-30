@@ -1128,7 +1128,14 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       {
          (*it)->RequestUpdate();
       }
-      // removing translator from the list now while it is still active
+      
+      // no longer receive any callbacks from this node, we're done
+      m_impl->RemoveUpdateCallbacks();
+      // removing translator from the list now while it is still active.
+      // Note that the translator itself (and the Arnold nodes) will only 
+      // be deleted in the next IPR update (CArnoldSession::DoUpdate()).
+      // But for now we just want to remove the translator from the session list
+      // since it's being accessed in the map based on the MObject/MPlug/MDagPath, etc...
       m_impl->m_session->EraseActiveTranslator(m_impl->m_handle);
    }
 }

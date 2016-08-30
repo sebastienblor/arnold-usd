@@ -165,6 +165,8 @@ protected:
 
    // Convert a matrix from Maya to Arnold data
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+
+   // Shortcuts for the Render Session
    static double GetExportFrame();
    static unsigned int GetMotionStep();
    static unsigned int GetNumMotionSteps();
