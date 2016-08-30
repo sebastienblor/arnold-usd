@@ -200,9 +200,9 @@ AtNode* CNodeTranslatorImpl::ProcessParameterInputs(AtNode* arnoldNode, const MP
    {
       // process connections
       MPlug srcMayaPlug = connections[0];
+      
+#if MAYA_API_VERSION >= 201650
       MPlug directSrcMayaPlug = srcMayaPlug;
-
-#if MAYA_API_VERSION >= 201700
       while(srcMayaPlug.isDestination())
       {
          // Entering this loop will happen if the source plug (readable)

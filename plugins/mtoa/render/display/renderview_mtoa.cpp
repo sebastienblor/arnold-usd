@@ -65,6 +65,28 @@ void CRenderViewMtoA::ProgressiveRenderFinished() {}
 #include <maya/MTimerMessage.h>
 
 
+#ifdef _DARWIN
+static Qt::WindowFlags RvQtFlags = Qt::Tool;
+#else
+static Qt::WindowFlags RvQtFlags = Qt::Window|Qt::WindowSystemMenuHint|Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+#endif
+
+#if MAYA_API_VERSION >= 201700
+#include "QtWidgets/QDockWidget.h"
+#include "QtWidgets/QMainWindow.h"
+#else
+#include "QtGui/QDockWidget.h"
+#include "QtGui/QMainWindow.h"
+#endif
+class ARVDockWidget : public QDockWidget
+{
+public:
+   ARVDockWidget(CRenderViewMtoA &arv, QWidget*parent) : QDockWidget(parent, RvQtFlags), m_arv(arv) {}
+protected:
+   virtual void closeEvent(QCloseEvent *event) {m_arv.CloseRenderView();}
+   CRenderViewMtoA &m_arv;
+};
+static ARVDockWidget *s_arvDockWidget = NULL;
 struct CARVSequenceData
 {
    float first;
@@ -187,8 +209,24 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    {
       MGlobal::executeCommand("addAttr -ln \"ARV_options\"  -dt \"string\"  defaultArnoldRenderOptions");
    } 
+   QWidget * mainWin = MQtUtil::mainWindow();
 
-   OpenRenderView(width, height, MQtUtil::mainWindow());
+   OpenRenderView(width, height, mainWin);
+   QMainWindow *arv = GetRenderView();
+
+   if (s_arvDockWidget == NULL){ 
+      s_arvDockWidget = new ARVDockWidget(*this, mainWin); 
+      s_arvDockWidget->setWidget(arv);
+      s_arvDockWidget->resize(arv->width(), arv->height());
+      s_arvDockWidget->setWindowTitle(arv->windowTitle());
+      s_arvDockWidget->setWindowIcon(arv->windowIcon());
+   }
+   
+   
+   //s_arvDockWidget->setFloating(true);
+   //s_arvDockWidget->resize(arv->width(), arv->height());
+   s_arvDockWidget->setWindowFlags(RvQtFlags);
+   s_arvDockWidget->show();
 
    if (exists && m_convertOptionsParam)
    {
@@ -616,7 +654,7 @@ void CRenderViewMtoA::RenderViewClosed()
    m_rvSceneSaveCb = 0;
 
    MProgressWindow::endProgress();
-
+   s_arvDockWidget->hide();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
