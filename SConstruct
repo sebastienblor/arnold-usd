@@ -257,6 +257,7 @@ env['ENABLE_VP2'] = 0
 env['REQUIRE_DXSDK'] = 0
 env['ENABLE_BIFROST'] = 0
 env['ENABLE_LOOKDEVKIT'] = 0
+env['ENABLE_RENDERSETUP'] = 0
 env['ENABLE_COLOR_MANAGEMENT'] = 0
 
 # Get arnold and maya versions used for this build
@@ -272,6 +273,8 @@ if int(maya_version) >= 201450:
 if int(maya_version) >= 201600:
     env['ENABLE_BIFROST'] = 1
     env['ENABLE_LOOKDEVKIT'] = 1
+if int(maya_version) >= 201650:
+    env['ENABLE_RENDERSETUP'] = 1
 
 if int(maya_version_base) >= 2014:
     env['ENABLE_VP2'] = 1
@@ -531,6 +534,8 @@ if env['ENABLE_BIFROST'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_BIFROST'))
 if env['ENABLE_LOOKDEVKIT'] == 1:
     env.Append(CPPDEFINES=Split('ENABLE_LOOKDEVKIT'))
+if env['ENABLE_RENDERSETUP'] == 1:
+    env.Append(CPPDEFINES=Split('ENABLE_RENDERSETUP'))
 
 if int(maya_version_base) < 2017:
     env.Append(CPPDEFINES = Split('MTOA_ENABLE_GAMMA'))
@@ -923,7 +928,8 @@ for ext in os.listdir(ext_base_dir):
             (env['ENABLE_XGEN'] == 1 and (int(maya_version) >= 201700) and ext == 'xgenSpline') or
             ((int(maya_version) >= 201700) and ext == 'hairPhysicalShader') or
             (env['ENABLE_BIFROST'] == 1 and ext == 'bifrost') or
-            (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit')):
+            (env['ENABLE_LOOKDEVKIT'] == 1 and ext == 'lookdevkit') or
+            (env['ENABLE_RENDERSETUP'] == 1 and ext == 'renderSetup')):
         continue
     ext_dir = os.path.join(ext_base_dir, ext)
 
@@ -1072,6 +1078,10 @@ if env['ENABLE_BIFROST'] == 1:
 if env['ENABLE_LOOKDEVKIT'] == 1:
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit%s' % get_library_extension()), 'extensions'])
     PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'lookdevkit', 'lookdevkit_shaders%s' % get_library_extension()), 'shaders'])
+
+if env['ENABLE_RENDERSETUP'] == 1:
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup%s' % get_library_extension()), 'extensions'])
+    PACKAGE_FILES.append([os.path.join(BUILD_BASE_DIR, 'renderSetup', 'renderSetup_shaders%s' % get_library_extension()), 'shaders'])
 
 if system.os() == "windows":
     PACKAGE_FILES.append([os.path.join('installer', 'bin', 'volume_openvdb.dll'), 'procedurals'])
