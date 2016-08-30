@@ -126,8 +126,6 @@ void CHairTranslator::Export( AtNode *curve )
    
    if (RequiresShaderExport())
    {
-      // The shader nodes
-      // TODO: Kill these and export it properly.
       AtNode* shader = NULL;
       
       plug = fnDepNodeHair.findPlug("aiOverrideHair");
@@ -224,9 +222,8 @@ void CHairTranslator::Export( AtNode *curve )
          }
          plug = fnDepNodeHair.findPlug("aiIndirectDiffuse");
          AiNodeSetFlt(shader, "indirectDiffuse", plug.asFloat());
-         SetRootShader(shader);
       }
-      
+      SetRootShader(shader);      
    }
    
    AiNodeSetByte(curve, "visibility", visibility);  

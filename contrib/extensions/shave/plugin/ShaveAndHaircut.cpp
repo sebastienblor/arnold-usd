@@ -29,10 +29,15 @@ AtNode*  CShaveTranslator::CreateArnoldNodes()
 
 
 AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
-{
-   AtNode* shader = AiNode("ShaveHair");
+{   
    char nodeName[MAX_NAME_SIZE];
-   AiNodeSetStr(shader, "name", NodeUniqueName(shader, nodeName));
+   // check if a shaderHair node hasn't been already created in a previous export
+   AtNode* shader = GetArnoldNode("ShaveHair");
+   if (shader == NULL)
+   {
+      shader = AddArnoldNode("ShaveHair", "ShaveHair");
+      AiNodeSetStr(shader, "name", NodeUniqueName(shader, nodeName));
+   }
 
    // Fade the hairstrand towards the tip.
    MPlug plug = FindMayaPlug("tipFade");
@@ -42,10 +47,18 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
       // matter the attribute setting.
       AiNodeSetBool(curve, "opaque", false);
 
-      AtNode* ramp = AiNode("MayaRamp");
-      AiNodeSetStr(ramp, "name", NodeUniqueName(ramp, nodeName));
-      AtNode* placementNode = AiNode("MayaPlace2DTexture");
-      AiNodeSetStr(placementNode, "name", NodeUniqueName(placementNode, nodeName));
+      AtNode* ramp = GetArnoldNode("MayaRamp");
+      if (ramp == NULL)
+      {
+         ramp = AddArnoldNode("MayaRamp", "MayaRamp");
+         AiNodeSetStr(ramp, "name", NodeUniqueName(ramp, nodeName));
+      }
+      AtNode* placementNode = GetArnoldNode("MayaPlace2DTexture");
+      if (placementNode == NULL)
+      {
+         placementNode = AddArnoldNode("MayaPlace2DTexture", "MayaPlace2DTexture");
+         AiNodeSetStr(placementNode, "name", NodeUniqueName(placementNode, nodeName));
+      }
       AiNodeSetStr(ramp, "type", "v");
 
       AtArray* positions  = AiArrayAllocate(2, 1, AI_TYPE_FLOAT);
@@ -125,7 +138,7 @@ void CShaveTranslator::Export(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = ExportRootShader(curveShaderPlug[0]);
+            shader = ExportConnectedNode(curveShaderPlug[0]);
          }
       }
    }
@@ -133,14 +146,11 @@ void CShaveTranslator::Export(AtNode* curve)
    // Default to the ShaveHair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = ExportRootShader(CreateShaveShader(curve));
+      shader = CreateShaveShader(curve);
    }
    
-   if (shader != NULL)
-   {
-      AiNodeSetPtr(curve, "shader", shader);
-   }
-
+   SetRootShader(shader);
+   
    // Should we export the hair root and tip colour? Default to true.
    // Turning it off gives us a slimmer ass.
    plug = FindMayaPlug("aiExportHairColors");

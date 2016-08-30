@@ -112,6 +112,16 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 // called for root shaders that have already been created
 void CShapeTranslator::SetRootShader(AtNode *rootShader)
 {
+   // handle the situation where a previous rootShader was deleted
+   if (rootShader == NULL)
+   {
+      AtNode *shape = GetArnoldNode();
+      if (shape != NULL)
+         AiNodeSetPtr(shape, "shader", NULL);
+
+      return;
+   }
+   
    // First check if the internal SG node has already been created
    AtNode *shadingEngine = GetArnoldNode("shadingEngine");
    if (shadingEngine == NULL)
@@ -125,7 +135,8 @@ void CShapeTranslator::SetRootShader(AtNode *rootShader)
    AiNodeLink(rootShader, "beauty", shadingEngine);
 
    AtNode *shape = GetArnoldNode();
-   if (shadingEngine != NULL && shape != NULL) AiNodeSetPtr(shape, "shader", shadingEngine);
+   if (shape != NULL)
+      AiNodeSetPtr(shape, "shader", shadingEngine);
 }
 
 

@@ -438,12 +438,19 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       // For other patches we reuse the shaders and create new procedural
       else
       {
-         shape = AiNode("procedural");
+         MString nameKey = "proc";
+         nameKey += i;
+         // we store this procedural in our translator using a key based on its index.
+         // This way it'll be properly cleared or re-used later in the IPR session
+         shape = GetArnoldNode(nameKey.asChar());
+         if (shape == NULL)
+            shape = AddArnoldNode("procedural", nameKey.asChar());
 
          AiNodeDeclare( shape, "xgen_shader", "constant ARRAY NODE" );
          AiNodeSetArray(shape, "xgen_shader", AiArray(1, 1, AI_TYPE_NODE, rootShader));
 
-         /*AtNode* otherInstance = AiNode("ginstance");
+         /*AtNode* otherInstance = GetArnoldNode(nameKey.asChar());
+         if (otherInstance == NULL) otherInstance = AddArnoldNode("ginstance", nameKey.asChar());
          AiNodeSetStr(otherInstance, "name", NodeUniqueName(otherInstance, buf));
          AiNodeSetPtr( otherInstance, "node", shape );
          AiNodeSetPtr( otherInstance, "shader", rootShader );
