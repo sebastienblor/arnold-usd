@@ -71,6 +71,7 @@ void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
 /// the remaining custom AOVs are processed by CShadingEngineTranslator::Export.
 void CShadingEngineTranslator::Export(AtNode *shadingEngine)
 {
+   
    if ((CMayaScene::GetRenderSession()->RenderOptions()->outputAssMask() & AI_NODE_SHADER) == 0)
       return;
    std::vector<AtNode*> aovShaders;
@@ -128,8 +129,11 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       }
    }
    else
+   {
       AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
             GetTranslatorName().asChar(), GetMayaNodeName().asChar());
+      AiNodeUnlink(shadingEngine, "beauty");
+   }
    
    connections.clear();
    MPlug volumeShaderPlug = FindMayaPlug("aiVolumeShader");
@@ -147,6 +151,9 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       MStatus status;
       rootShader = ExportConnectedNode(connections[0]);
       AiNodeLink(rootShader, "volume", shadingEngine);
+   } else
+   {
+      AiNodeUnlink(shadingEngine, "volume");
    }
 
    m_impl->AddAOVDefaults(shadingEngine, aovShaders); // modifies aovShaders list

@@ -1234,6 +1234,11 @@ void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
    m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
+void CArnoldSession::EraseActiveTranslator(const CNodeAttrHandle &handle)
+{
+   m_processedTranslators.erase(handle);
+}
+
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
    if (m_isExportingMotion && IsInteractiveRender()) return;
@@ -1290,7 +1295,6 @@ void CArnoldSession::DoUpdate()
       if (translator != NULL && translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_TRANSLATOR)
       {
          // delete the current translator, just like AI_DELETE_NODE does
-         
          translator->Delete();
          m_processedTranslators.erase(handle); 
          
@@ -1311,6 +1315,7 @@ void CArnoldSession::DoUpdate()
          // check its update mode
          if(translator->m_impl->m_updateMode == CNodeTranslator::AI_RECREATE_NODE)
          {
+            
             // to be updated properly, the Arnold node must 
             // be deleted and re-exported            
             translator->Delete();
@@ -1323,7 +1328,8 @@ void CArnoldSession::DoUpdate()
          } else if(translator->m_impl->m_updateMode == CNodeTranslator::AI_DELETE_NODE)
          {
             translator->Delete();
-            m_processedTranslators.erase(handle);
+            // the translator has already been removed from our list
+            //m_processedTranslators.erase(handle);
 
             // we're now deleting this transator, this was never done...make sure it doesn't introduce issues
             delete translator;
@@ -1407,6 +1413,7 @@ void CArnoldSession::DoUpdate()
    size_t updatedObjects = m_objectsToUpdate.size();
    
    // FIXME: n
+         
    if (newDag || IsLightLinksDirty())
    {
       UpdateLightLinks();
@@ -1421,6 +1428,7 @@ void CArnoldSession::DoUpdate()
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request
 
+         
    if (!reqMob)
    {
       for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
@@ -1524,7 +1532,7 @@ void CArnoldSession::ClearUpdateCallbacks()
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {
+   {	   
       if (it->second != NULL) it->second->m_impl->RemoveUpdateCallbacks();
    }
 }

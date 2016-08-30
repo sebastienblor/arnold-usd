@@ -198,6 +198,7 @@ bool CNodeTranslator::IsExported() const
 
 void CNodeTranslator::Delete()
 {
+	
    // Destroy all Arnold nodes for this translator
 #ifdef NODE_TRANSLATOR_REFERENCES
    // First get rid of all the connections to other translators
@@ -214,9 +215,10 @@ void CNodeTranslator::Delete()
    m_impl->m_backReferences.clear();
 #endif
 
+   
    AiNodeDestroy(m_impl->m_atNode);
    m_impl->m_atNode = NULL;
-
+   
    if (m_impl->m_additionalAtNodes)
    {
       for (std::map<std::string, AtNode*>::iterator it = m_impl->m_additionalAtNodes->begin(); it != m_impl->m_additionalAtNodes->end(); ++it)
@@ -225,6 +227,7 @@ void CNodeTranslator::Delete()
       delete m_impl->m_additionalAtNodes;
       m_impl->m_additionalAtNodes = NULL;
    }
+   
 
    m_impl->m_isExported = false;
 
@@ -1109,6 +1112,7 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
    if (m_impl->m_updateMode >= m) return; 
 
    m_impl->m_updateMode = m;
+
    if (m == AI_DELETE_NODE)
    {
       // needs to delete the sourceTranslator too
@@ -1124,7 +1128,8 @@ void CNodeTranslator::SetUpdateMode(UpdateMode m)
       {
          (*it)->RequestUpdate();
       }
-      // we don't delete the back references here. We'll do it at next Render Update in Delete()
+      // removing translator from the list now while it is still active
+      m_impl->m_session->EraseActiveTranslator(m_impl->m_handle);
    }
 }
 /// for automatically creating parameters
