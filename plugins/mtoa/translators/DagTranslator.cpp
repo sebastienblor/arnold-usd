@@ -17,7 +17,7 @@ void CDagTranslator::Init()
    MDagPath::getAllPathsTo(GetMayaObject(), dagArray);
    for (unsigned int i = 0; i < dagArray.length(); ++i)
    {
-      if (dagArray[i].instanceNumber() == m_impl->m_handle.instanceNum())
+      if ((int)dagArray[i].instanceNumber() == m_impl->m_handle.instanceNum())
       {
          // this is the right instance
          m_dagPath = dagArray[i];

@@ -327,7 +327,7 @@ void CArnoldPhotometricLightDrawOverride::clearGPUResources()
 // Generate new static CPU data once
 void CArnoldPhotometricLightDrawOverride::initializeUserData()
 {
-   if ((s_isInitialized == false))
+   if (s_isInitialized == false)
    {
       s_isInitialized = true;
       s_isValid = true;

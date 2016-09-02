@@ -50,7 +50,7 @@ public :
       m_sourceTranslator(NULL),
       m_isExported(false),
       m_tr(translator){}
-   ~CNodeTranslatorImpl() {}
+   virtual ~CNodeTranslatorImpl() {}
 
    virtual bool IsMayaTypeDag() const {return false;}
    virtual void ComputeAOVs();

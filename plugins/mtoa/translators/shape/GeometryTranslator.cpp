@@ -11,36 +11,6 @@
 
 namespace
 {
-   void SetKeyData(AtArray* arr, unsigned int step, const std::vector<float>& data, unsigned int size)
-   {
-      unsigned int index = 0;
-
-      switch(arr->type)
-      {
-         case AI_TYPE_POINT:
-         {
-            AtPoint pnt;
-            for(unsigned int J = 0; (J < size); ++J)
-            {
-               AiV3Create(pnt, data[index+0], data[index+1], data[index+2]);
-               index += 3;
-               AiArraySetPnt(arr, J + (size * step), pnt);
-            }
-         }
-         break;
-
-         case AI_TYPE_VECTOR:
-         {
-            AtVector vec;
-            for(unsigned int J = 0; (J < size); ++J)
-            {
-               AiV3Create(vec, data[index+0], data[index+1], data[index+2]);
-               index += 3;
-               AiArraySetVec(arr, J + (size * step), vec);
-            }
-         }
-      }
-   }
    
    void SetKeyData(AtArray* arr, unsigned int step, const float* data, unsigned int size)
    {
@@ -914,7 +884,10 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                }
                for (unsigned int i = 0; i < numVerts; ++i)
                {                  
-                  AtVector vec = {*(vert++), *(vert++), *(vert++)};
+                  AtVector vec;
+                  vec.x = *(vert++);
+                  vec.y = *(vert++);
+                  vec.z = *(vert++);
                   AiArraySetPnt(verticesArray, i, vec);
                   const AtRGBA* motionVector = motionVectorColors + i;
                   vec.x += motionVector->r * motionRange;
@@ -930,7 +903,10 @@ void CPolygonGeometryTranslator::ExportMeshGeoData(AtNode* polymesh)
                const float* norm = normals;
                for (unsigned int i = 0; i < numNorms; ++i)
                {                  
-                  AtVector vec = {*(norm++), *(norm++), *(norm++)};
+                  AtVector vec;
+                  vec.x = *(norm++);
+                  vec.y = *(norm++);
+                  vec.z = *(norm++);
                   AiArraySetVec(normalsArray, i, vec);
                   AiArraySetVec(normalsArray, i + numNorms, vec);
                }

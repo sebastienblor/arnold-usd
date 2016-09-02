@@ -431,7 +431,7 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
          //AiNodeSetPtr( instance, "node", shape );
 
          // Export shaders
-         rootShader = ExportShaders( shape );
+         rootShader = ExportRootShader(shape);
 
          ExportMatrix(shape);
       }
@@ -689,6 +689,10 @@ void CXgDescriptionTranslator::Export(AtNode* procedural)
       ExportLightLinking(shape);
    }
 }
+void CXgDescriptionTranslator::ExportShaders()
+{
+   ExportRootShader(GetArnoldNode());
+}
 
 void CXgDescriptionTranslator::ExportMotion(AtNode* shape)
 {
@@ -769,7 +773,7 @@ void CXgDescriptionTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInputString ( data );
 }
 
-AtNode* CXgDescriptionTranslator::ExportShaders(AtNode* instance)
+AtNode* CXgDescriptionTranslator::ExportRootShader(AtNode* instance)
 {
    MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), 0);
    if (!shadingGroupPlug.isNull())

@@ -16,8 +16,8 @@ public:
       return new CXgDescriptionTranslator();
    }
    static void NodeInitializer(CAbTranslator context);
-
+   virtual void ExportShaders();
 private:
 
-   AtNode* ExportShaders(AtNode* instance);
+   AtNode* ExportRootShader(AtNode *);
 };

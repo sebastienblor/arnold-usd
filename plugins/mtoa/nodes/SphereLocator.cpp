@@ -56,7 +56,7 @@ CSphereLocator::~CSphereLocator()
 {
 }
 
-bool CSphereLocator::isAbstractClass()
+bool CSphereLocator::isAbstractClass() const
 {
    return true;
 }
