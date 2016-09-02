@@ -2,17 +2,11 @@
 
 #include "GeometryTranslator.h"
 
-class CMeshTranslator : public CGeometryTranslator
+class CMeshTranslator : public CPolygonGeometryTranslator
 {
 public:
-   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
-   {
-      return CGeometryTranslator::Init(session, dagPath, outputAttr);
-   }
 
-   virtual void Export(AtNode* anode);
-   
-   virtual void ExportMotion(AtNode* anode, unsigned int step);
+   virtual void ExportMotion(AtNode* anode);
 
    virtual bool IsGeoDeforming();
 
@@ -21,18 +15,18 @@ public:
       return new CMeshTranslator();
    }
    AtNode* CreateArnoldNodes();
+
+   virtual bool IsRenderable() const;
+
 protected:
-   CMeshTranslator()  :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "polymesh";
-   }
-   // overridden from CDagTranslator to add a GetNumMeshGroups check
-   virtual bool DoIsMasterInstance(const MDagPath& dagPath, MDagPath &masterDag);
+   CMeshTranslator() :
+      CPolygonGeometryTranslator()
+   {}
+   
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+   virtual bool Tessellate(const MDagPath &dagPath);
+
 private:
    MObject m_dataMesh;
-   MStatus Tessellate(const MDagPath &dagPath, bool doRef);
-   unsigned int GetNumMeshGroups(const MDagPath& dagPath);
+   
 };

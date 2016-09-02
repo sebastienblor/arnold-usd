@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MFnParticleSystem.h>
 #include <maya/MFnInstancer.h>
@@ -9,6 +9,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MMatrix.h>
 #include <maya/MMatrixArray.h>
+#include <maya/MVectorArray.h>
 #include <maya/MIntArray.h>
 #include <maya/MTime.h>
 #include <maya/MBoundingBox.h>
@@ -17,16 +18,13 @@
 #include <map>
 
 class CInstancerTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 protected:
    CInstancerTranslator() :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "ginstance";
-   }
+      CShapeTranslator()
+   {}
+
 public:
    static void* creator()
    {
@@ -36,16 +34,14 @@ public:
 
 
    static void NodeInitializer(CAbTranslator context);
-   virtual void Update(AtNode* anode);
+   
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
-
-
+   void ExportMotion(AtNode* anode);
+   
 protected:
    AtByte ComputeMasterVisibility(const MDagPath& masterDagPath) const;
-   virtual void ExportInstancer(AtNode* instancer, bool update);
-   virtual void ExportInstances(AtNode* instancer, unsigned int step);
+   void ExportInstancer(AtNode* instancer, bool update);
+   void ExportInstances(AtNode* instancer);
 
 
 protected:

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
-class CArnoldStandInsTranslator : public CGeometryTranslator
+class CArnoldStandInsTranslator : public CShapeTranslator
 {
 public:
    static void* creator()
@@ -14,18 +14,13 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void Update(AtNode* anode);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
-
+   void ExportMotion(AtNode* anode);
+   
 protected:
-   CArnoldStandInsTranslator()  :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "procedural";
-   }
+   CArnoldStandInsTranslator() :
+      CShapeTranslator()
+   {}
+   
    void ExportBoundingBox(AtNode* procedural);
 
    void ExportStandinsShaders(AtNode* procedural);

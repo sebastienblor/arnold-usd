@@ -6,11 +6,10 @@ class MFnMeshData;
 class MTesselationParams;
 class MFnNurbsSurface;
 
-class CNurbsSurfaceTranslator : public CGeometryTranslator
+class CNurbsSurfaceTranslator : public CPolygonGeometryTranslator
 {
 public:
-   virtual void Export(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode, unsigned int step);
+   virtual void ExportMotion(AtNode* anode);
    virtual bool IsGeoDeforming();
 
    static void* creator()
@@ -19,15 +18,14 @@ public:
    }
    AtNode* CreateArnoldNodes();
 protected:
-   CNurbsSurfaceTranslator()  :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "polymesh";
-   }
+   CNurbsSurfaceTranslator() :
+      CPolygonGeometryTranslator()
+   {}
+   
+   virtual bool Tessellate(const MDagPath &dagPath);
+
 private:
-   MStatus Tessellate(const MDagPath &dagPath);
+   
    void GetTessellationOptions(MTesselationParams & params,
                         MFnNurbsSurface & surface);
 

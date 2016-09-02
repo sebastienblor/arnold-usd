@@ -1,39 +1,34 @@
 #pragma once
 
-#include "GeometryTranslator.h"
+#include "ShapeTranslator.h"
 
-class CArnoldProceduralTranslator : public CGeometryTranslator
+class CArnoldProceduralTranslator : public CShapeTranslator
 {
 public:
+
    static void* creator()
    {
       return new CArnoldProceduralTranslator();
    }
-   virtual AtNode* CreateArnoldNodes();
-
    static void NodeInitializer(CAbTranslator context);
-   void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, unsigned int step);
-   virtual void Update(AtNode* anode);
-   virtual void UpdateMotion(AtNode* anode, unsigned int step);
+
+//------- Derived from CNodeTranslator   
+   virtual AtNode* CreateArnoldNodes();
+   virtual void Export(AtNode* anode);
+   virtual void ExportMotion(AtNode* anode);
 
 protected:
-   CArnoldProceduralTranslator()  :
-      CGeometryTranslator()
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "procedural";
-   }
+   CArnoldProceduralTranslator() :
+      CShapeTranslator()
+   {}
+   
+   // Method used to set the min/max parameters for this procedural
    void ExportBoundingBox(AtNode* procedural);
-
-   void ExportStandinsShaders(AtNode* procedural);
+   // Export this node as an instance (if IsMasterInstance() is false)
+   void ExportInstance(AtNode *instance);
+   
+//-------- Derived from CDagTranslator
+   // Export the shaders for this Geometry
    virtual void ExportShaders();
 
-   AtNode* ExportInstance(AtNode *instance, const MDagPath& masterInstance);
-   AtNode* ExportProcedural(AtNode* procedural, bool update);
-   AtByte ComputeOverrideVisibility();
-
-protected:
-   MFnDagNode m_DagNode;
 };

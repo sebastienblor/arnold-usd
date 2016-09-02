@@ -7,6 +7,7 @@
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
 #include "translators/DagTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 #include "translators/options/OptionsTranslator.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/AttrHelper.h"
@@ -255,12 +256,12 @@ MStatus CMaterialView::translateTransform(const MUuid& id, const MUuid& childId,
    if (translator)
    {
       AtMatrix matrix;
-      translator->ConvertMatrix(matrix, mayaMatrix, CMayaScene::GetArnoldSession());
+      translator->ConvertMatrix(matrix, mayaMatrix);
 
       // Make sure the renderer is stopped
       InterruptRender(true);
 
-      AtNode* arnoldNode = translator->GetArnoldRootNode();
+      AtNode* arnoldNode = translator->GetArnoldNode();
       AiNodeSetMatrix(arnoldNode, "matrix", matrix);
    }
    else
@@ -344,7 +345,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    if (it == m_translatorLookup.end())
       return MStatus::kFailure;
    CNodeTranslator* geometryTranslator = it->second;
-   AtNode* geometryNode = geometryTranslator->GetArnoldRootNode();
+   AtNode* geometryNode = geometryTranslator->GetArnoldNode();
 
    AtNode* shaderNode = NULL;
 
@@ -353,7 +354,7 @@ MStatus CMaterialView::setShader(const MUuid& id, const MUuid& shaderId)
    {
       // Shader found among our translatated shaders
       CNodeTranslator* shaderTranslator = it->second;
-      shaderNode = shaderTranslator->GetArnoldRootNode();
+      shaderNode = shaderTranslator->GetArnoldNode();
    }
    else
    {
@@ -509,7 +510,7 @@ void CMaterialView::InitOptions()
    TranslatorLookup::iterator it = m_translatorLookup.find(m_job.cameraId);
    if (it != m_translatorLookup.end())
    {
-      AtNode* camera = it->second->GetArnoldRootNode();
+      AtNode* camera = it->second->GetArnoldNode();
       AiNodeSetPtr(options, "camera", camera);
    }
    else
@@ -664,8 +665,8 @@ AtNode* CMaterialView::TranslateNode(const MUuid& id, const MObject& node, int u
       CNodeTranslator* translator = CExtensionsManager::GetTranslator(node);
       if (translator)
       {
-         translator->Init(arnoldSession, node);
-         arnoldNode = translator->DoExport(0);
+         translator->m_impl->Init(arnoldSession, node);
+         arnoldNode = translator->m_impl->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
       }
@@ -705,8 +706,8 @@ AtNode* CMaterialView::TranslateDagNode(const MUuid& id, const MObject& node, in
       CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
       if (translator)
       {
-         translator->Init(arnoldSession, dagPath);
-         arnoldNode = translator->DoExport(0);
+         translator->m_impl->Init(arnoldSession, dagPath);
+         arnoldNode = translator->m_impl->DoExport();
          m_translatorLookup.insert(TranslatorLookup::value_type(id,translator));
          m_deletables.push_back(translator);
       }
@@ -738,10 +739,10 @@ AtNode* CMaterialView::UpdateNode(CNodeTranslator* translator, int updateMode)
    if (updateMode == MV_UPDATE_RECREATE)
    {
       translator->Delete();
-      translator->DoCreateArnoldNodes();
-      return translator->DoExport(0);
+      translator->m_impl->DoCreateArnoldNodes();
+      return translator->m_impl->DoExport();
    }
-   return translator->DoUpdate(0);
+   return translator->m_impl->DoUpdate();
 }
 
 void CMaterialView::SendBucketToView(unsigned int left, unsigned int right, unsigned int bottom, unsigned int top, void* data)

@@ -310,7 +310,6 @@ private:
     AtNode*     _shader;
 
     // Parameters
-    float       _width;
     float       _aiMinPixelWidth;
     int         _aiMode;
 };

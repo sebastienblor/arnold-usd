@@ -1,7 +1,6 @@
 #pragma once
 
 #include "translators/shader/ShaderTranslator.h"
-#include "translators/NodeTranslator.h"
 
 
 class CHairPhysicalShaderTranslator : public CShaderTranslator

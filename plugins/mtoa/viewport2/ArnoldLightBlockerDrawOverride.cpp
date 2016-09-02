@@ -171,7 +171,7 @@ MHWRender::DrawAPI CArnoldLightBlockerDrawOverride::supportedDrawAPIs() const
 // Generate user data for each primitive type
 void CArnoldLightBlockerDrawOverride::initializeUserData()
 {
-    if ((s_isInitialized == false))
+    if (s_isInitialized == false)
     {
 		s_isInitialized = true;
         s_isValid = true;

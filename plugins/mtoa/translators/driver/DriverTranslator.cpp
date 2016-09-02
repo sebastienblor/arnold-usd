@@ -1,8 +1,8 @@
 #include "DriverTranslator.h"
 #include "utils/Universe.h"
-
+#include "session/ArnoldSession.h"
 #include <assert.h>
-
+#include "translators/NodeTranslatorImpl.h"
 AtNode* CDriverTranslator::CreateArnoldNodes()
 {
    assert(AiUniverseIsActive());
@@ -16,11 +16,11 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
       // ("GUI Only", 0);
       // ("Batch Only", 1);
       // ("GUI and Batch", 2);
-      if ((mode == 0 && m_session->IsBatch()) || (mode == 1 && !m_session->IsBatch()))
+      if ((mode == 0 && m_impl->m_session->IsBatch()) || (mode == 1 && !m_impl->m_session->IsBatch()))
          return NULL;
    }
 
-   const char* driverType = GetArnoldNodeType().asChar();
+   const char* driverType = m_impl->m_abstract.arnold.asChar();
    const AtNodeEntry* entry = AiNodeEntryLookUp(driverType);
    if (entry != NULL)
    {
@@ -66,7 +66,7 @@ void CDriverTranslator::Export(AtNode *shader)
 #endif
 
       if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
-         AiNodeSetBool(shader, "progressive", m_session->IsProgressive());
+         AiNodeSetBool(shader, "progressive", m_impl->m_session->IsProgressive());
    }
 }
 
@@ -93,12 +93,8 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
-// No callbacks currently
+// No callbacks currently, can this maya node be deleted ?
 void CDriverTranslator::AddUpdateCallbacks()
-{
-}
-
-void CDriverTranslator::RemoveUpdateCallbacks()
 {
 }
 

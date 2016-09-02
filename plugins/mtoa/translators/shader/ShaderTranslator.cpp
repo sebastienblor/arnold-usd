@@ -1,9 +1,15 @@
 #include "ShaderTranslator.h"
+#include "ShaderTranslatorImpl.h"
 #include "extension/ExtensionsManager.h"
 #include "nodes/MayaNodeIDs.h"
-
+#include "session/ArnoldSession.h"
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnCompoundAttribute.h>
+
+void CShaderTranslator::CreateImplementation()
+{
+   m_impl = new CShaderTranslatorImpl(*this);
+}
 
 // Auto shader translator
 //
@@ -25,7 +31,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
                    GetMayaNodeName().asChar());
       return shader;
    }
-
+   std::map<std::string, MPlugArray> &aovShadingGroups = ((CShaderTranslatorImpl*)m_impl)->m_aovShadingGroups;
    MFnDependencyNode fnNode(GetMayaObject());
    MPlugArray destPlugs;
    MPlugArray sourcePlugs;
@@ -35,7 +41,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    {
       // TODO: determine if the following two checks make performance faster or slower:
       MPlug resolvedPlug;
-      if (!ResolveOutputPlug(sourcePlugs[i], resolvedPlug)) continue;
+      if (!m_impl->ResolveOutputPlug(sourcePlugs[i], resolvedPlug)) continue;
       // if (sourcePlugs[i].isDestination()) continue;
 
       sourcePlugs[i].connectedTo(destPlugs, false, true);
@@ -62,16 +68,16 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
             }
             CAOV aov;
             aov.SetName(aovName);
-            if (!m_session->IsActiveAOV(aov))
+            if (!m_impl->m_session->IsActiveAOV(aov))
                continue;
-            m_localAOVs.insert(aov);
-            m_aovShadingGroups[aovName.asChar()].append(sgPlug);
+            m_impl->m_localAOVs.insert(aov);
+            aovShadingGroups[aovName.asChar()].append(sgPlug);
          }
       }
    }
    // at this stage, we only care about the aov names, which are the key in the map
    std::map<std::string, MPlugArray>::const_iterator it;
-   for (it=m_aovShadingGroups.begin(); it!=m_aovShadingGroups.end(); it++)
+   for (it = aovShadingGroups.begin(); it != aovShadingGroups.end(); it++)
    {
       const char* aovName = it->first.c_str();
       AiMsgDebug("[mtoa.translator.aov] %-30s | adding AOV write node for \"%s\"",
@@ -113,56 +119,17 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {
-   return ProcessAOVOutput(AddArnoldNode(m_abstract.arnold.asChar()));
-}
-
-/// Associate each AOV writing node with its shadingGroup.
-/// This requires that the shadingGroup itself be exported so that we can refer to it
-/// by its AtNode pointer.  As a result, entire shading networks may be triggered to
-/// export along with this one, before the network's shape is encountered in the DAG walk.
-/// That is why this function must be called at the very end of the Export() routine.
-void CShaderTranslator::AssociateAOVsWithShadingGroups()
-{
-   std::map<std::string, MPlugArray>::const_iterator it;
-
-   for (it=m_aovShadingGroups.begin(); it!=m_aovShadingGroups.end(); it++)
-   {
-      AtArray *sgs = AiArrayAllocate(it->second.length(), 1, AI_TYPE_NODE);
-      for (unsigned int i=0; i < it->second.length(); i++)
-      {
-         // shadingEngines are exported on their dagMembers plug
-         MFnDependencyNode fnNode(it->second[i].node());
-         MStatus stat;
-         MPlug sgPlug = fnNode.findPlug("dagSetMembers", stat);
-         CHECK_MSTATUS(stat);
-         if (!sgPlug.isNull())
-         {
-            AtNode* shadingEngine = ExportNode(sgPlug);
-            if (shadingEngine != NULL)
-            {
-               AiArraySetPtr(sgs, i, shadingEngine);
-            }
-         }
-      }
-      AtNode* writeNode = GetArnoldNode(it->first.c_str());
-      AiNodeSetArray(writeNode, "sets", sgs);
-   }
+   return ProcessAOVOutput(AddArnoldNode(m_impl->m_abstract.arnold.asChar()));
 }
 
 void CShaderTranslator::Export(AtNode *shader)
 {
-   // the node passed in is the root node. we want the node tagged with ""
-   shader = GetArnoldNode("");
-
    CNodeTranslator::Export(shader);
-
    ExportBump(shader);
-   // This routine is not currently used. It could eventually be used in order for
-   // MayaShadingEngine.sets to be a node array instead of a string array
-   //AssociateAOVsWithShadingGroups();
 }
 
-void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
+   // For motion blur we just search for the parameter placementMatrix
+void CShaderTranslator::ExportMotion(AtNode *shader)
 {
    MStatus status;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
@@ -175,14 +142,110 @@ void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
       if (strcmp(paramName, "placementMatrix") == 0)
       {
          AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
-         ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaPlug(paramName));
+         m_impl->ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaPlug(paramName));
       }
    }
    AiParamIteratorDestroy(nodeParam);
 }
 
-bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
+bool CShaderTranslator::RequiresMotionData()
 {
+   return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
+}
+
+void CShaderTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   CNodeTranslator::NodeChanged(node, plug);
+
+   if (m_impl->m_sourceTranslator == NULL) return;
+
+   // if my connection to "normalCamera" changes, for example if I disconnect a bump node,
+   // I not only need to re-export myself, but I also need to advert the node which is connected to the bump
+   // (for example the ShadingEngine). Otherwise it will keep its connection to the bump
+   
+   MString plugName = plug.name().substring(plug.name().rindex('.'), plug.name().length()-1);
+
+   if (plugName == ".normalCamera")
+   {
+      // simply delete the sourceTranslator, it will be re-generated at next export
+      // this way if it's disconnected we delete it from the scene
+      // This might be a bit heavy but it will only happen when user tweaks the bump node
+      m_impl->m_sourceTranslator->SetUpdateMode(AI_DELETE_NODE);
+      m_impl->m_sourceTranslator->RequestUpdate();
+   }
+}
+
+   // Maya:
+   //  ----------       -----------
+   //  | Bump2d | --->  | Shader1 |
+   //  ---------- \     -----------
+   //              \    -----------
+   //               \-> | Shader2 |
+   //                   -----------
+   //             __
+   //             ||
+   //            _||_
+   //            \  /
+   //             \/
+   //
+   // Arnold:
+   //  -----------     ---------
+   //  | Shader1 | --> | Bump1 |
+   //  -----------     ---------
+   //  -----------     ---------
+   //  | Shader2 | --> | Bump2 |
+   //  -----------     ---------
+   //
+
+void CShaderTranslator::ExportBump(AtNode* shader)
+{
+   MStatus status;
+   MPlugArray connections;
+   MPlug plug = FindMayaPlug("normalCamera", &status);
+   if (status && !plug.isNull())
+   {
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         // ugly way to get a unique instance number integer from this translator's pointer.
+         // we should have a better system, like a map that increases an index whenever a new entry is added, or something....
+         size_t instNum64 = (size_t)this;
+         int instanceNumber = (int)(instNum64/8);
+
+         CNodeTranslator *bumpTranslator = m_impl->m_session->ExportNode(connections[0], m_impl->m_shaders, &m_impl->m_upstreamAOVs, false, instanceNumber);
+         
+         if (bumpTranslator != NULL)
+         {
+            m_impl->m_sourceTranslator = bumpTranslator;
+
+#ifdef NODE_TRANSLATOR_REFERENCES 
+            m_impl->AddBackReference(bumpTranslator, true); // "true" in order to add the reverse connection too 
+#endif
+            AtNode* bump = bumpTranslator->GetArnoldNode();
+      
+            while (true)
+            {
+               AtNode* connectedBump = AiNodeGetLink(bump, "shader");
+               if (connectedBump != 0 && AiNodeIs(connectedBump, "mayaBump2D"))
+                  bump = connectedBump;
+               else
+                  break;
+            }
+            AiNodeLink(shader, "shader", bump);            
+         }
+      }
+   }
+}
+
+bool CShaderTranslatorImpl::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)
+{
+   // If this is a multi-output shader, just copy the MPlug
+   if (m_tr.DependsOnOutputPlug()) 
+   {
+      resolvedOutputPlug=outputPlug;
+      return true;
+   }
+
    MStatus status;
    MFnAttribute fnAttr(outputPlug.attribute());
    MString attrName = outputPlug.partialName(false, false, false, false, false, true);
@@ -221,38 +284,4 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
    else
       resolvedOutputPlug=outputPlug;
    return true;
-}
-
-bool CShaderTranslator::RequiresMotionData()
-{
-   return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
-}
-
-void CShaderTranslator::ExportBump(AtNode* shader)
-{
-   MStatus status;
-   MPlugArray connections;
-   MPlug plug = FindMayaPlug("normalCamera", &status);
-   if (status && !plug.isNull())
-   {
-      plug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         AtNode* bump = ExportNode(connections[0]);
-
-         if (bump != NULL)
-         {
-            SetArnoldRootNode(bump);
-            while (true)
-            {
-               AtNode* connectedBump = AiNodeGetLink(bump, "shader");
-               if (connectedBump != 0 && AiNodeIs(connectedBump, "mayaBump2D"))
-                  bump = connectedBump;
-               else
-                  break;
-            }
-            AiNodeLink(shader, "shader", bump);            
-         }
-      }
-   }
 }

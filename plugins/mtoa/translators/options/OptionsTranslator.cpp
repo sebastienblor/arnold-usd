@@ -1,6 +1,7 @@
 #include "OptionsTranslator.h"
-#include "render/RenderSession.h"
-#include "render/RenderOptions.h"
+#include "translators/DagTranslator.h"
+
+
 #include "utils/MayaUtils.h"
 
 #include <ai_universe.h>
@@ -29,7 +30,7 @@ void COptionsTranslator::ProcessAOVs()
 {
    AOVMode aovMode = AOVMode(FindMayaPlug("aovMode").asInt());
    m_aovsEnabled = aovMode == AOV_MODE_ENABLED ||
-         (m_session->IsBatch() && aovMode == AOV_MODE_BATCH_ONLY);
+         (GetSessionOptions().IsBatch() && aovMode == AOV_MODE_BATCH_ONLY);
 
    bool foundBeauty = false;
    MPlugArray conns;
@@ -141,8 +142,8 @@ void COptionsTranslator::ExportAOVs()
 /// Set the filenames for all output drivers
 void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 {
-
-   MDagPath camera = m_session->GetExportCamera();
+   const CSessionOptions &options = GetSessionOptions();
+   MDagPath camera = options.GetExportCamera();
    if (!camera.isValid())
    {
       return;
@@ -171,7 +172,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-   if (m_session->IsBatch() || m_session->GetSessionMode() == MTOA_SESSION_SEQUENCE)
+   if (options.IsBatch() || options.GetSessionMode() == MTOA_SESSION_SEQUENCE)
    {
       pathType = defaultRenderGlobalsData.kFullPathImage;
    }
@@ -181,7 +182,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
    }
 
    // we're only doing stereo rendering for Batch sessions (ass export / batch render)
-   bool stereo = (m_session->IsBatch() && camera.node().hasFn(MFn::kStereoCameraMaster));
+   bool stereo = (options.IsBatch() && camera.node().hasFn(MFn::kStereoCameraMaster));
 
    int numEyes = 1;
    // loop through aovs
@@ -407,7 +408,7 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
       return NULL;
 
    // this generates a unique node every export
-   AtNode* driver = ExportNode(conn[0]);
+   AtNode* driver = ExportConnectedNode(conn[0]);
    if (driver == NULL)
       return NULL;
 
@@ -434,7 +435,7 @@ AtNode* COptionsTranslator::ExportFilter(const MPlug& filterPlug)
    if (!conn.length())//filterType == "<Use Globals>" || filterType == "")
       return NULL;
 
-   AtNode* filter = ExportNode(conn[0]);
+   AtNode* filter = ExportConnectedNode(conn[0]);
    if (filter == NULL)
       return NULL;
 
@@ -481,13 +482,13 @@ bool COptionsTranslator::GetOutput(const MPlug& driverPlug,
 
 void COptionsTranslator::SetCamera(AtNode *options)
 {
-   MDagPath cameraNode = m_session->GetExportCamera();
+   MDagPath cameraNode = GetSessionOptions().GetExportCamera();
    if (!cameraNode.isValid())
       return;
 
    cameraNode.extendToShape();
-   // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = ExportDagPath(cameraNode);
+   CNodeTranslator *cameraTranslator = GetTranslator(cameraNode);
+   AtNode* camera = (cameraTranslator) ? cameraTranslator->GetArnoldNode() : NULL;
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
@@ -546,16 +547,9 @@ void ParseOverscanSettings(const MString& s, float& overscan, bool& isPercent)
 void COptionsTranslator::Export(AtNode *options)
 {
    assert(AiUniverseIsActive());
+   ExportAOVs();
 
-   MStringArray outputStrings;
-
-   // in renderView sessions, we'll call exportAOVs in Update().
-   // This should probably be done in all other modes
-   // but it might introduce issues
-   if (GetSessionMode() != MTOA_SESSION_RENDERVIEW) ExportAOVs();
-   
    AiNodeSetFlt(options, "texture_max_sharpen", 1.5f);
-   
    AiNodeSetBool(options, "texture_per_file_stats", true);
 
 // for maya 2017 and above, autoTX replaced automip, so we're forcing it to be false
@@ -563,40 +557,6 @@ void COptionsTranslator::Export(AtNode *options)
    AiNodeSetBool(options, "texture_automip", false);
 #endif
 
-   MStatus status;
-
-   Update(options);
-
-   // frame number
-   AiNodeDeclare(options, "frame", "constant FLOAT");
-   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
-   // render layer name
-   MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
-   if (status)
-   {
-      MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
-      if (status)
-      {
-         AiNodeDeclare(options, "render_layer", "constant STRING");
-         AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
-      }
-   }
-   AiNodeDeclare(options, "fps", "constant FLOAT");
-   static const float fpsTable[] = { 0.f, 1.f / 3600.f, 1.f / 60.f, 1.f,
-                                   1000.f, 15.f, 24.f, 25.f, 30.f, 48.f,
-                                   50.f, 60.f, 2.f, 3.f, 4.f, 5.f, 6.f,
-                                   8.f, 10.f, 12.f, 16.f, 20.f, 40.f, 75.f,
-                                   80.f, 100.f, 120.f, 125.f, 150.f, 200.f,
-                                   240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
-                                   600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
-                                   6000.f, 0.f };
-   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);   
-}
-
-void COptionsTranslator::Update(AtNode *options)
-{
-   // we should probably be able to change this in regular IPR too
-   if (GetSessionMode() == MTOA_SESSION_RENDERVIEW) ExportAOVs();
    // set the camera
    SetCamera(options);
 
@@ -691,13 +651,13 @@ void COptionsTranslator::Update(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "background", ExportNode(conns[0]));
+      AiNodeSetPtr(options, "background", ExportConnectedNode(conns[0]));
    }
    else
    {
       AiNodeSetPtr(options, "background", NULL);
    }
-   if ((m_session->GetSessionMode() == MTOA_SESSION_BATCH) || (m_session->GetSessionMode() == MTOA_SESSION_ASS))
+   if ((GetSessionMode() == MTOA_SESSION_BATCH) || (GetSessionMode() == MTOA_SESSION_ASS))
    {
       MString overscanString = FindMayaPlug("outputOverscan").asString();
       if (overscanString != "")
@@ -762,6 +722,44 @@ void COptionsTranslator::Update(AtNode *options)
    }
 
    ExportAtmosphere(options);   
+
+   // frame number. We're now updating it at every Update (#2319)
+   AiNodeDeclare(options, "frame", "constant FLOAT");
+   AiNodeSetFlt(options, "frame", (float)GetExportFrame());
+
+
+   if (!IsExported())
+   {
+      // render layer name
+      // We're only dealing with render layer at first export 
+      // because when render layer is changed, everything should be re-exported.
+      // ARV does so, but we should maybe port it to Maya RV
+      MStatus status;
+
+      MObject currentRenderLayerObj = MFnRenderLayer::currentLayer(&status);   
+      if (status)
+      {
+         MFnRenderLayer currentRenderLayer(currentRenderLayerObj, &status);
+         if (status)
+         {
+            AiNodeDeclare(options, "render_layer", "constant STRING");
+            AiNodeSetStr(options, "render_layer", currentRenderLayer.name().asChar());
+         }
+      }
+      AiNodeDeclare(options, "fps", "constant FLOAT");
+   }
+
+   // now updating fps at every update, whoe knows
+   static const float fpsTable[] = { 0.f, 1.f / 3600.f, 1.f / 60.f, 1.f,
+                                   1000.f, 15.f, 24.f, 25.f, 30.f, 48.f,
+                                   50.f, 60.f, 2.f, 3.f, 4.f, 5.f, 6.f,
+                                   8.f, 10.f, 12.f, 16.f, 20.f, 40.f, 75.f,
+                                   80.f, 100.f, 120.f, 125.f, 150.f, 200.f,
+                                   240.f, 250.f, 300.f, 375.f, 400.f, 500.f,
+                                   600.f, 750.f, 1200.f, 1500.f, 2000.f, 3000.f,
+                                   6000.f, 0.f };
+   AiNodeSetFlt(options, "fps", fpsTable[MTime::uiUnit()]);   
+
 }
 
 void COptionsTranslator::ExportAtmosphere(AtNode *options)
@@ -771,7 +769,7 @@ void COptionsTranslator::ExportAtmosphere(AtNode *options)
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+      AiNodeSetPtr(options, "atmosphere", ExportConnectedNode(conns[0]));
    }
    else
    {
@@ -803,37 +801,4 @@ void COptionsTranslator::AddProjectFoldersToSearchPaths(AtNode* options)
    procedural_searchpath += projectPath;
    AiNodeSetStr(options, "texture_searchpath", texture_searchpath.asChar());
    AiNodeSetStr(options, "procedural_searchpath", procedural_searchpath.asChar());
-}
-
-/// Main entry point to export values to an arnold parameter from a maya plug, recursively following
-/// connections in the dependency graph.
-/// Calls ProcessParameterInputs for parameters that allow linking or ProcessConstantParameter
-/// We need to override this function for the options node, because linking and unlinking
-/// is not allowed, and calling AiNodeUnlink adds some unwanted messages to the log
-AtNode* COptionsTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
-                                          int arnoldParamType, const MPlug& plug)
-{
-   if (arnoldNode == NULL)
-   {
-      AiMsgError("[mtoa.translator]  %s: Cannot process parameter %s on null node.",
-            GetTranslatorName().asChar(), arnoldParamName);
-      return NULL;
-   }
-   if (plug.isNull())
-   {
-      AiMsgError("[mtoa.translator]  %s: Invalid Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
-            GetTranslatorName().asChar(), arnoldParamName,
-            AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
-      return NULL;
-   }
-
-   // It doesn't make sense to call this method when step is greater than 0
-   if (GetMotionStep() > 0)
-   {
-      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0",
-            GetTranslatorName().asChar(), AiNodeGetName(arnoldNode), arnoldParamName);
-      return NULL;
-   }
-
-   return ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }

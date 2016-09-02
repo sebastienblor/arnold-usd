@@ -746,7 +746,7 @@ bool Procedural::getArchiveBoundingBox( const char* in_filename, bbox& out_bbox 
       m_bboxes.insert(std::make_pair(asstocfile,out_bbox));
 
       file.close();
-      delete str;
+      delete[] str;
 
    }
    else

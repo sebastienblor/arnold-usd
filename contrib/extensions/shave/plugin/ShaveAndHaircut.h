@@ -8,8 +8,7 @@ class CShaveTranslator
 public:
 
    virtual void Export(AtNode* camera);
-   virtual void Update(AtNode* curve);
-   virtual void ExportMotion(AtNode* curve, unsigned int step);
+   virtual void ExportMotion(AtNode* curve);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    static void* creator()

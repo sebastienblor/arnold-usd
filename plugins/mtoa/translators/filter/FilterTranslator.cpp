@@ -1,6 +1,6 @@
 #include "FilterTranslator.h"
 #include "utils/Universe.h"
-
+#include "translators/NodeTranslatorImpl.h"
 #include <assert.h>
 
 /*
@@ -15,7 +15,9 @@ AtNode* CFilterTranslator::CreateArnoldNodes()
 {
    assert(AiUniverseIsActive());
 
-   AtNode* created = AddArnoldNode(GetArnoldNodeType().asChar(), GetArnoldNodeType().asChar());
+   const char *arnoldName = m_impl->m_abstract.arnold.asChar();
+
+   AtNode* created = AddArnoldNode(arnoldName, arnoldName);
    return created;
 }
 
@@ -58,12 +60,7 @@ void CFilterTranslator::NodeInitializer(CAbTranslator context)
 
 }
 
-// No callbacks currently
+// No callbacks currently, can this maya node be deleted ?
 void CFilterTranslator::AddUpdateCallbacks()
 {
 }
-
-void CFilterTranslator::RemoveUpdateCallbacks()
-{
-}
-

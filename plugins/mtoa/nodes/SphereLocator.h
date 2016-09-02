@@ -48,7 +48,7 @@ public:
 #endif
 
    static void* creator();
-   bool isAbstractClass();
+   bool isAbstractClass() const;
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV = true);

@@ -8,6 +8,7 @@
 #include "utils/time.h"
 
 #include "translators/DagTranslator.h"
+#include "translators/NodeTranslatorImpl.h"
 
 #include <maya/MImage.h>
 #include <ai_msg.h>
@@ -272,15 +273,15 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
       }
       if (NULL != dagTranslator)
       {
-         dagTranslator->Init(exportSession, dagPath, "");
-         arnoldNode = dagTranslator->DoExport(0);
+         dagTranslator->m_impl->Init(exportSession, dagPath, "");
+         arnoldNode = dagTranslator->m_impl->DoExport();
       }
    } else {
       translator = CExtensionsManager::GetTranslator(mayaNode);
       if (NULL != translator)
       {
-         translator->Init(exportSession, mayaNode, "");
-         arnoldNode = translator->DoExport(0);
+         translator->m_impl->Init(exportSession, mayaNode, "");
+         arnoldNode = translator->m_impl->DoExport();
       }
    }
    if (NULL != arnoldNode)

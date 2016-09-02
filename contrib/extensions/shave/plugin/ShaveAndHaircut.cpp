@@ -27,20 +27,17 @@ AtNode*  CShaveTranslator::CreateArnoldNodes()
    return AddArnoldNode("curves");
 }
 
-void CShaveTranslator::Export(AtNode* curve)
-{
-   // Only translate the shave node if its marked as a active
-   if (!FindMayaPlug("active").asBool())
-      return;
-
-   Update(curve);
-}
 
 AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
-{
-   AtNode* shader = AiNode("ShaveHair");
+{   
    char nodeName[MAX_NAME_SIZE];
-   AiNodeSetStr(shader, "name", NodeUniqueName(shader, nodeName));
+   // check if a shaderHair node hasn't been already created in a previous export
+   AtNode* shader = GetArnoldNode("ShaveHair");
+   if (shader == NULL)
+   {
+      shader = AddArnoldNode("ShaveHair", "ShaveHair");
+      AiNodeSetStr(shader, "name", NodeUniqueName(shader, nodeName));
+   }
 
    // Fade the hairstrand towards the tip.
    MPlug plug = FindMayaPlug("tipFade");
@@ -50,10 +47,18 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
       // matter the attribute setting.
       AiNodeSetBool(curve, "opaque", false);
 
-      AtNode* ramp = AiNode("MayaRamp");
-      AiNodeSetStr(ramp, "name", NodeUniqueName(ramp, nodeName));
-      AtNode* placementNode = AiNode("MayaPlace2DTexture");
-      AiNodeSetStr(placementNode, "name", NodeUniqueName(placementNode, nodeName));
+      AtNode* ramp = GetArnoldNode("MayaRamp");
+      if (ramp == NULL)
+      {
+         ramp = AddArnoldNode("MayaRamp", "MayaRamp");
+         AiNodeSetStr(ramp, "name", NodeUniqueName(ramp, nodeName));
+      }
+      AtNode* placementNode = GetArnoldNode("MayaPlace2DTexture");
+      if (placementNode == NULL)
+      {
+         placementNode = AddArnoldNode("MayaPlace2DTexture", "MayaPlace2DTexture");
+         AiNodeSetStr(placementNode, "name", NodeUniqueName(placementNode, nodeName));
+      }
       AiNodeSetStr(ramp, "type", "v");
 
       AtArray* positions  = AiArrayAllocate(2, 1, AI_TYPE_FLOAT);
@@ -100,8 +105,13 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    return shader;
 }
 
-void CShaveTranslator::Update(AtNode* curve)
+void CShaveTranslator::Export(AtNode* curve)
 {
+   // Only translate the shave node if its marked as a active
+   if (!FindMayaPlug("active").asBool())
+      return;
+
+
    // Export shaveAndHaircut info into a variable
    if (UpdateHairInfo() != MS::kSuccess)
       return;
@@ -111,7 +121,7 @@ void CShaveTranslator::Update(AtNode* curve)
    AtNode* shader       = NULL;
 
    // Export the transform matrix
-   ExportMatrix(curve, 0);
+   ExportMatrix(curve);
 
    // Get the visibiliy and render flags set.
    ProcessRenderFlags(curve);
@@ -128,7 +138,7 @@ void CShaveTranslator::Update(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = ExportRootShader(curveShaderPlug[0]);
+            shader = ExportConnectedNode(curveShaderPlug[0]);
          }
       }
    }
@@ -136,14 +146,11 @@ void CShaveTranslator::Update(AtNode* curve)
    // Default to the ShaveHair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = ExportRootShader(CreateShaveShader(curve));
+      shader = CreateShaveShader(curve);
    }
    
-   if (shader != NULL)
-   {
-      AiNodeSetPtr(curve, "shader", shader);
-   }
-
+   SetRootShader(shader);
+   
    // Should we export the hair root and tip colour? Default to true.
    // Turning it off gives us a slimmer ass.
    plug = FindMayaPlug("aiExportHairColors");
@@ -299,13 +306,13 @@ void CShaveTranslator::Update(AtNode* curve)
    m_hairInfo.clear();
 }
 
-void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
+void CShaveTranslator::ExportMotion(AtNode* curve)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
-   ExportMatrix(curve, step);
+   ExportMatrix(curve);
 
    if (IsMotionBlurEnabled(MTOA_MBLUR_DEFORM))
    {
@@ -313,7 +320,7 @@ void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
       //
       if (UpdateHairInfo() != MS::kSuccess) return;
 
-      ProcessHairLines(step,
+      ProcessHairLines(GetMotionStep(),
                        AiNodeGetArray(curve, "points"),
                        AiNodeGetArray(curve, "num_points"),
                        AiNodeGetArray(curve, "radius"));

@@ -1,8 +1,6 @@
 #include "InstancerTranslator.h"
-
-#include "scene/MayaScene.h"
 #include <maya/MFnDagNode.h>
-
+#include <scene/MayaScene.h>
 #include "utils/time.h"
 
 
@@ -33,30 +31,24 @@ AtNode* CInstancerTranslator::CreateArnoldNodes()
       return  AddArnoldNode("ginstance");
 }
 
-void CInstancerTranslator::Update(AtNode *anode)
+
+void CInstancerTranslator::Export(AtNode* anode)
 {
-   ExportInstancer(anode, true);
+   ExportInstancer(anode, IsExported());
 }
 
-void CInstancerTranslator::ExportMotion(AtNode* anode, unsigned int step)
+void CInstancerTranslator::ExportMotion(AtNode* anode)
 {
-   if (IsMasterInstance())
+   ExportMatrix(anode);
+
+   if (!IsExported())
    {
-      ExportMatrix(anode, step);
-      if (m_motionDeform)
+      // only at first export
+      if (IsMasterInstance() && m_motionDeform)
       {
-         ExportInstances(anode, step);
+         ExportInstances(anode);
       }
    }
-   else
-   {
-      ExportMatrix(anode, step);
-   }
-}
-
-void CInstancerTranslator::UpdateMotion(AtNode* anode, unsigned int step)
-{
-   ExportMatrix(anode, step);
 }
 
 AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
@@ -108,17 +100,17 @@ AtByte CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPa
 
 void CInstancerTranslator::ExportInstancer(AtNode* instancer, bool update)
 {
-   ExportMatrix(instancer,0);
+   ExportMatrix(instancer);
    if(!update)
    {
-      ExportInstances(instancer, 0);
+      ExportInstances(instancer);
    }
 
 }
 
-void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
+void CInstancerTranslator::ExportInstances(AtNode* instancer)
 {
-
+   unsigned int step = GetMotionStep();
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
@@ -294,7 +286,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
          {
             AtArray* outMatrix = AiArrayAllocate(1, nmtx, AI_TYPE_MATRIX);
             AtMatrix matrix;
-            ConvertMatrix(matrix, mayaMatrices[j], m_session);
+            ConvertMatrix(matrix, mayaMatrices[j]);
             AiArraySetMtx(outMatrix, step, matrix);
 
             m_vec_matrixArrays.push_back(outMatrix);
@@ -314,7 +306,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
                m_instantVeloArray.append(velocities[j]);
             }
          }
-
       }
 
       if (m_customAttrs.length() != 0 || exportID)
@@ -362,7 +353,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
             if (it != tempMap.end())   // found the particle in the scene already
             {
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j], m_session);
+               ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(m_vec_matrixArrays[it->second], step, matrix);
 
                if (velocities.length() > 0)
@@ -377,7 +368,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
                newParticleCount++;
                AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                AtMatrix matrix;
-               ConvertMatrix(matrix, mayaMatrices[j], m_session);
+               ConvertMatrix(matrix, mayaMatrices[j]);
                AiArraySetMtx(outMatrix, step, matrix);
                // now compute the previous steps velocity matrices
                for (unsigned int i = 0; i<step; i++)
@@ -485,22 +476,29 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
       {
          return;
       }
-
+      int globalIndex = 0;
       for (std::map<int,int>::iterator it = m_particleIDMap.begin();
            it !=  m_particleIDMap.end(); ++it)
       {
          int partID = it->first;
          int j = it->second;
 
-         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++)
+         for (unsigned int  k = 0; k < m_particlePathsMap[partID].length(); k++, globalIndex++)
          {
-            AtNode *instance;
-            instance = AiNode("ginstance");
-            char nodeName[MAX_NAME_SIZE];
-            AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+            MString instanceName = "inst";
+            instanceName += globalIndex;
 
+            // check if the instance for this index was already found
+            AtNode *instance = GetArnoldNode(instanceName.asChar());
+            if (instance == NULL)
+            {
+               // Create and register this ginstance node, so that it is properly cleared later
+               instance = AddArnoldNode("ginstance", instanceName.asChar());
+               char nodeName[MAX_NAME_SIZE];
+               AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+            }
             int idx = m_particlePathsMap[partID][k];
-
+                        
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
             AiNodeSetBool(instance, "inherit_xform", true);
@@ -558,7 +556,3 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, unsigned int step)
 
 }
 
-void CInstancerTranslator::Export(AtNode* anode)
-{
-   ExportInstancer(anode, false);
-}
