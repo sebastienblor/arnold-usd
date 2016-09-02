@@ -1157,8 +1157,7 @@ void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
       MObject shadingEngine = connection.node();
 
       std::vector< CNodeTranslator * > translatorsToUpdate;
-      bool reexport = true;
-
+      
       MFnDependencyNode shadingEngineDNode(shadingEngine);
       MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
       const unsigned int numElements = dagSetMembersPlug.numElements();

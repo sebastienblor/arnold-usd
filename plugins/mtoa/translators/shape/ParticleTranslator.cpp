@@ -1639,7 +1639,7 @@ void CParticleTranslator::ExportMotion(AtNode* anode)
       //ExportMatrix(anode, step);
       if (m_motionDeform)
          ExportParticleNode(anode, step);
-      else if (step == (GetNumMotionSteps() - 1))
+      else if (step == int(GetNumMotionSteps() - 1))
       {
          WriteOutParticle(anode);
          ProcessRenderFlags(anode);

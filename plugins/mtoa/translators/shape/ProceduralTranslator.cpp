@@ -15,8 +15,8 @@
 
 #include <maya/MString.h>
 
-static MCallbackId s_idleCallback = 0;
-static std::vector<CArnoldProceduralTranslator *> s_updatedProcedurals;
+//static MCallbackId s_idleCallback = 0;
+//static std::vector<CArnoldProceduralTranslator *> s_updatedProcedurals;
 
 void CArnoldProceduralTranslator::NodeInitializer(CAbTranslator context)
 {
