@@ -1,13 +1,14 @@
 #include "Universe.h"
 #include "extension/Extension.h"
-
+#include <ai.h>
+/*
 #include <ai_universe.h>
 #include <ai_metadata.h>
 #include <ai_render.h>
 #include <ai_nodes.h>
 #include <ai_node_entry.h>
-
 #include <ai_plugins.h>
+*/
 #include <maya/MGlobal.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
