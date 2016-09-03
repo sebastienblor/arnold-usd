@@ -48,7 +48,12 @@ public:
 #endif
 
    static void* creator();
-   bool isAbstractClass() const;
+
+   // FIXME : This function used to return true, but its signature was
+   // wrong (const was missing). Because of that, it was never called,
+   // and everything worked fine. Now that OSX compilation warning told us to fix this,
+   // this method is being called.... and we realize it shouldn't be (some nodes like aiSkydome can't be created anymore)
+   //bool isAbstractClass() const;
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format, bool needsUV = true);
