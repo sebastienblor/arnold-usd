@@ -136,7 +136,7 @@ public :
    MCallbackIdArray m_mayaCallbackIDs;
    bool m_isExported;
 
-   void ExportUserAttribute(AtNode *anode);
+   virtual void ExportUserAttribute(AtNode *anode);
 
 #ifdef NODE_TRANSLATOR_REFERENCES
    

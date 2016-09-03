@@ -360,3 +360,23 @@ CDagTranslator *CDagTranslator::ExportDagPath(const MDagPath &dagPath)
 {
    return CMayaScene::GetArnoldSession()->ExportDagPath(dagPath);
 }
+
+void CDagTranslatorImpl::ExportUserAttribute(AtNode *anode)
+{
+   // testing if anode is ginstance instead of calling IsMasterInstance
+   // for efficiency reasons.
+   if (AiNodeIs(anode, "ginstance"))
+   {
+      CDagTranslator *dagTr = static_cast<CDagTranslator*>(&m_tr);
+
+      CNodeTranslator::ExportUserAttributes(anode, dagTr->GetMayaDagPath().transform(), &m_tr);
+      
+      // FIXME below is what's being done in parent function for aiUserOptions
+      // is that what we want to do here ?
+      MPlug plug = m_tr.FindMayaPlug("aiUserOptions");
+      if (!plug.isNull())
+         AiNodeSetAttributes(anode, plug.asString().asChar());
+   }
+   else
+      CNodeTranslatorImpl::ExportUserAttribute(anode);
+}
