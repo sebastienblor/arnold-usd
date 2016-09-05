@@ -1306,12 +1306,11 @@ bool CNodeTranslatorImpl::HasAnimatedArrays() const
                continue;
             }
             AtArray *array = AiNodeGetArray(node, AiParamGetName(paramEntry));
-            if (array->nkeys > (AtByte)1)
+            if (array != NULL && array->nkeys > (AtByte)1)
             {
                // we need to compare the array's keys to check if it's really animated or not
                if (IsArrayAnimated(array))
-               {
-                  
+               {                  
                   AiParamIteratorDestroy(nodeParam);
                   return true;
                }
