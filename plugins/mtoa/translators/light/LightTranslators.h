@@ -105,10 +105,16 @@ public:
    }
    AtNode* CreateArnoldNodes()
    {
+      m_flushCache = false; // initialize to false
       return AddArnoldNode("skydome_light");
+
    }
 
    bool IsFinite() const { return false; }
+protected:
+   virtual void NodeChanged(MObject& node, MPlug& plug);
+private:
+   bool m_flushCache; 
 };
 
 class CPhotometricLightTranslator : public CLightTranslator
@@ -149,9 +155,7 @@ public:
       return AddArnoldNode("mesh_light");
    }
 
-   virtual void Delete();
-   
-   virtual void ExportMotion(AtNode* light, unsigned int step);
+   virtual void ExportMotion(AtNode* light);
 protected:
    virtual AtNode* ExportSimpleMesh(const MObject& meshObject);
    virtual MObject GetMeshObject() const;

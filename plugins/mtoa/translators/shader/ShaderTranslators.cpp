@@ -1,7 +1,4 @@
 #include "ShaderTranslators.h"
-#include "scene/MayaScene.h"
-#include "render/RenderOptions.h"
-#include "render/RenderSession.h"
 #include "platform/Platform.h"
 
 #include <ai_msg.h>
@@ -19,6 +16,8 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnCamera.h>
 #include <maya/MFnAttribute.h>
+#include <maya/MMatrix.h>
+
 
 #include <maya/MColor.h>
 #include <maya/MTransformationMatrix.h>
@@ -39,8 +38,6 @@ AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
 
 void CSkyShaderTranslator::Export(AtNode* shader)
 {
-
-
    MFnDependencyNode trNode(m_dagPath.transform());
 
    MTransformationMatrix tmatrix(m_dagPath.inclusiveMatrix());
@@ -91,7 +88,7 @@ void CLambertTranslator::Export(AtNode* shader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         AtNode* inNode = ExportNode(connections[0]);
+         AtNode* inNode = ExportConnectedNode(connections[0]);
          // Need to reverse it
          if (inNode != NULL)
          {
@@ -128,29 +125,22 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    // All physical sky attributes are not linkable in Arnold
    MStatus status;
    
-   MPlug plug = FindMayaPlug("turbidity", &status);
-   ProcessConstantParameter(shader, "turbidity", AI_TYPE_FLOAT, plug);
+   // We used to call ProcessConstantParameter, but now we can simply tag these attributes as Non-Linkable in the metadata instead
+
+   ProcessParameter(shader, "turbidity", AI_TYPE_FLOAT, "turbidity");
    
-   plug = FindMayaPlug("ground_albedo", &status);
+   MPlug plug = FindMayaPlug("ground_albedo", &status);
    AiNodeSetRGB(shader, "ground_albedo", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("use_degrees", &status);
-   ProcessConstantParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, plug);
-   
-   plug = FindMayaPlug("elevation", &status);
-   ProcessConstantParameter(shader, "elevation", AI_TYPE_FLOAT, plug);
-   
-   plug = FindMayaPlug("azimuth", &status);
-   ProcessConstantParameter(shader, "azimuth", AI_TYPE_FLOAT, plug);
+   ProcessParameter(shader, "use_degrees", AI_TYPE_BOOLEAN, "use_degrees");
+   ProcessParameter(shader, "elevation", AI_TYPE_FLOAT, "elevation");
+   ProcessParameter(shader, "azimuth", AI_TYPE_FLOAT, "azimuth");
    
    plug = FindMayaPlug("sun_direction", &status);
    AiNodeSetVec(shader, "sun_direction", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("enable_sun", &status);
-   ProcessConstantParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, plug);
-   
-   plug = FindMayaPlug("intensity", &status);
-   ProcessConstantParameter(shader, "intensity", AI_TYPE_FLOAT, plug);
+   ProcessParameter(shader, "enable_sun", AI_TYPE_BOOLEAN, "enable_sun");
+   ProcessParameter(shader, "intensity", AI_TYPE_FLOAT, "intensity");
    
    plug = FindMayaPlug("sky_tint", &status);
    AiNodeSetRGB(shader, "sky_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
@@ -158,8 +148,7 @@ void CPhysicalSkyTranslator::Export(AtNode* shader)
    plug = FindMayaPlug("sun_tint", &status);
    AiNodeSetRGB(shader, "sun_tint", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
    
-   plug = FindMayaPlug("sun_size", &status);
-   ProcessConstantParameter(shader, "sun_size", AI_TYPE_FLOAT, plug);
+   ProcessParameter(shader, "sun_size", AI_TYPE_FLOAT, "sun_size");
    
    plug = FindMayaPlug("X", &status);
    AiNodeSetVec(shader, "X", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
@@ -197,6 +186,7 @@ void CFileTranslator::Export(AtNode* shader)
    MPlugArray connections;
 
    MPlug plug = FindMayaPlug("uvCoord");
+   const CSessionOptions &options = GetSessionOptions();
 
    plug.connectedTo(connections, true, false);
 
@@ -230,6 +220,7 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
    }
+   MString prevFilename = AiNodeGetStr(shader, "filename");
    
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
@@ -262,41 +253,60 @@ void CFileTranslator::Export(AtNode* shader)
          }
       }
 
-      m_session->FormatTexturePath(resolvedFilename);
-
-      MString prevFilename = AiNodeGetStr(shader, "filename");
-
-      bool requestUpdateTx = true;
-      int prevFilenameLength = prevFilename.length();
-
-      if (prevFilenameLength > 0)
-      {
-         // arnold filename param
-         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-         {
-            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
-
-            int dotPos = resolvedFilename.rindexW(".");
-            if (dotPos > 0)
-            {
-               MString basename = resolvedFilename.substring(0, dotPos - 1);
-               requestUpdateTx = (prevBasename != basename);
-            }
-         } else
-         {
-            // if previous filename and new one are exactly identical, it's useless to update Tx
-            requestUpdateTx = (prevFilename != resolvedFilename);
-         }
-      }
+      options.FormatTexturePath(resolvedFilename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
       
-      if (colorSpace != m_colorSpace) requestUpdateTx = true;
-      m_colorSpace = colorSpace;
+      // if the color space has changed, we'll need to re-generate TX anyway
+      bool requestUpdateTx = (colorSpace != m_colorSpace);
+      m_colorSpace = colorSpace; // setting current value for next time
+
+      if (!requestUpdateTx)
+      {
+         // Color Space is the same, so let's check if the filename was modified
+         int prevFilenameLength = prevFilename.length();
+
+         if (prevFilenameLength > 0)
+         {
+            // compare against previous filename to see if we need to re-generate the TX
+            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+            {
+               // Previous Filename was .tx, either because of "use existing tx", 
+               // or because it's explicitely targeting the .tx
+//seb
+               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+               int dotPos = resolvedFilename.rindexW(".");
+               if (dotPos > 0)
+               {
+                  MString basename = resolvedFilename.substring(0, dotPos - 1);
+                  
+                  // Let's compare the basenames (without extension)
+                  if (prevBasename != basename)
+                  {
+                     // the basename was modified, this needs an update of TX
+                     requestUpdateTx = true;
+                  } else
+                  {
+                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
+                     // so let's keep the previous one (where Use Tx was applied)
+                     resolvedFilename = prevFilename;
+                  }
+               }
+            } else
+            {
+               // if previous filename and new one are exactly identical, it's useless to update Tx
+               requestUpdateTx = (prevFilename != resolvedFilename);
+            }
+         } else if (resolvedFilename.length() > 0)
+         {
+            requestUpdateTx = true;
+         }
+      }
 
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
-      if (requestUpdateTx) m_session->RequestUpdateTx();
-   }
+      if (requestUpdateTx) RequestTxUpdate();
+   } 
 
    ProcessParameter(shader, "mipBias", AI_TYPE_INT);
    AiNodeSetInt(shader, "filter", FindMayaPlug("aiFilter").asInt());
@@ -420,7 +430,7 @@ void CBump3DTranslator::Export(AtNode* shader)
 //
 AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
    AtNode* shader = NULL;
    if (outputAttr == "facingRatio" || outputAttr == "flippedNormal")
    {
@@ -453,7 +463,7 @@ void CSamplerInfoTranslator::Export(AtNode* shader)
 //
 AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "output1D")
    {
@@ -483,7 +493,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
 //
 AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (
          outputAttr == "outColor" ||
@@ -548,7 +558,7 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
 
 void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "outColor" || outputAttr == "rgbPP")
    {
@@ -620,7 +630,7 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
-   MString outputAttr = GetMayaAttributeName();
+   MString outputAttr = GetMayaOutputAttributeName();
 
    if (outputAttr == "outValue")
    {
@@ -639,15 +649,12 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
-   MString outputAttr = GetMayaAttributeName();
-
+   MString outputAttr = GetMayaOutputAttributeName();
+   MFnDependencyNode fnNode(GetMayaObject());
    if (outputAttr == "outValue")
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = GetMayaObjectAttribute("value_Position");
-      MObject oval = GetMayaObjectAttribute("value_FloatValue");
-      MObject ointerp = GetMayaObjectAttribute("value_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader or set metadata
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
@@ -657,32 +664,20 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
       
       attr = FindMayaPlug("value");
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, "positions", pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, "values", val, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, interpolations, "interpolations", interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, "positions", positions);
-      SetArrayParameter(shader, "values", values);
-      SetArrayParameter(shader, "interpolations", interpolations);
+
+      MObject opos = fnNode.attribute("value_Position");
+      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute("value_FloatValue");
+      ProcessArrayParameter(shader, "values", attr, AI_TYPE_FLOAT, &oval);
+
+      MObject ointerp = fnNode.attribute("value_Interp");
+      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
    }
    else if (outputAttr == "outColor")
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = GetMayaObjectAttribute("color_Position");
-      MObject oval = GetMayaObjectAttribute("color_Color");
-      MObject ointerp = GetMayaObjectAttribute("color_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
@@ -693,24 +688,15 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
       attr = FindMayaPlug("color");
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_RGB, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, "positions", pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, "values", val, AI_TYPE_RGB, i);
-         ProcessArrayParameterElement(shader, interpolations, "interpolations", interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, "positions", positions);
-      SetArrayParameter(shader, "values", values);
-      SetArrayParameter(shader, "interpolations", interpolations);
+
+      MObject opos = fnNode.attribute("color_Position");
+      ProcessArrayParameter(shader, "positions", attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute("color_Color");
+      ProcessArrayParameter(shader, "values", attr, AI_TYPE_RGB, &oval);
+
+      MObject ointerp = fnNode.attribute("color_Interp");
+      ProcessArrayParameter(shader, "interpolations", attr, AI_TYPE_INT, &ointerp);
    }
 }
 
@@ -743,31 +729,19 @@ void CRemapColorTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
    ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
+   MFnDependencyNode fnNode(GetMayaObject());
+
    for (int ci=0; ci<3; ++ci)
    {
-      MObject opos = GetMayaObjectAttribute(posNames[ci*2]);
-      MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
-      MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
-      
       attr = FindMayaPlug(plugNames[ci]);
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, posNames[ci*2 + 1], pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, valNames[ci*2 + 1], val, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, interpolations, interpNames[ci*2 + 1], interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, posNames[ci*2 + 1], positions);
-      SetArrayParameter(shader, valNames[ci*2 + 1], values);
-      SetArrayParameter(shader, interpNames[ci*2 + 1], interpolations);
+
+      MObject opos = fnNode.attribute(posNames[ci*2]);
+      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute(valNames[ci*2]);
+      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
+      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
+      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
    }
 }
 
@@ -800,31 +774,19 @@ void CRemapHsvTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
    ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
+   MFnDependencyNode fnNode(GetMayaObject());
    for (int ci=0; ci<3; ++ci)
    {
-      MObject opos = GetMayaObjectAttribute(posNames[ci*2]);
-      MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
-      MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
-
       attr = FindMayaPlug(plugNames[ci]);
-      unsigned int numElements = attr.numElements();
-      AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-      AtArray* interpolations = InitArrayParameter(AI_TYPE_INT, numElements);
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         val = elem.child(oval);
-         interp = elem.child(ointerp);
-         
-         ProcessArrayParameterElement(shader, positions, posNames[ci*2 + 1], pos, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, values, valNames[ci*2 + 1], val, AI_TYPE_FLOAT, i);
-         ProcessArrayParameterElement(shader, interpolations, interpNames[ci*2 + 1], interp, AI_TYPE_INT, i);
-      }
-      SetArrayParameter(shader, posNames[ci*2 + 1], positions);
-      SetArrayParameter(shader, valNames[ci*2 + 1], values);
-      SetArrayParameter(shader, interpNames[ci*2 + 1], interpolations);
+
+      MObject opos = fnNode.attribute(posNames[ci*2]);
+      ProcessArrayParameter(shader, posNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &opos);
+
+      MObject oval = fnNode.attribute(valNames[ci*2]);
+      ProcessArrayParameter(shader, valNames[ci*2 + 1], attr, AI_TYPE_FLOAT, &oval);
+
+      MObject ointerp = fnNode.attribute(interpNames[ci*2]);
+      ProcessArrayParameter(shader, interpNames[ci*2 + 1], attr, AI_TYPE_INT, &ointerp);
    }
 }
 
@@ -906,27 +868,15 @@ void CRampTranslator::Export(AtNode* shader)
 
    MPlug plug, elem, pos, col;
 
-   MObject opos = GetMayaObjectAttribute("position");
-   MObject ocol = GetMayaObjectAttribute("color");
+   MFnDependencyNode fnNode(GetMayaObject());
+
    plug = FindMayaPlug("colorEntryList");
-   unsigned int numElements = plug.numElements();
 
-   // Loop on color entries (position, color)
+   MObject opos = fnNode.attribute("position");
+   ProcessArrayParameter(shader, "position", plug, AI_TYPE_FLOAT, &opos);
 
-   AtArray* position = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-   AtArray* color = InitArrayParameter(AI_TYPE_RGB, numElements);
-   
-   for (unsigned int i=0; i<numElements; ++i)
-   {
-      elem = plug.elementByPhysicalIndex(i);
-      pos = elem.child(opos);
-      col = elem.child(ocol);
-      
-      ProcessArrayParameterElement(shader, position, "position", pos, AI_TYPE_FLOAT, i);
-      ProcessArrayParameterElement(shader, color, "color", col, AI_TYPE_RGB, i);
-   }
-   SetArrayParameter(shader, "position", position);
-   SetArrayParameter(shader, "color", color);
+   MObject ocol = fnNode.attribute("color");
+   ProcessArrayParameter(shader, "color", plug, AI_TYPE_RGB, &ocol);   
 }
 
 // Place2DTexture
@@ -1151,13 +1101,13 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    }
 }
 
-void CAnimCurveTranslator::ExportMotion(AtNode* shader, unsigned int step)
+void CAnimCurveTranslator::ExportMotion(AtNode* shader)
 {
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;
    float value = (float) fnCurve.evaluate(MAnimControl::currentTime(), &status);
    AtArray* values = AiNodeGetArray(shader, "values");
-   AiArraySetFlt(values, step, value);
+   AiArraySetFlt(values, GetMotionStep(), value);
 }
 
 
@@ -1192,7 +1142,89 @@ void CDisplacementTranslator::Export(AtNode* shader)
    if (AiNodeIs(shader, "MayaNormalDisplacement"))
       ProcessParameter(shader, "zeroValue", AI_TYPE_FLOAT, "aiDisplacementZeroValue");
 }
+void CDisplacementTranslator::NodeChanged(MObject& node, MPlug& plug)
+{
+   CShaderTranslator::NodeChanged(node, plug);
 
+   MPlug disp = MFnDependencyNode(node).findPlug("displacement");
+   MPlugArray connectedPlugs;
+   disp.connectedTo(connectedPlugs,false,true);
+
+   // For each shading engine connected to the displacement node
+   for(unsigned int j = 0; j < connectedPlugs.length(); j++)
+   {
+      MPlug connection = connectedPlugs[j];
+      MObject shadingEngine = connection.node();
+
+      std::vector< CNodeTranslator * > translatorsToUpdate;
+      
+      MFnDependencyNode shadingEngineDNode(shadingEngine);
+      MPlug dagSetMembersPlug = shadingEngineDNode.findPlug("dagSetMembers");
+      const unsigned int numElements = dagSetMembersPlug.numElements();
+
+      // For each geometry connected to the shading engine
+      for(unsigned int i = 0; i < numElements; i++)
+      {
+         MPlug a = dagSetMembersPlug[i];
+         MPlugArray connectedPlugs;
+         a.connectedTo(connectedPlugs,true,false);
+
+         if (connectedPlugs.length() > 0)
+         {
+            MPlug connection = connectedPlugs[0];
+            MObject parent = connection.node();
+            MFnDependencyNode parentDag(parent);
+            
+            MDagPath dagPath;
+            MStatus status = MDagPath::getAPathTo(parent, dagPath);
+            if (!status)
+               continue;
+
+            // we don't want to export additional geometries, just get the already-exported 
+            // geometries associated to this dagPath
+            CNodeTranslator *translator2 = GetTranslator(dagPath); 
+            if (translator2 == NULL)
+               continue;
+
+            translator2->SetUpdateMode(AI_RECREATE_NODE);
+            translator2->RequestUpdate();
+
+            /*
+              Ok, there was surely a good reason to request updates twice here, but this was done a long time 
+              ago. So given that this original commit didn't contain any detail about "why twice", then we have 
+              to comment it and see exactly what issues it introduces....
+
+            // TODO: By now we have to check the connected nodes and if something that is not a mesh
+            //  is connected, we do not reexport, as some crashes may happen.
+            if(translator2->GetMayaNodeTypeName() != "mesh")
+            {
+               reexport = false;
+               break;
+            }
+            translatorsToUpdate.push_back(translator2);
+
+         }
+
+      }
+
+      // We only reexport if all nodes connected to the displacement are mesh nodes
+      if (reexport)
+      {
+         for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+            iter != translatorsToUpdate.end(); ++iter)
+         {
+            CNodeTranslator* translator3 = (*iter);
+            if (translator3 != NULL)
+            {
+               translator3->SetUpdateMode(AI_RECREATE_NODE);
+               translator3->RequestUpdate();
+            }
+         }
+      }*/
+         }
+      }
+   }
+}
 void DisplacementTranslatorNodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper("displacementShader");
@@ -1455,51 +1487,73 @@ AtNode* CAiImageTranslator::CreateArnoldNodes()
 
 void CAiImageTranslator::Export(AtNode* image)
 {
+   const CSessionOptions &options = GetSessionOptions();
+
+   // keep the previous filename
+   MString prevFilename = AiNodeGetStr(image, "filename");
+
    CShaderTranslator::Export(image);
    if (AiNodeGetLink(image, "filename") == 0)
    {
-      CRenderOptions renderOptions; 
-      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
-      renderOptions.GetFromMaya(); 
       MString filename(AiNodeGetStr(image, "filename"));
       filename = filename.expandEnvironmentVariablesAndTilde();
       
-      m_session->FormatTexturePath(filename);
-
-      MString prevFilename = AiNodeGetStr(image, "filename");
-
-      bool requestUpdateTx = true;
-      int prevFilenameLength = prevFilename.length();
-
-      if (prevFilenameLength > 0)
-      {
-         // arnold filename param
-         if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
-         {
-            MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
-
-            int dotPos = filename.rindexW(".");
-            if (dotPos > 0)
-            {
-               MString basename = filename.substring(0, dotPos - 1);
-               requestUpdateTx = (prevBasename != basename);
-            }
-         } else
-         {
-            // if previous filename and new one are exactly identical, it's useless to update Tx
-            requestUpdateTx = (prevFilename != filename);
-         }
-      }
+      options.FormatTexturePath(filename);
 
       MString colorSpace = FindMayaPlug("colorSpace").asString();
+
+      // if the color space has changed, we need to regenerate the TX
+      bool requestUpdateTx = (colorSpace != m_colorSpace);
       
-      if (colorSpace != m_colorSpace) requestUpdateTx = true;
+      // storing color space for next export
       m_colorSpace = colorSpace;
+
+      if (!requestUpdateTx)
+      {
+         // Color Space is the same, so let's check if the filename was modified
+         int prevFilenameLength = prevFilename.length();
+
+         if (prevFilenameLength > 0)
+         {
+            // seb 
+            // compare against previous filename to see if we need to re-generate the TX
+            if (prevFilenameLength > 3 && prevFilename.substring(prevFilenameLength - 3, prevFilenameLength - 1) == MString(".tx"))
+            {
+               // Previous Filename was .tx, either because of "use existing tx", 
+               // or because it's explicitely targeting the .tx
+               MString prevBasename = prevFilename.substring(0, prevFilenameLength - 4);
+
+               int dotPos = filename.rindexW(".");
+               if (dotPos > 0)
+               {
+                  MString basename = filename.substring(0, dotPos - 1);
+                  // Let's compare the basenames (without extension)
+                  if (prevBasename != basename)
+                  {
+                     // the basename was modified, this needs an update of TX
+                     requestUpdateTx = true;
+                  } else
+                  {
+                     //basename hasn't changed. However, I'm probably setting it back to non-tx here
+                     // so let's keep the previous one (where Use Tx was applied)
+                     filename = prevFilename;
+                  }
+               }
+            } else
+            {
+               // if previous filename and new one are exactly identical, it's useless to update Tx
+               requestUpdateTx = (prevFilename != filename);
+            }
+         } else if (filename.length() > 0)
+         {
+            requestUpdateTx = true;
+         }
+      }
 
       AiNodeSetStr(image, "filename", filename.asChar());
 
       // let Arnold Session know that image files have changed and it's necessary to update them
-      if (requestUpdateTx) m_session->RequestUpdateTx();
+      if (requestUpdateTx) RequestTxUpdate();
    }
 }
 
@@ -1589,10 +1643,10 @@ void CMayaShadingSwitchTranslator::Export(AtNode* shadingSwitch)
       if (conns.length() == 0)
          continue;
       MPlug inputShaderPlug = conns[0];
-      AtNode* shader = ExportNode(inputShaderPlug);
+      AtNode* shader = ExportConnectedNode(inputShaderPlug);
       if (shader == 0)
          continue;
-      AtNode* shape = ExportNode(inputShapePlug);
+      AtNode* shape = ExportConnectedNode(inputShapePlug);
       if (shape == 0)
          continue;
       inputs.push_back(shader);

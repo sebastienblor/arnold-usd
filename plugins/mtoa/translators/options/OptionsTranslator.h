@@ -1,6 +1,7 @@
 #pragma once
 
 #include "translators/NodeTranslator.h"
+#include "render/AOV.h"
 
 struct CAOVOutput
 {
@@ -27,9 +28,7 @@ class DLLEXPORT COptionsTranslator : public CNodeTranslator
 public:
    static void* creator(){return new COptionsTranslator();}
    virtual void Export(AtNode* options);
-   virtual void Update(AtNode *options);
    AtNode* CreateArnoldNodes();
-   virtual bool DependsOnExportCamera() {return true;}
 
    void SetCamera(AtNode *options);
    bool IsActiveAOV(CAOV &aov) const
@@ -52,11 +51,8 @@ protected:
       m_aovs(),
       m_aovsEnabled(true),
       m_aovsInUse(false)
-   {
-      // Just for debug info, translator creates whatever arnold nodes are required
-      // through the CreateArnoldNodes method
-      m_abstract.arnold = "options";
-   }
+   {}
+   
    void ProcessAOVs();
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();
@@ -74,8 +70,7 @@ protected:
                         bool& raw);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
-
+   
 protected:
    AOVSet m_aovs;
    std::vector<CAOVOutputArray> m_aovData;

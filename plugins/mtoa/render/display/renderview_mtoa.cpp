@@ -65,6 +65,12 @@ void CRenderViewMtoA::ProgressiveRenderFinished() {}
 #include <maya/MTimerMessage.h>
 
 
+#ifdef _DARWIN
+static Qt::WindowFlags RvQtFlags = Qt::Tool;
+#else
+static Qt::WindowFlags RvQtFlags = Qt::Window|Qt::WindowSystemMenuHint|Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
+#endif
+
 struct CARVSequenceData
 {
    float first;
@@ -76,6 +82,33 @@ struct CARVSequenceData
    std::string saveImagesValue;
 };
 static CARVSequenceData *s_sequenceData = NULL;
+/*
+#if MAYA_API_VERSION >= 201700
+
+#ifdef _LINUX
+// FIXME : make sure this is the definitive name of the file on linux. Why is just this one lower cased ?
+#include "QtWidgets/qdockwidget.h"
+#else
+#include "QtWidgets/QDockWidget.h"
+#endif
+
+#include "QtWidgets/QMainWindow.h"
+#else
+#include "QtGui/QDockWidget.h"
+#include "QtGui/QMainWindow.h"
+#endif
+
+class ARVDockWidget : public QDockWidget
+{
+public:
+   ARVDockWidget(CRenderViewMtoA &arv, QWidget*parent) : QDockWidget(parent, RvQtFlags), m_arv(arv) {}
+protected:
+   virtual void closeEvent(QCloseEvent *event) {m_arv.CloseRenderView();}
+   CRenderViewMtoA &m_arv;
+};
+static ARVDockWidget *s_arvDockWidget = NULL;
+*/
+
 CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
    m_rvSelectionCb(0),
    m_rvSceneSaveCb(0),
@@ -93,7 +126,6 @@ CRenderViewMtoA::CRenderViewMtoA() : CRenderViewInterface(),
 
 {   
 }
-
 CRenderViewMtoA::~CRenderViewMtoA()
 {
    if (m_rvSceneSaveCb)
@@ -189,6 +221,22 @@ void CRenderViewMtoA::OpenMtoARenderView(int width, int height)
    } 
 
    OpenRenderView(width, height, MQtUtil::mainWindow());
+/*
+   QWidget * mainWin = MQtUtil::mainWindow();
+   OpenRenderView(width, height, mainWin);
+   QMainWindow *arv = GetRenderView();
+   if (s_arvDockWidget == NULL){ 
+      s_arvDockWidget = new ARVDockWidget(*this, mainWin); 
+      s_arvDockWidget->setWidget(arv);
+      s_arvDockWidget->resize(arv->width(), arv->height());
+      s_arvDockWidget->setWindowTitle(arv->windowTitle());
+      s_arvDockWidget->setWindowIcon(arv->windowIcon());
+   }
+   //s_arvDockWidget->setFloating(true);
+   //s_arvDockWidget->resize(arv->width(), arv->height());
+   s_arvDockWidget->setWindowFlags(RvQtFlags);
+   s_arvDockWidget->show();
+*/
 
    if (exists && m_convertOptionsParam)
    {
@@ -616,7 +664,7 @@ void CRenderViewMtoA::RenderViewClosed()
    m_rvSceneSaveCb = 0;
 
    MProgressWindow::endProgress();
-
+   //s_arvDockWidget->hide();
 }
 CRenderViewPanManipulator *CRenderViewMtoA::GetPanManipulator()
 {
@@ -951,12 +999,19 @@ void CRenderViewMtoA::UpdateColorManagement()
 
    MStringArray viewTransforms;
    MGlobal::executeCommand("colorManagementPrefs -q -viewTransformNames", viewTransforms);
+   MString userPrefsDir;
+   MGlobal::executeCommand("internalVar -userPrefDir", userPrefsDir);
+   userPrefsDir += "/synColorConfig.xml";
+
    std::string allViewTransforms;
    for(unsigned idx=0; idx<viewTransforms.length(); ++idx)
    {
       allViewTransforms += viewTransforms[idx].asChar();
       allViewTransforms += ";";
    }
+
+   // Set the Color Management configuration before doing anything.
+   SetOption("Color Management.Config Files",  userPrefsDir.asChar()); 
 
    // The order of initialization is important to avoid useless changes.
    SetOption("Color Management.Enabled",        "false");

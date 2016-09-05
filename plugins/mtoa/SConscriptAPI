@@ -33,9 +33,11 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'light', 'LightTranslator.cpp'),
                     os.path.join('translators', 'options', 'OptionsTranslator.cpp'),
                     os.path.join('translators', 'shader', 'ShaderTranslator.cpp'),
+                    os.path.join('translators', 'shader', 'ShadingEngineTranslator.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
                     os.path.join('translators', 'AutoDagTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp'),
+                    os.path.join('translators', 'NodeTranslatorImpl.cpp'),
                     os.path.join('translators', 'DagTranslator.cpp')]
 
 source_files_rem =  [os.path.join('render', 'BatchProgressDriver.cpp'), os.path.join('utils', 'DrawUtils.cpp')]
@@ -123,17 +125,17 @@ if system.os() == 'windows':
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore4.lib', 'QtGui4.lib', 'QtOpenGL4.lib'])
     else:
-        local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib'])
+        local_env.Append(LIBS = ['Qt5Core.lib', 'Qt5Gui.lib', 'Qt5OpenGL.lib', 'Qt5Widgets.lib'])
 elif system.os() == 'linux':
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
     else:
-        local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL'])
+        local_env.Append(LIBS = ['Qt5Core', 'Qt5Gui', 'Qt5OpenGL', 'Qt5Widgets'])
 else:
     if (int(maya_version_base) <= 2016):
         local_env.Append(LIBS = ['QtCore', 'QtGui', 'QtOpenGL'])
     else:
-        local_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5'])
+        local_env.Append(LIBS = ['Qt5Core.5', 'Qt5Gui.5', 'Qt5OpenGL.5', 'Qt5Widgets.5'])
 
 if not local_env['MTOA_DISABLE_RV']:
     renderViewIncludeFolder = os.path.join(MTOA_EXTERNAL_PATH, 'renderview', 'include')

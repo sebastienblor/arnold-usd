@@ -114,6 +114,7 @@ private:
     };
     typedef std::map<unsigned int, InstanceInfo> InstanceInfoMap;
     InstanceInfoMap fInstanceInfoCache;
+	bool fLastTimeInvisible;
 };
 
 #endif

@@ -76,9 +76,9 @@ class DLLEXPORT CArnoldSession
 public:
 
    // Called by translators
-   CDagTranslator* ExportDagPath(MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
+   CDagTranslator* ExportDagPath(const MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
    CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
-                      bool initOnly=false, MStatus* stat=NULL);
+                      bool initOnly=false, int instanceNumber = -1, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
    unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
@@ -116,7 +116,8 @@ public:
    
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
-   inline std::vector<double> GetMotionFrames() const { return m_motion_frames; }
+   inline const std::vector<double> &GetMotionFrames() const { return m_motion_frames; }
+   inline unsigned int GetMotionStep() const {return m_motionStep;}
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
    inline void GetMotionRange(double &motion_start, double &motion_end) const {m_sessionOptions.GetMotionRange(motion_start, motion_end); }
 
@@ -137,13 +138,14 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void QueueForUpdate(const CNodeAttrHandle & handle);
    void RequestUpdate();
+   void EraseActiveTranslator(const CNodeAttrHandle &handle);
 
    // Instances
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};
 
-   bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
-   bool IsInteractiveRender() const {return (GetSessionMode() == MTOA_SESSION_RENDERVIEW || GetSessionMode() == MTOA_SESSION_IPR); }
+   bool IsBatch() const { return m_sessionOptions.IsBatch(); }
+   bool IsInteractiveRender() const {return m_sessionOptions.IsInteractiveRender();}
 
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
@@ -199,6 +201,7 @@ private:
       ,  m_numLights(0)
       ,  m_lightLinks(MLightLinks())
       ,  m_isExportingMotion(false)
+      ,  m_motionStep(0)
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
       ,  m_is_active(false)
@@ -258,14 +261,14 @@ private:
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;
+   int m_motionStep;
 
    bool m_requestUpdate;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
    
    // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
-   std::vector<CNodeTranslator*> m_processedTranslatorList;
-
+   
    double m_scaleFactor;
    MMatrix m_scaleFactorMMatrix;
    AtMatrix m_scaleFactorAtMatrix;

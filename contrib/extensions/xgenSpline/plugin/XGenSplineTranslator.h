@@ -10,8 +10,7 @@ class CXgSplineDescriptionTranslator : public CShapeTranslator
 public:
     virtual AtNode* CreateArnoldNodes();
     virtual void Export(AtNode* procedural);
-    virtual void Update(AtNode* procedural);
-    virtual void ExportMotion(AtNode* procedural, unsigned int step);
+    virtual void ExportMotion(AtNode* procedurald);
 
     static void NodeInitializer(CAbTranslator context);
     static void* creator()

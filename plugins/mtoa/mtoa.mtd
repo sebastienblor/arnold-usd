@@ -34,87 +34,112 @@
         softmin             INT     1
         softmax             INT     10
         default             INT     3
+        linkable            BOOL    False
         maya.orig_shortname STRING  "AAsmpls"
     [attr bucket_size]
         maya.keyable        BOOL    False
         min                 INT     16
         softmin             INT     16
         softmax             INT     256
+        linkable            BOOL    False
         maya.orig_shortname STRING  "bktsz"
     [attr abort_on_error]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
         maya.orig_shortname STRING  "abort"
     [attr abort_on_license_fail]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
         maya.orig_shortname STRING  "abortlic"
     [attr AA_sample_clamp]
         maya.keyable        BOOL    False
         softmin             FLOAT   0.001
         softmax             FLOAT   100.0
         default             FLOAT   10.0
+        linkable            BOOL    False
         maya.orig_shortname STRING  "smpclamp"
     [attr AA_sample_clamp_affects_aovs]
-        maya.keyable        BOOL    False    
+        maya.keyable        BOOL    False
+        linkable            BOOL    False    
         maya.name           STRING  "use_sample_clamp_AOVs"
     [attr ignore_textures]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_shaders]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_lights]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_shadows]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_subdivision]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_displacement]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_motion_blur]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_smoothing]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_sss]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr ignore_bump]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
     [attr auto_transparency_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
+        linkable            BOOL    False
         maya.orig_shortname STRING  "at_d"
     [attr auto_transparency_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
         max                 FLOAT   1.0
+        linkable            BOOL    False
         maya.orig_shortname STRING  "at_t"
     [attr show_samples]
-        maya.keyable        BOOL    False   
+        maya.keyable        BOOL    False
+        linkable            BOOL    False   
         maya.orig_shortname STRING  "sssshs"
     [attr max_subdivisions]
         maya.keyable        BOOL    False
         min                 INT     0
         max                 INT     999
         default             INT     999
+        linkable            BOOL    False
         maya.orig_shortname STRING  "maxs"
     [attr texture_max_memory_MB]
         maya.keyable        BOOL    False
         default             FLOAT   1024
+        linkable            BOOL    False
         maya.orig_shortname STRING  "tx_mm"
     [attr texture_automip]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
         maya.orig_shortname STRING  "tx_am"
     [attr texture_autotile]
         maya.keyable        BOOL    False
+        linkable            BOOL    False
         maya.orig_shortname STRING  "tx_at"
     [attr texture_glossy_blur]
         maya.keyable        BOOL    False
         default             FLOAT   0
+        linkable            BOOL    False
     [attr GI_diffuse_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
         default             INT     1
+        linkable            BOOL    False
         maya.orig_shortname STRING  "GI_dd"
     [attr GI_glossy_depth]
         maya.keyable        BOOL    False
@@ -122,18 +147,21 @@
         softmin             INT     0
         softmax             INT     16
         default             INT     1
+        linkable            BOOL    False
         maya.orig_shortname STRING  "GI_gd"
     [attr GI_reflection_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
+        linkable            BOOL    False
         maya.orig_shortname STRING  "GI_rld"
     [attr GI_refraction_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
+        linkable            BOOL    False
         maya.orig_shortname STRING  "GI_rrd"
     [attr GI_volume_depth]
         maya.keyable        BOOL    False
@@ -141,12 +169,14 @@
         softmin             INT     0
         softmax             INT     16
         maya.orig_shortname STRING  "GI_vd"
+        linkable            BOOL    False
     [attr GI_total_depth]
         maya.keyable        BOOL    False
         min                 INT     0
         softmin             INT     0
         softmax             INT     16
         maya.orig_shortname STRING  "GI_td"
+        linkable            BOOL    False
     [attr GI_diffuse_samples]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -154,6 +184,7 @@
         softmin             INT     0
         softmax             INT     10
         maya.orig_shortname STRING  "GIdiffsmpls"
+        linkable            BOOL    False
     [attr GI_glossy_samples]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -161,12 +192,14 @@
         softmin             INT     0
         softmax             INT     10
         maya.orig_shortname STRING  "GIglossmpls"
+        linkable            BOOL    False
     [attr GI_refraction_samples]
         maya.keyable        BOOL    False
         min                 INT     0
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
+        linkable            BOOL    False
     [attr GI_sss_samples]
         maya.keyable        BOOL    False
         min                 INT     0
@@ -174,16 +207,25 @@
         softmin             INT     0
         softmax             INT     10        
         default             INT     2
+        linkable            BOOL    False
     [attr GI_volume_samples]
         maya.keyable        BOOL    False
         min                 INT     0
         softmax             INT     10
+        linkable            BOOL    False
     [attr low_light_threshold]
         maya.keyable        BOOL    False
         min                 FLOAT   0.0
         softmax             FLOAT   0.1
+        linkable            BOOL    False
     [attr enable_fast_opacity]
         default             BOOL    True
+        linkable            BOOL    False        
+    [attr background]
+        linkable            BOOL    False
+    [attr atmosphere]
+        linkable            BOOL    False
+
 
 # lights
 
@@ -1493,31 +1535,37 @@
     [attr turbidity]
         softmin             FLOAT   1
         softmax             FLOAT   10
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr elevation]
         softmin             FLOAT   0.0
         softmax             FLOAT   90.0
-        linkable            BOOL    True
+        linkable            BOOL    False
+    [attr use_degrees]
+        linkable            BOOL    False
     [attr azimuth]
         softmin             FLOAT   0.0
         softmax             FLOAT   360.0
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr intensity]
         softmin             FLOAT   0.1
         softmax             FLOAT   10
-        linkable            BOOL    True
+        linkable            BOOL    False
+    [attr sun_direction]
+        linkable            BOOL    False
+    [attr enable_sun]
+        linkable            BOOL    False
     [attr sun_size]
         softmin             FLOAT   0.1
         softmax             FLOAT   5.0
-        linkable            BOOL    True
+        linkable            BOOL    False
     [attr sun_tint]
-        linkable            BOOL    True
+        linkable            BOOL    False
         maya.channelbox     BOOL    True
     [attr sky_tint]
-        linkable            BOOL    True
+        linkable            BOOL    False
         maya.channelbox     BOOL    True
     [attr ground_albedo]
-        linkable            BOOL    True
+        linkable            BOOL    False
         maya.channelbox     BOOL    True
         
 [node density]

@@ -4,6 +4,10 @@
 #include <ai_universe.h>
 #include <ai_metadata.h>
 #include <ai_render.h>
+#include <ai_nodes.h>
+#include <ai_node_entry.h>
+#include <ai_plugins.h>
+#include <ai_license.h>
 
 #include <maya/MGlobal.h>
 
@@ -22,7 +26,7 @@ MStatus ReadMetafile()
    bool readMetaSuccess = AiMetaDataLoadFile(g_metafile.asChar());
    if (!readMetaSuccess)
    {
-      AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
+      AiMsgError("[mtoa] Could not read mtoa built-in metadata file \"%s\"", g_metafile.asChar());
       return MStatus::kFailure;
    }
    return MStatus::kSuccess;
