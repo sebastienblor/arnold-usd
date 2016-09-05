@@ -49,6 +49,7 @@ public :
       m_shaders(NULL),
       m_sourceTranslator(NULL),
       m_isExported(false),
+      m_animArrays(false),
       m_tr(translator){}
    virtual ~CNodeTranslatorImpl() {}
 
@@ -109,10 +110,12 @@ public :
    void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
 
    AtNode* ExportConnectedNode(const MPlug& outputPlug, bool track=true, CNodeTranslator** outTranslator = NULL);
+   bool HasAnimatedArrays() const;
 
    CNodeAttrHandle m_handle;
    CNodeTranslator::UpdateMode m_updateMode;
    bool m_holdUpdates; // for Arnold RenderView only
+   bool m_animArrays;
    CAbTranslator m_abstract;
 
    CArnoldSession* m_session;
